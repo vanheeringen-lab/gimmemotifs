@@ -1,0 +1,171 @@
+This is pdfTeXk, Version 3.1415926-1.40.9 (Web2C 7.5.7) (format=pdflatex 2010.2.16)  22 JUN 2010 13:27
+entering extended mode
+ %&-line parsing enabled.
+**gimmemotifs_manual.tex
+(./gimmemotifs_manual.tex
+LaTeX2e <2005/12/01>
+Babel <v3.8l> and hyphenation patterns for english, usenglishmax, dumylang, noh
+yphenation, loaded.
+(/usr/share/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2005/09/16 v1.4f Standard LaTeX document class
+(/usr/share/texmf-dist/tex/latex/base/size10.clo
+File: size10.clo 2005/09/16 v1.4f Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(/usr/share/texmf-dist/tex/latex/ltxmisc/url.sty
+\Urlmuskip=\muskip10
+Package: url 2006/04/12  ver 3.3  Verb mode for urls, etc.
+) (./natbib.sty
+Package: natbib 2000/07/24 7.0a (PWD)
+\bibhang=\skip43
+\bibsep=\skip44
+LaTeX Info: Redefining \cite on input line 508.
+\c@NAT@ctr=\count87
+)
+(./gimmemotifs_manual.aux)
+\openout1 = `gimmemotifs_manual.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 10.
+LaTeX Font Info:    ... okay on input line 10.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 10.
+LaTeX Font Info:    ... okay on input line 10.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 10.
+LaTeX Font Info:    ... okay on input line 10.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 10.
+LaTeX Font Info:    ... okay on input line 10.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 10.
+LaTeX Font Info:    ... okay on input line 10.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 10.
+LaTeX Font Info:    ... okay on input line 10.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 12.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 12.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 12.
+ [1
+
+{//var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (./gimmemotifs_manual.toc
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 3.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 3.
+)
+\tf@toc=\write3
+\openout3 = `gimmemotifs_manual.toc'.
+
+ [2
+
+]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 34.
+
+(/usr/share/texmf-dist/tex/latex/base/omscmr.fd
+File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 34.
+ [3]
+Overfull \hbox (4.02751pt too wide) in paragraph at lines 67--69
+[]\OT1/cmr/m/n/10 MDmodule[[]] (in-cluded in the Mo-tifRe-gres-sor Pack-age) $\
+OT1/cmtt/m/n/10 http : / / www . math .
+ []
+
+
+Overfull \hbox (40.9977pt too wide) in paragraph at lines 71--72
+[]\OT1/cmr/m/n/10 MotifSampler[[]] $\OT1/cmtt/m/n/10 http : / / homes . esat . 
+kuleuven . be / []thijs / Work / MotifSampler .
+ []
+
+
+Overfull \hbox (9.98381pt too wide) in paragraph at lines 72--73
+[]\OT1/cmr/m/n/10 GADEM[[]] $\OT1/cmtt/m/n/10 http : / / www . niehs . nih . go
+v / research / resources / software /
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 84--88
+
+ []
+
+[4]
+Underfull \hbox (badness 10000) in paragraph at lines 90--94
+
+ []
+
+
+Overfull \hbox (97.56827pt too wide) in paragraph at lines 110--111
+\OT1/cmr/m/n/10 ing this op-tion Gim-meM-o-tifs will cre-ate a con-fig-u-ra-tio
+n file \OT1/cmtt/m/n/10 /usr/share/motiftools/motiftools.cfg
+ []
+
+[5]
+Overfull \hbox (62.66466pt too wide) in paragraph at lines 127--128
+\OT1/cmr/m/n/10 there needs to be a file de-scrib-ing genes in BED for-mat in t
+he \OT1/cmtt/m/n/10 /usr/share/motiftools/genes/
+ []
+
+LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <10> not available
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 129.
+
+Overfull \hbox (83.44646pt too wide) in paragraph at lines 134--135
+\OT1/cmr/m/n/10 tory \OT1/cmtt/m/n/10 /usr/share/motiftools/MotifSampler \OT1/c
+mr/m/n/10 and it should be named \OT1/cmtt/m/n/10 <organism[]index[]name>.bg\OT
+1/cmr/m/n/10 .
+ []
+
+
+Overfull \hbox (153.9851pt too wide) in paragraph at lines 134--135
+\OT1/cmr/m/n/10 So, for in-stance, if I down-loaded the hu-man epd back-ground 
+(\OT1/cmtt/m/n/10 epd[]homo[]sapiens[]499[]chromgenes[]non[]split[]3.bg\OT1/cmr
+/m/n/10 ),
+ []
+
+
+Overfull \hbox (39.29039pt too wide) in paragraph at lines 137--140
+\OT1/cmr/m/n/10 All of Gim-meM-o-tifs con-fig-u-ra-tion is stored in \OT1/cmtt/
+m/n/10 /usr/share/motiftools/motiftools.cfg
+ []
+
+[6]
+Overfull \hbox (53.99652pt too wide) in paragraph at lines 173--173
+[]\OT1/cmtt/m/n/10 available_tools = Weeder,MDmodule,MotifSampler,gadem,meme,tr
+awler,WannaMotif[] 
+ []
+
+[7] [8] [9] (./gimmemotifs_manual.bbl
+Missing character: There is no Ã in font cmr7!
+Missing character: There is no © in font cmr7!
+) [10] (./gimmemotifs_manual.aux) ) 
+Here is how much of TeX's memory you used:
+ 587 strings out of 495069
+ 6742 string characters out of 1183033
+ 56393 words of memory out of 3000000
+ 3819 multiletter control sequences out of 10000+50000
+ 8758 words of font info for 31 fonts, out of 3000000 for 5000
+ 28 hyphenation exceptions out of 8191
+ 23i,6n,20p,820b,241s stack positions out of 5000i,500n,10000p,200000b,50000s
+</usr/share/texmf-dist/fonts/type1/bluesky/c
+m/cmbx10.pfb></usr/share/texmf-dist/fonts/type1/bluesky/cm/cmbx12.pfb></usr/sha
+re/texmf-dist/fonts/type1/bluesky/cm/cmr10.pfb></usr/share/texmf-dist/fonts/typ
+e1/bluesky/cm/cmr12.pfb></usr/share/texmf-dist/fonts/type1/bluesky/cm/cmr17.pfb
+></usr/share/texmf-dist/fonts/type1/bluesky/cm/cmr7.pfb></usr/share/texmf-dist/
+fonts/type1/bluesky/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/bluesky/cm
+/cmti10.pfb></usr/share/texmf-dist/fonts/type1/bluesky/cm/cmti7.pfb></usr/share
+/texmf-dist/fonts/type1/bluesky/cm/cmtt10.pfb>
+Output written on gimmemotifs_manual.pdf (10 pages, 110648 bytes).
+PDF statistics:
+ 75 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 131072)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+

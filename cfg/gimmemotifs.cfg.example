@@ -1,0 +1,3 @@
+[main]
+index_dir = /usr/share/motiftools/genome_index
+template_dir = /usr/share/motiftools/templates

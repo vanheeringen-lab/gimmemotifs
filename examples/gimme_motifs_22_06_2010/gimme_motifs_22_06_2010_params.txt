@@ -1,0 +1,15 @@
+background	random
+lwidth	500
+abs_max	100
+weird_option	False
+use_strand	False
+tools	MDmodule
+analysis	medium
+pvalue	0.001
+width	200
+keep_intermediate	False
+genome	hg18
+fraction	0.2
+cluster_threshold	0.95
+available_tools	MDmodule,meme,Weeder,gadem,MotifSampler,trawler,Improbizer,MoAn,BioProspector
+enrichment	1.5

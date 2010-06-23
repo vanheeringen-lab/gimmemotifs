@@ -1,0 +1,45 @@
+This is BibTeX, Version 0.99c (Web2C 7.5.7)
+The top-level auxiliary file: gimmemotifs_manual.aux
+The style file: plain.bst
+Database file #1: /home/simon/prj/gimmemotifs/manuscript/tex/gimmemotifs.bib
+You've used 7 entries,
+            2118 wiz_defined-function locations,
+            551 strings with 6059 characters,
+and the built_in function-call counts, 3612 in all, are:
+= -- 331
+> -- 280
+< -- 0
++ -- 114
+- -- 104
+* -- 357
+:= -- 633
+add.period$ -- 24
+call.type$ -- 7
+change.case$ -- 73
+chr.to.int$ -- 0
+cite$ -- 7
+duplicate$ -- 77
+empty$ -- 195
+format.name$ -- 104
+if$ -- 681
+int.to.chr$ -- 0
+int.to.str$ -- 7
+missing$ -- 7
+newline$ -- 41
+num.names$ -- 14
+pop$ -- 56
+preamble$ -- 1
+purify$ -- 66
+quote$ -- 0
+skip$ -- 49
+stack$ -- 0
+substring$ -- 228
+swap$ -- 7
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 28
+warning$ -- 0
+while$ -- 28
+width$ -- 8
+write$ -- 85

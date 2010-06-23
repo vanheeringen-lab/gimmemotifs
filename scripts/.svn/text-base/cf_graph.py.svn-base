@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+# Copyright (c) 2009-2010 Simon van Heeringen <s.vanheeringen@ncmls.ru.nl>
+#
+# This module is free software. You can redistribute it and/or modify it under 
+# the terms of the MIT License, see the file COPYING included with this 
+# distribution.
+
+from optparse import OptionParser
+from numpy import *
+import matplotlib
+matplotlib.use('SVG')
+import matplotlib.pyplot as plt
+from matplotlib.ticker import NullFormatter
+import sys
+
+colors = [matplotlib.cm.Paired(256 / 11 * ((i * 2) + 1)) for i in range(5)]
+
+
+VERSION = "0.1"
+DEFAULT_BIN = 10
+CF_CUTOFF = 4
+
+def get_bins(coords, bins=50, range=(0,500)):
+	coords = array(coords)
+	hist, edges = histogram(coords, bins=bins, range=range)
+	return hist,edges
+
+def cf(bins, edges):
+	xmean = mean(bins[edges < 300])
+	s = std(bins[edges < 300])
+	xmax = max(bins[edges >= 300])
+	return CF_CUTOFF + s + xmean, (xmax - xmean) / s
+
+parser = OptionParser(version="%prog " + VERSION)
+parser.add_option("-g", "--gfffile", dest="gfffile", help="Inputfile in GFF format", metavar="FILE")
+parser.add_option("-b", "--binsize", dest="binsize", help="Bin size (default %s)" % DEFAULT_BIN, metavar="FILE", default=DEFAULT_BIN)
+
+(options, args) = parser.parse_args()
+
+#if not options.gfffile:
+#	parser.print_help()
+#	sys.exit()
+
+f = open("/home/simon/prj/waseem/cf_graphs/test")
+coords = []
+for line in f.readlines():
+	vals = line.strip().split("\t")
+	coords.append((int(vals[3]) + int(vals[4]))/2)
+
+y,x = get_bins(coords)
+x = x[:-1] + (x[1] - x[0]) / 2
+cutoff, cf = cf(y,x)
+print cutoff
+#print len(x), len(y)
+fig = plt.figure(figsize=(4,2))
+ax = fig.add_axes([0.08,0.1,0.88,0.8])
+formatter = NullFormatter()
+ax.xaxis.set_major_formatter(formatter)
+plt.plot(x,y, linewidth=1, color=colors[0])
+plt.plot([0,500],[cutoff,cutoff], color=colors[2], linewidth=2)
+plt.text(0.05,0.8,"TGATATCA", transform=ax.transAxes)
+#plt.show()
+plt.savefig("test.svg", format="svg")

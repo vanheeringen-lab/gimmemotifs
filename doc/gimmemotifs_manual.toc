@@ -1,0 +1,19 @@
+\contentsline {section}{\numberline {1}Introduction}{2}
+\contentsline {section}{\numberline {2}Installation}{2}
+\contentsline {subsection}{\numberline {2.1}Prerequisites}{3}
+\contentsline {subsubsection}{\numberline {2.1.1}Required packages (Python)}{3}
+\contentsline {subsubsection}{\numberline {2.1.2}Other required packages}{3}
+\contentsline {subsubsection}{\numberline {2.1.3}Motif prediction programs}{4}
+\contentsline {subsubsection}{\numberline {2.1.4}Data sources}{4}
+\contentsline {subsection}{\numberline {2.2}Building from source}{5}
+\contentsline {subsection}{\numberline {2.3}Configuration}{5}
+\contentsline {subsubsection}{\numberline {2.3.1}Indexing the genomes}{5}
+\contentsline {subsubsection}{\numberline {2.3.2}Adding gene files}{6}
+\contentsline {subsubsection}{\numberline {2.3.3}The easy way: \texttt {add\_organism.py}}{6}
+\contentsline {subsubsection}{\numberline {2.3.4}MotifSampler configuration}{6}
+\contentsline {subsubsection}{\numberline {2.3.5}Other configuration options}{6}
+\contentsline {section}{\numberline {3}Usage}{7}
+\contentsline {subsection}{\numberline {3.1}Quick GimmeMotifs example}{7}
+\contentsline {subsection}{\numberline {3.2}Detailed options}{8}
+\contentsline {subsection}{\numberline {3.3}Other scripts}{9}
+\contentsline {section}{\numberline {4}Acknowledgements}{9}

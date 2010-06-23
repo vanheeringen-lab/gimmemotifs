@@ -1,0 +1,561 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+           "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<meta name="GENERATOR" content="TtH 3.77">
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+ <style type="text/css"> div.p { margin-top: 7pt;}</style>
+ <style type="text/css"><!--
+ td div.comp { margin-top: -0.6ex; margin-bottom: -1ex;}
+ td div.comb { margin-top: -0.6ex; margin-bottom: -.6ex;}
+ td div.hrcomp { line-height: 0.9; margin-top: -0.8ex; margin-bottom: -1ex;}
+ td div.norm {line-height:normal;}
+ span.roman {font-family: serif; font-style: normal; font-weight: normal;} 
+ span.overacc2 {position: relative;  left: .8em; top: -1.2ex;}
+ span.overacc1 {position: relative;  left: .6em; top: -1.2ex;} --></style>
+
+
+<title> GimmeMotifs documentation</title>
+ 
+<h1 align="center">GimmeMotifs documentation </h1>
+
+<h3 align="center">Simon van Heeringen </h3>
+
+<h3 align="center">Feb 16, 2010
+</h3>
+
+<div class="p"><!----></div>
+ 
+<h1>Contents </h1><a href="#tth_sEc1"
+>1&nbsp; Introduction</a><br />
+<a href="#tth_sEc2"
+>2&nbsp; Installation</a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc2.1"
+>2.1&nbsp; Prerequisites</a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc2.1.1"
+>2.1.1&nbsp; Required packages (Python)</a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc2.1.2"
+>2.1.2&nbsp; Other required packages</a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc2.1.3"
+>2.1.3&nbsp; Motif prediction programs</a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc2.1.4"
+>2.1.4&nbsp; Data sources</a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc2.2"
+>2.2&nbsp; Building from source</a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc2.3"
+>2.3&nbsp; Configuration</a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc2.3.1"
+>2.3.1&nbsp; Indexing the genomes</a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc2.3.2"
+>2.3.2&nbsp; Adding gene files</a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc2.3.3"
+>2.3.3&nbsp; MotifSampler configuration</a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc2.3.4"
+>2.3.4&nbsp; Other configuration options</a><br />
+<a href="#tth_sEc3"
+>3&nbsp; Usage</a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc3.1"
+>3.1&nbsp; Quick GimmeMotifs example</a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc3.2"
+>3.2&nbsp; Detailed options</a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc3.3"
+>3.3&nbsp; Other scripts</a><br />
+<a href="#tth_sEc4"
+>4&nbsp; Acknowledgements</a><br />
+
+
+<div class="p"><!----></div>
+ <h2><a name="tth_sEc1">
+1</a>&nbsp;&nbsp;Introduction</h2>
+GimmeMotifs is a <i>de novo</i> motif prediction pipeline, especially suited for ChIP-seq datasets. It incorporates several existing motif prediction algorithms in an ensemble method to predict motifs and clusters these motifs using the WIC similarity scoring metric. It is freely available for download and use under the MIT license. If you find GimmeMotifs useful, please cite:<br />
+van Heeringen S.J. and Veenstra G.J., GimmeMotifs: a systematic <i>de novo</i> motif prediction pipeline, <i>in preparation</i>.
+
+<div class="p"><!----></div>
+This document describes how to install and use GimmeMotifs, for theoretical details, please see our publication .
+
+<div class="p"><!----></div>
+Hopefully this document explains at least the basics of installation and usage, but it's probably far from complete. If you have any further question, please don't hesistate to contact me: <a href="s.vanheeringen@ncmls.ru.nl"><tt>s.vanheeringen@ncmls.ru.nl</tt></a>.
+
+<div class="p"><!----></div>
+ <h2><a name="tth_sEc2">
+2</a>&nbsp;&nbsp;Installation</h2>
+I have tried to make installation of GimmeMotifs as easy as possible. However, as it depends on quite some external packages (motif prediction tools!), it's still not quite a single-click install. Please make sure all prerequisites are installed before installing GimmeMotifs.
+
+<div class="p"><!----></div>
+     <h3><a name="tth_sEc2.1">
+2.1</a>&nbsp;&nbsp;Prerequisites</h3>
+GimmeMotifs runs on Linux. Definitely not on Windows, sorry. Mac OS X should work in theory, but as I don't have the option to test this, I'm not sure how to get it to work.
+
+<div class="p"><!----></div>
+Before you can install GimmeMotifs you'll need: 
+
+<ul>
+<li> some Python modules and other packages
+<div class="p"><!----></div>
+</li>
+
+<li> genomic sequences
+<div class="p"><!----></div>
+</li>
+
+<li> motif prediction tools
+<div class="p"><!----></div>
+</li>
+</ul>
+
+<div class="p"><!----></div>
+      <h4><a name="tth_sEc2.1.1">
+2.1.1</a>&nbsp;&nbsp;Required packages (Python)</h4>
+
+<ul>
+<li> Python 2.6 (not Python 3) <a href="http://www.python.org"><tt>http://www.python.org</tt></a>
+<div class="p"><!----></div>
+</li>
+
+<li> Scipy <a href="http://www.scipy.org/"><tt>http://www.scipy.org/</tt></a> <br />
+SciPy is the fundamental package needed for scientific computing with Python.
+<div class="p"><!----></div>
+</li>
+
+<li> matplotlib (0.99.1 or higher) <a href="http://matplotlib.sourceforge.net/"><tt>http://matplotlib.sourceforge.net/</tt></a> <br />
+A python 2D plotting library. All figures and plots produced by GimmeMotifs are made using matplotlib.
+<div class="p"><!----></div>
+</li>
+
+<li> parallel python <a href="http://www.parallelpython.com/"><tt>http://www.parallelpython.com/</tt></a> <br />
+A python module which provides mechanism for parallel execution of python code. This Python library is used for parallel execution of for instance the motif finding tools.
+<div class="p"><!----></div>
+</li>
+
+<li> kid <a href="http://www.kid-templating.org/"><tt>http://www.kid-templating.org/</tt></a> <br />
+A simple template language for XML based vocabularies; used to produce the HTML reports.
+<div class="p"><!----></div>
+</li>
+</ul>
+
+<div class="p"><!----></div>
+      <h4><a name="tth_sEc2.1.2">
+2.1.2</a>&nbsp;&nbsp;Other required packages</h4>
+
+<ul>
+<li> gsl <a href="http://www.gnu.org/software/gsl/"><tt>http://www.gnu.org/software/gsl/</tt></a> <br />
+The GNU Scientific Library. 
+Most likely this library is already installed on your system, but it can't hurt to check.
+<div class="p"><!----></div>
+</li>
+
+<li> WebLogo 2.8 (not version 3!) <a href="http://weblogo.berkeley.edu/"><tt>http://weblogo.berkeley.edu/</tt></a> <br />
+To visualize sequence logos.
+<div class="p"><!----></div>
+</li>
+</ul>
+
+<div class="p"><!----></div>
+      <h4><a name="tth_sEc2.1.3">
+2.1.3</a>&nbsp;&nbsp;Motif prediction programs</h4>
+In addition to all the basics you need to get GimmeMotifs up and running you will also need the motif prediction tools, which can be used by GimmeMotifs to predict motifs. You can use any or all of these according to your preference. The following tools are supported by GimmeMotifs:
+
+<ul>
+<li> meme<a href="#bailey_meme_2009" name="CITEbailey_meme_2009">[1</a>] <a href="http://meme.sdsc.edu/"><tt>http://meme.sdsc.edu/</tt></a>
+<div class="p"><!----></div>
+</li>
+
+<li> MDmodule<a href="#liu_algorithm_2002" name="CITEliu_algorithm_2002">[4</a>] (included in the MotifRegressor
+Package) <a href="http://www.math.umass.edu/~conlon/mr.html"><tt>http://www.math.umass.edu/~conlon/mr.html</tt></a>
+<div class="p"><!----></div>
+</li>
+
+<li> Weeder<a href="#pavesi_weeder_2004" name="CITEpavesi_weeder_2004">[5</a>] <a href="http://159.149.109.9/modtools/"><tt>http://159.149.109.9/modtools/</tt></a>
+<div class="p"><!----></div>
+</li>
+
+<li> trawler<a href="#ettwiller_trawler:_2007" name="CITEettwiller_trawler:_2007">[2</a>] <a href="http://ani.embl.de/trawler/"><tt>http://ani.embl.de/trawler/</tt></a>
+<div class="p"><!----></div>
+</li>
+
+<li> MotifSampler<a href="#thijs_higher-order_2001" name="CITEthijs_higher-order_2001">[7</a>] <a href="http://homes.esat.kuleuven.be/~thijs/Work/MotifSampler.html"><tt>http://homes.esat.kuleuven.be/~thijs/Work/MotifSampler.html</tt></a>
+<div class="p"><!----></div>
+</li>
+
+<li> GADEM<a href="#li_gadem:genetic_2009" name="CITEli_gadem:genetic_2009">[3</a>] <a href="http://www.niehs.nih.gov/research/resources/software/gadem/"><tt>http://www.niehs.nih.gov/research/resources/software/gadem/</tt></a>
+<div class="p"><!----></div>
+</li>
+</ul>
+Please consult the respective manuals regarding installation of these tools. As mentioned, you can install any or all of them, according to your needs. However, we recommend installing at least several to leverage the ensemble approach of GimmeMotifs. The top performing tools in our ChIP-seq benchmarks were meme and MotifSampler, but all other tools find motifs that are not found by other tools. In fact, it's because there is no single all-round top performing method that GimmeMotifs exist. 
+
+<div class="p"><!----></div>
+It's always possible to install these programs after installation of GimmeMotifs and update the configuration files to include the new tools. However, during installation, GimmeMotifs will try to find any installed tools and add them automatically, so that's the easiest option.
+
+<div class="p"><!----></div>
+After installation of MotifSampler, one additional configuration step is necessary, described in section <a href="#sec:MotifSampler">2.3.3</a>.
+
+<div class="p"><!----></div>
+      <h4><a name="tth_sEc2.1.4">
+2.1.4</a>&nbsp;&nbsp;Data sources</h4>
+You will need some genome fasta files for any motif-prediction. Currently GimmeMotifs uses BED-files as input (as that's the data-format ChIP-seq pipelines commonly produce), so the genomic fasta files are absolutely required to get the sequence information. These files should be organized in one directory with one file per chromosome or scaffold, with the filename being the chromosome name with an extension of <tt>.fa</tt>, <tt>.fsa</tt> or <tt>.fasta</tt>. No exceptions, no different layouts. A good source is the UCSC Genome Browser database <a href="#rhead_ucsc_2010" name="CITErhead_ucsc_2010">[6</a>]. For instance, the human hg18 files needed to run the examples included with GimmeMotifs can be downloaded here:<br />
+<a href="ftp://hgdownload.cse.ucsc.edu/goldenPath/hg18/bigZips/chromFa.zip"><tt>ftp://hgdownload.cse.ucsc.edu/goldenPath/hg18/bigZips/chromFa.zip</tt></a>.<br />
+<br />
+All fasta files need to be indexed before GimmeMotifs can use them, see section <a href="#sec:indexing">2.3.1</a>.
+
+<div class="p"><!----></div>
+     <h3><a name="tth_sEc2.2">
+2.2</a>&nbsp;&nbsp;Building from source</h3>
+You can download the lastest version of GimmeMotifs at:<br />
+<a href="http://www.ncmls.eu/bioinfo/gimmemotifs/"><tt>http://www.ncmls.eu/bioinfo/gimmemotifs/</tt></a>. <br />
+<br />
+Start by unpacking the source archive
+
+<pre>
+tar&nbsp;xvzf&nbsp;gimmemotifs-1.00.tar.gz
+cd&nbsp;gimmemotifs-1.00
+
+</pre>
+You can build GimmeMotifs with the following command:
+
+<pre>
+python&nbsp;setup.py&nbsp;build
+
+</pre>
+Run the tests to check if the basics work correctly:
+
+<pre>
+python&nbsp;run_tests.py
+
+</pre>
+If you encounter no errors, go ahead with installing GimmeMotifs (root privileges required):
+
+<pre>
+sudo&nbsp;python&nbsp;setup.py&nbsp;install
+
+</pre>
+During installation GimmeMotifs will try to locate the tools you have installed. If you have recently installed them, running an <tt>updatedb</tt> will be necessary.
+
+<div class="p"><!----></div>
+     <h3><a name="tth_sEc2.3">
+2.3</a>&nbsp;&nbsp;Configuration</h3>
+
+      <h4><a name="tth_sEc2.3.1">
+2.3.1</a>&nbsp;&nbsp;Indexing the genomes</h4>
+<a name="sec:indexing">
+</a>
+All the genomes that you want to use with GimmeMotifs will need to be indexed for (relatively) fast retrieval of sequences. You can do this, once you have installed GimmeMotifs, by running the following command (as root or with sudo):
+
+<pre>
+create_genome_index.py&nbsp;-f&nbsp;/dir/to/fasta/files/&nbsp;-n&nbsp;genome_name
+
+</pre>
+For instance, if I want to index the human genome (version hg18) on my computer, where all fasta files are located in the directory <tt>/usr/share/genome/</tt> I would run the following command:
+
+<pre>
+sudo&nbsp;create_genome_index.py&nbsp;-f&nbsp;/usr/share/genome/hg18/&nbsp;-n&nbsp;hg18
+
+</pre>
+Repeat this step for every additional genome or organism that you want to use GimmeMotifs with.
+
+<div class="p"><!----></div>
+      <h4><a name="tth_sEc2.3.2">
+2.3.2</a>&nbsp;&nbsp;Adding gene files</h4>
+When using the <tt>genomic_matched</tt> background setting (which is the default), there needs to be a file describing genes in BED format in the <tt>/usr/share/motiftools/genes/</tt> directory. The file needs to be named <tt>&lt;index_name&#62;.bed</tt>, so for instance <tt>hg18.bed</tt>. By default <tt>hg18.bed</tt>, <tt>mm9.bed</tt> and <tt>xenTro2.bed</tt> are included.
+
+<div class="p"><!----></div>
+      <h4><a name="tth_sEc2.3.3">
+2.3.3</a>&nbsp;&nbsp;MotifSampler configuration</h4>
+<a name="sec:MotifSampler">
+</a>
+If you want to use MotifSampler there is one more step that you'll have to take <em>after</em> installation of GimmeMotifs. For every organism, you'll need a MotifSampler background. These can be obtained from <a href="http://homes.esat.kuleuven.be/~thijs/Work/BackgroundModel.html"><tt>http://homes.esat.kuleuven.be/~thijs/Work/BackgroundModel.html</tt></a> or, alternatively, be created with <tt>CreateBackgroundModel</tt> (which can be downloaded from the same site as MotifSampler). The background model file needs to be saved in the directory <tt>/usr/share/motiftools/MotifSampler</tt> and it should be named <tt>&lt;organism_index_name&#62;.bg</tt>. So, for instance, if I downloaded the human epd background (<tt>epd_homo_sapiens_499_chromgenes_non_split_3.bg</tt>), this file should be saved as <tt>/usr/share/motiftools/MotifSampler/hg18.bg</tt>.
+
+<div class="p"><!----></div>
+      <h4><a name="tth_sEc2.3.4">
+2.3.4</a>&nbsp;&nbsp;Other configuration options</h4>
+All of GimmeMotifs configuration is stored in <tt>/usr/share/motiftools/motiftools.cfg</tt>.
+This file is created at installation time with all defaults set, but you can always edit it afterwards. It contains two sections <tt>main</tt> and <tt>params</tt> that take care of paths, file locations, parameter settings etc. Additionally, every motif tool has it's own section.
+Let's have a look at the options.
+
+<pre>
+[main]
+index_dir&nbsp;=&nbsp;/usr/share/motiftools/genome_index
+template_dir&nbsp;=&nbsp;/usr/share/motiftools/templates
+seqlogo&nbsp;=&nbsp;/usr/local/bin/seqlogo
+score_dir&nbsp;=&nbsp;/usr/share/motiftools/score_dists
+motif_databases&nbsp;=&nbsp;/usr/share/motiftools/motif_databases
+gene_dir&nbsp;=&nbsp;/usr/share/motiftools/genes
+
+</pre>
+
+<ul>
+<li> <tt>index_dir</tt> The location of the indeces of the genome fasta-files.
+<div class="p"><!----></div>
+</li>
+
+<li> <tt>template_dir</tt> The location of the KID html templates, used to generate the reports.
+<div class="p"><!----></div>
+</li>
+
+<li> <tt>seqlogo</tt> The seqlogo executable.
+<div class="p"><!----></div>
+</li>
+
+<li> <tt>score_dir</tt> To generate p-values, a pre-calculated file with mean and sd of score distributions is needed. These are located here.
+<div class="p"><!----></div>
+</li>
+
+<li> <tt>motif_databases</tt> For now contains only the JASPAR motifs.
+<div class="p"><!----></div>
+</li>
+
+<li> <tt>gene_dir</tt> A bed-files of genes for every organism. This is needed to create the matched genomic background.
+<div class="p"><!----></div>
+</li>
+</ul>
+
+<div class="p"><!----></div>
+
+<pre>
+[params]
+background&nbsp;=&nbsp;genomic_matched,random
+use_strand&nbsp;=&nbsp;False
+tools&nbsp;=&nbsp;MDmodule,Weeder,MotifSampler
+analysis&nbsp;=&nbsp;medium
+pvalue&nbsp;=&nbsp;0.001
+width&nbsp;=&nbsp;200
+fraction&nbsp;=&nbsp;0.2
+genome&nbsp;=&nbsp;hg18
+lwidth&nbsp;=&nbsp;500
+cluster_threshold&nbsp;=&nbsp;0.95
+available_tools&nbsp;=&nbsp;Weeder,MDmodule,MotifSampler,gadem,meme,trawler,WannaMotif
+abs_max&nbsp;=&nbsp;1000
+enrichment&nbsp;=&nbsp;1.5
+
+</pre>
+This section specifies all the default GimmeMotifs parameters. Most of these can also be specified at the command-line when running GimmeMotifs, in which case they will override the parameters specified here.
+
+<div class="p"><!----></div>
+ <h2><a name="tth_sEc3">
+3</a>&nbsp;&nbsp;Usage</h2>
+
+     <h3><a name="tth_sEc3.1">
+3.1</a>&nbsp;&nbsp;Quick GimmeMotifs example</h3>
+You can try GimmeMotifs with two example datasets included in the examples directory. This example does require you to have hg18 present and indexed. 
+Change to the examples directory and run the following command:
+
+<pre>
+gimme_motifs.py&nbsp;-i&nbsp;TAp73alpha.fa&nbsp;-n&nbsp;p73
+
+</pre>
+
+<div class="p"><!----></div>
+The <tt>-n</tt> or <tt>-name</tt> option defines the name of the output directory that is created. All output files are stored in this directory.
+
+<div class="p"><!----></div>
+Depending on your computer you may have to wait some minutes for your results. Once GimmeMotifs is finished you can open <tt>p73p73_motif_report.html</tt> in your browser. 
+
+<div class="p"><!----></div>
+     <h3><a name="tth_sEc3.2">
+3.2</a>&nbsp;&nbsp;Detailed options</h3>
+
+<ul>
+<li> <tt>-i</tt> or <tt>-inputfile</tt>
+
+<div class="p"><!----></div>
+This is the only mandatory option. The inputfile needs to be in BED format: at least three tab-seperated columns describing chromosome name, start and end. The fourth column is optional, if specified it will be used by MDmodule to sort the features before motif prediction. GimmeMotifs will take the middle of these features, and subsequently extend those to the width specified by the <tt>width</tt> parameter (see below).
+<div class="p"><!----></div>
+</li>
+
+<li> 
+<tt>-n</tt> or <tt>-name</tt>
+
+<div class="p"><!----></div>
+The name of your analysis. All outputfiles will be stored in a directory named as given by this parameter. By default this will be gimmemotifs_dd_mm_yyyy, where d,m and y are the current day, month and year respectively.
+<div class="p"><!----></div>
+</li>
+
+<li> 
+<tt>-a</tt> or <tt>-analysis</tt>
+
+<div class="p"><!----></div>
+The size of motifs to look for: small (5-8), medium (5-12) or large (5-15). The larger the motifs, the longer GimmeMotifs will run.
+<div class="p"><!----></div>
+</li>
+
+<li> 
+<tt>-g</tt> or <tt>-genome</tt>
+
+<div class="p"><!----></div>
+Name of the genome (index) to use. For instance, for the example in section <a href="#sec:indexing">2.3.1</a> this would be <tt>hg18</tt>.
+<div class="p"><!----></div>
+</li>
+
+<li> 
+<tt>-s</tt> or <tt>-singlestrand</tt>
+
+<div class="p"><!----></div>
+Only use the + strand for prediction (off by default).
+<div class="p"><!----></div>
+</li>
+
+<li> 
+<tt>-f</tt> or <tt>-fraction</tt>
+
+<div class="p"><!----></div>
+This parameter controls the fraction of the sequences used for prediction. This 0.2 by default, so in this case a randomly chosen 20% of the sequences will be used for prediction. The remaining sequences will be used for validation (enrichment, ROC curves etc.). If you have a large set of sequences (ie. most ChIP-seq peak sets), this is fine. However, if your set is smaller, it might be worthwile to increase this prediction fraction.
+<div class="p"><!----></div>
+</li>
+
+<li> 
+<tt>-w</tt> or <tt>-width</tt>
+
+<div class="p"><!----></div>
+This is the width of the sequences used for motif prediction. Smaller sequences will result in a faster analysis, but you are of course limited by the accuracy of your data. For the tested ChIP-seq data sets 200 performs fine.
+<div class="p"><!----></div>
+</li>
+
+<li> 
+<tt>-e</tt> or <tt>-enrichment</tt>
+
+<div class="p"><!----></div>
+All motifs should have an absolute enrichment of at least this parameter compared to background to be called significant.
+<div class="p"><!----></div>
+</li>
+
+<li> 
+<tt>-p</tt> or <tt>-pvalue</tt>
+
+<div class="p"><!----></div>
+All motifs should have a pvalue of at most this parameter (hypergeometric enrichment compared to background) to be called significant.
+<div class="p"><!----></div>
+</li>
+
+<li> 
+<tt>-b</tt> or <tt>-background</tt>
+
+<div class="p"><!----></div>
+Type of background to use. By default <tt>random</tt> (1st order Markov model, similar dinucleotide frequencies as your sequences) and <tt>matched_genomic</tt> (randomly chosen from the genome with a similar distribution respective to the TSS of genes) are used.
+<div class="p"><!----></div>
+</li>
+
+<li> 
+<tt>-l</tt> or <tt>-localization_width</tt>
+
+<div class="p"><!----></div>
+Width used in the positional preference plots.
+<div class="p"><!----></div>
+</li>
+
+<li> 
+<tt>-t</tt> or <tt>-tools</tt>
+
+<div class="p"><!----></div>
+A comma-seperated list of all the motif prediction tools to use. By default all installed tools that are specified in the GimmeMotifs configuration file are used.
+<div class="p"><!----></div>
+</li>
+</ul>
+
+<div class="p"><!----></div>
+     <h3><a name="tth_sEc3.3">
+3.3</a>&nbsp;&nbsp;Other scripts</h3>
+In addition to <tt>gimme_motifs.py</tt> the GimmeMotifs package contains several other tools that can perform the various substeps of GimmeMotifs, as well as other useful tools. Run them to see the options.
+
+<div class="p"><!----></div>
+
+<pre>
+closest_motif_match.py
+create_genome_index.py
+generate_sequences.py
+motif_cluster.py
+motif_localization_plots.py
+motif_roc.py
+motif_roc_metrics.py
+pwm2logo.py
+pwmscan.py
+track2fasta.py&nbsp;
+
+</pre>
+
+<div class="p"><!----></div>
+
+<div class="p"><!----></div>
+ <h2><a name="tth_sEc4">
+4</a>&nbsp;&nbsp;Acknowledgements</h2>
+We are grateful to Waseem Akhtar, Robert Akkers, Max Koeppel, Evelyn Kouwenhoven, Leonie Smeenk and Jo Zhou for providing data and feedback during GimmeMotifs development. Also we would like to thank Stefanie Bartels, Adalberto Costessi, Joost Martens and Nagesha Rao for testing and helpful discussion.
+Of course GimmeMotifs by itself wouldn't be able to do anything, if there wasn't such a number of excellent tools available. Therefore, thanks to all the authors of the motif prediction programs for making their software publicly available!
+
+<div class="p"><!----></div>
+
+<h2>References</h2>
+
+<dl compact="compact">
+ <dt><a href="#CITEbailey_meme_2009" name="bailey_meme_2009">[1]</a></dt><dd>
+Timothy&nbsp;L Bailey, Mikael Boden, Fabian&nbsp;A Buske, Martin Frith, Charles&nbsp;E Grant,
+  Luca Clementi, Jingyuan Ren, Wilfred&nbsp;W Li, and William&nbsp;S Noble.
+ MEME SUITE: tools for motif discovery and searching.
+ <em>Nucleic Acids Research</em>, 37(Web Server issue):W202-208, July
+  2009.
+ PMID: 19458158.
+
+<div class="p"><!----></div>
+</dd>
+ <dt><a href="#CITEettwiller_trawler:_2007" name="ettwiller_trawler:_2007">[2]</a></dt><dd>
+Laurence Ettwiller, Benedict Paten, Mirana Ramialison, Ewan Birney, and Joachim
+  Wittbrodt.
+ Trawler: de novo regulatory motif discovery pipeline for chromatin
+  immunoprecipitation.
+ <em>Nat Meth</em>, 4(7):563-565, July 2007.
+
+<div class="p"><!----></div>
+</dd>
+ <dt><a href="#CITEli_gadem:genetic_2009" name="li_gadem:genetic_2009">[3]</a></dt><dd>
+Leping Li.
+ GADEM: a genetic algorithm guided formation of spaced dyads coupled
+  with an EM algorithm for motif discovery.
+ <em>Journal of Computational Biology</em>, 16(2):317-329, 2009.
+
+<div class="p"><!----></div>
+</dd>
+ <dt><a href="#CITEliu_algorithm_2002" name="liu_algorithm_2002">[4]</a></dt><dd>
+X&nbsp;Shirley Liu, Douglas&nbsp;L Brutlag, and Jun&nbsp;S Liu.
+ An algorithm for finding protein-DNA binding sites with
+  applications to chromatin-immunoprecipitation microarray experiments.
+ <em>Nature Biotechnology</em>, 20(8):835-839, August 2002.
+ PMID: 12101404.
+
+<div class="p"><!----></div>
+</dd>
+ <dt><a href="#CITEpavesi_weeder_2004" name="pavesi_weeder_2004">[5]</a></dt><dd>
+Giulio Pavesi, Paolo Mereghetti, Giancarlo Mauri, and Graziano Pesole.
+ Weeder web: discovery of transcription factor binding sites in a set
+  of sequences from co-regulated genes.
+ <em>Nucleic Acids Research</em>, 32(Web Server issue):W199-203, July
+  2004.
+ PMID: 15215380.
+
+<div class="p"><!----></div>
+</dd>
+ <dt><a href="#CITErhead_ucsc_2010" name="rhead_ucsc_2010">[6]</a></dt><dd>
+Brooke Rhead, Donna Karolchik, Robert&nbsp;M. Kuhn, Angie&nbsp;S. Hinrichs, Ann&nbsp;S. Zweig,
+  Pauline&nbsp;A. Fujita, Mark Diekhans, Kayla&nbsp;E. Smith, Kate&nbsp;R. Rosenbloom,
+  Brian&nbsp;J. Raney, Andy Pohl, Michael Pheasant, Laurence&nbsp;R. Meyer, Katrina
+  Learned, Fan Hsu, Jennifer Hillman-Jackson, Rachel&nbsp;A. Harte, Belinda
+  Giardine, Timothy&nbsp;R. Dreszer, Hiram Clawson, Galt&nbsp;P. Barber, David Haussler,
+  and W.&nbsp;James Kent.
+ The UCSC genome browser database: update 2010.
+ <em>Nucl. Acids Res.</em>, 38(suppl_1):D613-619, 2010.
+
+<div class="p"><!----></div>
+</dd>
+ <dt><a href="#CITEthijs_higher-order_2001" name="thijs_higher-order_2001">[7]</a></dt><dd>
+G&nbsp;Thijs, M&nbsp;Lescot, K&nbsp;Marchal, S&nbsp;Rombauts, B&nbsp;De Moor, P&nbsp;Rouzé, and Y&nbsp;Moreau.
+ A higher-order background model improves the detection of promoter
+  regulatory elements by gibbs sampling.
+ <em>Bioinformatics (Oxford, England)</em>, 17(12):1113-1122, December
+  2001.
+ PMID: 11751219.</dd>
+</dl>
+
+
+<div class="p"><!----></div>
+
+<br /><br /><hr /><small>File translated from
+T<sub><font size="-1">E</font></sub>X
+by <a href="http://hutchinson.belmont.ma.us/tth/">
+T<sub><font size="-1">T</font></sub>H</a>,
+version 3.77.<br />On 16 Feb 2010, 11:34.</small>
+</html>

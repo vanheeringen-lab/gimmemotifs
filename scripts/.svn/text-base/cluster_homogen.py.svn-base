@@ -1,0 +1,220 @@
+#!/usr/bin/env python
+# Copyright (c) 2009-2010 Simon van Heeringen <s.vanheeringen@ncmls.ru.nl>
+#
+# This module is free software. You can redistribute it and/or modify it under 
+# the terms of the MIT License, see the file COPYING included with this 
+# distribution.
+
+#from TAMO import MotifTools
+#from TAMO.Clustering import MotifCompare
+#from TAMO.Clustering import Kmedoids
+from motiftools.motif import *
+from motiftools.comparison import *
+from numpy import mean, sum, average
+import sys
+import os
+
+class MotifTree:
+	def __init__(self, motif):
+		self.motif = motif
+		self.parent = None
+		self.left = None
+		self.right = None
+		self.mergescore = None
+		self.maxscore = 0
+		self.frontier = False
+
+	def setFrontier(self, arg, root):
+		self.frontier = True 
+		if self != root:
+			self.parent.setFrontier(True, root)
+
+	def checkMerge(self, root, threshold):
+		#print "CHECK: %s %s" % (self.motif.id, self.frontier)
+		if not self.frontier:# and self != root:
+			#print "LALA", self.motif.id, self.mergescore
+			if self.mergescore > threshold:
+				#print "higher"
+				if self.parent:
+					self.parent.checkMerge(root, threshold)
+			else:
+				#print "lower"
+				self.setFrontier(True, root)
+	
+	def printFrontiers(self):
+		if self.frontier:
+			if self.left:
+				self.left.printFrontiers()
+				self.right.printFrontiers()
+		else:
+			self.motif.pwm = self.motif.pfm_to_pwm(self.motif.pwm)
+			#print self.motif.to_pwm(",".join(self.recursive_name()))
+
+	def get_clustered_motifs(self):
+		if self.frontier:
+			if self.left:
+				return self.left.get_clustered_motifs() + self.right.get_clustered_motifs()
+		else:
+			return [self.motif]
+	
+	def getResult(self):
+		if self.frontier:
+			if self.left:
+				return self.left.getResult() + self.right.getResult()
+		else:
+			return [[self.motif, self.recursive_motif()]]
+
+
+	def recursive_name(self):
+		if self.left:
+			return self.left.recursive_name() + self.right.recursive_name()
+		else:
+			return [self.motif.id]
+
+	def recursive_motif(self):
+		if self.left:
+			return self.left.recursive_motif() + self.right.recursive_motif()
+		else:
+			return [self.motif]
+
+def cluster_motifs(file, match, metric, combine, pval, threshold=0.95, edge_ic_cutoff=0.2):
+	
+	# First read pfm or pfm formatted motiffile
+	motifs = pwmfile_to_motifs(file)
+	mc = MotifComparer()
+
+	# Trim edges with low information content
+	for motif in motifs:
+		#print motif.to_consensus(), len(motif.pwm), len(motif.pfm),
+		#print motif.pwm
+		#print motif.pfm
+		pass
+		#motif.trim(edge_ic_cutoff)
+		#print motif.to_consensus(), len(motif.pwm), len(motif.pfm)
+	# Make a MotifTree node for every motif
+	nodes = [MotifTree(m) for m in motifs]
+	
+	# Determine all pairwise scores and maxscore per motif
+	scores = {}
+	for i, n1 in enumerate(nodes):
+		n1.maxscore = mc.compare_motifs(n1.motif, n1.motif, match, metric, combine, pval)[0]
+		for n2 in nodes[i + 1:]:
+			score = mc.compare_motifs(n1.motif, n2.motif, match, metric, combine, pval)
+			#print "Score:", score
+			scores[(n1,n2)] = score
+
+	
+	cluster_nodes = [node for node in nodes]
+	ave_count = 1
+	while len(cluster_nodes) > 1:
+		l = sorted(scores.keys(), key=lambda x: scores[x][0])
+		i = -1
+		(n1, n2) = l[i]
+		while not n1 in cluster_nodes or not n2 in cluster_nodes:
+			i -= 1
+			(n1,n2) = l[i]
+		
+		(score, pos, orientation) = scores[(n1,n2)]
+		#print n1.motif.to_consensus()
+		#print n2.motif.to_consensus()
+		#print score, pos, orientation	
+		ave_motif = n1.motif.average_motifs(n2.motif, pos, orientation, include_bg=True)
+		ave_motif.trim(edge_ic_cutoff)
+		ave_motif.id = "Average_%s" % ave_count
+		#sys.stderr.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (ave_motif.id, n1.motif.to_consensus(), n2.motif.to_consensus(), ave_motif.to_consensus(), n1.maxscore, n2.maxscore, score, pos, orientation))
+		ave_count += 1
+
+		new_node = MotifTree(ave_motif)
+		new_node.maxscore = mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
+		new_node.mergescore = score
+		#new_node.mergescore = n1.maxscore + n2.maxscore - 2 * score
+		#print "Merging %s and %s, score %s" % (n1.motif.id, n2.motif.id, new_node.mergescore)	
+		#print score
+		#print "%s + %s = %s with score %s" % (n1.motif.id, n2.motif.id, ave_motif.id, score)
+		#print ave_motif.pwm
+		n1.parent = new_node
+		n2.parent = new_node
+		new_node.left = n1
+		new_node.right = n2
+
+		for n in [node for node in nodes if not node.parent]:
+			x = mc.compare_motifs(new_node.motif, n.motif, match, metric, combine, pval)
+			#print x, new_node.motif.to_consensus(), n.motif.to_consensus()
+			scores[(new_node, n)] = x
+		
+		nodes.append(new_node)
+
+		cluster_nodes = [node for node in nodes if not node.parent]
+	
+	root = nodes[-1]
+	for node in [node for node in nodes if not node.left]:
+		 node.parent.checkMerge(root, threshold)
+	
+	return root
+#	root.printFrontiers()
+#def cluster(file):
+#	motifs = {}
+#	pwm = []
+#	id = ""
+#	nucs = ["A","C","G","T"]
+#	for line in open(file).readlines():
+#		if line.startswith(">"):
+#			if pwm:
+#				motifs[id] = pwm
+#				pwm = []
+#			id = line.strip()[1:]
+#		else:
+#			pwm.append(dict(zip(nucs, [float(x) for x in line.strip().split("\t")])))
+#
+#	motifs[id] = pwm
+#
+#	return motifs
+
+if __name__ == "__main__":
+	from optparse import OptionParser
+
+	parser = OptionParser()
+	parser.add_option("-i", "--inputfile", dest="inputfile", help="Inputfile (PFM format)", metavar="FILE")
+
+	(options, args) = parser.parse_args()
+	if not options.inputfile:
+		parser.print_help()
+		sys.exit()
+
+	trim_ic = 0.2
+	clusters = []
+	motifs = pwmfile_to_motifs(options.inputfile)
+		
+	data = []
+	#for t in range(-1, 0, 5):
+	#for t in [-0.6,-0.55,-0.5,-0.48,-0.46,-0.44,-0.42,-0.4,-0.35,-0.3,-0.2,-0.1,0]: # ED no p-value
+	#for t in [-4, -3.5, -3, -2.5, -2.3, -2.2, -2.1, -2.0 ,-1.9, -1.8, -1.7, -1.6, -1.5, -1.3, -1.2, -1.1, -1, -0.5, 0, 0.5, 1, 1.5]: # Clic no p-value
+	for t in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 0.03, 0.07, 0.72, 0.74, 0.76, 0.78, 0.85, 0.92, 0.94, 0.96, 0.98, 0.99]: # Clic p-value
+	#for t in [0, 0.3, 0.4, 0.5, 0.6, 0.63, 0.66, 0.7,0.73, 0.77, 0.8, 0.85,  0.9, 0.95,1.0]: # PCC no p-value
+		tree = cluster_motifs(options.inputfile, "total", "wic", "mean", True, t)
+		clusters = tree.getResult()
+	
+		hom = []
+		lengths = []
+		pos = 0
+		neg = 0
+		for cluster,members in clusters:
+			families = {}
+			for motif in members:
+				fam = motif.id.split("_")[-1]
+				families[fam] = families.setdefault(fam, 0) + 1
+			if len(members) > 1:
+				#print cluster, families
+				if len(families.keys()) > 1:
+					neg += sum(families.values())
+				else:
+					pos += sum(families.values())
+			homogen = sorted(families.values())[-1] / float(len(members))
+			hom.append(homogen)
+			lengths.append(len(members))
+		
+		data.append([len(clusters), mean(hom), ])
+		print t, len(clusters), mean(hom),  average(hom, weights=lengths)
+print data
+
+				

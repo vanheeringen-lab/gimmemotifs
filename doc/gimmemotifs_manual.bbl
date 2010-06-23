@@ -1,0 +1,56 @@
+\begin{thebibliography}{1}
+
+\bibitem{bailey_meme_2009}
+Timothy~L Bailey, Mikael Boden, Fabian~A Buske, Martin Frith, Charles~E Grant,
+  Luca Clementi, Jingyuan Ren, Wilfred~W Li, and William~S Noble.
+\newblock {MEME} {SUITE:} tools for motif discovery and searching.
+\newblock {\em Nucleic Acids Research}, 37(Web Server issue):W202--208, July
+  2009.
+\newblock {PMID:} 19458158.
+
+\bibitem{ettwiller_trawler:_2007}
+Laurence Ettwiller, Benedict Paten, Mirana Ramialison, Ewan Birney, and Joachim
+  Wittbrodt.
+\newblock Trawler: de novo regulatory motif discovery pipeline for chromatin
+  immunoprecipitation.
+\newblock {\em Nat Meth}, 4(7):563--565, July 2007.
+
+\bibitem{li_gadem:genetic_2009}
+Leping Li.
+\newblock {GADEM:} a genetic algorithm guided formation of spaced dyads coupled
+  with an {EM} algorithm for motif discovery.
+\newblock {\em Journal of Computational Biology}, 16(2):317--329, 2009.
+
+\bibitem{liu_algorithm_2002}
+X.~Shirley Liu, Douglas~L. Brutlag, and Jun~S. Liu.
+\newblock An algorithm for finding {protein-DNA} binding sites with
+  applications to chromatin-immunoprecipitation microarray experiments.
+\newblock {\em Nat Biotech}, 20(8):835--839, 2002.
+
+\bibitem{pavesi_weeder_2004}
+Giulio Pavesi, Paolo Mereghetti, Giancarlo Mauri, and Graziano Pesole.
+\newblock Weeder web: discovery of transcription factor binding sites in a set
+  of sequences from co-regulated genes.
+\newblock {\em Nucleic Acids Research}, 32(Web Server issue):W199--203, July
+  2004.
+\newblock {PMID:} 15215380.
+
+\bibitem{rhead_ucsc_2010}
+Brooke Rhead, Donna Karolchik, Robert~M. Kuhn, Angie~S. Hinrichs, Ann~S. Zweig,
+  Pauline~A. Fujita, Mark Diekhans, Kayla~E. Smith, Kate~R. Rosenbloom,
+  Brian~J. Raney, Andy Pohl, Michael Pheasant, Laurence~R. Meyer, Katrina
+  Learned, Fan Hsu, Jennifer {Hillman-Jackson}, Rachel~A. Harte, Belinda
+  Giardine, Timothy~R. Dreszer, Hiram Clawson, Galt~P. Barber, David Haussler,
+  and W.~James Kent.
+\newblock The {UCSC} genome browser database: update 2010.
+\newblock {\em Nucl. Acids Res.}, 38(suppl\_1):D613--619, January 2010.
+
+\bibitem{thijs_higher-order_2001}
+G~Thijs, M~Lescot, K~Marchal, S~Rombauts, B~De Moor, P~Rouzé, and Y~Moreau.
+\newblock A higher-order background model improves the detection of promoter
+  regulatory elements by gibbs sampling.
+\newblock {\em Bioinformatics {(Oxford,} England)}, 17(12):1113--1122, December
+  2001.
+\newblock {PMID:} 11751219.
+
+\end{thebibliography}

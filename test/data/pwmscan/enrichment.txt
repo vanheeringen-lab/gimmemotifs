@@ -1,0 +1,2 @@
+Motif	Sig	p-value	# sample	# background	Enrichment
+TATA-box	63.1472282939	7.12478405895e-64	316	2054	1.538

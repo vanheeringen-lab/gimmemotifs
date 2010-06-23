@@ -1,0 +1,36 @@
+include MANIFEST
+include INSTALL
+include COPYING
+include setup.py
+include cfg/motiftools.cfg.example
+include doc/README.txt
+include doc/gimmemotifs_manual.pdf
+include examples/TAp73alpha.bed
+include genes/*.bed
+include genome_index/README.txt
+include motif_databases/jaspar.pfm
+include motiftools/*.py
+include motiftools/*.c
+include score_dists/*.txt
+include templates/*.kid
+recursive-include test/data/fasta/ *
+recursive-include test/data/genome_index/ *
+recursive-include test/data/motif/ *
+include test/*.py
+include bg/*.bg
+include scripts/add_organism.py
+include scripts/align2transfac.py
+include scripts/closest_motif_match.py
+include scripts/create_genome_index.py
+include scripts/filter_motifs.py
+include scripts/generate_sequences.py
+include scripts/gimme_motifs.py
+include scripts/motif_cluster.py
+include scripts/motif_localization_plots.py
+include scripts/motif_roc.py
+include scripts/motif_roc_metrics.py
+include scripts/pfm2transfac.py
+include scripts/pwm2logo.py
+include scripts/pwmscan.py
+include scripts/track2fasta.py
+include scripts/transfac2pwm.py
