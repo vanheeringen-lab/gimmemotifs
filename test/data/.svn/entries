@@ -1,37 +1,0 @@
-10
-
-dir
-578
-svn+ssh://simon@mb01.azn.nl/var/svn/repos/modules/motiftools/trunk/test/data
-svn+ssh://simon@mb01.azn.nl/var/svn/repos
-
-
-
-2009-11-05T12:25:35.371647Z
-480
-simon
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-2fbabf53-ca1d-0410-a60d-c2e6af3f5ead
-
-genome_index
-dir
-
-motifprogram
-dir
-
-fasta
-dir
-
