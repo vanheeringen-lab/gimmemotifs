@@ -46,7 +46,14 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 	jobs = []
 	
 	# Some program specific code
-	weeder_organism = {"hg18":"HS", "mm9":"MM", "yeast":"SC", "xenTro2":"XT"}[organism]
+	weeder_organism = {
+		"hg18":"HS", 
+		"hg19":"HS", 
+		"mm9":"MM", 
+		"yeast":"SC",
+		"sacCer2":"SC",
+		"xenTro2":"XT"}[organism]
+	
 	ms_background = os.path.join(config.get_bg_dir(), "%s.%s.bg" % (organism, "MotifSampler"))
 	
 	# Start with longer running jobs
