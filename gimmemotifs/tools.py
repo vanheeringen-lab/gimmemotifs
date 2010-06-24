@@ -375,8 +375,9 @@ class Weeder(MotifProgram):
 		if default_params["single"]:
 			strand = ""
 			
-		if default_params["analysis"] == "large":
-			 #coms = ((12,4),(10,3),(8,2),(6,1))
+		if default_params["analysis"] == "xl":
+			 coms = ((12,4),(10,3),(8,2),(6,1))
+		elif default_params["analysis"] == "large":
 			 coms = ((10,3),(8,2),(6,1))
 		elif default_params["analysis"] == "medium":
 			 coms = ((10,3),(8,2),(6,1))

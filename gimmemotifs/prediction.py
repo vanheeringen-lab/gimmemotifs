@@ -29,14 +29,16 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 	logger = logging.getLogger('prediction.pp_predict_motifs')
 
 	wmin = 5 
+	step = 1
+	if analysis in ["large","xl"]:
+		step = 2
+		wmin = 6
 	
 	analysis_max = {"xs":5,"small":8, "medium":10,"large":14, "xl":20}
 	wmax = analysis_max[analysis]
 
-	if analysis == "xl":
-		analysis = "large"
-	
 	if analysis == "xs":
+		sys.stderr.write("Setting analysis xs to small")
 		analysis = "small"
 
 	if not job_server:
@@ -72,11 +74,6 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 	else:
 		logger.debug("Skipping gadem")
 
-	
-	#step = 2
-	# TODO: remove this!
-	#if organism == "xenTro2":
-	step = 1
 	
 	if tools.has_key("Weeder") and tools["Weeder"]:
 		weeder = Weeder()
