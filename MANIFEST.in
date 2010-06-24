@@ -2,21 +2,23 @@ include MANIFEST
 include INSTALL
 include COPYING
 include setup.py
-include cfg/motiftools.cfg.example
+include run_tests.py
+include cfg/gimmemotifs.cfg.example
 include doc/README.txt
 include doc/gimmemotifs_manual.pdf
 include examples/TAp73alpha.bed
 include genes/*.bed
 include genome_index/README.txt
 include motif_databases/jaspar.pfm
-include motiftools/*.py
-include motiftools/*.c
+include gimmemotifs/*.py
+include gimmemotifs/*.c
 include score_dists/*.txt
 include templates/*.kid
 recursive-include test/data/fasta/ *
 recursive-include test/data/genome_index/ *
 recursive-include test/data/motif/ *
 include test/*.py
+include test/data/*/*
 include bg/*.bg
 include scripts/add_organism.py
 include scripts/align2transfac.py
