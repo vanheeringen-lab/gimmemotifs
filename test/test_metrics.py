@@ -1,7 +1,7 @@
 import unittest
 import tempfile
 import os
-from motiftools.c_metrics import *
+from gimmemotifs.c_metrics import *
 
 class TestMetrics(unittest.TestCase):
 	""" A test class for column comparison metrics (metric.py) """

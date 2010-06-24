@@ -1,9 +1,9 @@
 import unittest
 import tempfile
 import os
-from motiftools.motif import *
-from motiftools.fasta import Fasta
-from motiftools.utils import gff_enrichment 
+from gimmemotifs.motif import *
+from gimmemotifs.fasta import Fasta
+from gimmemotifs.utils import gff_enrichment 
 from time import sleep
 
 class TestMotifPwm(unittest.TestCase):

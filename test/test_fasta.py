@@ -1,4 +1,4 @@
-from motiftools.fasta import *
+from gimmemotifs.fasta import *
 import tempfile
 import unittest
 import os

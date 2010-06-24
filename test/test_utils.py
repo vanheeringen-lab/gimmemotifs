@@ -1,7 +1,7 @@
 import unittest
 import tempfile
 import os
-from motiftools.utils import *
+from gimmemotifs.utils import *
 
 class TestUtils(unittest.TestCase):
 	""" A test class to test utils functions """

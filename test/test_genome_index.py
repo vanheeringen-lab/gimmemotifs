@@ -1,7 +1,7 @@
 import unittest
 import tempfile
 import os
-from motiftools.genome_index import *
+from gimmemotifs.genome_index import *
 
 class TestGenomeIndex(unittest.TestCase):
 	""" A test class for GenomeIndex class """

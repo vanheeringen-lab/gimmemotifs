@@ -1,7 +1,7 @@
 import unittest
 import tempfile
 import os
-from motiftools.tools import *
+from gimmemotifs.tools import *
 
 class TestMotifProgram(unittest.TestCase):
 	""" A test class for motifprograms """
