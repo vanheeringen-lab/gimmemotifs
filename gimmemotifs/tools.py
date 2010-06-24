@@ -58,7 +58,7 @@ class BioProspector(MotifProgram):
 		import os, tempfile, shutil
 		from subprocess import Popen, PIPE
 		
-		default_params = {"single":False, "background":None, "analysis":"medium", "number":10, "width":10}
+		default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
 		default_params.update(params)
 		
 		prospector = self.bin()
@@ -244,13 +244,13 @@ class Improbizer(MotifProgram):
 		stdout += out
 		stderr += err
 		
-		os.chdir(current_path)
 		motifs = []
 		if os.path.exists(outfile):
 			f = open(outfile)
 			motifs = self.parse(f)
 			f.close()
 		
+		os.chdir(current_path)
 		# remove temporary files
 		if os.path.exists(tmpdir):
 			shutil.rmtree(tmpdir)
