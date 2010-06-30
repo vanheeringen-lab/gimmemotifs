@@ -1,3 +1,6 @@
 gimmemotifs/*.pyc
 test/*.pyc
-dist/*
+build/*
+doc/*
+!doc/*.tex
+!doc/*.pdf
