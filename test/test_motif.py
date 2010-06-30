@@ -2,6 +2,7 @@ import unittest
 import tempfile
 import os
 from gimmemotifs.motif import *
+from gimmemotifs.utils import which
 
 class TestMotif(unittest.TestCase):
 	""" A test class for Motif """
@@ -45,10 +46,14 @@ class TestMotif(unittest.TestCase):
 
 	def test5_motif_to_img(self):
 		""" Motif to img """
-		m = Motif(self.pfm)
-		m.to_img("test/test.png", format="png")
-		self.assert_(os.path.exists("test/test.png"))
-		os.unlink("test/test.png")
+		seqlogo = which("seqlogo")
+		if seqlogo:	
+			m = Motif(self.pfm)
+			m.to_img("test/test.png", format="png", seqlogo=seqlogo)
+			self.assert_(os.path.exists("test/test.png"))
+			os.unlink("test/test.png")
+		else:
+			print "seqlogo not found, skipping."
 
 	def test6_pcc(self):
 		pfm1 = [[5,0,0,0],[0,5,0,0],[0,5,0,0],[0,0,0,5]]

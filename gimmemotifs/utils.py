@@ -18,6 +18,7 @@ from subprocess import Popen, PIPE
 # External imports
 import numpy
 from scipy import special
+from gimmemotifs import tools
 
 lgam = special.gammaln
 
@@ -340,4 +341,14 @@ def is_valid_bedfile(bedfile, columns=6):
 					return False
 	
 	return True
+
+def locate_tool(tool, verbose=True):
+	tool = re.sub(r'[^a-zA-Z]','',tool)
+	m = eval("tools." + tool)()
+	bin = which(m.cmd)
+	if bin:
+		print "Found %s in %s" % (m.name, bin)
+		return bin
+	else:
+		print "Couldn't find %s" % m.name
 

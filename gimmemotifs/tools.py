@@ -47,21 +47,21 @@ class MotifProgram:
 		if not self.is_installed():
 			raise ValueError, "%s is not installed or not correctly configured" % self.name
 
-		return self._run_program(fastafile, savedir, params)
+		return self._run_program(self.bin(), fastafile, savedir, params)
 
 class BioProspector(MotifProgram):
 	def __init__(self):
 		self.name = "BioProspector"
 		self.cmd = "BioProspector"
 
-	def _run_program(self, fastafile, savedir="", params={}):
+	def _run_program(self, bin, fastafile, savedir="", params={}):
 		import os, tempfile, shutil
 		from subprocess import Popen, PIPE
 		
 		default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
 		default_params.update(params)
 		
-		prospector = self.bin()
+		prospector = bin
 		
 		fastafile = os.path.abspath(fastafile)
 		
@@ -140,14 +140,14 @@ class MoAn(MotifProgram):
 		self.name = "MoAn"
 		self.cmd = "moan"
 
-	def _run_program(self, fastafile, savedir="", params={}):
+	def _run_program(self, bin, fastafile, savedir="", params={}):
 		import os, tempfile, shutil
 		from subprocess import Popen, PIPE
 		
 		default_params = {"single":False, "background":None, "analysis":"medium"}
 		default_params.update(params)
 		
-		moan = self.bin()
+		moan = bin
 		
 		fastafile = os.path.abspath(fastafile)
 		
@@ -213,14 +213,14 @@ class Improbizer(MotifProgram):
 		self.name = "Improbizer"
 		self.cmd = "ameme"
 
-	def _run_program(self, fastafile, savedir="", params={}):
+	def _run_program(self, bin, fastafile, savedir="", params={}):
 		import os, tempfile, shutil
 		from subprocess import Popen, PIPE
 		
 		default_params = {"background":None, "number":10}
 		default_params.update(params)
 		
-		ameme = self.bin()
+		ameme = bin
 		
 		fastafile = os.path.abspath(fastafile)
 		
@@ -283,14 +283,14 @@ class Trawler(MotifProgram):
 		self.name = "trawler"
 		self.cmd = "trawler.pl"
 
-	def _run_program(self, fastafile, savedir="", params={}):
+	def _run_program(self, bin, fastafile, savedir="", params={}):
 		import os, tempfile, shutil
 		from subprocess import Popen, PIPE
 		
 		default_params = {"single":False, "background":None}
 		default_params.update(params)
 		
-		trawler = self.bin()
+		trawler = bin
 		
 		fastafile = os.path.abspath(fastafile)
 		if not default_params["background"]:
@@ -345,17 +345,25 @@ class Weeder(MotifProgram):
 		self.name = "Weeder"
 		self.cmd = "weederTFBS.out"
 
-	def _run_program(self, fastafile, savedir="", params={}):
+	def _run_program(self, bin,fastafile, savedir="", params={}):
 		import os, tempfile, shutil
 		from subprocess import Popen, PIPE
 		
 		default_params = {"analysis":"small", "organism":"HS", "single":False, "parallel":True}
 		default_params.update(params)
 		
-		weeder = self.bin()
+		weeder = bin
 		adviser = weeder.replace("weederTFBS", "adviser")
+	
 		
-		freq_files = os.path.join(self.dir(), "FreqFiles")
+		dir = bin.replace("weederTFBS.out", "")
+		if self.is_configured():
+			dir = self.dir()
+
+		freq_files = os.path.join(dir, "FreqFiles")
+		if not os.path.exists(freq_files):
+			raise ValueError, "Can't find FreqFiles directory for Weeder"
+				
 
 		fastafile = os.path.abspath(fastafile)
 		savedir = os.path.abspath(savedir)
@@ -367,7 +375,7 @@ class Weeder(MotifProgram):
 		fastafile = name
 	
 		current_path = os.getcwd()
-		os.chdir(self.dir())
+		os.chdir(dir)
 		
 		coms = ((8,2),(6,1))
 
@@ -477,7 +485,7 @@ class MotifSampler(MotifProgram):
 		self.name = "MotifSampler"
 		self.cmd = "MotifSampler"
 
-	def _run_program(self, fastafile, savedir,params={}):
+	def _run_program(self, bin, fastafile, savedir,params={}):
 		import os, tempfile
 		from subprocess import Popen,PIPE
 		
@@ -505,7 +513,7 @@ class MotifSampler(MotifProgram):
 			strand = 0
 
 		# TODO: test organism
-		cmd = "%s -f %s -b %s -m %s -w %s -n %s -o %s -s %s > /dev/null 2>&1" % (self.bin(), fastafile, background, pwmfile, width, number, outfile, strand)
+		cmd = "%s -f %s -b %s -m %s -w %s -n %s -o %s -s %s > /dev/null 2>&1" % (bin, fastafile, background, pwmfile, width, number, outfile, strand)
 		#print cmd
 		#p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
 		#stdout, stderr = p.communicate()
@@ -590,7 +598,7 @@ class MDmodule(MotifProgram):
 		self.name = "MDmodule"
 		self.cmd = "MDmodule"
 
-	def _run_program(self, fastafile, savedir, params={}):
+	def _run_program(self, bin, fastafile, savedir, params={}):
 		from subprocess import Popen, PIPE
 		import os, tempfile, shutil
 		
@@ -612,7 +620,7 @@ class MDmodule(MotifProgram):
 	
 		current_path = os.getcwd()
 		os.chdir(tmpdir)	
-		cmd = "%s -i %s -a 1 -o %s -w %s -t 10 -r %s" % (self.bin(), fastafile, pwmfile, width, number)
+		cmd = "%s -i %s -a 1 -o %s -w %s -t 10 -r %s" % (bin, fastafile, pwmfile, width, number)
 		p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
 		stdout,stderr = p.communicate()
 		
@@ -681,7 +689,7 @@ class Gadem(MotifProgram):
 		self.name = "gadem"
 		self.cmd = "gadem"
 
-	def _run_program(self, fastafile, savedir, params={}):
+	def _run_program(self, bin, fastafile, savedir, params={}):
 		from subprocess import Popen, PIPE
 		import os, tempfile, shutil
 		
@@ -701,7 +709,7 @@ class Gadem(MotifProgram):
 	
 		current_path = os.getcwd()
 		os.chdir(tmpdir)	
-		cmd = "%s -fseq %s -fpwm %s -fout %s" % (self.bin(), fastafile, pwmfile, outfile)
+		cmd = "%s -fseq %s -fpwm %s -fout %s" % (bin, fastafile, pwmfile, outfile)
 		p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
 		stdout, stderr = p.communicate()
 			
@@ -759,7 +767,7 @@ class Meme(MotifProgram):
 		self.name = "meme"
 		self.cmd = "meme"
 
-	def _run_program(self, fastafile, savedir, params={}):
+	def _run_program(self, bin, fastafile, savedir, params={}):
 		from subprocess import Popen, PIPE, STDOUT, call
 		import os, tempfile, shutil, StringIO
 		
@@ -779,7 +787,7 @@ class Meme(MotifProgram):
 		width = default_params["width"]
 		number = default_params["number"]
 		
-		cmd = (self.bin(), fastafile, "-text","-dna","-nostatus","-mod", "zoops","-nmotifs", "%s" % number, "-w","%s" % width, "-maxsize", "10000000", "%s" % strand)
+		cmd = (bin, fastafile, "-text","-dna","-nostatus","-mod", "zoops","-nmotifs", "%s" % number, "-w","%s" % width, "-maxsize", "10000000", "%s" % strand)
 		p = Popen(cmd, bufsize=1,stderr=PIPE, stdout=PIPE) 
 		stdout,stderr = p.communicate()
 

@@ -538,10 +538,12 @@ class Motif:
 		pwm = [self.iupac_pwm[char]for char in self.consensus.upper()]
 		return ">%s\n%s" % (id, "\n".join(["\t".join(["%s" % x for x in row]) for row in pwm]))
 
-	def to_img(self, file, format="EPS", add_left=0):
+	def to_img(self, file, format="EPS", add_left=0, seqlogo=None):
 		""" Valid formats EPS, GIF, PDF, PNG """
-		if not self.seqlogo:
-			raise ValueError, "seqlogo not installed"
+		if not seqlogo:
+			seqlogo = self.seqlogo
+		if not seqlogo:
+			raise ValueError, "seqlogo not specified or configured"
 		
 		#TODO: split to_align function
 		
@@ -583,7 +585,7 @@ class Motif:
 			f.write("%s\n" % seq)
 		f.flush()
 		makelogo = "%s -f %s -F %s -c -a -h 18 -w %s -o %s -b -n -Y" 
-		cmd = makelogo % (self.seqlogo, f.name, format, (len(self) + add_left) * 3, file)
+		cmd = makelogo % (seqlogo, f.name, format, (len(self) + add_left) * 3, file)
 		call(cmd, shell=True)
 		
 		# Delete tempfile
