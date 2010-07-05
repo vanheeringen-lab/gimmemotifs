@@ -673,6 +673,12 @@ class GimmeMotifs:
 		for param, value in params.items():
 			self.logger.info("  %s: %s" % (param, value))
 
+		# Does the index_dir exist?
+		index_dir = os.path.join(self.config.get_index_dir(), params["genome"])
+		if not os.path.exists(index_dir):
+			self.logger.error("No index found for genome %s! Has GimmeMotifs been configured correctly and is the genome indexed?" % params["genome"])
+			sys.exit(1)
+
 		# is it a valid bed-file etc.
 		self._check_input(inputfile)
 

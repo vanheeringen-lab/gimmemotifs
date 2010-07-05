@@ -9,7 +9,6 @@ from gimmemotifs.core import *
 from gimmemotifs.config import *
 
 VERSION = "0.50"
-GENOMES = ["mm9", "hg18", "xenTro2"]
 config = MotifConfig()
 params = config.get_default_params()
 
@@ -44,10 +43,6 @@ for bg in background:
 	if not bg in ["genomic", "random", "genomic_matched"]:
 		print "Invalid value for background argument"
 		sys.exit()
-
-if not options.genome in GENOMES:
-	print "Sorry, %s is not supported!" % options.genome
-	sys.exit()
 
 if options.lwidth < options.width:
 	sys.stderr.write("Warning: localization width is smaller than motif prediction width!")
