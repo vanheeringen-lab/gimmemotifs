@@ -8,6 +8,7 @@
 # Python imports
 import os
 import sys
+import shutil
 import logging
 import logging.handlers
 from datetime import datetime
@@ -743,7 +744,9 @@ class GimmeMotifs:
 		self.logger.info("WARNING: names and locations of outputfiles have changed using a more consistent naming scheme!")
 		
 		if not(params["keep_intermediate"]):
-			self.logger.info("WARNING: option -k not specified. In the future this means that all intermediate files will be deleted. Please specificy -k if you want to keep the unclustered motifs, bed-files fasta-files etc.")
+			
+			self.logger.info("Deleting intermediate files. Please specifify the -k option if you want to keep these files.")
+			shutil.rmtree(self.tmpdir)
 
 		self.logger.info("Done")
 
