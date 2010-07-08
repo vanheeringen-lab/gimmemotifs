@@ -57,8 +57,8 @@ except (shutil.Error,IOError) as e:
 		sys.exit()
 
 # Create the index
-#g = GenomeIndex()
-#g = g.create_index(fasta_dir, index_dir)
+g = GenomeIndex()
+g = g.create_index(fasta_dir, index_dir)
 
 print
 print "Genome %s indexed and ready for use with GimmeMotifs" % name
