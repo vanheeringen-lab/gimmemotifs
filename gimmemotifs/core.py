@@ -606,7 +606,7 @@ class GimmeMotifs:
 		
 		total_report = self.motif_report 
 		kid.enable_import()
-		template_file = os.path.join(sys.prefix, "share/gimmemotifs/templates/report_template_v2.kid")
+		template_file = os.path.join(self.config.get_template_dir(), "report_template_v2.kid") 
 		template = kid.Template(file=template_file, expname=self.name, motifs=report_motifs, random=random, genomic=genomic, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=self.VERSION)
 		f = open(total_report, "w")
 		f.write(template.serialize())
