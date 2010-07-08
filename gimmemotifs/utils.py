@@ -100,7 +100,7 @@ def ks_pvalue(values, l):
 	from scipy.stats import kstest
 	from numpy import array
 	a = array(values, dtype="float") / l
-	return kstest(a, "uniform")
+	return kstest(a, "uniform")[1]
 
 def write_equalwidth_bedfile(bedfile, width, outfile):
 	"""Read input from <bedfile>, set the width of all entries to <width> and 
