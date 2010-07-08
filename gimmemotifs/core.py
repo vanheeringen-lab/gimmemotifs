@@ -213,8 +213,8 @@ class GimmeMotifs:
 			sys.exit(1)
 		
 		for i, line in enumerate(open(file)):
-			if line.startswith("#"):
-				# comment
+			if line.startswith("#") or line.startswith("track") or line.startswith("browser"):
+				# comment or BED specific stuff
 				pass
 			else:
 				vals = line.strip().split("\t")
@@ -230,9 +230,8 @@ class GimmeMotifs:
 					try:
 						float(vals[3])
 					except:
-						self.logger.error("No valid value in column 4 on line %s of file %s" % (i + 1, file))
-						self.logger.error("Please leave this column empty, if it's not a numerical value")
-						sys.exit(1)
+						pass
+						#self.logger.warn("No numerical value in column 4 on line %s of file %s, ignoring..." % (i + 1, file))
 
 	def prepare_input(self, inputfile, organism="hg18", width=200, fraction=0.2, abs_max=1000, use_strand=False):
 		""" Create all the bed- and fasta-files necessary for motif prediction and validation """	
