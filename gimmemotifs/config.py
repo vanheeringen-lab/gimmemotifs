@@ -70,6 +70,9 @@ class MotifConfig:
 			self.config.add_section("main")
 		self.config.set("main", "template_dir", path)
 
+	def get_template_dir(self):
+		return self.config.get("main", "template_dir")
+
 	def set_score_dir(self, path):
 		if not self.config.has_section("main"):
 			self.config.add_section("main")

@@ -425,7 +425,7 @@ class GimmeMotifs:
 			ids[-1][2] = [dict([("src", "images/%s.png" % motif.id.replace(" ", "_")), ("alt", motif.id.replace(" ", "_"))]) for motif in members]
 		
 		kid.enable_import()
-		template_file = os.path.join(sys.prefix, "share/gimmemotifs/templates/cluster_template_v2.kid")
+		template_file = os.path.join(self.config.get_template_dir(), "cluster_template_v2.kid")
 		template = kid.Template(file=template_file, expname=self.name, motifs=ids, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=self.VERSION)
 		f = open(self.cluster_report, "w")
 		f.write(template.serialize())
