@@ -41,7 +41,7 @@ def motif_localization(fastafile, motif, width, outfile):
 		for a in matches.values():
 			ar += a
 		matches = array(ar)
-		p = ks_pvalue(matches, width - len(motif))[0]
+		p = ks_pvalue(matches, width - len(motif))
 		plot_histogram(matches - width / 2 + len(motif) / 2, outfile, xrange=(-width / 2, width / 2), breaks=21, title="%s (p=%0.2e)" % (motif.id, p), xlabel="Position")
 		return motif.id, p
 	else:
