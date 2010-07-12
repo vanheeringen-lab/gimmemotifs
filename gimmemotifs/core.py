@@ -342,8 +342,14 @@ class GimmeMotifs:
 
 	def create_background(self, background=["random"], organism="hg18", width=200):
 		nr_sequences = {}
+		
 		# Create background for motif prediction
-		self._create_genomic_matched_background(self.validation_bed, self.prediction_bg, organism, width)
+		if "genomic_matched" in background:
+			
+			self._create_genomic_matched_background(self.validation_bed, self.prediction_bg, organism, width)
+		# This is not ideal, but for genomes where matched_genomic cannot be used...
+		else:
+			self._create_random_background(self.validation_fa, self.prediction_bg)
 
 		# Get background fasta files
 		if "random" in background:
