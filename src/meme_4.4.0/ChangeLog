@@ -1,0 +1,167 @@
+                    ChangeLog 
+
+2006-03-01    Nadya Williams        nadya@sdsc.edu
+  * website/html/meme-install.html: add MacOS X startup
+  * etc/meme-darwin.in, StartupParameters.plist: create MacOS X startup
+
+2006-02-16    Nadya Williams        nadya@sdsc.edu
+  * website/html/general-faq.html, mast-input.html, meme-input.html,
+                 help_alphabet.html, mast-intro.html, meme-intro.html,
+                 help_distribution.html, help_format.html, mast-output.html,
+				 motif-format.html, meme-download.html, papers.html,
+                 mast-databases.html, release_notes.html, mast-faq.html :
+				 new web insterface changes provided by C. Misleh
+  * website/html/template-css.js, template-footer.js, template-header.js,
+    style-default.css : added for the new web interface, provided by C. Misleh
+
+2006-02-16    Nadya Williams        nadya@sdsc.edu
+  * configure.ac: rm check dependency on parallel condition
+    when creating server executables.
+  * website/html/meme-install.html: add explanation of --with-url flag
+  * website/cgi-bin/meme.pl, mast.pl, process_request.pl: fix path ot images/
+  * etc/meme.linux.in: fix description syntax
+
+2006-01-24    Nadya Williams        nadya@sdsc.edu
+  * src/include/meme-cs.h: rm OS-dependent declarations of accept(), 
+    bind(), connect(), socket(), listen(), htons(). They are defined 
+	in system header files.
+  * read_seq_file.c: add '\r' character to look for when delimiting 
+	strings this is a fix for cygwin newline representation
+  * scripts/makelogodds.txt: add -f flag to shell
+
+2006-01-24    Nadya Williams        nadya@sdsc.edu
+  * scripts/meme_config.txt: export environ settings needed for starting
+    meme/mast servers. Add variable $EXT to handle echo output 
+  * scripts/runcheck: source meme_config to set environment, make output table-like
+  * scripts/runtests.txt: use EXT for echo output, change "info" from array
+    to string to make it work on solaris, change output to be table-like
+
+2006-01-21    Nadya Williams        nadya@sdsc.edu
+  * website/html/meme-download.html: substitute link to userguide.html with
+    meme-install.html
+  * website/html/userguide.html: rm, use more updated meme-install.html
+
+2006-01-20    Tim Bailey            t.bailey@imb.uq.edu.au
+  * src/starts.c: rm obsolete argument sample_prob from call to subseq7()
+
+2006-01-19    Nadya Williams        nadya@sdsc.edu
+  * website/html/meme-install.html: add patching info
+
+2006-01-09    Tim Bailey            t.bailey@imb.uq.edu.au
+  * src/subseq7.c: rm obsolete argument sample_prob from subseq7()
+  * src/oops.c: fixed bug in e_step
+  * src/include/meme.h:  rm obsolete argument sample_prob from subseq7()
+
+2006-01-03    Tim Bailey            t.bailey@imb.uq.edu.au
+  * etc/meme-explanation.html, webiste/html/meme-output-example.html: fix 
+    documentation of PSSM and PSPM
+  * scripts/mast-client.txt: fix bug caused by typo "MEME_BINbin"
+  * website/cgi-bin/meme.pl: fix use of min()
+
+2005-12-21    Nadya Williams        nadya@sdsc.edu
+  * website/html/Makefile.am: add meme-install.html
+
+2005-12-16    Nadya Williams        nadya@sdsc.edu
+  * etc/meme.solaris.in: fix server startup
+  * etc/meme.cygwin.in: rm unix-related funcitons. Need verification testing
+  * etc/meme.darwin.in: add script, a place holder to make compilation complete
+  * scripts/Makefile.am: reorganize separation of scripts on server and client.
+  * website/html/release_notes.html: add mac support
+
+2005-12-16    Tim Bailey            t.bailey@imb.uq.edu.au
+  * etc/meme.cygwin.in: add script, a place holder to make compilation complete
+  * src/include/meme-cs.h: add cygwin support
+
+2005-12-15    Tim Bailey            t.bailey@imb.uq.edu.au
+  * src/getsize.c: unless -nd given, duplicate sequences are flagged and not counted
+  * website/cgi-bin/meme.pl: Don't allow more than $MAXSITES sequences in OOPS mode.
+    Set maxsites to minimum of number of sequences and $MAXSITES in ZOOPS mode
+
+2005-12-15    Nadya Williams        nadya@sdsc.edu
+  * etc/Makefile.am: always install meme.bin and mast.bin
+
+2005-12-13    Nadya Williams        nadya@sdsc.edu
+  * etc/Makefile.am: Make creation of startup script conditional on platform used
+
+2005-12-09    Tim Bailey            t.bailey@imb.uq.edu.au
+  * website/html/mast.in, website/html/mast-databases.html: add detailed 
+    instructions for downloading upstream databases, put "K12" after E. coli 
+    database name to make clear which strain it is.
+
+2005-12-02    Tim Bailey            t.bailey@imb.uq.edu.au
+  * scripts/usage-reports: removed the "meta-meme" update because the server
+    no longer is running.  Metameme update should be replaced when meta-meme 
+    comes back on line.
+
+2005-12-01    Tim Bailey            t.bailey@imb.uq.edu.au
+  * scripts/meme2html.pl: add new button to MEME DNA output to submit PSPM to
+  * website/cgi-bin/process_request.pl: add handling of JASPAR searches 
+
+2005-10-28    Nadya Williams        nadya@sdsc.edu
+  * src/mast-server.c: fix typo in "/bin/rm". The typo introduced a bug of leaving 
+    mast motif files in the LOGS/.
+  * scripts/meme_config.txt: change MEME_LOGS to be configurable, add MEME_DB.
+  * scripts/Makefile.am: add use of MEME_LOGS and MEME_DB.
+
+2005-10-25    Nadya Williams        nadya@sdsc.edu
+  * src/pssm-distr.c, include/pssm-distr.h src/display.c: use only C-style comments
+  * NSTALL, Makefile.am, configure.ac, etc/Makefile.am, etc/meme.csh.in, 
+    etc/meme.sh.in, website/scripts/Globals.txt, website/scripts/Makefile.am:
+    make LOGS/ configurable by user during "configure". Defaults to $prefix/LOGS.
+
+2005-10-20    Tim Bailey            t.bailey@imb.uq.edu.au
+  * scr/Makefile.am, src/parallel/Makefile.am: add pssm-distr.c to meme/mast sources
+  * scr/include/mast.h: include pssm-distr.h, rm definition of calc_cdf()
+  * scr/include/pssm-distr.h: add file 
+
+2005-10-19    Nadya Williams        nadya@sdsc.edu
+  * configure.ac: update specific irix6 and remove lmpi for LIBS
+    This fixes the checking for new irix OS, and rm -lmpi form a serial compilation
+  * src/include/meme-cs.h: add MACOSX define to prevent confilict with system defined.
+
+2005-10-18    Nadya Williams        nadya@sdsc.edu
+  * website/examples/sample-kabat.seq, website/examples/sample-motif.seq: rm control-M
+
+2005-10-13    Nadya Williams        nadya@sdsc.edu
+  * etc/meme-explanation.html: move from website/html/ to allow html converison of 
+    output files without installting website. 
+  * website/Makefile.am: always install Globals.pm, need for perl scripts
+
+2005-10-07    Nadya Williams        nadya@sdsc.edu
+  * scripts/runcheck: clean debugging output that caused problem on Solaris
+  * scripts/start-meme.txt, scripts/start-mast.txt, scripts/meme_config.csh.txt,
+    scripts/meme.txt, scripts/mast.txt: keep uniform name MEME_LOGS 
+    throughout scripts
+  * scripts/memd.txt: add check for existence of LOGS/ for writing tmp files,
+    add diagnostic output for the case when no servers found
+
+2005-10-06    Nadya Williams        nadya@sdsc.edu
+  * m4/functions.m4 m4/headers.m4: add definitions for configure macros that
+    are missing from autoconf v < 2.54 These files are automatically added by
+    executing "bootstrap" when needed
+  * src/include/logs.h: redefine cast in log_table and exp_table because some SUN
+    compilers cant reduce expression inside #define
+
+2005-10-05    Nadya Williams        nadya@sdsc.edu
+  * scripts/update_meme_tests, scripts/update_mast_databases.txt, 
+    scripts/update-plot-usage.txt, scripts/texit, scripts/sd,
+	scripts/runtests.txt, scripts/roc.txt, scripts/plotgen, scripts/plot-usage,
+	scripts/meme-client.txt, scripts/fasta-make-index.txt, scripts/download: use 
+    full path for "rm". Assume everybody has /bin/rm
+
+2005-10-04    Nadya Williams        nadya@sdsc.edu
+  * scripts/runcheck: change array with awk parsing and initialize err. This
+    allows sh to work on solaris.
+  * scripts/make_logodds.txt: use full path for "rm". Assume everybody has /bin/rm
+
+2005-10-02    Nadya Williams        nadya@sdsc.edu
+  * src/Makefile.am:  make adding libadd conditional in include switches. Now
+    shows only when needed.
+  * website/cgi-bin/mast.pl, website/cgi-bin/process-request.pl,
+    website/cgi-bin/meme.pl: move meme-client and mast-client names to Globals.pm
+
+2005-09       Nadya Williams        nadya@sdsc.edu
+  * for verison 3.5.0 (and after) use GNU automake/autoconf tools to install. 
+    Restructure directory tree, create configure.am, and all Makefile.am files.
+    For changes in 3.0.14 and prior see website/html/release_notes.html/
+

@@ -1,0 +1,299 @@
+#!/bin/csh
+#
+# $Id: download 647 2006-04-12 18:28:10Z cmisleh $
+# $Log$
+# Revision 1.2  2005/10/05 06:18:35  nadya
+# use full path for "rm". Asssume everybody has /bin/rm.
+#
+# Revision 1.1.1.1  2005/07/29 00:00:02  nadya
+# Importing from meme-3.0.14, and adding configure/make
+#
+#
+# 02-10-01 tlb; add -f switch
+# 10-17-00 tlb; handle soft links in ftp directories correctly
+
+set pgm = $0; set pgm = $pgm:t
+set args = ($*)
+if ($#argv < 2) then
+  usage:
+  more << USAGE
+  USAGE:
+        $pgm <site>/<fpath> <user> [<scratch> [<newname>]] [-f] [-i]
+
+	<site>/<fpath>	name of anonyous ftp site and file path there
+	<user>		your email address for anonymous ftp
+	[<scratch>]	scratch area for temporary copies of files
+	[<newname>]	new name for file in working directory 
+	[-f]		file is FASTA so make names unique and remove ^A
+	[-i]		ignore the file dates, always download remote file
+
+  	Download a file from the remote system using anonymous ftp.
+	Only downloads the remote file if it is newer than the local file
+	unless -i is given, in which case the download is always done.
+  	Uncompresses and/or compresses/recompresses file depending on
+ 	old and new names of file.  Creates a file with name "newname.nseqs"
+	that records the number of sequences in the FASTA file if -f given.
+
+  	Exits with status 0 if download succeeded.
+	Exits with status 1 if download failed.
+	Exits with status 2 if download skipped.
+
+USAGE
+  exit 1
+endif
+
+# defaults
+set maxfilesize = 2147000000
+
+#
+# get arguments
+#
+set scratch = "."
+set i = 1
+while ("$1" != "")
+  switch ($1)
+  case -h:
+    more << usage
+    breaksw
+  case -f:
+    set fasta = 1
+    breaksw
+  case -i:
+    set ignore_dates = 1
+    breaksw
+  default:
+    if ($i == 1) then
+      set sp = $1 
+    else if ($i == 2) then
+      set user = $1
+    else if ($i == 3) then
+      set scratch = $1
+    else if ($i == 4) then
+      set newname = $1
+    else
+      goto usage
+    endif
+    @ i++
+  endsw
+  shift
+end
+  
+#
+# get the ftp site and file path; split path into directory and file name
+#
+set fp = $sp:t
+set sp = $sp:h
+while ($sp != $sp:t)
+  set tail = $sp:t
+  set fp = $tail/$fp
+  set sp = $sp:h
+end
+set site = $sp
+set dir = $fp:h
+set file = $fp:t
+if (! ($?newname) ) set newname = $file
+
+onintr cleanup
+set exit_status = 0
+
+#
+# download the files
+#
+
+# create tmp names
+set ftp = $pgm.ftp.$$.tmp
+set local = $scratch/$pgm.local.$$.tmp
+set tmp = $scratch/$pgm.tmp.$$.tmp
+set ls = $pgm.$$.ls.tmp
+
+#
+# make ftp script to get file size and date
+#
+cat << END >! $ftp
+user anonymous $user
+cd $dir
+ls -l
+quit
+END
+
+#
+# get remote size and date
+# get size of actual file if it is soft link in SAME directory
+#
+ftp -n $site < $ftp | 							\
+  perl -e '								\
+    $file = $ARGV[0];							\
+    while (<STDIN>) {							\
+      @w=split; $name=$w[8]; $size=$w[4]; $size{$name}=$size;		\
+      $date{$name} = "$w[5] $w[6] $w[7]";				\
+      if ($name eq $file && substr($w[0],0,1) eq "l") {$file = $w[10];} \
+    }									\
+    $size{$file} += 0;			# in case failed due to link	\
+    $date{$file} = "Jan 1 99999" unless ($date{$file});			\
+    print "$size{$file} $date{$file}\n";				\
+  ' $file > $ls
+set exit_status = $status
+
+#
+# check that ftp succeeded
+#
+if ($exit_status != 0) then
+  echo FAILED: Download of $site/$dir/$file failed.
+  echo Something went wrong with ftp ls -l.
+  set exit_status = 1
+  goto cleanup
+endif
+
+#
+# save remote file size and date
+#
+set x = (`cat $ls`); /bin/rm -f $ls
+set rsize = $x[1]
+set rdate = ($x[2] $x[3] $x[4])
+
+#
+# quit if local file newer than remote file
+#
+if (!($?ignore_dates) && -e $newname) then
+  set x = `ls -l $newname`			# get date of local file
+  set ldate = ($x[5] $x[6] $x[7])
+  compare_dates $rdate $ldate
+  if ($status == 1) then			# local file more recent
+    echo UP TO DATE: $site/$dir/$file is up to date.
+    echo Local file is newer: local $ldate remote $rdate
+    set exit_status = 2
+    goto cleanup
+  endif
+endif
+
+#
+# make ftp script to get file
+#
+cat << END >! $ftp
+user anonymous $user
+cd $dir
+binary
+get $file $local
+quit
+END
+
+#
+# get remote file
+#
+set ls = $pgm.$$.ls.tmp 
+ftp -n $site < $ftp  > /dev/null
+set exit_status = $status
+
+#
+# check that ftp succeeded
+#
+if ($exit_status != 0) then
+  echo FAILED: Download of $site/$dir/$file failed.
+  echo Something went wrong with ftp.
+  set exit_status = 1
+  goto cleanup
+endif
+
+#
+# check that ftp file was created
+#
+if (! (-e $local) ) then
+  echo FAILED: Download of $site/$dir/$file failed.
+  echo The local file was not created.
+  set exit_status = 1
+  goto cleanup
+endif
+
+#
+# check that local file has same size as remote file
+#
+set lsize = `ls -l $local | gawk '{print $5}'`
+if ($rsize != $lsize && $rsize) then
+  echo FAILED: Download of $site/$dir/$file failed.
+  echo The remote file has $rsize bytes but the local file has $lsize bytes.
+  set exit_status = 1
+  goto cleanup
+endif
+
+#
+# get in and out file extensions
+#
+set old_ext = $file:e
+set new_ext = $newname:e
+
+#
+# create a pipeline of commands depending on what is to be done
+#
+set puncomp = 'cat'
+set pfasta = 'cat'
+set pcomp = 'cat'
+if ("$old_ext" == gz || "$old_ext" == Z) set puncomp = 'gunzip -c'
+if ($?fasta) set pfasta = 'fasta-unique-names'
+if ("$new_ext" == gz) set pcomp = 'gzip -c'
+if ("$new_ext" == Z) set pcomp = 'compress -c'
+
+#
+# uncompress, fasta, recompress as needed and then rename
+# making sure file is not too big for file system
+#
+if (!($?fasta) && "$file" == "$newname") then
+  # do nothing; file is OK as is
+else					# fasta or change in compression
+  #$puncomp < $local | $pfasta | $pcomp | cat_max $maxfilesize >! $tmp
+  $puncomp < $local | $pfasta | $pcomp >! $tmp
+  set exit_status = $status
+  if ($exit_status != 0) then
+    echo FAILED: Download of $site/$dir/$file failed.  
+    echo Unable to create file $tmp
+    set exit_status = 1
+    goto cleanup 
+  endif
+  mv -f $tmp $local 			# mv tmp to local
+  set exit_status = $status
+  if ($exit_status != 0) then
+    echo FAILED: Download of $site/$dir/$file failed.  
+    echo Unable to move $tmp to $local
+    set exit_status = 1
+    goto cleanup
+  endif
+endif
+
+#
+# move the file to replace existing file
+#
+mv -f $local $newname
+set exit_status = $status
+if ($exit_status != 0) then
+  echo FAILED: Download of $site/$dir/$file failed.  
+  echo Unable to move $local to $newname
+  set exit_status = 1
+  goto cleanup
+endif
+
+#
+# create .nseqs file recording number of sequences in db file
+#
+if ($?fasta) then
+  set puncomp = "cat"
+  set name = $newname
+  if ("$new_ext" == gz || "$new_ext" == Z) then
+    set puncomp = 'gunzip -c'
+    set name = $newname:r
+  endif
+  $puncomp $newname | grep -c "^>" >! $tmp
+  mv -f $tmp $name.nseqs
+endif
+
+#
+# list file and announce success
+ls -l $newname
+echo SUCCEEDED: Download of $site/$dir/$file succeeded.
+
+cleanup:
+if (-e $local) /bin/rm -f $local
+if (-e $ftp) /bin/rm -f $ftp
+if (-e $ls) /bin/rm -f $ls
+if (-e $tmp) /bin/rm -f $tmp
+
+echo download exit_status = $exit_status
+exit $exit_status

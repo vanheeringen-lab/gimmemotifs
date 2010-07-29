@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>GLAM2 - Overview</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+</head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+
+	    <img src="doc/images/glam2_logo.png" alt="GLAM2 logo">
+            <h3>Overview</h3>
+
+	    <h4>GLAM2 is a tool for discovering <em>gapped</em> motifs in a
+	    group of DNA or protein sequences.</h4>  
+	    <p>Equivalently, it is a
+	    tool for aligning similar regions in a group of sequences.</p>
+
+	    <p>It is harder to discover gapped motifs than gapless motifs: so when
+	    you use GLAM2, we recommend that you also do a simpler gapless
+	    analysis with MEME.</p>
+
+	    <p>Here is a <a href="doc/examples/glam2_example_output_files/glam2.html">GLAM2 sample output</a>.  A
+	    motif consists of aligned columns (coloured letters) and insertions
+	    (grey letters).  The aligned columns may include deletions (black
+	    dots).  GLAM2 does not try to align inserted (grey) letters with one
+	    another: it assumes their identity is unimportant.</p>
+
+	    <p>GLAM2 reports a score for each motif, higher scores indicating
+	    stronger motifs.  It also reports a "marginal score" for each site,
+	    stronger scores indicating better matches to the motif.</p>
+
+	    <p>Unlike MEME, GLAM2 does not try to find several different motifs
+	    all in one go.  Instead, it performs replicates: it tries to find the
+	    best possible motif ten times.  The highest-scoring result is shown at
+	    the top, with the other replicates below it.  You should check that at
+	    least some of the replicates are similar to the top motif: if not,
+	    click the button to re-run GLAM2 more slowly and thoroughly.</p>
+
+	    <p>You can control the gapiness of GLAM2 motifs, using four
+	    "pseudocount" options.  Their relative values control GLAM2's aversion
+	    to gaps: increasing the no-deletion pseudocount relative to the
+	    deletion pseudocount makes it more averse to deletions, and likewise
+	    for the no-insertion and insertion pseudocounts. Their absolute values
+	    control GLAM2's preference for putting gaps together in the same
+	    positions: decreasing the deletion and no-deletion pseudocounts makes
+	    it more prone to gather deletions into a few columns, and likewise for
+	    the (no-)insertion pseudocounts.  The pseudocounts affect the score
+	    calculation, so scores are not comparable between motifs found with
+	    different pseudocounts.</p>
+
+	    <p>If your sequences include repeats or extended regions of homology,
+	    GLAM2 will gladly find them for you.</p>
+
+	    <p>GLAM2 will always report the best motif it can find, even if you
+	    give it random sequences.  So, to check that your motif is
+	    significant, you may wish to run GLAM2 on control (e.g. shuffled)
+	    sequences as well, and compare the motif scores.  The input form
+	    includes a checkbox for shuffling the sequences.</p>
+
+
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

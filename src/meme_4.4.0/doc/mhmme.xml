@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>mhmme</title>
+    <link href="./meme-suite.css" rel="styleSheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>mhmme</h1>
+      <p><b>Usage:</b> mhmme [options] &lt;<i>HMM filename</i>&gt;</p>
+      <p><b>Description:</b></p>
+      <p>
+      Given a Meta-MEME hidden Markov model (HMM),
+      <code>mhmme</code> randomly generates sequence from the model and
+      prints them in Fasta format.
+      </p>
+      <p><b>Input:</b></p>
+      <ul>
+      <li>&lt;<i>HMM file</i>&gt; - An HMM in Meta-MEME format must be
+      provided. If the filename is given as '-', then 'mhmme' will
+      attempt to read the HMM from standard input.</li>
+      </ul>
+      <p><b>Output:</b></p>
+      <p>The program prints to standard output one or more
+      sequences in Fasta format.</p>
+      <p><b>Options:</b></p>
+      <ul>
+      <li><code>--numseq &lt;<i>integer</i>&gt;</code> The number of
+      sequences to emit. Default is 1.
+      </li>
+      <li><code>--occurs</code> Rather than printing the raw sequence,
+      print a pseudo-sequence in which non-motif regions are represented
+      as hyphens and motifs are represented like this:
+      <code>*____7___*</code>, where <code>7</code> is the motif
+      index.
+      </li>
+      <li><code>--seed &lt;<i>integer</i>&gt;</code> Set the seed for the
+      random number generator. By default, the seed is set from the
+      clock.</li>
+      </ul>
+      <p><b>Bugs:</b> None known.</p>
+      <p>Author: <a href="http://www.gs.washington.edu/~noble">William
+      Stafford Noble</a>.</p>
+    </div>
+  </body>
+</html>

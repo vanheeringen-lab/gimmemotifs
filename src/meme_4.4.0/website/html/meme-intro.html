@@ -1,0 +1,73 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MEME - Overview</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+	    <img src="images/meme.png" alt="MEME logo">
+            <h3>Overview</h3>
+            <h4>MEME is a tool for discovering <b>motifs</b> in a group of
+            related DNA or protein sequences.</h4>
+            <p>A motif is a sequence pattern that occurs repeatedly in a group
+            of related protein or DNA sequences. MEME represents motifs as
+            position-dependent letter-probability matrices which describe the
+            probability of each possible letter at each position in the
+            pattern. Individual MEME motifs do not contain gaps. Patterns with
+            variable-length gaps are split by MEME into two or more separate
+            motifs.</p>
+            <p>MEME takes as <a href="meme-input.html">input</a> a group of DNA
+            or protein sequences and outputs as many motifs as requested. MEME
+            uses statistical modeling techniques to automatically choose the
+            best width, number of occurrences, and description for each
+            motif.</p>
+            <p>Your MEME results consist of:</p>
+            <ul>
+            <li>your <b> MEME results in </b>
+              <a href="doc/examples/meme_example_output_files/meme.html">
+                HTML format
+              </a>
+            </li>
+            <li>your <b> MEME results in </b>
+              <a href="doc/examples/meme_example_output_files/meme.xml">
+                XML format
+              </a>
+            </li>
+            <li>your <b> MEME results in </b>
+              <a href="doc/examples/meme_example_output_files/meme.txt">
+                TEXT format
+              </a>
+            </li>
+            <li>and the <a href="doc/examples/mast_example_output_files/mast.html">
+              <b>MAST results</b></a> of
+              searching your input sequences for the motifs found by MEME using
+              <a href="mast-intro.html"><b>MAST</b></a>.
+            </li>
+            </ul>
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

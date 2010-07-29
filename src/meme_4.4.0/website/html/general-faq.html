@@ -1,0 +1,276 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>GENERAL - FAQ</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+            <h3>Frequently Asked Questions</h3>
+            <!-- 
+      Developers: When you add a new question, 
+      1) Update next available tag section by adding 1.
+      2) Add the question first to the table of contents. 
+      3) Add the question and answer to the answers section.
+      -->
+            <!--
+      Next available tag: Q006
+      -->
+            <hr />
+            <!-- Table of Contents -->
+            <ul>
+              <li> 
+                <a href="#Q001"> <b>Q.</b> 
+                I haven't received my MEME confirmation email?</a>
+              </li> 
+              <!--
+              <li> 
+                <a href="#Q002"> <b>Q.</b> 
+                Is there a job queue that I can see how busy the cluster is?</a></li>
+              -->
+              <li> 
+                <a href="#Q003"> <b>Q.</b> 
+                Why don't the motif occurrences in the "Summary of Motifs" block diagrams match the occurrences shown in 
+                the individual motif block diagrams?</a>
+              </li> 
+              <li> 
+                <a href="#Q004"> <b>Q.</b> 
+                MAST returns "Your sequence contains unrecognized characters..."</a>
+              </li> 
+              <li> 
+                <a href="#Q005"> <b>Q.</b> 
+                Is it possible to introduce specific amino acid
+                compositions in the MEME and MAST programs?</a>
+              </li> 
+              <li>
+                <a href="#Q006"> <b>Q.</b>
+                I don't really understand what the pseudocount
+		parameters for tomtom represent, nor how to use them
+		properly.
+              </li>
+              <li>
+                <a href="#Q007"> <b>Q.</b>
+                MEME Suite won't compile!
+                I get error messages about libxml2 or libxslt.
+                What should I do?
+              </li>
+            </ul>
+            <hr />
+            <!-- Answers -->
+            <ul>
+              <li> 
+                <a name="Q001"></a>
+                <b>Q.</b> 
+                I haven't received my MEME confirmation email?
+                <p> 
+                <b>A.</b> You should have received a
+                confirmation email that your job is submitted.  If you
+                haven't received this email, then you might have typed
+                in the wrong email address.</p>
+		<p>
+		Alternatively, your mail program may be filtering the
+                MEME emails as spam, so check your folders designated
+                as junk e-mail or spam.  Try to configure your mail
+                program not to filter out emails from
+                meme@nbcr.net.</p>
+		<p>
+                Please also check with your mail server administrator
+                and see whether your email has been filtered out by
+                spam filters run automatically on all incoming
+                messages by your organization.</p>
+                </p>
+              </li>
+            </ul>
+            <hr />
+              <!--
+            <ul>
+              <li> 
+                <a name="Q002"></a> 
+                <b>Q.</b> Is there a job queue that I can see how busy the cluster is?
+                <p> 
+                <b>A.</b> Yes, the web interface to the job queue.
+                can be accessed <a
+                href="http://meme.nbcr.net/ganglia/addons/rocks/queue.php?user=meme&amp;sortby=id&amp;sortorder=up&amp;update=1">here.</a>
+                </p>
+                <p> In your confirmation email, you are given a MEME
+                JOB ID, which is a randomly generated number for each
+                job.  You may check the status of your job with the
+                MEME JOB ID by looking at the job info given <a
+                href="http://meme.nbcr.net/ganglia/addons/rocks/queue.php?user=meme&amp;sortby=id&amp;sortorder=up&amp;update=1">here.</a></p>
+		<p>
+		Currently the MEME JOB ID is indicated only for active
+                jobs running on the clusters, and appears in the job
+                name column as "meme.(MEME_JOB_ID).script".  The first
+                column ("Id") is the batch job ID for the Sun Grid
+                Engine, a batch scheduler.
+                </p>
+              </li>
+            </ul>
+            <hr />
+              -->
+            <ul>
+              <li> 
+                <a name="Q003"></a>
+                <b>Q.</b> Why don't the motif occurrences in the
+                "Summary of Motifs" block diagrams match the
+                occurrences shown in the individual motif block
+                diagrams?
+                <p> 
+                <b>A.</b> The motif occurrences shown for a motif in
+                its section of the output are the ones discovered by
+                the MEME algorithm.  These occurrences are then used
+                to create a position specific scoring matrix (PSSM)
+                for the motif.  The PSSMs for all of the motifs
+                discovered by MEME are then used to search for
+                non-overlapping sets of occurrences of motifs with
+                p-values under 0.0001 using the MAST algorithm.  These
+                are displayed in the "Summary of Motifs" block
+                diagram.  Individual motif occurrences will sometimes
+                be missing from the "Summary of Motifs" block diagram
+                because of the non-overlapping or minimum p-value
+                requirements.  Conversely, there may be motif
+                occurrences in the summary diagram that were not
+                discovered by the MEME algorithm.
+                </p>
+              </li>
+            </ul>
+            <hr />
+            <ul>
+              <li> 
+                <a name="Q004"></a>
+                <b>Q.</b> MAST returns "Your sequence contains
+                unrecognized characters..."
+                <p> 
+                <b>A.</b> The file must be a plain text file. MSWord
+                files, for example, are not acceptable. MSWord files
+                can be converted to plain text by: <br/>
+                "File"-->"Save As"-->"Save As Type"-->"Plain Text'
+                (*.txt)".
+                </p>
+              </li>
+            </ul>
+            <hr />	
+            <ul>
+              <li>
+                <a name="Q005"></a>
+                <b>Q.</b> Is it possible to introduce specific amino
+                acid compositions in the MEME and MAST programs?
+                <p> 
+                <b>A.</b> MEME can use higher-order background models.
+                However, doing this requires a locally installed MEME
+                and running "fasta-get-markov", which is included in
+                the distribution. The relevant switch to MEME is
+                "-bfile".</p>
+		<p>
+                MAST can only use zero-order (compositional)
+                models. This is done automatically on the web server
+                when searching the "upstream" databases using a file
+                based on all upstream regions for the particular
+                organism.  As with MEME, users of locally installed
+                MAST can specify their own background files. The
+                switch to MAST is "-bfile".
+                </p> 
+              </li>
+            </ul>
+            <hr/>
+            <ul>
+              <li>
+                <a name="Q006"></a>
+                <b>Q.</b>
+                I don't really understand what the pseudocount
+                parameters for tomtom represent, nor how to use them
+                properly.
+                <p>
+                <b>A.</b> Essentially, a pseudocount corresponds to a
+                Bayesian prior.  If you flip a coin 10 times and
+                observe 10 heads in a row, then without a prior, you
+                would estimate the probability of observing a heads on
+                the next round as 100%.  But because you have a prior
+                belief that the coin is probably fair, you might
+                pretend that you started off with one heads and one
+                tails.  Then you would say that you've seen 1 tails
+                and 11 heads, so your probability of heads would be
+                91.7%.  If you keep flipping the coin all day, and you
+                only ever see heads, then the estimated probability of
+                heads would eventually get very close to 100%.</p>
+
+                <p>
+                The motif pseudocounts work they same way: they allow
+                you to say that, even though we've never seen an "A"
+                in position 3 of the motif, it's still a possibility.
+                Pseudocounts are important for motifs with few known
+                occurrences.  If you have a motif built from 100
+                instances, then the pseudocount is not likely to be
+                important, but if the motif is based on only a handful
+                of instances, then it is.</p>
+
+                <p>
+                Motifs coming out of MEME already have pseudocounts
+                included in them.  Otherwise, it's a good idea to add
+                a small pseudocount.</p>
+              </li>
+            </ul>
+            <hr/>
+            <ul>
+              <li>
+                <a name="Q007"></a>
+                <b>Q.</b>
+                MEME Suite won't compile!
+                I get error messages about <code>libxml2</code> or <code>libxslt</code>.
+                What should I do?
+                <p>
+                <b>A.</b>
+                <a href="http://xmlsoft.org"><code>libxml2</code></a> 
+                is a library for parsing XML files.
+                <a href="http://xmlsoft.org/XSLT/"><code>libxslt</code></a> 
+                is a library for processsing XML files.
+                using XSLT stylesheets.
+                MEME Suite will try to use the versions of these libraries
+                already installed on your system. 
+                If the libraries can't be found on your system, 
+                MEME Suite will build its own copies from source included in the 
+                MEME Suite distribution.
+                If MEME Suite detects a local copy of <code>libxml2</code>, 
+                but no local copy of <code>libxslt</code>, it will try to build
+                its own copy of <code>libxslt</code>, but it may run into
+                conflicts between the installed versions of <code>libxml2</code>
+                and included version of <code>libxslt</code> that will keep MEME suite 
+                from compiling.
+                If you run into this problem you can force MEME Suite to build 
+                both libraries from the included source.
+                Just add the options <code>--enable-build-libxml2</code> and 
+                <code>--enable-build-libxslt</code> to your <code>configure</code>
+                command line.
+                For further information about <code>configure</code> options see
+                the <a href="meme-install.html#customconfig">installation guide</a>.
+                </p>
+              </li>
+            </ul>
+            <hr/>
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+   </table>
+  </body>
+</html>
+

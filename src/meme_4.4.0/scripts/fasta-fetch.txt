@@ -1,0 +1,148 @@
+#!@WHICHPERL@
+
+$pgm = $0;                      # name of program
+$pgm =~ s#.*/##;                # remove part up to last slash
+$status = 0;                    # exit status
+#$SIG{'INT'} = 'cleanup';	# interrupt handler
+$line_size = 50;		# size of lines to print
+$off = 1;			# first position of sequence to print
+$len = -1;			# maximum length of sequence to print
+ 
+$usage = <<USAGE;               # usage message
+  USAGE:
+        $pgm <fasta> [-f <file> | [<id>]+] [-c] [-s <suf>] 
+		[-off <off>] [-len <len>]
+
+		<fasta>		name of FASTA sequence file
+		[-f <file>]	file containing list of sequence identifiers
+		[<id>]		sequence identifier
+		[-c]		check that first word in fasta id matches <id>
+		[-s <suf>]	put each sequence in a file named "after" the
+				sequence identifier with ".<suf>" appended; 
+				pipes in file names are changed to underscores
+		[-off <off>] 	print starting at position <off>; default: $off
+ 		[-len <len>]	print up to <len> characters for each seq; 
+				default: print entire sequence
+
+	Note: Assumes and index file has been made using fasta-make-index.
+	Sequence identifiers must be same as made by fasta-make-index.
+
+	Reads sequence identifiers from the command line, from
+	a file and from standard input, in that order.
+
+	Fetch sequences from a FASTA sequence file and 
+	write to standard output.
+
+USAGE
+
+if ($#ARGV+1 < 1) {             # wrong number of arguments
+  die $usage;
+}
+
+# get input arguments
+$fasta = shift;			# file of FASTA sequences
+while ($#ARGV >= 0) {
+  $_ = shift;
+  if ($_ eq "-f") { 		# from file
+    $filename = shift;
+  } elsif ($_ eq "-c") {	# check name match
+    $check = 1;
+  } elsif ($_ eq "-s") {	# put in files
+    $suffix = shift;
+    $print_to_files = 1;
+  } elsif ($_ eq "-off") {	# offset
+    $off = shift;
+  } elsif ($_ eq "-len") {	# maximum length
+    $len = shift;
+  } else {			# file name
+    push @target, $_;
+  }
+}
+
+# get targets from file
+if ($filename) {
+  open(IDFILE,  "<$filename") || die("Can't open file $filename\n");
+  while (<IDFILE>) { 
+    next if (/^#/ || /^\s*$/); 	# skip comments an blank lines
+    @words = split;
+    push @target, @words;
+  }
+  close(IDFILE);
+}
+#while (<>) { 
+#  @words = split;
+#  push @target, @words;
+#}
+
+# open the FASTA file
+open(FASTA, "<$fasta") || die "Can't open file $fasta\n";
+
+# open the index file
+$index = "$fasta.index";
+open(INDEX, "<$index") || die "Can't open $index\n";
+
+# read in the index
+while (<INDEX>) {
+  @words = split;
+  $id = $words[0];			# sequence id
+  $addr = $words[1];			# start of sequence
+  $index{$id} = "$index{$id} $addr";
+}
+
+# use direct access to get each target
+foreach $id (@target) {
+  $_ = $index{">$id"};			# address of sequence 
+  if ($_ eq undef) {
+    print STDERR "Can't find target $id\n";
+    next;				# go to next target
+  }
+  # open output file if requested
+  if ($print_to_files) {
+    $outfile = $id;
+    $outfile =~ s/\|/_/g;
+    $outfile .= ".$suffix" if ($suffix);
+    open(OUTPUT,  ">$outfile") || die("Can't open file $outfile : $!\n");
+  } else { # print to files
+    open(OUTPUT, ">-");
+  }
+  foreach $addr (split) {		# one-to-many
+    seek(FASTA, $addr, 0);		# move to start of target
+    $_ = <FASTA>;
+    $idline = $_;
+    @words = split;
+    if ($check && $words[0] ne ">$id") {
+      $tmp = $words[0];
+      @words2 = split(/[>\|]/, $tmp);
+      $tmp = $words2[$#words2];
+      if ($tmp ne $id) {
+	$lower = $tmp;
+	$lower =~ tr/A-Z/a-z/;
+	if ($lower ne $id) {
+	  print STDERR "Bad index?  target= >$id  found= $words[0]\n";
+	  next;				# go to next target
+	}
+      }
+    }
+    print OUTPUT "$idline";		# print header
+    $seq = "";
+    while (<FASTA>) {			# read sequence lines
+      if (/^>/) {last}			# start of next sequence
+      # print sequence line
+      chop;
+      $seq .= $_;
+    }
+    # print sequence in lines of length $line_size
+    # get portion of sequence to print if -off and/or -len given
+    if ($off != 1 || $len != -1) {
+      if ($len == -1) {
+        $seq = substr($seq, $off-1);
+      } else {
+        $seq = substr($seq, $off-1, $len);
+      }
+    }
+    for ($i=0; $i<length($seq); $i+=$line_size) {
+      print substr($seq, $i, $line_size), "\n";
+    }
+  } # addr
+  close(OUTPUT);
+} # id

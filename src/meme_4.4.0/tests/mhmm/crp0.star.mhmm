@@ -1,0 +1,541 @@
+MHMM v4.0.0
+type: star
+num_states: 59
+num_spacers: 1
+spacer_length: 1
+alph_size: 4
+alphabet: ACGT
+background: 0.3040000 0.1960000 0.1960000 0.3040000 
+motif_file: common/crp0.meme.html
+State: 0
+    type: start
+    i_motif: -1
+    motif_id: ---
+    i_position: -1
+    id_char: .
+    num_sites: 0
+State: 1
+    type: spacer
+    i_motif: -1
+    motif_id: ---
+    i_position: 0
+    id_char: .
+    num_sites: 10
+    emit: 0.3040000 0.1960000 0.1960000 0.3040000 
+State: 2
+    type: start_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 0
+    id_char: *
+    num_sites: 18
+    emit: 0.0000000 0.1666670 0.0555560 0.7777780 
+State: 3
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 1
+    id_char: _
+    num_sites: 18
+    emit: 0.0000000 0.1111110 0.5555560 0.3333330 
+State: 4
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 2
+    id_char: _
+    num_sites: 18
+    emit: 0.0000000 0.1666670 0.0000000 0.8333330 
+State: 5
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 3
+    id_char: _
+    num_sites: 18
+    emit: 0.2222220 0.0000000 0.7777780 0.0000000 
+State: 6
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 4
+    id_char: _
+    num_sites: 18
+    emit: 0.7222220 0.1666670 0.0000000 0.1111110 
+State: 7
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 5
+    id_char: _
+    num_sites: 18
+    emit: 0.2222220 0.1111110 0.2777780 0.3888890 
+State: 8
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 6
+    id_char: _
+    num_sites: 18
+    emit: 0.1111110 0.5555560 0.2222220 0.1111110 
+State: 9
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 7
+    id_char: _
+    num_sites: 18
+    emit: 0.2777780 0.1666670 0.3333330 0.2222220 
+State: 10
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 8
+    id_char: _
+    num_sites: 18
+    emit: 0.6111110 0.0000000 0.2222220 0.1666670 
+State: 11
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 9
+    id_char: _
+    num_sites: 18
+    emit: 0.0555560 0.2777780 0.3888890 0.2777780 
+State: 12
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 10
+    id_char: +
+    num_sites: 18
+    emit: 0.1666670 0.1111110 0.3888890 0.3333330 
+State: 13
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 11
+    id_char: 1
+    num_sites: 18
+    emit: 0.0000000 0.0555560 0.0000000 0.9444440 
+State: 14
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 12
+    id_char: _
+    num_sites: 18
+    emit: 0.1111110 0.8888890 0.0000000 0.0000000 
+State: 15
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 13
+    id_char: _
+    num_sites: 18
+    emit: 0.7777780 0.0000000 0.1111110 0.1111110 
+State: 16
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 14
+    id_char: _
+    num_sites: 18
+    emit: 0.0000000 0.9444440 0.0000000 0.0555560 
+State: 17
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 15
+    id_char: _
+    num_sites: 18
+    emit: 0.8333330 0.0555560 0.0555560 0.0555560 
+State: 18
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 16
+    id_char: _
+    num_sites: 18
+    emit: 0.2222220 0.5000000 0.0000000 0.2777780 
+State: 19
+    type: mid_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 17
+    id_char: _
+    num_sites: 18
+    emit: 0.3333330 0.1111110 0.0000000 0.5555560 
+State: 20
+    type: end_motif
+    i_motif: 0
+    motif_id: +1
+    i_position: 18
+    id_char: *
+    num_sites: 18
+    emit: 0.3333330 0.0000000 0.0555560 0.6111110 
+State: 21
+    type: start_motif
+    i_motif: 1
+    motif_id: +2
+    i_position: 0
+    id_char: *
+    num_sites: 2
+    emit: 0.0000000 1.0000000 0.0000000 0.0000000 
+State: 22
+    type: mid_motif
+    i_motif: 1
+    motif_id: +2
+    i_position: 1
+    id_char: _
+    num_sites: 2
+    emit: 0.0000000 0.0000000 1.0000000 0.0000000 
+State: 23
+    type: mid_motif
+    i_motif: 1
+    motif_id: +2
+    i_position: 2
+    id_char: _
+    num_sites: 2
+    emit: 0.0000000 0.0000000 1.0000000 0.0000000 
+State: 24
+    type: mid_motif
+    i_motif: 1
+    motif_id: +2
+    i_position: 3
+    id_char: _
+    num_sites: 2
+    emit: 0.0000000 0.5000000 0.0000000 0.5000000 
+State: 25
+    type: mid_motif
+    i_motif: 1
+    motif_id: +2
+    i_position: 4
+    id_char: +
+    num_sites: 2
+    emit: 0.0000000 0.0000000 1.0000000 0.0000000 
+State: 26
+    type: mid_motif
+    i_motif: 1
+    motif_id: +2
+    i_position: 5
+    id_char: 2
+    num_sites: 2
+    emit: 0.0000000 0.0000000 1.0000000 0.0000000 
+State: 27
+    type: mid_motif
+    i_motif: 1
+    motif_id: +2
+    i_position: 6
+    id_char: _
+    num_sites: 2
+    emit: 0.0000000 0.0000000 1.0000000 0.0000000 
+State: 28
+    type: end_motif
+    i_motif: 1
+    motif_id: +2
+    i_position: 7
+    id_char: *
+    num_sites: 2
+    emit: 0.0000000 0.0000000 1.0000000 0.0000000 
+State: 29
+    type: start_motif
+    i_motif: 2
+    motif_id: +3
+    i_position: 0
+    id_char: *
+    num_sites: 2
+    emit: 0.0000000 0.0000000 1.0000000 0.0000000 
+State: 30
+    type: mid_motif
+    i_motif: 2
+    motif_id: +3
+    i_position: 1
+    id_char: _
+    num_sites: 2
+    emit: 0.0000000 1.0000000 0.0000000 0.0000000 
+State: 31
+    type: mid_motif
+    i_motif: 2
+    motif_id: +3
+    i_position: 2
+    id_char: _
+    num_sites: 2
+    emit: 1.0000000 0.0000000 0.0000000 0.0000000 
+State: 32
+    type: mid_motif
+    i_motif: 2
+    motif_id: +3
+    i_position: 3
+    id_char: _
+    num_sites: 2
+    emit: 0.0000000 0.0000000 0.0000000 1.0000000 
+State: 33
+    type: mid_motif
+    i_motif: 2
+    motif_id: +3
+    i_position: 4
+    id_char: _
+    num_sites: 2
+    emit: 0.0000000 1.0000000 0.0000000 0.0000000 
+State: 34
+    type: mid_motif
+    i_motif: 2
+    motif_id: +3
+    i_position: 5
+    id_char: +
+    num_sites: 2
+    emit: 0.5000000 0.0000000 0.5000000 0.0000000 
+State: 35
+    type: mid_motif
+    i_motif: 2
+    motif_id: +3
+    i_position: 6
+    id_char: 3
+    num_sites: 2
+    emit: 0.0000000 0.0000000 1.0000000 0.0000000 
+State: 36
+    type: mid_motif
+    i_motif: 2
+    motif_id: +3
+    i_position: 7
+    id_char: _
+    num_sites: 2
+    emit: 0.0000000 0.0000000 1.0000000 0.0000000 
+State: 37
+    type: mid_motif
+    i_motif: 2
+    motif_id: +3
+    i_position: 8
+    id_char: _
+    num_sites: 2
+    emit: 0.0000000 1.0000000 0.0000000 0.0000000 
+State: 38
+    type: end_motif
+    i_motif: 2
+    motif_id: +3
+    i_position: 9
+    id_char: *
+    num_sites: 2
+    emit: 0.0000000 0.0000000 1.0000000 0.0000000 
+State: 39
+    type: start_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 0
+    id_char: *
+    num_sites: 18
+    emit: 0.6111110 0.0555560 0.0000000 0.3333330 
+State: 40
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 1
+    id_char: _
+    num_sites: 18
+    emit: 0.5555560 0.0000000 0.1111110 0.3333330 
+State: 41
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 2
+    id_char: _
+    num_sites: 18
+    emit: 0.2777780 0.0000000 0.5000000 0.2222220 
+State: 42
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 3
+    id_char: _
+    num_sites: 18
+    emit: 0.0555560 0.0555560 0.0555560 0.8333330 
+State: 43
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 4
+    id_char: _
+    num_sites: 18
+    emit: 0.0555560 0.0000000 0.9444440 0.0000000 
+State: 44
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 5
+    id_char: _
+    num_sites: 18
+    emit: 0.1111110 0.1111110 0.0000000 0.7777780 
+State: 45
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 6
+    id_char: _
+    num_sites: 18
+    emit: 0.0000000 0.0000000 0.8888890 0.1111110 
+State: 46
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 7
+    id_char: _
+    num_sites: 18
+    emit: 0.9444440 0.0000000 0.0555560 0.0000000 
+State: 47
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 8
+    id_char: _
+    num_sites: 18
+    emit: 0.3333330 0.3888890 0.1111110 0.1666670 
+State: 48
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 9
+    id_char: _
+    num_sites: 18
+    emit: 0.2777780 0.3888890 0.2777780 0.0555560 
+State: 49
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 10
+    id_char: -
+    num_sites: 18
+    emit: 0.1666670 0.2222220 0.0000000 0.6111110 
+State: 50
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 11
+    id_char: 1
+    num_sites: 18
+    emit: 0.2222220 0.3333330 0.1666670 0.2777780 
+State: 51
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 12
+    id_char: _
+    num_sites: 18
+    emit: 0.1111110 0.2222220 0.5555560 0.1111110 
+State: 52
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 13
+    id_char: _
+    num_sites: 18
+    emit: 0.3888890 0.2777780 0.1111110 0.2222220 
+State: 53
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 14
+    id_char: _
+    num_sites: 18
+    emit: 0.1111110 0.0000000 0.1666670 0.7222220 
+State: 54
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 15
+    id_char: _
+    num_sites: 18
+    emit: 0.0000000 0.7777780 0.0000000 0.2222220 
+State: 55
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 16
+    id_char: _
+    num_sites: 18
+    emit: 0.8333330 0.0000000 0.1666670 0.0000000 
+State: 56
+    type: mid_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 17
+    id_char: _
+    num_sites: 18
+    emit: 0.3333330 0.5555560 0.1111110 0.0000000 
+State: 57
+    type: end_motif
+    i_motif: 3
+    motif_id: -1
+    i_position: 18
+    id_char: *
+    num_sites: 18
+    emit: 0.7777780 0.0555560 0.1666670 0.0000000 
+State: 58
+    type: end
+    i_motif: 4
+    motif_id: ---
+    i_position: -1
+    id_char: .
+    num_sites: 0
+Transition probability matrix (59 x 59):
+    0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0.990099 0.0019802 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.0019802 0 0 0 0 0 0 0 0.0019802 0 0 0 0 0 0 0 0 0 0.0019802 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.0019802 
+    0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 
+    0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+End of MHMM
+

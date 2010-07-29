@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+<head>
+<title>ceqlogo</title>
+<link href="./meme-suite.css" rel="styleSheet" type="text/css" />
+</head>
+<body>
+<div id="main">
+  <script src="./meme-suite-logo.js" type="text/javascript">></script>
+<h1>ceqlogo</h1>
+<p>
+<b>Usage:</b> <code>ceqlogo -i &lt;filename&gt; [options] </code>
+</p>
+
+<p><b>Examples:</b></p>
+<blockquote>
+
+<p>Load all motifs within a MEME motif file and write to logo.eps in EPS format: <br />
+   <code>ceqlogo -i meme.motifs -o logo.eps -f EPS</code>
+</p>
+
+<p>Load second motif from each of two files and shift the first one:<br/>
+   <code>ceqlogo -i2 meme1.motifs -s 3 -i2 meme2.motifs -o logo.eps -f EPS</code>
+</p>
+
+<p>Run a self-test:<br/>
+   <code>ceqlogo -test</code>
+</p>
+</blockquote>
+
+<p><b>Description:</b></p>
+<blockquote>
+
+<p>The <code>ceqlogo</code> program generates one or multiple, aligned logos
+in EPS or SVG format, based on a set of nucleotide or amino acid
+frequency matrices provided in the <a href="meme-format.html">MEME file format</a>.
+The code of <code>ceqlogo</code> is based on the Perl code of
+<a href="http://weblogo.berkeley.edu/">weblogo</a>
+but is written in C and supports SVG output. Note that the program strives to use
+command line options similar to those of <code>weblogo</code>.
+</p>
+<p>
+The letter stacks are calculated by the following equations found in
+Schneider and Stephens paper
+<a href="http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=332411">
+"Sequence Logos: A New Way to Display Consensus Sequences"</a> and adapted
+from the weblogo documentation. The height of a letter is calculated as:
+</p>
+<p>
+<code>height(b,l) = f(b,l) * R(l)</code>
+</p>
+<p>
+where <code>f(b,l)</code> is the frequency of base or amino acid <code>b</code>
+at position <code>l</code>. The stack height <code>R(l)</code> is the amount
+of information present at position <code>l</code> and can be quantified as follows:
+</p>
+<p>
+<code>R(l) for amino acids   = log(20) - (H(l) + e(n))</code>
+</p>
+<p>
+<code>R(l) for nucleic acids =    2    - (H(l) + e(n))</code>
+</p>
+<p>
+where <code>log</code> is taken base <code>2</code>, <code>H(l)</code>
+is the uncertainty at position <code>l</code>, and <code>e(n)</code> is the
+error correction factor for small sample sizes <code>n</code>.
+<code>H(l)</code> is computed as follows:
+</p>
+<p>
+<code>H(l) = - (Sum f(b,l) * log[ f(b,l) ])</code>
+</p>
+<p>
+where again, <code>log</code> is taken base <code>2</code>. <code>f(b,l)</code>
+is the frequency of base <code>b</code> at position <code>l</code>. The sum is
+taken over all amino acids or bases.
+</p>
+<p>
+The error correction factor <code>e(n)</code> is approximated by:
+</p>
+<p>
+<code>e(n) = (s-1) / (2 * ln 2 * n)</code>
+</p>
+</blockquote>
+
+
+
+<p><b>Input:</b></p>
+<ul>
+<li>
+&lt;input filename&gt; - A file containing one or more motifs in <a
+href="meme-format.html">MEME format</a>.
+</li>
+</ul>
+
+
+
+
+<p><b>Output:</b></p>
+<ul>
+<li>
+If no output file is specified <code>ceqlogo</code> writes to standard output.
+</li>
+</ul>
+
+
+
+<p><b>Options:</b></p>
+
+<p>Options with arguments (all lower case):</p>
+<ul>
+
+<li>
+<code>-i &lt;input filename&gt;</code> - Loads all motifs within the file.
+</li>
+
+<li>
+<code>-i&lt;n&gt; &lt;input filename&gt;</code> - Loads the n-th motif within the file.
+</li>
+
+<li>
+<code>-s &lt;shift&gt;</code> - Shift for previously loaded motif (-i).
+</li>
+
+<li>
+<code>-b &lt;bar bits&gt;</code> - Number of bits in bar (real # > 0).
+</li>
+
+<li>
+<code>-c &lt;tic bits&gt;</code> - Number of bits between tic marks.
+</li>
+
+<li>
+<code>-e &lt;error bar fraction&gt;</code> - Fraction of error bar to show (real # > 0).
+</li>
+
+<li>
+<code>-f &lt;format&gt;</code> - Format of output (<code>EPS,SVG</code>).
+      Default is <code>EPS</code>.
+</li>
+
+<li>
+<code>-h &lt;logo height&gt;</code> - Height of output logo in cm (real # > 0).
+</li>
+
+<li>
+<code>-k &lt;kind of data&gt;</code> - <code>AA</code> for amino acid, <code>NA</code> for nucleic acid.
+</li>
+
+<li>
+<code>-o &lt;output file&gt;</code> - Output file path. Default is stdout.
+</li>
+
+<li>
+<code>-n &lt;sample number&gt;</code> - Number of samples for previously loaded motif (-i).
+      Used to calculate error bars.
+</li>
+
+<li>
+<code>-t &lt;title label&gt;</code> - Label for title.
+</li>
+
+<li>
+<code>-w &lt;logo width&gt;</code> - Width of output logo in cm (real # > 0)
+</li>
+
+<li>
+<code>-x &lt;x-axis label&gt;</code> - Label for x-axis.
+</li>
+
+<li>
+<code>-y &lt;y-axis label&gt;</code> - Label for y-axis.
+</li>
+
+<li>
+<code>-p &lt;pseudo counts&gt;</code> - Pseudo counts for motifs. Default is 1.0.
+</li>
+
+<li>
+<code>-test [&lt;verbosity level&gt;]</code> - Runs a self-test.
+      All other options are ingored then. The verbosity level [0..3] is optional.
+</li>
+</ul>
+
+<p>Toggles (all upper case):</p>
+<ul>
+
+<li>
+<code>-B</code> - Toggle bar ends.
+</li>
+
+<li>
+<code>-E </code> - Toggle error bar.
+</li>
+
+<li>
+<code>-O</code> - Toggle outlining of characters.
+</li>
+
+<li>
+<code>-P</code> - Toggle fineprint.
+</li>
+
+<li>
+<code>-N</code> - Toggle numbering of x-axis.
+</li>
+
+<li>
+<code>-X</code> - Toggle boxing of characters.
+</li>
+
+<li>
+<code>-Y</code> - Toggle y-axis.
+</li>
+
+</ul>
+
+
+<p>
+<b>Known problems:</b>
+</p>
+
+<ul>
+<li>
+SVG output is only partially implemented.
+</li>
+</ul>
+
+
+
+
+<hr />
+
+<p>Author: Stefan Maetschke (s.maetschke@imb.uq.edu.au) </p>
+
+</div>
+</body>
+</html>

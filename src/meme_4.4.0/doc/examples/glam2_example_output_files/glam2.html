@@ -1,0 +1,645 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+<title>GLAM2</title>
+<style type="text/css">
+body {background: #D5F0FF}
+th {text-align: left}
+td.kk {font-family: monospace; font-weight: bold}
+td.jj {font-family: monospace; color: gray}
+td.N {color: green}
+td.Q {color: green}
+td.S {color: green}
+td.T {color: green}
+td.D {color: magenta}
+td.E {color: magenta}
+td.K {color: red}
+td.R {color: red}
+td.H {color: pink}
+td.G {color: orange}
+td.P {color: yellow}
+td.Y {color: turquoise}
+td.A {color: blue}
+td.C {color: blue}
+td.F {color: blue}
+td.I {color: blue}
+td.L {color: blue}
+td.M {color: blue}
+td.V {color: blue}
+td.W {color: blue}
+</style>
+</head><body>
+<h1>GLAM2: Gapped Local Alignment of Motifs</h1>
+<p style="font-family: monospace;"> Version 1056
+<br> /home/install/usr/apps/meme_4.1.0/bin/glam2 -Q -O . -M -A
+'fred@gmail.com' -X '' -z 2 -a 2 -b 50 -w 20 -r 10 -n 10000 -D 0.1 -E 2
+-I 0.02 -J 1 p sequences
+</p>
+<p>If you use this program in your research, please cite:<b> MC Frith,
+NFW Saunders, B Kobe, TL Bailey, "Discovering sequence motifs with
+arbitrary insertions and deletions", PLoS Computational Biology, <b>4</b>(5):e1000071, 2008.</b></p>
+<form enctype="application/x-www-form-urlencoded" method="post" target="_new" action="http://meme.nbcr.net/meme/cgi-bin/process_request.cgi">
+<ul>
+</ul>
+<input name="-Q" value="1" type="hidden">
+<input name="-O" value="." type="hidden">
+<input name="address" value="fred@gmail.com" type="hidden">
+<input name="address_verify" value="fred@gmail.com" type="hidden">
+<input name="description" value="" type="hidden">
+<input name="-z" value="2" type="hidden">
+<input name="-a" value="2" type="hidden">
+<input name="-b" value="50" type="hidden">
+<input name="-w" value="20" type="hidden">
+<input name="-r" value="10" type="hidden">
+<input name="-n" value="10000" type="hidden">
+<input name="-D" value="0.1" type="hidden">
+<input name="-E" value="2" type="hidden">
+<input name="-I" value="0.02" type="hidden">
+<input name="-J" value="1" type="hidden">
+<input name="alphabet" value="p" type="hidden">
+<input name="seq_file" value="sequences" type="hidden">
+<h2>Best Motif Found:</h2>
+<table>
+<tbody><tr>
+<th style="padding-right: 1em;">NAME</th>
+<th style="padding-right: 1em;">START</th>
+<th style="text-align: center;" colspan="23">SITES</th>
+<th style="padding-left: 1em;">END</th>
+<th style="padding-left: 1em;">STRAND</th>
+<th style="padding-left: 1em;">MARGINAL SCORE</th>
+</tr>
+</tbody><tbody>
+<tr>
+<td style="padding-right: 1em;"> CD3G_HUMAN_1 </td>
+<td style="padding-right: 1em; text-align: right;"> 11 </td>
+<td class="kk D"> D </td>
+<td class="kk Q"> Q </td>
+<td class="kk L"> L </td>
+<td class="kk Y"> Y </td>
+<td class="kk Q"> Q </td>
+<td class="kk P"> P </td>
+<td class="kk L"> L </td>
+<td class="kk K"> K </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="kk D"> D </td>
+<td class="kk R"> R </td>
+<td class="kk E"> E </td>
+<td class="kk D"> D </td>
+<td class="kk D"> D </td>
+<td class="kk Q"> Q </td>
+<td class="kk Y"> Y </td>
+<td class="kk S"> S </td>
+<td class="kk H"> H </td>
+<td class="kk L"> L </td>
+<td style="padding-left: 1em; text-align: right;"> 28 </td>
+<td style="padding-left: 1em; text-align: center;"> + </td>
+<td style="padding-left: 1em;"> 19.0 </td>
+</tr>
+<tr>
+<td style="padding-right: 1em;"> CD3Z_HUMAN_1 </td>
+<td style="padding-right: 1em; text-align: right;"> 11 </td>
+<td class="kk E"> E </td>
+<td class="kk G"> G </td>
+<td class="kk L"> L </td>
+<td class="kk Y"> Y </td>
+<td class="kk N"> N </td>
+<td class="kk E"> E </td>
+<td class="kk L"> L </td>
+<td class="kk Q"> Q </td>
+<td class="jj"> K </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="kk D"> D </td>
+<td class="kk K"> K </td>
+<td class="kk M"> M </td>
+<td class="kk A"> A </td>
+<td class="kk E"> E </td>
+<td class="kk A"> A </td>
+<td class="kk Y"> Y </td>
+<td class="kk S"> S </td>
+<td class="kk E"> E </td>
+<td class="kk I"> I </td>
+<td style="padding-left: 1em; text-align: right;"> 29 </td>
+<td style="padding-left: 1em; text-align: center;"> + </td>
+<td style="padding-left: 1em;"> 17.7 </td>
+</tr>
+<tr>
+<td style="padding-right: 1em;"> CD3Z_HUMAN_1 </td>
+<td style="padding-right: 1em; text-align: right;"> 7 </td>
+<td class="kk D"> D </td>
+<td class="kk G"> G </td>
+<td class="kk L"> L </td>
+<td class="kk Y"> Y </td>
+<td class="kk Q"> Q </td>
+<td class="kk G"> G </td>
+<td class="kk L"> L </td>
+<td class="kk S"> S </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="kk T"> T </td>
+<td class="kk A"> A </td>
+<td class="kk T"> T </td>
+<td class="kk K"> K </td>
+<td class="kk D"> D </td>
+<td class="kk T"> T </td>
+<td class="kk Y"> Y </td>
+<td class="kk D"> D </td>
+<td class="kk A"> A </td>
+<td class="kk L"> L </td>
+<td style="padding-left: 1em; text-align: right;"> 24 </td>
+<td style="padding-left: 1em; text-align: center;"> + </td>
+<td style="padding-left: 1em;"> 21.0 </td>
+</tr>
+<tr>
+<td style="padding-right: 1em;"> CD79A_HUMAN_ </td>
+<td style="padding-right: 1em; text-align: right;"> 11 </td>
+<td class="kk E"> E </td>
+<td class="kk N"> N </td>
+<td class="kk L"> L </td>
+<td class="kk Y"> Y </td>
+<td class="kk E"> E </td>
+<td class="kk G"> G </td>
+<td class="kk L"> L </td>
+<td class="kk N"> N </td>
+<td class="jj"> L </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="kk D"> D </td>
+<td class="kk D"> D </td>
+<td class="kk C"> C </td>
+<td class="kk S"> S </td>
+<td class="kk ."> . </td>
+<td class="kk M"> M </td>
+<td class="kk Y"> Y </td>
+<td class="kk E"> E </td>
+<td class="kk D"> D </td>
+<td class="kk I"> I </td>
+<td style="padding-left: 1em; text-align: right;"> 28 </td>
+<td style="padding-left: 1em; text-align: center;"> + </td>
+<td style="padding-left: 1em;"> 22.3 </td>
+</tr>
+<tr>
+<td style="padding-right: 1em;"> CD79B_HUMAN_ </td>
+<td style="padding-right: 1em; text-align: right;"> 11 </td>
+<td class="kk D"> D </td>
+<td class="kk H"> H </td>
+<td class="kk T"> T </td>
+<td class="kk Y"> Y </td>
+<td class="kk E"> E </td>
+<td class="kk G"> G </td>
+<td class="kk L"> L </td>
+<td class="kk D"> D </td>
+<td class="jj"> I </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="jj"> . </td>
+<td class="kk D"> D </td>
+<td class="kk Q"> Q </td>
+<td class="kk T"> T </td>
+<td class="kk A"> A </td>
+<td class="kk ."> . </td>
+<td class="kk T"> T </td>
+<td class="kk Y"> Y </td>
+<td class="kk E"> E </td>
+<td class="kk D"> D </td>
+<td class="kk I"> I </td>
+<td style="padding-left: 1em; text-align: right;"> 28 </td>
+<td style="padding-left: 1em; text-align: center;"> + </td>
+<td style="padding-left: 1em;"> 22.1 </td>
+</tr>
+<tr>
+<td style="padding-right: 1em;"> FCG2A_HUMAN_ </td>
+<td style="padding-right: 1em; text-align: right;"> 11 </td>
+<td class="kk D"> D </td>
+<td class="kk G"> G </td>
+<td class="kk G"> G </td>
+<td class="kk Y"> Y </td>
+<td class="kk M"> M </td>
+<td class="kk T"> T </td>
+<td class="kk L"> L </td>
+<td class="kk N"> N </td>
+<td class="jj"> P </td>
+<td class="jj"> R </td>
+<td class="jj"> A </td>
+<td class="jj"> P </td>
+<td class="jj"> T </td>
+<td class="kk D"> D </td>
+<td class="kk D"> D </td>
+<td class="kk D"> D </td>
+<td class="kk K"> K </td>
+<td class="kk N"> N </td>
+<td class="kk I"> I </td>
+<td class="kk Y"> Y </td>
+<td class="kk L"> L </td>
+<td class="kk T"> T </td>
+<td class="kk L"> L </td>
+<td style="padding-left: 1em; text-align: right;"> 33 </td>
+<td style="padding-left: 1em; text-align: center;"> + </td>
+<td style="padding-left: 1em;"> 6.73 </td>
+</tr>
+</tbody>
+</table>
+<table> <tbody><tr> <td> Score: <b> 62.2155 </b></td>
+<td rowspan="2"><img src="logo1.png"></td></tr>
+<tr><th><a href="logo_ssc1.png">logo with ssc</a></th></tr></tbody></table>
+<input name="action" value="Scan alignment 1" type="submit"><b> against sequence databases using <a href="http://meme.nbcr.net/meme4_1/doc/glam2scan_man.html">GLAM2SCAN.</a></b>
+<input name="aln1" value=".
+                ********.....**********
+CD3G_HUMAN_1 11 DQLYQPLK.....DREDDQYSHL 28 + 19.0
+CD3Z_HUMAN_1 11 EGLYNELQK....DKMAEAYSEI 29 + 17.7
+CD3Z_HUMAN_1  7 DGLYQGLS.....TATKDTYDAL 24 + 21.0
+CD79A_HUMAN_ 11 ENLYEGLNL....DDCS.MYEDI 28 + 22.3
+CD79B_HUMAN_ 11 DHTYEGLDI....DQTA.TYEDI 28 + 22.1
+FCG2A_HUMAN_ 11 DGGYMTLNPRAPTDDDKNIYLTL 33 + 6.73
+." type="hidden">
+<br><input name="action" value="View alignment 1" type="submit">
+<input name="pspm1" value="
+letter-probability matrix: alength= 20  w= 18 nsites= 6 E= 1
+0.0  0.0  0.666666666667  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.666666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0 
+0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.0  0.0  0.833333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.166666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.0 
+0.0  0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.333333333333  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.0  0.0  0.333333333333  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0 
+0.0  0.0  0.166666666667  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.333333333333  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.5  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+" type="hidden">
+<input name="action" value="View PSPM 1" type="submit">
+<h2>Replicates:</h2>
+<p>Check that at least some of these are similar to the best motif found.<br>If not, there may well be an even better motif: 
+<input name="action" value="re-run GLAM2" type="submit">
+with more iterations to find it.</p>
+<p>
+<table> <tbody><tr> <td> Score: <b> 62.2155 </b></td>
+<td rowspan="2"><img src="logo2.png"></td></tr>
+<tr><th><a href="logo_ssc2.png">logo with ssc</a></th></tr></tbody></table>
+<input name="action" value="Scan alignment 2" type="submit"><b> against sequence databases using <a href="http://meme.nbcr.net/meme4_1/doc/glam2scan_man.html">GLAM2SCAN.</a></b>
+<input name="aln2" value=".
+                ********.....**********
+CD3G_HUMAN_1 11 DQLYQPLK.....DREDDQYSHL 28 + 19.0
+CD3Z_HUMAN_1 11 EGLYNELQK....DKMAEAYSEI 29 + 17.7
+CD3Z_HUMAN_1  7 DGLYQGLS.....TATKDTYDAL 24 + 21.0
+CD79A_HUMAN_ 11 ENLYEGLNL....DDCS.MYEDI 28 + 22.3
+CD79B_HUMAN_ 11 DHTYEGLDI....DQTA.TYEDI 28 + 22.1
+FCG2A_HUMAN_ 11 DGGYMTLNPRAPTDDDKNIYLTL 33 + 6.73
+." type="hidden">
+<br><input name="action" value="View alignment 2" type="submit">
+<input name="pspm2" value="
+letter-probability matrix: alength= 20  w= 18 nsites= 6 E= 1
+0.0  0.0  0.666666666667  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.666666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0 
+0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.0  0.0  0.833333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.166666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.0 
+0.0  0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.333333333333  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.0  0.0  0.333333333333  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0 
+0.0  0.0  0.166666666667  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.333333333333  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.5  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+" type="hidden">
+<input name="action" value="View PSPM 2" type="submit">
+<table> <tbody><tr> <td> Score: <b> 62.0590 </b></td>
+<td rowspan="2"><img src="logo3.png"></td></tr>
+<tr><th><a href="logo_ssc3.png">logo with ssc</a></th></tr></tbody></table>
+<input name="action" value="Scan alignment 3" type="submit"><b> against sequence databases using <a href="http://meme.nbcr.net/meme4_1/doc/glam2scan_man.html">GLAM2SCAN.</a></b>
+<input name="aln3" value=".
+                ***********.*******
+CD3G_HUMAN_1 11 DQLYQPLKDRE.DDQYSHL 28 + 17.8
+CD3Z_HUMAN_1 11 EGLYNELQKDKMAEAYSEI 29 + 15.2
+CD3Z_HUMAN_1  7 DGLYQGLSTAT.KDTYDAL 24 + 20.4
+CD79A_HUMAN_ 11 ENLYEGLNLDD.CSMYEDI 28 + 20.7
+CD79B_HUMAN_ 11 DHTYEGLDIDQ.TATYEDI 28 + 22.3
+FCG2A_HUMAN_ 11 DGGYMTLNPRAPTDDDKNI 29 + 4.06
+." type="hidden">
+<br><input name="action" value="View alignment 3" type="submit">
+<input name="pspm3" value="
+letter-probability matrix: alength= 20  w= 18 nsites= 6 E= 1
+0.0  0.0  0.666666666667  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.666666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0 
+0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.833333333333 
+0.0  0.0  0.166666666667  0.333333333333  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.333333333333  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.666666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+" type="hidden">
+<input name="action" value="View PSPM 3" type="submit">
+<table> <tbody><tr> <td> Score: <b> 62.0590 </b></td>
+<td rowspan="2"><img src="logo4.png"></td></tr>
+<tr><th><a href="logo_ssc4.png">logo with ssc</a></th></tr></tbody></table>
+<input name="action" value="Scan alignment 4" type="submit"><b> against sequence databases using <a href="http://meme.nbcr.net/meme4_1/doc/glam2scan_man.html">GLAM2SCAN.</a></b>
+<input name="aln4" value=".
+                ***********.*******
+CD3G_HUMAN_1 11 DQLYQPLKDRE.DDQYSHL 28 + 17.8
+CD3Z_HUMAN_1 11 EGLYNELQKDKMAEAYSEI 29 + 15.2
+CD3Z_HUMAN_1  7 DGLYQGLSTAT.KDTYDAL 24 + 20.4
+CD79A_HUMAN_ 11 ENLYEGLNLDD.CSMYEDI 28 + 20.7
+CD79B_HUMAN_ 11 DHTYEGLDIDQ.TATYEDI 28 + 22.3
+FCG2A_HUMAN_ 11 DGGYMTLNPRAPTDDDKNI 29 + 4.06
+." type="hidden">
+<br><input name="action" value="View alignment 4" type="submit">
+<input name="pspm4" value="
+letter-probability matrix: alength= 20  w= 18 nsites= 6 E= 1
+0.0  0.0  0.666666666667  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.666666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0 
+0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.833333333333 
+0.0  0.0  0.166666666667  0.333333333333  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.333333333333  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.666666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+" type="hidden">
+<input name="action" value="View PSPM 4" type="submit">
+<table> <tbody><tr> <td> Score: <b> 61.6880 </b></td>
+<td rowspan="2"><img src="logo5.png"></td></tr>
+<tr><th><a href="logo_ssc5.png">logo with ssc</a></th></tr></tbody></table>
+<input name="action" value="Scan alignment 5" type="submit"><b> against sequence databases using <a href="http://meme.nbcr.net/meme4_1/doc/glam2scan_man.html">GLAM2SCAN.</a></b>
+<input name="aln5" value=".
+                *******************
+CD3G_HUMAN_1 11 DQLYQPLKDRE.DDQYSHL 28 + 17.0
+CD3Z_HUMAN_1 11 EGLYNELQKDKMAEAYSEI 29 + 16.0
+CD3Z_HUMAN_1  7 DGLYQGLSTAT.KDTYDAL 24 + 19.6
+CD79A_HUMAN_ 11 ENLYEGLNLDD.CSMYEDI 28 + 19.9
+CD79B_HUMAN_ 11 DHTYEGLDIDQ.TATYEDI 28 + 21.5
+FCG2A_HUMAN_ 11 DGGYMTLNPRAPTDDDKNI 29 + 4.72
+." type="hidden">
+<br><input name="action" value="View alignment 5" type="submit">
+<input name="pspm5" value="
+letter-probability matrix: alength= 20  w= 19 nsites= 6 E= 1
+0.0  0.0  0.666666666667  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.666666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0 
+0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.833333333333 
+0.0  0.0  0.166666666667  0.333333333333  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.333333333333  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.666666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+" type="hidden">
+<input name="action" value="View PSPM 5" type="submit">
+<table> <tbody><tr> <td> Score: <b> 61.6880 </b></td>
+<td rowspan="2"><img src="logo6.png"></td></tr>
+<tr><th><a href="logo_ssc6.png">logo with ssc</a></th></tr></tbody></table>
+<input name="action" value="Scan alignment 6" type="submit"><b> against sequence databases using <a href="http://meme.nbcr.net/meme4_1/doc/glam2scan_man.html">GLAM2SCAN.</a></b>
+<input name="aln6" value=".
+                *******************
+CD3G_HUMAN_1 11 DQLYQPLKDRE.DDQYSHL 28 + 17.0
+CD3Z_HUMAN_1 11 EGLYNELQKDKMAEAYSEI 29 + 16.0
+CD3Z_HUMAN_1  7 DGLYQGLSTAT.KDTYDAL 24 + 19.6
+CD79A_HUMAN_ 11 ENLYEGLNLDD.CSMYEDI 28 + 19.9
+CD79B_HUMAN_ 11 DHTYEGLDIDQ.TATYEDI 28 + 21.5
+FCG2A_HUMAN_ 11 DGGYMTLNPRAPTDDDKNI 29 + 4.72
+." type="hidden">
+<br><input name="action" value="View alignment 6" type="submit">
+<input name="pspm6" value="
+letter-probability matrix: alength= 20  w= 19 nsites= 6 E= 1
+0.0  0.0  0.666666666667  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.666666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0 
+0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.833333333333 
+0.0  0.0  0.166666666667  0.333333333333  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.333333333333  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.666666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+" type="hidden">
+<input name="action" value="View PSPM 6" type="submit">
+<table> <tbody><tr> <td> Score: <b> 61.6880 </b></td>
+<td rowspan="2"><img src="logo7.png"></td></tr>
+<tr><th><a href="logo_ssc7.png">logo with ssc</a></th></tr></tbody></table>
+<input name="action" value="Scan alignment 7" type="submit"><b> against sequence databases using <a href="http://meme.nbcr.net/meme4_1/doc/glam2scan_man.html">GLAM2SCAN.</a></b>
+<input name="aln7" value=".
+                *******************
+CD3G_HUMAN_1 11 DQLYQPLKDRE.DDQYSHL 28 + 17.0
+CD3Z_HUMAN_1 11 EGLYNELQKDKMAEAYSEI 29 + 16.0
+CD3Z_HUMAN_1  7 DGLYQGLSTAT.KDTYDAL 24 + 19.6
+CD79A_HUMAN_ 11 ENLYEGLNLDD.CSMYEDI 28 + 19.9
+CD79B_HUMAN_ 11 DHTYEGLDIDQ.TATYEDI 28 + 21.5
+FCG2A_HUMAN_ 11 DGGYMTLNPRAPTDDDKNI 29 + 4.72
+." type="hidden">
+<br><input name="action" value="View alignment 7" type="submit">
+<input name="pspm7" value="
+letter-probability matrix: alength= 20  w= 19 nsites= 6 E= 1
+0.0  0.0  0.666666666667  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.666666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0 
+0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.833333333333 
+0.0  0.0  0.166666666667  0.333333333333  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.333333333333  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.666666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+" type="hidden">
+<input name="action" value="View PSPM 7" type="submit">
+<table> <tbody><tr> <td> Score: <b> 61.6880 </b></td>
+<td rowspan="2"><img src="logo8.png"></td></tr>
+<tr><th><a href="logo_ssc8.png">logo with ssc</a></th></tr></tbody></table>
+<input name="action" value="Scan alignment 8" type="submit"><b> against sequence databases using <a href="http://meme.nbcr.net/meme4_1/doc/glam2scan_man.html">GLAM2SCAN.</a></b>
+<input name="aln8" value=".
+                *******************
+CD3G_HUMAN_1 11 DQLYQPLKDRE.DDQYSHL 28 + 17.0
+CD3Z_HUMAN_1 11 EGLYNELQKDKMAEAYSEI 29 + 16.0
+CD3Z_HUMAN_1  7 DGLYQGLSTAT.KDTYDAL 24 + 19.6
+CD79A_HUMAN_ 11 ENLYEGLNLDD.CSMYEDI 28 + 19.9
+CD79B_HUMAN_ 11 DHTYEGLDIDQ.TATYEDI 28 + 21.5
+FCG2A_HUMAN_ 11 DGGYMTLNPRAPTDDDKNI 29 + 4.72
+." type="hidden">
+<br><input name="action" value="View alignment 8" type="submit">
+<input name="pspm8" value="
+letter-probability matrix: alength= 20  w= 19 nsites= 6 E= 1
+0.0  0.0  0.666666666667  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.666666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0 
+0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.833333333333 
+0.0  0.0  0.166666666667  0.333333333333  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.333333333333  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.666666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+" type="hidden">
+<input name="action" value="View PSPM 8" type="submit">
+<table> <tbody><tr> <td> Score: <b> 61.6880 </b></td>
+<td rowspan="2"><img src="logo9.png"></td></tr>
+<tr><th><a href="logo_ssc9.png">logo with ssc</a></th></tr></tbody></table>
+<input name="action" value="Scan alignment 9" type="submit"><b> against sequence databases using <a href="http://meme.nbcr.net/meme4_1/doc/glam2scan_man.html">GLAM2SCAN.</a></b>
+<input name="aln9" value=".
+                *******************
+CD3G_HUMAN_1 11 DQLYQPLKDRE.DDQYSHL 28 + 17.0
+CD3Z_HUMAN_1 11 EGLYNELQKDKMAEAYSEI 29 + 16.0
+CD3Z_HUMAN_1  7 DGLYQGLSTAT.KDTYDAL 24 + 19.6
+CD79A_HUMAN_ 11 ENLYEGLNLDD.CSMYEDI 28 + 19.9
+CD79B_HUMAN_ 11 DHTYEGLDIDQ.TATYEDI 28 + 21.5
+FCG2A_HUMAN_ 11 DGGYMTLNPRAPTDDDKNI 29 + 4.72
+." type="hidden">
+<br><input name="action" value="View alignment 9" type="submit">
+<input name="pspm9" value="
+letter-probability matrix: alength= 20  w= 19 nsites= 6 E= 1
+0.0  0.0  0.666666666667  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.666666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0 
+0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.833333333333 
+0.0  0.0  0.166666666667  0.333333333333  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.333333333333  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.666666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+" type="hidden">
+<input name="action" value="View PSPM 9" type="submit">
+<table> <tbody><tr> <td> Score: <b> 61.6880 </b></td>
+<td rowspan="2"><img src="logo10.png"></td></tr>
+<tr><th><a href="logo_ssc10.png">logo with ssc</a></th></tr></tbody></table>
+<input name="action" value="Scan alignment 10" type="submit"><b> against sequence databases using <a href="http://meme.nbcr.net/meme4_1/doc/glam2scan_man.html">GLAM2SCAN.</a></b>
+<input name="aln10" value=".
+                *******************
+CD3G_HUMAN_1 11 DQLYQPLKDRE.DDQYSHL 28 + 17.0
+CD3Z_HUMAN_1 11 EGLYNELQKDKMAEAYSEI 29 + 16.0
+CD3Z_HUMAN_1  7 DGLYQGLSTAT.KDTYDAL 24 + 19.6
+CD79A_HUMAN_ 11 ENLYEGLNLDD.CSMYEDI 28 + 19.9
+CD79B_HUMAN_ 11 DHTYEGLDIDQ.TATYEDI 28 + 21.5
+FCG2A_HUMAN_ 11 DGGYMTLNPRAPTDDDKNI 29 + 4.72
+." type="hidden">
+<br><input name="action" value="View alignment 10" type="submit">
+<input name="pspm10" value="
+letter-probability matrix: alength= 20  w= 19 nsites= 6 E= 1
+0.0  0.0  0.666666666667  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.666666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0 
+0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.166666666667  0.166666666667  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.166666666667  0.0  0.5  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.333333333333  0.0  0.0  0.0 
+0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.833333333333 
+0.0  0.0  0.166666666667  0.333333333333  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.333333333333  0.0  0.0  0.0  0.0 
+0.166666666667  0.0  0.333333333333  0.166666666667  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.166666666667  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.666666666667  0.0  0.333333333333  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 
+" type="hidden">
+<input name="action" value="View PSPM 10" type="submit">
+</p>
+<input name="data" value="
+
+
+&gt;CD3G_HUMAN_157_174 147 182
+ASDKQTLLPNDQLYQPLKDREDDQYSHLQGNQLRRN
+&gt;CD3Z_HUMAN_108_126 98 132
+GKPQRRKNPQEGLYNELQKDKMAEAYSEIGMKGER
+&gt;CD3Z_HUMAN_139_156 133 164
+RRGKGHDGLYQGLSTATKDTYDALHMQALPPR
+&gt;CD79A_HUMAN_185_202 175 212
+GLDAGDEYEDENLYEGLNLDDCSMYEDISRGLQGTYQD
+&gt;CD79B_HUMAN_193_210 183 220
+KDDSKAGMEEDHTYEGLDIDQTATYEDIVTLRTGEVKW
+&gt;FCG2A_HUMAN_285_307 275 317
+EETNNDYETADGGYMTLNPRAPTDDDKNIYLTLPPNDHVNSNN
+
+
+
+" type="hidden">
+</form></body></html>

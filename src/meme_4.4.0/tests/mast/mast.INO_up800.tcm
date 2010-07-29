@@ -1,0 +1,306 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<!DOCTYPE mast[
+<!ELEMENT mast (model, alphabet, motifs, sequences, runtime)>
+<!ATTLIST mast version CDATA #REQUIRED release CDATA #REQUIRED>
+<!ELEMENT model (command_line, max_correlation, remove_correlated, strand_handling, translate_dna, max_seq_evalue,
+    adj_hit_pvalue, max_hit_pvalue, max_weak_pvalue, host, when)>
+<!ELEMENT command_line (#PCDATA)>
+<!ELEMENT max_correlation (#PCDATA)>
+<!ELEMENT remove_correlated EMPTY>
+<!ATTLIST remove_correlated value (y|n) #REQUIRED>
+<!ELEMENT strand_handling EMPTY>
+<!ATTLIST strand_handling value (combine|separate|norc|protein) #REQUIRED>
+<!ELEMENT translate_dna EMPTY>
+<!ATTLIST translate_dna value (y|n) #REQUIRED>
+<!ELEMENT max_seq_evalue (#PCDATA)>
+<!ELEMENT adj_hit_pvalue EMPTY>
+<!ATTLIST adj_hit_pvalue value (y|n) #REQUIRED>
+<!ELEMENT max_hit_pvalue (#PCDATA)>
+<!ELEMENT max_weak_pvalue (#PCDATA)>
+<!ELEMENT host (#PCDATA)>
+<!ELEMENT when (#PCDATA)>
+<!ELEMENT alphabet (letter+)>
+<!ATTLIST alphabet type (amino-acid|nucleotide) #REQUIRED bg_source (preset|file|sequence_composition) #REQUIRED bg_file CDATA #IMPLIED>
+<!ELEMENT letter EMPTY>
+<!ATTLIST letter symbol CDATA #REQUIRED ambig (y|n) "n" bg_value CDATA #IMPLIED>
+<!ELEMENT motifs (motif+,correlation*,nos*)>
+<!ATTLIST motifs source CDATA #REQUIRED name CDATA #REQUIRED last_mod_date CDATA #REQUIRED>
+<!ELEMENT motif EMPTY>
+<!-- num is simply the loading order of the motif, it's superfluous but makes things easier for XSLT -->
+<!ATTLIST motif id ID #REQUIRED num CDATA #REQUIRED name CDATA #REQUIRED width CDATA #REQUIRED
+   best_f CDATA #REQUIRED best_r CDATA #IMPLIED bad (y|n) "n">
+<!-- for n > 1 motifs there should be (n * (n - 1)) / 2 correlations, obviously there are none for only 1 motif -->
+<!ELEMENT correlation EMPTY>
+<!ATTLIST correlation motif_a IDREF #REQUIRED motif_b IDREF #REQUIRED value CDATA #REQUIRED>
+<!-- nos: Nominal Order and Spacing diagram, a rarely used feature where mast can adjust pvalues for an expected motif spacing -->
+<!ELEMENT nos (expect+)>
+<!-- length is in the same unit as the motifs, which is not always the same unit as the sequence -->
+<!ATTLIST nos length CDATA #REQUIRED>
+<!-- the expect tags are expected to be ordered by pos ascending -->
+<!ELEMENT expect EMPTY>
+<!ATTLIST expect pos CDATA #REQUIRED gap CDATA #REQUIRED motif IDREF #REQUIRED>
+<!ELEMENT sequences (database+, sequence*)>
+<!-- the database tags are expected to be ordered in file specification order -->
+<!ELEMENT database EMPTY>
+<!ATTLIST database id ID #REQUIRED num CDATA #REQUIRED source CDATA #REQUIRED name CDATA #REQUIRED last_mod_date CDATA #REQUIRED 
+    seq_count CDATA #REQUIRED residue_count CDATA #REQUIRED type (amino-acid|nucleotide) #REQUIRED link CDATA #IMPLIED>
+<!-- the sequence tags are expected to be ordered by best combined p-value (of contained score tags) ascending -->
+<!ELEMENT sequence (score+,seg*)>
+<!ATTLIST sequence id ID #REQUIRED db IDREF #REQUIRED num CDATA #REQUIRED name CDATA #REQUIRED comment CDATA "" length CDATA #REQUIRED>
+<!ELEMENT score EMPTY>
+<!-- frame is the starting offset for translation of dna sequences which gives the lowest pvalues for the provided protein motifs -->
+<!ATTLIST score strand (both|forward|reverse) #REQUIRED frame (a|b|c) #IMPLIED combined_pvalue CDATA #REQUIRED evalue CDATA #REQUIRED>
+<!-- within each sequence the seg tags are expected to be ordered by start ascending -->
+<!ELEMENT seg (data,hit+)>
+<!ATTLIST seg start CDATA #REQUIRED>
+<!ELEMENT data (#PCDATA)>
+<!-- within each seg the hit tags are expected to be ordered by pos ascending and then forward strand first -->
+<!ELEMENT hit EMPTY>
+<!-- gap, while superfluous, makes creating motif diagrams for the text version much easier when using XSLT -->
+<!ATTLIST hit pos CDATA #REQUIRED gap CDATA #REQUIRED motif IDREF #REQUIRED pvalue CDATA #REQUIRED strand (forward|reverse) "forward" 
+    match CDATA #REQUIRED translation CDATA #IMPLIED>
+<!ELEMENT runtime EMPTY>
+<!ATTLIST runtime cycles CDATA #REQUIRED seconds CDATA #REQUIRED>
+]>
+<mast version="4.3.2" release="Fri Apr 09 12:00:00 EST 2009">
+	<model>
+		<command_line>mast /home/james/memesvn/gomo2/scripts/../tests/meme/meme.INO_up800.tcm /home/james/memesvn/gomo2/scripts/../tests/common/INO_up800.s -oc /home/james/memesvn/gomo2/scripts/../tests/results/mast -nohtml -nostatus</command_line>
+		<max_correlation>0.60</max_correlation>
+		<remove_correlated value="n"/>
+		<strand_handling value="combine"/>
+		<translate_dna value="n"/>
+		<max_seq_evalue>10</max_seq_evalue>
+		<adj_hit_pvalue value="n"/>
+		<max_hit_pvalue>0.0001</max_hit_pvalue>
+		<max_weak_pvalue>0.0001</max_weak_pvalue>
+		<host>tlb-squirrel</host>
+		<when>Fri Apr  9 17:08:52 2010</when>
+	</model>
+	<alphabet type="nucleotide" bg_source="preset">
+		<letter symbol="A" bg_value="0.274"/>
+		<letter symbol="C" bg_value="0.225"/>
+		<letter symbol="G" bg_value="0.225"/>
+		<letter symbol="T" bg_value="0.274"/>
+	</alphabet>
+	<motifs source="/home/james/memesvn/gomo2/scripts/../tests/meme/meme.INO_up800.tcm" name="/home/james/memesvn/gomo2/scripts/../tests/meme/meme.INO_up800.tcm" last_mod_date="Mon Feb 15 12:10:16 2010">
+		<motif id="motif_1" num="1" name="1" width="13" best_f="TTCACATGCCGCC" best_r="GGCGGCATGTGAA"/>
+		<motif id="motif_2" num="2" name="2" width="29" best_f="TTGTCTCCTTTCTTGCTGTTCTTCACGTC" best_r="GACGTGAAGAACAGCAAGAAAGGAGACAA"/>
+		<correlation motif_a="motif_1" motif_b="motif_2" value="0.36"/>
+	</motifs>
+	<sequences>
+		<database id="db_1" num="1" source="/home/james/memesvn/gomo2/scripts/../tests/common/INO_up800.s" name="/home/james/memesvn/gomo2/scripts/../tests/common/INO_up800.s" last_mod_date="Mon Feb 15 12:10:17 2010" seq_count="7" residue_count="5600" type="nucleotide"/>
+		<sequence id="seq_1_6" db="db_1" num="6" name="INO1" comment="sequence of the region upstream from YJL153C" length="800">
+			<score strand="both" combined_pvalue="3.68e-12" evalue="2.6e-11"/>
+			<seg start="76">
+				<data>
+TCAACAAGGACGACTTGTTGTTAATGGTTTTGGCGGTTTTCATTCCCCCAGTGGCCGTCTGGAAGCGTAAGGGTA
+				</data>
+				<hit pos="93" gap="92" motif="motif_2" pvalue="5.8e-07" strand="forward" match="++++   ++ + +++  +++ ++++ +++"/>
+			</seg>
+			<seg start="151">
+				<data>
+TGTTCAACAGGGATACACTATTGAACTTACTTCTCTTCCTACTGTTATTCTTCCCAGCAATCATTCACGCTTGCT
+				</data>
+				<hit pos="177" gap="55" motif="motif_2" pvalue="1.6e-06" strand="forward" match="++   +++ +++++ +++++ +++  +++"/>
+			</seg>
+			<seg start="226">
+				<data>
+ACGTTGTATATGAAACGAGTAGTGAACGTTCGTACGATCTTTCACGCAGACATGCGACTGCGCCCGCCGTAGACC
+				</data>
+				<hit pos="245" gap="39" motif="motif_2" pvalue="1.5e-06" strand="forward" match="+ ++   +++++ + +  ++ +++++++ "/>
+			</seg>
+			<seg start="451">
+				<data>
+ACCGTAGTTCTAAATAACACATAGAGTAAATTATTGCCTTTTTCTTCGTTCCTTTTGTTCTTCACGTCCTTTTTA
+				</data>
+				<hit pos="490" gap="216" motif="motif_2" pvalue="6.3e-13" strand="forward" match="+++++++++++++++++++++++++++++"/>
+			</seg>
+			<seg start="526">
+				<data>
+TGAAATACGTGCCGGTGTTCCGGGGTTGGATGCGGAATCGAAAGTGTTGAATGTGAAATATGCGGAGGCCAAGTA
+				</data>
+				<hit pos="570" gap="51" motif="motif_1" pvalue="4.1e-06" strand="reverse" match="++ ++ +++++++"/>
+			</seg>
+			<seg start="601">
+				<data>
+TGCGCTTCGGCGGCTAAATGCGGCATGTGAAAAGTATTGTCTATTTTATCTTCATCCTTCTTTCCCAGAATATTG
+				</data>
+				<hit pos="619" gap="36" motif="motif_1" pvalue="7.9e-08" strand="reverse" match="+++++++++++++"/>
+				<hit pos="637" gap="5" motif="motif_2" pvalue="7.0e-07" strand="forward" match="++++++ ++++ + ++  ++++++  +++"/>
+			</seg>
+			<seg start="676">
+				<data>
+AACTTATTTAATTCACATGGAGCAGAGAAAGCGCACCTCTGCGTTGGCGGCAATGTTAATTTGAGACGTATATAA
+				</data>
+				<hit pos="687" gap="21" motif="motif_1" pvalue="3.5e-07" strand="forward" match="+++++++++++++"/>
+			</seg>
+			<seg start="751">
+				<data>
+ATTGGAGCTTTCGTCACCTTTTTTTGGCTTGTTCTGTTGTCGGGTTCCTA
+				</data>
+				<hit pos="761" gap="61" motif="motif_2" pvalue="7.7e-08" strand="forward" match="+++++ +++++ +++  +++++++ +++ "/>
+			</seg>
+		</sequence>
+		<sequence id="seq_1_3" db="db_1" num="3" name="FAS1" comment="sequence of the region upstream from YKL182W" length="800">
+			<score strand="both" combined_pvalue="1.82e-08" evalue="1.3e-07"/>
+			<seg start="76">
+				<data>
+ACAAACGACGGCCAAAAACTTCACATGCCGCCCAGCCAAGCATAATTACGCAACAGCGATCTTTCCGTCGCACAA
+				</data>
+				<hit pos="95" gap="94" motif="motif_1" pvalue="1.0e-08" strand="forward" match="+++++++++++++"/>
+			</seg>
+			<seg start="301">
+				<data>
+TTTTGGCATTTTTGGCATACTTTTTATCGATTGAACCATCTTCTCCAAACACTTTTCCTTTTTCCTTCTATTCTG
+CAGGACCAACTAAAACTGGGTATATATATCATTATCTATATATATAAACGGCTTTCAACAAAGTTATAGGGGAAA
+ACTAAAAATATAAGAAAAAAAAAGGTATTGATTGATAAGGAAAAAGAACCAAGGGAAAAATATAAAAAAGTACAT
+TGGGCCTTTTCATACTTGTTATCACTTACATTACAAAGAAGAACAAACAACTTTTTTAAACGAATTTTCTTTCTT
+				</data>
+				<hit pos="353" gap="245" motif="motif_2" pvalue="3.3e-08" strand="forward" match="+++++ +++++++++++ ++++ ++++ +"/>
+				<hit pos="442" gap="60" motif="motif_2" pvalue="1.2e-06" strand="reverse" match=" +++++++ ++ +++++ + ++++ ++++"/>
+				<hit pos="525" gap="54" motif="motif_2" pvalue="3.2e-06" strand="forward" match="+++   ++++++ + ++ ++  ++++++ "/>
+			</seg>
+		</sequence>
+		<sequence id="seq_1_5" db="db_1" num="5" name="ACC1" comment="sequence of the region upstream from YNR016C" length="800">
+			<score strand="both" combined_pvalue="1.18e-06" evalue="8.3e-06"/>
+			<seg start="76">
+				<data>
+TAAAATCTTCACATGGCCCGGCCGCGCGCGCGTTGTGCCAACAAGTCGCAGTCGAAATTCAACCGCTCATTGCCA
+				</data>
+				<hit pos="83" gap="82" motif="motif_1" pvalue="4.0e-07" strand="forward" match="++++++++++++ "/>
+			</seg>
+			<seg start="226">
+				<data>
+TCGTATTCTGGCACAGTATAGCCTAGCACAATCACTGTCACAATTGTTATCGGTTCTACAATTGTTCTGCTCTCT
+TCAATTTTCCTTTCCTTATTCTACTCTTTTTATCCCTTTCGTACAGTTTACCTGAAGATAAAAAACAACAAAGCC
+AATTCCCTAATTTGCAATCGCCATTTGCATCTATATATATATATTTGTTGTGCCATTTTTTTATCCTCTGTGAGT
+				</data>
+				<hit pos="269" gap="173" motif="motif_2" pvalue="3.5e-07" strand="forward" match="++++  +++ + ++ +  ++++++ ++++"/>
+				<hit pos="298" gap="0" motif="motif_2" pvalue="6.8e-08" strand="forward" match="+++++  +++++++++ +++ +++  +++"/>
+				<hit pos="349" gap="22" motif="motif_2" pvalue="1.4e-07" strand="reverse" match=" +++++++++  +++++++++++++ +++"/>
+			</seg>
+			<seg start="676">
+				<data>
+CGATACGATACGACACGCTACTATACTATACAAATATAATAGTATAATAACCGATTCGTCTTCTAGCTTAATTTT
+TTTCCGTTCCCGAAACAGCGCAGAAAATTAGAAAAAATCAAGTTTCTACC
+				</data>
+				<hit pos="731" gap="353" motif="motif_2" pvalue="2.9e-07" strand="forward" match="+++++++++  +++  + ++ ++++++++"/>
+			</seg>
+		</sequence>
+		<sequence id="seq_1_4" db="db_1" num="4" name="FAS2" comment="sequence of the region upstream from YPL231W" length="800">
+			<score strand="both" combined_pvalue="1.23e-06" evalue="8.6e-06"/>
+			<seg start="76">
+				<data>
+AAGAACTGGTAATAGAACAACAAGAAAACGTAGACGTCATCGACAAGAACGTTGAAGACGCTCAACTCGACGTAG
+				</data>
+				<hit pos="108" gap="107" motif="motif_2" pvalue="5.1e-06" strand="reverse" match="+++++++ ++++++ +++   +++++++ "/>
+			</seg>
+			<seg start="151">
+				<data>
+AACAGGGTGTCGGTCATACCGATAAAGCCGTCAAGAGTGCCAGAAAAGCAAGAAAGAACAAGATTAGATGTTGGT
+				</data>
+				<hit pos="185" gap="48" motif="motif_2" pvalue="3.3e-08" strand="reverse" match="+++ ++ ++++ ++++++++++++ ++++"/>
+			</seg>
+			<seg start="226">
+				<data>
+TGATTGTATTCGCCATCATTGTAGTCGTTGTTGTTGTCGTTGTTGTCCCAGCCGTTGTCAAAACGCGTTAATTCC
+				</data>
+				<hit pos="244" gap="30" motif="motif_2" pvalue="9.7e-08" strand="forward" match="++++  ++++++++++++++++++  +++"/>
+			</seg>
+			<seg start="376">
+				<data>
+TTTACTATATTTCCTAAATTTTCTCTGGTCTGCAGGCCAAAAACAACAACTTACTACTGAATCATGGACGTGTAT
+				</data>
+				<hit pos="385" gap="112" motif="motif_2" pvalue="2.1e-06" strand="forward" match="+++ ++   ++ + ++++++++ ++++++"/>
+			</seg>
+			<seg start="526">
+				<data>
+GCTTAGCAAAATCCAACCATTTTTTTTTTATCTCCCGCGTTTTCACATGCTACCTCATTCGCCTCGTAACGTTAC
+				</data>
+				<hit pos="567" gap="153" motif="motif_1" pvalue="8.7e-07" strand="forward" match="+++++++++  ++"/>
+			</seg>
+		</sequence>
+		<sequence id="seq_1_2" db="db_1" num="2" name="CHO2" comment="sequence of the region upstream from YGR157W" length="800">
+			<score strand="both" combined_pvalue="3.04e-05" evalue="0.00021"/>
+			<seg start="1">
+				<data>
+ACCCTCTAACGCGAATAAAGCGAATGACAGCGGCACCATTAATATGGCGAAACTGCAATTACTACCTGAAAACCA
+ACAAGATATGATCAAACAAGTTCTTACTTTGACACCTGCCCAGATCCAAAGTTTACCAAGTGACCAGCAACTTAT
+				</data>
+				<hit pos="63" gap="62" motif="motif_2" pvalue="1.0e-06" strand="reverse" match=" +++++++ ++++++++++ + ++  +++"/>
+			</seg>
+			<seg start="301">
+				<data>
+ATATATATTTTTGCCTTGGTTTAAATTGGTCAAGACAGTCAATTGCCACACTTTTCTCATGCCGCATTCATTATT
+				</data>
+				<hit pos="354" gap="262" motif="motif_1" pvalue="8.7e-07" strand="forward" match="+++ +++++++++"/>
+			</seg>
+			<seg start="451">
+				<data>
+GTGGATCTCCGACACATGTGAATTTATAAGTAGGCATATGAAAATACAGATTCTTTCCACTGTGTTCCCTTTTAT
+TCCCTTCTCATGTGAAGAGTTCACACCAAATCTTCAAAATATAACTAATATAGTAGAGTTTGATTCAAAGGACCT
+				</data>
+				<hit pos="504" gap="137" motif="motif_2" pvalue="2.1e-06" strand="forward" match="+++ + ++++  +  ++ ++ ++++++++"/>
+			</seg>
+			<seg start="601">
+				<data>
+TTTTTTTTGCCTCTTTGATTAGTTTATCTTCTTTTCTTCATTTTATCCCCTAATTTTATACGTTAGTTCAACCTA
+				</data>
+				<hit pos="624" gap="91" motif="motif_2" pvalue="1.6e-06" strand="forward" match="++ ++++++++ ++++  ++  ++++++ "/>
+			</seg>
+		</sequence>
+		<sequence id="seq_1_1" db="db_1" num="1" name="CHO1" comment="sequence of the region upstream from YER026C" length="800">
+			<score strand="both" combined_pvalue="4.42e-05" evalue="0.00031"/>
+			<seg start="1">
+				<data>
+CCGACCCAAATGTAATGGAACAATATTATTTGACACTTGATCAGCAGCAAAATAATCACCAAAATATGGCCTGGT
+				</data>
+				<hit pos="34" gap="33" motif="motif_2" pvalue="8.1e-06" strand="reverse" match=" ++ +++ ++ ++++++ + ++    +++"/>
+			</seg>
+			<seg start="601">
+				<data>
+ACTTTGAACGTTCACACGGCACCCTCACGCCTTTGAGCTTTCACATGGACCCATCTAAAGATGAAGATCCGTATT
+				</data>
+				<hit pos="611" gap="548" motif="motif_1" pvalue="7.6e-07" strand="forward" match="++++++ +++ ++"/>
+				<hit pos="640" gap="16" motif="motif_1" pvalue="1.7e-07" strand="forward" match="+++++++++++++"/>
+			</seg>
+			<seg start="676">
+				<data>
+TTATAGGAAACATTATAAATAAGGAAAGAGAGATACACCTATTTTTTTCATTTTGTGGGTGATTGTCATTTTTAG
+TTGTCTATTTGATTCAATCAAAAAACAAAAATAAAACTATATATTAAAAA
+				</data>
+				<hit pos="738" gap="85" motif="motif_2" pvalue="8.1e-06" strand="forward" match="+++++ +++++  ++ +++  ++++ ++ "/>
+			</seg>
+		</sequence>
+		<sequence id="seq_1_7" db="db_1" num="7" name="OPI3" comment="sequence of the region upstream from YJR073C" length="800">
+			<score strand="both" combined_pvalue="1.91e-04" evalue="0.0013"/>
+			<seg start="226">
+				<data>
+ATAACGAGTCCGGTGAACTTGGTTCCTTGCTGAACAGTGTCTTCTTGTAAAGCTTCCCATTTGGTGGTCCCGTTC
+AACTCCGTCAGGTCTTCCACGTGGAACTGCCAAGCCTCCTTCAGATCGCTCTTGTCGACCGTCTCCAAGAGATCC
+				</data>
+				<hit pos="277" gap="276" motif="motif_2" pvalue="1.5e-06" strand="forward" match=" ++++ + ++++ ++ ++ ++++++ +++"/>
+			</seg>
+			<seg start="376">
+				<data>
+ACGATAATGCTTTCATTGGTGGCTAGTCCATCTTCGAATTCTTCTTCATCGCGACGGGAATTGACGTACACCTCC
+				</data>
+				<hit pos="399" gap="93" motif="motif_2" pvalue="6.4e-06" strand="forward" match="+ +++  + +++   ++++++++++ + +"/>
+			</seg>
+			<seg start="526">
+				<data>
+TATAATTCGACTTCCTTGTTGTTCATGCTTCCTTGATGACCAGGGTAGGTGTCAATGAGAGTGCATGTGGAAAGT
+				</data>
+				<hit pos="529" gap="101" motif="motif_2" pvalue="7.5e-06" strand="forward" match="  +++  +++ ++++++++++ +++ +++"/>
+				<hit pos="584" gap="26" motif="motif_1" pvalue="4.5e-06" strand="reverse" match="+ +++++++++ +"/>
+			</seg>
+			<seg start="751">
+				<data>
+CAGAGCCATAAACAGCAATTGAAGACAACAAGAATAGCGCAAGTCAAGCG
+				</data>
+				<hit pos="771" gap="174" motif="motif_2" pvalue="2.5e-06" strand="reverse" match="++++ +++++++++ +++  +++  +++ "/>
+			</seg>
+		</sequence>
+	</sequences>
+	<runtime cycles="0" seconds="0.000"/>
+</mast>

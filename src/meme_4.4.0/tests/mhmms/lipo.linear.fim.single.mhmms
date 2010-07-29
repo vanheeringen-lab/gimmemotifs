@@ -1,0 +1,372 @@
+BBP_PIEBR          nan  159.87          1        174        173                
+ICYA_MANSE         nan  159.23          1        177        189                
+LACB_BOVIN         nan  130.11         21        177        178                
+RETB_BOVIN         nan  106.94         11        145        183                
+MUP2_MOUSE         nan   99.83         13        133        180                
+3MGA_HAEIN         nan   23.16          4        118        185 DNA-3-METHYLADE
+A412_PLAFA         nan   22.85         49        153        184 41-2 PROTEIN AN
+22P1_RAT           nan   20.19         23        169        176 CYSTATIN RELATE
+22P2_RAT           nan   19.62         23        172        176 CYSTATIN RELATE
+8513_TRYCR         nan   19.35         87        172        175 MAJOR 85 KD SUR
+AAC6_CITDI         nan   17.47          8         90        185 AMINOGLYCOSIDE 
+AAC1_DICDI         nan   17.10        130        176        183 AAC-RICH MRNA C
+3MG1_ECOLI         nan   16.03         29        117        187 DNA-3-METHYLADE
+21KD_ZYMMO         nan   15.29        143        161        184 20.9 KD PROTEIN
+170K_TRVPS         nan   15.25         59        167        179 POTENTIAL 170 K
+AAC1_PSEAE         nan   13.93        135        172        177 GENTAMICIN 3'-A
+2SSE_BRANA         nan   13.83         46         56        186 NAPIN EMBRYO SP
+2SSB_BRANA         nan   13.83         46         56        178 NAPIN B PRECURS
+2SS3_BRANA         nan   13.83         46         56        180 NAPIN PRECURSOR
+2SS2_BRANA         nan   13.83         46         56        178 NAPIN 2 PRECURS
+-------------------------------------------------------------------------------
+
+BBP_PIEBR          nan  159.87          1        174        173                
+
+                       *__________1______*                              
+           ............PMNNFDWSKFHGTWWEMAK...................           
+                       P++NFDWS++HG+WWE+AK                              
+         1 NVYHDGACPEVKPVDNFDWSNYHGKWWEVAKYPNSVEKYGKCGWAEYTPE         50
+
+                                                        *____           
+           .............................................NNVFW           
+                                                        +NVF+           
+        51 GKSVKVSNYHVIHGKEYFIEGTAYPVGDSKIGKIYHKLTYGGVTKENVFN        100
+
+           ______2_______*        *_________3______*                    
+           VLDTDYKNYAMFYMC........HQQHNWVLEMSKVLNFHM.........           
+           VL+TD+KNY+++Y+C        HQ+++WVL++SKVL++++                    
+       101 VLSTDNKNYIIGYYCKYDEDKKGHQDFVWVLSRSKVLTGEAKTAVENYLI        150
+
+                                             
+           .......................           
+                                             
+       151 GSPVVDSQKLVYSDFSEAACKVN                                   173
+
+
+ICYA_MANSE         nan  159.23          1        177        189                
+
+                        *__________1______*                             
+           .............PMNNFDWSKFHGTWWEMAK..................           
+                        P+N+FD+S+F+G+W+E+AK                             
+         1 GDIFYPGYCPDVKPVNDFDLSAFAGAWHEIAKLPLENENQGKCTIAEYKY         50
+
+                                                            *           
+           .................................................N           
+                                                            N           
+        51 DGKKASVYNSFVSNGVKEYMEGDLEIAPDAKYTKQGKYVMTFKFGQRVVN        100
+
+           __________2_______*        *_________3______*                
+           NVFWVLDTDYKNYAMFYMC........HQQHNWVLEMSKVLNFHM.....           
+           +V+WVL+TDYKNYA++Y+C        H++H+W+L++SKVL++++                
+       101 LVPWVLATDYKNYAINYNCDYHPDKKAHSIHAWILSKSKVLEGNTKEVVD        150
+
+                                                             
+           ...........................                       
+                                                             
+       151 NVLKTFSHLIDASKFISNDFSEAACQYSTTYSLTGPDRH                   189
+
+
+LACB_BOVIN         nan  130.11         21        177        178                
+
+                                *__________1______*                     
+                               .PMNNFDWSKFHGTWWEMAK..........           
+                                +M+++D++K++GTW+++A+                     
+         1 MKCLLLALALTCGAQALIVTQTMKGLDIQKVAGTWYSLAMAASDISLLDA         50
+
+                                                                        
+           ..................................................           
+                                                                        
+        51 QSAPLRVYVEELKPTPEGDLEILLQKWENGECAQKKIIAEKTKIPAVFKI        100
+
+               *__________2_______*                                     
+           ....NNVFWVLDTDYKNYAMFYMC..........................           
+               +N+++VLDTDYK+Y++F+M+                                     
+       101 DALNENKVLVLDTDYKKYLLFCMENSAEPEQSLACQCLVRTPEVDDEALE        150
+
+            *_________3______*                    
+           .HQQHNWVLEMSKVLNFHM........            
+            +++++++L+M+++L+F++                    
+       151 KFDKALKALPMHIRLSFNPTQLEEQCHI                              178
+
+
+RETB_BOVIN         nan  106.94         11        145        183                
+
+                     *__________1______*                                
+                     PMNNFDWSKFHGTWWEMAK.....................           
+                     +++NFD+++F+GTW++MAK                                
+         1 ERDCRVSSFRVKENFDKARFAGTWYAMAKKDPEGLFLQDNIVAEFSVDEN         50
+
+                                                                        
+           ..................................................           
+                                                                        
+        51 GHMSATAKGRVRLLNNWDVCADMVGTFTDTEDPAKFKMKYWGVASFLQKG        100
+
+           *__________2_______*                       *_                
+           NNVFWVLDTDYKNYAMFYMC.......................HQ                
+           N+++W++DTDY+++A++Y+C                       ++                
+       101 NDDHWIIDTDYETFAVQYSCRLLNLDGTCADSYSFVFARDPSGFSPEVQK        150
+
+
+MUP2_MOUSE         nan   99.83         13        133        180                
+
+                                  *__________1______*                   
+                       ...........PMNNFDWSKFHGTWWEMAK........           
+                                  +++NF+++K++G+W+++++                   
+         1 MKMLLLLCLGLTLVCVHAEEASSTGRNFNVEKINGEWHTIILASDKREKI         50
+
+                                                                        
+           ..................................................           
+                                                                        
+        51 EDNGNFRLFLEQIHVLEKSLVLKFHTVRDEECSELSMVADKTEKAGEYSV        100
+
+               *__________2_______*       *_                            
+           ....NNVFWVLDTDYKNYAMFYMC.......HQ                            
+               +N+F++++TDY+N++M++++       +Q                            
+       101 TYDGFNTFTIPKTDYDNFLMAHLINEKDGETFQLMGLYGREPDLSSDIKE        150
+
+
+3MGA_HAEIN         nan   23.16          4        118        185 DNA-3-METHYLADE
+
+              _*                                                        
+              MC.............................................           
+               C                                                        
+         1 MTTRCPWVGEQSIYIDYHDKEWGKPEFDSQKLFEKICLEGQQAGLSWITV         50
+
+                                                                        
+           ..................................................           
+                                                                        
+        51 LKKRESYREAFHQFDPKKIAKMTALDIDACMQNSGLIRHRAKLEAIVKNA        100
+
+                       *_____                                           
+           ............HQQHNW                                           
+                       +++++W                                           
+       101 KAYLAMEKCGENFSDFIWSFVNHKPIVNDVPDLRSVPTKTEVSKALSKAL        150
+
+
+A412_PLAFA         nan   22.85         49        153        184 41-2 PROTEIN AN
+
+                                                           __           
+                                                           WW           
+                                                            +           
+         1 MDKSKSSIEKELNRIKQDVSLSAFSILFSEMVQYCLYKSKRGYRIEDCLH         50
+
+           ___*                      *__________2_______*               
+           EMAK......................NNVFWVLDTDYKNYAMFYMC....           
+           EM +                       N  + ++    +Y+ +++                
+        51 EMGLRVGYKLNEYLTYKNKVKRSINIINILTFISKHVWKYLFQHSSDLLK        100
+
+                                                           *_           
+           ................................................HQ           
+                                                           +Q           
+       101 SQDSIYEYMICDKNILLNKFINVPKDYGNINCAAFAAGIVEGFLCSSEFQ        150
+
+           ___                                          
+           QHN                                          
+            ++                                          
+       151 ADVTAHTIHEGDDNYNTTIFIKFYPEVVEREKNH                        184
+
+
+22P1_RAT           nan   20.19         23        169        176 CYSTATIN RELATE
+
+                                 ____*                                  
+                                 WEMAK.......................           
+                                 ++ AK                                  
+         1 MCKTLHGTLLLLAIFVLFLNFSHATAKRTRRGMEIFEKNFIDKNKLKDVY         50
+
+                                                                        
+           ..................................................           
+                                                                        
+        51 DVFKYLYNTHSADTYLSNIKNESFTMNIWGFGEIEMVKTKCRKIDSDFYK        100
+
+                                                                        
+           ..................................................           
+                                                                        
+       101 CSFQREFYNLKRTPGETMYYISLPGSVRCRKLLSKLDNCPFEEQTEQLKR        150
+
+                        *_____                  
+           .............NNVFWV                  
+                         N + V                  
+       151 EICYFVVYPDYIEQNIHAVRFDCYTK                                176
+
+
+22P2_RAT           nan   19.62         23        172        176 CYSTATIN RELATE
+
+                                 ____*                                  
+                                 WEMAK.......................           
+                                 ++ AK                                  
+         1 MYKTLCGTQLLLAIFVLFLNFSHATAKGTRGPMEIFKKNFMEKNKLNDVY         50
+
+                                                                        
+           ..................................................           
+                                                                        
+        51 DIFKFLYNKFSHDTYLSNIKNQSFTMNTWGFGEIEVVKTKCRKIDSDFYK        100
+
+                                                                        
+           ..................................................           
+                                                                        
+       101 CSFQWEFCNIKRTPGVTIYYITLPGSVRCRKLLSKLVNCPFEEQTEQLKR        150
+
+                               *_               
+           ....................NN               
+                               +N               
+       151 EICYFQLYPDYIEQNIRSVRFNCYTK                                176
+
+
+8513_TRYCR         nan   19.35         87        172        175 MAJOR 85 KD SUR
+
+                                                ______*                 
+                                                TWWEMAK......           
+                                                +W +M K                 
+        50 ASVTIEEAPSGNTPLLIAVLANTEPTHTMRILYTADNKWMTMLKDEKKPT         99
+
+                                                                        
+           ..................................................           
+                                                                        
+       100 TESGTWEPKKEHQVALMLQGNKASVYVDGELLGEEEVPLTGEKPLELFAF        149
+
+                             *____              
+           ..................NNVFW              
+                              NVF+              
+       150 CFGACGEENPSQESHVTVTNVFLYNR                                175
+
+
+AAC6_CITDI         nan   17.47          8         90        185 AMINOGLYCOSIDE 
+
+                  __*                                                   
+                  MAK........................................           
+                  +A                                                    
+         1 MNYQIVNIAECSNYQLEAANILTEAFNDLGNNSWPDMTSATKEVKECIES         50
+
+                                      *__________2_                     
+           ...........................NNVFWVLDTDYKN                     
+                                      ++ ++V   DY N                     
+        51 PNLCFGLLINNSLVGWIGLRPMYKETWELHPLVVRPDYQNKGIGKILLKE        100
+
+
+AAC1_DICDI         nan   17.10        130        176        183 AAC-RICH MRNA C
+
+                                         *                              
+                                         C...................           
+                                         C                              
+       100 TINHFLPLIIQKEIIFLLVELGSFLNARKVCKYWKKVCNGCVENLNIYFT        149
+
+                                   *__                  
+           ........................HQQ                  
+                                   H+Q                  
+       150 DIHLSASVKHVSEVFVKSLNSDYFHLQSVSFING                        183
+
+
+3MG1_ECOLI         nan   16.03         29        117        187 DNA-3-METHYLADE
+
+                                       _2_______*                       
+                                       YKNYAMFYMC............           
+                                        K + M +++                       
+         1 MERCGWVSQDPLYIAYHDNEWGVPETDSKKLFEMICLEGQQAGLSWITVL         50
+
+                                                                        
+           ..................................................           
+                                                                        
+        51 KKRENYRACFHQFDPVKVAAMQEEDVERLVQDAGIIRHRGKIQAIIGNAR        100
+
+                      *_____                                            
+           ...........HQQHNW                                            
+                      + +++W                                            
+       101 AYLQMEQNGEPFVDFVWSFVNHQPQVTQATTLSEIPTSTSASDALSKALK        150
+
+
+21KD_ZYMMO         nan   15.29        143        161        184 20.9 KD PROTEIN
+
+                                                      __*               
+                                                      MAK....           
+                                                      +AK               
+       100 ISKDLVPLDKFVLEDFLNAQEKKLALSQATFARGLAELEKAKIIAKHVRQ        149
+
+                  *____                                  
+           .......NNVFW                                  
+                  N VF+                                  
+       150 GWYFINPNFVFNGDRVAFTTVIERKKTLQKQDESE                       184
+
+
+170K_TRVPS         nan   15.25         59        167        179 POTENTIAL 170 K
+
+                    *                                                   
+                    C........................................           
+                    C                                                   
+        50 PRGTQFVDPCPKLATKWNFECKIFKYDVPMFCGKFLLKTSSCYEFVPDPV         99
+
+                                                                        
+           ..................................................           
+                                                                        
+       100 KVLTKLGKKSIKDVQHLAEIYISLNDSNRALGNYMVVSKLSESVSDRYLY        149
+
+                            *                       
+           .................H                       
+                            +                       
+       150 KGDSVHALCALWKHIKSFTALCTLLPRRKG                            179
+
+
+AAC1_PSEAE         nan   13.93        135        172        177 GENTAMICIN 3'-A
+
+                                              _______*                  
+                                              NYAMFYMC.......           
+                                              N + +Y +                  
+       100 EQPRSEIYIYDLAVSGEHRRQGIATALINLLKHEANALGAYVIYVQADYG        149
+
+                              *___                
+           ...................HQQH                
+                              ++++                
+       150 DDPAVALYTKLGIREEVMHFDIDPSTAT                              177
+
+
+2SSE_BRANA         nan   13.83         46         56        186 NAPIN EMBRYO SP
+
+                                                        _*              
+                                                        MC...           
+                                                         C              
+         1 MANKLFLVSATLALFFLLTNASVYRTVVEVDEDDATNPAGPFRIPKCRKE         50
+
+           *_____                                                       
+           HQQHNW                                                       
+           +QQ+ +                                                       
+        51 FQQAQHLRACQQWLHKQAMQPGGGSGPSWTLDGEFDFEDDVENQQQGPQQ        100
+
+
+2SSB_BRANA         nan   13.83         46         56        178 NAPIN B PRECURS
+
+                                                        _*              
+                                                        MC...           
+                                                         C              
+         1 MANKLFLVSATLAFFFLLTNASIYRTVVEFDEDDATNPAGPFRIPKCRKE         50
+
+           *_____                                                       
+           HQQHNW                                                       
+           +QQ+ +                                                       
+        51 FQQAQHLKACQQWLHKQAMQSGSGPSWTLDGEFDFEDDMENPQGPQQRPP        100
+
+
+2SS3_BRANA         nan   13.83         46         56        180 NAPIN PRECURSOR
+
+                                                        _*              
+                                                        MC...           
+                                                         C              
+         1 MANKLFLVSATLAFFFLLTNASIYRTIVEVDEDDATNPAGPFRIPKCRKE         50
+
+           *_____                                                       
+           HQQHNW                                                       
+           +QQ+ +                                                       
+        51 FQQAQHLKACQQWLHKQAMQSGSGPSWTLDGEFDFEDDMENPQGPQQRPP        100
+
+
+2SS2_BRANA         nan   13.83         46         56        178 NAPIN 2 PRECURS
+
+                                                        _*              
+                                                        MC...           
+                                                         C              
+         1 MANKLFLVSATLAFFFLLTNASIYRTVVEFDEDDATDSAGPFRIPKCRKE         50
+
+           *_____                                                       
+           HQQHNW                                                       
+           +QQ+ +                                                       
+        51 FQQAQHLRACQQWLHKQAMQSGGGPSWTLDGEFDFEDDMENPQGPQQRPP        100
+
+

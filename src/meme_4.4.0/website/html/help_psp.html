@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MEME Suite - Position-Specific Priors</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+	    <ul>
+              <li style="list-style: none"><a name= "discriminative"></a></li>
+              <li><b>Discriminative Motif Discovery</b><br/>
+	      An approach to motif discovery where you are attempting
+	      to find a motif that is not only specific to sequences
+	      of interest, but is <i>not</i> specific to other similar
+	      sequences.<br>
+	      <br>
+	      An example is with finding a DNA
+	      transcription factor binding site, where you may have
+	      some sequences that are likely to contain binding sites,
+	      and other sequences that are unlikely to contain binding
+	      sites (perhaps all found in one experiment). In this
+	      case, you want to use the likely
+	      (&lsquo;positive&rsquo;) sequences to search for the
+	      motif, while using the unlikely (&lsquo;negative&rsquo;)
+	      sequences to guide the search away from motifs that are
+	      not only specific to the positive but also the negative
+	      sequences. The approach we use here is to calculate a
+	      <a href="#psp">position-specific prior</a> that we use
+	      as an additional input to MEME, to inform the search as to the
+	      probability of a motif starting at any given starting
+	      point in the positive sequences. The approach we use is
+	      based on the <i>discriminative prior</i> devised by
+	      Narlikar <i>et al</i>. We modify their approach to
+	      search for the "best" initial motif width, and to handle
+	      protein sequences, using <a href="#triples"><i>spaced
+	      triples</i></a>.<br>
+	      <br>
+	      The principle behind a discriminative
+	      prior arises from the question:
+	      <blockquote>
+		What fraction of all occurrences of the <i>w</i>-mer
+		(subsequence <i>w</i> long) at that site are found in the
+		positive set?
+	      </blockquote>
+	      We score each position by counting
+	      how often the <i>w</i>-mer starting there occurs in the
+	      positive set (call this count #<b>X</b>) and how often
+	      it occurs in the negative set (this count is
+	      #<b>Y</b>). The score for the location is then:<br>
+		<div style="width:50px;float:left;"> &nbsp;
+		</div>
+		<div style="width:50px;float:left;" align=center>
+		  #<b>X</b><br />
+		  <hr>
+		    #<b>X</b> + #<b>Y</b>
+		</div>
+		<br><br><br>
+	      If we find any ambiguous letters in a <i>w</i>-mer
+	      (e.g. <code>N</code>, which stands for any base in
+	      DNA), we score that <i>w</i>-mer as zero.
+	      <br><br> 
+	      For protein sequences, instead of requiring an exact
+	      match of a <i>w</i>-wide subsequence, we break the
+	      subsequence down into <i>spaced triples</i>, in which we
+	      only care about the first and last letter, and one of
+	      the interior letters. See below for a more detained
+	      description of spaced triples.<br><br>
+	      The actual formula we calculate includes pseudocounts so
+	      that small numbers of occurrences in the positive set without
+	      any occurrences in the negative set do not cause false
+	      peaks in the PSP. Once we have calculated scores, we
+	      scale them to lie between 0.1 and 0.9 inclusive. We
+	      convert the scaled scores to probabilities to complete
+	      the calculation of the PSP.<br>
+              <br>More detail follows.<br><hr>
+	      <ul>
+		<li style="list-style: none"><a name= "psp"></a></li>
+		<li><b>Position-Specific Priors</b><br/>
+		  Position-specific priors (PSPs) assign a probability
+		  that a motif starts at each possible location in
+		  your sequence data. MEME uses PSPs to guide its
+		  search, biasing the search towards sites that have
+		  higher values in the PSP file. PSPs in general
+		  assist MEME by increasing the probability of start
+		  sites containing a subsequence that is commonly
+		  found in sequences of interest, as well as taking
+		  lowering the probability of start sites that are
+		  characteristic of sequences that are unlikely to
+		  contain the feature of interest. PSPs are calculated
+		  here using a combination of the sequences you supply
+		  to MEME (the <a href="#positiveset">positive</a>
+		  set) and an
+		  additional <a href="#negativeset">negative set</a>
+		  of sequences.
+		</li>
+		<li style="list-style: none"><a name= "negativeset"></a></li>
+		<li><b>Negative Set</b><br/> The negative set is a
+		  sequence file (in any of the
+		  <a href="help_format.html">formats</a> allowed for
+		  MEME input) containing sequences that are used to
+		  help MEME discriminate a motif in the positive
+		  set. The negative set should contain sequences that
+		  are in some sense a contrast to likely sites for
+		  motifs (e.g. sequences rejected as unlikely to
+		  contain a transcription factor binding site), but
+		  otherwise similar to the positive set.
+		</li>
+		<li style="list-style: none"><a name= "positiveset"></a></li>
+		<li><b>Positive Set</b><br/> The positive set is the
+		  same sequences as you provide to MEME to search for
+		  motifs. We call these sequences the positive set
+		  when
+		  doing <a href="#discriminative">discriminative</a>
+		  motif finding, to contrast these sequences with
+		  the <a href="#negativeset">negative</a> set.
+		</li>
+		<li style="list-style: none"><a name= "triples"></a></li>
+		<li><b>Spaced Triples</b><br/> Spaced triples are
+		  sub-sequences in which only the first and last
+		  letter (residue or amino acid for protein) and one
+		  interior letter are used in matches. For example,
+		  the subsequence<br>
+		  <code>MTFEKI</code> contains the following
+		  triples:<br>
+		    <code>MT...I</code><br>
+		    <code>M.F..I</code><br>
+		    <code>M..E.I</code><br>
+		    <code>M...KI</code><br>
+		  where "." matches anything. We use spaced triples
+		  for protein because the probability of exact matches
+		  is much lower than for DNA, with the much larger
+		  amino acid alphabet we use to represent protein
+		  sequences. Any triple containing an ambiguous
+		  letter is scored as zero.<br>
+		  <br>
+		  To score a subsequence <i>w</i> wide
+		  using triples, we count how often each triple
+		  contained in that subsequence occurs in the positive
+		  and negative sets and use the maximum counts in the
+		  same formula as we use for scoring a <i>w</i>-mer,
+		  but with the counts now referring to the highest
+		  count of triples in the current location, rather
+		  than how many times the whole subsequence occurs:<br>
+		<div style="width:50px;float:left;"> &nbsp;
+		</div>
+		<div style="width:50px;float:left;" align=center>
+		  #<b>X</b><br />
+		  <hr>
+		    #<b>X</b> + #<b>Y</b>
+		</div>
+		<br><br><br>  
+              </li>
+	      </ul>
+	      <hr>
+	      This paper contains results illustrating the benefits of PSPs:
+	      <BR>
+	      <blockquote>
+		Timothy L. Bailey, Mikael Bodén, Tom Whitington, and
+	            Philip Machanick, &quot;The value of
+	            position-speciﬁc priors in motif discovery using
+	            MEME&quot;,
+	            <i>BMC Bioinformatics</i>, 11(1):179, 2010.
+	            <a href="http://www.biomedcentral.com/1471-2105/11/179">[full text]</a>
+	      </blockquote>
+            </ul>
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

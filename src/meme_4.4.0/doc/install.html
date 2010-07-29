@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta name="generator"
+	content="HTML Tidy for Linux/x86 (vers 1st January 2004), see www.w3.org">
+<meta http-equiv="content-type" content="text/html; charset=us-ascii">
+<title>Meta-MEME - Installation instructions</title>
+<link href="metameme.css" rel="styleSheet" type="text/css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+</head>
+<body bgcolor="white">
+<blockquote>
+<h1><img height="81" width="444" src="meta-meme.gif"></h1>
+<h1>Installation instructions</h1>
+<h2>Basic Installation</h2>
+Unzip and de-tar the distribution file as follows: <pre>
+        tar xzf metameme-3.3.arch.tar.gz
+</pre> or <pre>
+        gunzip metameme-3.3.arch.tar.gz
+        tar xf metameme-3.3.arch.tar
+</pre>
+<p>This will expand the Meta-MEME files into a directory named
+'metameme_3.3'. If you have downloaded a binary distribution you will
+find the compiled components of Meta-MEME in the <code>bin</code>
+subdirectory.</p>
+<p>You will need to add the Meta-MEME bin directory to your path. If
+you use 'csh' add the following lines to your .cshrc or .login file</p>
+<pre>
+        set path = ($path <i>install-path</i>/bin)
+</pre> If you use 'sh' or 'bash' add the following lines to your .profile or
+.bash_profile file: <pre>
+        PATH=$PATH:<i>install-path</i>/bin
+        export PATH
+</pre> In both cases '<code><i>install-path</i></code>' is the path to the
+directory where you installed Meta-MEME).<br>
+<p>If you have downloaded a source only distribution you will need
+to configure and build the program. Configure the installation using the
+commands:</p>
+<pre>
+cd metameme_3.3
+./configure --enable-metameme --prefix=&lt;<i>directory</i>&gt;
+</pre> where <code>&lt;<i>directory</i>&gt;</code> is the path to where you
+want Meta-MEME to be installed. If you omit the <code>--prefix</code>
+argument Meta-MEME will be installed to /usr/local.
+<p>Once you have configured the installation you can build and
+install Meta-MEME using the commands:</p>
+<pre>
+make
+make test
+make install
+</pre> '<code>make</code>' compiles the Meta-MEME software, '<code>make
+check</code>' tests basic Meta-MEME functionality to see if the build was
+successful, and '<code>make install</code>' copies the Meta-MEME
+components to the directory specified in the configuration step. The
+command '<code>make uninstall</code>' will remove the Meta-MEME
+components from the installation directory and the command '<code>make
+clean</code>' will remove compiled files from the build directory.
+<h2>Advanced Installation Options</h2>
+<h3>Using An Alternate Compiler</h3>
+Meta-MEME prefers the 'gcc' compiler. If this compiler is not available
+on your system, you can specify that a different compiler should be used
+by passing a CC argument to 'configure'. For example: <pre>
+./configure CC=c89 --enable-metameme --prefix=/opt/meta-meme
+</pre>
+<h3>Supporting Multiple Architectures</h3>
+If you wish to support Meta-MEME on multiple processor architectures
+from a single directory tree you can use the <code>--exec-prefix</code>
+option of configure. Processor architecture specific files will be put
+in the directory specified by the <code>--exec-prefix</code>. For
+example, if you were building Meta-MEME for Linux on a 686 processor,
+you would used the command: <pre>
+./configure --enable-metameme --prefix=/opt/meta-meme --exec-prefix=/opt/meta-meme/Linux686
+</pre> This would place common files in the directory /opt/meta-meme while the
+processor dependent files would be installed to /opt/meta-meme/Linux686.
+<h3>Installing the Meta-MEME Web Application</h3>
+The Meta-MEME distribution includes an optional Perl CGI web
+application. These files are not built or installed by default. To
+install the web components configure the build with the command: <pre>
+./configure --enable-metameme --prefix=&lt;<i>directory</i>&gt; --enable-web[=&lt;<i>web directory</i>&gt;] \
+           [--with-url=&lt;<i>url</i>&gt;] \
+           [--with-contact=&lt;<i>contact</i>&gt;] \
+           [--with-perl-shebang=&lt;<i>perl path</i>&gt;]
+</pre> The <code>--enable-web</code> argument turns on building of the web
+application. The optional <code><i>web directory</i></code> argument
+specifies where the web application should be installed to. The default
+is the <code>web</code> subdirectory of the Meta-MEME directory. The
+optional <code>--with-url</code> argument specifies the root URL of the
+web application. This defaults to <code>http://localhost/meta-meme</code>.
+The optional <code>--contact</code> arugment specifies the email address
+of the administrator for the web appications. This defaults to <code>webmaster@`hostname`</code>.
+The optional <code>--with-perl-shebang</code> argument allows you to
+specify the path to the version of Perl the application should use. This
+defaults to <code>/usr/bin/perl</code>
+<p>Once you have run the configure command <code>make</code> and <code>make
+install</code> will include the web applications components in the build and
+installation. After the web application is installed you will need to
+configure your web server to serve the web pages in the <code>htdocs</code>
+subdirectory, and to enable CGI in the <code>htdocs/cgi-bin</code>
+subdirectory.</p>
+<hr>
+Meta-MEME has been tested on SunOS, Solaris, DEC Alpha and SGI Irix
+systems. All Meta-MEME code is written in ANSI C and should easily port
+to other systems. If you have any problems installing or using
+Meta-MEME, please don't hesitate to send email to <a
+	href="mailto:cegrant@u.washington.edu">cegrant@u.washington.edu.</a><br>
+<br>
+<hr>
+<p>Author: <a href="http://www.gs.washington.edu/~noble">William
+Stafford Noble</a>.</p>
+<p><a href="index.html">Meta-MEME program documentation</a></p>
+<p><a href="../metameme-intro.html">Meta-MEME home</a></p>
+</blockquote>
+</body>
+</html>

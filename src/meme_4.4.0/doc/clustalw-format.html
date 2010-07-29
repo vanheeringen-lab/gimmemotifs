@@ -1,0 +1,106 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>Clustal W file format</title>
+    <link href="./meme-suite.css" rel="styleSheet" type="text/css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>Clustal W file format</h1>
+      <p>
+      Various programs in the MEME Suite allow as input a file containing a
+      multiple alignment of protein or DNA sequences.  These input files
+      must be in CLUSTAL W format (usually identified with the suffix
+      ".aln").</p>
+      <p>
+      The format is very simple:
+      <ol>
+      <li>
+      The first line in the file must start with the words "CLUSTAL W" or "CLUSTALW".
+      Other information in the first line is ignored.
+      </li>
+      <li>
+      One or more empty lines.
+      </li>
+      <li>
+      One or more blocks of sequence data. Each block consists of:
+      </li>
+      <ul>
+      <li>
+      One line for each sequence in the alignment. Each line consists of:
+      </li>
+      <ol>
+      <li>
+      the sequence name
+      </li>
+      <li>
+      white space
+      </li>
+      <li>
+      up to 60 sequence symbols. 
+      </li>
+      <li>
+      optional - white space followed by a cumulative count of residues for the sequences
+      </li>
+      </ol>
+      </li>
+      <li>
+      A line showing the degree of conservation for the columns
+      of the alignment in this block.
+      </li>
+      <li>
+      One or more empty lines.
+      </ul>
+      </ol>
+      <p>Some rules about representing sequences:</p>
+      <ul>
+      <li>Case doesn't matter.</li>
+      <li>Sequence symbols should be from a valid
+      <A href="./alphabets.html">alphabet</A>.
+      <li>Gaps are represented using hyphens ("-").</li>
+      <li>The characters used to represent the degree of conservation are 
+      <pre>
+         *  -- all residues or nucleotides in that column are identical
+         :  -- conserved substitutions have been observed
+         .  -- semi-conserved substitutions have been observed
+            -- no match.
+      </pre>
+      </ul>
+      <p>Here is an example of a multiple alignment in CLUSTAL W format:</p>
+      <pre>
+      CLUSTAL W (1.82) multiple sequence alignment
+
+
+      FOSB_MOUSE      MFQAFPGDYDSGSRCSSSPSAESQYLSSVDSFGSPPTAAASQECAGLGEMPGSFVPTVTA 60
+      FOSB_HUMAN      MFQAFPGDYDSGSRCSSSPSAESQYLSSVDSFGSPPTAAASQECAGLGEMPGSFVPTVTA 60
+                      ************************************************************
+
+      FOSB_MOUSE      ITTSQDLQWLVQPTLISSMAQSQGQPLASQPPAVDPYDMPGTSYSTPGLSAYSTGGASGS 120
+      FOSB_HUMAN      ITTSQDLQWLVQPTLISSMAQSQGQPLASQPPVVDPYDMPGTSYSTPGMSGYSSGGASGS 120
+                      ********************************.***************:*.**:******
+
+      FOSB_MOUSE      GGPSTSTTTSGPVSARPARARPRRPREETLTPEEEEKRRVRRERNKLAAAKCRNRRRELT 180
+      FOSB_HUMAN      GGPSTSGTTSGPGPARPARARPRRPREETLTPEEEEKRRVRRERNKLAAAKCRNRRRELT 180
+                      ****** ***** .**********************************************
+
+      FOSB_MOUSE      DRLQAETDQLEEEKAELESEIAELQKEKERLEFVLVAHKPGCKIPYEEGPGPGPLAEVRD 240
+      FOSB_HUMAN      DRLQAETDQLEEEKAELESEIAELQKEKERLEFVLVAHKPGCKIPYEEGPGPGPLAEVRD 240
+                      ************************************************************
+
+      FOSB_MOUSE      LPGSTSAKEDGFGWLLPPPPPPPLPFQSSRDAPPNLTASLFTHSEVQVLGDPFPVVSPSY 300
+      FOSB_HUMAN      LPGSAPAKEDGFSWLLPPPPPPPLPFQTSQDAPPNLTASLFTHSEVQVLGDPFPVVNPSY 300
+                      ****:.******.**************:*:**************************.***
+
+      FOSB_MOUSE      TSSFVLTCPEVSAFAGAQRTSGSEQPSDPLNSPSLLAL 338
+      FOSB_HUMAN      TSSFVLTCPEVSAFAGAQRTSGSDQPSDPLNSPSLLAL 338
+                      ***********************:**************
+      </pre>
+      <p>Further information about the CLUSTAL format can be found 
+      <a href="http://www.ebi.ac.uk/2can/tutorials/formats.html#aln">here</a></p>
+    </div>
+  </body>
+</html>

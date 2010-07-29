@@ -1,0 +1,54 @@
+<appConfig xmlns="http://nbcr.sdsc.edu/opal/types" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <metadata>
+    <usage><![CDATA[mast <mfile> [optional arguments]]]></usage>
+    <info xsd:type="xsd:string">
+    <![CDATA[
+        mast <mfile> <db>[optional arguments ...]
+
+        <mfile>         file containing motifs to use; may be a MEME output
+                        file or a file with the format given below
+        <db>		the name of a supported MAST database file or
+			the word "uploaded_db"; supported database files
+			are listed in mast.html (under "database" field 2 or 3);
+			if <db> is "uploaded_db", this is the name of a FASTA
+			file of sequences you are sending to the MAST server
+        [-mf <mf>]      print <mf> as motif file name
+        [-df <df>]      print <df> as database name
+        [-c <count>]    only use the first <count> motifs
+        [-a <alphabet>] <mfile> is assumed to contain motifs in the
+                        format output by make_logodds
+                        and <alphabet> is their alphabet; -d <database>
+                        or -stdin must be specified when this option is used
+        [-text]         output in text (ASCII) format;
+                        (default: hypertext (HTML) format)
+        [-sep]          score reverse complement DNA strand as a separate
+                        sequence
+        [-norc]         do not score reverse complement DNA strand
+        [-dna]          translate DNA sequences to protein
+        [-comp]         adjust p-values and E-values for sequence composition
+        [-rank <rank>]  print results starting with <rank> best (default: 1)
+        [-smax <smax>]  print results for no more than <smax> sequences
+                        (default: all)
+        [-ev <ev>]      print results for sequences with E-value < <ev>
+                        (default: 10)
+        [-mt <mt>]      show motif matches with p-value < mt (default: 0.0001)
+        [-w]            show weak matches (mt<p-value<mt*10) in angle brackets
+        [-bfile <bfile>]        read background frequencies from <bfile>
+        [-seqp]         use SEQUENCE p-values for motif thresholds
+                        (default: use POSITION p-values)
+        [-minseqs <minseqs>]    lower bound on number of sequences in db
+        [-mev <mev>]+   use only motifs with E-values less than <mev>
+        [-m <m>]+       use only motif(s) number <m> (overrides -mev)
+        [-diag <diag>]  nominal order and spacing of motifs
+        [-best]         include only the best motif in diagrams
+        [-remcorr]      remove highly correlated motifs from query
+        [-brief]        brief output--do not print documentation
+        [-b]            print only sections I and II
+        [-hit_list]     print machine-readable list of all hits only; implies -text
+                        overrides -seqp
+    ]]>
+    </info>
+  </metadata>
+  <binaryLocation>@BINARYLOCATION@</binaryLocation>
+  <parallel>false</parallel>
+</appConfig>

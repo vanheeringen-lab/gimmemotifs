@@ -1,0 +1,13 @@
+The XML files in this directory are transformed into HTML
+using the options.xsl style-sheet. The only effect of the style-sheet
+is to transform tags of the form <command-option name="option"/> into
+the standard text describing that options. The other tags in the XML files 
+should be standard XHTML tags (HTML tags but with lower case tag names and 
+mandatory closing tags). 
+
+The options.xsl style-sheet contains the text describing the command options, 
+packaged as template match directives. As you add options, add the text
+describing the option to the options.xsl style-sheet, packaged as a
+template match directive with a match property of the form 
+"command-option[@name='option name']".  In the XML file you can import 
+this text using tags of the form: <command-option name="option name"/>

@@ -1,0 +1,5 @@
+Compiling should be a simple matter of writing:
+
+make
+
+Note that there have been reported problems with GCC 4.3. This will be adressed, but use 4.2 for now.

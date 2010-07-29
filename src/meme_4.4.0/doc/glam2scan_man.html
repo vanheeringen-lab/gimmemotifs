@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang=en>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>glam2scan Manual</title>
+<link type="text/css" rel="stylesheet" href="glam2.css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+</head>
+<body>
+
+<img src="images/glam2scan_logo.png" alt="GLAM2SCAN logo">
+
+<h1>glam2scan Manual</h1>
+
+<p>glam2scan finds matches, in a sequence database, to a motif
+discovered by glam2. Each match receives a score, indicating how well it
+fits the motif.</p>
+
+<h2>Basic usage</h2>
+
+<p>Running glam2scan without any arguments gives a usage message:</p>
+
+<pre>
+Usage: glam2scan [options] alphabet my_motif.glam2 my_seqs.fa
+Main alphabets: p = proteins, n = nucleotides
+Main options (default settings):
+-h: show all options and their default settings
+-o: output file (stdout)
+-n: number of alignments to report (25)
+-2: examine both strands - forward and reverse complement
+</pre>
+
+<p>glam2scan needs three pieces of information - the alphabet, a
+file containing a motif found by glam2, and a file of sequences in FASTA
+format:</p>
+
+<pre>
+glam2scan p prot_motif.glam2 lotsa_prots.fa
+</pre>
+<pre>
+glam2scan n nuc_motif.glam2 lotsa_nucs.fa
+</pre>
+
+<p>An alphabet other than p or n is interpreted as the name of an <a
+	href="glam2_alphabet.html">alphabet file</a>. Motif files from glam2
+often contain multiple motifs: glam2scan only considers the top one.</p>
+
+<h2>Output format</h2>
+
+<p>The output begins with some general information:</p>
+
+<pre>
+GLAM2scan
+Version 9999
+
+glam2scan p prot_motif.glam2 lotsa_prots.fa
+</pre>
+
+<p>This is followed by motif matches, sorted in order of score. A
+motif match looks like this:</p>
+
+<pre>
+                 **.****
+SOS1_HUMAN   780 HPIE.IA 785 + 8.70
+</pre>
+
+<p>The name of the sequence with the match appears on the left; the
+start and end coordinates of the match appear on either side of the
+matching sequence; the match score appears on the right. The plus sign
+indicates the strand of the match (only meaningful when considering both
+strands of nucleotide sequences with the -2 option). The stars indicate
+the <em>key positions</em> of the motif: the alignment of the match to
+the key positions is shown.</p>
+
+<h2>Basic options</h2>
+
+<ul>
+
+	<li>Use -o to write the output to a file rather than to the
+	screen: <pre>
+glam2scan -o my_matches p prot_motif.glam2 lotsa_prots.fa
+</pre></li>
+
+	<li>Use -n to specify how many matches to report: <pre>
+glam2scan -n 100 n nuc_motif.glam2 lotsa_nucs.fa
+</pre> Matches are sorted in order of score. If scores are tied, they are
+	sorted in alphabetical order of sequence name. If sequence names are
+	also identical, the order is arbitrary.</li>
+
+	<li>Use -2 to search both strands of nucleotide sequences: <pre>
+glam2scan -2 nuc_motif.glam2 lotsa_nucs.fa
+</pre></li>
+
+</ul>
+
+<h2>Advanced options</h2>
+
+<p>The remaining options are somewhat specialized. For typical
+usage, it is reasonable to set them to exactly the same values as were
+used with glam2 to discover the motif.</p>
+
+<ul>
+
+	<li>Use -D to specify the deletion pseudocount.</li>
+
+	<li>Use -E to specify the 'no-deletion' pseudocount.</li>
+
+	<li>Use -I to specify the insertion pseudocount.</li>
+
+	<li>Use -J to specify the 'no-insertion' pseudocount.</li>
+
+	<li>Use -d to specify a <a href="glam2_dirichlet.html">Dirichlet
+	mixture</a> file.</li>
+
+</ul>
+
+<h2>Motif format</h2>
+
+<p>Some users may wish to make 'fake' glam2 motifs for input to
+glam2scan, for instance based on motifs found by other tools. Most of
+the glam2 output is ignored by glam2scan, and a minimal motif file looks
+like this:</p>
+
+<pre>
+                **..****
+seq1         10 HP..D.IG
+seq2          5 HPGADLIG
+seq3          7 HP..ELIG
+seq4          5 HP..ELLA
+</pre>
+
+<p>The sequence names and coordinates are ignored, but some
+placeholder characters should be present. The stars indicating key
+positions are necessary, and the first and last columns must be starred.</p>
+
+</body>
+</html>

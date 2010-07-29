@@ -1,0 +1,316 @@
+#!/bin/csh
+#
+# $Id: plot-usage 3575 2008-12-16 05:48:55Z tbailey $
+# $Log$
+# Revision 1.2  2005/10/05 06:18:35  nadya
+# use full path for "rm". Asssume everybody has /bin/rm.
+#
+# Revision 1.1.1.1  2005/07/29 00:01:33  nadya
+# Importing from meme-3.0.14, and adding configure/make
+#
+#
+
+set months = "JanFebMarAprMayJunJulAugSepOctNovDec"
+set min_year = 0;
+set min_month = 0;
+set max_year = 0;
+set max_month = 0;
+set format = "meme" 
+set t = 0
+set ts = "runs"
+set pgm = $0; set pgm = $pgm:t
+set args = ($*)
+if ($#argv < 0) then
+  usage:
+  more << USAGE
+  USAGE:
+        $pgm [<logfile>] [-name <name>] [-r] [-u] [-m] [-c] [-s]
+ 
+	[<logfile>]	MEME server log file; default: read standard input
+	[-name]		name of program
+	[-r]		plot number of runs (default)
+	[-u]            plot number of users; default: number of runs
+	[-m]		plot maximum runs by any user; default: number of runs
+	[-c]		plot cpu time for all runs; default: number of runs
+	[-s]            plot to screen
+        [-min_date <mon> <year>]        plot only after this
+        [-maxn_date <mon> <year>]       plot only before this
+ 
+        Plot the statistics from a meme-formatted log file.
+
+	Creates files:
+		$pgm.<type>[.<logfile>].[ps tex]
+	where <type> is "runs", "max", "users" or "cpu".
+USAGE
+  exit 1
+endif
+
+unlimit cputime
+onintr cleanup
+
+# get input arguments
+set logfile = ""
+set name = ""
+while ("$1" != "")
+  switch ($1)
+  case -h:
+    goto usage
+    break
+  case -name:
+    shift; set format = $1
+    breaksw
+  case -r:
+    breaksw
+  case -u:
+    set t = 1
+    set ts = "users"
+    breaksw
+  case -m:
+    set t = 2
+    set ts = "max"
+    breaksw
+  case -c: 
+    set t = 3
+    set ts = "cpu"
+    breaksw
+  case -s: 
+    set s = 1
+    breaksw
+  case -min_date:
+    shift; set min_month = $1;          # month
+    shift; set min_year = $1;           # year
+    breaksw
+  case -max_date:
+    shift; set max_month = $1;          # month
+    shift; set max_year = $1;           # year
+    breaksw
+  default:
+    set logfile = $1
+    set name = ".$1"
+  endsw
+  shift
+end
+
+# set name to meme/mast/metameme if input is standard input
+if ($logfile == "") then
+  set name = ".$format"
+endif
+# new format: all meme
+set format = "meme"
+
+if ($t == 3 && $format == "mast") then
+  echo "CPU time is not recorded in mast-log so -c not available"
+  exit 1
+endif
+
+set gawk = $pgm.$$.gawk.tmp
+cat << "END" > $gawk
+BEGIN {
+  big = 100000; 
+  little = -1;
+  if (min_year) { 
+    min_date = 1;
+  } else {
+    min_year = min_month = big; 
+  }
+  if (max_year) { 
+    max_date = 1;
+  } else {
+    max_year = max_month = -1;
+  }
+  for (i=0; i<12; i++) smonth[i+1] = substr(months, 3*i+1, 1);
+}
+# read next record in file
+NF >= 4 {
+  ok = 1;
+  if (format == "meme" || format == "metameme") {	# meme format
+    # check for missing host and repair it
+    if ($2 == "submit:") {
+      for (i=NF+1; i>=2; i--) {
+        $i = $(i-1);			# shift everything 1 right
+      }
+      $1 = "host";
+    }
+    # check for a bad MEME record where the submit date is missing
+    # and try to repair it by using start date/time for submit date/time
+    if ($4 == "start:") {
+      # insert the start time in place of the submit time
+      for (i=NF+2; i>=6; i--) {
+        $i = $(i-2);			# shift everything 2 right
+      }
+      $4 = $7;				# copy start time & date
+      $5 = $8; 
+    }
+    # check for a bad Meta-MEME record where the start date is missing
+    # and try to repair it by using submit date/time for start date/time
+    if ($6 == "end:") {
+      # insert the submit time in place of the start time
+      for (i=NF+3; i>=9; i--) {
+        $i = $(i-3);			# shift everything 3 right
+      }
+      $6 = "start:";
+      $7 = $10;				# copy start time & date
+      $7 = $11; 
+    }
+    # check for a bad Meta-MEME record where the "start" is missing
+    if (0 && $8 == "end:") {
+      # insert the "start:" 
+      for (i=NF+2; i>=9; i--) {
+        $i = $(i-1);			# shift everything 1 right
+      }
+      $6 = $9;				# copy start time & date
+      $7 = $10; 
+    }
+    # check for "end" instead of "end:"
+    if ($9 == "end") {$9 = "end:";}
+    # check for bad record 
+    if ($3 != "submit:" || $6 != "start:" || $9 != "end:") {
+      print "bad record number", NR, "\n" > "/dev/stderr"
+      print $0, "\n" > "/dev/stderr"
+      ok = 0;
+    } 
+    date = $4;
+    if (format == "meme") {
+      day = substr(date, 1, 2) + 0;
+      imonth = substr(date, 4, 2) + 0;
+    } else {
+      day = substr(date, 4, 2) + 0;
+      imonth = substr(date, 1, 2) + 0;
+    }
+    year = substr(date, 7, 2) + 0;
+    if (year < 96) {year = 2000 + year;} else {year = 1900 + year;}
+    if (t == 3) {				# get cpu time
+      start = $8;				# start time hh:mm:ss
+      sex1 = substr(start,7,2)+60*(substr(start,4,2)+(60*substr(start,1,2)));
+      end = $11;				# end time hh:mm:ss
+      sex2 = substr(end,7,2)+60*(substr(end,4,2)+(60*substr(end,1,2)));
+      cpu_hrs = sex2-sex1;			# elapsed sconds
+      if (cpu_hrs < 0) cpu_hrs += 24*60*60;	# day change
+      cpu_hrs /= 3600;			# convert to hours
+      #print $2, cpu_hrs;
+    }
+  } else {					# mast format
+    month = $4;
+    year = $8;
+    imonth = int(index(months, month)/3)+1;     # get index of month
+  }
+
+  # check that date of record is after minimum date (if any given)
+  if (min_date &&
+    (year < min_year || (year == min_year && imonth < min_month))) {
+    ok = 0;
+  }
+  # check that date of record is before maximum date (if any given)
+  if (max_date &&
+    (year > max_year || (year == max_year && imonth > max_month))) {
+    ok = 0;
+  }
+
+  if (ok) {
+    user = $NF;
+    runs[year,imonth]++;			# increment runs
+    if (t==3) cpu[year,imonth] += cpu_hrs;	# increase cpu time
+    if (!(users[year,imonth,user])) {
+      nusers[year,imonth]++;
+      users[year,imonth,user] = 1;
+    }
+    nruns[year,imonth,user]++;
+    if (nruns[year,imonth,user] > maxruns[year,imonth]) {
+      maxruns[year,imonth] = nruns[year,imonth,user];
+    }
+    # save minimum date
+    if (year < min_year) {
+      min_year = year; 
+      min_month = imonth;
+    }
+    if (year == min_year && imonth < min_month) min_month = imonth;
+    # save maximum date
+    if (year > max_year) {
+      #print "new year: ", year, " new month:, imonth, NR > "/dev/stderr";
+      max_year = year;
+      max_month = imonth;
+    }
+    if (year == max_year && imonth > max_month) max_month = imonth;
+  } # ok
+}
+END {
+  # print number of runs/users/cpu_time for each month
+  # print "min", min_year, min_month, "max", max_year, max_month > plotdata
+  x = 1;
+  ymax = 0;
+  printf("set xtics (") > com;
+  #print "max_year", max_year, "max_month", max_month;
+  for (year=min_year; year<=max_year; year++) {
+    if (year==min_year) { min = min_month; } else { min = 1; }
+    if (year==max_year) { max = max_month; } else { max = 12; }
+    for (imonth=min; imonth<=max; imonth++) {
+      printf("\'%s\' %d", smonth[imonth], x) > com;
+      if (! (year==max_year && imonth==max) ) printf(", ") > com;
+      if (t == 1) {
+        y = nusers[year,imonth];
+      } else if (t == 2) {  
+        y = maxruns[year,imonth];
+      } else if (t == 3) {  
+        y = cpu[year,imonth];
+      } else {
+        y = runs[year,imonth];
+      }
+      if (y > ymax) ymax = y; 
+      print x, y+.001 > plotdata;
+      x++;
+    }
+  }
+  printf(")\n") > com;
+  print "set xlabel '", min_year, "-", max_year, "' 0,-2 font '1,40'" > com
+  if (t == 1) {
+    print "set ylabel 'USERS PER MONTH' 1,0 font '1,40'" > com
+  } else if (t == 2) {  
+    print "set ylabel 'MAX RUNS PER MONTH' 1,0 font '1,40'" > com
+  } else if (t == 3) {  
+    print "set ylabel 'CPU HOURS PER MONTH' 1,0 font '1,40'" > com
+  } else {
+    print "set ylabel 'RUNS PER MONTH' 1,0 font '1,40'" > com
+  }
+  print "set xrange [0:", x, "]" > com
+  print "set yrange [0:", ymax, "]" > com
+  print "set data style boxes" > com
+  print "plot '" plotdata "' notitle" > com
+  # print pointsize
+  point = int(784/(x-1));
+  if (point > 30) {point = 30;}
+  print point;
+}
+"END"
+
+# create file to hold points
+set plotdata = $pgm.$$.plotdata.tmp
+set com = $pgm.$$.com.tmp
+
+# execute script
+#set point = `gawk -v format=$format -v plotdata=$plotdata -v com=$com -v months=$months -v t=$t -f $gawk $logfile`
+set point = `gawk -v format=$format -v plotdata=$plotdata -v com=$com -v months=$months -v t=$t -v min_year=$min_year -v min_month=$min_month -v max_year=$max_year -v max_month=$max_month -f $gawk $logfile`
+
+
+#echo point = $point
+#cat $com
+#echo $plotdata
+#cat $plotdata
+
+# set up for screen or postscript
+if ($?s) then
+  set ps = "-ps _screen_" 
+else
+  set ps = "-ps $pgm.$ts$name"
+endif
+
+plotgen -f -nocat -color \
+  -point $point \
+  -file $com \
+  $ps
+
+if (!($?s)) then
+  /bin/rm $pgm.$ts$name.tex
+endif
+
+cleanup:
+/bin/rm $pgm.$$.*.tmp

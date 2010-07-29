@@ -1,0 +1,523 @@
+#!@WHICHPERL@
+
+package OpalTypes;
+require Exporter;
+use SOAP::Lite;
+use MIME::Base64;
+
+our @ISA = qw(Exporter);
+#our @EXPORT = qw(getJobID);
+our $VERSION = 0.1;
+
+package AppMetadataType;
+  sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my $soapobject = shift;
+    my $usage = $soapobject->valueof('//usage');
+    my $info = $soapobject->valueof('//info');
+    my $types = $soapobject->valueof('//types');
+    my $self = {
+      usage => $usage,
+      info => $info
+    };
+    bless($self,$class);
+    return $self;
+  }
+  
+  sub getUsage {
+    my $self = shift;
+    return $self->{usage}
+  }
+  
+  sub getInfo {
+    my $self = shift;
+    return $self->{info}
+  }
+
+package FaultType;
+  sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my $soapobject = shift;
+    my $message = $soapobject->valueof('message');
+    my $self = {
+      message=>$message
+    };
+    bless($self,$class);
+    return $self;
+  }
+  
+  sub getMessage {
+    my $self = shift;
+    $self->{message};
+  }
+  
+  sub setMessage {
+    my $self = shift;
+    $self->{message} = shift;
+  }
+
+package InputFileType;
+  sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my($name,$contents) = @_;
+    my $self = {
+      name => $name,
+      contents => $contents
+    };
+    bless($self,$class);
+    return $self;
+  }
+  
+  sub getName {
+    my $self = shift;
+    $self->{name};
+  }
+  
+  sub setName {
+    my $self = shift;
+    $self->{name} = shift;
+  }
+  
+  sub getContents {
+    my $self = shift;
+    $self->{contents};
+  }
+  
+  sub setContents {
+    my $self = shift;
+    $self->{contents} = shift;
+  }
+  
+  sub toSOAP {
+    my $self = shift;
+    my $soap = SOAP::Data->name("inputFile"=>
+      \SOAP::Data->value(
+        SOAP::Data->name("name"=>$self->{name}),
+        SOAP::Data->name("contents"=>($self->{contents}))->type(base64)
+      )
+    );
+  }
+  
+
+package JobInputType;
+  sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my $self = {
+      arglist => "",
+      inputFile => ""
+    };
+    bless($self,$class);
+    return $self;
+  }
+  
+  sub setArgs {
+    my $self = shift;
+    $self->{arglist} = shift;
+  }
+  
+  sub getArgs {
+    my $self = shift;
+    $self->{arglist};
+  }
+  
+  sub setInputFile {
+    my $self = shift;
+    $self->{inputFile} = \@_;
+  }
+  
+  sub getInputFile {
+    my $self = shift;
+    $self->{inputFile};
+  }
+  
+  sub toSOAP {
+    my $self = shift;
+    $arglist = SOAP::Data->name("argList"=>$self->{arglist});
+    push(@soap,$arglist);
+    $inputfilelist = $self->{inputFile};
+    foreach(@$inputfilelist) {
+      $mysoap = $_->toSOAP();
+      push(@soap,$mysoap);
+    }
+    return @soap;
+  }
+
+
+package StatusOutputType;
+  sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my $soap = shift;
+#    my $code = $soap->valueof('//queryStatusOutput/code') || "";
+#    my $message = $soap->valueof('//queryStatusOutput/message') || "";
+#    my $baseURL = $soap->valueof('//queryStatusOutput/baseURL') || "";
+    my $code = $soap->valueof('code') || "";
+    my $message = $soap->valueof('message') || "";
+    my $baseURL = $soap->valueof('baseURL') || "";
+    my $self = {
+      code => $code,
+      message => $message,
+      baseURL => $baseURL
+    };
+    bless($self,$class);
+    return $self;
+  }
+  
+  sub setCode {
+    my $self = shift;
+    $self->{code} = shift;
+  }
+  
+  sub getCode {
+    my $self = shift;
+    $self->{code};
+  }
+  
+  sub setMessage {
+    my $self = shift;
+    $self->{message} = shift;
+  }
+  
+  sub getMessage {
+    my $self = shift;
+    $self->{message};
+  }
+
+  sub setBaseURL {
+    my $self = shift;
+    $self->{baseURL} = shift;
+  }
+  
+  sub getBaseURL {
+    my $self = shift;
+    $self->{baseURL};
+  }
+
+package JobSubOutputType;
+  sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my $soap = shift;
+    my $jobID = $soap->valueof('//launchJobOutput/jobID');
+    my $statussoap = $soap->match('//launchJobOutput/status');
+    my $status = StatusOutputType->new($statussoap);
+#    my $code = $soap->valueof('//launchJobOutput/status/code') || "";
+#    my $message = $soap->valueof('//launchJobOutput/status/message') || "";
+#    my $baseURL = $soap->valueof('//launchJobOutput/status/baseURL') || "";
+    my $self = {
+      jobID => $jobID,
+      status => $status
+#      code => $code,
+#      message => $message,
+#      baseURL => $baseURL
+    };
+    bless($self,$class);
+    return $self;
+  }
+  
+  sub setJobID {
+    my $self = shift;
+    $self->{jobID} = shift;
+  }
+  
+  sub getJobID {
+    my $self = shift;
+    $self->{jobID};
+  }
+  
+  sub setCode {
+    my $self = shift;
+    $self->{status}->setCode(shift);
+  }
+  
+  sub getCode {
+    my $self = shift;
+    $self->{status}->getCode();
+  }
+  
+  sub setMessage {
+    my $self = shift;
+    $self->{status}->setMessage(shift);
+  }
+  
+  sub getMessage {
+    my $self = shift;
+    $self->{status}->getMessage();
+  }
+  
+  sub setBaseURL {
+    my $self = shift;
+    $self->{status}->setBaseURL(shift);
+  }
+  
+  sub getBaseURL {
+    my $self = shift;
+    $self->{status}->getBaseURL();
+  }
+  
+package OutputFileType;
+  sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my $soap = shift;
+    my $self = {
+      name=>$soap->{name},
+      url=>$soap->{url}
+    };
+    bless($self,$class);
+    return $self;
+  }
+  sub setName {
+    my $self = shift;
+    $self->{name} = shift;
+  }
+  
+  sub getName {
+    my $self = shift;
+    $self->{name};
+  }
+  
+  sub setURL {
+    my $self = shift;
+    $self->{url} = shift;
+  }
+  
+  sub getURL {
+    my $self = shift;
+    $self->{url};
+  }
+
+package JobOutputType;
+  sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my $soap = shift;
+#    my $stdout = $soap->valueof('//getOutputsOutput/stdOut') || "";
+#    my $stderr = $soap->valueof('//getOutputsOutput/stdErr') || "";
+    my $stdout = $soap->valueof('//stdOut');
+    my $stderr = $soap->valueof('//stdErr');
+    my @files = ();
+#    for my $t ($soap->valueof('//getOutputsOutput/outputFile')) {
+    for my $t ($soap->valueof('//outputFile')) {
+      $file = OutputFileType->new($t);
+      push(@files,$file);
+    }
+    $self = {
+      stdout=>$stdout,
+      stderr=>$stderr,
+      files=>@files
+    };
+    bless($self,$class);
+    return $self;
+  }
+  
+  sub setStdErr {
+    my $self = shift;
+    $self->{stderr} = shift;
+  }
+  
+  sub getStdErr {
+    my $self = shift;
+    $self->{stderr};
+  }
+  
+  sub setStdOut {
+    my $self = shift;
+    $self->{stdout} = shift;
+  }
+  
+  sub getStdOut {
+    my $self = shift;
+    $self->{stdout};
+  }
+
+  sub setFiles {
+    my $self = shift;
+    $self->{files} = shift;
+  }
+  
+  sub getFiles {
+    my $self = shift;
+    $self->{files};
+  }
+  
+package OutputsByNameInputType;
+  sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my ($jobid,$filename) = @_;
+    my $self = {
+      jobid=>$jobid,
+      filename=>$filename
+    };
+    bless($self,$class);
+    return $self;
+  }
+  sub setJobId {
+    my $self = shift;
+    $self->{jobid} = shift;
+  }
+  
+  sub getJobId {
+    my $self = shift;
+    $self->{jobid};
+  }
+  
+  sub setFileName {
+    my $self = shift;
+    $self->{filename} = shift;
+  }
+  
+  sub getFileName {
+    my $self = shift;
+    $self->{filename};
+  }
+  
+  sub toSOAP {
+    my $self = shift;
+    my $soap = SOAP::Data->value(
+        SOAP::Data->name("jobID"=>$self->{jobid}),
+        SOAP::Data->name("fileName"=>$self->{filename})
+    );
+    return $soap;
+  }
+
+package BlockingOutputType;
+  sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my $soap = shift;
+    my $statussoap = $soap->match('//status');
+    my $status = StatusOutputType->new($statussoap);
+    my $joboutsoap = $soap->match('//jobOut');
+    my $jobout = JobOutputType->new($joboutsoap);
+    my $self = {
+      status=>$status,
+      jobout=>$jobout
+    };
+    bless($self,$class);
+    return $self;
+  }
+  
+  sub setCode {
+    my $self = shift;
+    $self->{status}->setCode(shift);
+  }
+  
+  sub getCode {
+    my $self = shift;
+    $self->{status}->getCode();
+  }
+  
+  sub setMessage {
+    my $self = shift;
+    $self->{status}->setMessage(shift);
+  }
+  
+  sub getMessage {
+    my $self = shift;
+    $self->{status}->getMessage();
+  }
+  
+  sub setBaseURL {
+    my $self = shift;
+    $self->{status}->setBaseURL(shift);
+  }
+  
+  sub getBaseURL {
+    my $self = shift;
+    $self->{status}->getBaseURL();
+  }
+  
+  sub setStdOut {
+    my $self = shift;
+    $self->{jobout}->setStdOut(shift);
+  }
+  
+  sub getStdOut {
+    my $self = shift;
+    $self->{jobout}->getStdOut();
+  }
+  
+  sub setStdErr {
+    my $self = shift;
+    $self->{jobout}->setStdErr(shift);
+  }
+  
+  sub getStdErr {
+    my $self = shift;
+    $self->{jobout}->getStdErr();
+  }
+  
+  sub setFiles {
+    my $self = shift;
+    $self->{jobout}->setFiles(shift);
+  }
+  
+  sub getFiles {
+    my $self = shift;
+    $self->{jobout}->getFiles();
+  }
+
+package AppConfigType;
+  sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my $soap = shift;
+    my $metadata = AppMetadataType->new($soap->match('//metadata'));
+    my $binarylocation = $soap->valueof('//binaryLocation');
+    my $defaultargs = $soap->valueof('//defaultArgs');
+    my $parallel = $soap->valueof('//parallel');
+    my $self = {
+      metadata=>$metadata,
+      binarylocation=>$binarylocation,
+      defaultargs=>$defaultargs,
+      parallel=>$parallel
+    };
+    bless($self,$class);
+    return $self;
+  }
+  
+  sub getUsage {
+    my $self = shift;
+    $self->{metadata}->{usage};
+  }
+  
+  sub getInfo {
+    my $self = shift;
+    $self->{metadata}->{info};
+  }
+  
+  sub setBinaryLocation {
+    my $self = shift;
+    $self->{binarylocation} = shift;
+  }
+  
+  sub getBinaryLocation {
+    my $self = shift;
+    $self->{binarylocation};
+  }
+  
+  sub setDefaultArgs {
+    my $self = shift;
+    $self->{defaultargs} = shift;
+  }
+  
+  sub getDefaultArgs {
+    my $self = shift;
+    $self->{defaultargs};
+  }
+  
+  sub setParallel {
+    my $self = shift;
+    $self->{parallel} = shift;
+  }
+  
+  sub getParallel {
+    my $self = shift;
+    $self->{parallel};
+  }

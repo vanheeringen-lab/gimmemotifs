@@ -1,0 +1,2275 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<meta name="description" content="Motif Alignment and Search Tool (MAST) output.">
+<title>MAST</title>
+<script type="text/javascript">
+        var motifs = new Array();
+        motifs["motif_1"] = new Motif("1", "amino-acid", "GKVVLITGCSSGIGKATAKHL", "");
+        motifs["motif_2"] = new Motif("2", "amino-acid", "SVYCASKFAVRMLTRSMAMEYAPHGIRVN", "");
+
+        motifs.length = 2;
+
+        var wrap = undefined;//size to display on one line
+        var wrap_timer;
+
+        var seqmax = 906;
+
+        var loadedSequences = new Array();
+        //draging details
+        var moving_seq;
+        var moving_annobox;
+        var moving_left;
+        var moving_width;
+        var moving_both;
+
+        //drag needles
+        var dnl = null;
+        var dnr = null;
+        var drag_is_rc = undefined;
+        //container
+        var cont = null;
+        
+        function mouseCoords(ev) {
+          ev = ev || window.event;
+          if(ev.pageX || ev.pageY){ 
+	          return {x:ev.pageX, y:ev.pageY}; 
+	        } 
+	        return { 
+	          x:ev.clientX + document.body.scrollLeft - document.body.clientLeft, 
+	          y:ev.clientY + document.body.scrollTop  - document.body.clientTop 
+	        };
+        }
+
+        function setup() {
+          rewrap();
+          window.onresize = delayed_rewrap;
+        }
+
+        function calculate_wrap() {
+          var est_wrap = 0;
+          var page_width;
+          if (window.innerWidth) {
+            page_width = window.innerWidth;
+          } else if (document.body) {
+            page_width = document.body.clientWidth;
+          } else {
+            page_width = null;
+          }
+          if (page_width) {
+            var ruler_width = document.getElementById("ruler").offsetWidth;
+            est_wrap = Math.floor(page_width / ruler_width) * 5;
+          }
+          if (est_wrap > 20) {
+            wrap = est_wrap - 20; 
+          } else {
+            wrap = 100;
+          }
+        }
+
+        function rewrap() {
+          var previous_wrap = wrap;
+          calculate_wrap();
+          if (previous_wrap != wrap) {
+            for (var seqid in loadedSequences) {
+              var sequence = loadedSequences[seqid];
+              var annobox = document.getElementById(seqid + "_annotation");
+              var leftPos = parseInt(document.getElementById(seqid + "_dnl").firstChild.firstChild.nodeValue);
+              var rightPos = parseInt(document.getElementById(seqid + "_dnr").firstChild.firstChild.nodeValue);
+                        var is_rc = undefined;
+
+              set_data(leftPos, rightPos - leftPos + 1, is_rc, sequence, annobox);
+            }
+          }
+          if (wrap_timer) {
+            clearTimeout(wrap_timer);
+          }
+          wrap_timer = setTimeout("rewrap()", 5000);
+        }
+
+        function delayed_rewrap() {
+          if (wrap_timer) {
+            clearTimeout(wrap_timer);
+          }
+          wrap_timer = setTimeout("rewrap()", 1000);
+        }
+
+        function showHidden(prefix) {
+          document.getElementById(prefix + '_activator').style.display = 'none';
+          document.getElementById(prefix + '_deactivator').style.display = 'block';
+          document.getElementById(prefix + '_data').style.display = 'block';
+        }
+        function hideShown(prefix) {
+          document.getElementById(prefix + '_activator').style.display = 'block';
+          document.getElementById(prefix + '_deactivator').style.display = 'none';
+          document.getElementById(prefix + '_data').style.display = 'none';
+        }
+
+
+        function show_more(seqid) {
+          if (wrap == undefined) rewrap();
+          var seq_row = document.getElementById(seqid + "_blocks");
+          var info_row = document.getElementById(seqid + "_info");
+          var tbl = document.getElementById("tbl_sequences");
+          if (info_row) {
+            tbl.deleteRow(info_row.rowIndex);
+            destroy_seq_handle(seqid, true);
+            destroy_seq_handle(seqid, false);
+            delete loadedSequences[seqid];
+          } else {
+            var sequence = new Sequence(seqid);
+            loadedSequences[seqid] = sequence;
+            info_row = tbl.insertRow(seq_row.rowIndex + 1);
+            info_row.id = seqid + "_info";
+            var cell = info_row.insertCell(0);
+        
+            cell.colSpan = 4;
+          
+            cell.style.verticalAlign = "top";
+            var width = Math.min(wrap, sequence.length); 
+            var start = 1;
+            var is_neg_strand = false;
+            //center on the first hit
+            if (sequence.hits.length > 0) {
+              var hit = sequence.hits[0];
+              is_neg_strand = hit.is_rc;
+              start = Math.max(1, hit.pos + Math.round(hit.width / 2) - Math.round(width / 2));
+              if ((start + width - 1) > sequence.length) {
+                start = sequence.length - width + 1;
+              }
+            }
+            create_info_section(cell, sequence, seqid, start, width, is_neg_strand);
+            var blockCont = document.getElementById(seqid + "_block_container");
+            //create sequence view handles
+            create_seq_handle(blockCont, seqid, true, start, seqmax);
+            create_seq_handle(blockCont, seqid, false, start + width-1, seqmax);
+          }
+        }
+
+        function create_info_section(cell, sequence, seqid, start, width, is_neg_strand) {
+          var box = document.createElement('div');
+          box.className = "box infobox";
+          //generic info
+          box.appendChild(document.createTextNode("Change the portion of annotated sequence by "));
+          var bold_box = document.createElement('b');
+          bold_box.appendChild(document.createTextNode("dragging the buttons"));
+          box.appendChild(bold_box);
+          box.appendChild(document.createTextNode("; hold shift to drag them individually."));
+          box.appendChild(document.createElement('br'));
+          box.appendChild(document.createElement('br'));
+          //description
+          var descTitle = document.createElement('h5');
+          descTitle.appendChild(document.createTextNode("Comment:"));
+          descTitle.className = "inlineTitle";
+          box.appendChild(descTitle);
+          box.appendChild(document.createTextNode(" " + sequence.desc));
+          box.appendChild(document.createElement('br'));
+          box.appendChild(document.createElement('br'));
+          var cpvalueTitle = document.createElement('h5');
+          cpvalueTitle.appendChild(document.createTextNode("Combined "));
+          var italicp = document.createElement('i');
+          italicp.appendChild(document.createTextNode("p"));
+          cpvalueTitle.appendChild(italicp);
+          cpvalueTitle.appendChild(document.createTextNode("-value:"));
+          cpvalueTitle.className = "inlineTitle";
+          box.appendChild(cpvalueTitle);
+          if (sequence.cpvalue.indexOf("/") != -1) {
+            var pos = sequence.cpvalue.indexOf("/");
+            var forward = sequence.cpvalue.substring(0, pos);
+            var reverse = sequence.cpvalue.substring(pos+1);
+            var dim_forward;
+            if (forward.indexOf("--") != -1) {
+              dim_forward = true;
+            } else if (reverse.indexOf("--") != -1) {
+              dim_forward = false;
+            } else {
+              if ( (+forward) > (+reverse)) {
+                dim_forward = true;
+              } else {
+                dim_forward = false;
+              }
+            }
+            var span = document.createElement('span');
+            span.className = "dim";
+            if (dim_forward) {// dim the forward value
+              span.appendChild(document.createTextNode(forward));
+              box.appendChild(document.createTextNode(" "));
+              box.appendChild(span);
+              box.appendChild(document.createTextNode("/"));
+              box.appendChild(document.createTextNode(reverse));
+            } else {// dim the reverse value
+              span.appendChild(document.createTextNode(reverse));
+              box.appendChild(document.createTextNode(" "));
+              box.appendChild(document.createTextNode(forward));
+              box.appendChild(document.createTextNode("/"));
+              box.appendChild(span);
+            }
+          } else {
+            box.appendChild(document.createTextNode(" " + sequence.cpvalue));
+          }
+          
+          box.appendChild(document.createElement('br'));
+          box.appendChild(document.createElement('br'));
+          //sequence display
+          var seqDispTitle = document.createElement('h5');
+          seqDispTitle.appendChild(document.createTextNode("Annotated Sequence"));
+          box.appendChild(seqDispTitle);
+          
+          var show_rc_only = undefined;
+            
+          var annobox = document.createElement('div');
+          annobox.id = seqid + "_annotation";
+          set_data(start, width, show_rc_only, sequence, annobox);
+          box.appendChild(annobox);
+          cell.appendChild(box);
+        }
+
+        function annobox_labels() {
+          var seqDispLabel = document.createElement('div');
+          seqDispLabel.className = "sequence sequence_labels";
+          seqDispLabel.style.height = "2.5em";
+          return seqDispLabel;
+        }
+
+        function annobox_hits() {
+          var seqDispHit = document.createElement('div');
+          seqDispHit.className = "sequence";
+          seqDispHit.style.height = "1.5em";
+          return seqDispHit;
+        }
+
+        function annobox_matches() {
+          var seqDispMatch = document.createElement('div');
+          seqDispMatch.className = "sequence";
+          seqDispMatch.style.height = "1.5em";
+          return seqDispMatch;
+        }
+
+        function annobox_translations() {
+          var seqDispXlate = document.createElement('div');
+          seqDispXlate.className = "sequence";
+          seqDispXlate.style.height = "1.5em";
+          return seqDispXlate;
+        }
+
+        function annobox_sequence() {
+          var seqDispSeq = document.createElement('div');
+          seqDispSeq.className = "sequence";
+          seqDispSeq.style.height = "1.5em";
+          return seqDispSeq; 
+        }
+
+        function create_seq_handle(container, seqid, isleft, pos, max) {
+          var vbar = document.createElement('div');
+          vbar.id = seqid + "_dn" + (isleft ? "l" : "r");
+          vbar.className = "block_needle";
+          //the needles sit between the sequence positions, so the left one sits at the start and the right at the end
+          //this is why 1 is subtracted off the position for a left handle
+          vbar.style.left = "" + ((isleft ? (pos - 1) : pos) / max * 100)+ "%";
+          var label = document.createElement('div');
+          label.className = "block_handle";
+          label.appendChild(document.createTextNode("" + pos));
+          label.style.cursor = 'pointer';
+          label.title = "Drag to move the displayed range. Hold shift and drag to change " + (isleft ? "lower" : "upper") + " bound of the range.";
+          vbar.appendChild(label);
+          container.appendChild(vbar);
+          label.onmousedown = function(evt) {
+            evt = evt || window.event;
+            start_drag(seqid, isleft, !(evt.shiftKey));
+          };
+        }
+
+        function destroy_seq_handle(seqid, isleft) {
+          var vbar = document.getElementById(seqid + "_dn" + (isleft ? "l" : "r"));
+          var label = vbar.firstChild;
+          label.onmousedown = null;
+          vbar.parentNode.removeChild(vbar);
+        }
+
+        
+
+        function start_drag(seqid, mouse_on_left, move_both) {
+          //first record what we are moving
+          moving_left = mouse_on_left;
+          moving_both = move_both;
+          moving_seq = loadedSequences[seqid];
+          if (!moving_seq) {
+            alert("Sequence not loaded?!");
+          }
+          //get the container for movements to be judged against
+          cont = document.getElementById(seqid + "_block_container");
+          //get the div's that will be moved
+          dnl = document.getElementById(seqid + "_dnl");
+          dnr = document.getElementById(seqid + "_dnr");
+          //get the div which has all the text containers that will be updated
+          moving_annobox = document.getElementById(seqid + "_annotation");
+          //calculate the space between handles
+          moving_width = dnr.firstChild.firstChild.nodeValue - 
+              dnl.firstChild.firstChild.nodeValue;
+          
+          drag_is_rc = undefined;
+
+          //setup the events for draging
+          document.onmousemove = handle_drag;
+          document.onmouseup = finish_drag;
+        }
+
+
+        function calculate_width(obj) {
+          return obj.clientWidth - (obj.style.paddingLeft ? obj.style.paddingLeft : 0) 
+              - (obj.style.paddingRight ? obj.style.paddingRight : 0);
+        }
+
+        function calculate_drag_pos(ev) {
+          var mouse = mouseCoords(ev);
+          var dragable_length = calculate_width(cont);
+          //I believe that the offset parent is the body
+          //otherwise I would need to make this recursive
+          //maybe clientLeft would work, but the explanation of
+          //it is hard to understand and it apparently doesn't work
+          //in firefox 2.
+          var diff = mouse.x - cont.offsetLeft;
+          if (diff < 0) diff = 0;
+          if (diff > dragable_length) diff = dragable_length;
+          var pos = Math.round(diff / dragable_length * (seqmax));
+          return pos + 1;
+        }
+
+        function handle_drag(ev) {
+          var pos = calculate_drag_pos(ev);
+          update_needles(pos, moving_seq.length, false);
+        }
+
+        function finish_drag(ev) {
+          document.onmousemove = null;
+          document.onmouseup = null;
+          var pos = calculate_drag_pos(ev);
+          update_needles(pos, moving_seq.length, true);
+        }
+
+        function update_needles(pos, seqlen, updateTxt) {
+          var leftPos = parseInt(dnl.firstChild.firstChild.nodeValue);
+          var rightPos = parseInt(dnr.firstChild.firstChild.nodeValue);
+          if (moving_both) {
+            if (moving_left) {
+              if ((pos + moving_width) > seqlen) {
+                pos = seqlen - moving_width;
+              }
+              leftPos = pos;
+              rightPos = pos + moving_width;
+            } else {
+              if (pos > seqlen) {
+                pos = seqlen;
+              } else if ((pos - moving_width) < 1) {
+                pos = moving_width + 1;
+              }
+              leftPos = pos - moving_width;
+              rightPos = pos;
+            }
+          } else {
+            if (moving_left) {
+              if (pos > rightPos) {
+                pos = rightPos;
+              }
+              leftPos = pos;
+            } else {
+              if (pos < leftPos) {
+                pos = leftPos;
+              } else if (pos > seqlen) {
+                pos = seqlen;
+              }
+              rightPos = pos;
+            }
+          }
+          set_needles(seqmax, dnl, leftPos, dnr, rightPos);
+          if (updateTxt) set_data(leftPos, rightPos - leftPos + 1, drag_is_rc, moving_seq, moving_annobox);
+        }
+
+        function set_needles(max, left, leftPos, right, rightPos) {
+          //the needles are between the sequence positions
+          //the left needle is before and the right needle after
+          //think of it as an inclusive range...
+          left.style.left = "" + ((leftPos -1) / max * 100)+ "%";
+          left.firstChild.firstChild.nodeValue="" + leftPos;
+          right.style.left = "" + (rightPos / max * 100)+ "%";
+          right.firstChild.firstChild.nodeValue="" + rightPos;
+        }
+
+        function set_data(start, width, show_rc_only, data, annobox) {
+          var child = annobox.firstChild;
+          var line_width = Math.min(wrap, width);
+          var num_per_wrap = 4;
+          var end = start + width;
+          for (var i = start; i < end; i += line_width, line_width = Math.min(wrap, end - i)) {
+            for (var j = 0; j < num_per_wrap; ++j) {
+              if (child) {
+                while (child.firstChild) child.removeChild(child.firstChild);
+              } else {
+                switch (j) {
+                case 0:
+                  child = annobox_labels();
+                  break;
+                case 1:
+                  child = annobox_hits();
+                  break;
+                case 2:
+                  child = annobox_matches();
+                  break;
+                case 3:
+      
+                  child = annobox_sequence();
+                  break;
+                }
+                annobox.appendChild(child);
+              }
+              switch (j) {
+              case 0:
+                data.append_labels(child, i, line_width, show_rc_only);
+                break;
+              case 1:
+                data.append_hits(child, i, line_width, show_rc_only);
+                break;
+              case 2:
+                data.append_matches(child, i, line_width, show_rc_only);
+                break;
+              case 3:
+      
+                data.append_seq(child, i, line_width, show_rc_only);
+                break;
+              }
+              child = child.nextSibling;
+            }
+          }
+          //clean up excess
+          
+          while (child) {
+            var next = child.nextSibling;
+            annobox.removeChild(child);
+            child = next;
+          }
+        }
+
+        function append_coloured_nucleotide_sequence(container, sequence) {
+          var len = sequence.length;
+          for (var i = 0; i < len; i++) {
+            var colour = "black";
+            switch (sequence.charAt(i)) {
+            case 'A':
+              colour = "red";
+              break;
+            case 'C':
+              colour = "blue";
+              break;
+            case 'G':
+              colour = "orange";
+              break;
+            case 'T':
+              colour = "green";
+              break;
+            }
+            var letter = document.createElement('span');
+            letter.style.color = colour;
+            letter.appendChild(document.createTextNode(sequence.charAt(i)));
+            container.appendChild(letter);
+          }
+        }
+
+        function append_coloured_peptide_sequence(container, sequence) {
+          var len = sequence.length;
+          for (var i = 0; i < len; i++) {
+            var colour = "black";
+            switch (sequence.charAt(i)) {
+            case 'A':
+            case 'C':
+            case 'F':
+            case 'I':
+            case 'L':
+            case 'V':
+            case 'W':
+            case 'M':
+              colour = "blue";
+              break;
+            case 'N':
+            case 'Q':
+            case 'S':
+            case 'T':
+              colour = "green";
+              break;
+            case 'D':
+            case 'E':
+              colour = "magenta";
+              break;
+            case 'K':
+            case 'R':
+              colour = "red";
+              break;
+            case 'H':
+              colour = "pink";
+              break;
+            case 'G':
+              colour = "orange";
+              break;
+            case 'P':
+              colour = "yellow";
+              break;
+            case 'Y':
+              colour = "turquoise";
+              break;
+            }
+            var letter = document.createElement('span');
+            letter.style.color = colour;
+            letter.appendChild(document.createTextNode(sequence.charAt(i)));
+            container.appendChild(letter);
+          }
+        }
+
+        /*
+         * Finds the index of an item in a sorted array (a) that equals a key (k)
+         * when compared using a comparator (c). If an exact match can not be found
+         * then returns -(index+1), where index is the location that the item would be inserted.
+         */
+        function bsearch(a, c, k) {
+          var low = 0;
+          var high = a.length;
+          while (low < high) {
+            var mid = low + Math.floor((high - low) /2);
+            if (c(a[mid], k) < 0) {
+              low = mid + 1;
+            } else {
+              high = mid;
+            }
+          }
+          if ((low < a.length) && (c(a[low], k) == 0)) {
+            return low;
+          } else {
+            return -(low+1);
+          }
+        }
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        // Start Motif Object
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        function Motif(name, type, best_f, best_r) {
+          this.name = name;
+          this.is_nucleotide = (type === "nucleotide");
+          this.best_f = best_f;
+          if (best_r.length == 0) {
+            var txt = best_f.split("");
+            txt.reverse();
+            best_r = txt.join("");
+          }
+          this.best_r = best_r;
+          this.length = best_f.length;
+        }
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        // End Motif Object
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        // Start Seg Object
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        function Seg(start, segment) {
+          this.start = parseInt(start);
+          this.segment = segment;
+        }
+
+        function compare_seg_to_pos(seg, pos) {
+          return seg.start - pos;
+        }
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        // End Seg Object
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        // Start Hit Object
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        function Hit(sequence_is_nucleotide, motif, pos, strand, pvalue, match, xlated) {
+          //properties
+          this.motif = motif;
+          this.pos = parseInt(pos);
+          this.width = 0;
+          this.is_rc = (strand != "+");
+          this.pvalue = pvalue;
+          this.xlated = "";
+          this.best = "";
+          this.match = "";
+          //functions
+          this.find_overlap = Hit_find_overlap;
+          //setup
+          var seq;
+          var m = match.replace(/ /g, " ");
+          if (this.is_rc) seq = this.motif.best_r;
+          else seq = this.motif.best_f;
+          if (sequence_is_nucleotide == this.motif.is_nucleotide) {
+            this.best = seq;
+            this.match = m;
+            this.xlated = xlated;
+            this.width = motif.length;
+          } else if (sequence_is_nucleotide) {
+            this.width = motif.length * 3;
+            for (var i = 0; i < motif.length; i++) {
+              this.best += seq.charAt(i);
+              this.best += "..";
+              this.xlated += xlated.charAt(i);
+              this.xlated += "..";
+              this.match += m.charAt(i);
+              this.match += "  ";
+            }
+          } else {
+            throw "UNSUPPORTED_CONVERSION";
+          }
+        }
+
+        function Hit_find_overlap(sequence_is_nucleotide, start, width) {
+          if (this.pos < start) {
+            if ((this.pos + this.width) > start) {
+              return {hit: this, start: start, length: Math.min(width, (this.pos + this.width - start))};
+            } else {
+              return null;
+            }
+          } else if (this.pos < (start + width)) {
+            return {hit: this, start: this.pos, length: Math.min(this.width, (start + width - this.pos))};
+          }
+          return null;
+        }
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        // End Hit Object
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        // Start Overlapping Hit Iterator
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        function OLHIterator(sequence, start, width, is_rc) {
+          //properties
+          this.sequence = sequence;
+          this.start = start;
+          this.width = width;
+          this.is_rc = is_rc;
+          this.both = (is_rc === undefined);
+          this.index = 0;
+          this.nextO = null;
+          //methods
+          this.next = OLHIterator_next;
+          this.has_next = OLHIterator_has_next;
+          //setup
+          // find the first hit which overlaps the range
+          for (; this.index < this.sequence.hits.length; this.index++) {
+            var hit = this.sequence.hits[this.index];
+            if (!this.both && this.is_rc != hit.is_rc) continue;
+            if ((this.nextO = hit.find_overlap(this.sequence.is_nucleotide, this.start, this.width)) != null) break;
+          }
+        }
+        
+        function OLHIterator_next() {
+          if (this.nextO == null) throw "NO_NEXT_ELEMENT";
+          var current = this.nextO;
+          this.nextO = null;
+          for (this.index = this.index + 1; this.index < this.sequence.hits.length; this.index++) {
+            var hit = this.sequence.hits[this.index];
+            if (!this.both && this.is_rc != hit.is_rc) continue;
+            this.nextO = hit.find_overlap(this.sequence.is_nucleotide, this.start, this.width);
+            break;
+          }
+          return current;
+        }
+        
+        function OLHIterator_has_next() {
+          return (this.nextO != null);
+        }
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        // End Overlapping Hit Iterator
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        // Start Sequence Object
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        function Sequence(seqid) {
+          //properties
+          this.length = parseInt(document.getElementById(seqid + "_len").value);
+          this.desc = document.getElementById(seqid + "_desc").value;
+          this.cpvalue = document.getElementById(seqid + "_combined_pvalue").value;
+          
+          this.is_nucleotide = (document.getElementById(seqid + "_type").value === "nucleotide");
+          this.segs = new Array(); //sorted list of segs
+          this.hits = new Array(); //sorted list of hits
+          //functions
+          this.get_overlapping_hits = Sequence_get_overlapping_hits;
+          this.append_seq = Sequence_append_seq;
+          this.append_translation = Sequence_append_translation;
+          this.append_hits = Sequence_append_hits;
+          this.append_matches = Sequence_append_matches;
+          this.append_labels = Sequence_append_labels;
+          //init
+          var mysegs = document.getElementById(seqid + "_segs");
+          var lines = mysegs.value.split(/\n/);
+          for (var i in lines) {
+            var line = lines[i];
+            var chunks = line.split(/\t/);
+            if (chunks.length != 2) continue;
+            var start = chunks[0];
+            var segment = chunks[1];
+            this.segs.push(new Seg(start, segment));
+          }
+          var myhits = document.getElementById(seqid + "_hits");
+          lines = myhits.value.split(/\n/);
+          for (var i in lines) {
+            var line = lines[i];
+            var chunks = line.split(/\t/);
+            if (chunks.length != 6) continue;
+            var pos = chunks[0];
+            var motif = motifs[chunks[1]];
+            var strand = chunks[2];
+            var pvalue = chunks[3];
+            var match = chunks[4];
+            var xlated = chunks[5];
+            this.hits.push(new Hit(this.is_nucleotide, motif, pos, strand, pvalue, match, xlated));
+          }
+        }
+
+        function Sequence_get_overlapping_hits(start, width, is_rc) {
+          return new OLHIterator(this, start, width, is_rc);
+        }
+
+        function Sequence_append_seq(container, start, width, is_rc) {
+          if (start > this.length) {
+            alert("start: " + start + " length: " + this.length);
+            throw "INDEX_OUT_OF_BOUNDS";
+          }
+          if ((start + width - 1) > this.length) {
+            alert("start: " + start + " width: " + width + " length: " + this.length);
+            throw "RANGE_OUT_OF_BOUNDS";
+          }
+          //make a sub container to put the sequence in
+          var mycontainer = document.createElement('span');
+          // find where a seg starting at start would be
+          var i = bsearch(this.segs, compare_seg_to_pos, start);
+          var seg;
+          var sequence = "";
+          if (i < -1) {
+            //possible partial segment, need to handle first
+            i = -(i + 1);
+            seg = this.segs[i-1];
+            if ((seg.start + seg.segment.length) > start) {
+              var seg_offset = start - seg.start;
+              var seg_width = Math.min(width, seg.segment.length - seg_offset);
+              sequence += seg.segment.substring(seg_offset, seg_offset + seg_width);
+            }
+          } else if (i == -1) {
+            //gap, with following segment, normal state at start of iteration
+            i = 0;
+          } 
+          for (;i < this.segs.length; i++) {
+            seg = this.segs[i];
+            var gap_width = Math.min(width - sequence.length, seg.start - (start + sequence.length));
+            for (; gap_width > 0; gap_width--) sequence += '-';
+            var seg_width = Math.min(width - sequence.length, seg.segment.length);
+            if (seg_width == 0) break;
+            sequence += seg.segment.substring(0, seg_width);
+          }
+          while (sequence.length < width) sequence += '-';
+          // calculate which parts are aligned with hits and output them in colour
+          var pos = start;
+          var iter = this.get_overlapping_hits(start, width, is_rc);
+          while (iter.has_next()) {
+            var o = iter.next();
+            var from, to;
+            if (o.start > pos) {
+              from = pos - start;
+              to = o.start - start;
+              var subseq = sequence.substring(from, to);
+              var greytxt = document.createElement('span');
+              greytxt.style.color = 'grey';
+              greytxt.appendChild(document.createTextNode(subseq));
+              mycontainer.appendChild(greytxt);
+              pos = o.start;
+            }
+            from = pos - start;
+            to = from + o.length;
+            var motifseq = sequence.substring(from, to);
+            if (this.is_nucleotide) {
+              append_coloured_nucleotide_sequence(mycontainer, motifseq);
+            } else {
+              append_coloured_peptide_sequence(mycontainer, motifseq);
+            }
+            pos += o.length;
+          }
+          if (pos < (start + width)) {
+            var greytxt = document.createElement('span');
+            greytxt.style.color = 'grey';
+            greytxt.appendChild(document.createTextNode(sequence.substring(pos - start)));
+            mycontainer.appendChild(greytxt);
+          }
+          container.appendChild(mycontainer);
+        }
+
+        function Sequence_append_translation(container, start, width, is_rc) {
+          if (start > this.length) {
+            alert("start: " + start + " length: " + this.length);
+            throw "INDEX_OUT_OF_BOUNDS";
+          }
+          if ((start + width - 1) > this.length) {
+            alert("start: " + start + " width: " + width + " length: " + this.length);
+            throw "RANGE_OUT_OF_BOUNDS";
+          }
+          //make a sub container to put the sequence in
+          var mycontainer = document.createElement('span');
+          // calculate which parts are aligned with hits and output them in colour
+          var pos = start;
+          var iter = this.get_overlapping_hits(start, width, is_rc);
+          while (iter.has_next()) {
+            var o = iter.next();
+            var space = "";
+            var from, to;
+            while (o.start > pos) {
+              space += " ";
+              ++pos;
+            }
+            if (space.length > 0) {
+              var spacer = document.createElement('span');
+              spacer.appendChild(document.createTextNode(space));
+              mycontainer.appendChild(spacer);
+            }
+            from = o.start - o.hit.pos;
+            to = from + o.length;
+            var motifseq = o.hit.xlated.substring(from, to);
+            if (o.hit.motif.is_nucleotide) {
+              append_coloured_nucleotide_sequence(mycontainer, motifseq);
+            } else {
+              append_coloured_peptide_sequence(mycontainer, motifseq);
+            }
+            pos += o.length;
+          }
+
+          container.appendChild(mycontainer);
+        }
+
+        function Sequence_append_matches(container, start, width, is_rc) {
+          if (start > this.length) {
+            alert("start: " + start + " length: " + this.length);
+            throw "INDEX_OUT_OF_BOUNDS";
+          }
+          if ((start + width - 1) > this.length) {
+            alert("start: " + start + " width: " + width + " length: " + this.length);
+            throw "RANGE_OUT_OF_BOUNDS";
+          }
+          //make a sub container to put the sequence in
+          var mycontainer = document.createElement('span');
+          var pos = start;
+          var text = "";
+          var iter = this.get_overlapping_hits(start, width, is_rc);
+          while (iter.has_next()) {
+            var o = iter.next();
+            var space = "";
+            var from, to;
+            while (o.start > pos) {
+              text += " ";
+              ++pos;
+            }
+            from = o.start - o.hit.pos;
+            to = from + o.length;
+            var motifseq = o.hit.match.substring(from, to);
+            text += motifseq
+            pos += o.length;
+          }
+          mycontainer.appendChild(document.createTextNode(text));
+          container.appendChild(mycontainer);
+        }
+
+        function Sequence_append_hits(container, start, width, is_rc) {
+          if (start > this.length) {
+            alert("start: " + start + " length: " + this.length);
+            throw "INDEX_OUT_OF_BOUNDS";
+          }
+          if ((start + width - 1) > this.length) {
+            alert("start: " + start + " width: " + width + " length: " + this.length);
+            throw "RANGE_OUT_OF_BOUNDS";
+          }
+          //make a sub container to put the sequence in
+          var mycontainer = document.createElement('span');
+          // calculate which parts are aligned with hits and output them in colour
+          var pos = start;
+          var iter = this.get_overlapping_hits(start, width, is_rc);
+          while (iter.has_next()) {
+            var o = iter.next();
+            var space = "";
+            var from, to;
+            while (o.start > pos) {
+              space += " ";
+              ++pos;
+            }
+            if (space.length > 0) {
+              var spacer = document.createElement('span');
+              spacer.appendChild(document.createTextNode(space));
+              mycontainer.appendChild(spacer);
+            }
+            from = o.start - o.hit.pos;
+            to = from + o.length;
+            var motifseq = o.hit.best.substring(from, to);
+            if (o.hit.motif.is_nucleotide) {
+              append_coloured_nucleotide_sequence(mycontainer, motifseq);
+            } else {
+              append_coloured_peptide_sequence(mycontainer, motifseq);
+            }
+            pos += o.length;
+          }
+
+          container.appendChild(mycontainer);
+        }
+
+        function Sequence_append_labels(container, start, width, is_rc) {
+          if (start > this.length) {
+            alert("start: " + start + " length: " + this.length);
+            throw "INDEX_OUT_OF_BOUNDS";
+          }
+          if ((start + width - 1) > this.length) {
+            alert("start: " + start + " width: " + width + " length: " + this.length);
+            throw "RANGE_OUT_OF_BOUNDS";
+          }
+          //create a table (ye gods...)
+          var oTable = document.createElement("table");
+          var oRow = oTable.insertRow(oTable.rows.length);
+
+          // calculate where to put the labels
+          var pos = start;
+          var cellindex = 0;
+          var iter = this.get_overlapping_hits(start, width, is_rc);
+          while (iter.has_next()) {
+            var o = iter.next();
+            var motif_center = Math.floor(o.start + o.length / 2);
+            var spacer = "";
+            while (pos < motif_center) {
+              spacer += " ";
+              pos++;
+            }
+            var cell1 = oRow.insertCell(cellindex++);
+            cell1.appendChild(document.createTextNode(spacer));
+            //add one for the div
+            pos++;
+            var cell2 = oRow.insertCell(cellindex++);
+            //create the div that holds the label divs
+            var div_container = document.createElement('div');
+            div_container.className = "block_container";
+            cell2.appendChild(div_container);
+            //create the top label
+            var top_label = "";
+            
+            top_label += "Motif " + o.hit.motif.name;
+            var div_top_label = document.createElement('div');
+            div_top_label.className = "sequence_label sequence_label_top";
+            div_top_label.style.width = "" + top_label.length + "em";
+            div_top_label.style.left = "-" + (top_label.length / 2) + "em";
+            div_top_label.appendChild(document.createTextNode(top_label));
+            //create the bottom label
+            var bottom_label = o.hit.pvalue;
+            var div_bottom_label = document.createElement('div');
+            div_bottom_label.className = "sequence_label sequence_label_bottom";
+            div_bottom_label.style.width = "" + bottom_label.length + "em";
+            div_bottom_label.style.left = "-" + (bottom_label.length / 2) + "em";
+            div_bottom_label.appendChild(document.createTextNode(bottom_label));
+            //add the label divs to the positioned container
+            div_container.appendChild(div_top_label);
+            div_container.appendChild(div_bottom_label);
+          }
+          container.appendChild(oTable);
+
+        }
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        // End Sequence Object
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      </script><style type="text/css">
+        /* The following is the content of meme.css */
+        body { background-color:white; font-size: 12px; font-family: Verdana, Arial, Helvetica, sans-serif;}
+
+        div.help {
+          display:inline-block;
+          margin:0px;
+          padding:0px;
+          width:12px;
+          height:13px;
+          background-image: url("help.gif");
+          background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAANAQMAAACn5x0BAAAAAXNSR0IArs4c6QAAAAZQTFRFAAAAnp6eqp814gAAAAF0Uk5TAEDm2GYAAAABYktHRACIBR1IAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH2gMJBQgGYqhNZQAAACZJREFUCNdj+P+BoUGAoV+AYeYEEGoWYGgTYGgRAAm2gRGQ8f8DAOnhC2lYnqs6AAAAAElFTkSuQmCC");
+        }
+        
+        p.spaced { line-height: 1.8em;}
+        
+        p.pad { padding-left: 30px; padding-top: 5px; padding-bottom: 10px;}
+
+        td.jump { font-size: 13px; color: #ffffff; background-color: #00666a;
+          font-family: Georgia, "Times New Roman", Times, serif;}
+
+        a.jump { margin: 15px 0 0; font-style: normal; font-variant: small-caps;
+          font-weight: bolder; font-family: Georgia, "Times New Roman", Times, serif;}
+
+        h2.mainh {font-size: 1.5em; font-style: normal; margin: 15px 0 0;
+          font-variant: small-caps; font-family: Georgia, "Times New Roman", Times, serif;}
+
+        h2.line {border-bottom: 1px solid #CCCCCC; font-size: 1.5em; font-style: normal;
+          margin: 15px 0 0; padding-bottom: 3px; font-variant: small-caps;
+          font-family: Georgia, "Times New Roman", Times, serif;}
+
+        h4 {border-bottom: 1px solid #CCCCCC; font-size: 1.2em; font-style: normal;
+          margin: 10px 0 0; padding-bottom: 3px; font-family: Georgia, "Times New Roman", Times, serif;}
+
+        h5 {margin: 0px}
+
+        a.help { font-size: 9px; font-style: normal; text-transform: uppercase;
+          font-family: Georgia, "Times New Roman", Times, serif;}
+
+        div.pad { padding-left: 30px; padding-top: 5px; padding-bottom: 10px;}
+        
+        div.pad1 { margin: 10px 5px;}
+
+        div.pad2 { margin: 25px 5px 5px;}
+        h2.pad2 { padding: 25px 5px 5px;}
+
+        div.pad3 { padding: 5px 0px 10px 30px;}
+
+        div.box { border: 2px solid #CCCCCC; padding:10px;}
+
+        div.bar { border-left: 7px solid #00666a; padding:5px; margin-top:25px; }
+
+        div.subsection {margin:25px 0px;}
+
+        img {border:0px none;}
+
+        th.majorth {text-align:left;}
+        th.minorth {font-weight:normal; text-align:left; width:8em; padding: 3px 0px;}
+        th.actionth {font-weight:normal; text-align:left;}
+
+        .strand_name {text-align:left;}
+        .strand_side {padding:0px 10px;}
+        .strand_start {padding:0px 10px;}
+        .strand_pvalue {text-align:center; padding:0px 10px;}
+        .strand_lflank {text-align:right; padding-right:5px; font-weight:bold; font-size:large; font-family: 'Courier New', Courier, monospace; color:gray;}
+        .strand_seq {text-align:center; font-weight:bold; font-size:large; font-family: 'Courier New', Courier, monospace;}
+        .strand_rflank {text-align:left; padding-left:5px; font-weight:bold; font-size:large; font-family: 'Courier New', Courier, monospace; color:gray;}
+
+        .block_td {height:25px;}
+        .block_container {position:relative; width:99%; height:25px; padding:0px; margin:0px;}
+        .block_motif {position:absolute; z-index:3; height:12px; top:0px; text-align:center; vertical-align:middle; background-color:cyan;}
+        .block_rule {position:absolute; z-index:2; width:100%; height:1px; top:12px; left:0px; background-color:grey;}
+        .block_plus_sym {position:absolute; z-index:4; width:12px; height:12px; top:0px; left:0px; color:grey;}
+        .block_minus_sym {position:absolute; z-index:4; width:12px; height:12px; top:13px; left:0px; color:grey;}
+
+        .tic_major {position:absolute; border-left:2px solid blue; height:0.5em; top:0em;}
+        .tic_minor {position:absolute; border-left:1px solid blue; height:0.2em; top:0em;}
+        .tic_label {position:absolute; top:0.5em;  height: 1em; text-align:center; vertical-align:middle}
+
+        .explain h5 {font-size:1em; margin-left: 1em;}
+
+        div.doc {margin-left: 2em; margin-bottom: 3em;}
+        
+        div.tabArea {
+          font-size: 80%;
+          font-weight: bold;
+        }
+
+        a.tab {
+          background-color: #ddddff;
+          border: 1px solid #000000;
+          border-top-width: 0px;
+          padding: 2px 1em 2px 1em;
+          text-decoration: none;
+        }
+
+        a.tab, a.tab:visited {
+          color: #808080;
+        }
+
+        a.tab:hover {
+          background-color: #d0d0d0;
+          color: #606060;
+        }
+        a.tab.activeTab, a.tab.activeTab:hover, a.tab.activeTab:visited {
+          background-color: #f0f0f0;
+          color: #000000;
+        }
+        div.tabMain {
+          border: 1px solid #000000;
+          background-color: #ffffff;
+          padding: 5px;
+          margin-right: 5px;
+        }
+        th.trainingset {
+          border-bottom: thin dashed black; 
+          font-weight:normal; 
+          padding:0px 10px;
+        }
+
+  
+        .more_arrow {
+          font-family:Arial,Serif;
+          font-size: larger;
+          font-weight: bold;
+          text-decoration:none; 
+        }
+        div.infobox {
+          background-color:#ddddff;
+          margin-top: 1.6em;
+          margin-bottom: 1em;
+        }
+        .sequence {font-family:Monospace;}
+        .sequence_labels {position:relative; width:100%; height:2.5em; 
+            padding:0px; margin:0px;}
+        .sequence_label {font-family:Serif; position:absolute; z-index:2; 
+            height:1em; text-align:center; vertical-align:middle;}
+        .sequence_label_top {top:0px;}
+        .sequence_label_bottom {top:1.25em;}
+        .inlineTitle {display:inline;}
+        .block_needle {position:absolute; z-index:4; height:30px; width:1px; 
+            top:-2px; background-color:gray;}
+        .block_handle {position:absolute; z-index:5; height:1.1em; width:3em; 
+            top:30px; left:-1.5em; text-align:center; vertical-align:middle;
+            background-color: LightGrey; border:3px outset grey;}
+        table.padded-table td { padding:0px 10px; }
+        table.padded-table th { padding:0px 5px; }
+        td.tnum {text-align:right;}
+        tr.highlight {background:#aaffaa;}
+        td.dim {color: gray;}
+        span.dim {color: gray;}
+      </style>
+</head>
+<body onload="javascript:setup()">
+<a name="top"></a><div class="pad1">
+<h1><img src="http://meme.nbcr.net/meme/images/mast.png" alt="Motif Alignment and Search Tool (MAST)"></h1>
+<p class="spaced">
+        For further information on how to interpret these results or to get a 
+        copy of the MEME software please access 
+        <a href="http://meme.nbcr.net/">http://meme.nbcr.net</a>. 
+      </p>
+</div>
+<a name="navigation"></a><div class="pad2">
+<a class="jump" href="#inputs">Inputs</a>
+        |  
+      <a class="jump" href="#results">Search Results</a>
+        |  
+      <a class="jump" href="#program">Program information</a>
+        |  
+      <a class="jump" href="#doc">Documentation</a>
+</div>
+<a name="inputs"></a><table width="100%" border="0" cellspacing="1" cellpadding="4" bgcolor="#FFFFFF"><tr>
+<td><h2 class="mainh">Inputs</h2></td>
+<td align="right" valign="bottom"><a href="#top">Top</a></td>
+</tr></table>
+<div class="box">
+<a name="databases"></a><h4>Sequence Databases <a href="#databases_doc" class="help"><div class="help"></div></a>
+</h4>
+<div class="pad">
+<p>The following sequence database was supplied to mast.</p>
+<table class="padded-table" border="0">
+<col>
+<col>
+<col>
+<thead><tr>
+<th style="text-align:left;">Database</th>
+<th>Sequence Count</th>
+<th>Residue Count</th>
+<th>Last Modified</th>
+</tr></thead>
+<tbody><tr>
+<td>tests/adh.s</td>
+<td class="tnum">33</td>
+<td class="tnum">9996</td>
+<td>Mon Feb 15 12:10:18 2010</td>
+</tr></tbody>
+<tfoot><tr>
+<th style="text-align:left; padding:5px 10px;">Total</th>
+<td class="tnum">33</td>
+<td class="tnum">9996</td>
+<td> </td>
+</tr></tfoot>
+</table>
+</div>
+<a name="motifs"></a><h4>Motifs <a href="#motifs_doc" class="help"><div class="help"></div></a>
+</h4>
+<div class="pad">
+<p>The following motifs were supplied to mast from "tests/meme/meme.adh.zoops" last modified on Mon Feb 15 12:10:16 2010.
+          </p>
+<table class="padded-table" border="0">
+<col>
+<col>
+<col>
+<col>
+<col>
+<thead>
+<tr>
+<th> </th>
+<th> </th>
+<th> </th>
+<th colspan="2">Similarity</th>
+</tr>
+<tr>
+<th>Motif</th>
+<th>Width</th>
+<th>Best possible match</th>
+<th>Motif 1</th>
+<th>Motif 2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>21</td>
+<td class="sequence">
+<span style="color:orange">G</span><span style="color:red">K</span><span style="color:blue">V</span><span style="color:blue">V</span><span style="color:blue">L</span><span style="color:blue">I</span><span style="color:green">T</span><span style="color:orange">G</span><span style="color:blue">C</span><span style="color:green">S</span><span style="color:green">S</span><span style="color:orange">G</span><span style="color:blue">I</span><span style="color:orange">G</span><span style="color:red">K</span><span style="color:blue">A</span><span style="color:green">T</span><span style="color:blue">A</span><span style="color:red">K</span><span style="color:pink">H</span><span style="color:blue">L</span>
+</td>
+<td>-</td>
+<td>0.30</td>
+</tr>
+<tr>
+<td>2</td>
+<td>29</td>
+<td class="sequence">
+<span style="color:green">S</span><span style="color:blue">V</span><span style="color:turquoise">Y</span><span style="color:blue">C</span><span style="color:blue">A</span><span style="color:green">S</span><span style="color:red">K</span><span style="color:blue">F</span><span style="color:blue">A</span><span style="color:blue">V</span><span style="color:red">R</span><span style="color:blue">M</span><span style="color:blue">L</span><span style="color:green">T</span><span style="color:red">R</span><span style="color:green">S</span><span style="color:blue">M</span><span style="color:blue">A</span><span style="color:blue">M</span><span style="color:magenta">E</span><span style="color:turquoise">Y</span><span style="color:blue">A</span><span style="color:yellow">P</span><span style="color:pink">H</span><span style="color:orange">G</span><span style="color:blue">I</span><span style="color:red">R</span><span style="color:blue">V</span><span style="color:green">N</span>
+</td>
+<td>0.30</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<a name="results"></a><table width="100%" border="0" cellspacing="1" cellpadding="4" bgcolor="#FFFFFF"><tr>
+<td><h2 class="mainh">Search Results</h2></td>
+<td align="right" valign="bottom"><a href="#top">Top</a></td>
+</tr></table>
+<div class="box">
+<h4>Top Scoring Sequences <a href="#sequences_doc" class="help"><div class="help"></div></a>
+</h4>
+<div class="pad">
+<p>
+          Each of the following 33 sequences has an <i>E</i>-value less than 
+          10.<br>
+          The motif matches shown have a position p-value less than 0.0001.<br><b>Click on the arrow</b> (↧) next to the <i>E</i>-value to view more information about a sequence.
+        </p>
+<div style="text-align:right">
+<table style="display:inline-block; padding:5px;"><tr>
+<td><div style="width: 20px; height: 20px; background-color:aqua; border: 1px solid black"></div></td>
+<td>Motif 1</td>
+</tr></table>
+<table style="display:inline-block; padding:5px;"><tr>
+<td><div style="width: 20px; height: 20px; background-color:blue; border: 1px solid black"></div></td>
+<td>Motif 2</td>
+</tr></table>
+</div>
+<table id="tbl_sequences" style="width:100%; table-layout:fixed;" border="0">
+<col style="width:8em;">
+<col style="width:5em;">
+<col style="width:3em;">
+<col>
+<thead>
+<th>Sequence</th>
+<th>
+<i>E</i>-value</th>
+<th> </th>
+<th>Block Diagram</th>
+</thead>
+<tfoot><tr>
+<td colspan="3"> </td>
+<td class="block_td" style="color: blue;"><div class="block_container">
+<div class="tic_major" style="left:0%"><div class="tic_label" style="left:-0.5em; width:1em;">0</div></div>
+<div class="tic_minor" style="left:2.208%;"></div>
+<div class="tic_minor" style="left:4.415%;"></div>
+<div class="tic_minor" style="left:6.623%;"></div>
+<div class="tic_minor" style="left:8.83%;"></div>
+<div class="tic_major" style="left:11.038%"><div class="tic_label" style="left:-1.5em; width:3em;">100</div></div>
+<div class="tic_minor" style="left:13.245%;"></div>
+<div class="tic_minor" style="left:15.453%;"></div>
+<div class="tic_minor" style="left:17.66%;"></div>
+<div class="tic_minor" style="left:19.868%;"></div>
+<div class="tic_major" style="left:22.075%"><div class="tic_label" style="left:-1.5em; width:3em;">200</div></div>
+<div class="tic_minor" style="left:24.283%;"></div>
+<div class="tic_minor" style="left:26.49%;"></div>
+<div class="tic_minor" style="left:28.698%;"></div>
+<div class="tic_minor" style="left:30.905%;"></div>
+<div class="tic_major" style="left:33.113%"><div class="tic_label" style="left:-1.5em; width:3em;">300</div></div>
+<div class="tic_minor" style="left:35.32%;"></div>
+<div class="tic_minor" style="left:37.528%;"></div>
+<div class="tic_minor" style="left:39.735%;"></div>
+<div class="tic_minor" style="left:41.943%;"></div>
+<div class="tic_major" style="left:44.15%"><div class="tic_label" style="left:-1.5em; width:3em;">400</div></div>
+<div class="tic_minor" style="left:46.358%;"></div>
+<div class="tic_minor" style="left:48.565%;"></div>
+<div class="tic_minor" style="left:50.773%;"></div>
+<div class="tic_minor" style="left:52.98%;"></div>
+<div class="tic_major" style="left:55.188%"><div class="tic_label" style="left:-1.5em; width:3em;">500</div></div>
+<div class="tic_minor" style="left:57.395%;"></div>
+<div class="tic_minor" style="left:59.603%;"></div>
+<div class="tic_minor" style="left:61.81%;"></div>
+<div class="tic_minor" style="left:64.018%;"></div>
+<div class="tic_major" style="left:66.225%"><div class="tic_label" style="left:-1.5em; width:3em;">600</div></div>
+<div class="tic_minor" style="left:68.433%;"></div>
+<div class="tic_minor" style="left:70.64%;"></div>
+<div class="tic_minor" style="left:72.848%;"></div>
+<div class="tic_minor" style="left:75.055%;"></div>
+<div class="tic_major" style="left:77.263%"><div class="tic_label" style="left:-1.5em; width:3em;">700</div></div>
+<div class="tic_minor" style="left:79.47%;"></div>
+<div class="tic_minor" style="left:81.678%;"></div>
+<div class="tic_minor" style="left:83.885%;"></div>
+<div class="tic_minor" style="left:86.093%;"></div>
+<div class="tic_major" style="left:88.3%"><div class="tic_label" style="left:-1.5em; width:3em;">800</div></div>
+<div class="tic_minor" style="left:90.508%;"></div>
+<div class="tic_minor" style="left:92.715%;"></div>
+<div class="tic_minor" style="left:94.923%;"></div>
+<div class="tic_minor" style="left:97.13%;"></div>
+<div class="tic_major" style="left:99.338%"><div class="tic_label" style="left:-1.5em; width:3em;">900</div></div>
+</div></td>
+</tr></tfoot>
+<tbody>
+<tr id="seq_1_8_blocks" class="">
+<td>BUDC_KLETE</td>
+<td>1.3e-32</td>
+<td><a href="javascript:show_more('seq_1_8')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_8_block_container">
+<div class="block_rule" style="width:26.6004415011038%"></div>
+<div class="block_motif" style="left:0.11%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 8.9e-19    starts: 2    ends: 22    "></div>
+<div class="block_motif" style="left:16.446%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 1.1e-22    starts: 150    ends: 178    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_22_blocks" class="">
+<td>YRTP_BACSU</td>
+<td>1.4e-32</td>
+<td><a href="javascript:show_more('seq_1_22')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_22_block_container">
+<div class="block_rule" style="width:26.2693156732892%"></div>
+<div class="block_motif" style="left:0.552%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 2.8e-17    starts: 6    ends: 26    "></div>
+<div class="block_motif" style="left:16.777%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 4.0e-24    starts: 153    ends: 181    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_14_blocks" class="">
+<td>FIXR_BRAJA</td>
+<td>3.5e-28</td>
+<td><a href="javascript:show_more('seq_1_14')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_14_block_container">
+<div class="block_rule" style="width:30.6843267108168%"></div>
+<div class="block_motif" style="left:3.863%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 8.4e-16    starts: 36    ends: 56    "></div>
+<div class="block_motif" style="left:20.53%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 2.7e-21    starts: 187    ends: 215    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_4_blocks" class="">
+<td>AP27_MOUSE</td>
+<td>1.1e-26</td>
+<td><a href="javascript:show_more('seq_1_4')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_4_block_container">
+<div class="block_rule" style="width:26.9315673289183%"></div>
+<div class="block_motif" style="left:0.662%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 9.5e-15    starts: 7    ends: 27    "></div>
+<div class="block_motif" style="left:16.115%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 1.0e-20    starts: 147    ends: 175    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_17_blocks" class="">
+<td>HDHA_ECOLI</td>
+<td>1.6e-26</td>
+<td><a href="javascript:show_more('seq_1_17')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_17_block_container">
+<div class="block_rule" style="width:28.1456953642384%"></div>
+<div class="block_motif" style="left:1.104%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 1.9e-16    starts: 11    ends: 31    "></div>
+<div class="block_motif" style="left:17.219%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 7.3e-19    starts: 157    ends: 185    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_10_blocks" class="">
+<td>DHGB_BACME</td>
+<td>4.8e-26</td>
+<td><a href="javascript:show_more('seq_1_10')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_10_block_container">
+<div class="block_rule" style="width:28.9183222958057%"></div>
+<div class="block_motif" style="left:0.662%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 3.4e-15    starts: 7    ends: 27    "></div>
+<div class="block_motif" style="left:17.329%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 1.1e-19    starts: 158    ends: 186    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_16_blocks" class="">
+<td>HDE_CANTR</td>
+<td>2.3e-25</td>
+<td><a href="javascript:show_more('seq_1_16')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_16_block_container">
+<div class="block_rule" style="width:100%"></div>
+<div class="block_motif" style="left:0.773%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 1.9e-13    starts: 8    ends: 28    "></div>
+<div class="block_motif" style="left:17.66%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 9.7e-14    starts: 161    ends: 189    "></div>
+<div class="block_motif" style="left:35.43%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 3.2e-17    starts: 322    ends: 342    "></div>
+<div class="block_motif" style="left:51.214%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 4.3e-18    starts: 465    ends: 493    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_11_blocks" class="">
+<td>DHII_HUMAN</td>
+<td>2.3e-25</td>
+<td><a href="javascript:show_more('seq_1_11')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_11_block_container">
+<div class="block_rule" style="width:32.2295805739514%"></div>
+<div class="block_motif" style="left:3.642%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 1.1e-17    starts: 34    ends: 54    "></div>
+<div class="block_motif" style="left:19.868%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 1.4e-16    starts: 181    ends: 209    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_19_blocks" class="">
+<td>NODG_RHIME</td>
+<td>2.7e-25</td>
+<td><a href="javascript:show_more('seq_1_19')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_19_block_container">
+<div class="block_rule" style="width:27.0419426048565%"></div>
+<div class="block_motif" style="left:0.552%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 7.3e-13    starts: 6    ends: 26    "></div>
+<div class="block_motif" style="left:16.446%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 3.5e-21    starts: 150    ends: 178    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_21_blocks" class="">
+<td>YINL_LISMO</td>
+<td>2.9e-25</td>
+<td><a href="javascript:show_more('seq_1_21')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_21_block_container">
+<div class="block_rule" style="width:27.3730684326711%"></div>
+<div class="block_motif" style="left:0.442%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 2.4e-18    starts: 5    ends: 25    "></div>
+<div class="block_motif" style="left:16.667%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 1.1e-15    starts: 152    ends: 180    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_24_blocks" class="">
+<td>DHB2_HUMAN</td>
+<td>3.1e-25</td>
+<td><a href="javascript:show_more('seq_1_24')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_24_block_container">
+<div class="block_rule" style="width:42.7152317880795%"></div>
+<div class="block_motif" style="left:8.94%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 5.4e-16    starts: 82    ends: 102    "></div>
+<div class="block_motif" style="left:25.276%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 2.0e-18    starts: 230    ends: 258    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_20_blocks" class="">
+<td>RIDH_KLEAE</td>
+<td>8.7e-25</td>
+<td><a href="javascript:show_more('seq_1_20')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_20_block_container">
+<div class="block_rule" style="width:27.4834437086093%"></div>
+<div class="block_motif" style="left:1.435%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 4.3e-16    starts: 14    ends: 34    "></div>
+<div class="block_motif" style="left:17.329%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 1.9e-17    starts: 158    ends: 186    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_12_blocks" class="">
+<td>DHMA_FLAS1</td>
+<td>1.3e-24</td>
+<td><a href="javascript:show_more('seq_1_12')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_12_block_container">
+<div class="block_rule" style="width:29.8013245033113%"></div>
+<div class="block_motif" style="left:1.435%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 4.7e-15    starts: 14    ends: 34    "></div>
+<div class="block_motif" style="left:17.881%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 2.2e-18    starts: 163    ends: 191    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_28_blocks" class="">
+<td>FVT1_HUMAN</td>
+<td>2.1e-24</td>
+<td><a href="javascript:show_more('seq_1_28')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_28_block_container">
+<div class="block_rule" style="width:36.644591611479%"></div>
+<div class="block_motif" style="left:3.422%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 5.2e-15    starts: 32    ends: 52    "></div>
+<div class="block_motif" style="left:20.199%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 2.0e-18    starts: 184    ends: 212    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_13_blocks" class="">
+<td>ENTA_ECOLI</td>
+<td>6.7e-24</td>
+<td><a href="javascript:show_more('seq_1_13')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_13_block_container">
+<div class="block_rule" style="width:27.3730684326711%"></div>
+<div class="block_motif" style="left:0.442%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 3.6e-17    starts: 5    ends: 25    "></div>
+<div class="block_motif" style="left:15.563%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 1.8e-15    starts: 142    ends: 170    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_1_blocks" class="">
+<td>2BHD_STREX</td>
+<td>1.5e-23</td>
+<td><a href="javascript:show_more('seq_1_1')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_1_block_container">
+<div class="block_rule" style="width:28.1456953642384%"></div>
+<div class="block_motif" style="left:0.552%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 4.4e-13    starts: 6    ends: 26    "></div>
+<div class="block_motif" style="left:3.201%; top:5.8px; width:2.318%; height:5.2px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 4.5e-05    starts: 30    ends: 50    "></div>
+<div class="block_motif" style="left:16.446%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 3.2e-19    starts: 150    ends: 178    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_6_blocks" class="">
+<td>BDH_HUMAN</td>
+<td>2.4e-23</td>
+<td><a href="javascript:show_more('seq_1_6')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_6_block_container">
+<div class="block_rule" style="width:37.8587196467991%"></div>
+<div class="block_motif" style="left:5.96%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 1.8e-15    starts: 55    ends: 75    "></div>
+<div class="block_motif" style="left:22.627%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 6.5e-17    starts: 206    ends: 234    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_29_blocks" class="">
+<td>HMTR_LEIMA</td>
+<td>4.4e-23</td>
+<td><a href="javascript:show_more('seq_1_29')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_29_block_container">
+<div class="block_rule" style="width:31.6777041942605%"></div>
+<div class="block_motif" style="left:0.552%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 1.4e-12    starts: 6    ends: 26    "></div>
+<div class="block_motif" style="left:20.971%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 2.3e-19    starts: 191    ends: 219    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_9_blocks" class="">
+<td>DHES_HUMAN</td>
+<td>2e-22</td>
+<td><a href="javascript:show_more('seq_1_9')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_9_block_container">
+<div class="block_rule" style="width:36.0927152317881%"></div>
+<div class="block_motif" style="left:0.11%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 1.3e-14    starts: 2    ends: 22    "></div>
+<div class="block_motif" style="left:16.777%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 8.7e-17    starts: 153    ends: 181    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_2_blocks" class="">
+<td>3BHD_COMTE</td>
+<td>5.3e-22</td>
+<td><a href="javascript:show_more('seq_1_2')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_2_block_container">
+<div class="block_rule" style="width:27.924944812362%"></div>
+<div class="block_motif" style="left:0.552%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 2.5e-15    starts: 6    ends: 26    "></div>
+<div class="block_motif" style="left:16.336%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 2.1e-15    starts: 149    ends: 177    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_5_blocks" class="">
+<td>BA72_EUBSP</td>
+<td>5.5e-22</td>
+<td><a href="javascript:show_more('seq_1_5')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_5_block_container">
+<div class="block_rule" style="width:27.4834437086093%"></div>
+<div class="block_motif" style="left:0.552%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 1.0e-14    starts: 6    ends: 26    "></div>
+<div class="block_motif" style="left:16.998%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 5.4e-16    starts: 155    ends: 183    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_15_blocks" class="">
+<td>GUTD_ECOLI</td>
+<td>3e-21</td>
+<td><a href="javascript:show_more('seq_1_15')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_15_block_container">
+<div class="block_rule" style="width:28.5871964679912%"></div>
+<div class="block_motif" style="left:0.11%; top:-0.4px; width:2.318%; height:11.4px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 3.4e-10    starts: 2    ends: 22    "></div>
+<div class="block_motif" style="left:16.667%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 8.7e-20    starts: 152    ends: 180    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_25_blocks" class="">
+<td>DHB3_HUMAN</td>
+<td>3.9e-21</td>
+<td><a href="javascript:show_more('seq_1_25')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_25_block_container">
+<div class="block_rule" style="width:34.2163355408389%"></div>
+<div class="block_motif" style="left:5.188%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 7.8e-15    starts: 48    ends: 68    "></div>
+<div class="block_motif" style="left:21.523%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 3.4e-15    starts: 196    ends: 224    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_7_blocks" class="">
+<td>BPHB_PSEPS</td>
+<td>5.4e-19</td>
+<td><a href="javascript:show_more('seq_1_7')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_7_block_container">
+<div class="block_rule" style="width:30.3532008830022%"></div>
+<div class="block_motif" style="left:0.442%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 2.1e-14    starts: 5    ends: 25    "></div>
+<div class="block_motif" style="left:16.556%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 2.5e-13    starts: 151    ends: 179    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_18_blocks" class="">
+<td>LIGD_PSEPA</td>
+<td>6.7e-19</td>
+<td><a href="javascript:show_more('seq_1_18')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_18_block_container">
+<div class="block_rule" style="width:33.6644591611479%"></div>
+<div class="block_motif" style="left:0.552%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 1.4e-12    starts: 6    ends: 26    "></div>
+<div class="block_motif" style="left:16.998%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 3.7e-15    starts: 155    ends: 183    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_32_blocks" class="">
+<td>RFBB_NEIGO</td>
+<td>6.9e-19</td>
+<td><a href="javascript:show_more('seq_1_32')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_32_block_container">
+<div class="block_rule" style="width:38.1898454746137%"></div>
+<div class="block_motif" style="left:0.552%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 1.2e-12    starts: 6    ends: 26    "></div>
+<div class="block_motif" style="left:17.881%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 3.4e-15    starts: 163    ends: 191    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_26_blocks" class="">
+<td>DHCA_HUMAN</td>
+<td>1.5e-17</td>
+<td><a href="javascript:show_more('seq_1_26')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_26_block_container">
+<div class="block_rule" style="width:30.4635761589404%"></div>
+<div class="block_motif" style="left:0.331%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 3.4e-15    starts: 4    ends: 24    "></div>
+<div class="block_motif" style="left:20.971%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 4.5e-11    starts: 191    ends: 219    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_3_blocks" class="">
+<td>ADH_DROME</td>
+<td>1.5e-14</td>
+<td><a href="javascript:show_more('seq_1_3')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_3_block_container">
+<div class="block_rule" style="width:28.1456953642384%"></div>
+<div class="block_motif" style="left:0.552%; top:-0.7px; width:2.318%; height:11.7px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 1.8e-10    starts: 6    ends: 26    "></div>
+<div class="block_motif" style="left:16.446%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 1.1e-12    starts: 150    ends: 178    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_27_blocks" class="">
+<td>FABI_ECOLI</td>
+<td>5.3e-14</td>
+<td><a href="javascript:show_more('seq_1_27')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_27_block_container">
+<div class="block_rule" style="width:28.9183222958057%"></div>
+<div class="block_motif" style="left:0.552%; top:0px; width:2.318%; height:11px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 6.4e-10    starts: 6    ends: 26    "></div>
+<div class="block_motif" style="left:17.219%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 1.1e-12    starts: 157    ends: 185    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_33_blocks" class="">
+<td>YURA_MYXXA</td>
+<td>7.1e-13</td>
+<td><a href="javascript:show_more('seq_1_33')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_33_block_container">
+<div class="block_rule" style="width:28.476821192053%"></div>
+<div class="block_motif" style="left:17.329%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 8.3e-18    starts: 158    ends: 186    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_31_blocks" class="">
+<td>PCR_PEA</td>
+<td>8.2e-11</td>
+<td><a href="javascript:show_more('seq_1_31')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_31_block_container">
+<div class="block_rule" style="width:44.0397350993377%"></div>
+<div class="block_motif" style="left:9.382%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 2.8e-15    starts: 86    ends: 106    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_30_blocks" class="">
+<td>MAS1_AGRRA</td>
+<td>2.7e-09</td>
+<td><a href="javascript:show_more('seq_1_30')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_30_block_container">
+<div class="block_rule" style="width:52.5386313465784%"></div>
+<div class="block_motif" style="left:26.932%; top:-1px; width:2.318%; height:12px; background-color:aqua; border: 1px solid black;" title="Motif 1    p-value: 6.2e-13    starts: 245    ends: 265    "></div>
+<div class="block_motif" style="left:42.936%; top:5.4px; width:3.201%; height:5.6px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 2.3e-05    starts: 390    ends: 418    "></div>
+</div></td>
+</tr>
+<tr id="seq_1_23_blocks" class="">
+<td>CSGA_MYXXA</td>
+<td>4.5e-08</td>
+<td><a href="javascript:show_more('seq_1_23')" class="more_arrow" title="Toggle additional information">↧</a></td>
+<td class="block_td"><div class="block_container" id="seq_1_23_block_container">
+<div class="block_rule" style="width:18.3222958057395%"></div>
+<div class="block_motif" style="left:9.382%; top:-1px; width:3.201%; height:12px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 5.8e-13    starts: 86    ends: 114    "></div>
+</div></td>
+</tr>
+</tbody>
+</table>
+<div style="text-align:right">
+<table style="display:inline-block; padding:5px;"><tr>
+<td><div style="width: 20px; height: 20px; background-color:aqua; border: 1px solid black"></div></td>
+<td>Motif 1</td>
+</tr></table>
+<table style="display:inline-block; padding:5px;"><tr>
+<td><div style="width: 20px; height: 20px; background-color:blue; border: 1px solid black"></div></td>
+<td>Motif 2</td>
+</tr></table>
+</div>
+</div>
+</div>
+<a name="program"></a><div class="bar">
+<div style="text-align:right;"><a href="#top">Top</a></div>
+<div class="subsection">
+<a name="version"></a><h5>MAST version</h5>4.3.2 (Release date: Wed Dec 23 18:09:18 EST 2009)
+      </div>
+<div class="subsection">
+<a name="reference"></a><h5>Reference</h5>
+        Timothy L. Bailey and Michael Gribskov,<br>
+        "Combining evidence using p-values: application to sequence homology searches", Bioinformatics, 14(48-54), 1998.<br>
+</div>
+<div class="subsection">
+<a name="command"></a><h5>Command line summary</h5>
+<textarea rows="1" style="width:100%;" readonly>mast tests/meme/meme.adh.zoops tests/adh.s</textarea><br>Background letter frequencies (from non-redundant database):<br><div style="margin-left:25px;">A: 0.073   C: 0.018   D: 0.052   E: 0.062   F: 0.040   G: 0.069   H: 0.022   I: 0.056   K: 0.058   L: 0.092   M: 0.023   N: 0.046   P: 0.051   Q: 0.041   R: 0.052   S: 0.074   T: 0.059   V: 0.064   W: 0.013   Y: 0.033</div>
+<br>Result calculation took 0.030 seconds<br>
+</div>
+<a href="javascript:showHidden('model')" id="model_activator">show model parameters...</a><div class="subsection" id="model_data" style="display:none;">
+<h5>Model parameters</h5>
+<textarea style="width:100%;" rows="10" readonly>
+max_correlation       = 0.60
+remove_correlated     = value: "n"
+strand_handling       = value: "protein"
+translate_dna         = value: "n"
+max_seq_evalue        = 10
+adj_hit_pvalue        = value: "n"
+max_hit_pvalue        = 0.0001
+max_weak_pvalue       = 0.0001
+host                  = tlb-squirrel
+when                  = Thu Apr 8 11:56:38 2010
+</textarea>
+</div>
+<a href="javascript:hideShown('model')" style="display:none;" id="model_deactivator">hide model parameters...</a>
+</div>
+<span class="explain"><a name="doc"></a><table width="100%" border="0" cellspacing="1" cellpadding="4" bgcolor="#FFFFFF"><tr>
+<td><h2 class="mainh">Explanation of MAST Results</h2></td>
+<td align="right" valign="bottom"><a href="#top">Top</a></td>
+</tr></table>
+<div class="box">
+<h4>The MAST results consist of</h4>
+<ul>
+<li>The <a href="#input_motifs_doc"><b>inputs</b></a> to MAST including:
+            <ol>
+<li>The <a href="#databases_doc"><b>sequence databases</b></a> showing the sequence 
+                and residue counts. [<a href="#databases">View</a>]</li>
+<li>The <a href="#motifs_doc"><b>motifs</b></a> showing the name, width, best scoring match 
+                and similarity to other motifs. [<a href="#motifs">View</a>]</li>
+<li>
+                The <a href="#nos_doc"><b>nominal order and spacing</b></a> diagram.</li>
+</ol>
+</li>
+<li>The <a href="#sequences_doc"><b>search results</b></a> showing top scoring sequences with 
+            tiling of all of the motifs matches shown for each of the sequences. [<a href="#results">View</a>]
+          </li>
+<li>The <b>program</b> details including:
+            <ol>
+<li>The <b>version</b> of MAST and the date it was released. [<a href="#version">View</a>]</li>
+<li>The <b>reference</b> to cite if you use MAST in your research. [<a href="#reference">View</a>]</li>
+<li>The <b>command line summary</b> detailing the parameters with which you ran MAST. [<a href="#command">View</a>]</li>
+</ol>
+</li>
+<li>This <b>explanation</b> of how to interpret MAST results.</li>
+</ul>
+<a name="input_motifs_doc"></a><h4>Inputs</h4>
+<p>MAST received the following inputs.</p>
+<a name="databases_doc"></a><h5>Sequence Databases</h5>
+<div class="doc">
+<p>This table summarises the sequence databases specified to MAST.</p>
+<dl>
+<dt>Database</dt>
+<dd>The name of the database file.</dd>
+<dt>Sequence Count</dt>
+<dd>The number of sequences in the database.</dd>
+<dt>Residue Count</dt>
+<dd>The number of residues in the database.</dd>
+</dl>
+</div>
+<a name="motifs_doc"></a><h5>Motifs</h5>
+<div class="doc">
+<p>Summary of the motifs specified to MAST.</p>
+<dl>
+<dt>Name</dt>
+<dd>The name of the motif. If the motif has been removed or removal is recommended to avoid highly similar motifs 
+              then it will be displayed in red text.</dd>
+<dt>Width</dt>
+<dd>The width of the motif. No gaps are allowed in motifs supplied to MAST as it only works for motifs of a fixed width.</dd>
+<dt>Best possible match</dt>
+<dd>The sequence that would achieve the best possible match score and its reverse complement for nucleotide motifs.</dd>
+<dt>Similarity</dt>
+<dd>
+              MAST computes the pairwise correlations between each pair of motifs. The correlation between two motifs is the 
+              maximum sum of Pearson's correlation coefficients for aligned columns divided by the width of the shorter motif. 
+              The maximum is found by trying all alignments of the two motifs. Motifs with correlations below 0.60 have little 
+              effect on the accuracy of the combined scores. Pairs of motifs with higher correlations should be removed from 
+              the query. Correlations above the supplied threshold are shown in red text.
+            </dd>
+</dl>
+</div>
+<a name="nos_doc"></a><h5>Nominal Order and Spacing</h5>
+<div class="doc"><p>This diagram shows the normal spacing of the motifs specified to MAST.</p></div>
+<a name="sequences_doc"></a><h4>Search Results</h4>
+<p>MAST provides the following motif search results.</p>
+<h5>Top Scoring Sequences</h5>
+<div class="doc">
+<p>
+            This table summarises the top scoring sequences with a <a href="#evalue_doc">Sequence <i>E</i>-value</a>
+            better than the threshold (default 10). The sequences are sorted by the <a href="#evalue_doc">Sequence 
+            <i>E</i>-value</a> from most to least significant.
+          </p>
+<dl>
+<dt>Sequence</dt>
+<dd>The name of the sequence. This maybe be linked to search a sequence database for the sequence name.</dd>
+<dt>
+<i>E</i>-value</dt>
+<dd>
+              The <a href="#evalue_doc"><i>E</i>-value</a> of the sequence. For DNA only; if strands were scored seperately 
+              then there will be two <i>E</i>-values for the sequence seperated by a "/". The score for the provided sequence 
+              will be first and the score for the reverse-complement will be second.
+            </dd>
+<dt>↧</dt>
+<dd>
+              Click on this to show <a href="#additional_seq_doc">additional information</a> about the sequence such as a 
+              description, combined p-value and the annotated sequence.
+            </dd>
+<dt>Block Diagram</dt>
+<dd>
+              The block diagram shows the best non-overlapping tiling of motif matches on the sequence.
+              <ul style="padding-left: 1em; margin-top:5px;">
+<li>The length of the line shows the length of a sequence relative to all the other sequences.</li>
+<li>A block is shown where the <a href="#pos_pvalue_doc">positional <i>p</i>-value</a>
+                  of a motif is less (more significant) than the significance threshold which is 0.0001 by default.</li>
+<li>If a significant motif match (as specified above) overlaps other significant motif matches then 
+                  it is only displayed as a block if its <a href="#pos_pvalue_doc">positional <i>p</i>-value</a> 
+                  is less (more significant) then the product of the <a href="#pos_pvalue_doc">positional 
+                  <i>p</i>-values</a> of the significant matches that it overlaps.</li>
+<li>The position of a block shows where a motif has matched the sequence.</li>
+<li>The width of a block shows the width of the motif relative to the length of the sequence.</li>
+<li>The colour and border of a block identifies the matching motif as in the legend.</li>
+<li>The height of a block gives an indication of the significance of the match as 
+                  taller blocks are more significant. The height is calculated to be proportional 
+                  to the negative logarithm of the <a href="#pos_pvalue_doc">positional <i>p</i>-value</a>, 
+                  truncated at the height for a <i>p</i>-value of 1e-10.</li>
+<li>Hovering the mouse cursor over the block causes the display of the motif name 
+                    and other details in the hovering text.</li>
+<li>DNA only; blocks displayed above the line are a match on the given DNA, whereas blocks 
+                  displayed below the line are matches to the reverse-complement of the given DNA.</li>
+<li>DNA only; when strands are scored separately then blocks may overlap on opposing strands.</li>
+</ul>
+</dd>
+</dl>
+</div>
+<a name="additional_seq_doc"></a><h5>Additional Sequence Information</h5>
+<div class="doc">
+<p>
+            Clicking on the ↧ link expands a box below the sequence with additional information and adds two dragable buttons 
+            below the block diagram.
+          </p>
+<dl>
+<dt>Description</dt>
+<dd>The description appearing after the identifier in the fasta file used to specify the sequence.</dd>
+<dt>Combined <i>p</i>-value</dt>
+<dd>The <a href="#combined_pvalue_doc">combined <i>p</i>-value</a> of the sequence. DNA only; if strands were scored 
+              seperately then there will be two <i>p</i>-values for the sequence seperated by a "/". The score for the provided sequence 
+              will be first and the score for the reverse-complement will be second.</dd>
+<a name="anno_doc"></a><dt>Annotated Sequence</dt>
+<dd>
+              The annotated sequence shows a portion of the sequence with the matching motif sequences displayed above. 
+              The displayed portion of the sequence can be modified by sliding the two buttons below the sequence block diagram
+              so that the portion you want to see is between the two needles attached to the buttons. By default the two buttons
+              move together but you can drag one individually by holding shift before you start the drag. If the strands were
+              scored seperately then they can't be both displayed at once due to overlaps and so a radio button offers the choice
+              of strand to display.
+            </dd>
+</dl>
+</div>
+<h4>Scoring</h4>
+<p>MAST scores sequences using the following measures.</p>
+<a name="score_doc"></a><h5>Position score calculation</h5>
+<div class="doc"><p>
+            The score for the match of a position in a sequence to a motif is computed by by summing the appropriate entry 
+            from each column of the position-dependent scoring matrix that represents the motif. Sequences shorter than 
+            one or more of the motifs are skipped.
+          </p></div>
+<a name="pos_pvalue_doc"></a><h5>Position <i>p</i>-value</h5>
+<div class="doc"><p>
+            The position p-value of a match is the probability of a single random subsequence of the length of the motif 
+            scoring at least as well as the observed match.
+          </p></div>
+<a name="seq_pvalue_doc"></a><h5>Sequence <i>p</i>-value</h5>
+<div class="doc"><p>
+            The sequence p-value of a score is defined as the probability of a random sequence of the same length containing 
+            some match with as good or better a score.
+          </p></div>
+<a name="combined_pvalue_doc"></a><h5>Combined <i>p</i>-value</h5>
+<div class="doc">
+<p>The combined p-value of a sequence measures the strength of the match of the sequence to all the motifs and is calculated by</p>
+<ol>
+<li>finding the score of the single best match of each motif to the sequence (best matches may overlap),</li>
+<li>calculating the sequence p-value of each score,</li>
+<li>forming the product of the p-values,</li>
+<li>taking the p-value of the product.</li>
+</ol>
+</div>
+<a name="evalue_doc"></a><h5>Sequence <i>E</i>-value</h5>
+<div class="doc"><p>
+            The E-value of a sequence is the expected number of sequences in a random database of the same size that would match 
+            the motifs as well as the sequence does and is equal to the combined p-value of the sequence times the number of 
+            sequences in the database.
+          </p></div>
+</div></span>
+<!--This data is used by the javascript to create the detailed views-->
+<form>
+<input type="hidden" id="seq_1_8_len" value="241">
+<input type="hidden" id="seq_1_8_desc" value="ACETOIN(DIACETYL) REDUCTASE (EC 1.1.1.5) (ACETOIN DEHYDROGENASE)">
+<input type="hidden" id="seq_1_8_combined_pvalue" value="3.95e-34">
+<input type="hidden" id="seq_1_8_type" value="amino-acid">
+<input type="hidden" id="seq_1_8_segs" value="
+1	MQKVALVTGAGQGIGKAIALRLVKDGFAVAIADYNDATATAVAAEINQAGGRAVAIKVDVSRRDQVFAAVEQARK
+76	ALGGFNVIVNNAGIAPSTPIESITEEIVDRVYNINVKGVIWGMQAAVEAFKKEGHGGKIVNACSQAGHVGNPELAVYSSSKFAVRGLTQTAARDLAPLGITVNGFCPGIVKTPMWAEIDRQCRKRRANRWATARLNLPNASPLAACRSLK
+">
+<input type="hidden" id="seq_1_8_hits" value="
+2	motif_1	-	8.9e-19	+++++++++++++++++++++	
+150	motif_2	-	1.1e-22	+++++++++++++++++++++++ +++++	
+">
+<input type="hidden" id="seq_1_22_len" value="238">
+<input type="hidden" id="seq_1_22_desc" value="HYPOTHETICAL 25.3 KD PROTEIN IN RTP 5'REGION (ORF238)">
+<input type="hidden" id="seq_1_22_combined_pvalue" value="4.17e-34">
+<input type="hidden" id="seq_1_22_type" value="amino-acid">
+<input type="hidden" id="seq_1_22_segs" value="
+1	MQSLQHKTALITGGGRGIGRATALALAKEGVNIGLIGRTSANVEKVAEEVKALGVKAAFAAADVKDADQVNQAVA
+151	VTSAYSASKFAVLGLTESLMQEVRKHNIRVSALTPSTVASDMSIELNLTDGNPEKVMQPEDLAEYMVAQLKLDPR
+">
+<input type="hidden" id="seq_1_22_hits" value="
+6	motif_1	-	2.8e-17	+++++++++++++++++++++	
+153	motif_2	-	4.0e-24	++++++++++ ++++++++++++++++++	
+">
+<input type="hidden" id="seq_1_14_len" value="278">
+<input type="hidden" id="seq_1_14_desc" value="FIXR PROTEIN">
+<input type="hidden" id="seq_1_14_combined_pvalue" value="1.05e-29">
+<input type="hidden" id="seq_1_14_type" value="amino-acid">
+<input type="hidden" id="seq_1_14_segs" value="
+1	MGLDLPNDNLIRGPLPEAHLDRLVDAVNARVDRGEPKVMLLTGASRGIGHATAKLFSEAGWRIISCARQPFDGER
+151	APILLAQGLFDELRAASGSIVNVTSIAGSRVHPFAGSAYATSKAALASLTRELAHDYAPHGIRVNAIAPGEIRTD
+">
+<input type="hidden" id="seq_1_14_hits" value="
+36	motif_1	-	8.4e-16	 ++++ +++++++++++++ +	
+187	motif_2	-	2.7e-21	+++  +++++ ++++++++++++++++++	
+">
+<input type="hidden" id="seq_1_4_len" value="244">
+<input type="hidden" id="seq_1_4_desc" value="ADIPOCYTE P27 PROTEIN (AP27)">
+<input type="hidden" id="seq_1_4_combined_pvalue" value="3.19e-28">
+<input type="hidden" id="seq_1_4_type" value="amino-acid">
+<input type="hidden" id="seq_1_4_segs" value="
+1	MKLNFSGLRALVTGAGKGIGRDTVKALHASGAKVVAVTRTNSDLVSLAKECPGIEPVCVDLGDWDATEKALGGIG
+76	PVDLLVNNAALVIMQPFLEVTKEAFDRSFSVNLRSVFQVSQMVARDMINRGVPGSIVNVSSMVAHVTFPNLITYSSTKGAMTMLTKAMAMELGPHKIRVNSVNPTVVLTDMGKKVSADPEFARKLKERHPLRKFAEVEDVVNSILFLLSD
+">
+<input type="hidden" id="seq_1_4_hits" value="
+7	motif_1	-	9.5e-15	+ +++++++++++++ +++++	
+147	motif_2	-	1.0e-20	  ++++++++++++++++++++++ ++++	
+">
+<input type="hidden" id="seq_1_17_len" value="255">
+<input type="hidden" id="seq_1_17_desc" value="7-ALPHA-HYDROXYSTEROID DEHYDROGENASE (EC 1.1.1.159) (HSDH)">
+<input type="hidden" id="seq_1_17_combined_pvalue" value="4.97e-28">
+<input type="hidden" id="seq_1_17_type" value="amino-acid">
+<input type="hidden" id="seq_1_17_segs" value="
+1	MFNSDNLRLDGKCAIITGAGAGIGKEIAITFATAGASVVVSDINADAANHVVDEIQQLGGQAFACRCDITSEQEL
+151	NKNINMTSYASSKAAASHLVRNMAFDLGEKNIRVNGIAPGAILTDALKSVITPEIEQKMLQHTPIRRLGQPQDIA
+">
+<input type="hidden" id="seq_1_17_hits" value="
+11	motif_1	-	1.9e-16	++++++++++ ++++++++++	
+157	motif_2	-	7.3e-19	+++ +++++ +++++ +++++++++++++	
+">
+<input type="hidden" id="seq_1_10_len" value="262">
+<input type="hidden" id="seq_1_10_desc" value="GLUCOSE 1-DEHYDROGENASE B (EC 1.1.1.47)">
+<input type="hidden" id="seq_1_10_combined_pvalue" value="1.44e-27">
+<input type="hidden" id="seq_1_10_type" value="amino-acid">
+<input type="hidden" id="seq_1_10_segs" value="
+1	MYKDLEGKVVVITGSSTGLGKSMAIRFATEKAKVVVNYRSKEDEANSVLEEEIKKVGGEAIAVKGDVTVESDVIN
+151	KIPWPLFVHYAASKGGMKLMTETLALEYAPKGIRVNNIGPGAINTPINAEKFADPEQRADVESMIPMGYIGEPEE
+">
+<input type="hidden" id="seq_1_10_hits" value="
+7	motif_1	-	3.4e-15	++++++++++ ++++++++++	
+158	motif_2	-	1.1e-19	 ++ +++++++ +++++++++++++++++	
+">
+<input type="hidden" id="seq_1_16_len" value="906">
+<input type="hidden" id="seq_1_16_desc" value="HYDRATASE-DEHYDROGENASE-EPIMERASE (HDE)">
+<input type="hidden" id="seq_1_16_combined_pvalue" value="7.01e-27">
+<input type="hidden" id="seq_1_16_type" value="amino-acid">
+<input type="hidden" id="seq_1_16_segs" value="
+1	MSPVDFKDKVVIITGAGGGLGKYYSLEFAKLGAKVVVNDLGGALNGQGGNSKAADVVVDEIVKNGGVAVADYNNV
+151	PAGLYGNFGQANYASAKSALLGFAETLAKEGAKYNIKANAIAPLARSRMTESILPPPMLEKLGPEKVAPLVLYLS
+301	TNEARKLPANDASGAPTVSLKDKVVLITGAGAGLGKEYAKWFAKYGAKVVVNDFKDATKTVDEIKAAGGEAWPDQ
+451	NITSTSGIYGNFGQANYSSSKAGILGLSKTMAIEGAKNNIKVNIVAPHAETAMTLTIFREQDKNLYHADQVAPLL
+">
+<input type="hidden" id="seq_1_16_hits" value="
+8	motif_1	-	1.9e-13	+++++++++++++++ +++++	
+161	motif_2	-	9.7e-14	+++ +++ ++ ++ ++++++ ++++++ +	
+322	motif_1	-	3.2e-17	++++++++++ ++++++++++	
+465	motif_2	-	4.3e-18	++++++++++ +++++++ + ++ +++++	
+">
+<input type="hidden" id="seq_1_11_len" value="292">
+<input type="hidden" id="seq_1_11_desc" value="CORTICOSTEROID 11-BETA-DEHYDROGENASE (EC 1.1.1.146) (11-DH) (11-BETA- HYDROXYSTEROID DEHYDROGENASE) (11-BETA-HSD)">
+<input type="hidden" id="seq_1_11_combined_pvalue" value="7.06e-27">
+<input type="hidden" id="seq_1_11_type" value="amino-acid">
+<input type="hidden" id="seq_1_11_segs" value="
+1	MAFMKKYLLPILGLFMAYYYYSANEEFRPEMLQGKKVIVTGASKGIGREMAYHLAKMGAHVVVTARSKETLQKVV
+151	TVAALPMLKQSNGSIVVVSSLAGKVAYPMVAAYSASKFALDGFFSSIRKEYSVSRVNVSITLCVLGLIDTETAMK
+">
+<input type="hidden" id="seq_1_11_hits" value="
+34	motif_1	-	1.1e-17	+++++++++++++++++++++	
+181	motif_2	-	1.4e-16	+++++++++++++ ++ +++++ ++++++	
+">
+<input type="hidden" id="seq_1_19_len" value="245">
+<input type="hidden" id="seq_1_19_desc" value="NODULATION PROTEIN G (HOST-SPECIFICITY OF NODULATION PROTEIN C)">
+<input type="hidden" id="seq_1_19_combined_pvalue" value="8.16e-27">
+<input type="hidden" id="seq_1_19_type" value="amino-acid">
+<input type="hidden" id="seq_1_19_segs" value="
+1	MFELTGRKALVTGASGAIGGAIARVLHAQGAIVGLHGTQIEKLETLATELGDRVKLFPANLANRDEVKALGQRAE
+76	ADLEGVDILVNNAGITKDGLFLHMADPDWDIVLEVNLTAMFRLTREITQQMIRRRNGRIINVTSVAGAIGNPGQTNYCASKAGMIGFSKSLAQEIATRNITVNCVAPGFIESAMTDKLNHKQKEKIMVAIPIHRMGTGTEVASAVAYLAS
+">
+<input type="hidden" id="seq_1_19_hits" value="
+6	motif_1	-	7.3e-13	+ +++++++++ ++ ++++ +	
+150	motif_2	-	3.5e-21	+++++++++++++++++++++++ +++++	
+">
+<input type="hidden" id="seq_1_21_len" value="248">
+<input type="hidden" id="seq_1_21_desc" value="HYPOTHETICAL 26.8 KD PROTEIN IN INLA 5'REGION (ORFA)">
+<input type="hidden" id="seq_1_21_combined_pvalue" value="8.79e-27">
+<input type="hidden" id="seq_1_21_type" value="amino-acid">
+<input type="hidden" id="seq_1_21_segs" value="
+1	MTIKNKVIIITGASSGIGKATALLLAEKGAKLVLAARRVEKLEKIVQIIKANSGEAIFAKTDVTKREDNKKLVEL
+151	GAVYGATKWAVRDLMEVLRMESAQEGTNIRTATIYPAAINTELLETITDKETEQGMTSLYKQYGITPDRIASIVA
+">
+<input type="hidden" id="seq_1_21_hits" value="
+5	motif_1	-	2.4e-18	+++++++++++++++++++ +	
+152	motif_2	-	1.1e-15	+++++++++++ +++ ++++ ++++ +++	
+">
+<input type="hidden" id="seq_1_24_len" value="387">
+<input type="hidden" id="seq_1_24_desc" value="no comment">
+<input type="hidden" id="seq_1_24_combined_pvalue" value="9.29e-27">
+<input type="hidden" id="seq_1_24_type" value="amino-acid">
+<input type="hidden" id="seq_1_24_segs" value="
+76	ELLPVDQKAVLVTGGDCGLGHALCKYLDELGFTVFAGVLNENGPGAEELRRTCSPRLSVLQMDITKPVQIKDAYS
+226	MERLASYGSSKAAVTMFSSVMRLELSKWGIKVASIQPGGFLTNIAGTSDKWEKLEKDILDHLPAEVQEDYGQDYI
+">
+<input type="hidden" id="seq_1_24_hits" value="
+82	motif_1	-	5.4e-16	+++++++++++++++++++++	
+230	motif_2	-	2.0e-18	+++++++++++++++ ++++++++++++ 	
+">
+<input type="hidden" id="seq_1_20_len" value="249">
+<input type="hidden" id="seq_1_20_desc" value="RIBITOL 2-DEHYDROGENASE (EC 1.1.1.56) (RDH)">
+<input type="hidden" id="seq_1_20_combined_pvalue" value="2.65e-26">
+<input type="hidden" id="seq_1_20_type" value="amino-acid">
+<input type="hidden" id="seq_1_20_segs" value="
+1	MKHSVSSMNTSLSGKVAAITGAASGIGLECARTLLGAGAKVVLIDREGEKLNKLVAELGENAFALQVDLMQADQV
+151	VVPVIWEPVYTASKFAVQAFVHTTRRQVAQYGVRVGAVLPGPVVTALLDDWPKAKMDEALANGSLMQPIEVAESV
+">
+<input type="hidden" id="seq_1_20_hits" value="
+14	motif_1	-	4.3e-16	++++ ++++++++++++++++	
+158	motif_2	-	1.9e-17	++++++++++++++++ +++++++++++ 	
+">
+<input type="hidden" id="seq_1_12_len" value="270">
+<input type="hidden" id="seq_1_12_desc" value="N-ACYLMANNOSAMINE 1-DEHYDROGENASE (EC 1.1.1.233) (NAM-DH) ">
+<input type="hidden" id="seq_1_12_combined_pvalue" value="4.04e-26">
+<input type="hidden" id="seq_1_12_type" value="amino-acid">
+<input type="hidden" id="seq_1_12_segs" value="
+1	TTAGVSRRPGRLAGKAAIVTGAAGGIGRATVEAYLREGASVVAMDLAPRLAATRYEEPGAIPIACDLADRAAIDA
+151	GSVNSFMAEPEAAAYVAAKGGVAMLTRAMAVDLARHGILVNMIAPGPVDVTGNNTGYSEPRLAEQVLDEVALGRP
+">
+<input type="hidden" id="seq_1_12_hits" value="
+14	motif_1	-	4.7e-15	++++++++++++++++++++ 	
+163	motif_2	-	2.2e-18	+++ ++++++ +++++++++++++++ ++	
+">
+<input type="hidden" id="seq_1_28_len" value="332">
+<input type="hidden" id="seq_1_28_desc" value="no comment">
+<input type="hidden" id="seq_1_28_combined_pvalue" value="6.24e-26">
+<input type="hidden" id="seq_1_28_type" value="amino-acid">
+<input type="hidden" id="seq_1_28_segs" value="
+1	MLLLAAAFLVAFVLLLYMVSPLISPKPLALPGAHVVVTGGSSGIGKCIAIECYKQGAFITLVARNEDKLLQAKKE
+151	YPSRAVITTMKERRVGRIVFVSSQAGQLGLFGFTAYSASKFAIRGLAEALQMEVKPYNVYITVAYPPDTDTPGFA
+">
+<input type="hidden" id="seq_1_28_hits" value="
+32	motif_1	-	5.2e-15	+ +++++++++++++++++++	
+184	motif_2	-	2.0e-18	+++++++++++++ +++++++++++++++	
+">
+<input type="hidden" id="seq_1_13_len" value="248">
+<input type="hidden" id="seq_1_13_desc" value="2,3-DIHYDRO-2,3-DIHYDROXYBENZOATE DEHYDROGENASE (EC 1.3.1.28)">
+<input type="hidden" id="seq_1_13_combined_pvalue" value="2.02e-25">
+<input type="hidden" id="seq_1_13_type" value="amino-acid">
+<input type="hidden" id="seq_1_13_segs" value="
+1	MDFSGKNVWVTGAGKGIGYATALAFVEAGAKVTGFDQAFTQEQYPFATEVMDVADAAQVAQVCQRLLAETERLDA
+76	LVNAAGILRMGATDQLSKEDWQQTFAVNVGGAFNLFQQTMNQFRRQRGGAIVTVASDAAHTPRIGMSAYGASKAALKSLALSVGLELAGSGVRCNVVSPGSTDTDMQRTLWVSDDAEEQRIRGFGEQFKLGIPLGKIARPQEIANTILFL
+">
+<input type="hidden" id="seq_1_13_hits" value="
+5	motif_1	-	3.6e-17	+++++++++++++++++++++	
+142	motif_2	-	1.8e-15	+++++++++++++  +  ++++ ++++++	
+">
+<input type="hidden" id="seq_1_1_len" value="255">
+<input type="hidden" id="seq_1_1_desc" value="20-BETA-HYDROXYSTEROID DEHYDROGENASE (EC 1.1.1.53)">
+<input type="hidden" id="seq_1_1_combined_pvalue" value="4.68e-25">
+<input type="hidden" id="seq_1_1_type" value="amino-acid">
+<input type="hidden" id="seq_1_1_segs" value="
+1	MNDLSGKTVIITGGARGLGAEAARQAVAAGARVVLADVLDEEGAATARELGDAARYQHLDVTIEEDWQRVVAYAR
+76	EEFGSVDGLVNNAGISTGMFLETESVERFRKVVDINLTGVFIGMKTVIPAMKDAGGGSIVNISSAAGLMGLALTSSYGASKWGVRGLSKLAAVELGTDRIRVNSVHPGMTYTPMTAETGIRQGEGNYPNTPMGRVGNEPGEIAGAVVKLL
+">
+<input type="hidden" id="seq_1_1_hits" value="
+6	motif_1	-	4.4e-13	++++++++++++++ + +++ 	
+30	motif_1	-	4.5e-05	+ +++        + ++++++	
+150	motif_2	-	3.2e-19	+++++++++++++++ +++++++ +++++	
+">
+<input type="hidden" id="seq_1_6_len" value="343">
+<input type="hidden" id="seq_1_6_desc" value="D-BETA-HYDROXYBUTYRATE DEHYDROGENASE PRECURSOR (EC 1.1.1.30) (BDH) (3-HYDROXYBUTYRATE DEHYDROGENASE) (FRAGMENT)">
+<input type="hidden" id="seq_1_6_combined_pvalue" value="7.26e-25">
+<input type="hidden" id="seq_1_6_type" value="amino-acid">
+<input type="hidden" id="seq_1_6_segs" value="
+1	GLRPPPPGRFSRLPGKTLSACDRENGARRPLLLGSTSFIPIGRRTYASAAEPVGSKAVLVTGCDSGFGFSLAKHL
+151	GEVEFTSLETYKQVAEVNLWGTVRMTKSFLPLIRRAKGRVVNISSMLGRMANPARSPYCITKFGVEAFSDCLRYEMYPLGVKVSVVEPGNFIAATSLYNPESIQAIAKKMWEELPEVVRKDYGKKYFDEKIAKMETYCSSGSTDTSPVID
+">
+<input type="hidden" id="seq_1_6_hits" value="
+55	motif_1	-	1.8e-15	++++++++++++ ++++++++	
+206	motif_2	-	6.5e-17	++++ +++++++++ ++++++++ +++++	
+">
+<input type="hidden" id="seq_1_29_len" value="287">
+<input type="hidden" id="seq_1_29_desc" value="no comment">
+<input type="hidden" id="seq_1_29_combined_pvalue" value="1.33e-24">
+<input type="hidden" id="seq_1_29_type" value="amino-acid">
+<input type="hidden" id="seq_1_29_segs" value="
+1	MTAPTVPVALVTGAAKRLGRSIAEGLHAEGYAVCLHYHRSAAEANALSATLNARRPNSAITVQADLSNVATAPVS
+151	PYFLIKAFAHRSRHPSQASRTNYSIINMVDAMTNQPLLGYTIYTMAKGALEGLTRSAALELAPLQIRVNGVGPGL
+">
+<input type="hidden" id="seq_1_29_hits" value="
+6	motif_1	-	1.4e-12	 ++++++++++ +++++++ +	
+191	motif_2	-	2.3e-19	+ +++++++++++++++++++++ +++++	
+">
+<input type="hidden" id="seq_1_9_len" value="327">
+<input type="hidden" id="seq_1_9_desc" value="ESTRADIOL 17 BETA-DEHYDROGENASE (EC 1.1.1.62) (20 ALPHA-HYDROXYSTEROID DEHYDROGENASE) (E2DH) (17-BETA-HSD) (PLACENTAL 17-BETA-HYDROXYSTEROID DEHYDROGENASE)">
+<input type="hidden" id="seq_1_9_combined_pvalue" value="5.97e-24">
+<input type="hidden" id="seq_1_9_type" value="amino-acid">
+<input type="hidden" id="seq_1_9_segs" value="
+1	ARTVVLITGCSSGIGLHLAVRLASDPSQSFKVYATLRDLKTQGRLWEAARALACPPGSLETLQLDVRDSKSVAAA
+151	FNDVYCASKFALEGLCESLAVLLLPFGVHLSLIECGPVHTAFMEKVLGSPEEVLDRTDIHTFHRFYQYLAHSKQV
+">
+<input type="hidden" id="seq_1_9_hits" value="
+2	motif_1	-	1.3e-14	  ++++++++++++++++ ++	
+153	motif_2	-	8.7e-17	 ++++++++++++++++++ + + +++ +	
+">
+<input type="hidden" id="seq_1_2_len" value="253">
+<input type="hidden" id="seq_1_2_desc" value="3-BETA-HYDROXYSTEROID DEHYDROGENASE (EC 1.1.1.51)">
+<input type="hidden" id="seq_1_2_combined_pvalue" value="1.62e-23">
+<input type="hidden" id="seq_1_2_type" value="amino-acid">
+<input type="hidden" id="seq_1_2_segs" value="
+1	TNRLQGKVALVTGGASGVGLEVVKLLLGEGAKVAFSDINEAAGQQLAAELGERSMFVRHDVSSEADWTLVMAAVQ
+76	RRLGTLNVLVNNAGILLPGDMETGRLEDFSRLLKINTESVFIGCQQGIAAMKETGGSIINMASVSSWLPIEQYAGYSASKAAVSALTRAAALSCRKQGYAIRVNSIHPDGIYTPMMQASLPKGVSKEMVLHDPKLNRAGRAYMPERIAQL
+">
+<input type="hidden" id="seq_1_2_hits" value="
+6	motif_1	-	2.5e-15	++++++++++++++++ ++ +	
+149	motif_2	-	2.1e-15	+ +++++++++++++++++ +++++  ++	
+">
+<input type="hidden" id="seq_1_5_len" value="249">
+<input type="hidden" id="seq_1_5_desc" value="7-ALPHA-HYDROXYSTEROID DEHYDROGENASE (EC 1.1.1.159) (BILE ACID 7-DEHYDROXYLASE) (BILE ACID-INDUCIBLE PROTEIN)">
+<input type="hidden" id="seq_1_5_combined_pvalue" value="1.65e-23">
+<input type="hidden" id="seq_1_5_type" value="amino-acid">
+<input type="hidden" id="seq_1_5_segs" value="
+1	MNLVQDKVTIITGGTRGIGFAAAKIFIDNGAKVSIFGETQEEVDTALAQLKELYPEEEVLGFAPDLTSRDAVMAA
+151	SLSGVGYPASKASVIGLTHGLGREIIRKNIRVVGVAPGVVNTDMTNGNPPEIMEGYLKALPMKRMLEPEEIANVY
+">
+<input type="hidden" id="seq_1_5_hits" value="
+6	motif_1	-	1.0e-14	+++ +++++ ++++++ ++ +	
+155	motif_2	-	5.4e-16	  + +++++++++++ + +++ ++++++ 	
+">
+<input type="hidden" id="seq_1_15_len" value="259">
+<input type="hidden" id="seq_1_15_desc" value="SORBITOL-6-PHOSPHATE 2-DEHYDROGENASE (EC 1.1.1.140) (GLUCITOL-6- PHOSPHATE DEHYDROGENASE) (KETOSEPHOSPHATE REDUCTASE)">
+<input type="hidden" id="seq_1_15_combined_pvalue" value="8.98e-23">
+<input type="hidden" id="seq_1_15_type" value="amino-acid">
+<input type="hidden" id="seq_1_15_segs" value="
+1	MNQVAVVIGGGQTLGAFLCHGLAAEGYRVAVVDIQSDKAANVAQEINAEYGESMAYGFGADATSEQSCLALSRGV
+151	NSGYSAAKFGGVGLTQSLALDLAEYGITVHSLMLGNLLKSPMFQSLLPQYATKLGIKPDQVEQYYIDKVPLKRGC
+">
+<input type="hidden" id="seq_1_15_hits" value="
+2	motif_1	-	3.4e-10	++++++ ++++ ++  +++ +	
+152	motif_2	-	8.7e-20	+ +++++++ +++++++++++++++++++	
+">
+<input type="hidden" id="seq_1_25_len" value="310">
+<input type="hidden" id="seq_1_25_desc" value="no comment">
+<input type="hidden" id="seq_1_25_combined_pvalue" value="1.18e-22">
+<input type="hidden" id="seq_1_25_type" value="amino-acid">
+<input type="hidden" id="seq_1_25_segs" value="
+1	MGDVLEQFFILTGLLVCLACLAKCVRFSRCVLLNYYKVLPKSFLRSMGQWAVITGAGDGIGKAYSFELAKRGLNV
+151	QSLIHCNITSVVKMTQLILKHMESRQKGLILNISSGIALFPWPLYSMYSASKAFVCAFSKALQEEYKAKEVIIQV
+">
+<input type="hidden" id="seq_1_25_hits" value="
+48	motif_1	-	7.8e-15	++++++++++ +++++++ ++	
+196	motif_2	-	3.4e-15	++++++++++++++++++ +++ + + ++	
+">
+<input type="hidden" id="seq_1_7_len" value="275">
+<input type="hidden" id="seq_1_7_desc" value="BIPHENYL-CIS-DIOL DEHYDROGENASE (EC 1.3.1.-)">
+<input type="hidden" id="seq_1_7_combined_pvalue" value="1.63e-20">
+<input type="hidden" id="seq_1_7_type" value="amino-acid">
+<input type="hidden" id="seq_1_7_segs" value="
+1	MKLKGEAVLITGGASGLGRALVDRFVAEAKVAVLDKSAERLAELETDLGDNVLGIVGDVRSLEDQKQAASRCVAR
+151	PLYTAAKQAIVGLVRELAFELAPYVRVNGVGPGGMNSDMRGPSSLGMGSKAISTVPLADMLKSVLPIGRMPEVEE
+">
+<input type="hidden" id="seq_1_7_hits" value="
+5	motif_1	-	2.1e-14	+ ++++++++++++++++ ++	
+151	motif_2	-	2.5e-13	+ ++++++++++++++++++++++  +  	
+">
+<input type="hidden" id="seq_1_18_len" value="305">
+<input type="hidden" id="seq_1_18_desc" value="C ALPHA-DEHYDROGENASE (EC -.-.-.-)">
+<input type="hidden" id="seq_1_18_combined_pvalue" value="2.04e-20">
+<input type="hidden" id="seq_1_18_type" value="amino-acid">
+<input type="hidden" id="seq_1_18_segs" value="
+1	MKDFQDQVAFITGGASGAGFGQAKVFGQAGAKIVVADVRAEAVEKAVAELEGLGITAHGIVLDIMDREAYARAAD
+151	SALAGPYSAAKAASINLMEGYRQGLEKYGIGVSVCTPANIKSNIAEASRLRPAKYGTSGYVENEESIASLHSIHQ
+">
+<input type="hidden" id="seq_1_18_hits" value="
+6	motif_1	-	1.4e-12	++++ +++++++ ++ +++ +	
+155	motif_2	-	3.7e-15	 ++++++++ +++++ +++ + ++++ ++	
+">
+<input type="hidden" id="seq_1_32_len" value="346">
+<input type="hidden" id="seq_1_32_desc" value="no comment">
+<input type="hidden" id="seq_1_32_combined_pvalue" value="2.09e-20">
+<input type="hidden" id="seq_1_32_type" value="amino-acid">
+<input type="hidden" id="seq_1_32_segs" value="
+1	MQTEGKKNILVTGGAGFIGSAVVRHIIQNTRDSVVNLDKLTYAGNLESLTDIADNPRYAFEQVDICDRAELDRVF
+151	DLFTETTPYAPSSPYSASKAAADHLVRAWQRTYRLPSIVSNCSNNYGPRQFPEKLIPLMILNALSGKPLPVYGDG
+">
+<input type="hidden" id="seq_1_32_hits" value="
+6	motif_1	-	1.2e-12	+++++++++++ ++ + +++ 	
+163	motif_2	-	3.4e-15	+++++++++ +++++++++ ++   ++ +	
+">
+<input type="hidden" id="seq_1_26_len" value="276">
+<input type="hidden" id="seq_1_26_desc" value="no comment">
+<input type="hidden" id="seq_1_26_combined_pvalue" value="4.62e-19">
+<input type="hidden" id="seq_1_26_type" value="amino-acid">
+<input type="hidden" id="seq_1_26_segs" value="
+1	SSGIHVALVTGGNKGIGLAIVRDLCRLFSGDVVLTARDVTRGQAAVQQLQAEGLSPRFHQLDIDDLQSIRALRDF
+151	PELQQKFRSETITEEELVGLMNKFVEDTKKGVHQKEGWPSSAYGVTKIGVTVLSRIHARKLSEQRKGDKILLNAC
+">
+<input type="hidden" id="seq_1_26_hits" value="
+4	motif_1	-	3.4e-15	 ++++++++++++++++++++	
+191	motif_2	-	4.5e-11	++++ ++ +++ +++ +++ +++++    	
+">
+<input type="hidden" id="seq_1_3_len" value="255">
+<input type="hidden" id="seq_1_3_desc" value="ALCOHOL DEHYDROGENASE (EC 1.1.1.1)">
+<input type="hidden" id="seq_1_3_combined_pvalue" value="4.42e-16">
+<input type="hidden" id="seq_1_3_type" value="amino-acid">
+<input type="hidden" id="seq_1_3_segs" value="
+1	SFTLTNKNVIFVAGLGGIGLDTSKELLKRDLKNLVILDRIENPAAIAELKAINPKVTVTFYPYDVTVPIAETTKL
+76	LKTIFAQLKTVDVLINGAGILDDHQIERTIAVNYTGLVNTTTAILDFWDKRKGGPGGIICNIGSVTGFNAIYQVPVYSGTKAAVVNFTSSLAKLAPITGVTAYTVNPGITRTTLVHKFNSWLDVEPQVAEKLLAHPTQPSLACAENFVKA
+">
+<input type="hidden" id="seq_1_3_hits" value="
+6	motif_1	-	1.8e-10	+++++   + +++++ +++++	
+150	motif_2	-	1.1e-12	++++ ++++++++++++++    ++++ +	
+">
+<input type="hidden" id="seq_1_27_len" value="262">
+<input type="hidden" id="seq_1_27_desc" value="no comment">
+<input type="hidden" id="seq_1_27_combined_pvalue" value="1.59e-15">
+<input type="hidden" id="seq_1_27_type" value="amino-acid">
+<input type="hidden" id="seq_1_27_segs" value="
+1	MGFLSGKRILVTGVASKLSIAYGIAQAMHREGAELAFTYQNDKLKGRVEEFAAQLGSDIVLQCDVAEDASIDTMF
+151	RAIPNYNVMGLAKASLEANVRYMANAMGPEGVRVNAISAGPIRTLAASGIKDFRKMLAHCEAVTPIRRTVTIEDV
+">
+<input type="hidden" id="seq_1_27_hits" value="
+6	motif_1	-	6.4e-10	++++++++ ++ +  ++ ++ 	
+157	motif_2	-	1.1e-12	 +++ +++++++ +++++  +++++++++	
+">
+<input type="hidden" id="seq_1_33_len" value="258">
+<input type="hidden" id="seq_1_33_desc" value="no comment">
+<input type="hidden" id="seq_1_33_combined_pvalue" value="2.17e-14">
+<input type="hidden" id="seq_1_33_type" value="amino-acid">
+<input type="hidden" id="seq_1_33_segs" value="
+151	GFRGLPATRYSASKAFLSTFMESLRVDLRGTGVRVTCIYPGFVKSELTATNNFPMPFLMETHDAVELMGKGIVRG
+">
+<input type="hidden" id="seq_1_33_hits" value="
+158	motif_2	-	8.3e-18	+ +++++++++ ++++++++++ ++++++	
+">
+<input type="hidden" id="seq_1_31_len" value="399">
+<input type="hidden" id="seq_1_31_desc" value="no comment">
+<input type="hidden" id="seq_1_31_combined_pvalue" value="2.49e-12">
+<input type="hidden" id="seq_1_31_type" value="amino-acid">
+<input type="hidden" id="seq_1_31_segs" value="
+76	SSSEGKKTLRKGNVVITGASSGLGLATAKALAESGKWHVIMACRDYLKAARAAKSAGLAKENYTIMHLDLASLDS
+">
+<input type="hidden" id="seq_1_31_hits" value="
+86	motif_1	-	2.8e-15	+ +++++++++++++++++++	
+">
+<input type="hidden" id="seq_1_30_len" value="476">
+<input type="hidden" id="seq_1_30_desc" value="no comment">
+<input type="hidden" id="seq_1_30_combined_pvalue" value="8.12e-11">
+<input type="hidden" id="seq_1_30_type" value="amino-acid">
+<input type="hidden" id="seq_1_30_segs" value="
+226	GRVLHFRRGFSHWTVEIHQSPVILVSGSNRGVGKAIAEDLIAHGYRLSLGARKVKDLEVAFGPQDEWLHYARFDA
+376	NINSMSGQRVLNPLVGYNMTKHALGGLTKTTQHVGWDRRCAAIDICLGFVATDMSAWTDLIASKDMIQPEDIAKL
+">
+<input type="hidden" id="seq_1_30_hits" value="
+245	motif_1	-	6.2e-13	++++++ ++++++++++++++	
+390	motif_2	-	2.3e-05	  + +++ ++ +++++ ++     +    	
+">
+<input type="hidden" id="seq_1_23_len" value="166">
+<input type="hidden" id="seq_1_23_desc" value="no comment">
+<input type="hidden" id="seq_1_23_combined_pvalue" value="1.37e-09">
+<input type="hidden" id="seq_1_23_type" value="amino-acid">
+<input type="hidden" id="seq_1_23_segs" value="
+76	SLAANTDGGAYAYRMSKAALNMAVRSMSTDLRPEGFVTVLLHPGWVQTDMGGPDATLPAPDSVRGMLRVIDGLNP
+">
+<input type="hidden" id="seq_1_23_hits" value="
+86	motif_2	-	5.8e-13	+++ ++++++ + ++++  ++++++ +  	
+">
+</form>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><span class="sequence" id="ruler" style="visibility:hidden; white-space:nowrap;">ACGTN</span>
+</body>
+</html>

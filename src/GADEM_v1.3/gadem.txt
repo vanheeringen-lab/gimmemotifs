@@ -1,0 +1,226 @@
+Cycle[  1] motif[1]:
+   spaced dyad:			tccnngag
+   motif consensus:		nsCACGTGn
+				m=ac r=ag w=at s=cg y=ct k=gt b=cgt d=agt h=act v=acg
+   motif length(w):		9
+   maxpfactor:			0.4000
+   number of sites:		198
+   ln(E-value):			   -71.23
+   pwm p-value cutoff:		2.000000e-04
+
+   Seqs with 0,1,2,>2 sites:    415,172,13,0
+   185(30.83%) of 600 seqs have >=1 site
+
+Individual sites: [10bp flanking--MOTIF--10bp flanking] [strand] [seq] [pos] [p-value]
+>chr1:75176784-75176984   	gtgtagcaggTCCACGTGCgtcccttccc	-	25	46	3.928274e-05
+>chr1:88406059-88406259   	gcaggtggcaACCACGTGCtctcccagct	-	29	129	3.928274e-05
+>chr10:127659060-127659260	gttcaccatcTCCACGTGGctcccagcca	+	42	60	3.928274e-05
+>chr10:68790599-68790799  	agacctggccACCACGTGTttaagctgtc	+	56	78	3.928274e-05
+>chr10:79630991-79631191  	cccttgtggtTCCACGTGGggaacaaaaa	+	62	146	3.928274e-05
+>chr10:94877796-94877996  	cctgggatttTCCACGTGTctgtttaccc	-	72	115	3.928274e-05
+>chr11:100801108-100801308	ggcccttggcACCACGTGGgggcgagttt	+	73	95	3.928274e-05
+>chr11:100801108-100801308	tgagctccttACCACGTGGgaatcagcca	+	73	125	3.928274e-05
+>chr11:116713757-116713957	aggggctggcTCCACGTGCtccgcgtacc	+	80	63	3.928274e-05
+>chr11:60624555-60624755  	cagcctccccACCACGTGAcacaccacgt	+	98	146	3.928274e-05
+>chr11:74644848-74645048  	cgggccgctcACCACGTGCtctctgttgt	-	109	57	3.928274e-05
+>chr11:90279457-90279657  	cacgtgcgatTCCACGTGAgcctcccgcc	-	121	56	3.928274e-05
+>chr11:95867254-95867454  	gggggctgtcACCACGTGGcttcgccttt	-	122	95	3.928274e-05
+>chr11:97491120-97491320  	cagctccgggTCCACGTGTgtgtgtctgt	-	124	73	3.928274e-05
+>chr12:114347120-114347320	agtcatcagtACCACGTGCtagccacggc	-	128	123	3.928274e-05
+>chr12:114347120-114347320	aaggcccaccTCCACGTGTgtccccagtc	-	128	148	3.928274e-05
+>chr13:46822579-46822779  	tctggtccccTCCACGTGGggccgccggg	+	145	64	3.928274e-05
+>chr13:51746891-51747091  	gccccagtctTCCACGTGCggctccggag	+	147	95	3.928274e-05
+>chr15:34372642-34372842  	gacccagctcTCCACGTGAaccggcttcc	+	180	97	3.928274e-05
+>chr15:75899688-75899888  	atccaccgacTCCACGTGCcggttacaac	+	185	86	3.928274e-05
+>chr15:79678755-79678955  	ccacatgcttTCCACGTGGccctgtgtgg	+	191	96	3.928274e-05
+>chr15:84753386-84753586  	   aggcccgTCCACGTGAgaatcacgtt	+	194	8	3.928274e-05
+>chr15:9024138-9024338    	tagcagggtgACCACGTGTatggctccgg	+	197	64	3.928274e-05
+>chr15:97299736-97299936  	ttgagctccaTCCACGTGGtgtagcacgc	+	200	169	3.928274e-05
+>chr16:32609291-32609491  	tccagccgccACCACGTGCtcccggcgga	-	208	112	3.928274e-05
+>chr16:37651558-37651758  	tcagtccaccACCACGTGTgttcctatca	+	210	91	3.928274e-05
+>chr16:57607156-57607356  	tgaaaacacaTCCACGTGCtcgggtctcc	-	215	118	3.928274e-05
+>chr17:29535131-29535331  	gcctcttcgaTCCACGTGGctgcagcgtt	+	230	155	3.928274e-05
+>chr17:48092562-48092762  	aaacagcaggACCACGTGAttgctatcag	-	246	89	3.928274e-05
+>chr17:66729278-66729478  	acaggcagggACCACGTGCcaagcactcc	-	250	155	3.928274e-05
+>chr17:88840929-88841129  	gggcagggagTCCACGTGCtcggtgctcg	+	257	104	3.928274e-05
+>chr18:67938104-67938304  	cttccccctcTCCACGTGGccatggccgg	-	266	112	3.928274e-05
+>chr19:29175835-29176035  	cctgttctaaACCACGTGGacgcgtcggg	+	270	77	3.928274e-05
+>chr19:4201361-4201561    	cttgcagcagACCACGTGAgcaagcccca	-	272	95	3.928274e-05
+>chr19:46131212-46131412  	tcctgtggcgTCCACGTGTcaccgcccgg	-	275	87	3.928274e-05
+>chr2:105456550-105456750 	cttccattccACCACGTGGcattacctcc	-	286	105	3.928274e-05
+>chr2:129024291-129024491 	gaggagctggTCCACGTGGgactggctgg	-	297	50	3.928274e-05
+>chr2:13192569-13192769   	tttgccatcaTCCACGTGCtttgttgtcc	-	299	109	3.928274e-05
+>chr2:150137142-150137342 	tttgttgtggTCCACGTGTcgctgctggg	+	301	92	3.928274e-05
+>chr2:166890649-166890849 	gtgagtggttTCCACGTGTccctcttcca	+	311	79	3.928274e-05
+>chr2:168416060-168416260 	tgggccacctACCACGTGCcacccagcat	+	313	111	3.928274e-05
+>chr2:27282666-27282866   	acctccagccTCCACGTGCacctagggaa	-	321	85	3.928274e-05
+>chr2:30092917-30093117   	cctactcccgTCCACGTGCctgcgccaag	-	322	183	3.928274e-05
+>chr3:107949114-107949314 	tccagagcacACCACGTGCtggaagtccc	-	335	177	3.928274e-05
+>chr3:135169344-135169544 	gcccacttcgTCCACGTGGgccgatggcc	+	339	86	3.928274e-05
+>chr3:98142610-98142810   	cccccaaagtTCCACGTGCtcgcttaggg	-	356	132	3.928274e-05
+>chr4:101181529-101181729 	gcgaccctgaACCACGTGTgtg       	-	358	12	3.928274e-05
+>chr4:117726648-117726848 	attcacacacACCACGTGCtctggtgaag	-	361	121	3.928274e-05
+>chr4:132088626-132088826 	ttctagatccTCCACGTGTctccagttct	-	366	90	3.928274e-05
+>chr4:133637646-133637846 	acgcaagccaTCCACGTGCtcagcggcgt	+	369	119	3.928274e-05
+>chr4:48504329-48504529   	tagcagggtgACCACGTGTatggctccgg	+	393	74	3.928274e-05
+>chr5:104475645-104475845 	gtcaggggcgACCACGTGCttccaggaga	-	400	106	3.928274e-05
+>chr5:108430228-108430428 	cattctctccTCCACGTGTatggtatttg	+	403	24	3.928274e-05
+>chr5:111209505-111209705 	cccgaagctgACCACGTGCacgaaggcgg	+	405	100	3.928274e-05
+>chr5:114580772-114580972 	cccaagacctTCCACGTGGgcttttcgcg	-	408	137	3.928274e-05
+>chr5:121130899-121131099 	acgcacgtacACCACGTGCctctccactt	-	414	68	3.928274e-05
+>chr5:134659730-134659930 	cctctccgctTCCACGTGCacgcacaacc	+	424	15	3.928274e-05
+>chr5:137774815-137775015 	gccaaaccgtTCCACGTGCgtctcgggtg	+	427	94	3.928274e-05
+>chr5:25177259-25177459   	agtactcatgACCACGTGGgcacttgggg	-	441	141	3.928274e-05
+>chr5:31357159-31357359   	ccggagttggTCCACGTGGctcgctgcgc	-	443	78	3.928274e-05
+>chr5:74590949-74591149   	gggtctcaggTCCACGTGGggggaatctg	-	451	53	3.928274e-05
+>chr6:125081840-125082040 	caaggcccgcTCCACGTGCactgggggga	-	464	119	3.928274e-05
+>chr6:71583456-71583656   	catgatcagtACCACGTGCgcctgcgcct	-	478	118	3.928274e-05
+>chr7:133838310-133838510 	actcccagccACCACGTGCtggcccacaa	+	497	96	3.928274e-05
+>chr7:135153613-135153813 	ctccttggccTCCACGTGCgcctccagga	-	501	115	3.928274e-05
+>chr7:140197538-140197738 	tgctgctgtgACCACGTGAggtcgagctg	+	502	162	3.928274e-05
+>chr7:16985524-16985724   	tctgcccttcTCCACGTGAcgctcctccg	+	506	49	3.928274e-05
+>chr7:27949622-27949822   	gattactgcgTCCACGTGAgccatgaggg	+	510	78	3.928274e-05
+>chr7:29947820-29948020   	ggagtcgctgTCCACGTGGgactgcggga	+	513	182	3.928274e-05
+>chr7:30875097-30875297   	tgatgttgtgACCACGTGCagcacagtgc	-	515	95	3.928274e-05
+>chr7:3656130-3656330     	tctcctcccaACCACGTGCaggagagtat	+	518	107	3.928274e-05
+>chr7:5014070-5014270     	ctccgccgagACCACGTGGgcgcgggcta	-	522	87	3.928274e-05
+>chr7:57034014-57034214   	ccccccccggACCACGTGAgcagcccctt	-	525	175	3.928274e-05
+>chr8:119217076-119217276 	acctagggccTCCACGTGCacatgcaccc	+	537	85	3.928274e-05
+>chr8:37657057-37657257   	agaacaatgaACCACGTGCattcgcctga	+	549	86	3.928274e-05
+>chr8:77617425-77617625   	ctgggcggccACCACGTGAcccgcgtact	+	561	47	3.928274e-05
+>chr1:123464387-123464587 	ccgagacagaTGCACGTGCgcaattgcaa	+	2	102	7.856548e-05
+>chr1:137528215-137528415 	taacacagggAGCACGTGGgccagatttc	-	6	90	7.856548e-05
+>chr1:172798758-172798958 	ggcggtgcatTGCACGTGTgtatgcgggt	-	10	183	7.856548e-05
+>chr1:181476262-181476462 	gtgaaatgtgTGCACGTGTgatggggtgc	-	11	76	7.856548e-05
+>chr1:88255243-88255443   	ggctccgcagAGCACGTGGcgggccgcgc	+	26	136	7.856548e-05
+>chr1:88255243-88255443   	cgcgcaccagAGCACGTGCgcggggaggc	+	26	160	7.856548e-05
+>chr10:30320098-30320298  	cggcgccaggAGCACGTGCagaggggtga	+	47	113	7.856548e-05
+>chr10:61912862-61913062  	caaggagagaAGCACGTGTattgacacac	-	53	100	7.856548e-05
+>chr10:79145413-79145613  	gggtaaggtcAGCACGTGCccaa      	-	61	13	7.856548e-05
+>chr11:51464453-51464653  	gcagagctgcTGCACGTGAgcgagcgaac	-	91	81	7.856548e-05
+>chr11:54768324-54768524  	atggaccgggAGCACGTGTcaagtaaaat	-	93	99	7.856548e-05
+>chr11:60230558-60230758  	ggacagagaaAGCACGTGGcgcagagcgc	-	97	138	7.856548e-05
+>chr11:60624555-60624755  	ctaacagcccAGCACGTGCtccgggaacc	+	98	118	7.856548e-05
+>chr11:6100025-6100225    	ggcatcctgcAGCACGTGGgcaatgtcca	-	99	60	7.856548e-05
+>chr11:70796371-70796571  	tccttccctcTGCACGTGTccgccccgcg	-	108	100	7.856548e-05
+>chr11:97488178-97488378  	agctctcaaaAGCACGTGCtcgcagcata	+	123	109	7.856548e-05
+>chr13:108948631-108948831	gaggtgagggAGCACGTGGgcacggacca	-	140	71	7.856548e-05
+>chr13:99075362-99075562  	tggaattgaaAGCACGTGCggctatgcct	-	153	149	7.856548e-05
+>chr14:19071043-19071243  	aaacacaccgTGCACGTGGccagtgcggc	+	155	142	7.856548e-05
+>chr14:31362722-31362922  	gagaaacctgAGCACGTGTgggctccagc	+	159	112	7.856548e-05
+>chr14:32308489-32308689  	agtctgggctTGCACGTGGcggccaggga	-	161	120	7.856548e-05
+>chr14:55495789-55495989  	         cTGCACGTGGcggggcaccc	+	168	2	7.856548e-05
+>chr15:38008739-38008939  	tgttccagagAGCACGTGCtcgggaagcc	+	182	76	7.856548e-05
+>chr15:74350312-74350512  	tgccaatgaaTGCACGTGCttatggaaca	+	184	108	7.856548e-05
+>chr16:4719358-4719558    	tttgcctaagTGCACGTGGcgttgtgtct	+	213	83	7.856548e-05
+>chr17:25411278-25411478  	aaaggcctccAGCACGTGCcaaaaaaaaa	-	224	41	7.856548e-05
+>chr17:30712396-30712596  	tgttcagagaAGCACGTGGgcatgcacgt	+	232	98	7.856548e-05
+>chr17:30712396-30712596  	cacgtgggcaTGCACGTGAggctggaagg	+	232	110	7.856548e-05
+>chr17:53700874-53701074  	cgatgagcacAGCACGTGGccaggagaaa	-	247	99	7.856548e-05
+>chr17:71104339-71104539  	cggaacaacaTGCACGTGTtcggaactcc	-	252	103	7.856548e-05
+>chr18:14864602-14864802  	ggcgggcgttAGCACGTGGgggcccgtgg	+	259	85	7.856548e-05
+>chr19:32830579-32830779  	gccacatccaAGCACGTGCccccgccacc	-	271	130	7.856548e-05
+>chr2:168032956-168033156 	gctgactctgAGCACGTGGgccttgggca	-	312	127	7.856548e-05
+>chr2:172196308-172196508 	gcatgcccttTGCACGTGCgcactgggtg	+	315	119	7.856548e-05
+>chr2:17947734-17947934   	gcttgcctgaAGCACGTGGcctccggtga	+	317	86	7.856548e-05
+>chr3:108186955-108187155 	aagcaggatcAGCACGTGTccctgaaact	-	336	87	7.856548e-05
+>chr3:145239111-145239311 	gctgctttgcTGCACGTGTggcgctgtcg	+	341	116	7.856548e-05
+>chr3:21975852-21976052   	ccgggggggcAGCACGTGAgcgcagccgc	-	343	100	7.856548e-05
+>chr3:83995348-83995548   	acctaagaaaTGCACGTGTgggtgagagg	-	349	57	7.856548e-05
+>chr4:126682424-126682624 	gcaggcagccAGCACGTGGctcactcgct	+	364	95	7.856548e-05
+>chr4:140827237-140827437 	agaagggatgAGCACGTGTgcagcagcca	-	375	123	7.856548e-05
+>chr4:141626838-141627038 	ctggagggagAGCACGTGCgctcctcctt	+	376	93	7.856548e-05
+>chr4:148000053-148000253 	aatcgggtttAGCACGTGCtttaacg   	+	378	185	7.856548e-05
+>chr4:149424020-149424220 	tcaggcaagcAGCACGTGTtgccgagggc	+	380	108	7.856548e-05
+>chr4:149612869-149613069 	catgctggctAGCACGTGGgaggtcctgg	-	381	117	7.856548e-05
+>chr4:155186207-155186407 	tgtaacgtcgTGCACGTGGgactgtggga	+	385	119	7.856548e-05
+>chr4:155265723-155265923 	gcggggcgctTGCACGTGGcccgcggtcg	+	386	114	7.856548e-05
+>chr4:3762649-3762849     	gcgcttataaAGCACGTGCgcatccgggt	+	389	128	7.856548e-05
+>chr5:134659730-134659930 	ctgcgtggcgTGCACGTGGcttcgcgcct	-	424	102	7.856548e-05
+>chr5:143585127-143585327 	     ttggcAGCACGTGTgtttggggag	+	433	6	7.856548e-05
+>chr6:100237548-100237748 	cccggcggggAGCACGTGGccgtgcccgc	+	455	163	7.856548e-05
+>chr6:56786926-56787126   	acggaggtaaAGCACGTGGgtttgcttga	-	476	188	7.856548e-05
+>chr7:112884829-112885029 	tgacgcgcgcTGCACGTGGgccagagcgt	-	485	132	7.856548e-05
+>chr7:130394919-130395119 	tccagctctgAGCACGTGGcttccagtag	-	493	113	7.856548e-05
+>chr7:17200839-17201039   	cccgggaaagAGCACGTGCcccctgtccc	-	507	79	7.856548e-05
+>chr7:57034014-57034214   	agcgccagcgAGCACGTGGcgggcccgag	+	525	108	7.856548e-05
+>chr8:119217076-119217276 	ttgctacgatTGCACGTGGgtgcatgtgc	-	537	110	7.856548e-05
+>chr9:106357766-106357966 	ccggggactgAGCACGTGGgcagagttag	-	578	137	7.856548e-05
+>chr9:40601763-40601963   	gaggggcctgTGCACGTGTgctcatggag	+	583	105	7.856548e-05
+>chr9:96264190-96264390   	gggaaccggcAGCACGTGTgccccgctcg	+	590	158	7.856548e-05
+>chr10:121176871-121177071	tgcgagcggaGCCACGTGGgtggagctgg	+	38	130	1.108396e-04
+>chr10:128346677-128346877	ccaggcagcgGCCACGTGGccttgtcctg	+	46	95	1.108396e-04
+>chr10:75298193-75298393  	cacgagcagaGCCACGTGCggtgcagggc	-	57	111	1.108396e-04
+>chr10:79727413-79727613  	gagggagacaGCCACGTGCgtgcgtacgc	-	63	108	1.108396e-04
+>chr10:80847109-80847309  	catcttgatgGCCACGTGAccatgctggg	-	68	79	1.108396e-04
+>chr11:62271137-62271337  	gtgcgtcccaGCCACGTGGgctgaggttt	-	101	97	1.108396e-04
+>chr11:78363893-78364093  	aatcaggacgGCCACGTGGggacccctga	+	114	111	1.108396e-04
+>chr11:82594498-82594698  	ccctccggtcGCCACGTGGgtcgctgttc	-	117	99	1.108396e-04
+>chr14:70842935-70843135  	ggggcgggagGCCACGTGGgtgcggttcc	-	173	67	1.108396e-04
+>chr14:70842935-70843135  	gggaagcctcGCCACGTGGgacggggagg	-	173	129	1.108396e-04
+>chr18:21120144-21120344  	acccgctgtgGCCACGTGTgagtgtcggg	+	260	151	1.108396e-04
+>chr2:11423189-11423389   	agtgcaggcaGCCACGTGGggggctaggt	-	287	49	1.108396e-04
+>chr2:131030487-131030687 	tctaagttcaGCCACGTGAgctccatttc	-	298	61	1.108396e-04
+>chr2:56975777-56975977   	ctgcttgcctGCCACGTGCgaggggctgc	+	327	93	1.108396e-04
+>chr3:30691930-30692130   	ggaggccggcGCCACGTGAgtcagagcgc	-	344	138	1.108396e-04
+>chr3:53267812-53268012   	   ccgcgggGCCACGTGTcccggatcac	+	347	8	1.108396e-04
+>chr4:40918894-40919094   	cgggatatatGCCACGTGTttgctgatgc	-	390	128	1.108396e-04
+>chr5:102452527-102452727 	gaagctaggaGCCACGTGGgcgagcaagc	-	399	114	1.108396e-04
+>chr5:115584192-115584392 	gaacgcaacaGCCACGTGTttgacggaag	+	410	76	1.108396e-04
+>chr5:137746988-137747188 	tgagtggcttGCCACGTGTgctaagagga	-	425	123	1.108396e-04
+>chr6:117829648-117829848 	caggagtgaaGCCACGTGGcgccggagag	+	458	83	1.108396e-04
+>chr6:30643474-30643674   	cggaaaaggcGCCACGTGGgcagggacga	-	469	107	1.108396e-04
+>chr6:49164767-49164967   	ttttgaatgaGCCACGTGTtcaaactaca	+	472	174	1.108396e-04
+>chr6:57641883-57642083   	catgctgagcGCCACGTGCcgcaggctcg	-	477	107	1.108396e-04
+>chr7:28070805-28071005   	agttacagccGCCACGTGGgtggtaggtt	-	511	99	1.108396e-04
+>chr7:28112569-28112769   	ccttcaatcaGCCACGTGTtccaccagcc	-	512	125	1.108396e-04
+>chr7:38870392-38870592   	cttgctccaaGCCACGTGGctggaaagtg	+	519	120	1.108396e-04
+>chr7:52962988-52963188   	acattccctcGCCACGTGAgtccgccttc	+	524	92	1.108396e-04
+>chr8:108460765-108460965 	aggtaccaagGCCACGTGGgggcatcact	-	534	108	1.108396e-04
+>chr9:107490371-107490571 	gctggcattgGCCACGTGTgcgcctcact	+	579	70	1.108396e-04
+>chr9:61762071-61762271   	ccccgggccgGCCACGTGTttgtgcggcg	-	585	67	1.108396e-04
+>chr10:127963013-127963213	agctgctcctCCCACGTGGgattgga   	+	44	185	1.431138e-04
+>chr11:116704117-116704317	cggaaggaggCCCACGTGCgtgcgggcga	+	79	87	1.431138e-04
+>chr11:83112062-83112262  	ttccccagacCCCACGTGCcacgtcccca	-	118	121	1.431138e-04
+>chr11:97488178-97488378  	tgcaagtgttCCCACGTGAcactgggaag	-	123	47	1.431138e-04
+>chr15:101930590-101930790	gggctgtcctCCCACGTGCgatcccactc	+	177	32	1.431138e-04
+>chr16:78576515-78576715  	tgtcccagtcCCCACGTGCgtcttgccgc	-	216	158	1.431138e-04
+>chr17:45700860-45701060  	gcagccatggCCCACGTGAccgagacccc	+	242	181	1.431138e-04
+>chr2:75446636-75446836   	  cccaccggCCCACGTGTgaatggcgtt	-	330	192	1.431138e-04
+>chr5:23953646-23953846   	tccctgtgaaCCCACGTGCcgggctggac	+	439	92	1.431138e-04
+>chr5:24348170-24348370   	caacaacacaCCCACGTGAccgcgcgcgg	+	440	98	1.431138e-04
+>chr5:44173427-44173627   	ggtgccgcggCCCACGTGAccggcgcgcg	+	448	43	1.431138e-04
+>chr6:128235912-128236112 	tcccacctctCCCACGTGAggctccgccc	-	466	114	1.431138e-04
+>chr7:128061201-128061401 	ccccgctcccCCCACGTGTccggcggagt	+	489	94	1.431138e-04
+>chr7:130113219-130113419 	caccggcccgCCCACGTGAcccggcgctt	-	491	99	1.431138e-04
+>chr7:13388930-13389130   	gggctcaactCCCACGTGGgacgctagag	+	498	29	1.431138e-04
+>chr7:91032055-91032255   	gcccctgaagCCCACGTGCgctgctgagc	-	529	162	1.431138e-04
+>chr8:74795051-74795251   	ctcagtacacCCCACGTGCctggctgccc	+	560	152	1.431138e-04
+>chr9:63605930-63606130   	gccaagcgcgCCCACGTGG          	+	587	192	1.431138e-04
+>chr11:6428551-6428751    	      cggtGGCACGTGTctccccaggg	+	103	5	1.753879e-04
+>chr11:90279457-90279657  	cggacgcccgGGCACGTGCgattccacgt	-	121	68	1.753879e-04
+>chr15:74350312-74350512  	tgtgtttgtgGGCACGTGTacatacgtgc	+	184	82	1.753879e-04
+>chr17:46889020-46889220  	gttacccagaGGCACGTGCgcagtcccgg	-	245	152	1.753879e-04
+>chr2:102240646-102240846 	gcctcccgacGGCACGTGTgacgagtgcg	-	284	150	1.753879e-04
+>chr2:11457029-11457229   	agcacagacgGGCACGTGAactcagcgtg	+	288	141	1.753879e-04
+>chr2:156689203-156689403 	ttccgcacccGGCACGTGCgcagtcttca	-	307	147	1.753879e-04
+>chr4:34830131-34830331   	cagcgcaccgGGCACGTGAccccgccgaa	-	388	113	1.753879e-04
+>chr5:139848171-139848371 	ccttggttcaGGCACGTGTcccggcagag	-	429	107	1.753879e-04
+>chr6:125114816-125115016 	cttccctcctGGCACGTGActcctcaggg	+	465	161	1.753879e-04
+>chr8:124793207-124793407 	tgaagcgcaaGGCACGTGCctcggtcacc	+	542	77	1.753879e-04
+>chr8:73430094-73430294   	gccgccgctaGGCACGTGCgcaaccctat	-	557	100	1.753879e-04
+>chr9:107490371-107490571 	tgccagctggGGCACGTGCgagccttagc	-	579	56	1.753879e-04
+
+background set[ 1] Seqs with 0,1,2,>2 sites: 573 26 1 0
+background set[ 2] Seqs with 0,1,2,>2 sites: 573 27 0 0
+background set[ 3] Seqs with 0,1,2,>2 sites: 571 29 0 0
+background set[ 4] Seqs with 0,1,2,>2 sites: 570 28 1 1
+background set[ 5] Seqs with 0,1,2,>2 sites: 572 28 0 0
+background set[ 6] Seqs with 0,1,2,>2 sites: 577 22 1 0
+background set[ 7] Seqs with 0,1,2,>2 sites: 559 40 1 0
+background set[ 8] Seqs with 0,1,2,>2 sites: 567 33 0 0
+background set[ 9] Seqs with 0,1,2,>2 sites: 565 34 1 0
+background set[10] Seqs with 0,1,2,>2 sites: 564 35 1 0
+average number of sites in background sequences: 31, fold enrichment: 6.387.
+average number of background sequences that contain at least one site: 30, fold enrichment: 5.139.
+-------------------------------------------------------

@@ -1,0 +1,43 @@
+
+                       INSTALL
+
+***************************************************************************
+Quick Install of the MEME Suite on Linux, OS-X and Cygwin systems
+***************************************************************************
+1) Type the following commands and then follow the instructions
+   printed by the "configure" command.
+
+    $ tar zxf meme_VERSION.tar.gz
+    $ cd meme_VERSION 
+    $ ./configure --prefix=$home/meme --with-url="http://meme.nbcr.net/meme"
+
+2) Edit your shell configuration file to add
+    "$home/meme/bin"
+  to your shell's path.
+
+Notes: 
+ a) This installs only the command-line versions of programs. Refer
+    to the complete installation guide (doc/meme-install.html) if
+    you wish to install your own MEME Suite Web Service as well.
+ b) This will overwrite any previously existing "$home/meme" directory
+    you may have.  You can set the directory to something different in
+    the "configure" command using the "--prefix" option.
+ c) The HTML output of programs will contain buttons that send your
+    data to "http://meme.nbcr.net" for additional processing when
+    clicked.  See the complete installation guide (doc/meme-install.html)
+    if you do not want this feature.
+***************************************************************************
+
+***************************************************************************
+Full Installation Documentation
+***************************************************************************
+In prior versions, installation was driven by the interactive 
+install script.  Starting with version 3.5.0 it is done using 
+GNU autoconf and automake tools. Instructions for the versions
+prior to 3.5.0 are included in the corresponding INSTALL file 
+for that version.
+
+For versions 3.5.0 and above please see the "doc/meme-install.html" 
+file for the installation instructions. This file is also available online 
+at http://meme.nbcr.net/doc/meme-install.html and it corresponds to 
+the latest available version of MEME.

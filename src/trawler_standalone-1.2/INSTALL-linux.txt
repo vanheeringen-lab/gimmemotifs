@@ -1,0 +1,162 @@
+Trawler standalone 1.2
+======================================
+
+======================================
+           Quick Start
+======================================
+
+The easiest way to find out if you have all the required dependencies installed,
+to run Trawler_standalone, is to execute the pre-install_trawler.sh script
+provided with the distribution.
+Use the following command in a terminal:
+
+> ./pre-install_trawler.sh
+
+a. If you have the required dependencies already installed, you can now try
+   your Trawler_standalone installation by running the examples (see section
+   Running the examples).
+
+b. If you are missing some dependencies, please refer to the 'Installation' section.
+
+
+======================================
+      Installation instructions
+======================================
+
+1/ Dependencies installation
+----------------------------
+
+1) Perl distribution
+
+Almost every today's UNIX/Linux system contains a Perl installation,
+so we expect that you already have a working Perl setup.
+
+Make sure perl is installed with version 5.6 or higher (http://www.perl.org/)
+
+> perl -v
+If Perl is installed, this command will return its version.
+
+2) Java Platform
+
+Install Java if needed, Java 5.0 or newer is required to run Trawler standalone.
+Java can be downloaded from http://java.sun.com/javase/downloads/index.jsp
+
+If Java is already installed, make sure you are using version 5.0 or higher.
+In order to check the version of the Java, you can use the following command:
+> java -version
+This command will return its version.
+
+3) Ghostscript
+
+make sure you have Ghostscript installed (http://pages.cs.wisc.edu/~ghost/)
+
+> gs -version
+If Ghostscript is installed, this command will return its version.
+
+If needed, Ghostscript can be installed your package manager.
+
+4) Algorithm-Cluster
+
+NOTE: - You will need root privileges, for this installation step.
+      - see also instructions included with the Algorithm-Cluster release.
+
+> sudo perl -MCPAN -e shell
+cpan> install Algorithm::Cluster
+
+If you do not have root privileges, download the module directly from CPAN (http://search.cpan.org/~mdehoon/)
+and use perl Makefile.PL prefix=/some/other/directory
+to install the module in /some/other/directory/lib/perl5/.
+For Perl, type
+> perl Makefile.PL
+> make
+> make test
+> make install
+For more information, refer to the installation notes included in the Algorithm-Cluster module.
+
+
+2/ Trawler installation
+----------------------------
+
+All you need to do is unpack the distribution:
+
+> gunzip trawler-1.2.tar.gz
+> tar xf trawler-1.2.tar
+
+
+======================================
+        Running the examples
+======================================
+
+If you have the dependencies installed on your system,
+it should be possible to immediately run Trawler_standalone using the examples
+as follows:
+
+> cd trawler-1.2/
+
+Run example 1 (running time is less than a minute):
+> ./examples/run_trawler.sh
+
+Run example 2 (running time is about 2 min):
+> ./examples/creb/run_trawler_creb.sh
+
+Run example 3 (running time is about 2 min):
+> ./examples/creb/run_trawler_creb_orthos.sh
+
+Run example 4 (running time is about 1 min):
+> ./examples/miR106b/run_trawler_miR106b.sh
+
+NOTE: - by default results are stored in trawler-1.2/myResults/
+
+
+======================================
+       Advanced Configuration
+======================================
+
+Note: TRAWLER_HOME is the full path to the Trawler installation directory.
+
+Edit the configuration file in TRAWLER_HOME/conf/trawler.cfg
+
+* basepath:
+The directory where trawler is installed
+e.g. /home/username/trawler
+
+* resultpath:
+e.g. /home/username/Trawler_output
+Set this variable, if you want to change the default output directory, using full path.
+by default results are stored in TRAWLER_HOME/myResults
+It is generally safer to set this variable to keep your results
+outside Trawler installation directory.
+
+* logging:
+debug and info logging are disabled by default,
+if you want to enable the logging replace the value by 1 (instead of 0).
+
+
+======================================
+          Troubleshooting
+======================================
+
+* Out-of-memory errors
+Depending on the size of your dataset, trawler can fail when the computer runs
+out of memory. Trawler will display an error message such as Java OutOfMemoryError.
+The problem can be addressed by closing other applications that are running on
+the same computer or increasing trawler memory setting using the JAVA_OPTS
+property within the TRAWLER_HOME/conf/trawler.cfg file.
+By default the Java memory allocation is -Xmx256m but can be replaced with a
+higher value, for example JAVA_OPTS = -Xms500m
+
+* No motifs found
+If Trawler cannot detect any over-represented motifs, the following error will
+appear in the shell: "No motif satisfying your criteria has been found”.
+Please re-run Trawler using different parameters.
+Increase or decrease the parameter "Minimum number of motif occurrence" for instance.
+
+* Html output: no images
+The images of the motif’s PWM cannot be displayed (especially for Windows users).
+Make sure that you have installed the Ghostscript dependency (please refer to the
+INSTALL file for installation details).
+
+* Html output: no tables
+The web browser does not have Javascript enabled.
+Modify your browser preferences to enable Javascript ( for example Safari :
+go to preference/ security check enable javascript)

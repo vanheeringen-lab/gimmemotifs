@@ -1,0 +1,118 @@
+<!--
+FILE: jaspar2meme.html
+AUTHOR: William Stafford Noble, Timothy Bailey, Charles E. Grant
+CREATE DATE: 10/30/2007
+PROJECT: MEME Suite
+-->
+<head>
+<title>jaspar2meme</title>
+<link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+</head>
+<body>
+<div id="main">
+<script src="./meme-suite-logo.js" type="text/javascript">></script>
+<h1>jaspar2meme</h1>
+<p><b>Usage:</b> <code>jaspar2meme [options] &lt;Jaspar
+directory&gt;</code></p>
+<p><b>Description:</b></p>
+<p>
+Convert a directory of JASPAR files into a MEME version 3 formatted file
+suitable for use with MEME Suite programs.
+</p>
+<p><b>Input:</b></p>
+<p>
+<code>&lt;Jaspar directory&gt;</code> - a directory containing one or
+more JASPAR motif files.  The possible formats are:
+<ul>
+  <li><p>A JASPAR '.sites' file describes a motif in terms of a multiple
+alignment of sites. It contains a multiple alignment in modified FASTA
+format. Only capitalized sequence letters are part of the alignment.</p></li>
+  <li><p>A JASPAR count file ('.pfm') contains a count matrix where the
+rows correspond to A, C, G and T, respectively.</p></li>
+  <li><p>A CM count file ('.cm') prefixes the rows with 'A| ', 'C| ', 'G|
+' and 'T| '.</p></li>
+</uL>
+<p>A a probability matrix are output for each
+motif file. The probability matrix is computed using
+pseudo-counts consisting of the background frequency (see -bg, below)
+multiplied by the total pseudocounts (see -pseudo, below). 
+</p>
+<p><b>Options:</b></p>
+<ul>
+	<li><code>-cm</code> - Read count file with line labels 'A|' etc.
+	(.cm); 
+        default: site files (.sites)</li>
+	<li><code>-pfm</code> - Read JASPAR count files (.pfm);
+        default: site files (.sites)</li>
+	<li><code>-numbers</code> - Use numbers instead of strings as motif
+	IDs</li>
+	<li><code>-strands [1|2]</code> - Print '+', '+ -' on the MEME strand
+	line; default: 2 (prints '+ -')</li>
+	<li><code>-bg <bfile></code> - file with background
+	frequencies in <a href="bfile-format.html">MEME background file
+	format</a>; default: uniform frequencies</li>
+	<li><code>-pseudo &lt;A&gt;</code> - Add <code>&lt;A&gt;</code>
+	times background frequency to each count when computing letter
+	frequencies default: 0 </li>
+	<li><code>-logodds</code> - Output log-odds matrices, too. 
+	default: output probability matrices only.
+	These are required only by MAST.  The log-odds matrix uses t
+	he background frequencies in the denominator and is log base 2.</p></li>
+</ul>
+<p><b>Output:</b></p>
+<p>
+Writes MEME format to standard output.
+</p>
+
+<p><b>Sample Input:</b></p>
+<p>
+<i>.pfm format (counts):</i>
+</p>
+<pre>
+ 0  3 79 40 66 48 65 11 65  0
+94 75  4  3  1  2  5  2  3  3
+ 1  0  3  4  1  0  5  3 28 88
+ 2 19 11 50 29 47 22 81  1  6
+</pre>
+<p>
+<i>.cm format (counts):</i>
+</p>
+<pre>
+A|  0  3 79 40 66 48 65 11 65  0
+C| 94 75  4  3  1  2  5  2  3  3
+G|  1  0  3  4  1  0  5  3 28 88
+T|  2 19 11 50 29 47 22 81  1  6
+</pre>
+<p>
+<i>.sites format (motif sites):</i>
+</p>
+<pre>
+>MA0024 E2F     1
+aTTTGGCGC
+>MA0024 E2F     2
+TTTGGCGC
+>MA0024 E2F     3
+TTTGGCGC
+>MA0024 E2F     4
+TTTGGCGC
+>MA0024 E2F     5
+TTTCGCGC
+>MA0024 E2F     6
+TTTCGCGC
+>MA0024 E2F     7
+TTTCGCGC
+>MA0024 E2F     8
+TTTGCCGC
+>MA0024 E2F     9
+TTTCCCGC
+>MA0024 E2F     10
+TTTGGCGG
+
+A  [ 0  0  0  0  0  0  0  0 ]
+C  [ 0  0  0  4  2 10  0  9 ]
+G  [ 0  0  0  6  8  0 10  1 ]
+T  [10 10 10  0  0  0  0  0 ]
+</div>
+</body>
+</html>

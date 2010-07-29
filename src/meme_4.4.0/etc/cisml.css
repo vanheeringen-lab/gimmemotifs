@@ -1,0 +1,24 @@
+table {
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 1%;
+	border: 2px solid;
+	border-collapse: collapse;
+}
+
+th {
+	background-color: wheat;
+}
+
+td,th {
+	border: 2px solid black;
+}
+
+h2 {
+	text-align: center;
+}
+
+h3 {
+	text-align: center;
+}

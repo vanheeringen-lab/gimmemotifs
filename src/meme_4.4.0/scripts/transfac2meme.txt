@@ -1,0 +1,299 @@
+#!@WHICHPERL@ -w
+#
+# $Id: transfac2meme.txt 2582 2008-04-23 06:34:40Z tbailey $
+# $Log$
+# Revision 1.1  2005/07/28 23:57:08  nadya
+# Initial revision
+#
+#
+# FILE: transfac2meme
+# AUTHOR: William Stafford Noble and Timothy L. Bailey
+# CREATE DATE: 4/22/99
+# DESCRIPTION: Convert a Transfac matrix file to MEME output format.
+
+# Set up global variables. Assume uniform.
+@bases = ("A", "C", "G", "T");
+$num_bases = 4;
+$bg{"A"} = 0.25;
+$bg{"C"} = 0.25;
+$bg{"G"} = 0.25;
+$bg{"T"} = 0.25;
+$pseudo_total = 0; # default total pseudocounts
+
+$usage = "USAGE: transfac2meme [options] <matrix file>
+
+  Options: 
+           -numbers		print numbers instead of names as motif IDs
+	   -use_acc		use and print accession names instead of IDs
+           -species <name>	extract only motifs for this species
+           [-skip <ID>]* 	IDs to skip
+           -ids <idfile>	file with TRANSFAC IDs, one per line
+           -bg <bfile>		file with background frequencies in MEME
+				-bfile format; default: uniform frequencies
+           -pseudo <A> 	        add <A> times background frequency to 
+				each count when computing letter frequencies
+                                default: $pseudo_total
+
+  Extract motifs from a transfac 'matrix.dat' file and print them in
+  MEME Version 3.0 format.
+
+  Counts are converted to frequencies using pseudo-counts determined by
+  the background frequencies and the total pseudocounts (see -bg and 
+  -pseudo, above).  The log-odds matrix uses the background frequencies
+  in the denominator and is log base 2.
+
+  N.B. Dollar signs in TRANSFAC IDs are converted to underscores.
+
+  Writes to standard output.
+";
+
+
+# Process command line arguments.
+if (scalar(@ARGV) == 0) {
+  printf(STDERR $usage);
+  exit(1);
+}
+$species = "";
+$id_list = "";
+$use_numbers = 0;
+$id_type = "ID";
+while (scalar(@ARGV) > 1) {
+  $next_arg = shift(@ARGV);
+  if ($next_arg eq "-numbers") {
+    $use_numbers = 1;
+  } elsif ($next_arg eq "-use_acc") {
+    $id_type = "AC";
+  } elsif ($next_arg eq "-species") {
+    $species = shift(@ARGV);
+  } elsif ($next_arg eq "-skip") {
+    $skips{shift(@ARGV)} = 1;
+  } elsif ($next_arg eq "-ids") {
+    $id_list = shift(@ARGV);
+  } elsif ($next_arg eq "-bg") {
+    $bg_file = shift(@ARGV);
+  } elsif ($next_arg eq "-pseudo") {
+    $pseudo_total = shift(@ARGV);
+  } else {
+    print(STDERR "Illegal argument ($next_arg)\n");
+    exit(1);
+  }
+}
+($matrix_file) = @ARGV;
+
+# Store the target IDs.
+%id_list = &read_list_from_file($id_list);
+
+# read the background file
+if (defined($bg_file)) {
+  open($bg_file, "<$bg_file") || die("Can't open $bg_file.\n");
+  $total_bg = 0;
+  while (<$bg_file>) {
+    next if (/^#/);			# skip comments
+    ($a, $f) = split;
+    if ($a eq "A" || $a eq "a") {
+      $bg{"A"} = $f; 
+      $total_bg += $f;
+    } elsif ($a eq "C" || $a eq "c") {
+      $bg{"C"} = $f; 
+      $total_bg += $f;
+    } elsif ($a eq "G" || $a eq "g") {
+      $bg{"G"} = $f; 
+      $total_bg += $f;
+    } elsif ($a eq "T" || $a eq "t") {
+      $bg{"T"} = $f; 
+      $total_bg += $f;
+    }
+  }
+  # make sure they sum to 1
+  foreach $key (keys %bg) {
+    $bg{$key} /= $total_bg;
+    #printf STDERR "$key $bg{$key}\n";
+  }
+}  # background file
+
+# Open the matrix file for reading.
+open($matrix_file, "<$matrix_file") || die("Can't open $matrix_file.\n");
+
+# Print the MEME header.
+print("MEME version 3.0\n\n");
+print("ALPHABET= ACGT\n\n");
+print("strands: + -\n\n");
+print("Background letter frequencies (from dataset with add-one prior applied):\n");
+printf("A %f C %f G %f T %f\n\n",  $bg{"A"}, $bg{"C"}, $bg{"G"}, $bg{"T"});
+
+# Read the input file.
+$num_motifs = 0;
+$num_skipped = 0;
+while ($line = <$matrix_file>) {
+
+  # Split the line into identifier and everything else.
+  ($id, @data) = split(' ', $line);
+
+  # Have we reached a new matrix?
+  if (defined($id) && ($id eq $id_type)) {
+    $matrix_name = shift(@data);
+    $matrix_name =~ tr/\$/_/;
+
+    # Read to the beginning of the motif.
+    $this_species = "";
+    $this_name = "";
+    $this_descr = "";
+
+    # Old versions of TRANSFAC use pee-zero; new use pee-oh.
+    while (($id ne "PO") && ($id ne "P0")) {
+      $line = <$matrix_file>;
+      if (! defined($line)) {
+	die ("Can't find PO line for TRANSFAC matrix $matrix_name.\n");
+      }
+      ($id, @data) = split(' ', $line);
+
+      # Store the species line.
+      if ($id eq "BF") { $this_species .= $line; }
+
+      # Store the name line.
+      if ($id eq "NA") { $this_name .= join " ", @data; }
+
+      # Store the description line.
+      if ($id eq "DE") { $this_descr .= join " ", @data; }
+    }
+
+    # Read the motif.
+    $i_motif = 0;
+    while () {
+      $line = <$matrix_file>;
+      chomp($line);
+
+      if (! defined $line ) {
+	die ("Can't find `XX' line for TRANSFAC matrix $matrix_name.\n");
+      }
+
+      ($id, @counts) = split(' ', $line);
+
+      # Look for the end of the motif.
+      if (($id eq "XX") || ($id eq "//")) {
+	last;
+      }
+
+      # Make sure we got the right number of entries.
+      if (scalar(@counts) != 5) {
+	die("Invalid motif line ($line)");
+      }
+
+      # Store the contents of this row.
+      for ($i_base = 0; $i_base < $num_bases; $i_base++) {
+	$motif{$i_base, $i_motif} = shift(@counts);
+      }
+      
+      $i_motif++;
+    }
+    $width = $i_motif;
+
+    # Convert the motif to frequencies.
+    for ($i_motif = 0; $i_motif < $width; $i_motif++) {
+      # motif columns may have different counts
+      $num_seqs = 0;
+      for ($i_base = 0; $i_base < $num_bases; $i_base++) {
+	if (!defined($motif{$i_base, $i_motif})) {
+	  die("motif{$i_base, $i_motif} is not defined.\n");
+	} else {
+	  $num_seqs += $motif{$i_base, $i_motif};
+	}
+      }
+      for ($i_base = 0; $i_base < $num_bases; $i_base++) {
+	$motif{$i_base, $i_motif} = 
+          ($motif{$i_base, $i_motif} + ($pseudo_total * $bg{$bases[$i_base]}) ) / 
+          ($num_seqs + $pseudo_total);
+      }
+    }
+
+    ###### Decide whether to print the motif.
+
+    # If no criteria are given, then print it.
+    $print_it = 1;
+
+    # If we were given a list,
+    if ($id_list ne "") {
+      #  was this matrix in the list?
+      $print_it = defined($id_list{$matrix_name});
+    }
+
+    # If we were given a species.
+    elsif ($species ne "") {
+      # is this the right species?
+      $print_it = ($this_species =~ m/$species/);
+      if ($this_species eq "") {
+	print(STDERR "Warning: No species given for $matrix_name.\n");
+      }
+    }
+
+    # Were we explicitly asked to skip this one?
+    if (defined($skips{$matrix_name})) {
+      $print_it = 0;
+    } 
+    
+    # Print the motif.
+    if ($print_it) {
+      $num_motifs++;
+      print(STDERR "Printing motif $matrix_name $this_name.\n");
+      if ($use_numbers) {
+        print("MOTIF $num_motifs $matrix_name\n\n");
+        print("BL   MOTIF $num_motifs width=$width seqs=$num_seqs\n");
+      } else {
+        print("MOTIF $matrix_name $this_name\n");
+        print("BL   MOTIF $matrix_name width=$width seqs=$num_seqs\n");
+      }
+      
+      # PSSM for MAST
+      print("log-odds matrix: alength= $num_bases w= $width n= 0 bayes= 0 E= 0\n");
+      for ($i_motif = 0; $i_motif < $width; $i_motif++) {
+	for ($i_base = 0; $i_base < $num_bases; $i_base++) {
+          $p = $motif{$i_base, $i_motif};
+          $f = $bg{$bases[$i_base]};
+          $lo = $p > 0 ?  log($p/$f)/log(2.0) : -100;
+	  printf("%7.3f ", $lo );
+	}
+	print("\n");
+      }
+
+      # PSFM for Meta-MEME
+      print("letter-probability matrix: ");
+      print("alength= $num_bases w= $width nsites= $num_seqs E= 0\n");
+      for ($i_motif = 0; $i_motif < $width; $i_motif++) {
+	for ($i_base = 0; $i_base < $num_bases; $i_base++) {
+	  printf("%7.3f ", $motif{$i_base, $i_motif});
+	}
+	print("\n");
+      }
+      print("\n");
+    } else {
+      $num_skipped++;
+      #print(STDERR "Skipping motif $matrix_name.\n");
+    }
+  }
+}
+print(STDERR "Converted $num_motifs motifs.\n");
+print(STDERR "Skipped $num_skipped motifs.\n");
+
+close($matrix_file);
+
+sub read_list_from_file {
+  my($id_list) = @_;
+  my($line, %return_value);
+
+  if ($id_list eq "") {
+    return(%return_value);
+  }
+
+  open($id_list, "<$id_list") || die("Can't open $id_list.");
+  while ($line = <$id_list>) {
+    chomp($line);
+    @words = split(' ', $line);
+    foreach $word (@words) {
+      $return_value{$word} = 1;
+    }
+  }
+  close($id_list);
+
+  return(%return_value);
+}
+

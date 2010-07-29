@@ -1,0 +1,109 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>GOMO - a Gene Ontology association tool for motifs</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <img src="images/gomo_logo.png" alt="GOMO logo" />
+      <p><b>Usage:</b><br />
+      <code>gomo [options] &lt;go-term database&gt; &lt;scoring file&gt;+</code>
+      </p>
+      <p><b>Description:</b><br />
+      The name <code>GOMO</code> stands for "Gene Ontology for Motifs."  
+      The program searches in a set of ranked genes for enriched GO terms
+      associated with high ranking genes. The genes can be ranked, for example,
+      by applying a motif scoring algorithms on their upstream sequence.
+      
+      The p-values for each GO-term are computed empirically by shuffling 
+      the gene identifiers in the ranking (ensuring consistancy across species) to 
+      generate scores from the null hypothesis. Then q-values are derived from
+      these p-values following the method of Benjamini and Hochberg 
+      (where "q-value" is defined as the minimal false discovery rate at which 
+      a given GO-term is deemed significant).
+    
+      The program reports all GO terms that receive q-values smaller than a 
+      specified threshold, outputting a gomo score with emprically calculated 
+      p-values and q-values for each.
+      </p>
+
+      <p><b>Input:</b></p> 
+      <ul> 
+      <li>
+      <code>&lt;go-term database&gt;</code> is a collection of GO terms mapped to
+      to the sequences in the scoring file. Database are provided by the 
+      webservices and are formated using a simple tsv-format:<br />
+      <i>"GO-term" "Sequence identifiers separated by tabulator"</i> <br />
+      The exception to this rule is the first line which instead contains the 
+      url to lookup the gene ids. The url has ampersands (&amp;) replaced with
+      &amp;amp; and the place for the gene id marked by the token "!!GENEID!!" .
+      </li>
+      <li>
+      <code>&lt;scoring file&gt;</code> is a XML file which contains for each 
+      motif the sequences and their score. The XML file uses the 
+      <a href="http://zlab.bu.edu/~phaverty/SupplementalData/CisML">CisML</a>
+      schema. When scoring data is available for multiple related species 
+      <code>GOMO</code> can take multiple scoring files where the true sequence 
+      identifiers have been mapped to their orthologs in the reference species
+      for which the go-term database was supplied.
+      </li>
+      </ul>
+      
+      <p><b>Output:</b></p>
+      <p>
+      GOMO will create a directory, named <code>gomo_out</code> by default.
+      Any existing output files in the directory will be overwritten.
+      The directory will contain:
+      </p>
+      <ul>
+      <li>
+      An XML file named <code>gomo.xml</code> providing the results in a machine readable <a href="gomo-format.html" >format</a>.
+      </li>
+      <li>
+      An HTML file named <code>gomo.html</code> providing the results in a human readable format.
+      </li>
+      </ul>
+      <p>
+        The default output directory can be overridden using the <code>--o</code> or <code>--oc</code>
+        options which are described below. <br />
+        <br />
+        Additionally the user can override the creation of files altogether
+        by specifying the <code>--text</code> option which outputs to standard out in a tab seperated values
+        format:<br />
+        "Motif Identifier" "GO Term Identifier" "GOMO Score" "p-value" "q-value"<br />
+      </p>
+      <p>
+      By default GOMO calculates the ranksum statistics on the <i>p</i>-values 
+      of each gene given in the 
+      <a href="http://zlab.bu.edu/~phaverty/SupplementalData/CisML">CisML</a> 
+      input file . 
+      Using the option <code>--gs</code> switches
+      the focus from the <i>p</i>-values to the scores. 
+      Any sequence failing to provide a <i>p</i>-value will prompt GOMO to abort
+      the calculations. The same happens when any of the genes in the CisML file
+      lacks a score attribute and <code>--gs</code> was activated. 
+      </p>
+      <p>
+      <b>Options:</b> 
+      </p>
+      <ul>
+        <li><command-option name="o"/></li>
+        <li><command-option name="oc"/></li>
+        <li><command-option program="gomo" name="dag"/></li>
+        <li><command-option program="gomo" name="text"/></li>
+        <li><command-option name="motif"/></li>
+        <li><command-option program="gomo" name="shuffle_scores"/></li>
+        <li><command-option program="gomo" name="score_E_thresh"/></li>
+        <li><command-option program="gomo" name="t"/></li>
+        <li><command-option program="gomo" name="min_gene_count" /></li>
+        <li><command-option program="gomo" name="gs"/></li>
+        <li><command-option name="nostatus"/></li>
+        <li><command-option name="verbosity"/></li>
+      </ul>
+    </div>
+  </body>
+</html>

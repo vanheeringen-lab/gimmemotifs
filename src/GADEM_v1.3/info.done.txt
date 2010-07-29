@@ -1,0 +1,91 @@
+processor ID: 17268
+==========================================================================
+
+|------------------------------------------------------------------|
+|                                                                  |
+|              *** Running an unseeded analysis ***                |
+|                                                                  |
+|------------------------------------------------------------------|
+
+command line: bin/gadem -fseq /home/simon/prj/gimmemotifs/structured_data_for_manuscript/GimmeMotifs_ChIP-seq_benchmark/tmp/c-Myc/intermediate_results/c-Myc_prediction.fa -posWt 1 -verbose 1 
+
+maximal buffer length:					15000
+maximal number of sequences set:			44000
+maximal number of bases per seq read:			20000
+maximal number of sites in a motif:			150000
+input (ChIP) sequence file:				/home/simon/prj/gimmemotifs/structured_data_for_manuscript/GimmeMotifs_ChIP-seq_benchmark/tmp/c-Myc/intermediate_results/c-Myc_prediction.fa
+number of sequences in input file:			600
+average sequence length:				200
+total number of nucleotides:				120000
+max number of generations:				5
+population size:					100
+number of top-ranked 3-, 4-, 5-mer:			20 40 60
+minimal & maximal spacer(d) in dyads			0 10
+use randomly select sequences to derive PWMs
+fraction (number) input sequences subject to EM		0.50 (300)
+scale factor for converting (double)pwm to (int)pwm	 200
+number of EM steps:					40
+EM convergence criterion:				5.000000e-05
+
+GADEM determines maxps by choosing one of the five values (factor*numSeq):
+    0.10*numSeq, 0.20*numSeq, 0.30*numSeq, 0.40*numSeq, 0.50*numSeq, 0.60*numSeq, 0.70*numSeq, 0.80*numSeq, 0.90*numSeq, 1.00*numSeq, 
+These factors are optimized along with dyads by the GA and reported.
+
+motif prior probability type (see documentation):	1
+window width of sequence centered on the nucleotides having large weights for PWM optimization: 80
+pwm score p-value cutoff for declaring binding site:	2.000000e-04
+
+Approximate the null llr score log{p(s|M)/p(s|B)} distribution using Staden's probability
+probability generating funtion (pgf) method, where s is a subsequence of length w,
+M is the EM-derived motif model from GADEM and B is the 0th-order Markov model from
+the input data - the frequencies of [a,c,g,t]
+
+pseudo count:						0.0005
+minimal infomation for trimming/extending: 		0.40 0.50 0.60
+minimal no. sites for each motif:			30
+base extension and trimming? 				yes
+sliding window for comparing pwm similarity:	6
+PWM similarity cutoff:					0.300
+log(E-value) cutoff:					 0.00
+number of adjacent bases included in binding site output:	10
+random seed:						1265206551
+
+
+job started: Wed Feb  3 14:15:51 2010
+
+=========================================================================
+
+GADEM cycle[  1] generation[  1] number of unique motif(s): 1
+   spacedDyad: agcannctgg           motifConsensus: rmsCACGTGG            0.20 fitness:  -30.15
+
+GADEM cycle[  1] generation[  2] number of unique motif(s): 1
+   spacedDyad: agcannctgg           motifConsensus: rmsCACGTGG            0.20 fitness:  -30.15
+
+GADEM cycle[  1] generation[  3] number of unique motif(s): 1
+   spacedDyad: agcannctgg           motifConsensus: rmsCACGTGG            0.20 fitness:  -30.15
+
+GADEM cycle[  1] generation[  4] number of unique motif(s): 1
+   spacedDyad: tccnngag             motifConsensus: wsCACGTG              0.40 fitness:  -38.85
+
+GADEM cycle[  1] generation[  5] number of unique motif(s): 1
+   spacedDyad: tccnngag             motifConsensus: wsCACGTG              0.40 fitness:  -38.85
+
+GADEM cycle[  2] generation[  1] number of unique motif(s): 1
+   spacedDyad: tctnnnnctt           motifConsensus: GCyCCkCCCC            0.20 fitness:   22.77
+
+GADEM cycle[  2] generation[  2] number of unique motif(s): 1
+   spacedDyad: gcttctg              motifConsensus: GCTGCTG               0.40 fitness:   18.92
+
+GADEM cycle[  2] generation[  3] number of unique motif(s): 1
+   spacedDyad: gcttctg              motifConsensus: GCTGCTG               0.40 fitness:   18.92
+
+GADEM cycle[  2] generation[  4] number of unique motif(s): 1
+   spacedDyad: gcttctg              motifConsensus: GCTGCTG               0.40 fitness:   18.92
+
+GADEM cycle[  2] generation[  5] number of unique motif(s): 1
+   spacedDyad: gcttctg              motifConsensus: GCTGCTG               0.40 fitness:   18.92
+
+
+finished: Wed Feb  3 14:54:23 2010
+
+approximated processor time in seconds: 2312.000000

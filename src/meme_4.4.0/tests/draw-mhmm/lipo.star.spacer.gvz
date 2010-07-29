@@ -1,0 +1,26 @@
+digraph G {
+  rankdir=LR;
+  node[fontsize=24,font=Helvetica];
+  edge[fontsize=24,font=Helvetica];
+  state0 [label="begin",shape=ellipse,color="black",size="0.100000,0.100000"];
+  state1 [label="",shape=circle,color="blue",size="0.100000,0.100000"];
+  state2 [label="",shape=circle,color="blue",size="0.100000,0.100000"];
+  state3 [label="",shape=circle,color="blue",size="0.100000,0.100000"];
+  state4 [label="1 : PVDNFDISKFAGTWHEIAK",shape=box,color="0.1 0.5 0.8",size="0.100000,0.100000"];
+  state23 [label="2 : ENVFWVLDTDYKNYAIAYLC",shape=box,color="0.5 0.75 0.8",size="0.100000,0.100000"];
+  state43 [label="3 : FLDAAWVLEKSKVLEGHT",shape=box,color="0.9 1 0.8",size="0.100000,0.100000"];
+  state61 [label="end",shape=ellipse,color="black",size="0.100000,0.100000"];
+   state0 -> state1 [weight=10.000000,label="1"];
+   state1 -> state1 [weight=9.900990,label="0.99"];
+   state1 -> state2 [weight=0.099010,label="0.0099"];
+   state2 -> state2 [weight=9.900990,label="0.99"];
+   state2 -> state3 [weight=0.099010,label="0.0099"];
+   state3 -> state3 [weight=9.900990,label="0.99"];
+   state3 -> state4 [weight=0.024753,label="0.0025"];
+   state3 -> state23 [weight=0.024753,label="0.0025"];
+   state3 -> state43 [weight=0.024753,label="0.0025"];
+   state3 -> state61 [weight=0.024753,label="0.0025"];
+   state4 -> state1 [weight=10.000000,label="1"];
+   state23 -> state1 [weight=10.000000,label="1"];
+   state43 -> state1 [weight=10.000000,label="1"];
+}

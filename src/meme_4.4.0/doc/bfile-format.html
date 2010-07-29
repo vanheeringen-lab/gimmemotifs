@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+<head>
+<title>Meta-MEME - Background model format</title>
+<link href="./meme-suite.css" rel="styleSheet" type="text/css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+<style type="text/css">pre {margin-left: 1em;}</style>
+</head>
+<body>
+<div id="main">
+<script src="./meme-suite-logo.js" type="text/javascript">></script>
+<h1>Background model format</h1>
+<p>
+The format for n-order Markov background models is as follows.
+</p>
+<p>
+The file must contain one line for each combination of
+1, 2, ..., n-1 letters in the alphabet.  The DNA alphabet is <b>ACGT</b> 
+and protein the protein alphabet is <b>ACDEFGHIKLMNPQRSTVWY</b>.
+</p>
+<p>
+Each line must contain the letter combination followed by the 
+letter combination's frequency (probability).  
+All other lines in the file are ignored, including 
+comment lines starting with '#'.  
+</p>
+<p>
+For example, a 0-order Markov model &lt;file&gt; might contain:
+</p>
+<pre>
+# tuple   frequency_non_coding
+a       0.324
+c       0.176
+g       0.176
+t       0.324
+</pre>
+<p>
+A 1-order Markov model &lt;file&gt; might contain:
+</p>
+<pre>
+# tuple   frequency_non_coding
+a       0.324
+c       0.176
+g       0.176
+t       0.324
+# tuple   frequency_non_coding
+aa      0.119
+ac      0.052
+ag      0.056
+at      0.097
+ca      0.058
+cc      0.033
+cg      0.028
+ct      0.056
+ga      0.056
+gc      0.035
+gg      0.033
+gt      0.052
+ta      0.091
+tc      0.056
+tg      0.058
+tt      0.119
+</pre>
+<p>
+<b>NOTE:</b>
+You can create a background model file from any 
+<a href="fasta-format.html">FASTA sequence file</a> using the 
+<code>fasta-get-markov</code> command.
+</p>
+</div>
+</body>
+</html>

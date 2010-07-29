@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MEME - Motif Distribution</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+            MEME searches for similarities among the sequences you give
+            it. How those similarities (motifs) may be shared is determined by
+            the <b>motif distribution menu</b>.
+            <ol>
+            <li>One per sequence</li>
+            <li>Zero or one per sequence</li>
+            <li>Any number of repetitions</li>
+            </ol>
+            If you choose the first option, MEME assumes that each
+            sequence in the dataset contains <b>exactly</b> one occurrence of
+            each motif. This option is the <i>fastest</i> and most
+            <i>sensitive</i> but the motifs returned by MEME may be "blurry" if
+            any of the sequences is missing them.
+            <p>If you choose the second option, MEME assumes that each sequence
+            may contain <b>at most</b> one occurrence of each motif. This
+            option is useful when you suspect that some motifs may be missing
+            from some of the sequences. In that case, the motifs found will be
+            more accurate than using the first option. This option takes more
+            computer time than the first option (about twice as much) and is
+            slightly less sensitive to weak motifs present in all of the
+            sequences.</p>
+            <p>If you choose the third option, MEME assumes each sequence may
+            contain <b>any number</b> of non-overlapping occurrences of each
+            motif. This option is useful when you suspect that motifs repeat
+            multiple times within a single sequence. In that case, the motifs
+            found will be much more accurate than using one of the other
+            options. This option can also be used to discover repeats within a
+            single sequence. This option takes the much more computer time than
+            the first option (about ten times as much) and is somewhat less
+            sensitive to weak motifs which do not repeat within a single
+            sequence than the other two options.</p>
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+

@@ -1,0 +1,130 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MEME Suite - Input formats</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+            <p>
+            The preferred sequence format for MEME Suite programs is
+            Pearson/Fasta (FASTA) format. For example,
+            </p>
+            <div style="margin-left: 2em">
+            <p>
+            <code>
+            &gt;<b>ICYA_MANSE</b>
+            INSECTICYANIN A FORM (BLUE BILIPROTEIN)<br />
+            GDIFYPGYCPDVKPVNDFDLSAFAGAWHEIAK<br />
+            LPLENENQGKCTIAEYKYDGKKASVYNSFVSNGVKEYMEGDLEIAPDA<br />
+            &gt;<b>LACB_BOVIN</b> BETA-LACTOGLOBULIN PRECURSOR (BETA-LG)<br />
+            MKCLLLALALTCGAQALIVTQTMKGLDI<br />
+            QKVAGTWYSLAMAASDISLLDAQSAPLRVYVEELKPTPEGDLEILLQKW<br />
+            </code>
+            </p>
+            </div>
+            <p>
+            Sequences start with a header line followed by sequence lines. A
+            header line has the character ``&gt;'' in position one, followed by
+            an unique name without any spaces, followed by (optional)
+            descriptive text. After the header line come the actual sequence
+            lines. Spaces and blank lines are ignored. Sequences may be in
+            capital or lowercase or both.
+            </p>
+            <p>The first word in the header line of each sequence, truncated to
+            24 characters if necessary, is taken as the name of the sequence.
+            This name must be unique. Sequences with duplicate names will be
+            ignored. (The first word in the title line is everything following
+            the "&gt;" up to the first blank.) The web versions of MEME Suite
+            programs also accepts protein and DNA sequences in any of the
+            following formats by converting them to Pearson/Fasta format. When
+            using these formats, it is not possible to specify sequence
+            weights.</p>
+            <ul>
+            <li style="list-style: none"><b>Sequence formats that allow one or
+            more sequences:</b></li>
+            <li>IG/Stanford, used by Intelligenetics and others</li>
+            <li>GenBank/GB, genbank flatfile format</li>
+            <li>NBRF format</li>
+            <li>EMBL, EMBL flatfile format</li>
+            <li>DNAStrider, for common Mac program</li>
+            <li>Fitch format, limited use</li>
+            <li>Pearson/Fasta, a common format used by Fasta programs and
+            others</li>
+            <li>Zuker format, limited use</li>
+            <li>Olsen, format printed by Olsen VMS sequence editor</li>
+            <li>Phylip3.2, sequential format for Phylip programs</li>
+            <li>Phylip, interleaved format for Phylip programs (v3.3,
+            v3.4)</li>
+            <li>MSF multi sequence format used by GCG software</li>
+            <li>PAUP's multiple sequence (NEXUS) format</li>
+            <li>PIR/CODATA format used by PIR</li>
+            <li>ASN.1 format used by NCBI
+            <p><b>Sequence formats that only allow one sequence. These formats
+            cannot be used to input multiple sequences.</b></p>
+            </li>
+            <li>GCG, single sequence format of GCG software (use MSF format
+            instead)</li>
+            <li>Plain/Raw, sequence data only (no name, document,
+            numbering)</li>
+            </ul>
+            <b>For MEME only</b>
+            <p>Sequence weights may be specified in the dataset file by special
+            header lines where the unique name is "WEIGHTS" (all caps) and the
+            discriptive text is a list of sequence weights. Sequence weights
+            are numbers in the range 0 &lt; w &lt;=1. All weights are assigned
+            in order to the sequences in the file. If there are more sequences
+            than weights, the remainder are given weight one. Weights must be
+            greater than zero and less than or equal to one. Weights may be
+            specified by more than one "WEIGHT" entry which may appear anywhere
+            in the file, but you must not put weights on lines that don't start
+            with "&gt;WEIGHT". When weights are used, sequences will contribute
+            to motifs in proportion to their weights. Here is an example for a
+            file of three sequences where the first two sequences are very
+            similar and it is desired to down-weight them:</p>
+            <div style="margin-left: 2em">
+            <p>
+            <code>
+            &gt;WEIGHTS 0.5 .5<br />
+            &gt;WEIGHTS 1.0<br />
+            &gt;seq1<br />
+            GDIFYPGYCPDVKPVNDFDLSAFAGAWHEIAK<br />
+            &gt;seq2<br />
+            GDMFCPGYCPDVKPVGDFDLSAFAGAWHELAK<br />
+            &gt;seq3<br />
+            QKVAGTWYSLAMAASDISLLDAQSAPLRVYVEELKPTPEGDLEILLQKW
+            </code>
+            </p>
+            </div>
+            <p>
+            The <a href= "gopher://ftp.bio.indiana.edu:70/11/Molecular-Biology/Molbio%20archive/readseq">
+            ReadSeq</a> program is used for converting sequences to FASTA
+            format. ReadSeq is copyright 1990 by D. G. Gilbert, Biology Dept.,
+            Indiana University.
+            </p>
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>pmp_bf</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>pmp_bf</h1>
+
+      <p>
+        <b>Usage:</b> <code>pmp_bf [options] &lt;<i>tree</i>&gt; &lt;<i>motif</i>&gt;</code>
+      </p>
+
+      <p><b>Description:</b></p>
+      <p>
+        This utility calculates the statistical power of a phylogenetic motif model.
+      </p>
+
+      <p><b>Input:</b></p>
+
+      <ul>
+      <li>&lt;<i>tree</i>&gt; - a file containing a phylogenetic tree in
+      <a href="http://evolution.genetics.washington.edu/phylip/newicktree.html">Newick format</a>.
+      </li>
+      <li>&lt;<i>motif</i>&gt; - a file containing a set of motifs in 
+      <a href="meme.html">MEME format</a>.
+      </li>
+      </ul>
+
+      <p><b>Output:</b></p>
+      <p>
+      The program prints to standard output.
+      </p>
+
+      <p><b>Options:</b></p>
+
+      <ul>
+      <li><command-option name="bg"/></li>
+      <li><command-option name="bgfile"/></li>
+      <li><command-option name="fg"/></li>
+      <li><command-option name="hb"/></li>
+      <li><command-option name="motif"/></li>
+      <li><command-option name="motif-name"/></li>
+      <li><command-option name="pseudocount"/></li>
+      <li><command-option name="pur-pyr"/></li>
+      <li><command-option name="transition-transversion"/></li>
+      <li><command-option name="ustart"/></li>
+      <li><command-option name="verbosity"/></li>
+      </ul>
+
+      <p><b>Bugs:</b> None known.</p>
+
+    </div>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+AlphaChar= 20
+NumDistr= 1
+Number= 0
+Mixture= 1
+Alpha= 1.0 0.089  0.011  0.052  0.070  0.031  0.064  0.026  0.058  0.049 0.108  0.032  0.038  0.045  0.056  0.071  0.056  0.050  0.062 0.008  0.024
+FullUpdate= 1
+QUpdate= 1
+StructID=    0
+Comment=  hth.s prior frequencies
+/* $Header$ */
+/* $Header$ */
+/* $Header$ */

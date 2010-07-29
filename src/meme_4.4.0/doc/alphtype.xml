@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>alphtype</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>alphtype</h1>
+
+      <p>
+        <b>Usage:</b> <code>alphtype &lt;<i>alphabet</i>&gt;</code>
+      </p>
+
+      <p><b>Description:</b></p>
+      <p>
+      Identifies the argument <code><i>&lt;alphabet&gt;</i></code>
+      as an instance of the DNA or protein alphabet.
+      </p>
+
+      <p><b>Input:</b></p>
+
+      <ul>
+      <li>None</li>
+      </ul>
+
+      <p><b>Output:</b></p>
+      <p>
+      The program prints "DNA" or "PROTEIN" to standard output,
+      depending on the value of the <code><i>&lt;alphabet&gt;</i></code>
+      argument.
+      </p>
+
+      <p><b>Options:</b></p>
+
+      <ul>
+      <li>None</li>
+      </ul>
+
+      <p><b>Bugs:</b> None known.</p>
+
+    </div>
+  </body>
+</html>

@@ -1,0 +1,211 @@
+# FILE: MetaGlobals.pm
+# PROJECT: web server app. globals
+# AUTHOR: Paul Pavlidis and Timothy L. Bailey
+# CREATED: November 2002 and Jan 2003
+# $Id: Globals.txt,v 1.1.1.1 2004/10/07 19:44:13 cegrant Exp $ 
+# DESCRIPTION: Global constants for the MCAST site; error handler
+
+package MetaGlobals;
+require Exporter;
+@ISA = qw(Exporter);
+@EXPORT = qw(
+	     $SITE_MANAGER
+	     $SITE_URL
+	     $MAIN_SCRIPT
+	     $fullrootpath
+			 $BINDIR
+	     $QUEUE_DIR
+	     $OUTPUT_DIR
+	     $UPLOAD_DIR
+	     $RELPATHGAP
+	     $REFRESH
+	     $LOG_DIR
+	     $DEBUG_LOG
+	     $version
+	     $PATIENCE
+	     $TIMELIMIT
+	     $SIMULTANEOUSJOBS
+	     $MAXJOBS
+	     $WAIT
+	     $UID_FIELD
+	     $RECALL_FIELD
+	     $SEMAPHORE_SUFFIX
+	     $MINP
+	     $MAXP
+             $demoquery
+             $demodatabase
+             $titleimage
+	     LOCK_SH
+	     LOCK_EX
+	     LOCK_UN
+	     error
+	     dumplogs
+	    );
+
+$version = "Beta 1.0";
+
+############################################################################
+# The following section sets site-specific global variables.  These
+# variables are as follwos:
+#
+# SITE_MANAGER - Contact person in case of trouble.  The server will
+#                automatically send email to this address on error.
+#
+# SITE_URL - The complete URL of the SVM server. 
+#
+# MAIN_SCRIPT - The location of the main submission page.
+# 
+# fullrootpath - The path from / on the host operating system.
+#
+############################################################################
+$SITE_MANAGER = "@METAMEME_SITE_CONTACT@";
+$SITE_URL = "@METAMEME_SITE_URL@";
+$MAIN_SCRIPT = "$SITE_URL/cgi-bin/nph-mcast-submit.cgi";
+$fullrootpath = "@METAMEME_WEB_DIR@";
+
+# Directory where the programs reside
+$BINDIR = "@BINDIR@";
+
+# p-value threshold allowed range
+$MINP = 0.00001; 
+$MAXP = 0.001;
+
+# Some files used by the server.
+$demoquery = "../sample.query";
+$demodatabase = "../sample.database";
+$titleimage = "../images/mcast-logo.png";
+
+# Directories used by the server.
+$LOG_DIR = "${fullrootpath}/logs"; # all log files go here. (except the debug log)
+$QUEUE_DIR = "${fullrootpath}/QUEUE";
+$UPLOAD_DIR = "${fullrootpath}/userfiles"; # files uploaded by users go here.
+$OUTPUT_DIR = "${fullrootpath}/output"; # results for users go here
+$DEBUG_LOG = "${fullrootpath}/DBLOG";
+
+# how often we update the 'placeholder' page.
+$REFRESH = 5;
+
+# Queue parameters.
+$PATIENCE = 3600; # how many seconds we wait before giving up getting a job in the queue.
+$SIMULTANEOUSJOBS = 1; # how many jobs can be running at the same time (i.e., for a multi-cpu machine this might be the number of cpus).
+$MAXJOBS = 500; # how many jobs can be in the queue at once. This has to be greater than or equal to the SIMULTANEOUSJOBS.
+$WAIT = 5; # how long to wait between checking the queue (seconds).
+$TIMELIMIT = 1000; # how many seconds the run is allowed to take.
+
+# Field names which are used for forms.
+$UID_FIELD = "uid";
+$RECALL_FIELD = "recall";
+$SEMAPHORE_SUFFIX = "sem";
+
+# Location of 'cat'
+$CAT = "/bin/cat";
+
+# File locking defines
+sub LOCK_SH { 1; }
+sub LOCK_EX { 2; }
+sub LOCK_NB { 4; }
+sub LOCK_UN { 8; }
+
+=head2 error
+
+General error handler
+
+=cut
+sub error {
+  my ($error, $query, $log, $backto, $nph, $sendmail) = @_;
+
+  if ($log) {
+    $log->log($error);
+    $log->debug($error);
+  }
+
+  print $query->header(-nph=>$nph);
+  print $query->start_html(-title=>'Error',
+			   -BGCOLOR=>'white');
+  print $query->h1("There was an error processing your request.");
+  print $query->strong($error);
+
+  use CGI::Carp qw(fatalsToBrowser);
+
+  if ($sendmail || 1) {
+    # send mail!
+    my $uid = $log->{_uid}; # naughty, supposed to be private.
+    my $dump;
+    $dump = dumplogs($uid, 1) if ( $uid );
+    my $errout = "server_error" . rand();
+    open (T, ">/tmp/$errout") or die "Could not open /tmp/$errout: $!";
+    print T "SERVER error from $uid: $error\n$dump\n";
+    close T;
+
+    my $mailstatus = system("/usr/ucb/Mail -s 'SERVER error for $uid' $SITE_MANAGER < /tmp/$errout");
+    $mailstatus = $mailstatus >> 8;
+    if (!$mailstatus) {
+      print $query->p("The site admin was notified of the error by email.");
+      unlink("/tmp/$errout");
+    } else {
+      print $query->p("Hmm. Couldn't send email to the admin about it.");
+    }
+  }
+
+
+  print "<p><a href=\"$SITE_URL\">Try again</a>. If you continue to have problems or think
+  you have identified a problem with this web site please notify the
+  <a href=\"mailto:$SITE_MANAGER\">maintainer of this site.</p>";
+
+  print "<hr>";
+#  dumplogs($uid);
+
+  if ($backto) {
+    print "<p><a href=\"$backto\">Back</a></p>";
+  }
+  print $query->end_html;
+
+  if ($ENV{MOD_PERL}) {
+    Apache::exit(1);
+  } else {
+    exit(1);
+  }
+} # sub error
+
+
+
+=head2 dumplog
+
+Dump the logs in html format.
+
+=cut
+sub dumplogs {
+  my ($uid, $noprint) = @_;
+  my ($log, $runlog);
+  $log = "";
+  $runlog = "";
+  if (-e "$LOG_DIR/${uid}.log") {
+    my $log = `$CAT $LOG_DIR/${uid}.log`;
+    $log =~ s/.*\|//g;
+
+    if (!$noprint) {
+#      print "<h2>Log output</h2>";
+      print "<pre>$log</pre>";
+    }
+  }
+
+  if (-e "$LOG_DIR/${uid}.runlog") {
+    $runlog = `$CAT $LOG_DIR/${uid}.runlog`;
+
+    my @loglines = split "\n", $runlog;
+    if (!$noprint) {
+      print "<h3>Stderr from commands:</h3>\n";
+      print "<pre>";
+      foreach (@loglines) {
+	next if /^Iteration/;
+#      print "<hr><h2>Output from SERVER:</h2>";
+	print "$_\n";
+      }
+      print "</pre>\n";
+    }
+  }
+  return "$log\n$runlog";
+}
+
+
+1;

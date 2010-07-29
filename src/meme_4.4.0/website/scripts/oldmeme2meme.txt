@@ -1,0 +1,119 @@
+#!/usr/bin/perl
+# File: oldmeme2meme
+# Author: Haoyuan Zhu
+# create Date: 12/7/01
+# Project: MHMM
+# Description: Given a old MEME file, return 
+#              a new MEME file's content
+
+if (scalar(@ARGV) != 1) {
+  print ("USAGE: oldmeme2meme <old MEME file>\n");
+  exit(1);
+}
+($old_meme_file) = @ARGV;
+
+$motif_summary_begin = "<INPUT TYPE = HIDDEN NAME = motif-summary VALUE = \"";
+$motif_summary_end = ">";
+
+$new_meme = "";
+$num_seq = 0;
+$seq_occur = 0;
+open(IN,"<$old_meme_file") || die("Cannot open $old_meme_file\n");
+while ($line = <IN>){
+  if ($line =~ /Sequence name/){
+    $new_meme .= $line;
+    $line = <IN>;
+    $new_meme .= $line;
+    $line = <IN>;
+    while (!($line =~ /PRE/) and !eof){
+      #$line = <IN>;
+      $new_meme .= $line;
+      @temp = split(' ',$line);
+
+      #
+      # Below is very silly code to deal with different MEME version - Haoyuan Zhu (3/30/02)
+      #
+      if ($temp == 5){
+	$name_seq[$num_seq] = $temp[0];
+	$length_seq[$num_seq] = $temp[2];
+	$num_seq ++;
+	$name_seq[$num_seq] = $temp[3];
+	$length_seq[$num_seq] = $temp[5];
+	$num_seq ++;
+      }
+      elsif ($#temp == 2){
+	$name_seq[$num_seq] = $temp[0];
+	$length_seq[$num_seq] = $temp[2];
+	$num_seq ++;
+      }
+      elsif ($#temp == 1){
+	$name_seq[$num_seq] = substr($temp[0],0,23);
+	$length_seq[$num_seq] = $temp[1];
+	$num_seq ++;
+      }
+      elsif ($#temp == 3){
+	$name_seq[$num_seq] = substr($temp[0],0,23);
+	$length_seq[$num_seq] = $temp[1];
+	$num_seq ++;
+	$name_seq[$num_seq] = substr($temp[2],0,23);
+	$length_seq[$num_seq] = $temp[3];
+	$num_seq ++;
+      }
+      elsif ($#temp == 4){
+	if (length($temp[0]) > 24){
+	  $length_seq[$num_seq] = $temp[1];
+	  $num_seq ++;
+	  $length_seq[$num_seq] = $temp[4];
+	  $num_seq ++;
+	}
+	else{
+	  $length_seq[$num_seq] = $temp[2];
+	  $num_seq++;
+	  $length_seq[$num_seq] = $temp[4];
+	  $num_seq++;
+	}
+      }
+      # End of silly code
+      
+      $line = <IN>;
+#      print STDERR "here\n";
+    }
+    
+    $new_meme .= $line;
+  }
+  
+  elsif ($line =~ /$motif_summary_begin/){
+    $new_meme .= $line;
+    $line = <IN>;
+    while (!($line =~ /$motif_summary_end/)){
+      #$line = <IN>;
+      $new_line = "";
+      $seq_occur ++;
+      @temp = split(' ',$line);
+      if ($#temp % 3 != 0){
+	for ($i=0;$i<3;$i++){
+	  $new_line = $new_line.$temp[$i]." ";
+	}
+	$new_line = $new_line.$length_seq[$seq_occur-1]." ";
+	for ($i=3;$i<$#temp;$i++){
+	  $new_line = $new_line.$temp[$i]." ";
+	}
+	$new_line = $new_line.$temp[$i]."\n";
+	$new_meme  = $new_meme.$new_line;
+	$line = <IN>;
+      }
+      else{
+	$new_meme .= $line;
+	$line = <IN>;
+      }
+    }
+    $new_meme .= $line;
+    
+    
+  }
+  else{
+    $new_meme .= $line;
+  }
+}
+#print stderr $#length_seq;
+print "$new_meme";

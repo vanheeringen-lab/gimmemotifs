@@ -1,0 +1,552 @@
+ce1cg           nan   38.47          1         90        105                   
+pbr322          nan   34.24         54        104        105                   
+deop2           nan   31.85          4         87        105                   
+male            nan   30.80          7         66        105                   
+ilv             nan   30.75          3         88        105                   
+bglr1           nan   27.83         25        105        105                   
+ara             nan   27.29         10        104        105                   
+gale            nan   26.21          1        102        105                   
+malt            nan   25.82          1         92        105                   
+YBR048W         nan   24.86         62        485        511                   
+lac             nan   24.66          3         88        105                   
+YAL003W         nan   24.20          8        348        366                   
+ompa            nan   23.99          3        103        105                   
+YBL087C         nan   23.83        218        500        504                   
+crp             nan   23.07          7         87        105                   
+cya             nan   22.70          9        103        105                   
+tnaa            nan   22.65         24        101        105                   
+YBL027W         nan   21.01         34        367        384                   
+YBR084C         nan   20.67        129        424        506                   
+tdc             nan   20.58          1         99        105                   
+YBR078W         nan   19.02          8        329        330                   
+malk            nan   18.08         41        105        105                   
+uxu1            nan   18.04         12         49        105                   
+YBL072C         nan   17.42         32        125        308                   
+trn9cat         nan   16.73         15         99        105                   
+-------------------------------------------------------------------------------
+
+ce1cg           nan   38.47          1         90        105                   
+
+                                  *____+3__*                            
+           .......................GCATCGGGCG.................           
+                                  GCATCGGGCG                            
+         1 TAATGTTTGTGCTGGTTTTTGTGGCATCGGGCGAGAATAGCGCGTGGTGT         50
+
+                        *_________+1______*    *___                     
+           .............TGTGATCGAGGTCACACTT....AAGT                     
+                        T+TGATCG ++TCACA ++    AAGT                     
+        51 GAAAGACTGTTTTTTTGATCGTTTTCACAAAAATGGAAGTCCACAGTCTT        100
+
+
+pbr322          nan   34.24         54        104        105                   
+
+               _________-1______*                     *____+3           
+               AGTGTGACCTCGATCACA.....................GCATCGG           
+                GTGTGA+ T  + CACA                     GCATC+G           
+        50 ATGCGGTGTGAAATACCGCACAGATGCGTAAGGAGAAAATACCGCATCAG         99
+
+           __* *            
+           GCG.T            
+           GCG T            
+       100 GCGCTC                                                    105
+
+
+deop2           nan   31.85          4         87        105                   
+
+              *     *_________+1______*                                 
+              G.....TGTGATCGAGGTCACACTT......................           
+              G     T+TGA C AG TC CA+T+                                 
+         1 AGTGAATTATTTGAACCAGATCGCATTACAGTGATGCAAACTTGTAAGTA         50
+
+                    *_________-1______*       *_                        
+           .........AAGTGTGACCTCGATCACA.......GC                        
+                    AA TGTGA +T  ATC +A       GC                        
+        51 GATTTCCTTAATTGTGATGTGTATCGAAGTGTGTTGCGGAGTAGATGTTA        100
+
+
+male            nan   30.80          7         66        105                   
+
+                 __*       *_________+1______*     *___+2_*             
+                 GCG.......TGTGATCGAGGTCACACTT.....CGGCGGGG..           
+                  CG       TGT A  GAG TCACAC++     CGG+GGGG             
+         1 ACATTACCGCCAATTCTGTAACAGAGATCACACAAAGCGACGGTGGGGCG         50
+
+               *_________+1                                             
+           ....TGTGATCGAGGT                                             
+                G  A+   G T                                             
+        51 TAGGGGCAAGGAGGATGGAAAGAGGTTGCCGTATAAAGAAACTAGAGTCC        100
+
+
+ilv             nan   30.75          3         88        105                   
+
+               *___+2_*                             *________           
+             ..CGGCGGGG.............................TGTGATCGA           
+               CGGCGGGG                              GTGATC A           
+         1 GCTCCGGCGGGGTTTTTTGTTATCTGCAATTCAGTACAAAACGTGATCAA         50
+
+           _+1______*                      *_____                       
+           GGTCACACTT......................AAGTGT                       
+           +  C CA TT                       A TGT                       
+        51 CCCCTCAATTTTCCCTTTGCTGAAAAATTTTCCATTGTCTCCCCTGTAAA        100
+
+
+bglr1           nan   27.83         25        105        105                   
+
+                                   2_*                                  
+                                   GGG.......................           
+                                   GGG                                  
+         1 ACAAATCCCAATAACTTAATTATTGGGATTTGTTATATATAACTTTATAA         50
+
+                                       *_________+1______*              
+           ............................TGTGATCGAGGTCACACTT...           
+                                       TGTGA+C  GGTCA A+TT              
+        51 ATTCCTAAAATTACACAAAGTTAATAACTGTGAGCATGGTCATATTTTTA        100
+
+                           
+           .....           
+                           
+       101 TCAAT                                                     105
+
+
+ara             nan   27.29         10        104        105                   
+
+                    __*                                                 
+                    GCG......................................           
+                    GCG                                                 
+         1 GACAAAAACGCGTAACAAAAGTGTCTATAATCACGGCAGAAAAGTCCACA         50
+
+                  *_________+1______*                                   
+           .......TGTGATCGAGGTCACACTT........................           
+                  T+TG  CG +GTCACACTT                                   
+        51 TTGATTATTTGCACGGCGTCACACTTTGCTATGCCATAGCATTTTTATCC        100
+
+                           
+           ....            
+                           
+       101 ATAAG                                                     105
+
+
+gale            nan   26.21          1        102        105                   
+
+           __*                                         *_____           
+           GCG.........................................TGTGAT           
+           GCG                                         T+T  T           
+         1 GCGCATAAAAAACGGCTAAATTCTTGTGTAAACGATTCCACTAATTTATT         50
+
+           ____+1______*                                                
+           CGAGGTCACACTT.....................................           
+           C A+GTCACACTT                                                
+        51 CCATGTCACACTTTTCGCATCTTTGTTATGCTATGGTTATTTCATACCAT        100
+
+                           
+           ..              
+                           
+       101 AAGCC                                                     105
+
+
+malt            nan   25.82          1         92        105                   
+
+           _______+1______*                        *_________           
+           GATCGAGGTCACACTT........................AAGTGTGACC           
+           GATC  +GTC   +T+                        AA TGTGAC            
+         1 GATCAGCGTCGTTTTAGGTGAGTTGTTAATAAAGATTTGGAATTGTGACA         50
+
+           -1______*                             *___                   
+           TCGATCACA.............................GCAT                   
+             G  CA+A                             GCAT                   
+        51 CAGTGCAAATTCAGACACATAAAAAAACGTCATCGCTTGCATTAGAAAGG        100
+
+
+YBR048W         nan   24.86         62        485        511                   
+
+                       _________+1______*                               
+                       GTGATCGAGGTCACACTT....................           
+                       +TG TCGAGGT A A+T+                               
+        50 CGGAAAGGAAAATTGCTCGAGGTAATATTATAATTTTAATGGGAATTTCC         99
+
+                                                                        
+           ..................................................           
+                                                                        
+       100 AGATTTATCAACATAAACGTTAGCAAGCGCAGTACCATCAAGTAAAAGTT        149
+
+                                                                        
+           ..................................................           
+                                                                        
+       150 TACTGGTGAAAAGCAGGACCTCGAATGATTGAGATTTCGTTACACAGTAC        199
+
+                                                                        
+           ..................................................           
+                                                                        
+       200 GAGTAAAATATAAATTATTTCAAGAAGAAGAGAACTTTTGATCTGAAAAT        249
+
+                                                                        
+           ..................................................           
+                                                                        
+       250 GAAAATGTAACCACGGAGAAATGTTGAGAATACATAAATAACCATGAGGC        299
+
+                                                                        
+           ..................................................           
+                                                                        
+       300 CAAAACACCTTAATATGAAGTATAACTTTTACTGTGCTCAATGACTATTT        349
+
+                                                                        
+           ..................................................           
+                                                                        
+       350 CACCCGACTAATGCCAAGTAAGGAGGATCTCCATCATACGGAACAATTTT        399
+
+                                                                        
+           ..................................................           
+                                                                        
+       400 CCAACCGCCACGACACAGTTAACGATTTCCTTTTCGCCTAAAAATAGTAG        449
+
+                                           *___                         
+           ................................CGGC                         
+                                           CGG+                         
+       450 GAATGAAGTTCATGATTATATTTTAGATCAACCGGTTTACTAACATGCTA        499
+
+
+lac             nan   24.66          3         88        105                   
+
+             _*       *_________+1______*                               
+             CG.......TGTGATCGAGGTCACACTT....................           
+             CG       TGTGA+  AG TCAC C+T                               
+         1 AACGCAATTAATGTGAGTTAGCTCACTCATTAGGCACCCCAGGCTTTACA         50
+
+                                         *_______                       
+           ..............................AAGTGTGA                       
+                                         AA TGTGA                       
+        51 CTTTATGCTTCCGGCTCGTATGTTGTGTGGAATTGTGAGCGGATAACAAT        100
+
+
+YAL003W         nan   24.20          8        348        366                   
+
+                  __*                                                   
+                  GCG........................................           
+                   CG                                                   
+         1 GTATGTTCCGATTTAGTTTACTTTATAGATCGTTGTTTTTCTTTCTTTTT         50
+
+                                                                        
+           ..................................................           
+                                                                        
+        51 TTTTTTTCCTATGGTTACATGTAAAGGGAAGTTAACTAATAATGATTACT        100
+
+                                                                        
+           ..................................................           
+                                                                        
+       101 TTTTTTCGCTTATGTGAATGATGAATTTAATTCTTTGGTCCGTGTTTATG        150
+
+                                                                        
+           ..................................................           
+                                                                        
+       151 ATGGGAAGTAAGACCCCCGATATGAGTGACAAAAGAGATGTGGTTGACTA        200
+
+                                                                        
+           ..................................................           
+                                                                        
+       201 TCACAGTATCTGACGATAGCACAGAGCAGAGTATCATTATTAGTTATCTG        250
+
+                                                                        
+           ..................................................           
+                                                                        
+       251 TTATTTTTTTTTCCTTTTTTGTTCAAAAAAAGAAAGACAGAGTCTAAAGA        300
+
+                                                       *___             
+           ............................................TGTG             
+                                                       T+TG             
+       301 TTGCATTACAAGAAAAAAGTTCTCATTACTAACAAGCAAAATGTTTTGTT        350
+
+
+ompa            nan   23.99          3        103        105                   
+
+             _*                                                         
+             GG..............................................           
+              G                                                         
+         1 GCTGACAAAAAAGATTAAACATACCTTATACAAGACTTTTTTTTCATATG         50
+
+           *_________+1______*                                          
+           TGTGATCGAGGTCACACTT...............................           
+             TGA  GAG+TCACACTT                                          
+        51 CCTGACGGAGTTCACACTTGTAAGTTTTCAACTACGTTGTAGACTTTACA        100
+
+            *_             
+           .CG             
+            CG             
+       101 TCGCC                                                     105
+
+
+YBL087C         nan   23.83        218        500        504                   
+
+                             ______*                                    
+                             CACACTT.........................           
+                             CACAC+T                                    
+       200 CCGCCAAAGATGCAATTACACACATAAATTCAGTTTTTAAATGGTTAAGC        249
+
+                                                                        
+           ..................................................           
+                                                                        
+       250 GGGCTGTATTTGCAGATGAAGTGATACCTGTCAATATTCATGGACTCAAA        299
+
+                                                                        
+           ..................................................           
+                                                                        
+       300 AATTTCTGGTTTCAAAATCATACACGGCAAGCATATCCTAACTCCCTCTT        349
+
+                                                                        
+           ..................................................           
+                                                                        
+       350 TTGCCCATACTAATGGATAACCATCGAAATGTTATTTCTACAAAAATCAC        399
+
+                                                                        
+           ..................................................           
+                                                                        
+       400 GCTTAACTCTATTTTTCAAGATTAACCACATCTGCTAACTTTCTCCCTAT        449
+
+                                            *_________-1_____           
+           .................................AAGTGTGACCTCGATCA           
+                                            +A TG GA CT+  T A           
+       450 GCTTTTACTAACAAAATTATTCTCACTCCCCGATATTGAGATCTTTTTTA        499
+
+           _               
+           C               
+           +               
+       500 ACTAG                                                     504
+
+
+crp             nan   23.07          7         87        105                   
+
+                 __*                                                    
+                 GCG.........................................           
+                 GCG                                                    
+         1 CACAAAGCGAAAGCTATGCTAAAACAGTCAGGATGCTACAGTAATACATT         50
+
+                          *_________+1______* *_                        
+           ...............TGTGATCGAGGTCACACTT.CG                        
+                          TG  A  GA+GTCACA+T+ CG                        
+        51 GATGTACTGCATGTATGCAAAGGACGTCACATTACCGTGCAGTACAGTTG        100
+
+
+cya             nan   22.70          9        103        105                   
+
+                   _____*                                   *           
+                   ACACTT...................................A           
+                   ACACTT                                   A           
+         1 ACGGTGCTACACTTGTATGTAGCGCATCTTTCTTTACGGTCAATCAGCAA         50
+
+           _________-1______*                                           
+           AGTGTGACCTCGATCACA................................           
+            GTGT A+ T+GATCAC                                            
+        51 GGTGTTAAATTGATCACGTTTTAGACCATTTTTTCGTCGTGAAACTAAAA        100
+
+                           
+           ...             
+                           
+       101 AAACC                                                     105
+
+
+tnaa            nan   22.65         24        101        105                   
+
+                                  _*                                    
+                                  CG.........................           
+                                  CG                                    
+         1 TTTTTTAAACATTAAAATTCTTACGTAATTTATAATCTTTAAAAAAAGCA         50
+
+                                  *_________+1______*                   
+           .......................TGTGATCGAGGTCACACTT........           
+                                  TGTGAT    +TCACA+TT                   
+        51 TTTAATATTGCTCCCCGAACGATTGTGATTCGATTCACATTTAAACAATT        100
+
+                           
+           .               
+                           
+       101 TCAGA                                                     105
+
+
+YBL027W         nan   21.01         34        367        384                   
+
+                                            _____*                      
+                                            ATCACA...........           
+                                             TCACA                      
+         1 GTATGTTTAACAGTGATACTAAATTTTGAACCTTTCACAAGATTTATCTT         50
+
+                                                                        
+           ..................................................           
+                                                                        
+        51 TAAATATGTTATGAATGTCATCCTTTGGAGAGAAATAGATAAGGAAAAAA        100
+
+                                                                        
+           ..................................................           
+                                                                        
+       101 ATTGAGGATACAGCATCCGGTGGTCGCATAGTTGGTAGCAACATCCATAG        150
+
+                                                                        
+           ..................................................           
+                                                                        
+       151 AAGAACCTCAGATAAATTTCAAGCTTGTACGAATTGCCGCGTTTATTACA        200
+
+                                                                        
+           ..................................................           
+                                                                        
+       201 AACTATAGAATTATCGCAGCAATGGTACGTGTCTGTTCCTGCAAGCGTTA        250
+
+                                                                        
+           ..................................................           
+                                                                        
+       251 ATTCGATTGATAGATAAAGTAATTCATTAACCTTTGCGAATATGCTCTTT        300
+
+                                                                        
+           ..................................................           
+                                                                        
+       301 ACTGTTAGGTTTCAGGATTTTAAAAATGAAGCAACTTTACTAACATCAAT        350
+
+                         *__                            
+           ..............GCA                            
+                         GCA                            
+       351 ATGCAAATAAATCTGCAAAAACTTTTTTTCACAG                        384
+
+
+YBR084C         nan   20.67        129        424        506                   
+
+                                        _________+1______*              
+                                        GTGATCGAGGTCACACTT...           
+                                        GTGAT   GGT A A++T              
+       100 ATCACCTGAAACACCAGCGTTATTGAAAAGTGATATGGGTAATATATGCC        149
+
+                                                                        
+           ..................................................           
+                                                                        
+       150 AAGAACGATACTGTGTTCCATTTGCATCATGAATATGCTAGTGAAGCCAG        199
+
+                                                                        
+           ..................................................           
+                                                                        
+       200 ATGTTTCTATAATCGGAGTTTTAGCACTAAAAGGCAAAAGAGGAAACTTG        249
+
+                                                                        
+           ..................................................           
+                                                                        
+       250 TGGAAGAATTTTTTTTCTGTGCAGTTTACCATTAAGATATTTATAGCGAT        299
+
+                                                                        
+           ..................................................           
+                                                                        
+       300 AAGTGAGACCATTAATATGAGTATTCAATACGAGAACCAGTTACGTGATA        349
+
+                                                                        
+           ..................................................           
+                                                                        
+       350 AAAGTTACTCGAGCTGCTGCAGTATCCAGCATACATAATAACCATGTCAT        399
+
+                              *_____                                    
+           ...................AAGTGT                                    
+                              AAGTGT                                    
+       400 TTTTCTATAGCGAGTTTTAAAGTGTCTACCACCGCAATTTCTATCTTTCG        449
+
+
+tdc             nan   20.58          1         99        105                   
+
+           *                                                            
+           G.................................................           
+           G                                                            
+         1 GATTTTTATACTTTAACTTGTTGATATTTAAAGGTATTTAATTGTAATAA         50
+
+                                       *_________+1______*              
+           ............................TGTGATCGAGGTCACACTT..            
+                                       T+TG + G GGTC CAC+T              
+        51 CGATACTCTGGAAAGTATTGAAAGTTAATTTGTGAGTGGTCGCACATATC        100
+
+
+YBR078W         nan   19.02          8        329        330                   
+
+                  ___*                                                  
+                  CACA.......................................           
+                  CACA                                                  
+         1 GTATGTACACATTCTCCTTTTTTTTCATCTTTTTTTCTTTATTTGCCTCT         50
+
+                                                                        
+           ..................................................           
+                                                                        
+        51 TTCCTCACAAATCTCGAGTAGATTCGTGGTCCTCTTCATTCTTTTCTTTT        100
+
+                                                                        
+           ..................................................           
+                                                                        
+       101 TTCTTTGTCGATTACTGGGCTTTTTTTCATAGGTCTCGATTGACGCGGAC        150
+
+                                                                        
+           ..................................................           
+                                                                        
+       151 GGACAATGCGAAAAAAAAAAATTTCCAAAAGAGGAAACGGGTTTCGAGAT        200
+
+                                                                        
+           ..................................................           
+                                                                        
+       201 CTCGTGAGGATGGTTTTGGAATATTCTTCAATATTTCTGCCTGTCATAGG        250
+
+                                                                        
+           ..................................................           
+                                                                        
+       251 ATTAGGGCGAGTAATGAAACAGAATAATACATGTATAAATCGATCGGGAA        300
+
+                                     *__            
+           ..........................GCA            
+                                     GCA            
+       301 TACTAACACTACTTTTCTTTATCTAAGCAG                            330
+
+
+malk            nan   18.08         41        105        105                   
+
+                                                   _______+1_           
+                                                   GATCGAGGTC           
+                                                    A CGAGGTC           
+         1 GGAGGAGGCGGGAGGATGAGAACACGGCTTCTGTGAACTAAACCGAGGTC         50
+
+           _____*    *_________-1______*                                
+           ACACTT....AAGTGTGACCTCGATCACA.....................           
+           A  +++    ++  GTGA +T+G+T  CA                                
+        51 ATGTAAGGAATTTCGTGATGTTGCTTGCAAAAATCGTGGCGATTTTATGT        100
+
+             *__           
+           ..GCA           
+             GCA           
+       101 GCGCA                                                     105
+
+
+uxu1            nan   18.04         12         49        105                   
+
+                      *       *_________+1______*        *__            
+                      G.......TGTGATCGAGGTCACACTT........CGG            
+                      G       TGTGAT   G+T AC C++        CGG            
+         1 CCCATGAGAGTGAAATTGTTGTGATGTGGTTAACCCAATTAGAATTCGGG         50
+
+
+YBL072C         nan   17.42         32        125        308                   
+
+                                          ______*                       
+                                          CACACTT............           
+                                           ACA++T                       
+         1 GTATGTGCTATGGTCATATGAGTAATGGAACTACATATTATTTTGAATGC         50
+
+                                                                        
+           ..................................................           
+                                                                        
+        51 TACAGGACCTCTCTTTGAATGGAATAGATAGTGGAAAAAGTAAACTTAAC        100
+
+                           *________                                    
+           ................AAGTGTGAC                                    
+                           AA TGTGAC                                    
+       101 TAAAAGGGATGATATAAATTGTGACAGGAGCAGTGCACTAAACTGAATCC        150
+
+
+trn9cat         nan   16.73         15         99        105                   
+
+                         ____*                                          
+                         CACTT...............................           
+                         CACTT                                          
+         1 CTGTGACGGAAGATCACTTCGCAGAATAAATAAATCCTGGTGTCCCTGTT         50
+
+                                            *_________-1____            
+           .................................AAGTGTGACCTCGATC            
+                                            AA TG GAC+T+GATC            
+        51 GATACCGGGAAGCCCTGGGCCAACTTTTGGCGAAAATGAGACGTTGATCG        100
+
+

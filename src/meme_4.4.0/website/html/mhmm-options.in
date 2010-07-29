@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st January 2004), see www.w3.org">
+<title>Meta-MEME v3.3</title>
+<link href="metameme.css" rel="styleSheet" type="text/css">
+</head>
+<body bgcolor="white">
+<blockquote>
+<h1><img height="81" width="444" src="images/meta-meme.gif"></h1>
+<h3>Advanced options</h3>
+In the course of building and using a motif-based hidden Markov
+model, Meta-MEME requires that various parameters be set. By
+default, Meta-MEME employs reasonable values for these parameters.
+However, when submitting a job to the server, you may choose to
+override the default settings. The following list explains each
+parameter and gives its default value.
+<h3>Model building</h3>
+<ul>
+<li><b>Model topology</b><br>
+By default, Meta-MEME builds models that have a linear topology, in
+which the motifs are arranged like beads on a string. If, however,
+you believe that the family you are interested in contains repeated
+or shuffled elements, you may wish to build a model in which every
+motif is connected to every other motif. Note that completely
+connected models cannot be used to create multiple alignments.</li>
+<li style="list-style: none"><br></li>
+<li style="list-style: none"><br></li>
+<li><b>Motifs</b><br>
+By default, Meta-MEME includes in the hidden Markov model all the
+motifs that appear in more than half of the sequences in the
+training set. You may choose instead to include more or fewer of
+the given motifs.</li>
+<li style="list-style: none"><br></li>
+<li><b>Spacer models</b><br>
+Meta-MEME models the non-motif, spacer regions of the given family
+using HMM states with self-loops on them. Because a single such
+state yields an exponential distribution of spacer lengths,
+Meta-MEME can use several such states in succession to give a more
+bell-shaped distribution of spacer lengths. Note that these
+multi-state spacer models are only useful in conjunction with total
+probability scoring.</li>
+</ul>
+<!--<H3>Model training</H3>
+
+<UL>
+
+<LI> <B>Parameters to train</B><BR> By default, Meta-MEME trains the
+transition probability distributions in the HMM using
+expectation-maximization.  You can opt to turn off this training, in
+which case the transition probabilities are set equal to the observed
+motif-to-motif transition frequencies from a MAST analysis of the
+data.  You can also re-train the motifs themselves by training the
+emission probability distributions in the HMM.
+
+<P>
+
+<LI> <B>Training algorithm</B><BR> Meta-MEME learns the
+characteristics of the given sequences using the
+expectation-maximization algorithm.  During the expectation step of
+this algorithm, the parameters of the model are re-estimated by
+applying the current model to the data.  Two algorithms can be used to
+carry out this re-estimation.  The Viterbi algorithm finds, for a
+given sequence and model, the sequence of model states most likely to
+have generated that sequence.  The forward-backward algorithm, on the
+other hand, considers all possible sequences of states that might have
+generated the given sequence.  Note that expectation-maximization
+using the forward-backward algorithm is sometimes called the
+Baum-Welch algorithm.  By default, Meta-MEME trains using the Viterbi
+algorithm because the Viterbi path is interpretable in terms of the
+evolution of the given sequence.
+
+<P>
+
+<LI> <B>Model updating</B><BR> The expectation-maximization algorithm
+can operate either in online mode, in which the model is updated
+incrementally after each sequence is observed, or in batch mode, in
+which data from all of the sequences is pooled before updating the
+model.  Online learning is necessary in conjunction with Viterbi
+training, since the Viterbi path provides a sparse estimate of the
+model parameters.
+
+<P>
+
+<LI> <B>Maximum number of training iterations</B><BR> The
+expectation-maximization algorithm iterates through a two-step process
+of re-estimating the model from the current model and the data, and
+then replacing the current model with the re-estimated model.  By
+default, this iterative procedure repeats a maximum of 20 times.
+
+<P>
+
+<LI> <B>Training convergence threshold</B><BR> After each pass through
+the training set, Meta-MEME evaluates the quality of the model, using
+either the Viterbi score (for Viterbi training) or the total
+probability (for forward-backward training).  When the model converges
+toward a fixed point, this score stops changing.  The default
+convergence threshold is 0.001.
+
+<P>
+
+<LI> <B>Mixing of current and re-estimated model</B><BR> During the
+maximization step of the expectation-maximization algorithm, the
+current model is replaced by a model that has been re-estimated from
+the data.  Because Meta-MEME performs maximum a posteriori training,
+rather than maximum likelihood training, there is no guarantee that
+the re-estimated model will score higher than the current model.
+Hence, it is possible for the training procedure to reach a limit
+cycle in which the model score oscillates.  This oscillation can be
+damped by mixing the current model with the re-estimated model, rather
+than replacing the current model entirely.  Mixing is particularly
+important when online, Viterbi training is employed.  By default, only
+1% of the re-estimated model is incorporated into the current model.
+
+<P>
+
+<LI> <B>Transition pseudocount</B><BR> In order to prevent transition
+probabilities from becoming zero, a pseudocount is added to each
+observed transition count.  Note that, for online training, this
+pseudocount is divided by the number of sequences in the training set,
+so that the total pseudocount is added only once for each pass through
+the data.  The default pseudocount value is 0.1.
+
+<P>
+
+<LI> <B>Sequence weighting</B><BR> If the training set is a biased
+sample of the test domain, then expectation-maximization will learn a
+correspondingly biased model.  Sequence weighting attempts to
+compensate for biases in the sequence databases by down-weighting
+sequences that are similar to one another.  Internal sequence
+weighting adjusts these sequence weights dynamically after each
+iteration of expectation-maximization.  This type of weighting is
+therefore formally equivalent to maximum discrimination learning.  By
+default, Meta-MEME employs a weighting function from Karchin and
+Hughey (Bioinformatics, 1998), W = exp[ln(K)(w-S)/(w-b)], where S is
+the sequence's score, w is the score of the lowest-scoring sequence, b
+is the score of the best-scoring sequence, and K is a constant (0.01).
+The web interface allows internal weighting to be turned off.
+Meta-MEME also allows the user to specify fixed weights for each
+sequence in the training set; however, this option is not available
+through the web interface.
+
+<P>
+
+</UL>
+
+<H3>Multiple alignment</H3>
+
+<UL>
+
+<LI> <B>Multiple alignment format</B><BR> Meta-MEME can produce a
+multiple alignment of the sequences you provide.  By default, the
+alignment is produced in Phylip format; however, you may choose to
+receive the alignment in MSF, Selex or FASTA format instead.
+
+<P>
+
+<LI> <B>Non-motif alignment regions</B><BR> Meta-MEME only aligns the
+motif regions of the sequences you provide.  Therefore, by default,
+Meta-MEME produces a multiple alignment that excludes the non-motif
+regions.   You can ask for an alignment that contains these regions.
+Note, however, that the resulting alignment is only valid within the
+motif regions.
+<P>
+</UL>-->
+<h3>Homology detection</h3>
+<ul>
+<li><b>Scoring</b><br>
+By default, when Meta-MEME uses a model to search a sequence
+database for homologs, the sequences are scored using the Viterbi
+algorithm. This algorithm computes the most likely path through the
+model, given the sequence. Alternatively, you can ask Meta-MEME to
+compute the total probability of the sequence with respect to all
+paths through the model.</li>
+<li style="list-style: none"><br></li>
+<li><b>Score threshold</b><br>
+Meta-MEME reports homology log-odds scores in bits. Typically,
+Meta-MEME only reports scores for sequences that score above zero.
+You can set the score reporting threshold to some other value. Note
+that, regardless of the threshold you select, the Meta-MEME server
+will report at least 10 scores and at most 1000 scores.</li>
+<li style="list-style: none"><br></li>
+<li><b>Minimum number of sequences</b><br>
+This parameter determines the minimum number of homology scores
+reported by Meta-MEME. The default value is 10.</li>
+<li style="list-style: none"><br></li>
+<li><b>Maximum number of sequences</b><br>
+This parameter determines the maximum number of homology scores
+reported by Meta-MEME. The default value is 100.</li>
+</ul>
+<hr>
+<a href="metameme-intro.html">Return</a> to the Meta-MEME home page.
+<p><i>Please send comments and questions to Charles E. Grant at
+<a href=
+"mailto:@METAMEME_CONTACT@">@METAMEME_CONTACT@</a>.</i></p>
+</blockquote>
+</body>
+</html>

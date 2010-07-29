@@ -1,0 +1,161 @@
+#!@WHICHPERL@
+##
+## .pm made from .pm.in by make
+##
+################################################################################
+#
+# convert_counts_to_freqs()
+#
+################################################################################
+sub convert_counts_to_freqs () {
+  my ($motif_href, $bg_href, $letters_aref, $pseudo_total) = @_;
+
+  my %motif = %$motif_href;
+  my %bg = %$bg_href;
+  my @letters = @$letters_aref;
+
+  my $motif_width = $motif{width};
+  my $total_counts = 0;
+
+  foreach (my $key1=0; $key1<$motif_width; $key1++) {
+    my %vals = ();
+    my $sum_row = 0;
+    foreach my $key2 (@letters) {
+      if (exists($motif{freqs}->{$key2}[$key1])){
+        $sum_row += $vals{$key2} = $motif{freqs}->{$key2}[$key1] + ($pseudo_total * $bg{$key2});
+        $total_counts += $motif{freqs}->{$key2}[$key1];
+      } else {
+        $sum_row += $vals{$key2} = $pseudo_total * $bg{$key2};
+      }
+    }
+
+    foreach my $key (@letters) {
+      $motif{freqs}->{$key}[$key1] = $vals{$key}/$sum_row;
+    }
+  }
+
+  $motif_href->{num_seqs} = $total_counts/$motif_width;
+
+} # convert_counts_to_freqs
+
+################################################################################
+#
+# print_meme_motif()
+#
+################################################################################
+sub print_meme_motif {
+  my ($motif_href, $bg_href, $residues_aref, $print_logodds) = @_;
+
+  my %motif = %$motif_href;
+  my %bg = %$bg_href;
+  my @residues = @$residues_aref;
+
+  my $output = "";
+  my $motif_name = $motif{name};
+  my $width = $motif{width};
+  my $num_seqs = $motif{num_seqs};
+  my $descr = $motif{descr};
+  my $num_residues = scalar @residues;
+
+  #print(STDERR "Printing motif $motif_name.\n");
+
+  #
+  # get the text for the PSPM (and PSSM)
+  #
+  my $letter_prob = "letter-probability matrix: alength= $num_residues w= $width nsites= $num_seqs E= 0\n";
+  my $log_odds = "log-odds matrix: alength= $num_residues w= $width n= 0 bayes= 0 E= 0\n";
+  for (my $i = 0; $i < $width; $i++) {
+    foreach my $residue (@residues) {
+      my $freq = $motif{freqs}->{$residue}->[$i];
+      my $val1 = sprintf("%10.6f", $freq);
+      $letter_prob .= "$val1\t";
+      my $val2 = sprintf("%10.6f", $freq > 0 ? log($freq/$bg{$residue}) / log(2.0) : -100);
+      $log_odds .= "$val2\t";
+    }
+    $letter_prob .= "\n";
+    $log_odds .= "\n";
+  }
+  $letter_prob .= "\n";
+  $log_odds .= "\n";
+
+  # Print the motif.
+  $output = "MOTIF $motif_name $descr\n\n";
+  $output .= "BL   MOTIF $motif_name width=$width seqs=$num_seqs\n";
+  $output .= $log_odds if ($print_logodds);
+  $output .= $letter_prob;
+
+  return($output);
+} # print_meme_motif
+
+################################################################################
+#
+# print_meme_header()
+#
+################################################################################
+sub print_meme_header {
+  my ($alph_type, $alphabet, $residues, $bg) = @_;
+  my $output;
+
+  # Print the file MEME header.
+  $output = "MEME version 3.0\n\n";
+  $output .= "ALPHABET= $alphabet\n\n";
+  unless ($alph_type eq "PROTEIN") { $output .= "strands: + -\n\n";}
+  $output .= 
+    "Background letter frequencies (from dataset with add-one prior applied):\n";
+  foreach my $residue (@$residues) {
+    $output .= sprintf("%s %.5f ", $residue, $bg->{$residue});
+  }
+  $output .= "\n\n";
+  return($output);
+} # print_meme_header
+
+################################################################################
+#
+# read_background_file()
+#
+# Read a background file in fasta-get-markov format.
+# If $bg_file is not defined, sets background to uniform.
+#
+# Returns background as a hash.
+#
+################################################################################
+sub read_background_file {
+  my ($alphabet, $bg_file) = @_;
+
+  # get the letters in the alphabet 
+  my @letters = split(//, $alphabet); 
+  my $alph_length = scalar @letters;
+  my (%bg, $a, $f);
+
+  # initialize the background to uniform if no file given
+  if (! defined $bg_file) {
+    foreach $a (@letters) {
+      $bg{$a} = 1.0/$alph_length;
+    }
+    return(%bg);
+  }
+  
+  # read the background file
+  open(BG_FILE, $bg_file) || die("Can't open $bg_file.\n");
+  my $total_bg = 0;
+  while (<BG_FILE>) {
+    next if (/^#/);      		# skip comments
+    ($a, $f) = split;
+    next unless (length($a) == 1);	# skip higher order model
+    $a =~ y/a-z/A-Z/;
+    $bg{$a} = $f;
+    $total_bg += $f;
+  }
+  close BG_FILE;
+
+  # make sure they sum to 1 by normalizing
+  foreach my $key (@letters) {
+    die ("The letter '$key' was not given a value in the background file: $bg_file\n")
+      unless (defined $bg{$key});
+    $bg{$key} /= $total_bg;
+  }
+
+  return(%bg);
+}  # background file
+
+1;

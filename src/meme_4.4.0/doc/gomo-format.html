@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>GOMO file Format</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+    <style type="text/css">
+      <!--
+      .bordertable {
+        padding: 2px 4px 2px 4px;
+        border: 1px solid #660000;
+      }
+      td {
+        vertical-align:top;
+      }
+      -->
+    </style>
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>GOMO file format</h1>
+      <p>
+      GOMO outputs an xml file using the following format.
+      <table class="bordertable" border="1">
+        <tr>
+          <th>Tag</th><th>Child of</th><th>Description</th>
+        </tr>
+        <tr>
+          <td >&lt;gomo&gt;</td><td >Nothing</td>
+          <td>
+            Information about this run of gomo.
+            <ul>
+              <li>version - The version of gomo that generated the xml file.</li>
+              <li>release - The release date of the version that generated the xml.</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td >&lt;program&gt;</td>
+          <td >&lt;gomo&gt;</td>
+          <td>
+            Information about the state of the program when it ran.<br />
+            <ul>
+              <li>name - name of the program.</li>
+              <li>cmd - the command line passed to the program.</li>
+              <li>gene_url - the url used to lookup further information on the gene ids. 
+              The url has ampersands (&amp;) converted into <b>&amp;amp;</b> and the place where
+                the gene ID should be replaced by <b>!!GENEID!!</b> .</li>
+              <li>outdir - the output directory that the program wrote to.</li>
+              <li>clobber - true if gomo was allowed to overwrite the output directory.</li>
+              <li>text_only - true if gomo wrote to stdout, in which case this file would
+                not exist so it must be false.</li>
+              <li>use_e_values - true if gomo used E-values (converted from p-values) as 
+                input scores, false if gomo used gene scores.</li>
+              <li>score_e_thresh - if gomo used E-values then this is the threshold that 
+                gomo assumed the worst E-value (p-value = 1.0) for the gene to smooth out noise.</li>
+              <li>min_gene_count - the minimum number of genes that a GO term was annotated 
+                with before gomo would calculate a score for it.</li>
+              <li>motifs - if present then a space delimited list of the motifs that gomo 
+                calculated a score for, othewise gomo scored all motifs.</li>
+              <li>shuffle_scores - the number of times gomo generated a shuffled mapping of
+                gene id to gene id to be used to generate scores from the null model.</li>
+              <li>q_threshold - gomo filtered the results to only show those with a better
+              (smaller) q-value.</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>&lt;gomapfile&gt;</td>
+          <td>&lt;program&gt;</td>
+          <td>
+            Information about the GO mapping file.<br />
+            <ul>
+              <li>path - the path to the mapping file.</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>&lt;seqscorefile&gt;</td>
+          <td>&lt;program&gt;</td>
+          <td>
+            Information about the sequence scoring file.<br />
+            <ul>
+              <li>path - the path to the sequence scoring file.</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>&lt;motif&gt;</td>
+          <td>&lt;gomo&gt;</td>
+          <td>
+            Information about the motif.<br />
+            <ul>
+              <li>id - the motif identifier.</li>
+              <li>genecount - the number of scored sequences that were used to compute the result.</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>&lt;goterm&gt;</td>
+          <td>&lt;motif&gt;</td>
+          <td>
+            Information about the GO term.<br />
+            <ul>
+              <li>id - the GO identifier.</li>
+              <li>score - the geometic mean across all species of the rank-sum test p-value.</li>
+              <li>pvalue - the empirically calculated p-value.</li>
+              <li>qvalue - the empirically calculated q-value.</li>
+              <li>annotated - the number of genes annotated with the go term.</li>
+              <li>group - the subgroup that the term belongs to. For the Gene Ontology 
+                  b = biological process, c = cellular component and m = molecular function.</li>
+              <li>nabove - the number of more general terms that link to this one.</li>
+              <li>nbelow - the number of more specific terms that link from this one.</li>
+              <li>implied - is the go term implied by other significant go terms? 
+                Allows values 'y', 'n' or 'u' (default) for yes, no or unknown.</li>
+              <li>description - the GO term description.</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>&lt;gene&gt;</td>
+          <td>&lt;goterm&gt;</td>
+          <td>
+            Information about the GO term's annotated genes for the primary species.<br />
+            <ul>
+              <li>id - the gene identifier.</li>
+              <li>rank - the rank of the scored gene.</li>
+            </ul>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

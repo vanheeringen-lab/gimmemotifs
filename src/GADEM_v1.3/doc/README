@@ -1,0 +1,43 @@
+
+This program was developed by Leping Li of the National Institutes of 
+Environmental Health Sciences, Research Triangle Park, North Carolina 27709.
+
+
+INSTALLATION
+
+In the main directory of the distribution, type
+
+./configure
+
+then
+
+make
+
+make install
+
+By default, the configure program will direct the executable files to 
+/usr/local/bin which, in most cases, requires the user to "su" to root 
+prior to the "make install" step. The target directory for the executable 
+file can be overridden by specifying the --prefix option during the 
+configure phase. For example,
+
+./configure --prefix=/home/gadem_user
+
+will direct the executables into /home/gadem_user/bin directory.
+
+The configure application accepts several arguments to tailor the build 
+and installation process. Please see the INSTALL file contained in the root 
+directory of the distribution for further details.
+
+The source code and package were developed using Windows and tested on 
+Linux (Fedora). Although the intent was to make the code portable to most U*IX 
+variants, you may encounter minor build issues on other platforms. Feedback 
+regarding any difficulties you may experience will be very helpful in improving 
+the distribution package. 
+
+
+CONTACT
+
+Leping Li, NIEHS
+Phone: 919-541-5168
+Email: li3@niehs.nih.gov

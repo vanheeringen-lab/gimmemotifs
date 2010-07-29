@@ -1,0 +1,38 @@
+digraph G {
+  rankdir=LR;
+  node[fontsize=24,font=Helvetica];
+  edge[fontsize=24,font=Helvetica];
+  state0 [label="begin",shape=ellipse,color="black",size="0.100000,0.100000"];
+  state1 [label="",shape=circle,color="blue",size="0.100000,0.100000"];
+  state5 [label="",shape=circle,color="blue",size="0.100000,0.100000"];
+  state6 [label="",shape=circle,color="blue",size="0.100000,0.100000"];
+  state10 [label="",shape=circle,color="blue",size="0.100000,0.100000"];
+  state11 [label="",shape=circle,color="blue",size="0.100000,0.100000"];
+  state13 [label="",shape=circle,color="blue",size="0.100000,0.100000"];
+  state15 [label="",shape=circle,color="blue",size="0.100000,0.100000"];
+  state16 [label="1 : PVDNFDISKFAGTWHEIAK",shape=box,color="0.1 0.5 0.8",size="0.100000,0.100000"];
+  state35 [label="2 : ENVFWVLDTDYKNYAIAYLC",shape=box,color="0.5 0.75 0.8",size="0.100000,0.100000"];
+  state55 [label="3 : FLDAAWVLEKSKVLEGHT",shape=box,color="0.9 1 0.8",size="0.100000,0.100000"];
+  state73 [label="end",shape=ellipse,color="black",size="0.100000,0.100000"];
+   state0 -> state1 [weight=10.000000,label="1"];
+   state1 -> state1 [weight=9.375000,label="0.94"];
+   state1 -> state16 [weight=0.625000,label="0.062"];
+   state5 -> state5 [weight=9.848480,label="0.98"];
+   state5 -> state35 [weight=0.151515,label="0.015"];
+   state6 -> state6 [weight=9.166670,label="0.92"];
+   state6 -> state55 [weight=0.833333,label="0.083"];
+   state10 -> state10 [weight=9.333330,label="0.93"];
+   state10 -> state55 [weight=0.666667,label="0.067"];
+   state11 -> state11 [weight=9.833330,label="0.98"];
+   state11 -> state73 [weight=0.166667,label="0.017"];
+   state13 -> state13 [weight=9.736840,label="0.97"];
+   state13 -> state35 [weight=0.263158,label="0.026"];
+   state15 -> state15 [weight=9.655170,label="0.97"];
+   state15 -> state73 [weight=0.344828,label="0.034"];
+   state16 -> state5 [weight=5.961540,label="0.6"];
+   state16 -> state6 [weight=4.038460,label="0.4"];
+   state35 -> state10 [weight=5.961540,label="0.6"];
+   state35 -> state11 [weight=4.038460,label="0.4"];
+   state55 -> state13 [weight=4.038460,label="0.4"];
+   state55 -> state15 [weight=5.961540,label="0.6"];
+}

@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+
+<xsl:stylesheet version="1.0"
+ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+ xmlns:cis="http://zlab.bu.edu/schema/cisml"
+ xmlns:mem="http://noble.gs.washington.edu/meme"
+>
+
+<xsl:output method="html" />
+
+<!-- A stylesheet to generate a text report of pvalues for patterns scanned over a group of sequences-->
+
+<xsl:template match="/">
+	<html>
+		<head>
+			<title>Sequence Analysis by <xsl:value-of select="/cis:cis-element-search/cis:program-name"/></title>
+			<link href="@URL@/cisml.css" rel="stylesheet" type="text/css"></link>
+		</head> 
+		<body>
+			<h2 align="center">Sequence Analysis with <xsl:value-of select="/cis:cis-element-search/cis:program-name"/></h2>
+				<xsl:choose>
+					<xsl:when test="//cis:multi-pattern-scan">
+						<xsl:for-each select="//cis:multi-pattern-scan">
+							<!-- Loop through each pattern group -->
+							<xsl:sort select="@pvalue"/>
+							<h2>Pattern Group #<xsl:value-of select="position()"/></h2>
+							<h2>Group P-value: <xsl:value-of select="@pvalue"/></h2>
+							<table>
+								<tr><th>Pattern ID</th><th>P-value</th><th>Pattern Name</th></tr>
+								<xsl:for-each select="./cis:pattern">
+									<!-- Loop through each pattern in this pattern group -->
+									<xsl:sort select="qvalue" data-type="number" order="ascending" />
+									<tr>
+									<td><xsl:value-of select="@accession" /></td>
+									<td><xsl:value-of select="@pvalue"/></td>
+									<td><xsl:value-of select="@name"/></td>
+									</tr>
+								</xsl:for-each>
+							</table>
+						</xsl:for-each>
+					</xsl:when>
+					<xsl:otherwise>
+						<table>
+						<tr><th>Pattern Name</th><th>Sequence Name</th><th>Start</th><th>Stop</th>
+            <th>p-value</th><th>q-value</th><th>Matched Sequence</th></tr>
+						<xsl:for-each select="//cis:pattern">
+              <xsl:variable name="pattern_name" select="@name"/>
+						  <xsl:for-each select="./cis:scanned-sequence">
+                <xsl:variable name="sequence_name" select="@name"/>
+						    <xsl:for-each select="./cis:matched-element">
+                  <!-- Loop through each match -->
+                  <xsl:sort select="@pvalue" data-type="number" order="ascending" />
+                  <tr>
+                    <td><xsl:value-of select="$pattern_name" /></td>
+                    <td><xsl:value-of select="$sequence_name" /></td>
+                    <td><xsl:value-of select="@start" /></td>
+                    <td><xsl:value-of select="@stop" /></td>
+                    <td><xsl:value-of select="@pvalue" /></td>
+                    <td><xsl:value-of select="mem:qvalue" /></td>
+                    <td><xsl:value-of select="cis:sequence" /></td>
+                  </tr>
+						    </xsl:for-each>
+						  </xsl:for-each>
+						</xsl:for-each>
+						</table>
+					</xsl:otherwise>
+				</xsl:choose>
+		</body>
+	</html>
+</xsl:template>
+
+</xsl:stylesheet>
+
+
+
+
+
+
+

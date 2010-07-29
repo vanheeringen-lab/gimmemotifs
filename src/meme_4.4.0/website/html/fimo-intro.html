@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>FIMO - Introduction</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+	          <img src="doc/images/fimo_logo.png" alt="FIMO logo">
+            <h3>Introduction</h3>
+            <h4>FIMO is a tool for searching biological sequence databases for
+            sequences that contain one or more known motifs.</h4>
+            <p/>
+              The name FIMO stands for "Find Individual Motif Occurrences." 
+            <p/>
+              A motif is a sequence pattern that occurs repeatedly in a group
+              of related protein or DNA sequences. Motifs are represented as
+              position-dependent scoring matrices that describe the score of each
+              possible letter at each position in the pattern. Individual motifs
+              may not contain gaps. Patterns with variable-length gaps must be
+              split into two or more separate motifs before being submitted as
+              input to FIMO.
+            <p/>
+              FIMO searches a sequence database for occurrences of user provided motifs, 
+              treating each motif independently. 
+              The program uses a dynamic programming algorithm to convert log-odds scores into p-values, 
+              assuming a zero-order background model. 
+              The p-values for each motif are then converted to q-values following the 
+              method of Benjamini and Hochberg 
+              (where "q-value" is defined as the minimal false discovery rate at which a given motif occurrence 
+              is deemed significant).
+              The program reports all motif occurrences that receive p-values smaller than a specified threshold. 
+            <h4>Required FIMO Inputs</h4>
+            <p/>
+              Three inputs must be provided on the FIMO web page:
+              <ol>
+              <li>
+              An e-mail address where the notification of job completion can be sent.
+              You specify the e-mail address in the two text boxes labeled "e-mail address". 
+              The e-mail address must be entered twice to reduce the amount of
+              undeliverable mail caused by typographic errors.
+              </li>
+              <li>
+              A <a href="./doc/meme-format.html">MEME output file</a>, 
+              containing the descriptions of one or more motifs.
+              You can select a file to be uploaded from your computer by clicking on the 
+              "Browse ..." button under the "Your motif file" label.
+              If you used the FIMO button on the MEME results page to get the FIMO web
+              page, then the motif file will automatically be filled in for you.
+              </li>
+              <li>
+              A sequence database to be searched. You can choose a sequence file to be
+              uploaded from your computer bu clicking on the "Browse ..." button under the "Your
+              FASTA sequence file" label.
+              Alternatively, you can select one of the sequences databases listed in the
+              drop-down list box labeled "A supported database" .
+              </li>
+              </ol>
+            <h4>Optional FIMO inputs</h4>
+            <p/>
+            The FIMO web page accepts two optional inputs:
+            <ol>
+            <li>A threshold p-value. Motif occurrences with p-values below the threshold
+            will not be reported (defaults to <code>1e-4</code>).</li>
+            <li>A check-box directing that only the forward strand of the sequence 
+            database will be scanned (defaults to unchecked).</li>
+            </ol>
+            <p/>
+            The contents of the required and optional fields can be cleared by clicking on
+            the "Clear Input" button.
+            <h4>Submitting a FIMO job</h4>
+            <p/>
+            After filling in the required and optional inputs on the FIMO web page,
+            the job can be submitted for processing by clicking on the "Start Search"
+            button.
+            <h4>FIMO output</h4>
+            <p/>
+            The result of submitting your job will be a summary page that briefly describes 
+            your job's input, or reports any critical errors.
+            If there are no errors, then the page will also contain a link to your job's results.
+            The results page will report the full command that was run
+            and will include links 
+            to the FIMO output, or to any error messages that were generated.
+            <p/>
+            The FIMO output will be a list of matches to the input motifs, sorted by p-value.
+            This will be provided in several formats:
+            <ul>
+            <li>HTML (<a href="doc/examples/fimo_example_output_files/fimo.html">example</a>)</li>
+            <li>XML using the <a href="http://cagt.bu.edu/page/CisML_about">CisML</a> schema
+            (<a href="doc/examples/fimo_example_output_files/fimo.xml">example</a>)</li>
+            <li><a href="http://www.sanger.ac.uk/Software/formats/GFF/GFF_Spec.shtml">GFF</a>
+            (<a href="doc/examples/fimo_example_output_files/fimo.gff">example</a>)</li>
+            <li>Plain text (<a href="doc/examples/fimo_example_output_files/fimo.gff">example</a>)</li>
+            </ul>
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

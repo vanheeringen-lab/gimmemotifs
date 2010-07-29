@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>shadow</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+    <script src="./meme-suite-logo.js" type="text/javascript">></script>
+    <h1><img height="81" width="444" src="meta-meme.gif"/></h1>
+    <center>
+      <h1>shadow</h1>
+    </center>
+
+  <br />
+  <b>Usage:</b> 
+  <blockquote>
+    <code>shadow [options] &lt;tree&gt; &lt;alignment&gt;</code>
+  </blockquote>
+
+  <p>
+    <b>Description:</b>
+  </p>
+
+  <blockquote>
+  <p>
+  Perform phylogenetic shadowing on a given DNA alignment, using a given
+  tree (Boffelli et al, Science 2003).  This program is a simplified
+  version of <a href="motiph.html"><code>motiph</code></a>, in which the
+  equilibrium distribution is set equal to the background model, rather
+  than being taken from a given motif.
+  </p>
+  </blockquote>
+
+  <b>Input:</b>
+  <ul> 
+
+  <li>
+  <code>&lt;tree&gt;</code> is a phylogenetic tree in 
+  <a href="http://evolution.genetics.washington.edu/phylip/newicktree.html">Phylip Newick</a> format.  
+  This tree may contain additional species not represented in the alignment.</li>
+
+  <li>
+  <code>&lt;alignment&gt;</code> is a DNA multiple alignment in 
+  <a href="clustalw-format.html">ClustalW</a> format.</li>
+
+  </ul>
+
+  <b>Output:</b>
+
+  <blockquote>
+    <p>
+    Shadow will create a directory, named <code>shadow_out</code> by default.
+    Any existing output files in the directory will be overwritten.
+    The directory will contain:
+    </p>
+    <ul>
+    <li>
+    An XML file named <code>shadow.xml</code> using the 
+    <a href="http://zlab.bu.edu/~phaverty/SupplementalData/CisML">CisML</a> schema.
+    </li>
+    <li>
+    An HTML file named <code>shadow.html</code>
+    </li>
+    <li>
+    A plain text file named <code>shadow.text</code>
+    </li>
+    </ul>
+    <p>
+    The default can be overridden using the <code>--o</code> or <code>--oc</code>
+    options which are described below.
+    </p>
+    The <code>--text</code> will limit output to plain text sent to the standard output.
+
+  </blockquote>
+
+  <b>Options:</b>
+  <ul>
+  <li> <command-option name="bg"/></li>
+  <li> <command-option name="bgfile"/></li>
+  <li> <command-option name="fg"/></li>
+  <li> <command-option name="gap"/></li>
+  <li> <command-option name="gap-cost"/></li>
+  <li> <command-option name="list"/></li>
+  <li> <command-option name="max-stored-scores"/></li>
+  <li> <command-option name="model"/></li>
+  <li> <command-option name="no-pvalue"/></li>
+  <li> <command-option name="no-qvalue"/></li>
+  <li> <command-option name="o"/></li>
+  <li> <command-option name="oc"/></li>
+  <li><command-option name="output-pthresh"/></li>
+  <li><command-option name="output-qthresh"/></li>
+  <li> <command-option name="pur-pyr"/></li>
+  <li> <command-option name="text"/></li>
+  <li> <command-option name="transition-transversion"/></li>
+  <li> <command-option name="verbosity"/></li>
+  </ul>
+  <b>Warning messages:</b> None
+
+  <p><a href="index.html">Meta-MEME program documentation</a></p>
+  <p><a href="../metameme-intro.html">Meta-MEME home</a></p>
+</div>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>gomo_highlight</title>
+    <link href="./meme-suite.css" rel="styleSheet" type="text/css" />
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>gomo_highlight</h1>
+      <p>
+      <b>Usage:</b>
+      <code>gomo_highlight &lt;GO DAG&gt; &lt;GOMO XML&gt;+</code>
+      </p>
+      <p>
+      <b>Description:</b>
+      </p>
+      <p>
+      Updates the GOMO XML file(s) to add details about the GO terms, such as their name, hierarchy, relative position in that
+      hierarchy and which are implied by others in the significant terms for each motif. This allows many improvements to be
+      made in the human readable html output such as allowing the most specific terms to be highlighted. The same postprocessing 
+      can be achieved by using the --dag option to gomo.
+      </p>
+
+      <p><b>Input:</b></p>
+      <p>
+      <ul>
+        <li>&lt;GO DAG&gt; - A file containing the heirarchy of the GO terms in the format specified <a href="godag-format.html" >here</a>.</li>
+        <li>&lt;GOMO XML&gt; - An xml file output from gomo.</li>
+      </ul>
+      </p>
+
+
+      <p><b>Output:</b><br /> </p>
+      <p>
+      The GOMO XML file(s) are updated.
+      </p>
+      
+      <p><b>Warning messages:</b><br /> </p>
+      <p>
+      None
+      </p>
+
+      <p><b>Bugs:</b>
+      None known.
+      </p>
+
+    </div>
+  </body>
+</html>

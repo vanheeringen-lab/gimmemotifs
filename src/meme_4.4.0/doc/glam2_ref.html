@@ -1,0 +1,184 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang=en>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>glam2 Reference</title>
+<link type="text/css" rel="stylesheet" href="glam2.css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+</head>
+<body>
+
+<h1>glam2 Reference</h1>
+
+<h2>Usage</h2>
+
+<pre>
+glam2 [options] alphabet my_seqs.fa
+</pre>
+
+<p>An alphabet other than p or n is interpreted as the name of an <a
+	href="glam2_alphabet.html">alphabet file</a>.</p>
+
+<h2>Options that determine which alignments are possible</h2>
+
+<dl>
+
+	<dt>-o</dt>
+	<dd>output directory; will not clobber existing files</dd>
+
+	<dt>-O</dt>
+	<dd>output directory (glam2_out); allow clobbering</dd>
+
+	<dt>-2</dt>
+	<dd>Search both strands.</dd>
+
+	<dt>-z</dt>
+	<dd>Specify the minimum number sequences that must participate in
+	the alignment. If greater than the number of input sequences, then all
+	the sequences must participate.</dd>
+
+	<dt>-a</dt>
+	<dd>Specify the minimum number of key positions (aligned columns)
+	in the alignment.</dd>
+
+	<dt>-b</dt>
+	<dd>Specify the maximum number of key positions (aligned columns)
+	in the alignment.</dd>
+
+</dl>
+
+<h2>Options that affect the scoring scheme</h2>
+
+<p>These options specify parameters in the formula for calculating
+alignment scores. See <a href="GLAM2_method.pdf">GLAM2 methods (PDF)</a>
+for details.</p>
+
+<dl>
+
+	<dt>-d</dt>
+	<dd>Specify a <a href="glam2_dirichlet.html">Dirichlet mixture</a>
+	file, which describes residues' tendencies to align with one another.</dd>
+
+	<dt>-D</dt>
+	<dd>Specify the deletion pseudocount.</dd>
+
+	<dt>-E</dt>
+	<dd>Specify the 'no-deletion' pseudocount.</dd>
+
+	<dt>-I</dt>
+	<dd>Specify the insertion pseudocount.</dd>
+
+	<dt>-J</dt>
+	<dd>Specify the 'no-insertion' pseudocount.</dd>
+
+	<dt>-q</dt>
+	<dd>Specify the weight for generic versus sequence-set-specific
+	residue abundances. The residue abundances are estimated by counting
+	the residue types in all the input sequences, and adding pseudocounts.
+	The total number of pseudocounts is equal to the alphabet size
+	mutiplied by the -q parameter. The allocation of pseudocounts among the
+	residue types depends on the <a href="glam2_alphabet.html">alphabet</a>.</dd>
+
+</dl>
+
+<h2>Options that affect the search algorithm</h2>
+
+<p>glam2 uses a <a
+	href="http://en.wikipedia.org/wiki/Simulated_annealing">simulated
+annealing</a> algorithm, with a temperature parameter. At high temperatures,
+glam2 only slightly favours changes that increase the alignment's score,
+and at low temperatures it strongly favours such changes. Thus, at high
+temperatures the score will be optimized too slowly, but at low
+temperatures the algorithm will get frozen in a local optimum. The
+strategy, then, is to start with a high temperature and reduce it as
+slowly as possible.</p>
+
+<dl>
+
+	<dt>-r</dt>
+	<dd>Specify the number of alignment runs.</dd>
+
+	<dt>-n</dt>
+	<dd>Specify how many iterations should pass since the
+	highest-scoring alignment seen so far before ending each alignment run.</dd>
+
+	<dt>-w</dt>
+	<dd>Specify the initial number of key positions (aligned columns)
+	in the alignment. If less than the minimum (-a) or greater than the
+	maximum (-b), it is increased to the minimum or reduced to the maximum.</dd>
+
+	<dt>-t</dt>
+	<dd>Specify the initial temperature.</dd>
+
+	<dt>-c</dt>
+	<dd>Specify the cooling factor per n iterations. The temperature
+	is multiplied by a constant factor after each iteration, such that
+	after n iterations, it has dropped by this amount. 'n' is the number
+	specified with the -n option.</dd>
+
+	<dt>-u</dt>
+	<dd>Specify the minimum temperature. The temperature never drops
+	below this level, to avoid numerical problems.</dd>
+
+	<dt>-m</dt>
+	<dd>Specify the rate of column sampling relative to site sampling.
+	On each iteration, glam2 randomly decides to try either realigning a
+	sequence or adjusting an aligned column (key position). This parameter
+	sets the probabilities for this decision.</dd>
+
+	<dt>-x</dt>
+	<dd>Specify the site sampling algorithm: 0=FAST, 1=SLOW, 2=FFT.
+	See <a href="GLAM2_method.pdf">GLAM2 methods (PDF)</a> for details. In
+	summary, the FAST algorithm deviates slightly from the strict
+	definition of simulated annealing, but works well in practice. The SLOW
+	algorithm implements strict simulated annealing, but is much slower,
+	especially for longer sequences. The FFT algorithm also implements
+	strict simulated annealing, and has intermediate speed, but carries
+	greater risk of numerical roundoff error. In order to use the FFT
+	algorithm, it is necessary to install the <a
+		href="http://www.fftw.org/">FFTW library</a>, and re-compile glam2
+	with 'make glam2fft'.</dd>
+
+	<dt>-s</dt>
+	<dd>Specify the seed for pseudo-random number generation. Change
+	this to avoid getting identical results each time the program is run.</dd>
+
+</dl>
+
+<h2>Cosmetic options</h2>
+
+<dl>
+
+	<dt>-h</dt>
+	<dd>Show all options and their default settings.</dd>
+
+	<dt>-o</dt>
+	<dd>Specify an output file name.</dd>
+
+	<dt>-p</dt>
+	<dd>Print information about the algorithm's state before each
+	iteration. The following information is printed: the temperature, the
+	number of key positions in the alignment, the number of sequences in
+	the alignment, and the alignment's score. In addition, some information
+	about each move is printed: for site sampling moves, which sequence is
+	picked, and for column sampling moves, which column is picked, whether
+	or not it is deleted, and whether the direction is left or right.</dd>
+
+	<dt>-Q</dt>
+	<dd>Run quietly, suppressing unnecessary messages.</dd>
+
+
+	<h2>Warnings</h2>
+
+	<p>glam2 might occasionally issue this warning: 'accuracy loss due
+	to numeric underflow'. If this happens, its ability to optimise the
+	alignment may be harmed: see <a href="GLAM2_method.pdf">GLAM2
+	methods (PDF)</a> for details. To fix this, try increasing -u, or possibly
+	decreasing -b. Increasing -u somewhat should be harmless, as long as it
+	stays well below 1.</p>
+
+</dl>
+
+</body>
+</html>

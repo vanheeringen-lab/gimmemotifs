@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang=en>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>glam2format Manual</title>
+<link type="text/css" rel="stylesheet" href="glam2.css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+</head>
+<body>
+
+<h1>glam2format Manual</h1>
+
+<p>This program reads in a motif found by glam2, and writes it in a
+standard alignment format (FASTA-with-gaps or MSF). This enables the
+alignment to be passed to third-party software, including graphical
+visualization tools such as <a href="http://msa.cgb.ki.se/">Kalignvu</a>,
+<a href="http://www.ch.embnet.org/software/BOX_form.html">Boxshade</a>,
+and <a href="http://weblogo.berkeley.edu/">WebLogo</a>. On the other
+hand, not all the motif information is preserved: in particular, the key
+positions are lost. Only the top motif in glam2 output is converted.</p>
+
+<ul>
+
+	<li>Basic usage: <pre>
+glam2format fasta my_motif.glam2
+</pre><pre>
+glam2format msf my_motif.glam2
+</pre></li>
+
+	<li>Use -o to write the output to a file rather than to the
+	screen: <pre>
+glam2format -o my_motif.fa fasta my_motif.glam2
+</pre><pre>
+glam2format -o my_motif.msf msf my_motif.glam2
+</pre></li>
+
+	<li>Use -c to make a compact alignment: <pre>
+glam2format -c fasta my_motif.glam2
+</pre><pre>
+glam2format -c msf my_motif.glam2
+</pre> By default, residues that are inserted between key positions are
+	written as unaligned with each other. This best reflects glam2's
+	intention, but it can make the alignment large and full of gaps. With
+	-c, inserted residues are written as arbitrarily aligned with each
+	other, just as they appear in the glam2 output.</li>
+
+	<li>Use -f to make a 'global' alignment by adding flanking
+	sequences from the original FASTA-format sequence file: <pre>
+glam2format -f my_seqs.fa fasta my_motif.glam2
+</pre><pre>
+glam2format -f my_seqs.fa msf my_motif.glam2
+</pre> The flanking sequences will be written as either unaligned with each
+	other or arbitrarily aligned, depending on the -c option. The sequences
+	should have unique names and their order should be unchanged.</li>
+
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,1978 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<TITLE>MEME</TITLE>
+<STYLE type="text/css">
+  TD.invisible { color: '#D5F0FF'; }
+  TD.c0 { background: aqua; color: black; }
+  TD.cw0 { background: aqua; color: black; font: 50% sans-serif; }
+  TD.c1 { background: blue; color: white; }
+  TD.cw1 { background: blue; color: white; font: 50% sans-serif; }
+  TD.c2 { background: red; color: white; }
+  TD.cw2 { background: red; color: white; font: 50% sans-serif; }
+  TD.c3 { background: fuchsia; color: black; }
+  TD.cw3 { background: fuchsia; color: black; font: 50% sans-serif; }
+  TD.c4 { background: yellow; color: black; }
+  TD.cw4 { background: yellow; color: black; font: 50% sans-serif; }
+  TD.c5 { background: lime; color: black; }
+  TD.cw5 { background: lime; color: black; font: 50% sans-serif; }
+  TD.c6 { background: teal; color: white; }
+  TD.cw6 { background: teal; color: white; font: 50% sans-serif; }
+  TD.c7 { background: #444444; color: white; }
+  TD.cw7 { background: #444444; color: white; font: 50% sans-serif; }
+  TD.c8 { background: green; color: white; }
+  TD.cw8 { background: green; color: white; font: 50% sans-serif; }
+  TD.c9 { background: silver; color: black; }
+  TD.cw9 { background: silver; color: black; font: 50% sans-serif; }
+  TD.c10 { background: purple; color: white; }
+  TD.cw10 { background: purple; color: white; font: 50% sans-serif; }
+  TD.c11 { background: olive; color: black; }
+  TD.cw11 { background: olive; color: black; font: 50% sans-serif; }
+  TD.c12 { background: navy; color: white; }
+  TD.cw12 { background: navy; color: white; font: 50% sans-serif; }
+  TD.c13 { background: maroon; color: white; }
+  TD.cw13 { background: maroon; color: white; font: 50% sans-serif; }
+  TD.c14 { background: black; color: white; }
+  TD.cw14 { background: black; color: white; font: 50% sans-serif; }
+  TD.c15 { background: white; color: black; }
+  TD.cw15 { background: white; color: black; font: 50% sans-serif; }
+  B.red { color: red; }
+  TD.red { color: red; }
+  TH.red { color: red; }
+  B.blue { color: blue; }
+  TD.blue { color: blue; }
+  TH.blue { color: blue; }
+  B.orange { color: orange; }
+  TD.orange { color: orange; }
+  TH.orange { color: orange; }
+  B.green { color: green; }
+  TD.green { color: green; }
+  TH.green { color: green; }
+  B.black { color: black; }
+  TD.black { color: black; }
+  TH.black { color: black; }
+  B.magenta { color: magenta; }
+  TD.magenta { color: magenta; }
+  TH.magenta { color: magenta; }
+  B.pink { color: pink; }
+  TD.pink { color: pink; }
+  TH.pink { color: pink; }
+  B.yellow { color: yellow; }
+  TD.yellow { color: yellow; }
+  TH.yellow { color: yellow; }
+  B.turquoise { color: turquoise; }
+  TD.turquoise { color: turquoise; }
+  TH.turquoise { color: turquoise; }
+</STYLE>
+</HEAD>
+<BODY BGCOLOR='#D5F0FF'>
+<A NAME='top_buttons'></A><HR>
+<TABLE SUMMARY='buttons' ALIGN=LEFT CELLSPACING=0><TR>
+  <TD BGCOLOR='#DDDDFF'><A HREF="#command"><B>Command line</B></A>
+  <TD BGCOLOR='#00FFFF'><A HREF="#sequences"><B>Training Set</B></A>
+  <TD BGCOLOR='#DDFFDD'><A HREF="#summary1"><B>First Motif</B></A>
+  <TD BGCOLOR='#FFDDFF'><A HREF="#motif-summary"><B>Summary of Motifs</B></A>
+  <TD BGCOLOR='#00FF00'><A HREF="#stopped"><B>Termination</B></A>
+  <TD BGCOLOR='#FFFF00'><A HREF="#explanation"><B>Explanation</B></A></TABLE>
+<BR CLEAR=LEFT>
+
+<FORM ENCTYPE = "application/x-www-form-urlencoded" METHOD = POST
+TARGET = "_new"
+ACTION = "http://meme.sdsc.edu/meme/website/cgi-bin/process_request.cgi">
+<B>
+<BR><INPUT TYPE = SUBMIT NAME = action VALUE = 'MAST'> Search sequence databases with these motifs using <A HREF='http://meme.sdsc.edu/meme/website/mast-intro.html'>MAST.</A>
+<BR><INPUT TYPE = SUBMIT NAME = action VALUE = 'BLOCKS'> Submit these motifs to <A HREF='http://blocks.fhcrc.org/blocks/process_blocks.html'>BLOCKS multiple alignment processor.</A>
+<BR><INPUT TYPE = SUBMIT NAME = action VALUE = 'MetaMEME'> Build and use a motif-based hidden Markov model (HMM) using <A HREF='http://metameme.sdsc.edu'>Meta-MEME.</A>
+</B><BR CLEAR=LEFT>
+<HR><CENTER><A NAME=version></A>
+  <BIG><B> <A HREF="#version_doc">MEME - Motif discovery tool</A> 
+</B></BIG></CENTER><HR>
+<P>
+MEME version 3.0 (Release date: 2004/07/26 08:17:15)
+<P>
+For further information on how to interpret these results or to get
+a copy of the MEME software please access <A HREF="http://meme.sdsc.edu">http://meme.sdsc.edu</A>.
+<P>
+This file may be used as input to the MAST algorithm for searching
+sequence databases for matches to groups of motifs.  MAST is available
+for interactive use and downloading at <A HREF="http://meme.sdsc.edu">http://meme.sdsc.edu</A>.
+
+<HR><CENTER><A NAME=reference></A>
+  <BIG><B> <A HREF="#reference_doc">REFERENCE</A> 
+</B></BIG></CENTER><HR>
+<P>
+If you use this program in your research, please cite:
+<P>
+Timothy L. Bailey and Charles Elkan,
+"Fitting a mixture model by expectation maximization to discover
+motifs in biopolymers", Proceedings of the Second International
+Conference on Intelligent Systems for Molecular Biology, pp. 28-36,
+AAAI Press, Menlo Park, California, 1994.
+
+<HR><CENTER><A NAME=sequences></A>
+  <BIG><B> <A HREF="#sequences_doc">TRAINING SET</A> 
+</B></BIG></CENTER><HR>
+<PRE>
+DATAFILE= lipo.fasta
+ALPHABET= ACDEFGHIKLMNPQRSTVWY
+Sequence name            Weight Length  Sequence name            Weight Length  
+-------------            ------ ------  -------------            ------ ------  
+ICYA_MANSE               1.0000    189  LACB_BOVIN               1.0000    178  
+BBP_PIEBR                1.0000    173  RETB_BOVIN               1.0000    183  
+MUP2_MOUSE               1.0000    180  
+</PRE>
+<INPUT TYPE = HIDDEN NAME = name VALUE = "lipo.fasta" >
+<INPUT TYPE = HIDDEN NAME = alphabet VALUE = "ACDEFGHIKLMNPQRSTVWY" >
+<INPUT TYPE = HIDDEN NAME = url VALUE = "http://meme.sdsc.edu/meme" >
+
+<HR><CENTER><A NAME=command></A>
+  <BIG><B> <A HREF="#command_doc">COMMAND LINE SUMMARY</A> 
+</B></BIG></CENTER><HR>
+<PRE>
+This information can also be useful in the event you wish to report a
+problem with the MEME software.
+
+command: meme lipo.fasta -mod oops -protein -nmotifs 3 
+
+model:  mod=          oops    nmotifs=         3    evt=           inf
+object function=  E-value of product of p-values
+width:  minw=            8    maxw=           50    minic=        0.00
+width:  wg=             11    ws=              1    endgaps=       yes
+nsites: minsites=        5    maxsites=        5    wnsites=       0.8
+theta:  prob=            1    spmap=         pam    spfuzz=        120
+em:     prior=        dmix    b=               0    maxiter=        50
+        distance=    1e-05
+data:   n=             903    N=               5
+
+sample: seed=            0    seqfrac=         1
+Dirichlet mixture priors file: prior30.plib
+Letter frequencies in dataset:
+A 0.072 C 0.029 D 0.069 E 0.078 F 0.043 G 0.058 H 0.025 I 0.048 K 0.086 
+L 0.087 M 0.018 N 0.053 P 0.032 Q 0.029 R 0.031 S 0.059 T 0.048 V 0.070 
+W 0.017 Y 0.050 
+Background letter frequencies (from dataset with add-one prior applied):
+A 0.072 C 0.029 D 0.068 E 0.077 F 0.043 G 0.057 H 0.026 I 0.048 K 0.086 
+L 0.087 M 0.018 N 0.053 P 0.033 Q 0.029 R 0.031 S 0.059 T 0.048 V 0.069 
+W 0.017 Y 0.050 
+</PRE>
+<INPUT TYPE = HIDDEN NAME = bgfreq VALUE = "
+A 0.072 C 0.029 D 0.068 E 0.077 F 0.043 G 0.057 H 0.026 I 0.048 K 0.086 
+L 0.087 M 0.018 N 0.053 P 0.033 Q 0.029 R 0.031 S 0.059 T 0.048 V 0.069 
+W 0.017 Y 0.050 
+" >
+
+<HR><CENTER><A NAME=summary1></A>
+ <TABLE SUMMARY='buttons' ALIGN=LEFT CELLSPACING=0><TR>
+  <TD BGCOLOR='#OOFFFF'><A HREF="#motif-summary"><B>P</B></A>
+  <TD BGCOLOR='#FFFFOO'><A HREF="#summary2"><B>N</B></A></TABLE> <BIG><B> <A HREF="#summary_doc">MOTIF  1</A>  &nbsp;&nbsp;&nbsp; width = 19     &nbsp;&nbsp;&nbsp; sites =   5    &nbsp;&nbsp;&nbsp; llr = 187    &nbsp;&nbsp;&nbsp; E-value = 8.9e-006<BR CLEAR=LEFT>
+</B></BIG></CENTER><HR>
+<TABLE SUMMARY='motif description' CELLPADDING=0 CELLSPACING=1>
+<TR><TD COLSPAN=8><TH><A NAME='simplified1' HREF="#simplified_doc">Simplified</A><TH ALIGN=RIGHT>A<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>2<TD>2<TD>:<TD>6<TD>:<TD 
+  >2<TD>:<TD>:<TD>2<TD>:<TD>8<TD 
+  >:
+<TR><TD COLSPAN=8><TH><A HREF="#simplified_doc">pos.-specific</A><TH ALIGN=RIGHT>C<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:
+<TR><TD COLSPAN=8><TH><A HREF="#simplified_doc">probability</A><TH ALIGN=RIGHT>D<TH><TD 
+  >:<TD>:<TD>2<TD>2<TD>:<TD>8<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:
+<TR><TD COLSPAN=8><TH><A HREF="#simplified_doc">matrix</A><TH ALIGN=RIGHT>E<TH><TD 
+  >:<TD>:<TD>2<TD>:<TD>:<TD>:<TD 
+  >:<TD>2<TD>:<TD>:<TD>:<TD>:<TD 
+  >2<TD>:<TD>:<TD>4<TD>:<TD>:<TD 
+  >:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>F<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>8<TD>:<TD 
+  >:<TD>:<TD>:<TD>4<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>G<TH><TD 
+  >:<TD>2<TD>:<TD>2<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>a<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>H<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>2<TD>:<TD 
+  >:<TD>:<TD>4<TD>:<TD>:<TD>:<TD 
+  >:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>I<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >2<TD>:<TD>:<TD>2<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>4<TD>2<TD 
+  >:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>K<TH><TD 
+  >:<TD>2<TD>2<TD>:<TD>:<TD>:<TD 
+  >2<TD>:<TD>4<TD>:<TD>:<TD>:<TD 
+  >2<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >6
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>L<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>2<TD>:<TD 
+  >2<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>2<TD>:<TD 
+  >2
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>M<TH><TD 
+  >:<TD>2<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>2<TD>:<TD 
+  >2
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>N<TH><TD 
+  >:<TD>:<TD>2<TD>6<TD>:<TD>2<TD 
+  >:<TD>:<TD>2<TD>:<TD>2<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>P<TH><TD 
+  >4<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>Q<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>2<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>R<TH><TD 
+  >:<TD>:<TD>2<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>2<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>S<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>4<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>2<TD>:<TD>:<TD 
+  >:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>T<TH><TD 
+  >4<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >4<TD>:<TD>:<TD>2<TD>:<TD>:<TD 
+  >:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>V<TH><TD 
+  >2<TD>4<TD>:<TD>:<TD>:<TD>:<TD 
+  >2<TD>:<TD>:<TD>2<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>2<TD>:<TD 
+  >:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>W<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >2<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>a<TD>2<TD>:<TD>:<TD>:<TD 
+  >:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>Y<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>2<TD>:<TD>:<TD 
+  >:<TD>:<TD>4<TD>:<TD>:<TD>:<TD 
+  >:
+<TR><TD CLASS='invisible'>.</TD>
+<TR><TD COLSPAN=8><TH> <A NAME='IC1'>          bits    </A><TH ALIGN=RIGHT>5.9<TH><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD BGCOLOR="blue">&nbsp;<TD><TD
+  ><TD><TD><TD
+  >
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>5.3<TH><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD BGCOLOR="blue">&nbsp;<TD><TD
+  ><TD><TD><TD
+  >
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>4.7<TH><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD BGCOLOR="blue">&nbsp;<TD><TD
+  ><TD><TD><TD
+  >
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>4.1<TH><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD BGCOLOR="orange">&nbsp;<TD
+  ><TD BGCOLOR="blue">&nbsp;<TD><TD
+  ><TD><TD><TD
+  >
+<TR><TD COLSPAN=8><TH> <A HREF="#IC_doc"> Information </A><TH ALIGN=RIGHT>3.5<TH><TD
+  ><TD><TD><TD
+  ><TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="magenta">&nbsp;<TD
+  ><TD><TD><TD
+  ><TD><TD BGCOLOR="orange">&nbsp;<TD
+  ><TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+  ><TD><TD><TD
+  >
+<TR><TD COLSPAN=8><TH> <A HREF="#IC_doc"> content </A><TH ALIGN=RIGHT>2.9<TH><TD
+   BGCOLOR="black">&nbsp;<TD><TD><TD
+   BGCOLOR="green">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="magenta">&nbsp;<TD
+  ><TD><TD><TD
+  ><TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="orange">&nbsp;<TD
+  ><TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+  ><TD><TD BGCOLOR="blue">&nbsp;<TD
+  >
+<TR><TD COLSPAN=8><TH> (53.9 bits)<TH ALIGN=RIGHT>2.3<TH><TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD><TD
+   BGCOLOR="green">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="magenta">&nbsp;<TD
+  ><TD BGCOLOR="green">&nbsp;<TD BGCOLOR="red">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="orange">&nbsp;<TD
+  ><TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+  ><TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="red">&nbsp;
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>1.8<TH><TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="green">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="magenta">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="green">&nbsp;<TD BGCOLOR="red">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="orange">&nbsp;<TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="red">&nbsp;
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>1.2<TH><TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="green">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="magenta">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="green">&nbsp;<TD BGCOLOR="red">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="orange">&nbsp;<TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="red">&nbsp;
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>0.6<TH><TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="green">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="magenta">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="green">&nbsp;<TD BGCOLOR="red">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="orange">&nbsp;<TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="red">&nbsp;
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>0.0<TH><TD COLSPAN=19> <HR>
+<TR><TD CLASS='invisible'>.</TD>
+<TR><TD COLSPAN=8><TH><A NAME='consensus1' HREF="#consensus_doc">Multilevel           </A><TD><TH><TD CLASS=yellow
+  ><TT><B>P</B></TT></TD><TD CLASS=blue><TT><B>V</B></TT></TD><TD CLASS=magenta
+  ><TT><B>D</B></TT></TD><TD CLASS=green><TT><B>N</B></TT></TD><TD CLASS=blue
+  ><TT><B>F</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=blue
+  ><TT><B>I</B></TT></TD><TD CLASS=green><TT><B>S</B></TT></TD><TD CLASS=red
+  ><TT><B>K</B></TT></TD><TD CLASS=blue><TT><B>F</B></TT></TD><TD CLASS=blue
+  ><TT><B>A</B></TT></TD><TD CLASS=orange><TT><B>G</B></TT></TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=blue><TT><B>W</B></TT></TD><TD CLASS=pink
+  ><TT><B>H</B></TT></TD><TD CLASS=magenta><TT><B>E</B></TT></TD><TD CLASS=blue
+  ><TT><B>I</B></TT></TD><TD CLASS=blue><TT><B>A</B></TT></TD><TD CLASS=red
+  ><TT><B>K</B></TT></TD>
+<TR><TD COLSPAN=8><TH><A HREF="#consensus_doc">consensus            </A><TD><TH><TD CLASS=green
+  ><TT>T</TT></TD><TD CLASS=orange><TT>G</TT></TD><TD CLASS=magenta
+  ><TT>E</TT></TD><TD CLASS=magenta><TT>D</TT></TD><TD CLASS=blue
+  ><TT>L</TT></TD><TD CLASS=green><TT>N</TT></TD><TD CLASS=red
+  ><TT>K</TT></TD><TD CLASS=blue><TT>A</TT></TD><TD CLASS=blue
+  ><TT>A</TT></TD><TD CLASS=blue><TT>I</TT></TD><TD CLASS=pink
+  ><TT>H</TT></TD><TD CLASS=black></TD><TD CLASS=blue
+  ><TT>A</TT></TD><TD CLASS=black></TD><TD CLASS=turquoise
+  ><TT>Y</TT></TD><TD CLASS=blue><TT>A</TT></TD><TD CLASS=blue
+  ><TT>L</TT></TD><TD CLASS=blue><TT>I</TT></TD><TD CLASS=blue
+  ><TT>L</TT></TD>
+<TR><TD COLSPAN=8><TH><A HREF="#consensus_doc">sequence             </A><TD><TH><TD CLASS=blue
+  ><TT>V</TT></TD><TD CLASS=red><TT>K</TT></TD><TD CLASS=red
+  ><TT>K</TT></TD><TD CLASS=orange><TT>G</TT></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=blue
+  ><TT>L</TT></TD><TD CLASS=magenta><TT>E</TT></TD><TD CLASS=green
+  ><TT>N</TT></TD><TD CLASS=blue><TT>V</TT></TD><TD CLASS=green
+  ><TT>N</TT></TD><TD CLASS=black></TD><TD CLASS=magenta
+  ><TT>E</TT></TD><TD CLASS=black></TD><TD CLASS=blue
+  ><TT>W</TT></TD><TD CLASS=green><TT>S</TT></TD><TD CLASS=blue
+  ><TT>M</TT></TD><TD CLASS=black></TD><TD CLASS=blue
+  ><TT>M</TT></TD>
+<TR><TD COLSPAN=8><TH>                     <TD><TH><TD CLASS=black
+  ></TD><TD CLASS=blue><TT>M</TT></TD><TD CLASS=green
+  ><TT>N</TT></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=blue
+  ><TT>V</TT></TD><TD CLASS=green><TT>Q</TT></TD><TD CLASS=red
+  ><TT>R</TT></TD><TD CLASS=turquoise><TT>Y</TT></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=red
+  ><TT>K</TT></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=green><TT>T</TT></TD><TD CLASS=blue
+  ><TT>V</TT></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD>
+<TR><TD COLSPAN=8><TH>                     <TD><TH><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=red
+  ><TT>R</TT></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=blue
+  ><TT>W</TT></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD>
+
+<TR><TD CLASS='invisible'>.</TD>
+<TR><TH ALIGN=LEFT>NAME<TH>&nbsp;<TH>&nbsp;<TH>&nbsp;<TH>START<TH>&nbsp;<TH>P-VALUE<TH>&nbsp;<TH>&nbsp;<TH>&nbsp;<TH>&nbsp;<TH><TH COLSPAN=19 ALIGN=CENTER><A NAME='sites1' HREF="#sites_doc">SITES</A><TH>&nbsp;
+<TR><TD>ICYA_MANSE<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>14<TD><TD ALIGN=RIGHT>1.43e-18<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>FYPGYCPDVK</TT><TD><TD CLASS=yellow
+  ><TT><B>P</B></TT></TD><TD CLASS=blue><TT><B>V</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=blue
+  ><TT><B>F</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=blue
+  ><TT><B>L</B></TT></TD><TD CLASS=green><TT><B>S</B></TT></TD><TD CLASS=blue
+  ><TT><B>A</B></TT></TD><TD CLASS=blue><TT><B>F</B></TT></TD><TD CLASS=blue
+  ><TT><B>A</B></TT></TD><TD CLASS=orange><TT><B>G</B></TT></TD><TD CLASS=blue
+  ><TT><B>A</B></TT></TD><TD CLASS=blue><TT><B>W</B></TT></TD><TD CLASS=pink
+  ><TT><B>H</B></TT></TD><TD CLASS=magenta><TT><B>E</B></TT></TD><TD CLASS=blue
+  ><TT><B>I</B></TT></TD><TD CLASS=blue><TT><B>A</B></TT></TD><TD CLASS=red
+  ><TT><B>K</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>LPLENENQGK</TT>
+<TR><TD>BBP_PIEBR<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>13<TD><TD ALIGN=RIGHT>9.75e-18<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>YHDGACPEVK</TT><TD><TD CLASS=yellow
+  ><TT><B>P</B></TT></TD><TD CLASS=blue><TT><B>V</B></TT></TD><TD CLASS=magenta
+  ><TT><B>D</B></TT></TD><TD CLASS=green><TT><B>N</B></TT></TD><TD CLASS=blue
+  ><TT><B>F</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=blue
+  ><TT><B>W</B></TT></TD><TD CLASS=green><TT><B>S</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=turquoise><TT><B>Y</B></TT></TD><TD CLASS=pink
+  ><TT><B>H</B></TT></TD><TD CLASS=orange><TT><B>G</B></TT></TD><TD CLASS=red
+  ><TT><B>K</B></TT></TD><TD CLASS=blue><TT><B>W</B></TT></TD><TD CLASS=blue
+  ><TT><B>W</B></TT></TD><TD CLASS=magenta><TT><B>E</B></TT></TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=blue><TT><B>A</B></TT></TD><TD CLASS=red
+  ><TT><B>K</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>YPNSVEKYGK</TT>
+<TR><TD>RETB_BOVIN<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>11<TD><TD ALIGN=RIGHT>1.99e-16<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>ERDCRVSSFR</TT><TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=red><TT><B>K</B></TT></TD><TD CLASS=magenta
+  ><TT><B>E</B></TT></TD><TD CLASS=green><TT><B>N</B></TT></TD><TD CLASS=blue
+  ><TT><B>F</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=red
+  ><TT><B>K</B></TT></TD><TD CLASS=blue><TT><B>A</B></TT></TD><TD CLASS=red
+  ><TT><B>R</B></TT></TD><TD CLASS=blue><TT><B>F</B></TT></TD><TD CLASS=blue
+  ><TT><B>A</B></TT></TD><TD CLASS=orange><TT><B>G</B></TT></TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=blue><TT><B>W</B></TT></TD><TD CLASS=turquoise
+  ><TT><B>Y</B></TT></TD><TD CLASS=blue><TT><B>A</B></TT></TD><TD CLASS=blue
+  ><TT><B>M</B></TT></TD><TD CLASS=blue><TT><B>A</B></TT></TD><TD CLASS=red
+  ><TT><B>K</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>KDPEGLFLQD</TT>
+<TR><TD>LACB_BOVIN<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>22<TD><TD ALIGN=RIGHT>9.62e-15<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>CGAQALIVTQ</TT><TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=blue><TT><B>M</B></TT></TD><TD CLASS=red
+  ><TT><B>K</B></TT></TD><TD CLASS=orange><TT><B>G</B></TT></TD><TD CLASS=blue
+  ><TT><B>L</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=blue
+  ><TT><B>I</B></TT></TD><TD CLASS=green><TT><B>Q</B></TT></TD><TD CLASS=red
+  ><TT><B>K</B></TT></TD><TD CLASS=blue><TT><B>V</B></TT></TD><TD CLASS=blue
+  ><TT><B>A</B></TT></TD><TD CLASS=orange><TT><B>G</B></TT></TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=blue><TT><B>W</B></TT></TD><TD CLASS=turquoise
+  ><TT><B>Y</B></TT></TD><TD CLASS=green><TT><B>S</B></TT></TD><TD CLASS=blue
+  ><TT><B>L</B></TT></TD><TD CLASS=blue><TT><B>A</B></TT></TD><TD CLASS=blue
+  ><TT><B>M</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>AASDISLLDA</TT>
+<TR><TD>MUP2_MOUSE<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>24<TD><TD ALIGN=RIGHT>4.53e-14<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>VCVHAEEASS</TT><TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=orange><TT><B>G</B></TT></TD><TD CLASS=red
+  ><TT><B>R</B></TT></TD><TD CLASS=green><TT><B>N</B></TT></TD><TD CLASS=blue
+  ><TT><B>F</B></TT></TD><TD CLASS=green><TT><B>N</B></TT></TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=magenta><TT><B>E</B></TT></TD><TD CLASS=red
+  ><TT><B>K</B></TT></TD><TD CLASS=blue><TT><B>I</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=orange><TT><B>G</B></TT></TD><TD CLASS=magenta
+  ><TT><B>E</B></TT></TD><TD CLASS=blue><TT><B>W</B></TT></TD><TD CLASS=pink
+  ><TT><B>H</B></TT></TD><TD CLASS=green><TT><B>T</B></TT></TD><TD CLASS=blue
+  ><TT><B>I</B></TT></TD><TD CLASS=blue><TT><B>I</B></TT></TD><TD CLASS=blue
+  ><TT><B>L</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>ASDKREKIED</TT>
+</TABLE>
+<HR><CENTER><A NAME=diagrams1></A>
+  <BIG><B> <A HREF="#diagrams_doc">	Motif 1 block diagrams</A> 
+</B></BIG></CENTER><HR>
+<TABLE SUMMARY='motif diagrams' BORDER=1>
+<TR><TH>Name<TH>Lowest<BR>p-value<TH ALIGN=LEFT>&nbsp;&nbsp; Motifs
+<TR>
+  <TD><A NAME=d0></A>ICYA_MANSE
+ <TD ALIGN=RIGHT NOWRAP>1.4e-18
+ <TD><TABLE SUMMARY='diagram 0' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=26><HR SIZE=4 NOSHADE>
+  <TD CLASS='c0' WIDTH=38>1
+  <TD WIDTH=314><HR SIZE=4 NOSHADE>
+  <TD WIDTH=22>
+ </TABLE>
+<TR>
+  <TD><A NAME=d2></A>BBP_PIEBR
+ <TD ALIGN=RIGHT NOWRAP>9.7e-18
+ <TD><TABLE SUMMARY='diagram 2' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=24><HR SIZE=4 NOSHADE>
+  <TD CLASS='c0' WIDTH=38>1
+  <TD WIDTH=284><HR SIZE=4 NOSHADE>
+  <TD WIDTH=54>
+ </TABLE>
+<TR>
+  <TD><A NAME=d3></A>RETB_BOVIN
+ <TD ALIGN=RIGHT NOWRAP>2e-16
+ <TD><TABLE SUMMARY='diagram 3' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=20><HR SIZE=4 NOSHADE>
+  <TD CLASS='c0' WIDTH=38>1
+  <TD WIDTH=308><HR SIZE=4 NOSHADE>
+  <TD WIDTH=34>
+ </TABLE>
+<TR>
+  <TD><A NAME=d1></A>LACB_BOVIN
+ <TD ALIGN=RIGHT NOWRAP>9.6e-15
+ <TD><TABLE SUMMARY='diagram 1' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=42><HR SIZE=4 NOSHADE>
+  <TD CLASS='c0' WIDTH=38>1
+  <TD WIDTH=276><HR SIZE=4 NOSHADE>
+  <TD WIDTH=44>
+ </TABLE>
+<TR>
+  <TD><A NAME=d4></A>MUP2_MOUSE
+ <TD ALIGN=RIGHT NOWRAP>4.5e-14
+ <TD><TABLE SUMMARY='diagram 4' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=46><HR SIZE=4 NOSHADE>
+  <TD CLASS='c0' WIDTH=38>1
+  <TD WIDTH=276><HR SIZE=4 NOSHADE>
+  <TD WIDTH=40>
+ </TABLE>
+<TR><TH CLASS='blue' COLSPAN=2 ROWSPAN=2 ALIGN=LEFT>SCALE
+  <TD><TABLE SUMMARY='scale' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+    <TD CLASS='blue' WIDTH=48 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+  <TR><TD CLASS='blue' WIDTH=48 ALIGN=LEFT>1</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>25</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>50</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>75</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>100</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>125</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>150</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>175</TD>
+  </TABLE>
+</TABLE>
+
+<HR><CENTER><A NAME=BLOCKS1></A>
+  <BIG><B> <A HREF="#BLOCKS_doc">	Motif 1 in BLOCKS format</A> 
+</B></BIG></CENTER><HR>
+<INPUT TYPE = "HIDDEN" NAME = "BLOCKS1" VALUE = "
+BL   MOTIF 1 width=19 seqs=5
+ICYA_MANSE               (   14) PVNDFDLSAFAGAWHEIAK  1 
+BBP_PIEBR                (   13) PVDNFDWSNYHGKWWEVAK  1 
+RETB_BOVIN               (   11) VKENFDKARFAGTWYAMAK  1 
+LACB_BOVIN               (   22) TMKGLDIQKVAGTWYSLAM  1 
+MUP2_MOUSE               (   24) TGRNFNVEKINGEWHTIIL  1 
+//
+
+ ">
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View BLOCK 1'>
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View FASTA 1'>
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View RAW 1'>
+<BR><INPUT TYPE = SUBMIT NAME = action VALUE = 'Submit BLOCK 1'>
+<B>to <A HREF='http://www.blocks.fhcrc.org/blocks/process_blocks.html'>BLOCKS multiple alignment processor.</A></B>
+<HR><CENTER><A NAME=pssm1></A>
+  <BIG><B> <A HREF="#pssm_doc">	Motif 1 position-specific scoring matrix</A> 
+</B></BIG></CENTER><HR>
+<INPUT TYPE = "HIDDEN" NAME = "pssm1" VALUE = "
+log-odds matrix: alength= 20 w= 19 n= 813 bayes= 7.33628 E= 8.9e-006 
+   -93   -241   -296   -256   -247   -224   -228   -113   -258   -190   -106   -229    361   -141   -151    -73    242     71   -330   -325 
+   -63   -187   -232   -163   -140     75   -134     22     37    -77    241   -166   -172    -51    -40   -100    -53    221   -226   -208 
+   -71   -310    103    103   -254   -142    -60   -205     81   -207    -94    124   -126     52    201    -34    -50   -195   -285   -234 
+  -242   -375     92   -196   -382     91    -98   -352   -243   -408   -311    349   -242   -122   -182    -80   -157   -389   -397   -351 
+  -318   -290   -467   -456    425   -423   -363   -172   -484    -47   -115   -430   -331   -373   -362   -296   -352   -245   -202   -103 
+  -301   -418    363   -117   -408   -310   -244   -367   -403   -415   -323    -21   -370   -260   -284   -260   -313   -381   -414   -410 
+  -107   -180   -350   -287   -106   -249   -200    251     -5     95     46   -249   -221   -152   -148   -153    -77    137    217   -191 
+    96   -298    -78    114   -258   -152    -75   -202    -65   -209    -96    -73   -125    216      7    200    -40   -190   -293   -244 
+    64   -339   -187   -114   -314   -206    -99   -238    222   -242   -133    101   -185     18    221   -102   -106   -240   -310   -282 
+  -180   -226   -378   -340    342   -310   -122     98   -351    -88    -39   -305   -258   -227   -212   -200   -176     43   -146    170 
+   273   -215   -127   -140   -272   -123    196   -223   -154   -247   -141    118   -194    -56    -71    -37    -96   -174   -321   -276 
+  -198   -392   -300   -366   -445    397   -328   -418   -373   -473   -335   -252   -325   -311   -239   -220   -319   -402   -398   -452 
+    89   -295    -91    104   -246   -153    -67   -184     77   -196    -82    -70   -123     52     29    -26    223   -176   -280   -234 
+  -388   -388   -438   -441   -134   -384   -353   -366   -445   -246   -240   -397   -380   -303   -275   -375   -362   -359    569   -207 
+  -290   -318   -383   -376     74   -360    354   -251   -386   -230   -173   -259   -307   -176   -201   -252   -277   -283    285    292 
+   106   -271    -97    173   -260   -150    -93   -197    -87   -214   -101    -85   -134     26    -13    137    156   -183   -299   -255 
+  -245   -306   -430   -410   -197   -384   -360    356   -396     52    173   -359   -346   -288   -286   -287   -197    121   -336   -320 
+   328   -140   -376   -329   -260   -140   -310     73   -352   -200   -114   -318   -308   -242   -222    -45   -138    -73   -332   -364 
+  -191   -312   -315   -227   -234   -288   -184   -127    276     37    218   -223   -256    -77     45   -195   -163   -176   -307   -303 
+ ">
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View PSSM 1'>
+
+<HR><CENTER><A NAME=pspm1></A>
+  <BIG><B> <A HREF="#pspm_doc">	Motif 1 position-specific probability matrix</A> 
+</B></BIG></CENTER><HR>
+<INPUT TYPE = "HIDDEN" NAME = "pspm1" VALUE = "
+letter-probability matrix: alength= 20 w= 19 nsites= 5 E= 8.9e-006 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.400000  0.000000  0.000000  0.000000  0.400000  0.200000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.200000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.400000  0.000000  0.000000 
+ 0.000000  0.000000  0.200000  0.200000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.200000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.200000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.600000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.800000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.800000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.200000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.200000  0.000000 
+ 0.200000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.400000  0.000000  0.000000  0.000000  0.000000 
+ 0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.400000  0.000000  0.000000  0.200000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.400000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.200000 
+ 0.600000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  1.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.200000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.400000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  1.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.400000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.400000 
+ 0.200000  0.000000  0.000000  0.400000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.200000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.400000  0.000000  0.200000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000 
+ 0.800000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.600000  0.200000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ ">
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View PSPM 1'>
+
+<PRE>
+
+
+
+
+
+Time  0.47 secs.
+
+</PRE>
+
+<HR><CENTER><A NAME=summary2></A>
+ <TABLE SUMMARY='buttons' ALIGN=LEFT CELLSPACING=0><TR>
+  <TD BGCOLOR='#OOFFFF'><A HREF="#summary1"><B>P</B></A>
+  <TD BGCOLOR='#FFFFOO'><A HREF="#summary3"><B>N</B></A></TABLE> <BIG><B> <A HREF="#summary_doc">MOTIF  2</A>  &nbsp;&nbsp;&nbsp; width = 20     &nbsp;&nbsp;&nbsp; sites =   5    &nbsp;&nbsp;&nbsp; llr = 195    &nbsp;&nbsp;&nbsp; E-value = 1.3e-004<BR CLEAR=LEFT>
+</B></BIG></CENTER><HR>
+<TABLE SUMMARY='motif description' CELLPADDING=0 CELLSPACING=1>
+<TR><TD COLSPAN=8><TH><A NAME='simplified2' HREF="#simplified_doc">Simplified</A><TH ALIGN=RIGHT>A<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>2<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>4<TD>:<TD>2<TD>:<TD 
+  >:<TD>:
+<TR><TD COLSPAN=8><TH><A HREF="#simplified_doc">pos.-specific</A><TH ALIGN=RIGHT>C<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>2<TD 
+  >:<TD>6
+<TR><TD COLSPAN=8><TH><A HREF="#simplified_doc">probability</A><TH ALIGN=RIGHT>D<TH><TD 
+  >:<TD>2<TD>2<TD>:<TD>:<TD>:<TD 
+  >:<TD>4<TD>:<TD>a<TD>:<TD>2<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:
+<TR><TD COLSPAN=8><TH><A HREF="#simplified_doc">matrix</A><TH ALIGN=RIGHT>E<TH><TD 
+  >4<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>2<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>2
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>F<TH><TD 
+  >2<TD>:<TD>:<TD>4<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>4<TD>:<TD>:<TD>2<TD>:<TD 
+  >:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>G<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>2<TD>:<TD 
+  >:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>H<TH><TD 
+  >:<TD>:<TD>:<TD>2<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>2<TD 
+  >:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>I<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>4<TD 
+  >2<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>2<TD>4<TD>:<TD>:<TD 
+  >:<TD>2
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>K<TH><TD 
+  >:<TD>:<TD>2<TD>:<TD>:<TD>:<TD 
+  >:<TD>2<TD>:<TD>:<TD>:<TD>6<TD 
+  >2<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>L<TH><TD 
+  >:<TD>2<TD>:<TD>:<TD>2<TD>:<TD 
+  >6<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>4<TD>2<TD>:<TD>:<TD 
+  >2<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>M<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>2<TD>:<TD>:<TD 
+  >2<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>N<TH><TD 
+  >4<TD>6<TD>:<TD>:<TD>2<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>2<TD>:<TD 
+  >6<TD>:<TD>:<TD>:<TD>2<TD>:<TD 
+  >2<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>P<TH><TD 
+  >:<TD>:<TD>:<TD>2<TD>:<TD>:<TD 
+  >2<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>Q<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>2<TD>:<TD 
+  >:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>R<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>S<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>2<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >2<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>T<TH><TD 
+  >:<TD>:<TD>2<TD>:<TD>2<TD>:<TD 
+  >:<TD>:<TD>a<TD>:<TD>:<TD>:<TD 
+  >2<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>V<TH><TD 
+  >:<TD>:<TD>4<TD>2<TD>:<TD>6<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>2<TD>:<TD>:<TD 
+  >:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>W<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>4<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>Y<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>8<TD>:<TD 
+  >:<TD>6<TD>:<TD>:<TD>:<TD>6<TD 
+  >2<TD>:
+<TR><TD CLASS='invisible'>.</TD>
+<TR><TD COLSPAN=8><TH> <A NAME='IC2'>          bits    </A><TH ALIGN=RIGHT>5.9<TH><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD>
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>5.3<TH><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD>
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>4.7<TH><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD BGCOLOR="green">&nbsp;<TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD>
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>4.1<TH><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD BGCOLOR="green">&nbsp;<TD
+   BGCOLOR="magenta">&nbsp;<TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD>
+<TR><TD COLSPAN=8><TH> <A HREF="#IC_doc"> Information </A><TH ALIGN=RIGHT>3.5<TH><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD BGCOLOR="green">&nbsp;<TD
+   BGCOLOR="magenta">&nbsp;<TD BGCOLOR="turquoise">&nbsp;<TD><TD
+  ><TD BGCOLOR="turquoise">&nbsp;<TD><TD
+  ><TD><TD BGCOLOR="turquoise">&nbsp;<TD
+  ><TD BGCOLOR="blue">&nbsp;
+<TR><TD COLSPAN=8><TH> <A HREF="#IC_doc"> content </A><TH ALIGN=RIGHT>2.9<TH><TD
+  ><TD BGCOLOR="green">&nbsp;<TD><TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+  ><TD><TD BGCOLOR="green">&nbsp;<TD
+   BGCOLOR="magenta">&nbsp;<TD BGCOLOR="turquoise">&nbsp;<TD><TD
+   BGCOLOR="green">&nbsp;<TD BGCOLOR="turquoise">&nbsp;<TD><TD
+  ><TD><TD BGCOLOR="turquoise">&nbsp;<TD
+  ><TD BGCOLOR="blue">&nbsp;
+<TR><TD COLSPAN=8><TH> (56.1 bits)<TH ALIGN=RIGHT>2.3<TH><TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="green">&nbsp;<TD><TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD><TD BGCOLOR="green">&nbsp;<TD
+   BGCOLOR="magenta">&nbsp;<TD BGCOLOR="turquoise">&nbsp;<TD BGCOLOR="red">&nbsp;<TD
+   BGCOLOR="green">&nbsp;<TD BGCOLOR="turquoise">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD><TD BGCOLOR="turquoise">&nbsp;<TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>1.8<TH><TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="green">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD BGCOLOR="green">&nbsp;<TD
+   BGCOLOR="magenta">&nbsp;<TD BGCOLOR="turquoise">&nbsp;<TD BGCOLOR="red">&nbsp;<TD
+   BGCOLOR="green">&nbsp;<TD BGCOLOR="turquoise">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD BGCOLOR="turquoise">&nbsp;<TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>1.2<TH><TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="green">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD BGCOLOR="green">&nbsp;<TD
+   BGCOLOR="magenta">&nbsp;<TD BGCOLOR="turquoise">&nbsp;<TD BGCOLOR="red">&nbsp;<TD
+   BGCOLOR="green">&nbsp;<TD BGCOLOR="turquoise">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD BGCOLOR="turquoise">&nbsp;<TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>0.6<TH><TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="green">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD BGCOLOR="green">&nbsp;<TD
+   BGCOLOR="magenta">&nbsp;<TD BGCOLOR="turquoise">&nbsp;<TD BGCOLOR="red">&nbsp;<TD
+   BGCOLOR="green">&nbsp;<TD BGCOLOR="turquoise">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD BGCOLOR="turquoise">&nbsp;<TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>0.0<TH><TD COLSPAN=20> <HR>
+<TR><TD CLASS='invisible'>.</TD>
+<TR><TD COLSPAN=8><TH><A NAME='consensus2' HREF="#consensus_doc">Multilevel           </A><TD><TH><TD CLASS=magenta
+  ><TT><B>E</B></TT></TD><TD CLASS=green><TT><B>N</B></TT></TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=blue><TT><B>F</B></TT></TD><TD CLASS=blue
+  ><TT><B>W</B></TT></TD><TD CLASS=blue><TT><B>V</B></TT></TD><TD CLASS=blue
+  ><TT><B>L</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=turquoise
+  ><TT><B>Y</B></TT></TD><TD CLASS=red><TT><B>K</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=turquoise><TT><B>Y</B></TT></TD><TD CLASS=blue
+  ><TT><B>A</B></TT></TD><TD CLASS=blue><TT><B>I</B></TT></TD><TD CLASS=blue
+  ><TT><B>A</B></TT></TD><TD CLASS=turquoise><TT><B>Y</B></TT></TD><TD CLASS=blue
+  ><TT><B>L</B></TT></TD><TD CLASS=blue><TT><B>C</B></TT></TD>
+<TR><TD COLSPAN=8><TH><A HREF="#consensus_doc">consensus            </A><TD><TH><TD CLASS=green
+  ><TT>N</TT></TD><TD CLASS=magenta><TT>D</TT></TD><TD CLASS=magenta
+  ><TT>D</TT></TD><TD CLASS=pink><TT>H</TT></TD><TD CLASS=blue
+  ><TT>L</TT></TD><TD CLASS=blue><TT>I</TT></TD><TD CLASS=blue
+  ><TT>I</TT></TD><TD CLASS=blue><TT>A</TT></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=green
+  ><TT>N</TT></TD><TD CLASS=magenta><TT>D</TT></TD><TD CLASS=red
+  ><TT>K</TT></TD><TD CLASS=blue><TT>F</TT></TD><TD CLASS=blue
+  ><TT>L</TT></TD><TD CLASS=blue><TT>L</TT></TD><TD CLASS=blue
+  ><TT>F</TT></TD><TD CLASS=blue><TT>C</TT></TD><TD CLASS=blue
+  ><TT>M</TT></TD><TD CLASS=magenta><TT>E</TT></TD>
+<TR><TD COLSPAN=8><TH><A HREF="#consensus_doc">sequence             </A><TD><TH><TD CLASS=blue
+  ><TT>F</TT></TD><TD CLASS=blue><TT>L</TT></TD><TD CLASS=red
+  ><TT>K</TT></TD><TD CLASS=yellow><TT>P</TT></TD><TD CLASS=green
+  ><TT>N</TT></TD><TD CLASS=black></TD><TD CLASS=yellow
+  ><TT>P</TT></TD><TD CLASS=red><TT>K</TT></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=magenta><TT>E</TT></TD><TD CLASS=green
+  ><TT>T</TT></TD><TD CLASS=black></TD><TD CLASS=blue
+  ><TT>I</TT></TD><TD CLASS=blue><TT>M</TT></TD><TD CLASS=orange
+  ><TT>G</TT></TD><TD CLASS=pink><TT>H</TT></TD><TD CLASS=green
+  ><TT>N</TT></TD><TD CLASS=blue><TT>I</TT></TD>
+<TR><TD COLSPAN=8><TH>                     <TD><TH><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=green
+  ><TT>T</TT></TD><TD CLASS=blue><TT>V</TT></TD><TD CLASS=green
+  ><TT>T</TT></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=green><TT>S</TT></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=blue><TT>V</TT></TD><TD CLASS=green
+  ><TT>N</TT></TD><TD CLASS=black></TD><TD CLASS=green
+  ><TT>S</TT></TD><TD CLASS=black></TD>
+<TR><TD COLSPAN=8><TH>                     <TD><TH><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=green
+  ><TT>Q</TT></TD><TD CLASS=black></TD><TD CLASS=turquoise
+  ><TT>Y</TT></TD><TD CLASS=black></TD>
+
+<TR><TD CLASS='invisible'>.</TD>
+<TR><TH ALIGN=LEFT>NAME<TH>&nbsp;<TH>&nbsp;<TH>&nbsp;<TH>START<TH>&nbsp;<TH>P-VALUE<TH>&nbsp;<TH>&nbsp;<TH>&nbsp;<TH>&nbsp;<TH><TH COLSPAN=20 ALIGN=CENTER><A NAME='sites2' HREF="#sites_doc">SITES</A><TH>&nbsp;
+<TR><TD>ICYA_MANSE<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>100<TD><TD ALIGN=RIGHT>4.03e-19<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>MTFKFGQRVV</TT><TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=yellow><TT><B>P</B></TT></TD><TD CLASS=blue
+  ><TT><B>W</B></TT></TD><TD CLASS=blue><TT><B>V</B></TT></TD><TD CLASS=blue
+  ><TT><B>L</B></TT></TD><TD CLASS=blue><TT><B>A</B></TT></TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=turquoise
+  ><TT><B>Y</B></TT></TD><TD CLASS=red><TT><B>K</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=turquoise><TT><B>Y</B></TT></TD><TD CLASS=blue
+  ><TT><B>A</B></TT></TD><TD CLASS=blue><TT><B>I</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=turquoise><TT><B>Y</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=blue><TT><B>C</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>DYHPDKKAHS</TT>
+<TR><TD>BBP_PIEBR<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>96<TD><TD ALIGN=RIGHT>1.04e-18<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>HKLTYGGVTK</TT><TD><TD CLASS=magenta
+  ><TT><B>E</B></TT></TD><TD CLASS=green><TT><B>N</B></TT></TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=blue><TT><B>F</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=blue><TT><B>V</B></TT></TD><TD CLASS=blue
+  ><TT><B>L</B></TT></TD><TD CLASS=green><TT><B>S</B></TT></TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=red><TT><B>K</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=turquoise><TT><B>Y</B></TT></TD><TD CLASS=blue
+  ><TT><B>I</B></TT></TD><TD CLASS=blue><TT><B>I</B></TT></TD><TD CLASS=orange
+  ><TT><B>G</B></TT></TD><TD CLASS=turquoise><TT><B>Y</B></TT></TD><TD CLASS=turquoise
+  ><TT><B>Y</B></TT></TD><TD CLASS=blue><TT><B>C</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>KYDEDKKGHQ</TT>
+<TR><TD>RETB_BOVIN<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>101<TD><TD ALIGN=RIGHT>2.40e-16<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>WGVASFLQKG</TT><TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=magenta
+  ><TT><B>D</B></TT></TD><TD CLASS=pink><TT><B>H</B></TT></TD><TD CLASS=blue
+  ><TT><B>W</B></TT></TD><TD CLASS=blue><TT><B>I</B></TT></TD><TD CLASS=blue
+  ><TT><B>I</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=turquoise
+  ><TT><B>Y</B></TT></TD><TD CLASS=magenta><TT><B>E</B></TT></TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=blue><TT><B>F</B></TT></TD><TD CLASS=blue
+  ><TT><B>A</B></TT></TD><TD CLASS=blue><TT><B>V</B></TT></TD><TD CLASS=green
+  ><TT><B>Q</B></TT></TD><TD CLASS=turquoise><TT><B>Y</B></TT></TD><TD CLASS=green
+  ><TT><B>S</B></TT></TD><TD CLASS=blue><TT><B>C</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>RLLNLDGTCA</TT>
+<TR><TD>MUP2_MOUSE<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>105<TD><TD ALIGN=RIGHT>6.24e-14<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>AGEYSVTYDG</TT><TD><TD CLASS=blue
+  ><TT><B>F</B></TT></TD><TD CLASS=green><TT><B>N</B></TT></TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=blue><TT><B>F</B></TT></TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=blue><TT><B>I</B></TT></TD><TD CLASS=yellow
+  ><TT><B>P</B></TT></TD><TD CLASS=red><TT><B>K</B></TT></TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=turquoise
+  ><TT><B>Y</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=blue><TT><B>F</B></TT></TD><TD CLASS=blue
+  ><TT><B>L</B></TT></TD><TD CLASS=blue><TT><B>M</B></TT></TD><TD CLASS=blue
+  ><TT><B>A</B></TT></TD><TD CLASS=pink><TT><B>H</B></TT></TD><TD CLASS=blue
+  ><TT><B>L</B></TT></TD><TD CLASS=blue><TT><B>I</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>NEKDGETFQL</TT>
+<TR><TD>LACB_BOVIN<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>105<TD><TD ALIGN=RIGHT>6.57e-13<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>PAVFKIDALN</TT><TD><TD CLASS=magenta
+  ><TT><B>E</B></TT></TD><TD CLASS=green><TT><B>N</B></TT></TD><TD CLASS=red
+  ><TT><B>K</B></TT></TD><TD CLASS=blue><TT><B>V</B></TT></TD><TD CLASS=blue
+  ><TT><B>L</B></TT></TD><TD CLASS=blue><TT><B>V</B></TT></TD><TD CLASS=blue
+  ><TT><B>L</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=turquoise
+  ><TT><B>Y</B></TT></TD><TD CLASS=red><TT><B>K</B></TT></TD><TD CLASS=red
+  ><TT><B>K</B></TT></TD><TD CLASS=turquoise><TT><B>Y</B></TT></TD><TD CLASS=blue
+  ><TT><B>L</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=blue
+  ><TT><B>F</B></TT></TD><TD CLASS=blue><TT><B>C</B></TT></TD><TD CLASS=blue
+  ><TT><B>M</B></TT></TD><TD CLASS=magenta><TT><B>E</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>NSAEPEQSLA</TT>
+</TABLE>
+<HR><CENTER><A NAME=diagrams2></A>
+  <BIG><B> <A HREF="#diagrams_doc">	Motif 2 block diagrams</A> 
+</B></BIG></CENTER><HR>
+<TABLE SUMMARY='motif diagrams' BORDER=1>
+<TR><TH>Name<TH>Lowest<BR>p-value<TH ALIGN=LEFT>&nbsp;&nbsp; Motifs
+<TR>
+  <TD><A NAME=d0></A>ICYA_MANSE
+ <TD ALIGN=RIGHT NOWRAP>4e-19
+ <TD><TABLE SUMMARY='diagram 0' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=198><HR SIZE=4 NOSHADE>
+  <TD CLASS='c1' WIDTH=40>2
+  <TD WIDTH=140><HR SIZE=4 NOSHADE>
+  <TD WIDTH=22>
+ </TABLE>
+<TR>
+  <TD><A NAME=d2></A>BBP_PIEBR
+ <TD ALIGN=RIGHT NOWRAP>1e-18
+ <TD><TABLE SUMMARY='diagram 2' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=190><HR SIZE=4 NOSHADE>
+  <TD CLASS='c1' WIDTH=40>2
+  <TD WIDTH=116><HR SIZE=4 NOSHADE>
+  <TD WIDTH=54>
+ </TABLE>
+<TR>
+  <TD><A NAME=d3></A>RETB_BOVIN
+ <TD ALIGN=RIGHT NOWRAP>2.4e-16
+ <TD><TABLE SUMMARY='diagram 3' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=200><HR SIZE=4 NOSHADE>
+  <TD CLASS='c1' WIDTH=40>2
+  <TD WIDTH=126><HR SIZE=4 NOSHADE>
+  <TD WIDTH=34>
+ </TABLE>
+<TR>
+  <TD><A NAME=d4></A>MUP2_MOUSE
+ <TD ALIGN=RIGHT NOWRAP>6.2e-14
+ <TD><TABLE SUMMARY='diagram 4' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=208><HR SIZE=4 NOSHADE>
+  <TD CLASS='c1' WIDTH=40>2
+  <TD WIDTH=112><HR SIZE=4 NOSHADE>
+  <TD WIDTH=40>
+ </TABLE>
+<TR>
+  <TD><A NAME=d1></A>LACB_BOVIN
+ <TD ALIGN=RIGHT NOWRAP>6.6e-13
+ <TD><TABLE SUMMARY='diagram 1' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=208><HR SIZE=4 NOSHADE>
+  <TD CLASS='c1' WIDTH=40>2
+  <TD WIDTH=108><HR SIZE=4 NOSHADE>
+  <TD WIDTH=44>
+ </TABLE>
+<TR><TH CLASS='blue' COLSPAN=2 ROWSPAN=2 ALIGN=LEFT>SCALE
+  <TD><TABLE SUMMARY='scale' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+    <TD CLASS='blue' WIDTH=48 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+  <TR><TD CLASS='blue' WIDTH=48 ALIGN=LEFT>1</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>25</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>50</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>75</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>100</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>125</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>150</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>175</TD>
+  </TABLE>
+</TABLE>
+
+<HR><CENTER><A NAME=BLOCKS2></A>
+  <BIG><B> <A HREF="#BLOCKS_doc">	Motif 2 in BLOCKS format</A> 
+</B></BIG></CENTER><HR>
+<INPUT TYPE = "HIDDEN" NAME = "BLOCKS2" VALUE = "
+BL   MOTIF 2 width=20 seqs=5
+ICYA_MANSE               (  100) NLVPWVLATDYKNYAINYNC  1 
+BBP_PIEBR                (   96) ENVFNVLSTDNKNYIIGYYC  1 
+RETB_BOVIN               (  101) NDDHWIIDTDYETFAVQYSC  1 
+MUP2_MOUSE               (  105) FNTFTIPKTDYDNFLMAHLI  1 
+LACB_BOVIN               (  105) ENKVLVLDTDYKKYLLFCME  1 
+//
+
+ ">
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View BLOCK 2'>
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View FASTA 2'>
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View RAW 2'>
+<BR><INPUT TYPE = SUBMIT NAME = action VALUE = 'Submit BLOCK 2'>
+<B>to <A HREF='http://www.blocks.fhcrc.org/blocks/process_blocks.html'>BLOCKS multiple alignment processor.</A></B>
+<HR><CENTER><A NAME=pssm2></A>
+  <BIG><B> <A HREF="#pssm_doc">	Motif 2 position-specific scoring matrix</A> 
+</B></BIG></CENTER><HR>
+<INPUT TYPE = "HIDDEN" NAME = "pssm2" VALUE = "
+log-odds matrix: alength= 20 w= 20 n= 808 bayes= 7.32733 E= 1.3e-004 
+  -116   -324    -64    181    136   -144    -82   -221   -110   -238   -136    235   -162      0    -39    -57    -86   -222   -289   -199 
+  -264   -361     -4   -243   -347   -231    -89   -277   -263    -94   -248    377   -263   -136   -183   -110   -174   -332   -348   -353 
+   -66   -251     55    -62   -218   -174    -92    -65     47   -162    -65    -95   -142     12     -3    -58    128    212   -277   -241 
+  -126   -208   -290   -239    294   -248    179    -55   -244    -93    -23   -219    151   -123   -126   -139   -115     66   -140    111 
+  -163   -256   -286   -240   -117   -258   -187   -104   -233     -2    -61     22   -239   -123   -124   -153     70   -128    496   -172 
+  -187   -259   -460   -433   -253   -411   -393    294   -445   -100    -72   -409   -350   -346   -317   -333   -179    284   -423   -403 
+  -241   -288   -462   -384   -125   -379   -303    115   -384    294     55   -375     98   -219   -226   -288   -207    -90   -286   -303 
+    87   -310    199    -26   -267   -139    -74   -219     69   -226   -114    -38   -135     29     -2    118    -60   -209   -302   -248 
+  -207   -284   -375   -406   -362   -318   -321   -234   -360   -351   -189   -221   -300   -234   -236    -21    413   -235   -394   -430 
+  -314   -425    368   -126   -416   -331   -261   -375   -424   -423   -332   -101   -381   -278   -298   -284   -333   -389   -419   -420 
+  -225   -294   -274   -298     79   -283    -38   -226   -307   -220   -157    120   -267   -192   -179   -191   -229   -254    -84    364 
+  -140   -422    109    152   -378   -212   -152   -292    227   -299   -190   -123   -188     11    -34   -125   -141   -275   -395   -345 
+  -219   -352   -147   -205   -340   -210    -87   -272     -8   -326   -217    360   -237    -84    -81    -94     66   -308   -341   -333 
+  -252   -295   -377   -356    284   -344    -34   -222   -366   -206   -151   -294   -288   -226   -210   -233   -263   -256    -55    339 
+   187   -211   -422   -353   -120   -290   -268    186   -351    201     34   -320   -273   -212   -215   -199   -130     -4   -258   -258 
+  -245   -306   -430   -410   -197   -384   -360    356   -396     52    173   -359   -346   -288   -286   -287   -197    121   -336   -320 
+   101   -261   -102    -53    108    107    -47   -151    -62   -172    -64    119   -120    207     16    -25    -39   -150   -255   -163 
+  -159    113   -291   -265    139   -272    185   -163   -283   -165    -93   -236   -215   -167   -141   -152   -187   -189    -63    335 
+   -70   -186   -203   -142    -27   -188    -50    -16   -146     73    243     97   -158    -34    -48    101    -41    -46   -169    156 
+  -296    492   -486   -201   -375   -433   -397    -94   -465   -327   -236   -427   -408   -348   -325   -347   -285   -273   -475   -467 
+ ">
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View PSSM 2'>
+
+<HR><CENTER><A NAME=pspm2></A>
+  <BIG><B> <A HREF="#pspm_doc">	Motif 2 position-specific probability matrix</A> 
+</B></BIG></CENTER><HR>
+<INPUT TYPE = "HIDDEN" NAME = "pspm2" VALUE = "
+letter-probability matrix: alength= 20 w= 20 nsites= 5 E= 1.3e-004 
+ 0.000000  0.000000  0.000000  0.400000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.400000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.600000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.400000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.400000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.400000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.400000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.600000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.600000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.200000  0.000000  0.400000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  1.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  1.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.800000 
+ 0.000000  0.000000  0.200000  0.200000  0.000000  0.000000  0.000000  0.000000  0.600000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.600000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.400000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.600000 
+ 0.400000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.400000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.400000  0.000000  0.200000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000 
+ 0.200000  0.000000  0.000000  0.000000  0.200000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.600000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.200000  0.200000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.200000 
+ 0.000000  0.600000  0.000000  0.200000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ ">
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View PSPM 2'>
+
+<PRE>
+
+
+
+
+
+Time  0.74 secs.
+
+</PRE>
+
+<HR><CENTER><A NAME=summary3></A>
+ <TABLE SUMMARY='buttons' ALIGN=LEFT CELLSPACING=0><TR>
+  <TD BGCOLOR='#OOFFFF'><A HREF="#summary2"><B>P</B></A>
+  <TD BGCOLOR='#FFFFOO'><A HREF="#summary4"><B>N</B></A></TABLE> <BIG><B> <A HREF="#summary_doc">MOTIF  3</A>  &nbsp;&nbsp;&nbsp; width = 18     &nbsp;&nbsp;&nbsp; sites =   5    &nbsp;&nbsp;&nbsp; llr = 163    &nbsp;&nbsp;&nbsp; E-value = 1.2e+002<BR CLEAR=LEFT>
+</B></BIG></CENTER><HR>
+<TABLE SUMMARY='motif description' CELLPADDING=0 CELLSPACING=1>
+<TR><TD COLSPAN=8><TH><A NAME='simplified3' HREF="#simplified_doc">Simplified</A><TH ALIGN=RIGHT>A<TH><TD 
+  >:<TD>:<TD>:<TD>2<TD>2<TD>:<TD 
+  >2<TD>2<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>2
+<TR><TD COLSPAN=8><TH><A HREF="#simplified_doc">pos.-specific</A><TH ALIGN=RIGHT>C<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:
+<TR><TD COLSPAN=8><TH><A HREF="#simplified_doc">probability</A><TH ALIGN=RIGHT>D<TH><TD 
+  >:<TD>2<TD>2<TD>2<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >2<TD>:<TD>:<TD>:<TD>:<TD>:
+<TR><TD COLSPAN=8><TH><A HREF="#simplified_doc">matrix</A><TH ALIGN=RIGHT>E<TH><TD 
+  >:<TD>:<TD>2<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>4<TD>:<TD>:<TD>:<TD 
+  >:<TD>2<TD>2<TD>:<TD>2<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>F<TH><TD 
+  >6<TD>:<TD>:<TD>2<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>2<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>4<TD>:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>G<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>6<TD>:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>H<TH><TD 
+  >4<TD>:<TD>:<TD>2<TD>:<TD>2<TD 
+  >:<TD>:<TD>:<TD>:<TD>2<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>4<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>I<TH><TD 
+  >:<TD>:<TD>2<TD>:<TD>2<TD>2<TD 
+  >2<TD>:<TD>:<TD>:<TD>:<TD>2<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>K<TH><TD 
+  >:<TD>:<TD>2<TD>:<TD>:<TD>2<TD 
+  >:<TD>:<TD>:<TD>4<TD>:<TD>4<TD 
+  >:<TD>:<TD>2<TD>:<TD>:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>L<TH><TD 
+  >:<TD>4<TD>:<TD>:<TD>2<TD>:<TD 
+  >:<TD>8<TD>:<TD>:<TD>:<TD>2<TD 
+  >:<TD>8<TD>:<TD>:<TD>:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>M<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>2<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>2
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>N<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>2<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>2<TD>:<TD>4<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>P<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>2<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>2
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>Q<TH><TD 
+  >:<TD>2<TD>2<TD>2<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>R<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>2<TD>:<TD>:<TD 
+  >2<TD>:<TD>:<TD>:<TD>:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>S<TH><TD 
+  >:<TD>2<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>4<TD>:<TD>8<TD>:<TD 
+  >:<TD>:<TD>2<TD>:<TD>:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>T<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>2<TD>:<TD>:<TD>4
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>V<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>2<TD>:<TD 
+  >6<TD>:<TD>:<TD>:<TD>:<TD>2<TD 
+  >6<TD>:<TD>:<TD>:<TD>:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>W<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>4<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:
+<TR><TD COLSPAN=8><TH><TH ALIGN=RIGHT>Y<TH><TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:<TD 
+  >:<TD>:<TD>:<TD>:<TD>:<TD>:
+<TR><TD CLASS='invisible'>.</TD>
+<TR><TD COLSPAN=8><TH> <A NAME='IC3'>          bits    </A><TH ALIGN=RIGHT>5.9<TH><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD>
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>5.3<TH><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD>
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>4.7<TH><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD>
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>4.1<TH><TD
+   BGCOLOR="blue">&nbsp;<TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD>
+<TR><TD COLSPAN=8><TH> <A HREF="#IC_doc"> Information </A><TH ALIGN=RIGHT>3.5<TH><TD
+   BGCOLOR="blue">&nbsp;<TD><TD><TD
+  ><TD><TD><TD
+  ><TD><TD><TD
+  ><TD BGCOLOR="green">&nbsp;<TD><TD
+  ><TD><TD><TD
+   BGCOLOR="orange">&nbsp;<TD><TD>
+<TR><TD COLSPAN=8><TH> <A HREF="#IC_doc"> content </A><TH ALIGN=RIGHT>2.9<TH><TD
+   BGCOLOR="blue">&nbsp;<TD><TD><TD
+  ><TD><TD BGCOLOR="blue">&nbsp;<TD
+  ><TD BGCOLOR="blue">&nbsp;<TD><TD
+  ><TD BGCOLOR="green">&nbsp;<TD><TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD><TD
+   BGCOLOR="orange">&nbsp;<TD BGCOLOR="black">&nbsp;<TD BGCOLOR="black">&nbsp;
+<TR><TD COLSPAN=8><TH> (47.0 bits)<TH ALIGN=RIGHT>2.3<TH><TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD><TD
+   BGCOLOR="black">&nbsp;<TD><TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="red">&nbsp;<TD BGCOLOR="green">&nbsp;<TD><TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD><TD
+   BGCOLOR="orange">&nbsp;<TD BGCOLOR="black">&nbsp;<TD BGCOLOR="black">&nbsp;
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>1.8<TH><TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="red">&nbsp;<TD BGCOLOR="green">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="green">&nbsp;<TD
+   BGCOLOR="orange">&nbsp;<TD BGCOLOR="black">&nbsp;<TD BGCOLOR="black">&nbsp;
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>1.2<TH><TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="red">&nbsp;<TD BGCOLOR="green">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="green">&nbsp;<TD
+   BGCOLOR="orange">&nbsp;<TD BGCOLOR="black">&nbsp;<TD BGCOLOR="black">&nbsp;
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>0.6<TH><TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="black">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="black">&nbsp;<TD
+   BGCOLOR="red">&nbsp;<TD BGCOLOR="green">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD
+   BGCOLOR="blue">&nbsp;<TD BGCOLOR="blue">&nbsp;<TD BGCOLOR="green">&nbsp;<TD
+   BGCOLOR="orange">&nbsp;<TD BGCOLOR="black">&nbsp;<TD BGCOLOR="black">&nbsp;
+<TR><TD COLSPAN=8><TH>                  <TH ALIGN=RIGHT>0.0<TH><TD COLSPAN=18> <HR>
+<TR><TD CLASS='invisible'>.</TD>
+<TR><TD COLSPAN=8><TH><A NAME='consensus3' HREF="#consensus_doc">Multilevel           </A><TD><TH><TD CLASS=blue
+  ><TT><B>F</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=magenta
+  ><TT><B>D</B></TT></TD><TD CLASS=blue><TT><B>A</B></TT></TD><TD CLASS=blue
+  ><TT><B>A</B></TT></TD><TD CLASS=blue><TT><B>W</B></TT></TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=magenta
+  ><TT><B>E</B></TT></TD><TD CLASS=red><TT><B>K</B></TT></TD><TD CLASS=green
+  ><TT><B>S</B></TT></TD><TD CLASS=red><TT><B>K</B></TT></TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=magenta
+  ><TT><B>E</B></TT></TD><TD CLASS=orange><TT><B>G</B></TT></TD><TD CLASS=pink
+  ><TT><B>H</B></TT></TD><TD CLASS=green><TT><B>T</B></TT></TD>
+<TR><TD COLSPAN=8><TH><A HREF="#consensus_doc">consensus            </A><TD><TH><TD CLASS=pink
+  ><TT>H</TT></TD><TD CLASS=magenta><TT>D</TT></TD><TD CLASS=magenta
+  ><TT>E</TT></TD><TD CLASS=magenta><TT>D</TT></TD><TD CLASS=blue
+  ><TT>I</TT></TD><TD CLASS=pink><TT>H</TT></TD><TD CLASS=blue
+  ><TT>A</TT></TD><TD CLASS=blue><TT>A</TT></TD><TD CLASS=green
+  ><TT>S</TT></TD><TD CLASS=blue><TT>F</TT></TD><TD CLASS=pink
+  ><TT>H</TT></TD><TD CLASS=blue><TT>I</TT></TD><TD CLASS=magenta
+  ><TT>D</TT></TD><TD CLASS=magenta><TT>E</TT></TD><TD CLASS=red
+  ><TT>K</TT></TD><TD CLASS=blue><TT>F</TT></TD><TD CLASS=green
+  ><TT>N</TT></TD><TD CLASS=blue><TT>A</TT></TD>
+<TR><TD COLSPAN=8><TH><A HREF="#consensus_doc">sequence             </A><TD><TH><TD CLASS=black
+  ></TD><TD CLASS=green><TT>Q</TT></TD><TD CLASS=blue
+  ><TT>I</TT></TD><TD CLASS=blue><TT>F</TT></TD><TD CLASS=blue
+  ><TT>L</TT></TD><TD CLASS=blue><TT>I</TT></TD><TD CLASS=blue
+  ><TT>I</TT></TD><TD CLASS=black></TD><TD CLASS=yellow
+  ><TT>P</TT></TD><TD CLASS=blue><TT>M</TT></TD><TD CLASS=black
+  ></TD><TD CLASS=blue><TT>L</TT></TD><TD CLASS=red
+  ><TT>R</TT></TD><TD CLASS=black></TD><TD CLASS=green
+  ><TT>N</TT></TD><TD CLASS=black></TD><TD CLASS=magenta
+  ><TT>E</TT></TD><TD CLASS=blue><TT>M</TT></TD>
+<TR><TD COLSPAN=8><TH>                     <TD><TH><TD CLASS=black
+  ></TD><TD CLASS=green><TT>S</TT></TD><TD CLASS=red
+  ><TT>K</TT></TD><TD CLASS=pink><TT>H</TT></TD><TD CLASS=green
+  ><TT>N</TT></TD><TD CLASS=red><TT>K</TT></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=red><TT>R</TT></TD><TD CLASS=black
+  ></TD><TD CLASS=blue><TT>V</TT></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=green
+  ><TT>S</TT></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=yellow><TT>P</TT></TD>
+<TR><TD COLSPAN=8><TH>                     <TD><TH><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=green
+  ><TT>Q</TT></TD><TD CLASS=green><TT>Q</TT></TD><TD CLASS=blue
+  ><TT>V</TT></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD><TD CLASS=green
+  ><TT>T</TT></TD><TD CLASS=black></TD><TD CLASS=black
+  ></TD><TD CLASS=black></TD>
+
+<TR><TD CLASS='invisible'>.</TD>
+<TR><TH ALIGN=LEFT>NAME<TH>&nbsp;<TH>&nbsp;<TH>&nbsp;<TH>START<TH>&nbsp;<TH>P-VALUE<TH>&nbsp;<TH>&nbsp;<TH>&nbsp;<TH>&nbsp;<TH><TH COLSPAN=18 ALIGN=CENTER><A NAME='sites3' HREF="#sites_doc">SITES</A><TH>&nbsp;
+<TR><TD>MUP2_MOUSE<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>59<TD><TD ALIGN=RIGHT>1.43e-16<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>KIEDNGNFRL</TT><TD><TD CLASS=blue
+  ><TT><B>F</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=magenta
+  ><TT><B>E</B></TT></TD><TD CLASS=green><TT><B>Q</B></TT></TD><TD CLASS=blue
+  ><TT><B>I</B></TT></TD><TD CLASS=pink><TT><B>H</B></TT></TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=magenta
+  ><TT><B>E</B></TT></TD><TD CLASS=red><TT><B>K</B></TT></TD><TD CLASS=green
+  ><TT><B>S</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=red
+  ><TT><B>K</B></TT></TD><TD CLASS=blue><TT><B>F</B></TT></TD><TD CLASS=pink
+  ><TT><B>H</B></TT></TD><TD CLASS=green><TT><B>T</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>VRDEECSELS</TT>
+<TR><TD>ICYA_MANSE<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>128<TD><TD ALIGN=RIGHT>4.33e-16<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>NCDYHPDKKA</TT><TD><TD CLASS=pink
+  ><TT><B>H</B></TT></TD><TD CLASS=green><TT><B>S</B></TT></TD><TD CLASS=blue
+  ><TT><B>I</B></TT></TD><TD CLASS=pink><TT><B>H</B></TT></TD><TD CLASS=blue
+  ><TT><B>A</B></TT></TD><TD CLASS=blue><TT><B>W</B></TT></TD><TD CLASS=blue
+  ><TT><B>I</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=green
+  ><TT><B>S</B></TT></TD><TD CLASS=red><TT><B>K</B></TT></TD><TD CLASS=green
+  ><TT><B>S</B></TT></TD><TD CLASS=red><TT><B>K</B></TT></TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=magenta
+  ><TT><B>E</B></TT></TD><TD CLASS=orange><TT><B>G</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=green><TT><B>T</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>KEVVDNVLKT</TT>
+<TR><TD>BBP_PIEBR<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>124<TD><TD ALIGN=RIGHT>6.65e-16<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>YCKYDEDKKG</TT><TD><TD CLASS=pink
+  ><TT><B>H</B></TT></TD><TD CLASS=green><TT><B>Q</B></TT></TD><TD CLASS=magenta
+  ><TT><B>D</B></TT></TD><TD CLASS=blue><TT><B>F</B></TT></TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=blue><TT><B>W</B></TT></TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=green
+  ><TT><B>S</B></TT></TD><TD CLASS=red><TT><B>R</B></TT></TD><TD CLASS=green
+  ><TT><B>S</B></TT></TD><TD CLASS=red><TT><B>K</B></TT></TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=green
+  ><TT><B>T</B></TT></TD><TD CLASS=orange><TT><B>G</B></TT></TD><TD CLASS=magenta
+  ><TT><B>E</B></TT></TD><TD CLASS=blue><TT><B>A</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>KTAVENYLIG</TT>
+<TR><TD>RETB_BOVIN<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>36<TD><TD ALIGN=RIGHT>2.92e-11<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>AMAKKDPEGL</TT><TD><TD CLASS=blue
+  ><TT><B>F</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=green
+  ><TT><B>Q</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=blue><TT><B>I</B></TT></TD><TD CLASS=blue
+  ><TT><B>V</B></TT></TD><TD CLASS=blue><TT><B>A</B></TT></TD><TD CLASS=magenta
+  ><TT><B>E</B></TT></TD><TD CLASS=blue><TT><B>F</B></TT></TD><TD CLASS=green
+  ><TT><B>S</B></TT></TD><TD CLASS=blue><TT><B>V</B></TT></TD><TD CLASS=magenta
+  ><TT><B>D</B></TT></TD><TD CLASS=magenta><TT><B>E</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=orange><TT><B>G</B></TT></TD><TD CLASS=pink
+  ><TT><B>H</B></TT></TD><TD CLASS=blue><TT><B>M</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>SATAKGRVRL</TT>
+<TR><TD>LACB_BOVIN<TD><TD ALIGN=CENTER><TD><TD ALIGN=RIGHT>152<TD><TD ALIGN=RIGHT>3.37e-11<TD>
+  <TD COLSPAN=2 ALIGN=RIGHT><TT>PEVDDEALEK</TT><TD><TD CLASS=blue
+  ><TT><B>F</B></TT></TD><TD CLASS=magenta><TT><B>D</B></TT></TD><TD CLASS=red
+  ><TT><B>K</B></TT></TD><TD CLASS=blue><TT><B>A</B></TT></TD><TD CLASS=blue
+  ><TT><B>L</B></TT></TD><TD CLASS=red><TT><B>K</B></TT></TD><TD CLASS=blue
+  ><TT><B>A</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=yellow
+  ><TT><B>P</B></TT></TD><TD CLASS=blue><TT><B>M</B></TT></TD><TD CLASS=pink
+  ><TT><B>H</B></TT></TD><TD CLASS=blue><TT><B>I</B></TT></TD><TD CLASS=red
+  ><TT><B>R</B></TT></TD><TD CLASS=blue><TT><B>L</B></TT></TD><TD CLASS=green
+  ><TT><B>S</B></TT></TD><TD CLASS=blue><TT><B>F</B></TT></TD><TD CLASS=green
+  ><TT><B>N</B></TT></TD><TD CLASS=yellow><TT><B>P</B></TT></TD><TD><TD><TD ALIGN=LEFT><TT>TQLEEQCHI</TT>
+</TABLE>
+<HR><CENTER><A NAME=diagrams3></A>
+  <BIG><B> <A HREF="#diagrams_doc">	Motif 3 block diagrams</A> 
+</B></BIG></CENTER><HR>
+<TABLE SUMMARY='motif diagrams' BORDER=1>
+<TR><TH>Name<TH>Lowest<BR>p-value<TH ALIGN=LEFT>&nbsp;&nbsp; Motifs
+<TR>
+  <TD><A NAME=d4></A>MUP2_MOUSE
+ <TD ALIGN=RIGHT NOWRAP>1.4e-16
+ <TD><TABLE SUMMARY='diagram 4' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=116><HR SIZE=4 NOSHADE>
+  <TD CLASS='c2' WIDTH=36>3
+  <TD WIDTH=208><HR SIZE=4 NOSHADE>
+  <TD WIDTH=40>
+ </TABLE>
+<TR>
+  <TD><A NAME=d0></A>ICYA_MANSE
+ <TD ALIGN=RIGHT NOWRAP>4.3e-16
+ <TD><TABLE SUMMARY='diagram 0' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=254><HR SIZE=4 NOSHADE>
+  <TD CLASS='c2' WIDTH=36>3
+  <TD WIDTH=88><HR SIZE=4 NOSHADE>
+  <TD WIDTH=22>
+ </TABLE>
+<TR>
+  <TD><A NAME=d2></A>BBP_PIEBR
+ <TD ALIGN=RIGHT NOWRAP>6.7e-16
+ <TD><TABLE SUMMARY='diagram 2' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=246><HR SIZE=4 NOSHADE>
+  <TD CLASS='c2' WIDTH=36>3
+  <TD WIDTH=64><HR SIZE=4 NOSHADE>
+  <TD WIDTH=54>
+ </TABLE>
+<TR>
+  <TD><A NAME=d3></A>RETB_BOVIN
+ <TD ALIGN=RIGHT NOWRAP>2.9e-11
+ <TD><TABLE SUMMARY='diagram 3' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=70><HR SIZE=4 NOSHADE>
+  <TD CLASS='c2' WIDTH=36>3
+  <TD WIDTH=260><HR SIZE=4 NOSHADE>
+  <TD WIDTH=34>
+ </TABLE>
+<TR>
+  <TD><A NAME=d1></A>LACB_BOVIN
+ <TD ALIGN=RIGHT NOWRAP>3.4e-11
+ <TD><TABLE SUMMARY='diagram 1' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=302><HR SIZE=4 NOSHADE>
+  <TD CLASS='c2' WIDTH=36>3
+  <TD WIDTH=18><HR SIZE=4 NOSHADE>
+  <TD WIDTH=44>
+ </TABLE>
+<TR><TH CLASS='blue' COLSPAN=2 ROWSPAN=2 ALIGN=LEFT>SCALE
+  <TD><TABLE SUMMARY='scale' WIDTH=400 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+    <TD CLASS='blue' WIDTH=48 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+  <TR><TD CLASS='blue' WIDTH=48 ALIGN=LEFT>1</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>25</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>50</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>75</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>100</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>125</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>150</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>175</TD>
+  </TABLE>
+</TABLE>
+
+<HR><CENTER><A NAME=BLOCKS3></A>
+  <BIG><B> <A HREF="#BLOCKS_doc">	Motif 3 in BLOCKS format</A> 
+</B></BIG></CENTER><HR>
+<INPUT TYPE = "HIDDEN" NAME = "BLOCKS3" VALUE = "
+BL   MOTIF 3 width=18 seqs=5
+MUP2_MOUSE               (   59) FLEQIHVLEKSLVLKFHT  1 
+ICYA_MANSE               (  128) HSIHAWILSKSKVLEGNT  1 
+BBP_PIEBR                (  124) HQDFVWVLSRSKVLTGEA  1 
+RETB_BOVIN               (   36) FLQDNIVAEFSVDENGHM  1 
+LACB_BOVIN               (  152) FDKALKALPMHIRLSFNP  1 
+//
+
+ ">
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View BLOCK 3'>
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View FASTA 3'>
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View RAW 3'>
+<BR><INPUT TYPE = SUBMIT NAME = action VALUE = 'Submit BLOCK 3'>
+<B>to <A HREF='http://www.blocks.fhcrc.org/blocks/process_blocks.html'>BLOCKS multiple alignment processor.</A></B>
+<HR><CENTER><A NAME=pssm3></A>
+  <BIG><B> <A HREF="#pssm_doc">	Motif 3 position-specific scoring matrix</A> 
+</B></BIG></CENTER><HR>
+<INPUT TYPE = "HIDDEN" NAME = "pssm3" VALUE = "
+log-odds matrix: alength= 20 w= 18 n= 818 bayes= 7.34518 E= 1.2e+002 
+  -356   -356   -440   -445    360   -395    350   -258   -427   -226   -191   -316   -358   -249   -262   -312   -324   -305    -82     63 
+   -69   -284     84    -24   -219   -147    -63   -149    -65    134    -62    -59   -123    214     12    116    -45   -158   -271   -221 
+   -72   -328     98    131   -265   -163    -76    105     76   -211    -98    -82   -128    220     11    -49    -60   -195   -298   -247 
+    71   -277     65    -47     99   -150    250   -173    -63   -180    -70    -56   -120    215     22    -34    -46   -170   -234    -51 
+    68   -177   -342   -281   -121   -247   -203    236   -279     75     33     59   -220   -154   -152   -150    -75    170   -224   -212 
+  -141   -265   -244   -175   -116   -232    175     98     42   -144    -64   -173   -207    -42     -4   -133   -112   -135    449   -110 
+    11   -214   -387   -353   -251   -342   -291    134   -380   -154   -102   -357   -264   -275   -224   -267   -119    327   -380   -402 
+    11   -293   -461   -384   -138   -354   -314    -36   -386    309     44   -379   -291   -224   -230   -268   -216   -115   -300   -319 
+   -96   -337    -65    195   -316   -171   -125   -253   -117   -262   -155    -91    215     10    -54    207    -85   -236   -355   -302 
+  -132   -302   -217   -136    105   -220   -107   -166    221   -190    230   -143   -192      3    217   -114   -105   -183   -281   -218 
+  -137   -246   -231   -280   -303   -216    152   -307   -260   -336   -220   -124   -230   -176   -152    352     81   -324   -355   -310 
+  -122   -196   -348   -279   -130   -265   -212    221    130    100     24   -255   -236   -148   -130   -169    -93    145   -242   -229 
+   -82   -224    -28   -176   -246   -260   -191     13   -196   -173   -101   -213   -210   -112     92   -171    -94    311   -336   -333 
+  -257   -317   -366    -34   -145   -376   -293    -49   -335    311     44   -349   -283   -186   -199   -286   -226   -133   -303   -318 
+   -61   -290    -84     89   -239   -134    -52   -191     75   -197    -82    123   -117     53     29    134    145   -184   -273   -222 
+  -188   -343   -328   -380    240    348   -270   -306   -387   -326   -253   -265   -315   -287   -255   -208   -268   -315   -281   -187 
+  -179   -348    -75     74   -294   -152    363   -312   -163   -307   -203    241   -200    -16    -67    -77   -127   -308   -328   -217 
+    94   -202   -240   -183   -193   -189   -164    -82   -186   -143    244   -162    213    -72    -88    -16    269    -93   -268   -252 
+ ">
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View PSSM 3'>
+
+<HR><CENTER><A NAME=pspm3></A>
+  <BIG><B> <A HREF="#pspm_doc">	Motif 3 position-specific probability matrix</A> 
+</B></BIG></CENTER><HR>
+<INPUT TYPE = "HIDDEN" NAME = "pspm3" VALUE = "
+letter-probability matrix: alength= 20 w= 18 nsites= 5 E= 1.2e+002 
+ 0.000000  0.000000  0.000000  0.000000  0.600000  0.000000  0.400000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.400000  0.000000  0.000000  0.000000  0.200000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.200000  0.200000  0.000000  0.000000  0.000000  0.200000  0.200000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.200000  0.000000  0.200000  0.000000  0.200000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.200000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.200000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.400000  0.000000 
+ 0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.600000  0.000000  0.000000 
+ 0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.800000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.400000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.400000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.400000  0.000000  0.200000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.800000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.400000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000 
+ 0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.600000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.800000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.200000  0.000000  0.000000  0.000000  0.200000  0.200000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.000000  0.400000  0.600000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  0.200000  0.000000  0.000000  0.400000  0.000000  0.000000  0.000000  0.000000  0.400000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.200000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.200000  0.000000  0.200000  0.000000  0.000000  0.000000  0.400000  0.000000  0.000000  0.000000 
+ ">
+<INPUT TYPE = SUBMIT NAME = action VALUE = 'View PSPM 3'>
+
+<PRE>
+
+
+
+
+
+Time  0.99 secs.
+
+</PRE>
+
+<A NAME='summary4'></A><HR><CENTER><A NAME=motif-summary></A>
+ <TABLE SUMMARY='buttons' ALIGN=LEFT CELLSPACING=0><TR>
+  <TD BGCOLOR='#OOFFFF'><A HREF="#summary3"><B>P</B></A>
+  <TD BGCOLOR='#FFFFOO'><A HREF="#summary1"><B>N</B></A></TABLE> <BIG><B> <A HREF="#motif-summary_doc">SUMMARY OF MOTIFS</A> <BR CLEAR=LEFT>
+</B></BIG></CENTER><HR>
+<HR><CENTER>  <BIG><B>
+ 	Combined block diagrams: non-overlapping sites with p-value < 0.0001 
+</B></BIG></CENTER><HR><TABLE SUMMARY='motif diagrams' BORDER=1>
+<TR><TH>Name<TH>Combined<BR>p-value<TH ALIGN=LEFT>&nbsp;&nbsp; Motifs
+<TR>
+  <TD><A NAME=d0></A>ICYA_MANSE
+ <TD ALIGN=RIGHT NOWRAP>6.82e-42
+ <TD><TABLE SUMMARY='diagram 0' WIDTH=410 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=26><HR SIZE=4 NOSHADE>
+  <TD CLASS='c0' WIDTH=38>1
+  <TD WIDTH=134><HR SIZE=4 NOSHADE>
+  <TD CLASS='c1' WIDTH=40>2
+  <TD WIDTH=16><HR SIZE=4 NOSHADE>
+  <TD CLASS='c2' WIDTH=36>3
+  <TD WIDTH=88><HR SIZE=4 NOSHADE>
+  <TD WIDTH=32>
+ </TABLE>
+<TR>
+  <TD><A NAME=d1></A>LACB_BOVIN
+ <TD ALIGN=RIGHT NOWRAP>2.15e-27
+ <TD><TABLE SUMMARY='diagram 1' WIDTH=410 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=42><HR SIZE=4 NOSHADE>
+  <TD CLASS='c0' WIDTH=38>1
+  <TD WIDTH=128><HR SIZE=4 NOSHADE>
+  <TD CLASS='c1' WIDTH=40>2
+  <TD WIDTH=54><HR SIZE=4 NOSHADE>
+  <TD CLASS='c2' WIDTH=36>3
+  <TD WIDTH=18><HR SIZE=4 NOSHADE>
+  <TD WIDTH=54>
+ </TABLE>
+<TR>
+  <TD><A NAME=d2></A>BBP_PIEBR
+ <TD ALIGN=RIGHT NOWRAP>1.29e-40
+ <TD><TABLE SUMMARY='diagram 2' WIDTH=410 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=24><HR SIZE=4 NOSHADE>
+  <TD CLASS='c0' WIDTH=38>1
+  <TD WIDTH=128><HR SIZE=4 NOSHADE>
+  <TD CLASS='c1' WIDTH=40>2
+  <TD WIDTH=16><HR SIZE=4 NOSHADE>
+  <TD CLASS='c2' WIDTH=36>3
+  <TD WIDTH=64><HR SIZE=4 NOSHADE>
+  <TD WIDTH=64>
+ </TABLE>
+<TR>
+  <TD><A NAME=d3></A>RETB_BOVIN
+ <TD ALIGN=RIGHT NOWRAP>2.11e-32
+ <TD><TABLE SUMMARY='diagram 3' WIDTH=410 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=20><HR SIZE=4 NOSHADE>
+  <TD CLASS='c0' WIDTH=38>1
+  <TD WIDTH=12><HR SIZE=4 NOSHADE>
+  <TD CLASS='c2' WIDTH=36>3
+  <TD WIDTH=94><HR SIZE=4 NOSHADE>
+  <TD CLASS='c1' WIDTH=40>2
+  <TD WIDTH=126><HR SIZE=4 NOSHADE>
+  <TD WIDTH=44>
+ </TABLE>
+<TR>
+  <TD><A NAME=d4></A>MUP2_MOUSE
+ <TD ALIGN=RIGHT NOWRAP>5.96e-33
+ <TD><TABLE SUMMARY='diagram 4' WIDTH=410 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+  <TD WIDTH=46><HR SIZE=4 NOSHADE>
+  <TD CLASS='c0' WIDTH=38>1
+  <TD WIDTH=32><HR SIZE=4 NOSHADE>
+  <TD CLASS='c2' WIDTH=36>3
+  <TD WIDTH=56><HR SIZE=4 NOSHADE>
+  <TD CLASS='c1' WIDTH=40>2
+  <TD WIDTH=112><HR SIZE=4 NOSHADE>
+  <TD WIDTH=50>
+ </TABLE>
+<TR><TH CLASS='blue' COLSPAN=2 ROWSPAN=2 ALIGN=LEFT>SCALE
+  <TD><TABLE SUMMARY='scale' WIDTH=410 BORDER=0 ALIGN=LEFT CELLSPACING=0 CELLPADDING=0><TR ALIGN=CENTER>
+    <TD CLASS='blue' WIDTH=48 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>|</TD>
+  <TR><TD CLASS='blue' WIDTH=48 ALIGN=LEFT>1</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>25</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>50</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>75</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>100</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>125</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>150</TD>
+    <TD CLASS='blue' WIDTH=50 ALIGN=LEFT>175</TD>
+  </TABLE>
+</TABLE>
+<INPUT TYPE = "HIDDEN" NAME = "motif-summary" VALUE = "
+ICYA_MANSE 6.82e-42 3 189  1 13 1.43e-18  2 99 4.03e-19  3 127 4.33e-16
+LACB_BOVIN 2.15e-27 3 178  1 21 9.62e-15  2 104 6.57e-13  3 151 3.37e-11
+BBP_PIEBR 1.29e-40 3 173  1 12 9.75e-18  2 95 1.04e-18  3 123 6.65e-16
+RETB_BOVIN 2.11e-32 3 183  1 10 1.99e-16  3 35 2.92e-11  2 100 2.40e-16
+MUP2_MOUSE 5.96e-33 3 180  1 23 4.53e-14  3 58 1.43e-16  2 104 6.24e-14
+ ">
+<INPUT TYPE = HIDDEN NAME = nmotifs VALUE = 3><BR><INPUT TYPE = SUBMIT NAME = action VALUE = 'View motif summary'> <B>Motif summary in machine readable format.</B>
+
+<HR><CENTER><A NAME=stopped></A>
+  <BIG><B> <A HREF="#stopped_doc">Stopped</A>  because nmotifs = 3 reached.
+</B></BIG></CENTER><HR>
+<PRE>
+
+CPU: uracil.gs.washington.edu
+
+</PRE>
+
+<A NAME=explanation>
+<CENTER><H3><HR>
+EXPLANATION OF MEME RESULTS
+<HR></H3></CENTER>
+
+<H4>The MEME results consist of:</H4>
+
+<UL>
+<A NAME=version_doc></A><LI>
+	The <A HREF=#version><B>version</B></A>
+        of MEME and the date it was released.
+<A NAME=reference_doc></A><LI>
+	The <A HREF=#reference><B>reference</B></A>
+        to cite if you use MEME in your research.
+<A NAME=sequences_doc></A><LI>
+	A description of the
+        <A HREF=#sequences><B>sequences</B></A>
+        you submitted (the "training set") showing the name,
+	"weight" and length of each sequence.
+<A NAME=command_doc></A><LI>
+	The <A HREF=#command><B>command line summary
+        </B></A> detailing the parameters with which you ran MEME.
+<A NAME=motifs_doc></A><LI>
+	Information on each of the
+        <A HREF=#motifs><B>motifs</B></A> MEME discovered, including:
+<OL>
+<LI>    A <A NAME=summary_doc HREF=#summary_doc2>
+	summary line</A>
+        showing the width, number of occurrences, log likelihood ratio
+	and statistical significance of the motif.
+<LI>    A <A NAME=simplified_doc HREF=#simplified_doc2>
+        simplified position-specific probability matrix</A>.
+<LI>    A <A NAME=IC_doc HREF=#IC_doc2>
+	diagram</A>
+        showing the degree of conservation at each motif position.
+<LI>    A <A NAME=consensus_doc HREF=#consensus_doc2>
+        multilevel consensus sequence</A> 
+	showing the most conserved letter(s) at each motif position.
+<LI>    The <A NAME=sites_doc HREF=#sites_doc2>
+	occurrences of the motif</A>
+	sorted by <I>p</I>-value and aligned with each other.
+<LI>	<A NAME=diagrams_doc HREF=#diagrams_doc2>
+	Block diagrams</A> 
+	of the occurrences of the motif within each sequence in the training 
+	set.
+<LI>    The motif in 
+	<A NAME=BLOCKS_doc HREF=#BLOCKS_doc2>
+	BLOCKS or FASTA format</A>.
+<LI>    A <A NAME=pssm_doc HREF=#pssm_doc2>
+        position-specific scoring matrix (PSSM)</A> 
+	for use by the
+        <A HREF="mast-intro.html">MAST</A> database search program.
+<LI>    The <A NAME=pspm_doc HREF=#pspm_doc2>
+        position specific probability matrix (PSPM)</A> 
+	describing the motif.
+</OL>
+
+<A NAME=motif-summary_doc></A><LI>
+	A <A HREF=#motif-summary><B>summary of motifs</B></A>
+        showing an optimized (non-overlapping) tiling of all of the motifs onto
+        each of the sequences in the training set.
+<A NAME=stopped_doc></A><LI>
+	The reason why MEME <A HREF=#stopped>stopped</A>
+	and the name of the CPU on which it ran.
+<A NAME=explanation_doc></A><LI>
+	This <B>explanation</B> of how to interpret MEME results.
+</UL>
+
+<P>
+<A HREF=#summary1 NAME=motifs> MOTIFS </A>
+
+<P>
+For each motif that it discovers in the training set,
+MEME prints the following information:
+ 
+<UL>
+<P>
+<LI> <A NAME=summary_doc2 HREF=#summary1><H4>Summary Line</H4></A>
+
+This line gives the width (`width'), 
+number of occurrences in the training set (`sites'), log likelihood
+ratio (`llr') and <I>E</I>-value of the motif.
+Each motif describes a pattern of a fixed width--no gaps are allowed in
+MEME motifs.
+MEME numbers the motifs consecutively from one as it finds them. 
+MEME usually finds the most statistically significant (low <I>E</I>-value) 
+motifs first.
+The statistical significance of a motif is based on its log likelihood ratio,
+its width and number of occurrences, the background letter frequencies
+(given in the <A HREF=#command_doc>command line summary</A>), and 
+the size of the training set.  The <I>E</I>-value is an
+estimate of the expected number of motifs with the given log likelihood
+ratio (or higher), and with the same width and number of occurrences,
+that one would find in a similarly sized set of random sequences. 
+(In random sequences each position is independent with letters chosen
+according to the background letter frequencies.)  The log likelihood
+ratio is the logarithm of the ratio of the probability of the occurrences 
+of the motif given the motif model (likelihood given the motif) 
+versus their probability given the background model (likelihood given the
+null model).  (Normally the background model is a 0-order Markov model
+using the background letter frequencies, but higher order Markov models
+may be specified via the <B>-bfile</B> option to MEME.)
+
+Clicking on the <B>buttons</B> to the left of the motif summary line 
+takes you to the previous motif (P) or next motif (N).
+
+<P>
+<LI> <A NAME=simplified_doc2 HREF=#simplified1><H4>Simplified 
+  Position-Specific Probability Matrix</H4></A>
+
+MEME motifs are represented by position-specific probability matrices 
+that specify the probability of each possible letter appearing at each
+possible position in an occurrence of the motif.  In order to make it easier 
+to see which letters are most likely in each of the columns of the
+motif, the simplified motif shows the letter probabilities multiplied by 10 
+rounded to the nearest integer ("a" means 10).  Zeros are replaced by ":" 
+(the colon) for readability.
+
+<P>
+<LI> <A NAME=IC_doc2 HREF=#IC1><H4>Information Content Diagram</H4></A>
+
+The information content diagram provides 
+an idea of which positions in the motif are most highly conserved.
+Each column (position) in a motif can be characterized by the amount of
+information it contains (measured in bits).  Highly conserved positions
+in the motif have high information; positions where all letters are equally
+likely have low information.  (The information content is relative to
+the background letter frequencies which are given in the 
+<A HREF=#command_doc>command line summary</A> section.)
+The diagram is printed so that each column lines up with the same column in 
+the simplified position-specific probability matrix above it.
+
+Columns in the information content diagram are colored according to the
+majority category of the letters occurring in that column of the alignment.
+If no letter category has frequency above 0.5, the column in the diagram
+is colored black.  For DNA sequences, the letter categories contain one letter
+each.  For proteins,  the categories are based on the biochemical properties
+of the various amino acids.  The categories and their colors are:
+<P>
+<CENTER>
+  <TABLE BORDER>
+    <TR> <TH>NUCLEIC ACIDS</TH> <TH ALIGN=LEFT>COLOR</TH> </TR>
+    <TR> 
+      <TD>A</TD> 
+      <TD><FONT COLOR=RED>RED</FONT></TD></TR>
+    <TR> 
+       <TD>C</TD> 
+       <TD><FONT COLOR=BLUE>BLUE</FONT></TD></TR>
+    <TR> 
+      <TD>G</TD> 
+      <TD><FONT COLOR=ORANGE>ORANGE</FONT></TD></TR>
+    <TR> 
+      <TD>T</TD> 
+      <TD><FONT COLOR=GREEN>GREEN</FONT></TD></TR>
+  </TABLE>
+  <P>
+  <TABLE BORDER>
+    <TR> <TH>AMINO ACIDS</TH> <TH ALIGN=LEFT>COLOR</TH> 
+	 <TH ALIGN=LEFT>PROPERTIES</TH> </TR>
+      <TD>A, C, F, I, L, V, W and M</TD>
+      <TD><FONT COLOR=BLUE>BLUE</FONT></TD>
+      <TD>Most hydrophobic[Kyte and Doolittle, 1982]</TD>
+    </TR>
+    <TR>
+      <TD>NQST</TD>
+      <TD><FONT COLOR=GREEN>GREEN</FONT></TD>
+      <TD>Polar, non-charged, non-aliphatic residues</TD>
+    </TR>
+    <TR>
+      <TD>DE</TD>
+      <TD><FONT COLOR=MAGENTA>MAGENTA</FONT></TD>
+      <TD>Acidic</TD>
+    </TR>
+    <TR>
+      <TD>KR</TD>
+      <TD><FONT COLOR=RED>RED</FONT></TD>
+      <TD>Positively charged</TD>
+    </TR>
+    <TR>
+      <TD>H</TD>
+      <TD><FONT COLOR=PINK>PINK</FONT></TD> </TR>
+    <TR>
+      <TD>G</TD>
+      <TD><FONT COLOR=ORANGE>ORANGE</FONT></TD> </TR>
+    <TR>
+      <TD>P</TD>
+      <TD><FONT COLOR=YELLOW>YELLOW</FONT></TD> </TR>
+    <TR>
+      <TD>Y</TD>
+      <TD><FONT COLOR=TURQUOISE>TURQUOISE</FONT></TD> </TR>
+  </TABLE>
+</CENTER>
+<p>
+J. Kyte and R. Doolittle, 1982.
+"A Simple Method for Displaying the Hydropathic Character of a Protein",
+J. Mol Biol. 157, 105-132.
+
+<p>
+Summing the information content for each position in the motif gives
+the total information content of the motif (shown in parentheses to the
+left of the diagram).  The total information content is approximately
+equal to the log likelihood ratio divided by the number of occurrences times
+ln(2).
+The total information content gives a measure of
+the usefulness of the motif for database searches.
+For a motif to be useful for database searches, it must as a rule contain at 
+least log_2(N) bits of information 
+where N is the number of sequences in the database being searched.  
+For example, to effectively search a database containing 100,000 sequences
+for occurrences of a <I>single</I> motif, the motif should have an IC of at
+least 16.6 bits.  Motifs with lower information content are still useful when a 
+family of sequences shares more than one motif since they can be combined
+in <I>multiple</I> motif searches (using MAST).
+
+<P>
+<LI> <A NAME=consensus_doc2 HREF=#consensus1><H4>Multilevel 
+  Consensus Sequence</H4></A>
+
+The multilevel consensus sequence corresponding to the motif is an aid in 
+remembering and understanding the motif.   It is calculated from the motif 
+position-specific probability matrix as follows.  
+Separately for each column of the motif, 
+the letters in the alphabet are sorted in decreasing order by the probability 
+with which they are expected to occur in that position of motif occurrences.  
+The sorted letters are then printed vertically with the most probable letter 
+on top.  Only letters with probabilities of 0.2 or higher at that position in 
+the motif are printed.  As an example, the multilevel consensus sequence of 
+motif 1 in the sample output is:
+<PRE>
+<B>Multilevel</B> <B>TTATGTGAACGACGTCACACT</B>
+<B>consensus</B>  AA  T A G A GA     AA
+<B>sequence</B>           T C TT     T
+</PRE>
+This multilevel consensus sequence says several things about the motif.
+First, the most likely form of the motif
+can be read from the top line as 
+<TT>TTATGTGAACGACGTCACACT</TT>.
+Second, that only letter <TT>A</TT> has probability more than 0.2 in
+position 3 of the motif, both <TT>T</TT> and <TT>A</TT> have probability
+greater than 0.2 in position 1, etc.
+Third, a <I>rough approximation</I> of the motif can be made by converting the
+multilevel consensus sequence into the Prosite signature<UL> 
+<TT>[TA]-[TA]-A-T-[GT]-[T]-[GA]-A-[AGT]-C-[GAC]-A-[CGT]-[GAT]-T-C-A-C-A-[CAT]-[TA]</TT>.</UL>
+
+<P>
+<LI> <A NAME=sites_doc2 HREF=#sites1><H4>Occurrences of the Motif</H4></A>
+
+MEME displays the occurrences (sites) of the motif in the training set.  
+The sites are shown aligned with each other, and the ten sequence
+positions preceding and following each site are also shown.
+Each site is identified by the name of the sequence where it occurs,
+the strand (if both strands of DNA sequences are being used), and the
+position in the sequence where the site begins.  When the DNA strand
+is specified, `+' means the sequence in the training set,
+and `-' means the reverse complement of the training set sequence.
+(For `-' strands, the `start' position is actually the position on the
+<B>positive</B> strand where the site ends.)
+The sites are listed in order of increasing statistical significance
+(<I>p</I>-value).  The <I>p</I>-value of a site is computed from the the match 
+score of the site with the <A HREF=#pssm>position specific scoring matrix</A> 
+for the motif.  The <I>p</I>-value gives the probability of a random string
+(generated from the background letter frequencies) having the same match
+score or higher.  (This is referred to as the <B>position <I>p</I>-value</B>
+by the MAST algorithm.)
+
+<P>
+<LI> <A NAME=diagrams_doc2 HREF=#diagrams1><H4>
+Block Diagrams of Motif Occurrences</H4>
+</A>
+The occurrences of the motif in the training set sequences are 
+shown with MAST-style block diagrams.  One diagram is printed for each
+sequence showing all the occurrences of the motif in that sequence.
+The sequences are sorted by the <B>lowest</B> <I>p</I>-value among all 
+occurrences of the motif in a given sequence.
+(The <I>p</I>-value of an occurrence is the probability of a single
+random subsequence the length of the motif,
+generated according to the 0-order background model, having a score
+at least as high as the score of the occurrence.)
+When the DNA strand is specified, `+' means the motif appears from left to
+right on the sequence, and `-' means the motif appears from right to left 
+on the complementary strand.
+A sequence position scale is shown at the end of each table of block
+diagrams.  Very long sequences are shown with thick lines connecting the
+motifs and are <B>not</B> drawn to scale.
+
+<P>
+<LI> <A NAME=BLOCKS_doc2 HREF=#BLOCKS1><H4>
+Motif in BLOCKS format or FASTA format</H4>
+</A>
+
+For use with 
+<A HREF="http://blocks.fhcrc.org/blocks">BLOCKS tools</A>, 
+MEME prints the occurrences of the motif in BLOCKS format. 
+<P>
+You can convert these blocks to 
+PSSMs (position-specific scoring matrices), LOGOS (color representations
+of the motifs), phylogeny trees and search them against a database of other
+blocks by pasting everything from the "BL" line to the "//" line (inclusive)
+into the  
+<A HREF=http://blocks.fhcrc.org/blocks/process_blocks.html>
+Multiple Alignment Processor.</A> 
+If you include the <B>-print_fasta</B> switch on the command line, MEME prints
+the motif sites in FASTA format instead of BLOCKS format.
+
+<P>
+<LI> <A NAME=pssm_doc2 HREF=#pssm1><H4>Position-Specific Scoring Matrix</H4></A>
+
+The position-specific scoring matrix corresponding to the motif is printed
+for use by database search programs such as MAST.  This matrix is a
+log-odds matrix calculated
+by taking the log (base 2) of the ratio <TT>p/f</TT> at each position in
+the motif where <TT>p</TT> is the probability of a particular letter at that
+position in the motif, and <TT>f</TT> is the background frequency of the
+letter (given in the <A HREF=#command_doc>command line summary</A> section.)
+Each entry in the matrix is multiplied by 100 and rounded to the nearest
+integer before printing.
+This is the same matrix that is used above in computing the <I>p</I>-values
+of the occurrences of the motif in the <A HREF=#sites_doc2>Occurrences of the
+Motif</A> and <A HREF=#diagrams_doc2>Block Diagrams of Motif Occurrences</A>
+sections.
+
+The scoring matrix is printed "sideways"--columns
+correspond to the letters in the alphabet (in the same order as shown in
+the simplified motif) and rows corresponding to the positions of the motif,
+position one first.  The scoring matrix is preceded by a line starting with
+"log-odds matrix:" and containing the length of the alphabet, width
+of the motif, number of characters in the training set and a scoring 
+threshold.
+
+<P>
+<LI> <A NAME=pspm_doc2 HREF=#pspm1><H4>
+Position-Specific Probability Matrix</H4></A>
+
+The motif itself is a position-specific probability matrix giving,
+for each position in the pattern, the observed frequency 
+("probability") of each possible letter.  
+The probability matrix is printed "sideways"--columns
+correspond to the letters in the alphabet (in the same order as shown in
+the simplified motif) and rows corresponding to the positions of the motif,
+position one first.
+The motif is preceded by a line starting with
+"letter-probability matrix:" and containing the length of the alphabet, width
+of the motif, number of occurrences of the motif, and the E-value of the
+motif.
+<p>
+<b>Note:</b> Earlier versions
+of MEME gave the posterior probabilities--the probability after applying
+a prior on letter frequencies--rather than the observed frequencies.
+These versions of MEME also gave the number of <I>possible</I>
+positions for the motif rather than the actual number of occurrences.
+The output from these earlier versions of MEME can be distinguished
+by "n=" rather than "nsites=" in the line preceding the matrix.
+
+</UL>
+<HR><TABLE SUMMARY='buttons' ALIGN=LEFT CELLSPACING=0><TR>
+  <TD BGCOLOR='#DDDDFF'><A HREF="#top_buttons"><B>Go to top</B></A></TABLE><BR>
+</FORM>
+</BODY>
+</HTML>

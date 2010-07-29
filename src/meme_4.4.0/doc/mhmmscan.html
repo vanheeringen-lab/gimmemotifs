@@ -1,0 +1,540 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>mhmmscan</title>
+    <link href="./meme-suite.css" rel="styleSheet" type="text/css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>mhmmscan</h1>
+      <p><b>Usage:</b> <code>mhmmscan [options] &lt;<i>HMM file</i>&gt;
+      &lt;<i>FASTA file</i>&gt;</code></p>
+      <p><b>Description:</b></p>
+      <p>
+      <p><code>mhmmscan</code> searches a sequence database using a
+      Meta-MEME motif-based hidden Markov model (HMM) of the kind
+      produced by <code><a href="mhmm.html">mhmm</a></code>. This program
+      is similar to <code>mhmms</code>, except that
+      <code>mhmmscan</code></p>
+      <ul>
+      <li>searches arbitrarily long sequences, and</li>
+      <li>allows the model to match a given sequence multiple times, and
+      each match is reported separately.</li>
+      </ul>
+      <p>Each sequence-vs-model match is assigned an <i>E</i>-value, and
+      matches that score below a user-specified <i>E</i>-value threshold
+      are printed in order of increasing <i>E</i>-value.</p>
+      <p><code>mhmmscan</code> has two modes of computing match
+      scores:</p>
+      <ul>
+      <li><i>p-</i>value score mode.</li>
+      <li>log-odds score mode</li>
+      </ul>
+      <p>In <b><i>p-</i>value score mode</b>, the search sequence can be
+      thought of as consisting of three steps:</p>
+      <ol>
+      <li>find motif matches ("hits") with each sequence with
+      <i>p-</i>values less than the user-specified <em><i>p-</i>value
+      threshold</em>,</li>
+      <li>coalesce hits found in each sequence into "matches", where hits
+      separated by more than <em>maxgap</em> positions are always
+      separated into distinct matches, and</li>
+      <li>report matches with <i>E</i>-values less than
+      <em>threshold</em>.</li>
+      </ol>
+      <p>
+      The three parameters <em><i>p-</i>value threshold</em>,
+      <em>maxgap</em> and <em>threshold</em> are described in more detail
+      under "Options:", below.
+      </p>
+      <p>In <b>log-odds score mode</b>, the search can be thought of as
+      consisting of two steps:</p>
+      <ol>
+      <li>find local matches between the model and each sequence that
+      maximize the log-odds score and exceed <em>minscore</em>, and</li>
+      <li>report matches with <i>E</i>-values less than
+      <em>threshold</em>.</li>
+      </ol>
+      <p>
+      The <em>threshold</em> parameter is described in more detail under
+      "Options:", below.
+      </p>
+      <p>In order for <i>E</i>-values to be computed by
+      <code>mhmmscan</code>, at least 100 matches must be found. If there
+      are too few sequences in the database, or if certain other options
+      are made to stringent (see Options, below), too few matches may
+      exist for <i>E</i>-values to be computed. In this case, the results
+      are sorted by match score, the <i>E</i>-value column is set to
+      "NaN" and all matches are printed.</p>
+      </p>
+      <p><b>Input:</b></p>
+      <ul>
+      <li>&lt;<i>HMM file</i>&gt; - An HMM in <a href="mhmm.html">Meta-MEME
+      format</a> must be provided. If the filename is given as '-', then
+      <code>mhmms</code> will attempt to read the HMM from standard
+      input.</li>
+      <li style="list-style: none"><br></li>
+      <li>&lt;<i>FASTA file</i>&gt; - <code>mhmms</code> requires a
+      sequence database in <a href="fasta-format.html">FASTA format</a>.
+      If the filename is given as '-', then <code>mhmms</code> will
+      attempt to read the database from standard input.</li>
+      </ul>
+      <a name="output"></a>
+      <p><b>Output:</b></p>
+      <p><!-- START OUTPUT -->
+      The <code>mhmmscan/MCAST</code> output has up to three sections
+      containing your search results:
+      <ul>
+      <li><a href="#search">Database Search Results</a></li>
+      <li><a href="#align">Alignments</a></li>
+      <li><a href="#diagrams">Motif Diagrams</a></li>
+      </ul>
+      <p>
+      All three sections are always present in <code>MCAST</code> output.
+      The second two sections will not be present in
+      <code>mhmmscan</code> output unless the -fancy option was
+      specified.
+      </p>
+      <p>The results in all three sections are sorted by increasing
+      <i>E</i>-value if possible, or by decreasing match score if
+      <i>E</i>-values could not be computed. <a name="search"></a></p>
+      <p><b>DATABASE SEARCH RESULTS</b></p>
+      <p>The "Database Search Results" section consists of lines of the
+      following form:</p>
+      <p><code><nobr>&lt;ID&gt; &lt;<i>E</i>-value&gt;
+      &lt;Score&gt; &lt;Hits&gt; &lt;Span&gt; &lt;Start&gt; &lt;End&gt;
+      &lt;Length&gt; &lt;Description&gt;</nobr></code></p>
+      <p>These fields contain, for each match found,</p>
+      <ul>
+      <li><b>ID</b> - The sequence identifier, as given in the database
+      file.</li>
+      <li><b><i>E</i>-value</b> - The <i>E</i>-value, which is the total
+      number of matches that you would expect with match scores as good
+      as this match if the database contained only sequences unrelated to
+      the query. Thus, a small <i>E</i>-value indicates a good
+      match.</li>
+      <li><b>Score</b> - The match score, which is the sum of the scores
+      for hits, minus the penalties for gaps.</li>
+      <li><b>Hits</b> - The number of hits in the match.</li>
+      <li><b>Span</b> - The length of the match, measured from the start
+      of the first hit to the end of the last hit.</li>
+      <li><b>Start</b> - The position in the sequence where the match
+      begins.</li>
+      <li><b>End</b> - The position in the sequence where the match
+      ends.</li>
+      <li><b>Length</b> - The length of the sequence that contains the
+      match.</li>
+      <li><b>Description</b> - The sequence descriptor. This description
+      is taken from the FASTA database file, and is truncated so that the
+      output fits easily on one line.</li>
+      </ul>
+      <p><a name="align"></a></p>
+      <p><b>ALIGNMENTS</b></p>
+      <p>Each alignment lists the sequence identifier, match
+      <i>E</i>-value and log-odds score along the left. On the right, it
+      shows the alignment of the match with the sequence in groups of
+      four segments. An example segment from an alignment is given below,
+      followed by a description of what each line of the segment means.
+      (The example shows <i>p</i>-value score mode. The row of
+      <i>p</i>-values would be replaced by log-odds scores in log-odds
+      score mode. If '--motif-scoring' is not on, the row of
+      <i>p</i>-values or scores is absent.)</p>
+      <table>
+      <tr>
+      <td>
+      <center>hb_P1_element<br>
+      1.5e-07<br>
+      55.02</center>
+      </td>
+      <td>
+      <pre>
+                             2.4e-04                           2.4e-04            1.3e-04
+                             *_____+3__*                       *____-2__*         *___+1_*
+                             <font color=
+      "green"><b>T</b></font><font color=
+      "green"><b>T</b></font><font color=
+      "green"><b>T</b></font><font color=
+      "green"><b>T</b></font><font color=
+      "green"><b>T</b></font><font color=
+      "green"><b>T</b></font><font color=
+      "red"><b>A</b></font><font color="green"><b>T</b></font><font color="ORANGE"><b>G</b></font><font color="blue"><b>C</b></font><font color="ORANGE"><b>G</b></font>.......................<font color="green"><b>T</b></font><font color="green"><b>T</b></font><font color="green"><b>T</b></font><font color="green"><b>T</b></font><font color="red"><b>A</b></font><font color="green"><b>T</b></font><font color="ORANGE"><b>G</b></font><font color="red"><b>A</b></font><font color="blue"><b>C</b></font><font color="green"><b>T</b></font>.........<font color="blue"><b>C</b></font><font color="green"><b>T</b></font><font color="red"><b>A</b></font><font color="red"><b>A</b></font><font color="green"><b>T</b></font><font color="blue"><b>C</b></font><font color="blue"><b>C</b></font><font color="ORANGE"><b>G</b></font>..................................
+                              TTTTTAT+ +                       TTTTAT A T         +TAATC+G
+          220 CGGAACATTAAAATG<font color=
+      "red"><b>A</b></font><font color="green"><b>T</b></font><font color="green"><b>T</b></font><font color="green"><b>T</b></font><font color="green"><b>T</b></font><font color="green"><b>T</b></font><font color="red"><b>A</b></font><font color="green"><b>T</b></font><font color="green"><b>T</b></font><font color="green"><b>T</b></font><font color="blue"><b>C</b></font>TATGCTAAATCTGTTGTATTTAC<font color="green"><b>T</b></font><font color="green"><b>T</b></font><font color="green"><b>T</b></font><font color="green"><b>T</b></font><font color="red"><b>A</b></font><font color="green"><b>T</b></font><font color="red"><b>A</b></font><font color="red"><b>A</b></font><font color="red"><b>A</b></font><font color="green"><b>T</b></font>TTAATGTGT<font color="green"><b>T</b></font><font color="green"><b>T</b></font><font color="red"><b>A</b></font><font color="red"><b>A</b></font><font color="green"><b>T</b></font><font color="blue"><b>C</b></font><font color="green"><b>T</b></font><font color="ORANGE"><b>G</b></font>TTCACATTTTTAAATACTTCGTATGCTATCNNNN     329 
+      </pre></td>
+      </tr>
+      </table>
+      <ul>
+      <li>The bottom-most line in each segment contains 50 letters from
+      the target database sequence, flanked by that segment's start and
+      end locations within the entire sequence. Thus, the first segment
+      would be flanked by "1" and "49", the second by "50" and "99",
+      etc.</li>
+      <li>Aligned above these 50-letter segments are the motifs
+      corresponding to the hits in the match. The motifs are labeled with
+      numbers in the order they appear in the query. A plus or minus sign
+      preceding a hit indicates that the hit occurs on the given (+) or
+      reverse complement (-) of the DNA sequence in the database. Each
+      position within a motif region is indicated by a letter, and each
+      gap position is indicated with a period.</li>
+      <li>In between the sequence segment and the corresponding match
+      positions is a line that indicates the degree of match between the
+      motifs and the sequence. If the letter in the motif with the
+      largest log-odds score appears in the sequence, then the match row
+      contains that letter. If the sequence letter does not have the
+      largest log-odds score, but does have a positive log-odds score,
+      then the match row contains a plus sign. Otherwise, the match row
+      is empty.</li>
+      <li>The top-most row of each segment shows the <i>p</i>-value (or
+      log-odds score) of each hit aligned above the start of the hit,
+      depending on the score mode.</li>
+      </ul>
+      <br>
+      <br>
+      <a name="diagrams"></a>
+      <p><b>MOTIF DIAGRAMS</b></p>
+      <p>The motif diagrams section shows the matches in schematic
+      format. For each match, in the right two columns, it shows the
+      sequence identifier and the match <i>E</i>-value. On the left, it
+      shows the positions and spacings of the hits making up the match.
+      Hits are labeled with numbers corresponding to the order the motifs
+      were given in the query. A plus or minus sign preceding a hit
+      indicates that the hit occurs on the given (+) or reverse
+      complement (-) of the DNA sequence in the database.</p>
+      <p><!-- END OUTPUT --></p>
+      <p><b>LOG-ODDS SCORES</b></p>
+      <p>The log-odds scores for each motif column are created using
+      prior information on the letters appearing in alignment columns.
+      The prior information is the target frequencies [Karlin,S. and
+      Altschul,S.F., PNAS USA , 87, 2264-2268] implicit in a scoring
+      matrix. Meta-MEME can read a user-specified scoring matrix (in the
+      same format as used by the BLAST family of programs) from a file or
+      generate a PAM matrix. By default, PAM 250 is used for proteins,
+      and PAM 1 is used for DNA. For DNA, the "PAM 1" frequency matrix
+      is</p>
+      <pre>
+              .990 .002 .006 .002
+              .002 .990 .002 .006
+              .060 .002 .990 .020
+              .020 .060 .002 .990
+      </pre>
+      <p>Meta-MEME calculates the target frequencies <i>q<sub>ij</sub> =
+      p<sub>i</sub>p<sub>j</sub> exp(L s<sub>ij</sub>)</i> from the
+      scoring matrix <i>s<sub>ij</sub></i> and the background letter
+      frequencies <i>p<sub>i</sub></i> by finding the value of <i>L</i>
+      that makes the <i>q<sub>ij</sub></i> sum to one. These target
+      frequencies are then used to create pseudo-frequencies to be added
+      to the emission frequencies of the column, following the approach
+      of [Henikoff,S. and Henikoff,J.G., JMB, 243, 574-578]. The
+      pseudo-frequency for the <i>i</i><sup>th</sup> letter is computed
+      as: <i>g<sub>i</sub> = sum <sub>j in alphabet</sub> (f<sub>j</sub>
+      q<sub>ij</sub>/p<sub>j</sub>)</i>.</p>
+      <p>The pseudo-frequencies, <i>g<sub>i</sub></i>, are then combined
+      with the emission frequencies, <i>f<sub>i</sub></i> to give
+      frequency estimates</p>
+      <center><i>Q<sub>i</sub> = (alpha f<sub>i</sub> + beta
+      g<sub>i</sub>) / (alpha + beta).</i></center>
+      <br>
+      <p>
+      Finally, the log-odds score for a letter in the motif column
+      is computed by dividing by the background frequency of the letter and
+      taking the logarithm,
+      </p>
+      <center><i>
+        S<sub>i</sub> = log(Q<sub>i</sub> / p<sub>i</sub>).
+      </i></center>
+      <p>
+      In general, alpha should be proportional to the amount of
+      independent information in the emission frequencies. We have set it
+      to the constant 20. The parameter beta is arbitrary and controls
+      the relative importance of prior information. We set it to the
+      constant 10.
+      </p>
+      <p>Our method is essentially that used in PSI-BLAST [Altschul,S.F
+      et al., NAR, 25:17, 3389-3402] without</p>
+      <ol>
+      <li>sequence weighting, and</li>
+      <li>scaling for amount of independent information (alpha).</li>
+      </ol>
+      <p>
+      To do 1) and 2) correctly would require having and using alignment
+      information rather than emission frequencies as the starting
+      point.</p>
+      <p><b>Options:</b></p>
+      <ul>
+      <li>--gff &lt;<i>file</i>&gt; - Produce an output file in <a href=
+      "http://www.sanger.ac.uk/Software/formats/GFF">GFF</a>. The output
+      columns are as follows:
+      <ul>
+      <li><code>seqname</code>: as given in the input seqence file.</li>
+      <li><code>source</code>: <code>Meta-MEME</code>.</li>
+      <li><code>feature</code>: for motif regions, <code>motif%d</code>,
+      where %d is the motif ID, as assigned by MEME; for spacer regions,
+      <code>spacer</code>.</li>
+      <li><code>start</code>, <code>end</code>: the start and end
+      positions of this region, indexed (as per the GFF spec) from
+      1.</li>
+      <li><code>score</code>: the <i>E</i>-value associated with this
+      match</li>
+      <li><code>strand</code>, <code>frame</code>: <code>.</code> (a
+      period, indicating "undefined")</li>
+      </ul>
+      </li>
+      <li>--p-thresh &lt;<i>p-</i>value threshold&gt; - The '--p-thresh'
+      switch activates <i>p-</i>value score mode with the given
+      threshold. In <i>p-</i>value score mode, motif match scores are
+      converted to their <i>p-</i>values. They are then converted to bit
+      scores as follows:
+      <div style="margin-left: 2em"><i>S =
+      -log<sub>2</sub>(p/T)</i></div>
+      where <i>S</i> is the bit score of the hit, <i>p</i> is the
+      <i>p</i>-value of the log-odds score, and <i>T</i> is the
+      <i>p</i>-value threshold. In this way, only hits more significant
+      than the <i>p</i>-value threshold get positive scores. The
+      <i>p</i>-value threshold, <i>T</i>, must be in the range
+      <i>0&lt;T&lt;=1</i>. This mode of scoring automatically activates
+      the '-motif-scoring' feature (described below under "Advanced
+      Options:") so that partial motif hits are disallowed.
+      <p><b>Note</b>:</p>
+      <ul>
+      <li>If <em><i>p-</i>value threshold</em> is too small, there may be
+      few (or no) "hits", and, consequently, few (or no) matches. This
+      may cause <code>mhmmscan</code> to be unable to compute match
+      <i>E</i>-values, or to report no matches. Small values of the
+      <em><i>p-</i>value threshold</em> may also cause the reported
+      <i>E</i>-values to be inaccurate. In this case, the <i>E</i>-values
+      will always be too large (conservative). The proper value for the
+      <em><i>p-</i>value threshold</em> can only be determined by
+      experimentation since it depends on the number of motifs, the
+      information content of the motifs and the value of
+      <em>maxgap</em>.</li>
+      <li>If <em><i>p-</i>value threshold</em> is too large, the expected
+      length of a match may be longer than most of the sequences in the
+      database you are searching. This will prevent <code>mhmmscan</code>
+      from being able to compute <i>E</i>-values. Very low values of
+      <em><i>p-</i>value threshold</em>, when search genomic DNA, tend to
+      give high scores to low-complexity sequence and repeated
+      elements.</li>
+      </ul>
+      </li>
+      <li style="list-style: none"><br></li>
+      <li>--max-gap &lt;<i>maxgap</i>&gt; - The '--max-gap' switch allows
+      you to specify the longest gap allowed before two local matches
+      will be split. Matches separated by a gap longer than
+      <em>maxgap</em> will be split into two separate matches. This
+      switch automatically activates the '--zselo' feature (described
+      below under "Advanced Options:") so that gap emission scores are
+      set to zero. It also sets the '--min-score' threshold to a small
+      number (1e-6), and sets '--gap-open' and '--gap-extend' (described
+      below under "Advanced Options:") to T/L, where 'T' is the
+      '--min-score' threshold, and 'L' is <em>maxgap</em>.
+      <p><b>Note</b>:</p>
+      <ul>
+      <li>This switch causes <code>mhmmscan</code> to ignore the
+      transition probabilities in the HMM.</li>
+      <li>Large values of <em>maxgap</em> combined with large values of
+      <em><i>p-</i>value threshold</em> may prevent <code>mhmmscan</code>
+      from computing <i>E</i>-values due to the problem described above
+      in the second note for the --p-thresh switch.</li>
+      </ul>
+      </li>
+      <li style="list-style: none"><br></li>
+      <li>--e-thresh &lt;<i>threshold</i>&gt; - <code>mhmmscan</code>
+      prints the matches with <i>E</i>-values below the given threshold.
+      The default threshold is 10. If <i>E</i>-values cannot be computed,
+      all matches are printed.</li>
+      <li style="list-style: none"><br></li>
+      <li>--fancy - The '--fancy' switch turns on a more detailed output
+      format that shows, in addition to the score for each sequence, the
+      complete model-to-sequence match. For more details, see the
+      documentation for <a href="mhmms.html"><code>mhmms</code></a>.</li>
+      <li style="list-style: none"><br></li>
+      <li>--width &lt;<i>int</i>&gt; - Specify the width (in characters)
+      of each line in the output. The description of each sequence, which
+      is taken from the input FASTA file, will be truncated as necessary.
+      By default, the output width is 132 characters.</li>
+      <li style="list-style: none"><br></li>
+      <li>--text - Print output as ASCII text (default is HTML).<br>
+      <br></li>
+      <li style="list-style: none"><br></li>
+      <li>--nosort - Do not sort the output.<br>
+      <br></li>
+      <li style="list-style: none"><br></li>
+      <li>--bg-file &lt;<i>file</i>&gt; - This switch allows you to
+      specify a different background letter distribution. The background
+      letter distribution is used in converting the emission
+      probabilities in the model to log-odds. By default, the background
+      letter distribution of the appropriate (DNA or protein) NCBI
+      non-redundant database is used. With the '--bg-file' switch, the
+      background distribution is read from a file whose format is the
+      same as used by MEME and MAST. The file must contain one line for
+      each letter in the (unambiguous) character set. Each line must
+      contain the letter followed by the letter's frequency
+      (probability). All other lines in the file are ignored, including
+      comment lines starting with '#'. For example, <em>file</em> might
+      contain:
+      <pre>
+# tuple   frequency_non_coding
+      a       0.324
+      c       0.176
+      g       0.176
+      t       0.324
+      </pre>
+      (You can produce a file in the proper format from any FASTA
+      sequence file (DNA or protein) using the fasta-get-markov utility,
+      which is included with the Meta-MEME distribution in directory /bin.
+      Type
+      <pre>
+              fasta-get-markov &lt; f.fasta &gt; f.bg
+      </pre>
+      to make a file named "f.bg" containing the letter distribution from
+      FASTA file "f.fasta". )</li>
+      <li style="list-style: none"><br></li>
+      <li>--allow-weak-motifs - In <i>p-</i>value score mode, weak motifs
+      are defined as ones where the best possible hit has a
+      <i>p-</i>value less than the <i>p-</i>value threshold. Such motifs
+      cannot contribute to a match in <i>p-</i>value score mode. By
+      default, <code>mhmmscan</code> rejects any search containing weak
+      motifs, unless the -allow-weak-motifs switch is given. In that
+      case, the search will proceed, but the weak motifs will never
+      appear in any matches. <b>Note</b>:This switch only applies to
+      <i>p-</i>value score mode.</li>
+      <li style="list-style: none"><br></li>
+      <li>--blocksize &lt;<i>value</i>&gt; - Specify the number of
+      letters that are read from each sequence at once. By default,
+      <code>mhmmscan</code> reads in blocks of <i>10<sup>7</sup>/N</i>
+      letters, where <i>N</i> is the number of states in the model. You
+      can see the actual value being used by setting
+      <code>--verbosity</code> to 2 or higher. If your system has a lot
+      of memory, then you can specify a larger number of letters to be
+      read at once, and vice versa.</li>
+      <li style="list-style: none"><br></li>
+      <li>--synth - The '--synth' switch causes <code>mhmmscan</code> to
+      generate random synthetic sequences if fewer than 10000 matches are
+      found in the sequence database. These sequences will be searched
+      and their match scores used to estimate the random score
+      distribution. The sequences are generated using the background
+      distribution specified using the '--bg' switch, above. If the
+      background file contains a higher-order Markov model, the
+      higher-order lines are <b>not</b> ignored when generating synthetic
+      sequences.</li>
+      <li style="list-style: none"><br></li>
+      <li>--progress &lt;<i>value</i>&gt; - Print to standard error a
+      progress message after every <i>value</i> sequences.</li>
+      <li style="list-style: none"><br></li>
+      <li>--verbosity 1|2|3|4|5 - Set the verbosity level of the output
+      to stderr. The default level is 2.</li>
+      <li style="list-style: none"><br></li>
+      <li>--noheader - Do not put a header on the output file.</li>
+      <li style="list-style: none"><br></li>
+      <li>--noparams - Do not list the parameters at the end of the
+      output.</li>
+      <li style="list-style: none"><br></li>
+      <li>--notime - Do not print the running time and host name at the
+      end of the output.</li>
+      <li style="list-style: none"><br></li>
+      <li>--quiet - Combine the previous three flags and set verbosity to 1.</li>
+      <li style="list-style: none"><br></li>
+      <li>--text - Do not produce HTML output. By default, mhmmscan looks
+      for the Perl program "mhmm2html" and pipes its output through it to
+      produce HTML. This switch turns off that conversion.</li>
+      </ul>
+      <p><b>Advanced Options:</b></p>
+      <p><i>The following five options are automatically set when you
+      specify the '-max-gap' option. If you do not use '-max-gap', you
+      can set these options individually.</i></p>
+      <ul>
+      <li>--zselo - Specifying the '--zselo' switch causes the spacer
+      emission log-odds scores to be set to zero. This prevents regions
+      of unusual base/residue composition matching spacers well when the
+      spacer emission probabilities are different than the background
+      probabilities. It is particularly useful with DNA models.</li>
+      <li style="list-style: none"><br></li>
+      <li>--gap-open &lt;<i>cost</i>&gt; - The '--gap-open' switch causes
+      <b>all</b> transitions into a spacer state to be assigned a
+      log-odds score equal to <em>cost</em>. Together with the
+      '-gap-extend' switch, this allows you to specify an affine gap
+      penalty function, overriding the gap penalty implicit in the model
+      (transition probabilities into and out of gap states).</li>
+      <li style="list-style: none"><br></li>
+      <li>--gap-extend &lt;<i>cost</i>&gt; - The '--gap-extend' switch
+      causes <b>all</b> spacer self-loop log-odds scores to be set to
+      <em>cost</em>. In addition, it causes all other transitions out of
+      a spacer to be set to zero. Together with the '--gap-open' switch,
+      this allows you to specify an affine gap penalty function,
+      overriding the gap penalty implicit in the model (self-loop
+      transition probabilities of gap states).</li>
+      <li style="list-style: none"><br></li>
+      <li>--min-score &lt;<i>minscore</i>&gt; - This switch allows you to
+      specify the threshold for the repeated match algorithm used by
+      <code>mhmmscan</code>. Matches must have a score of at least
+      <em>minscore</em> to be detected. Matches containing internal
+      regions with scores less than minus 'threshold' will be split and
+      reported as two separate matches.</li>
+      <li style="list-style: none"><br></li>
+      <li>--egcost &lt;<i>egcost</i>&gt; - Scale the expected cost of a
+      random gap to be <em>egcost</em> times the expected score of a
+      random hit. By default, gap costs are essentially zero. The larger
+      you set <em>egcost</em>, the more gaps will be penalized. This can
+      only be used in conjunction with '--max-gap'. This may not be used
+      in conjunction with '--min-score'.</li>
+      </ul>
+      <p><i>The following option is automatically invoked when you
+      specify '-p-thresh'. You can also set it when you do not want</i>
+      p-value score but want to prevent partial matches to motifs.</p>
+      <ul>
+      <li>--motif-scoring - Specifying the '--motif-scoring' switch
+      forces all matches to motifs to be complete. This prevents matches
+      to motifs from overhanging the sequence ends. It also prevents
+      matches from beginning (ending) anywhere but at the start (end) of
+      a motif. By default, matches can begin or end anywhere within a
+      motif.</li>
+      </ul>
+      <p><i>The following options can be used in both</i> p-value and
+      log-odds score modes to control how the emission probabilities in
+      the HMM are converted into log-odds scores.</p>
+      <ul>
+      <li>--pseudo-weight &lt;<i>beta</i>&gt; - By default, the
+      pseudocount probabilities are weighted by <i>beta = 10</i>, and
+      emission probabilities in the model by <i>alpha = 20</i>. (See the
+      formula above for converting letter frequencies to letter scores.)
+      The weight on the pseudocount probabilities can be adjusted to any
+      value greater than or equal to zero using the '-pseudo-weight'
+      switch. The smaller the weight, the less effect the pseudocount
+      probabilities have, and the closer the adjusted probabilities will
+      be to the emission probabilities in the model.</li>
+      <li style="list-style: none"><br></li>
+      <li>--pam &lt;<i>distance</i>&gt; - By default, target
+      probabilities are derived from the <em>distance-250</em> PAM matrix
+      for proteins, and from a <em>distance-1</em>
+      transition/transversion matrix for DNA. With the '--pam' switch,
+      you can specify a different <b>integer</b> distance from 1 to 500.
+      (This can be overridden with the '--score-file' switch, below). The
+      <em>distance-1</em> transition/transversion joint probability
+      matrix for DNA is given below:
+      <pre>
+           A    C    G    T   
+      A  .990 .002 .006 .002
+      C  .002 .990 .002 .006
+      G  .006 .002 .990 .002
+      T  .002 .006 .002 .990
+      </pre></li>
+      <li>--score-file &lt;<i>score file</i>&gt; - The '--score-file'
+      switch causes a score file (in BLAST format) to be read and used
+      instead of the built-in PAM (for proteins) or
+      transition/transversion (for DNA) score file. The target
+      probabilities for letters are then derived from the score file.
+      Several score files are provided (including BLOSUM62) in directory
+      mhmm/data. Other, user-provided score files may be specified as
+      well, as long as they are in the same format.</li>
+      </ul>
+      <p><b>Bugs:</b> None known.</p>
+      <p>Author: <a href="http://www.gs.washington.edu/~noble">William Stafford Noble</a> 
+      and <a href= "http://www.maths.uq.edu.au/~tlb">Timothy Bailey.</a></p>
+    </div>
+  </body>
+</html>

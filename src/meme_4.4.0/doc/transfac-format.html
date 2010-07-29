@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>TRANSFAC motif format</title>
+    <link href="./meme-suite.css" rel="styleSheet" type="text/css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>TRANSFAC motif format</h1>
+      <p>Any valid TRANSFAC format file is acceptable.</p>
+      <p>For MEME SUITE purposes, the essential portions of the TRANSFAC
+      motif format are:</p>
+      <ul>
+      <li><b>ID</b> &lt;motif name&gt;</li>
+      <li><b>BF</b> &lt;species name&gt;</li>
+      <li><b>P0</b> &lt;a<sub>1</sub>&gt; ... &lt;a<sub>n</sub>&gt;</li>
+      <li><b>01</b> &lt;c<sub>1,1</sub>&gt; ... &lt;c<sub>1,n</sub>&gt;
+      &lt;consensus letter&gt;</li>
+      <li><b>02</b> &lt;c<sub>2,1</sub>&gt; ... &lt;c<sub>2,n</sub>&gt;
+      &lt;consensus letter&gt; ...</li>
+      <li><b>nn</b> &lt;c<sub>nn,1</sub>&gt; ... &lt;c<sub>nn,n</sub>&gt;
+      &lt;consensus letter&gt;</li>
+      <li><b>XX</b></li>
+      <li><b>//</b></li>
+      </ul>
+      <p>The <b>P0</b> row labels the columns with the letters of the
+      sequence alphabet. The numbered rows (<b>01</b>...<b>nn</b>)
+      contain counts for each letter in the sequence alphabet for that
+      position in the motif. These counts should give the number of times
+      each letter appears in known examples of the motif at the given
+      position. The counts in each numbered row should add up to the same
+      total count. The last column in each count row gives the consensus
+      letter for that position in the motif, and is ignored by
+      MEME SUITE programs.</p>
+      <p>Here is an example of a TRANSFAC format motif file containing
+      two motifs suitable for MEME SUITE programs:</p>
+      <pre>
+      ID any_old_name_for_motif_1
+      BF species_name_for_motif_1
+      P0      A      C      G      T
+      01      1      2      2      0      S
+      02      2      1      2      0      R
+      03      3      0      1      1      A
+      04      0      5      0      0      C
+      05      5      0      0      0      A
+      06      0      0      4      1      G
+      07      0      1      4      0      G
+      08      0      0      0      5      T
+      09      0      0      5      0      G
+      10      0      1      2      2      K
+      11      0      2      0      3      Y
+      12      1      0      3      1      G
+      XX
+      //
+      ID any_old_name_for_motif_2
+      BF species_name_for_motif_2
+      P0      A      C      G      T
+      01      2      1      2      0      R
+      02      1      2      2      0      S
+      03      0      5      0      0      C
+      04      3      0      1      1      A
+      05      0      0      4      1      G
+      06      5      0      0      0      A
+      07      0      1      4      0      G
+      08      0      0      5      0      G
+      09      0      0      0      5      T
+      10      0      2      0      3      Y
+      11      0      1      2      2      K
+      12      1      0      3      1      G
+      XX
+      //
+      </pre>
+    </div>
+  </body>
+</html>

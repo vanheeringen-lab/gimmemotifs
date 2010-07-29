@@ -1,0 +1,3 @@
+# <db_root>,<prot?>,<nuc?>,<short_seqs?>,<db_menu_name>,<db_long_name>,<protein_url>,<nuc_url>
+,,,no,----Other Genomes----,,,
+tribolium_castaneum,yes,no,no,Tribolium castaneum (red flour beetle),Genome of T. castaneum from <a href="http://beetlebase.org">Beetlebase</a>.,bioinformatics.ksu.edu/pub/BeetleBase/3.0/Sequences/Tribolium_Official_Gene_Sequences/peptide.fa,

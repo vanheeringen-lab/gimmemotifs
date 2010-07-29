@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# $Id: usage-reports 2002 2007-08-20 23:05:42Z tbailey $
+# $Log$
+# Revision 1.2  2005/12/02 07:21:39  tbailey
+# Removed the "meta-meme" update because the server no longer is running.  This
+# was causing the script to hang.  The metameme update in usage-reports should
+# be replaced when meta-meme comes back on line.
+#
+# Revision 1.1.1.1  2005/07/29 00:01:06  nadya
+# Importing from meme-3.0.14, and adding configure/make
+#
+#
+
+HOME=/home/meme
+HOST=meme.nbcr.net
+PATH=$PATH:$HOME/meme/bin
+
+#cd $HOME/support/LOGS; update-plot-usage /home/meme/mhp meme $HOST:meme/LOGS/meme-log rumc mast $HOST:mhp/meme/LOGS/mast-log rum metameme nbcr5.sdsc.edu:mhp/METAMEME/metameme/website/LOGS/history.log rumc 
+
+#cd $HOME/support/LOGS; update-plot-usage /home/meme/mhp meme $HOST:meme/LOGS/meme-log rumc mast $HOST:meme/LOGS/mast-log rum 
+
+# scp doesn't work on meme.nbcr.net anymore
+cd $HOME/support/LOGS; update-plot-usage /home/meme/mhp meme $HOME/meme/LOGS/meme-log rumc mast $HOME/meme/LOGS/mast-log rum
+

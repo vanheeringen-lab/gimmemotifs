@@ -1,0 +1,754 @@
+#!/usr/bin/perl
+# FILE: metameme
+# CREATE DATE: 6-7-97
+# AUTHOR: William Stafford Noble
+# PROJECT: MHMM
+# COPYRIGHT: 2001, Columbia University
+# DESCRIPTION: Given a set of sequences and MEME motifs, build a
+#              motif-based HMM, and use it to search the test set.
+#
+# INPUT:  training set in FASTA format
+#         MEME motifs
+#         test set in FAST format (optional)
+#
+# OUTPUT: motif-based HMM
+#         multiple alignment of training set
+#         sorted scores for training set
+#         sorted scores for test set
+use lib qw(.);
+use mhmm_globals;
+
+#########################################################################
+# Parse the command line.
+#########################################################################
+
+# Check the command line and complain if wrong number of arguments.
+if ($#ARGV < 1) {
+    print stderr <<End_of_usage;
+    USAGE: metameme -log <logfile> <numseq> <shortest> <longest> <average>
+                  -bin <directory> -web <job id> <output file> 
+                  <webmaster> <URL>
+
+          ###### FILE I/O #####
+                  -meme <MEME file>                          (in)
+                  -train <fasta file>                        (in)
+                  -test <fasta file>                         (in)
+                  -hmm <HMM file>                           (out)
+                  -draw <graphics file>                     (out)
+                  -hmmt <HMM file>                          (out)
+                  -align <alignment file>                   (out)
+                  -scoretrain <score file>                  (out)
+                  -scoretest <score file>                   (out)
+
+          ##### MODEL BUILDING #####
+                  -motif <number> (may be repeated) (default=all)
+                  -ethresh <value>                 (default=none)
+                  -topology linear|complete      (default=linear)
+                  -nspacer <length>                   (default=1)
+
+          ##### MODEL DRAWING #####
+                  -format eps|png|gif               (default=png)
+
+          ##### HOMOLOGY DETECTION #####
+                  -maxseqs <int>
+                  -threshold <score>                 (default=10)
+                  -bg nrdb|<file>                  (default=nrdb)
+                  -pam <distance>                   (default=250)
+                  -sc <score file>
+                  -fancy
+
+          ##### OUTPUT FORMAT #####
+                  -statusto <stream>             (default=stderr)
+                  -verbose [1|2|3|4|5]
+                  -noheader
+                  -noparams
+                  -notime
+                  -quiet
+                  -html
+
+End_of_usage
+  exit(1);
+}
+
+
+
+# Set default parameter settings.
+$global_log = "$logdir/history.log";
+$job_id = "";              # ID of this job.
+$log_file = "";            # Name of log file.
+$bindir = "";              # Directory where executables live.
+@stat = ("","","","");     # Sequence statistics to be printed to log.
+$html_out = "";            # Filename for HTML output.
+$webmaster = "";           # Email of webmaster.
+$URL = "";                 # URL of Meta-MEME site.
+
+$meme_file = "";           # MEME motifs.
+$train_file = "";          # Sequences on which to train HMM.
+$test_file = "";           # Database for homology search.
+$hmm_file = "";            # Untrained HMM.
+$hmmt_file = "";           # Trained HMM.
+$drawing_file = "";        # Graphic of HMM.
+$trainscore_file = "";     # Motif occurences in training set.
+$testscore_file = "";      # Homology detection results.
+$align_file = "";          # Alignment of training set.
+
+$mhmm_parameters = "";     # Parameters for model building.
+$mhmms_parameters = "--fancy --motif-scoring ";    # Parameters for database searching.
+
+$print_what = "";          # What format will the output be? 
+$status_stream = stderr;   # Where will status messages be sent?
+
+$html_open = "false";      # Whether to print html page or not
+
+# Get command line arguments.
+while ($#ARGV >= 0) {
+  $next_arg = shift(@ARGV);
+  
+  if ($next_arg eq "-log") {
+    $log_file = shift(@ARGV);
+  } elsif ($next_arg eq "-bin") {
+    $bindir = shift(@ARGV);
+    # Ensure that the directory name ends in a slash.
+    if (substr($bindir, length($bindir), 1) ne "/") {
+      $bindir .= "/";
+    }
+  } elsif ($next_arg eq "-web") {
+    $job_id = shift(@ARGV);
+    $html_out = shift(@ARGV);
+    $webmaster = shift(@ARGV);
+    $URL = shift(@ARGV);
+  }
+  
+  ## File I/O
+  ## If file option is used, we need to add $outputdir in front of
+  ## the file name in order not to break the server.
+  elsif ($next_arg eq "-meme") {       
+    $meme_file = shift(@ARGV);
+  } elsif ($next_arg eq "-train") {      
+    $train_file = shift(@ARGV);
+  } elsif ($next_arg eq "-test") {       
+    $test_file = shift(@ARGV);
+  } elsif ($next_arg eq "-hmm") { 
+    $hmm_file = shift(@ARGV);
+  } elsif ($next_arg eq "-hmmt") {
+    $hmmt_file = shift(@ARGV);
+  } elsif ($next_arg eq "-draw") {
+    $drawing_file = shift(@ARGV);
+  } elsif ($next_arg eq "-align") { 
+    $align_file = shift(@ARGV);
+  } elsif ($next_arg eq "-scoretrain") {
+    $trainscore_file = shift(@ARGV);
+  } elsif ($next_arg eq "-scoretest") {
+    $testscore_file = shift(@ARGV);
+  }
+
+  # Model building
+  elsif ($next_arg eq "-motif") {      
+    $n = shift(@ARGV);
+    $mhmm_parameters .= "--motif $n ";
+  } elsif ($next_arg eq "-ethresh") {   
+    $evalue = shift(@ARGV);
+    $mhmm_parameters .= "--ethresh $evalue ";
+  } elsif ($next_arg eq "-topology") {   
+    $type = shift(@ARGV);
+    $mhmm_parameters .= "--type $type ";
+  } elsif ($next_arg eq "-nspacer") {    
+    $nspacer = shift(@ARGV);
+    $mhmm_parameters .= "--nspacer $nspacer ";
+  } elsif ($next_arg eq "-description"){
+    $description = shift(@ARGV);
+    $mhmm_parameters .= "--description \"$description\" ";
+  }
+  
+  # Homology detection.
+  elsif ($next_arg eq "-threshold") {  
+    $threshold = shift(@ARGV);
+    $mhmms_parameters .= "--ethresh $threshold ";
+  } elsif ($next_arg eq "-bg") {         
+    $bg = shift(@ARGV);
+    $mhmms_parameters .= "--bg $bg ";
+  } elsif ($next_arg eq "-sc"){
+      $sc = shift(@ARGV);
+      $mhmms_parameters .= "--score-file $sc ";
+  }
+  # Output format.
+  elsif ($next_arg eq "-maxseqs") {  
+    $maxseqs = shift(@ARGV);
+  }
+  elsif ($next_arg eq "-statusto") {
+    my $logfname = shift(@ARGV);
+    open($status_stream, ">>$logfname");
+  } elsif ($next_arg eq "-verbose") {
+    $verbosity = shift(@ARGV);
+    $print_what .= "--verbosity $verbosity ";
+  } elsif ($next_arg eq "-noheader") {
+    $print_what .= "--noheader ";
+  } elsif ($next_arg eq "-noparams") {
+    $print_what .= "--noparams ";
+  } elsif ($next_arg eq "-notime") {
+    $print_what .= "--notime ";
+  } elsif ($next_arg eq "-quiet") {
+    $print_what = "--quiet ";
+  } elsif ($next_arg eq "-html"){
+    $html_open = "true";
+  } elsif ($next_arg eq "-userinputmotif"){
+    $userinputmotif = shift(@ARGV);
+  } elsif ($next_arg eq "-userinputseq"){
+    $userinputseq = shift(@ARGV);
+  }
+  else {
+    die("Error: Unrecognized option ($next_arg)\n");
+  }
+}
+
+# Make sure we got the required files.
+if ($train_file eq "") {
+  die("Error: No training set specified.\n");
+  exit(1);
+} elsif ($meme_file eq "") {
+  die("Error: No MEME output filename specified.\n");
+  exit(1);
+}
+
+$hostname = `/usr/bin/hostname`;
+chomp($hostname);
+$ipaddress = $ENV{REMOTE_ADDR};
+($date,$time) = &date_and_time();
+$submit_date_and_time = "$hostname $job_id submit: $date $time ";   
+
+# Put the name of the output directory at the beginnning of all 
+# non-empty output files.
+if ($job_id ne "") {
+  foreach $file ($hmm_file, $hmmt_file, $align_file, $trainscore_file,
+		 $testscore_file, $drawing_file) {
+    if ($file ne '') {
+      $file = "$outputdir/$file";
+    }
+  }
+}
+
+#########################################################################
+# Global variables storing HTML content.
+#########################################################################
+
+# The header of the HTML output page.
+$html_header = "<Html>\n<Head>\n" .
+    "<TITLE>Meta-MEME submission results \#$job_id</TITLE>\n" .
+    "</HEAD>\n".
+    "<BODY bgcolor=\"#FFFFFF\">\n".
+    "<META HTTP-EQUIV=\"expires\" CONTENT=\"3\">\n".
+    "<IMG ALIGN='LEFT' SRC='../images/meta-meme.gif' Height='81' Width='444'>\n" .
+    "<BR><BR><BR><BR><BR><BR>\n".
+    "<Center><H2>Meta-MEME job \#$job_id</Font></H2></Center>\n".
+    "<HR><UL>\n";
+
+
+# The links to output files.  This global variable gets added to as the 
+# run progresses.
+$html_links = "";
+
+# The in-progress message.  This message is included in the page until
+# the entire job is completed.
+$html_in_progress = "<P>Your Meta-MEME job is running now.  " .
+    "This page will contain links to your results when they are ready. " .
+    "You can bookmark this page and return to it later if you wish.  " .
+    "Initial results should appear within several minutes, " .
+    "but searching a large database may require several hours. " .
+    "If your initial results do not appear after a " .
+    "minute or so, try pressing \"Reload\" or \"Refresh\" " .
+    "on your browser.".
+    # While it is in progress, refresh the screen
+    "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"6; URL=$html_out\">\n";
+
+# When the job finished, let user know how long will the outpage exist
+$html_end = "<P><B>The results on this page will be stored three days.</P></B>  ";
+
+# The footer of the HTML page.
+$html_footer = "</UL><HR><A HREF=\"../metameme-intro.html\">Return</A> to the Meta-MEME home page.\n".
+    "<BR><BR>\n".
+    "<I>Please send comments and questions to ".
+    "<A HREF=\"mailto:$webmaster\">$webmaster</A></I>\n".
+    "</BODY></HTML>\n";
+
+# A generic error message.
+$html_error = "<P>Meta-MEME is unable to process the submitted job because ".
+    "it encountered an internal error or the server is temporarily down.  ".
+    "Please try again later or contact <a href=\"mailto: $webmaster\">$webmaster</a> for assistance. ".
+    "<b>Please provide the Job ID - $job_id when contacting <a href=\"mailto:$webmaster\">$webmaster</a></b>.";
+
+# Before the job start, write introduction to html output page
+&write_html_output($html_out, 0, "", "","",1);
+
+#########################################################################
+# STEP 1: BUILD THE HMM
+#########################################################################
+if ((-e $hmm_file) && !(-z $hmm_file)) {
+  print($status_stream "Skipping model building: $hmm_file exists.\n");
+} else {
+  if ($job_id ne ""){
+    $start_date_and_time = &write_global(start);
+  }
+  # Build the model.
+  $command  = "mhmm ";
+  $command .= "$mhmm_parameters $print_what";
+  $command .= " $meme_file ";
+  $error_status = &run_command($command, $hmm_file, $job_id, $log_file);
+  
+  if ($error_status) {
+    &html_error($html_out);
+    exit($error_status);
+  }
+}
+
+#########################################################################
+# STEP 2: Generate MHMM's output file
+#########################################################################
+if ($job_id ne ""){
+  $web_hmm_file = $hmm_file.".web";
+  $command = "changetoweb ";
+  $command .= "$hmm_file \'$userinputmotif\' \'$userinputseq\'";
+  $error_status = &run_command($command,$web_hmm_file,$job_id,$log_file);
+}
+else{
+  $web_hmm_file = $hmm_file;
+}
+if ($error_status){
+  &html_error($html_out);
+  exit($error_status);
+}
+$hmm_html = $hmm_file.".htm";
+if ($html_open eq "true"){
+  $command = "mhmm2html $web_hmm_file"; 
+  $error_status = &run_command($command, $hmm_html,$job_id,$log_file);
+}
+
+#########################################################################
+# STEP 2.75: DRAW HMM
+#########################################################################
+if ($error_status){
+  &html_error($html_out);
+  exit($error_status);
+}
+if ($drawing_file ne ""){
+  $command1 = "draw-mhmm";
+  $command2 = "dot";
+  $command = "$command1 $hmm_file | $bindir$command2 -Tps";
+
+  $hmm_pic_temp = $hmm_file.".ps";
+  $error_status = &run_command($command, $hmm_pic_temp, $job_id, $log_file);
+
+  if (!$error_status) {
+    $command = "convert $hmm_pic_temp $drawing_file ";
+    $error_status = &run_command($command, "", $job_id, $log_file);
+    $error_status = "";
+    unlink($hmm_pic_temp);
+  }
+}
+if ($error_status){
+  &html_error($html_out);
+  exit($error_status);
+}
+
+# Currently there is error while excuting convert
+# So use pic_temp instead of pic
+if ($html_open eq "true"){
+  &write_html_output($html_out, $error_status, 
+		     "Motif-based hidden Markov model", $hmm_html, $drawing_file, 1);
+}
+$format = &proteinordna($hmm_file);
+
+#########################################################################
+# STEP 3: SCORE AGAINST USER SEQUENCES
+#########################################################################
+if ($trainscore_file ne '') {
+  my($command);
+  $command  = "mhmms --fancy --motif-scoring $print_what ";
+  if ($maxseqs ne '' and $maxseqs > 0) {
+    $command .= " --maxseqs $maxseqs ";
+  }
+  $command .= "$hmm_file $train_file ";
+  &run_command($command, $trainscore_file, $job_id, $log_file);
+  if ($job_id ne ""){
+    $web_trainscore_file = $trainscore_file.".web";
+    $command = "changetoweb ";
+    $command .= "$trainscore_file \'$userinputmotif\' \'$userinputseq\'";
+    $error_status = &run_command($command,$web_trainscore_file,
+      $job_id,$log_file);
+    
+  }
+  else{
+    $web_trainscore_file = $trainscore_file;
+  }
+  if ($error_status) {
+    &html_error($html_out);
+    exit($error_status);
+  }
+  if ($html_open eq "true"){
+    $trainscore_file_html = $trainscore_file.".htm";
+    $command = "mhmm2html -alphabet $format $web_trainscore_file"; 
+    $error_status = &run_command($command, $trainscore_file_html,
+      $job_id,$log_file);
+    
+    # Create a link on the web page.
+    &write_html_output($html_out, $error_status,
+     "Motif occurrences in sequence file", $trainscore_file_html,"",1);
+  }
+  if ($error_status) {
+    &html_error($html_out);
+    exit($error_status);
+  }
+}
+
+#########################################################################
+# STEP 4: SCORE AGAINST DATABASE
+#########################################################################
+if ($test_file ne "") {
+  if ((-e $testscore_file) && !(-z $testscore_file)) {
+    print($status_stream
+          "Skipping test set scoring: $testscore_file exists.\n");
+  }
+  else {
+    my($command);
+    $command  = "mhmms  $mhmms_parameters $print_what ";
+    if ($maxseqs ne '' and $maxseqs > 0) {
+      $command .= " --maxseqs $maxseqs ";
+    }
+    $command .= " $hmm_file $test_file ";
+    &run_command($command, $testscore_file, $job_id, $log_file);
+    if ($job_id ne ""){
+      $web_testscore_file = $testscore_file.".web";
+      $command = "changetoweb ";
+      $command .= "$testscore_file \'$userinputmotif\' \'$userinputseq\'";
+      $error_status = &run_command(
+        $command,$web_testscore_file,
+        $job_id,
+        $log_file
+      );
+    }
+    else{
+      $web_testscore_file = $testscore_file;
+    }
+    if ($error_status) {
+      &html_error($html_out);
+      exit($error_status);
+    }
+    if ($html_open eq "true"){
+      $testscore_file_html = $testscore_file.".htm";
+      $command = "mhmm2html -alphabet $format $web_testscore_file";
+      $error_status = &run_command(
+        $command, 
+        $testscore_file_html,
+        $job_id,$log_file
+      );
+      # Create a link on the web page.
+      &write_html_output(
+        $html_out, 
+        $error_status, 
+        "Database search results",
+        $testscore_file_html,
+        "", 
+        1
+      );
+    }
+
+    if ($error_status) {
+      &html_error($html_out);
+      exit($error_status);
+    }
+  }
+}
+
+# Write the last version of the page.
+&write_html_output($html_out, 0, "", "", 0);
+
+# Record the job status.
+&record_status("", $job_id, $error_status, $log_file);
+
+#########################################################################
+# Run a command with error checking.
+#########################################################################
+sub run_command {
+  my($command, $outfile, $job_id, $log_file) = @_;
+  my(@start, @end, $stdout, $stderr, $hostname, $elapsed);
+  
+  print($status_stream "$command\n");
+  
+  # If no output file was given, pipe stdout to stdout.
+  if ($outfile eq "") {
+    $outfile = "stdout.$$";
+  }
+  
+  # Run the command, saving stdout and stderr.
+  @start = times();
+  $error_status = system("$bindir$command 1>$outfile 2>stderr.$$");
+  @end = times();
+  
+  if ($outfile eq "stdout.$$") {
+    $stdout = `/usr/bin/cat stdout.$$`;
+    unlink("stdout.$$");
+    print(stdout "$stdout");
+  }
+  
+  # Send stderr to stdout.
+  $stderr = `/usr/bin/cat stderr.$$`;
+  unlink("stderr.$$");
+  print($status_stream "$stderr\nstatus=$error_status\n\n");
+
+  chmod(0664,$outfile);
+  
+  # Report elapsed time and CPU.
+  $hostname = `/usr/bin/hostname`;
+  chop($hostname);
+  $elapsed = ($end[0] - $start[0]) + ($end[1] - $start[1]) + 
+      ($end[2] - $start[2]) + ($end[3] - $start[3]);
+  $CPUtime += $elapsed;
+  
+  printf($status_stream "Elapsed time = %.2f CPU seconds (%s).\n", $elapsed,
+	 $hostname);
+  
+  &record_status($command, $job_id, $error_status, $log_file);
+  
+
+  if ($error_status != 0) {
+    print(stderr "Error $error_status from metameme.\n");
+    print(stderr "$command\n");
+  }
+  return($error_status);
+}
+
+
+#########################################################################
+# Record the current job status in the log file.
+#########################################################################
+sub record_status
+{
+  my($command, $jobnum, $error_status, $log_file) = @_;
+  
+  my($date_and_time, $outfile, $errmsg, $paramtraining);
+  
+  # Don't bother if we don't have a history log.
+  if ($log_file eq "") {
+    return;
+  }
+  
+  chop($date_and_time = `date`);
+  
+  if ($numtrain > 0) {
+    foreach my $train_element (@training) {
+      if ($train_element ne "") {
+	$paramtraining .= " $train_element";
+      }
+    }
+  } else {
+    $paramtraining = " none";
+  }
+  
+  open($log_file, ">>$log_file");
+  if ($error_status != 0) {
+    $error_status = 2;
+  }
+  print($log_file "$date_and_time \t $jobnum \t <$error_status> \t");
+  print($log_file "[numseq=$stat[0]; shortest=$stat[1]; longest=$stat[2]; " .
+	"average=$stat[3];] ");
+  print($log_file "topology=$hmm_type; motifs=$mhmm_motifs; " .
+	"nspacer=$nspacer; " .
+	"training=$paramtraining; traingAlg=$viterbi_train; " .
+	"online=$online_train; " .
+	"maxiter=$maxiter; converge=$converge; mixing=$mixing; " .
+	"transpseudo=$transpseudo; weights=$weighting; " .
+	"alignformat=$align_format; non-motifs=$action; " .
+	"scoring=$scoring; threshold=$threshold; ");
+  print($log_file "\n\n");
+  close($log_file);
+  chmod(0664, $log_file);
+
+  # If there is an error, notify the site administrator.
+  if ($error_status) { 
+    $errmsg = "error.$$";
+    open($errmsg, ">$errmsg");
+    print($errmsg "   The Meta-MEME software was unable to finish processing ".
+	  "submitted job \#$jobnum\nbecause of an error occurred " .
+	  "when executing the command below.\n\n");
+    print($errmsg "$command\n\n");
+    close($errmsg);
+    chmod(0664, $errmsg);
+    `/usr/ucb/Mail -s 'Warning: Meta-MEME job $jobnum' $webmaster < $errmsg`;
+    unlink("error>$$");
+  }
+  
+  return($error_status);
+}
+
+#########################################################################
+# Write (or over-write) the HTML output page.
+#########################################################################
+my $first_time = 0;
+sub write_html_output {
+  my($html_page, $error_status, $new_link, $new_file1, $new_file2, $in_progress) = @_;
+  if ($html_page eq "") {
+    return;
+  }
+  else{
+    # Strip off "http://" and replace with webroot.
+    @temp = split('/',$html_page);
+    $html_page = pop(@temp);
+    $html_page = "$outputdir/$html_page";
+  }
+  # If it is the first time to write the html page, just print the
+  # default contents
+  if ($first_time == 0){
+    open($html_page, ">$html_page");
+    print($html_page $html_header);
+    print($html_page $html_links);
+    if ($in_progress == 1) {
+      print($html_page $html_in_progress);
+    }
+    $first_time++;
+    print($html_page $html_footer);
+    close($html_page);
+    chmod(0664, $html_page);
+  }
+  else{
+    # if the program is still in progress, print the intermediate results
+    if ($in_progress == 1){
+      if ($error_status == 0) {
+	if ($new_link ne "") {
+	  @temp = split('/',$new_file1);		  
+	  $new_file1 = $metasite."/output/".pop(@temp);
+	  
+	  $html_links = "<li><a href=\"$new_file1\">$new_link</a>&nbsp&nbsp&nbsp&nbsp\n";
+	  
+	  # To add MHMM's model picture         
+	  if ($new_file2 ne ""){
+	    @temp = split('/',$new_file2);
+	    $new_file3 = $metasite."/output/".pop(@temp);
+	    $html_links = $html_links.
+		"<a href=\"$new_file3\">Graph</a>\n";
+	  }
+	  
+	  # @cache is used to record how many results we got by far
+	  $cache[$first_time] = $html_links;
+	  $first_time++;
+	  open($html_page,">$html_page");
+	  print($html_page $html_header);
+	  print($html_page $html_in_progress);
+	  
+	  for ($i=1;$i<$first_time;$i++){
+	    print ($html_page "$cache[$i]\n");
+	  }
+	  
+	  print($html_page $html_footer);
+	  close($html_page);
+	  chmod(0664, $html_page);
+	}
+      }
+      else {
+	print($html_error);
+      }
+    }
+    # print the final results
+    else{
+      open($html_page,">$html_page");
+      print($html_page $html_header);
+      print($html_page "<table>");
+      for ($i=1;$i<$first_time;$i++){
+	print ($html_page "$cache[$i]\n");
+      }
+      print($html_page "</table>");
+      print($html_page $html_end);
+      print($html_page $html_footer);
+      #print($html_page $submit_date_and_time);
+      #print($html_page $start_date_and_time);
+      #$end = &write_global(end,0);
+      print($html_page $end);
+      close($html_page);
+      chmod(0664, $html_page);
+      if ($job_id ne ""){
+	$end_date_and_time = &write_global(end,0);
+	&write_global(final,0);
+      }
+    }
+  }
+}
+
+##########################################################
+# Given a hmm file, decide whether it is protein or dna
+##########################################################
+sub proteinordna{
+  my ($filename) = $_[0];
+  my ($line,@temp);
+  open (IN,"<$filename") || die "Cannot open $filename";
+  while ($line = <IN>){
+    if ($line =~ "alphabet: "){
+      @temp = split(' ',$line);
+      if (length($temp[1]) >= 20){
+	return "protein";
+      }
+      else{
+	return "dna";
+      }
+    }
+  }
+  return "error";
+}
+
+###############################################################
+# Write the error info.
+##############################################################
+sub html_error{
+  my ($html_page) = @_;
+  @temp = split('/',$html_page);
+  $html_page = pop(@temp);
+  $html_page = "$webroot/output/$html_page";
+  open($html_page, ">$html_page");
+  print $html_page $html_header;
+  print $html_page $html_error;
+  print $html_page $html_footer;
+  close($html_page);
+  chmod(0664, $html_page);
+  if ($job_id ne ""){
+    $end_date_and_time = &write_global(end,0);
+    &write_global(final,2);
+  }
+}
+
+################################################################
+# Write to global log file
+################################################################
+sub write_global{
+  # $mark is 0 - job finished correctly
+  #          1 - input incorrect
+  #          2 - server broken
+  my ($start_or_end,$mark) = @_;
+  my ($date,$time) = &date_and_time;
+  #open($global_log, ">>$global_log");
+  if ($start_or_end eq "start"){
+    #print ($global_log "start: $date $time ");
+    return "start: $date $time ";
+  }
+  elsif ($start_or_end eq "end"){
+    #print($global_log "end: $date $time ");
+    #print($global_log "\n\n");
+    return "end: $date $time ";
+  }
+  elsif ($start_or_end eq "final"){
+    open($global_log, ">>$global_log") || die "Cannot open $global_log";
+    print($global_log "$submit_date_and_time$start_date_and_time$end_date_and_time<$mark> $ipaddress\n\n");
+    #print($global_log "$submit_date_and_time\n\n");
+    close($global_log);
+    chmod(0664, $global_log);
+    return(0);
+  }
+}
+
+############################################################################
+# Return Current Date and Time
+# This is used to keep LOG the same format as MEME LOG file
+############################################################################
+sub date_and_time{
+  my ($sec,$min,$hour,$mday,$mon,$year,@rest) = localtime(time);
+  # I do not understand why we need to add 1 to month
+  $date_now = sprintf "%02d/%02d/%02d",$mon+1,$mday,$year-100;
+  $time_now = sprintf "%02d:%02d:%02d", $hour,$min,$sec;
+  return($date_now,$time_now);
+}
