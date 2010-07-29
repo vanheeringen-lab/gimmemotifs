@@ -20,27 +20,27 @@ parser.add_option("-c", "--cutoff", dest="cutoff", help="Cutoff to use (default 
 
 (options, args) = parser.parse_args()
 
+def motif_localization(fastafile, motif, width, outfile, cutoff=0.9):
+	NR_HIST_MATCHES = 100
+	from gimmemotifs.utils import plot_histogram, ks_pvalue
+	from gimmemotifs.fasta import Fasta
+	from numpy import array
+
+	matches = motif.pwm_scan(Fasta(fastafile), cutoff=cutoff, nreport=NR_HIST_MATCHES)
+	if len(matches) > 0:
+		ar = []
+		for a in matches.values():
+			ar += a
+		matches = array(ar)
+		p = ks_pvalue(matches, width - len(motif))
+		plot_histogram(matches - width / 2 + len(motif) / 2, outfile, xrange=(-width / 2, width / 2), breaks=21, title="%s (p=%0.2e)" % (motif.id, p), xlabel="Position")
+		return motif.id, p
+	else:
+		return motif.id, 1.0
+
 if not options.fastafile and not options.pwmfile:
 	parser.print_help()
 	sys.exit()
-
-def motif_localization(fastafile, motif, width, outfile, cutoff, bins=20):
-	from tempfile import NamedTemporaryFile
-	from subprocess import Popen
-	from gimmemotifs.utils import make_gff_histogram, ks_pvalue
-
-	temp = NamedTemporaryFile()
-	temp.write(motif.to_pwm())
-	temp.flush()
-
-	tempgff = NamedTemporaryFile()
-	
-	cmd = "pwmscan.py -i %s -p %s -c %s > %s" % (fastafile, temp.name, cutoff, tempgff.name) 
-	p = Popen(cmd, shell=True)
-	p.communicate()
-
-	make_gff_histogram(tempgff.name,outfile, width ,motif.id, bins)
-	return motif.id, ks_pvalue(tempgff.name, width - len(motif))
 
 fastafile = options.fastafile
 pwmfile = options.pwmfile
