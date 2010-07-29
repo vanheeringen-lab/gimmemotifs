@@ -1,0 +1,328 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?xml-stylesheet href="logo.css" type="text/css"?>
+
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="logo.css" />
+<title>WebLogo - Logo Form Help</title>
+<meta name="author" content="Gavin E. Crooks" />
+<meta name="ID" content="$ID:" />
+</head>
+
+<body>
+
+<h1>
+  <a class="in" href="./"><img alt="WebLogo" width="146" height="65"  border="0" src="img/weblogologo.png" /></a>
+  BETA
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  &middot; 
+  <a href="">about</a>&nbsp;&middot;
+  <a class="selected" href="logo.cgi">create</a>&nbsp;&middot; 
+  <a href="examples.html">examples</a>&nbsp;&middot; 
+</h1>
+
+<h3>Logo Creation Form Help</h3>
+
+
+<dl>
+
+<dt><a name="msa">Multiple Sequence Alignment</a></dt>
+<dd>
+Enter your sequence information here. There are three formats to choose from; 
+<a href="#fasta">FASTA</a>,  <a href="#clustalw">CLUSTALW</a>, and <a href="#flat">flat</a>.
+In all cases, lines beginning with "#" are comment lines
+and have no effect on the output logo. All sequences must be the same length.
+
+<br /><br />
+
+<dl>
+  <dt><a name="fasta">FASTA format:</a></dt>
+  <dd>
+<pre><code>  >name1 (optional)
+  acgtacgtacgtacgtacgattca
+  >name2 (optional)
+  tacgtacgatcgatcgtgactacg
+  >name3 (optional)
+  actgactagctactagctactacg
+  ... 
+  >nameN (optional)
+  actgactagctagcatcgactgac
+</code></pre>
+  </dd>
+  <dt><br /><a name="clustaw">CLUSTALW format:</a></dt>
+  <dd>
+<pre><code>  name1line1      atcgagttatcgcgaggagaggcgcgtacgatcgatcgatcgatgcatgcatcgatcgatgctataatacgatgctagca
+  name2line1      tacgtacgatcgatcgtgactacgactgatcgatgcatcgatgctagctagctagctagctagctagcatgctagctagc
+  ...
+  nameNline1      actgactagctagcatcgactgacactgactgactgatcgatcgatcgatcgatcgatcgatcgatcgatcgtagtagtg
+  name1line2      atgcatcgacacacatgtgtgatcattatagagcgctagcatgcatgctagatcgtacgtacgtacgtacgtacgattca
+  name2line2      tacgtacgatcgatcgtgactacgatgcatgcatcgcggatatatagagagatctatcgcatcgatcgatcgatcgatcg
+  ...             atcgagttatcgcgaggagaggcgcgtacgatcgatcgatcgatgcatgcatcgatcgatgctataatacgatgctagca
+  nameNline2      actgactagctagcatcgactgacatcgatcgatcgatcgatcgatcgatcgatcgatcgatcgatcgatgctagctagc
+  ...
+  ...
+  name1lineM      acgtacgtacgtacgtacg
+  name2lineM      tacgtacgatcgatcgtga
+  ...
+  nameNlineM      actgactagctagcatcga
+</code></pre>
+  </dd>
+  <dt><br /><a name="clustaw">Flat format (each sequence must be of same length):</a></dt>
+  <dd>
+<pre><code>  sequence1
+  sequence2
+  sequence3
+  ...
+  sequenceN
+</code></pre>
+  </dd>
+</dl>
+
+</dd>
+
+
+
+<!--
+<dt><a name="upload">Upload Sequence Data</a></dt>
+<br />
+<dd>
+Not supported yet
+</dd>
+-->
+
+
+<dt><a name="seqtype">Sequence Type</a></dt>
+<dd>
+Sequence data can be of "amino acid" or "DNA/RNA". Choose 
+"Automatic Detection" to have Weblogo choose for you, based on the entered
+data (if 90% or more of the entered data are a, c, t or g residues, then
+Weblogo chooses DNA/RNA.
+</dd>
+
+
+<dt><a name="ends">Label Sequence Ends</a></dt>
+<dd> 
+Choose this option to label the 5' &amp; 3' ends of nucleic acid or 
+the N &amp; C termini of amino acid sequences.
+</dd>
+
+
+<dt><a name="firstnum">First Position Number</a></dt>
+<dd>
+The numerical label of the first residue in the multiple sequence alignment.
+The label must be an integer.
+Residue labels for the logo will be relative to this number. 
+(See also: <a href = "#range">Logo Range</a>)
+</dd>
+
+<dt><a name="range">Logo Range</a></dt>
+<dd>
+By default, all sequence data is displayed in the Sequence Logo. With 
+this option, you can instead show a subrange of the entire sequence. Start
+and end positions are included,
+and the numbering of positions is relative to the sequence number of the 
+first position. (See also: <a href="#firstnum">First Position Number</a> )
+Thus, if the first position number is "2", start is "5" and end is "10", then
+the 4th through 9th (inclusive) sequence positions will be displayed, and 
+they will be numbered "5", "6", "7", "8", "9" and "10".
+</dd>
+
+<dt><a name="uniform">Frequency Plot</a></dt>
+<dd>
+Show residue frequencies, rather than information content.
+</dd>
+
+
+
+<dt><a name="ssc">Small Sample Correction</a></dt>
+<dd>
+When there are only a few sample sequences a straightforward calculation 
+will tend to overestimate the entropy. To compensate, this option will
+subtract an approximation of this bias from the total entropy.
+This small sample correction depends only
+on the number of symbol types (4 for RNA/DNA, 20 for protein) and
+the total amount of data in each column, which may differ from
+one column to another, since some columns will contain more gaps,
+and less data.
+</dd>
+
+<dt><a name="multiline">Multiline Logos</a></dt>
+<dd>
+A multiline Logo will split the sequence across several lines, instead of 
+cramming
+all of the sequence within the single line width specified above. 
+The Logo height specified at the top of the form becomes
+the height of each Logo line.
+The number of logo characters per line can be specified.
+</dd>
+
+<dt><a name="errbar">Error Bars</a></dt>
+<dd>
+The total height of the error bar is twice the small sample correction.
+</dd>
+
+<dt><a name="format">Image Format</a></dt>
+<dd>
+The logo can be output in several formats. The following are currently
+supported:
+<ul>
+  <li>EPS : Adobe Encapsulated PostScript</li>
+  <li>GIF : CompuServe Graphics Interchange Format</li>
+  <li>PNG : Portable Network Graphics</li>
+  <li>PDF : Adobe Portable Document Format</li>
+</ul>
+
+Generally speaking, vector formats (EPS and PDF) are better for printing,
+while bitmaps (GIF and PNG) are more suitable for displaying on the screen, or
+embedding into a web page.
+</dd>
+
+<dt><a name="size">Logo Size</a></dt>
+<dd>
+Physical dimensions of output logo in centimeters, inches, pixels, or points.
+</dd>
+
+<dt><a name="res">Bitmap Resolution</a></dt>
+<dd>
+Typical values are 72 pixels/inch for screen display under Mac OS,
+96 pixels/inch for screen display under Windows and 300 or 600
+pixels/inch for output to a laser printer.
+</dd>
+
+<dt><a name="antialias">Antialias Bitmaps</a></dt>
+<dd>
+  Antialiasing smoothes the rough edges on a bitmap. You may wish to disable
+  this feature if, for example, you intend to further edit the bitmap.
+</dd>
+
+<dt><a name="title"></a>Title</dt>
+<dd>
+Give your logo a title.
+</dd>
+
+<dt><a name="barbits">Y-axis Height</a></dt>
+<dd>
+  Specify the number of bits on the y axis.
+  By default, the height of the y-axis is
+  the maximum entropy for the given sequence type.
+  (log<sub>2</sub>&nbsp;4&nbsp;=&nbsp;2&nbsp;bits for DNA/RNA, 
+  log<sub>2</sub>&nbsp;20&nbsp;=&nbsp;4.3&nbsp;bits for protein.)
+</dd>
+
+<dt><a name="yaxis">Show Y-Axis</a></dt>
+<dd>
+  The vertical axis indicates the information content of a 
+  sequence position, in bits. Use this option to toggle the y-axis 
+  and its bit labels.
+</dd>
+
+<dt><a name="yaxis_label">Y-Axis Label</a></dt>
+<dd>
+  Give your y-axis a name. The default label for the y-axis is "bits".
+</dd>
+
+<dt><a name="xaxis">Show X-Axis</a></dt>
+<dd>
+  The horizontal axis indicates the residue number. Use this option to
+  toggle the x-axis and its labels.
+</dd>
+
+<dt><a name="xaxis_label">X-Axis Label</a></dt>
+<dd>
+  Customize your x-axis's label. The default is no label.
+</dd>
+
+<dt><a name="boxed">Boxed Symbols</a></dt>
+<dd>
+  It is sometimes useful to outline logo residues with boxes.  Use the
+  the shrink factor to decrease the residue size by the factor specified. 
+  The default shrink factor is 0.5, 
+  meaning halve the residue size.
+</dd>
+
+<dt><a name="outline">Outline</a></dt>
+<dd>
+  By default, the logo residues are filled. Use this option to get outlined 
+ (non-filled) residues.
+</dd>
+
+<dt><a name="colors">Color Scheme</a></dt>
+<dd>
+The default colors for nucleic acids are 
+G, orange; T &amp; U, red; C, blue; and A, green.
+Amino acids are colored according to their chemical
+properties: polar amino acids (G,S,T,Y,C,Q,N) are green, 
+basic (K,R,H) blue, acidic (D,E) red and
+hydrophobic (A,V,L,I,P,W,F,M) amino acids are black.
+Alternatively, the Black &amp; White option will color 
+all symbols black, or the default color scheme can be
+overridden with the custom colors specified below. 
+
+
+<dl>
+  <dt><a name="color_sym">Symbols</a></dt>
+  <dd>
+    Specify the residue letters here. The symbols are case insensitive. 
+    No repeated residues are allowed.
+  </dd>
+
+  <dt><a name="color_color">Colors</a></dt>
+  <dd>
+    Choose the color to give the residues specified in <a href = "#color_sym">
+    "Symbols" </a>. Use the drop-down list to:
+    <br />&nbsp;&nbsp;&nbsp; * choose a pre-defined color (Black, Red, Green,
+    Blue, Yellow, Purple, or Orange) or
+    <br />&nbsp;&nbsp;&nbsp; * choose "RGB=>" and specify an appropriate RGB
+    color in the <a href = "#color_RGB"> "RGB" </a> field.
+  </dd>
+
+  <dt><a name="color_RGB">RGB</a></dt>
+  <dd>
+    If you chose "RGB=>" in the <a href = "#color_color"> "Colors" </a> field,
+    specify standard hexadecimal colors here
+    (e.&nbsp;g. FF0000 for pure red, 006666 for Slashdot green).
+  </dd>
+</dl>
+</dd>
+
+
+<!--
+<dt><a name="">Symbols per Logo line</a></dt>
+<dd>
+A multiline Logo will split the sequence across several lines, instead of 
+cramming
+all of the sequence within the single line width specified above. 
+The Logo height specified at the top of the form becomes
+the height of each Logo line.
+</dd>
+<dt>
+-->
+
+</dl>
+<!-- We need lots of blank space here so that the in page links work -->
+<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+
+<div align="center">
+<address>
+<a href="mailto:logo@compbio.berkeley.edu">logo@</a><a 
+href="http://compbio.berkeley.edu/">The Holy Science Palace</a></address>
+</div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

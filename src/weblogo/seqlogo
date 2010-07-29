@@ -1,0 +1,356 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+  seqlogo - runs the logo creation script 
+
+=head1 SYNOPSIS
+
+  seqlogo [OPTION]...-f [FILENAME]
+
+=head1 DESCRIPTION
+
+    Creates a logo for the given input filename.
+
+    Available options:
+    -B <bar bits>              Number of bits in bar (real between 0, 1)
+    -T <tic bits>              Number of bits between tic marks
+    -C <chars per line>        Number of characters per line of logo
+    -d <box shrink factor>     Shrink factor of characters if option c is toggled
+    -E <error bar fraction>    Fraction of error bar to show (real between 0, 1 )
+    -f <input file>            Input filename
+    -F <format>                Format of output (EPS, GIF, PDF, PNG), - for STDOUT
+    -h <logo height>           Height of output logo (real > 0)
+    -k <kind of data>          0 for amino acid, 1 for nucleic acid ; if not
+                                 defined, a 90% certainty method is used to
+                                 determine whether the input data is amino acid or
+                                 nucleic acid
+    -l <sequence lower bound>  Lower bound of sequence (integer)
+    -m <sequence upper bound>  Upper bound of sequence (integer)
+    -o <output file>           Name of output file
+    -s <sequence start>        Sequence start number, defaults to 1 (int)
+    -t <titletext>             Text of title, enclosed in "" if more than one word
+    -w <logo width>            Width of output logo
+    -x <x-axis label>          Label for x-axis
+    -y <y-axis label>          Label for y-axis
+
+    Available toggles (no values associated)
+    -a       Toggle antialiasing
+    -b       Toggle bar ends
+    -c       Toggle color
+    -e       Toggle error bar
+    -M       Toggle small sample correction
+    -O       Toggle outlining of characters
+    -n       Toggle numbering of x-axis
+    -S       Toggle stretching of logos to entire length
+    -X       Toggle boxing of characters
+    -Y       Toggle y-axis
+
+=head1 EXAMPLE
+
+  The following command takes as input "input.fasta" and returns the logo in the
+  form "logo.eps". Antialiasing, bar ends, color, small sample correction,
+  numbering of x-axis, and y-axis labelling are turned on:
+
+    seqlogo -f input.fasta -F EPS -o logo.eps -abcMnY
+
+=cut
+
+use vars qw($PATH);
+
+BEGIN {
+
+    use FindBin qw($Bin);
+    use lib "$Bin";
+
+    $PATH = $Bin;
+
+##    $PATH = "/h/gary/Seqlogo/Code/";
+#    $PATH = "/n/weblogo/home/httpd/weblogo/pub/beta/Seqlogo/Code";
+#    unshift(@INC, $PATH);
+}
+
+use logo;
+use template;
+use Getopt::Std;
+use FileHandle;
+
+
+my $opts;
+$opts =
+  $opt_a || # antialiasing
+  $opt_b || # bar ends (0 or 1)
+  $opt_c || # color
+  $opt_e || # show error bar (0 or 1)
+  $opt_n || # numbering (0 or 1)
+  $opt_M || # small sample correction (0 or 1)
+  $opt_O || # outline (0 or 1)
+  $opt_S || # stretch
+  $opt_X || # box (0 for no box, 1 for box)
+  $opt_Y || # y axis
+
+  $opt_B || # bar bits (real)
+  $opt_T || # tics bits (real)
+  $opt_C || # chars per line
+  $opt_d || # box shrinking factor (<1)
+  $opt_E || # error bar fraction (real)
+  $opt_f || # input filename
+  $opt_F || # format (PNG, EPS, PDF, GIF)
+  $opt_h || # logo height (cm)
+  $opt_k || # 0 = amino acid, 1 = nucleic acid
+  $opt_l || # lower bound of sequence to put in logo
+  $opt_m || # max bound of sequence to put in logo
+  $opt_o || # output file
+  $opt_s || # start number for very beginning of sequence
+  $opt_t || # title text (string)
+  $opt_w || # logo width (cm)
+  $opt_x || # x axis label
+  $opt_y || # y axis label
+$opts;
+
+################################################################################
+#####                              USAGE                                   #####
+################################################################################
+
+sub usage {
+    my $usage = <<END
+
+usage: seqlogo -f <input filename> [OPTIONs with values]
+Creates a logo for the given input filename.
+
+Available options:
+  -B <bar bits>              Number of bits in bar (real # > 0)
+  -T <tic bits>              Number of bits between tic marks
+  -C <chars per line>        Number of characters per line of logo
+  -d <box shrink factor>     Shrink factor of characters if option c is toggled
+  -E <error bar fraction>    Fraction of error bar to show (real # > 0)
+  -f <input filename>        Input filename
+  -F <format>                Format of output (EPS, GIF, PDF, PNG), - for STDOUT
+  -h <logo height>           Height of output logo (real # > 0)
+  -k <kind of data>          0 for amino acid, 1 for nucleic acid
+  -l <sequence lower bound>  Lower bound of sequence (integer)
+  -m <sequence upper bound>  Upper bound of sequence (integer)
+  -o <output file>           Name of output file
+  -s <sequence start>        Sequence start number, defaults to 1 (int)
+  -t <titletext>             Text of title, enclosed in "" if more than one word
+  -w <logo width>            Width of output logo
+  -x <x-axis label>          Label for x-axis
+  -y <y-axis label>          Label for y-axis
+
+Available toggles (no values associated) bOenc
+  -a       Toggle antialiasing
+  -b       Toggle bar ends
+  -c       Toggle color
+  -e       Toggle error bar
+  -M       Toggle small sample correction
+  -O       Toggle outlining of characters
+  -p       Toggle fineprint
+  -n       Toggle numbering of x-axis
+  -S       Toggle stretching of logos to entire length
+  -X       Toggle boxing of characters
+  -Y       Toggle y-axis
+
+END
+    ;
+
+    return $usage;
+}
+
+################################################################################
+#####                         MAIN FUNCTION                                #####
+################################################################################
+
+# arguments : $_[0] : file name
+MAIN: {
+    init();
+
+    # feed data from file to make height data array reference
+    my @input = <INPUTFILE>;
+    close (INPUTFILE);
+    my %heightparams = (
+			smallsampletoggle => $opt_M,
+			input_kind => $opt_k,
+			stretch => $opt_S
+			);
+
+    my ($heightdata_r, $desc_r, $kind, $goodlength, $badline, $validformat) =
+	logo::getHeightData(\@input, \%heightparams);
+
+    # check for errors
+    if ((defined $validformat) && ($validformat == 1)) {
+	die("Error: Invalid input format does not conform to FASTA, " .
+	    "CLUSTAL, or Flat.\n");
+    }
+    if (!$goodlength) {
+	die("Error: Number of characters in each logo line is not " .
+	    "consistent, starting at: ", $badline, "\n");
+    }
+
+    my %input = (
+		 LOGO_HEIGHT => $opt_h,
+		 LOGO_WIDTH => $opt_w,
+		 COLORSCHEME => ($opt_c) ? "DEFAULT" : "BW",
+
+		 LOGOSTART => $opt_l,
+		 LOGOEND => $opt_m,
+		 START_NUM => $opt_s,
+
+		 TITLETEXT => $opt_t,
+		 YAXIS_LABEL => $opt_y,
+		 XAXIS_LABEL => $opt_x,
+
+		 BOXSHRINK => $opt_d,
+		 CHARSPERLINE => $opt_C,
+		 BARBITS => $opt_B,
+		 TICBITS => $opt_T,
+		 RES => "96",
+		 "FORMAT" => (uc $opt_F),
+
+                 # toggles
+		 ANTIALIAS => $opt_a,
+	         ERRBAR => $opt_e,
+		 FINEPRINT => $opt_p,
+		 NUMBERING => $opt_n,
+		 OUTLINE => $opt_O,
+		 SHOWENDS => $opt_b,
+		 SHOWINGBOX => $opt_X,
+                 YAXIS => $opt_Y
+		 );
+
+    template::create_template(\%input, $kind, $desc_r, $heightdata_r, $opt_o, $PATH);
+}
+
+
+################################################################################
+#####                      FUNCTINOS FOR INIT                              #####
+################################################################################
+
+# all ints
+sub isInt {
+    return ($_[0] =~ /^[\+\-]?\d+$/) ? 1 : 0;
+}
+
+# all reals
+sub isReal {
+    return ($_[0] =~ /^[\+\-]?\d*.\d*?$/) ? 1 : 0;
+}
+
+sub isZeroOrOne {
+    return ($_[0] == 0 || $_[0] == 1) ? 1 : 0;
+}
+
+sub init {
+
+#  if (not defined $PATH) {
+#      die ("PATH must be defined\n");
+#  } elsif (not -e $PATH) {
+#      die ("PATH ($PATH) must exist\n");
+#  } elsif (not -d $PATH) {
+#      die ("PATH ($PATH) must be a directory\n");
+#  }
+
+  &getopts('T:B:C:d:E:f:F:h:k:l:m:o:s:t:w:x:y:abcenMOpSXY');
+
+    if (defined $opt_B &&
+	(!isReal($opt_B) || $opt_B < 0) ) {
+	printf("\noption B must be a positive real, but is $opt_B, $!\n");
+	die &usage();
+    }
+    if (defined $opt_d && 
+	( !isReal($opt_d) || $opt_d < 0 || $opt_d > 1) ) {
+        print("\noption d must be a real between 0 and 1, but is $opt_d, $!\n");
+        die &usage();
+    }
+    if (defined $opt_E &&
+	(!isReal($opt_E) || $opt_E < 0 || $opt_E > 1) ) {
+        print("\noption E must be a real between 0 and 1, but is $opt_E, $!\n");
+        die &usage();
+    }
+    if (defined $opt_f) {
+        open (INPUTFILE, "$opt_f") or die "Couldn't open input filename $opt_f: $!\n";
+    } else {
+	print("\ninput file not specified, terminating...\n");
+        die &usage();
+    }
+    if (defined $opt_h && 
+	(!isReal($opt_h) || $opt_h < 0) ) {
+        print("\noption h must be a positive real, but is $opt_h, $!\n");
+        die &usage();
+    }
+    if (defined $opt_w && 
+	(!isReal($opt_w) || $opt_w < 0) ) {
+        print("\noption w must be a positive real, but is $opt_w, $!\n");
+        die &usage();
+    }
+    if (defined $opt_k &&
+	(!isZeroOrOne($opt_k)) ) {
+	print("\noption k must be 0 or 1, but is $opt_k, $!\n");
+	die &usage();
+    }
+
+    #toggles
+    if (!defined $opt_a) {
+	$opt_a = 0;
+    }
+    if (!defined $opt_b) {
+	$opt_b = 0;
+    }
+    if (!defined $opt_c) {
+	$opt_c = 0;
+    }
+    if (!defined $opt_e) {
+	$opt_e = 0;
+    }
+    if (!defined $opt_n) {
+	$opt_n = 0;
+    }
+    if (!defined $opt_M) {
+	$opt_M = 0;
+    }
+    if (!defined $opt_O) {
+	$opt_O = 0;
+    }
+    if (!defined $opt_p) {
+	$opt_p = 0;
+    }
+    if (!defined $opt_S) {
+	$opt_S = 0;
+    }
+    if (!defined $opt_X) {
+        $opt_X = 0;
+    };
+    if (!defined $opt_Y) {
+        $opt_Y = 0;
+    };
+
+    if (!defined $opt_F) {
+	$opt_F = "EPS";  # default to EPS
+    }
+    if (!defined $opt_o) {
+	$opt_o = "-";    # for standard out
+    } else {
+#	$opt_o =~ s/\.\S*$//;         # remove extension if there is one
+	$opt_o .= "." . (lc $opt_F);  # make file name
+    }
+
+    if (defined $opt_C &&
+	(!isInt($opt_C) || $opt_C < 0) ) {
+        printf("\noption C must be a postive integer, but is $opt_C, $!\n");
+        die &usage();
+    }
+
+    if (defined $opt_l && !isInt($opt_l)) {
+	printf("\noption l must be an integer, but is $opt_l, $!\n");
+	die &usage();
+    }
+
+    if (defined $opt_m && !isInt($opt_m)) {
+	printf("\noption m must be an integer, but is $opt_m, $!\n");
+	die &usage();
+    }
+
+    if (defined $opt_s && !isInt($opt_s)) {
+        printf("\noption s must be an integer, but is $opt_s, $!\n");
+        die &usage();
+    }
+}

@@ -1,0 +1,259 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
+<?xml-stylesheet href="logo.css" type="text/css"?>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="logo.css" />
+<title>WebLogo - Sequence Logo Generator - Tests</title>
+<meta name="author" content="Gavin E. Crooks" />
+<meta name="author" content="Steven E. Brenner" />
+<meta name="ID" content="$ID:" />
+</head>
+
+<body>
+
+<h1><a class="in" href="logo.cgi">WebLogo</a>: tests</h1>
+
+<h3 class="menu">
+&middot; 
+<a class="menu" href="">about</a> &middot;
+<a class="menu" href="logo.cgi">create</a> &middot; 
+<a class="self" href="examples.html">examples</a> &middot; 
+</h3>
+
+<p>
+A working WebLogo implementation should pass all of these tests
+</p>
+
+TODO:Control checkboxes with hidden things...<br />
+
+<hr />
+
+<dl>
+<dt>Relative Entropy Test</dt>
+<dd>
+The entropy should be 2 bits, 1 bit, 0 bits
+(The small sample correction should be turned off.) 
+<form method="post" action="logo.cgi">
+<input type="submit" name="command" value="Logo" />
+<input type="hidden" name="sequence" value=
+">
+GTT
+>
+GTC
+>
+GGG
+>
+GGA
+" />
+</form>
+</dd>
+
+
+<dt>Title And Labels Test</dt>
+<dd>
+Replace and display x-label, y-label and title. 
+(Also, try turning off "show x axis" and "show y axis", and changing the
+y-axis bits)
+<form method="post" action="logo.cgi">
+<input type="submit" name="command" value="Logo" />
+<input type="hidden" name="yaxis_label" value="This is the Y-axis" /> 
+<input type="hidden" name="xaxis_label" value="This is the X-axis" /> 
+<input type="hidden" name="title" value="This is the TITLE" /> 
+<input type="hidden" name="sequence" value=
+">
+GT
+>
+GT
+>
+GG
+>
+GG
+" />
+</form>
+</dd>
+
+
+
+<dt>Format Test</dt>
+<dd>
+Ensure that this logo can be created in each of the avaliable formats
+<form method="post" action="logo.cgi">
+<input type="submit" name="command" value="Logo" />
+Format: <SELECT NAME="format">
+<OPTION  VALUE="GIF">GIF (bitmap)
+<OPTION SELECTED VALUE="PNG">PNG (bitmap)
+<OPTION  VALUE="TIFF">TIFF (bitmap)
+<OPTION  VALUE="EPS">EPS (vector)
+<OPTION  VALUE="PDF">PDF (vector)
+</SELECT>
+<input type="hidden" name="sequence" value=
+">
+GTT
+>
+GTC
+>
+GGG
+>
+GGA
+" />
+</form>
+</dd>
+
+
+
+
+<dt>Test Alphabetical Order</dt>
+<dd>
+Each chracter in each stack has the same entropy. The letters
+should be alphabetized, top down.
+
+The entropy should be 2 bits, 1 bit, 0 bits
+(The small sample correction should been turned off.) 
+<form method="post" action="logo.cgi">
+<input type="submit" name="command" value="Logo" /> (NA)
+<input type="hidden" name="sequence" value=
+">
+AAAGTG
+>
+AAAGCG
+>
+TGCCCT
+>
+TGCCTT
+" />
+</form>
+
+<form method="post" action="logo.cgi">
+<input type="submit" name="command" value="Logo" />(AA)
+<input type="hidden" name="sequence" value=
+">
+CA
+>
+CA
+>
+VA
+>
+VG
+>
+KG
+>
+KG
+" />
+</form>
+</dd>
+
+
+
+<dt>One Single Column</dt>
+<dd>
+Should not die just because there is only 1 stack.
+<form method="post" action="logo.cgi">
+<input type="submit" name="command" value="Logo" />
+<input type="hidden" name="sequence" value=
+">
+G
+>
+G
+>
+G
+>
+G
+>
+G
+>
+G
+" />
+</form>
+</dd>
+
+
+<dt> Small Sample Correction Test</dt>
+<dd>
+The samples per column decrease from 32 (left) to 1 (right).
+Before the small sample correction the relative entropy of each stack
+is 2 bits. Since the errror bars are twice the SSC the top of each
+error bar should line up at 2 bits (less a very small margin.)
+<form method="post" action="logo.cgi">
+<input type="submit" name="command" value="Logo" />
+Errbar <input type="checkbox" name="errbar" checked="checked" />
+<input type="hidden" name="sequence" value=
+">
+GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+>
+GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG-
+>
+GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG--
+>
+GGGGGGGGGGGGGGGGGGGGGGGGGGGGG---
+>
+GGGGGGGGGGGGGGGGGGGGGGGGGGGG----
+>
+GGGGGGGGGGGGGGGGGGGGGGGGGGG-----
+>
+GGGGGGGGGGGGGGGGGGGGGGGGGG------
+>
+GGGGGGGGGGGGGGGGGGGGGGGGG-------
+>
+GGGGGGGGGGGGGGGGGGGGGGGG--------
+>
+GGGGGGGGGGGGGGGGGGGGGGG---------
+>
+GGGGGGGGGGGGGGGGGGGGGG----------
+>
+GGGGGGGGGGGGGGGGGGGGG-----------
+>
+GGGGGGGGGGGGGGGGGGGG------------
+>
+GGGGGGGGGGGGGGGGGGG-------------
+>
+GGGGGGGGGGGGGGGGGG--------------
+>
+GGGGGGGGGGGGGGGG----------------
+>
+GGGGGGGGGGGGGGG-----------------
+>
+GGGGGGGGGGGGGG------------------
+>
+GGGGGGGGGGGGG-------------------
+>
+GGGGGGGGGGGG--------------------
+>
+GGGGGGGGGGG---------------------
+>
+GGGGGGGGGG----------------------
+>
+GGGGGGGGG-----------------------
+>
+GGGGGGGG------------------------
+>
+GGGGGGG-------------------------
+>
+GGGGGG--------------------------
+>
+GGGGG---------------------------
+>
+GGGG----------------------------
+>
+GGG-----------------------------
+>
+GG------------------------------
+>
+G-------------------------------
+" />
+</form>
+</dd>
+
+
+
+
+
+
+
+
+
+
+
+<address>
+<a href="mailto:logo@compbio.berkeley.edu">logo@compbio.berkeley.edu</a>
+</address>
+</body></html>

@@ -1,0 +1,5 @@
+# Make configuration changes here. Rename this file to logo.conf
+# gs version 5.5 does not work, 6.5 does
+# set the PATHS
+gs=/usr/local/bin/gs
+convert=/usr/X11R6/bin/convert
