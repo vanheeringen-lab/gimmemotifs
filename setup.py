@@ -7,8 +7,7 @@ import os
 import sys
 
 CONFIG_NAME = "gimmemotifs.cfg" 
-DESCRIPTION  = """
-GimmeMotifs is a motif prediction pipeline. 
+DESCRIPTION  = """GimmeMotifs is a motif prediction pipeline. 
 """
 
 DEFAULT_PARAMS = {
