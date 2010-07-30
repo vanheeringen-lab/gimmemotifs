@@ -1,10 +1,15 @@
 from distutils.core import setup, Extension
-from distutils.command.install import install, INSTALL_SCHEMES
+from distutils.command.install import INSTALL_SCHEMES
+from distutils.command.build import build
+from  distutils.command.install_data import install_data
+#from distutils import log
 from gimmemotifs.utils import which
 from gimmemotifs.tools import *
 from glob import glob
 import os
 import sys
+from shutil import copyfile
+from stat import ST_MODE
 
 CONFIG_NAME = "gimmemotifs.cfg" 
 DESCRIPTION  = """GimmeMotifs is a motif prediction pipeline. 
@@ -26,6 +31,27 @@ DEFAULT_PARAMS = {
 	"use_strand": False
 }
 
+MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector"]
+
+# Included binaries after compile
+MOTIF_BINS = {
+	"Meme": "src/meme_4.4.0/src/meme.bin",
+	"MDmodule": "src/MDmodule/MDmodule",
+	"BioProspector": "src/BioProspector/BioProspector",
+	"MoAn": "src/MoAn/moan",
+	"Gadem": "src/GADEM_v1.3/src/gadem"
+}
+
+data_files=[
+	('gimmemotifs/templates', ['templates/cluster_template.kid', 'templates/report_template.kid', 'templates/report_template_v2.kid', 'templates/cluster_template_v2.kid']),
+	('gimmemotifs/score_dists', ['score_dists/total_wic_mean_score_dist.txt']),
+	('gimmemotifs/genes', ['genes/hg18.bed', 'genes/mm9.bed', 'genes/xenTro2.bed']),
+	('gimmemotifs/bg', ['bg/hg18.MotifSampler.bg', 'bg/mm9.MotifSampler.bg', 'bg/xenTro2.MotifSampler.bg']),
+	('gimmemotifs/motif_databases', ['motif_databases/jaspar.pfm']),
+	('gimmemotifs/genome_index', ['genome_index/README.txt'])
+]
+
+
 # Fix for install_data, add share to prefix (borrowed from Dan Christiansen) 
 for platform, scheme in INSTALL_SCHEMES.iteritems():
 	if platform.startswith('unix_'):
@@ -45,46 +71,86 @@ except ImportError as inst:
 	print inst
 	sys.exit()	
 
-class install_plus_config(install):
+class custom_build(build):
 	def run(self):
-		install.run(self)
+		build.run(self)
+		self.compile_external()
+	
+	def compile_external(self):
+		from compile_externals import compile_all
+		compile_all()
+
+class install_plus_config(install_data):
+	def run(self):
+		#print help(self)
+		#print self.distribution.data_files
+		#print self.install_data
+		#sys.exit()
 		self.write_config()
+		install_data.run(self)
+		self.chmod_tools()
+	
+	def chmod_tools(self):
+		data_dir = os.path.abspath(self.install_dir)
+		dir = os.path.join(data_dir, "gimmemotifs/tools")
+		for file in os.listdir(dir):
+			mode = ((os.stat(os.path.join(dir,file))[ST_MODE]) | 0555) & 07777		
+			#log.info("changing mode of %s to %o", file, mode)
+			print os.path.join(dir,file)
+
+			os.chmod(os.path.join(dir, file), mode)
+
 
 	def write_config(self):
 		from gimmemotifs.config import MotifConfig
 		cfg = MotifConfig(use_config="cfg/gimmemotifs.cfg.example")
 
-		data_dir = os.path.abspath(self.install_data)
+		data_dir = os.path.abspath(self.install_dir)
 		cfg.set_template_dir(os.path.join(data_dir, 'gimmemotifs/templates'))
 		cfg.set_gene_dir(os.path.join(data_dir, 'gimmemotifs/genes'))
 		cfg.set_score_dir(os.path.join(data_dir, 'gimmemotifs/score_dists'))
 		cfg.set_index_dir(os.path.join(data_dir, 'gimmemotifs/genome_index'))
 		cfg.set_motif_dir(os.path.join(data_dir, 'gimmemotifs/motif_databases'))
 		cfg.set_bg_dir(os.path.join(data_dir, 'gimmemotifs/bg'))
+		cfg.set_tools_dir(os.path.join(data_dir, 'gimmemotifs/tools'))
 		
-		print 
-		print "Trying to locate motif programs"
-		
-		MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector"]
+		print
+		print "Locating motif programs"
+		included_bins = []
 		available = []
 		for program in MOTIF_CLASSES:
 			m = eval(program)()
 			cmd = m.cmd
 			bin = which(cmd)
+			
 			if bin:
 				print "Found %s in %s" % (m.name, bin)
+			else:
+				if program in MOTIF_BINS.keys() and os.path.exists(MOTIF_BINS[program]):
+					print "Using included compiled version of %s" % program
+					bin = MOTIF_BINS[program]
+					copyfile(bin, os.path.join("tools", cmd))
+					included_bins.append(os.path.join("tools", cmd))
+					bin = os.path.join(data_dir, "gimmemotifs/tools", cmd)
+				else:
+					print "%s not installed!" % program
+			
+			if bin:
 				available.append(m.name)
 				dir = None
 				if program == "Weeder":
 					dir = bin.replace("weederTFBS.out","")
 				elif program == "Meme":
-					dir = bin.replace("bin/meme", "")
+					dir = bin.replace("bin/meme.bin", "")
 				elif program == "Trawler":
 					dir = bin.replace("bin/trawler.pl", "")
 		
 				cfg.set_program(m.name, {"bin":bin, "dir":dir})
 			else:
 				print "Couldn't find %s" % m.name
+	
+		if included_bins:
+			self.distribution.data_files.append	(("gimmemotifs/tools", included_bins))
 		
 		print
 		print "Trying to locate seqlogo"
@@ -101,7 +167,7 @@ class install_plus_config(install):
 		cfg.set_default_params(DEFAULT_PARAMS)
 		
 		# Use a user-specific configfile if any other installation scheme is used
-		if os.path.abspath(self.install_data) == "/usr/share":
+		if os.path.abspath(self.install_dir) == "/usr/share":
 			config_file = "/usr/share/gimmemotifs/%s" % CONFIG_NAME
 		else:
 			config_file = os.path.expanduser("~/.%s" % CONFIG_NAME)
@@ -121,8 +187,9 @@ class install_plus_config(install):
 
 module1 = Extension('gimmemotifs.c_metrics', sources = ['gimmemotifs/c_metrics.c'], libraries = ['gsl', 'gslcblas'])
 
+
 setup (name = 'gimmemotifs',
-		cmdclass={"install":install_plus_config},
+		cmdclass={"install_data":install_plus_config, "build":custom_build},
 		version = '0.50',
 		description = DESCRIPTION,
 		author='Simon van Heeringen',
@@ -145,14 +212,7 @@ setup (name = 'gimmemotifs',
 			'scripts/track2fasta.py',
 			'scripts/pwmscan.py',
 			],
-		data_files=[
-			('gimmemotifs/templates', ['templates/cluster_template.kid', 'templates/report_template.kid', 'templates/report_template_v2.kid', 'templates/cluster_template_v2.kid']),
-			('gimmemotifs/score_dists', ['score_dists/total_wic_mean_score_dist.txt']),
-			('gimmemotifs/genes', ['genes/hg18.bed', 'genes/mm9.bed', 'genes/xenTro2.bed']),
-			('gimmemotifs/bg', ['bg/hg18.MotifSampler.bg', 'bg/mm9.MotifSampler.bg', 'bg/xenTro2.MotifSampler.bg']),
-			('gimmemotifs/motif_databases', ['motif_databases/jaspar.pfm']),
-			('gimmemotifs/genome_index', ['genome_index/README.txt'])
-			]
+		data_files=data_files
 )
 
 

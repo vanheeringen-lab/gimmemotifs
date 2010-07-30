@@ -765,7 +765,7 @@ class Gadem(MotifProgram):
 class Meme(MotifProgram):
 	def __init__(self):
 		self.name = "meme"
-		self.cmd = "meme"
+		self.cmd = "meme.bin"
 
 	def _run_program(self, bin, fastafile, savedir, params={}):
 		from subprocess import Popen, PIPE, STDOUT, call

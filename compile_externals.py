@@ -46,7 +46,7 @@ def compile_moan():
 			if platform().find("fedora") != -1:
 				f.write("CC=gcc34\n")
 			elif platform().find("gentoo") != -1:
-				f.write("CC=gcc-4.1\n")
+				f.write("CC=gcc-4.1.2\n")
 			else:
 				f.write(line)
 		else:
@@ -63,11 +63,37 @@ def compile_perl(path):
 	Popen(["perl", "Makefile.PL"], cwd=path, stdout=PIPE).communicate()
 	Popen(["make"], cwd=path, stdout=PIPE).communicate()
 	return True
-	
 
-#print compile_simple("BioProspector")
-#print compile_simple("MDmodule")
-#print compile_configmake("meme_4.4.0", "src/meme.bin")
-#print compile_configmake("GADEM_v1.3", "src/gadem")
-#print compile_moan()
-print compile_perl("Algorithm-Cluster-1.49")
+def print_result(result):
+	if not result:
+		print "... failed"
+	else:
+		print "... ok"
+	
+def compile_all():
+	
+	sys.stderr.write("compiling BioProspector")
+	result = compile_simple("BioProspector")
+	print_result(result)
+
+	sys.stderr.write("compiling MDmodule")
+	result = compile_simple("MDmodule")
+	print_result(result)
+	
+	#sys.stderr.write("compiling MEME")
+	#result = compile_configmake("meme_4.4.0", "src/meme.bin")
+	#print_result(result)
+	
+	sys.stderr.write("compiling GADEM")
+	result = compile_configmake("GADEM_v1.3", "src/gadem")
+	print_result(result)
+	
+	sys.stderr.write("compiling MoAn")
+	result = compile_moan()
+	print_result(result)
+	
+	sys.stderr.write("compiling trawler dependencies")
+	result = compile_perl("src/Algorithm-Cluster-1.49")
+	print_result(result)
+
+	return

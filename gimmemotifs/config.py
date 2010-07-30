@@ -118,6 +118,15 @@ class MotifConfig:
 	def get_bg_dir(self):
 		return self.config.get("main", "bg")
 
+	def set_tools_dir(self, path):
+		if not self.config.has_section("main"):
+			self.config.add_section("main")
+		self.config.set("main", "tools", path)
+
+	def get_tools_dir(self):
+		return self.config.get("main", "tools")
+
+	
 	def is_configured(self, program):
 		return self.config.has_section(program)
 	
