@@ -1,0 +1,68 @@
+Open Source Clustering Software
+===============================
+
+The Open Source Clustering Software consists of the most commonly used routines
+for clustering analysis of gene expression data. The software packages below all
+depend on the C Clustering Library, which is a library of routines for
+hierarchical (pairwise single-, complete-, maximum-, and average-linkage)
+clustering, k-means clustering, and Self-Organizing Maps on a 2D rectangular
+grid. The C Clustering Library complies with the ANSI C standard.
+
+Several packages are available as part of the Open Source Clustering Software:
+* Cluster 3.0 is a GUI-based program for Windows, based on Michael Eisen's
+  Cluster/TreeView code. Cluster 3.0 was written for Microsoft Windows, and
+  subsequently ported to Mac OS X (Cocoa) and Unix/Linux. Cluster 3.0 can
+  also be used as a command line program.
+* Pycluster (or Bio.Cluster if used as part of Biopython) is an extension
+  module to the scripting language Python.
+* Algorithm::Cluster is an extension module to the scripting language Perl.
+* The routines in the C Clustering Library can also be used directly by calling
+  them from other C programs.
+
+
+INSTALLATION
+============
+
+See the INSTALL file in this directory.
+
+
+VIEWING CLUSTERING RESULTS
+==========================
+
+We recommend using Java TreeView for visualizing clustering results.
+Java TreeView is a Java version of Michael Eisen's Treeview program with
+extended capabilities. In particular, it is possible to visualize k-means
+clustering results in addition to hierarchical clustering results.
+
+Java TreeView was written by Alok Saldanha at Stanford University; it can be
+downloaded at http://jtreeview.sourceforge.net.
+
+
+MANUAL
+======
+
+The routines in the C Clustering Library is described in the manual
+(cluster.pdf). This manual also describes how to use the routines from Python
+and from Perl. Cluster 3.0 has a separate manual (cluster3.pdf). Both of these
+manuals can be found in the doc subdirectory. They can also be downloaded from
+our website:
+http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/cluster.pdf;
+http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/cluster3.pdf.
+
+
+LITERATURE
+==========
+
+M.J.L. de Hoon, S. Imoto, J. Nolan, and S. Miyano: "Open Source Clustering
+Software", Bioinformatics 20(9): 1453-1454 (2004).
+
+
+CONTACT
+=======
+
+Michiel de Hoon
+University of Tokyo, Institute of Medical Science
+Human Genome Center, Laboratory of DNA Information Analysis
+Currently at
+RIKEN Genomic Sciences Center
+mdehoon 'AT' gsc.riken.jp

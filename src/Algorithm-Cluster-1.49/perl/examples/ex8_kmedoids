@@ -1,0 +1,103 @@
+#!/usr/perl/perl580/bin/perl -w
+
+use strict;
+use Algorithm::Cluster qw/kmedoids distancematrix/;
+
+my $file = "../../data/cyano.txt";
+my $i = 0;
+my $j = 0;
+my (@orfname,@orfdata,@weight,@mask);
+
+open(DATA,"<$file") or die "Can't open file $file: $!";
+
+
+#------------------
+# Read in the data file, and save the data to @orfdata
+# We know that the file is intact and has no holes, 
+# so just set the mask to 1 for every item.
+# We don't check for errors in this case, because the file
+# is short and we can spot errors by eye. 
+#
+my $firstline = <DATA>;  # Skip the title line
+while(<DATA>) {
+    chomp(my $line = $_);
+    my @field     = split /\t/, $line;
+    $orfname[$i]  =   $field[0];
+    $orfdata[$i]  = [ @field[2..5] ];
+    $mask[$i]     = [ 1,1,1,1 ];
+    ++$i;
+}
+close(DATA);
+
+#------------------
+# Make a reverse-lookup index of the @orfnames hash:
+#
+my %orfname_by_rowid;
+$i=0;
+$orfname_by_rowid{$i++} = $_, foreach(@orfname);
+
+@weight = (1.0) x 4;
+
+
+#------------------
+# Define the params we want to pass to distancematrix
+my %params1 = (
+    transpose =>         0,
+    dist      =>       'e',
+    data      =>    \@orfdata,
+    mask      =>       \@mask,
+    weight    =>     \@weight,
+);
+
+
+#------------------
+# Here is where we invoke the library function!
+#
+printf("Calculating the distance matrix\n");
+
+my $matrix = distancematrix(%params1);
+#
+#------------------
+
+my %params2 = (
+    nclusters =>         6,
+    distances =>   $matrix,
+    npass     =>      1000,
+);
+
+printf("Executing k-medoids clustering 1000 times, using random initial clusterings\n");
+
+my ($clusters, $error, $found) = kmedoids(%params2);
+
+my $item;
+$i = 0;
+foreach $item (@{$clusters}) {
+    print $i, ": ", $item, "\n";
+    ++$i;
+}
+
+#------------------
+# Print out the resulting within-cluster sum of distances.
+#
+print "------------------\n";
+printf("Within-cluster sum of distances:  %f; solution was found %d times\n\n", $error, $found);
+                                                                                
+                                                                                
+#------------------
+# Try this again with a specified initial clustering solution
+#
+
+my @initialid = (0,1,2,3,4,5) x 15;
+# choice for the initial clustering; the data file contains 90 genes.
+                                                                                
+%params2 = (
+    nclusters =>         6,
+    distances =>   $matrix,
+    initialid =>  \@initialid,
+);
+                                                                                
+printf("Executing k-medoids clustering with a specified initial clustering\n");
+                                                                                
+($clusters, $error, $found) = kmedoids(%params2);
+                                                                                
+printf("Within-cluster sum of distances:  %f\n\n", $error);

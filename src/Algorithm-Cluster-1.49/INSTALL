@@ -1,0 +1,132 @@
+INSTALLATION
+============
+
+The installation procedure depends on the software package you want to use.
+Below you will find instructions for Cluster 3.0 for Windows, Mac OS X, and
+Unix/Linux, Cluster 3.0 as a command-line program, Pycluster (for Python),
+and Algorithm::Cluster (for Perl).
+
+
+Cluster 3.0 for Windows
+-----------------------
+
+For Cluster 3.0 for Windows, download the Windows installer from our website
+(http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/clustersetup.exe).
+Run the installer, and you're done.
+
+If for some reason, you want to recompile Cluster 3.0 from the source, you can
+use the Makefile in the windows subdirectory. This makefile was used with
+Cygwin/Mingw under Windows, and may need to be modified for other systems.
+Type
+  make
+in the windows subdirectory to compile the C Clustering Library, the Cluster 3.0
+GUI, the Windows help files and the documentation. You will need an ANSI C
+compiler such as GNU gcc, as well as the GNU windres program to compile the
+resources for the GUI. To generate the help files, you will need the HTML Help
+SDK, which can be downloaded from Microsoft, as well as the GNU makeinfo
+program.
+
+To generate the Windows installer, type
+  make clustersetup.exe
+For this, you will need the Inno Setup Compiler, which can be downloaded from
+http://www.jrsoftware.org.
+
+
+Cluster 3.0 for Mac OS X
+------------------------
+
+Cluster 3.0 can be installed most easily on Mac OS X by using the installer for
+Mac OS X, which is available at
+http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster.
+
+If you want to recompile Cluster 3.0, it is easiest to use Xcode and Interface
+Builder that are part of Mac OS X. The subdirectory mac contains the project
+file that was used to compile Cluster 3.0.
+
+
+Cluster 3.0 for Linux/Unix
+--------------------------
+
+Cluster 3.0 was ported to Linux/Unix using the Motif libraries. These libraries
+are installed on most Linux/Unix computers. You will need a version compliant
+with Motif 2.1, such as OpenMotif (http://www.opengroup.org), which is available
+at http://www.motifzone.net.
+
+Cluster 3.0 can be installed on Unix/Linux by typing
+  ./configure
+  make
+  make install
+This will create the executable cluster and install it in /usr/local/bin. Some
+auxiliary files are installed in /usr/local/cluster. The executable can be used
+as a GUI program and as a command line program.
+
+For more options, such as installing in a different directory, type
+  ./configure --help
+
+
+Cluster 3.0 as a command line program
+-------------------------------------
+
+Cluster 3.0 can also be built without GUI support. The executable can then only
+be used as a command line program. This can be useful if you do not want to
+install the Motif libraries, which are required for the GUI.
+To install Cluster 3.0 as a command line program, type
+  ./configure --without-x
+  make
+  make install
+This will create the executable cluster and install it in /usr/local/bin. Some
+auxiliary files (such as the documentation) are installed in /usr/local/cluster.
+
+For more options, such as installing in a different directory, type
+  ./configure --help
+
+
+Python
+------
+
+In the top directory (containing setup.py and also this INSTALL file), type
+  python setup.py install
+You will need a fairly recent version of Python (2.0 or higher) and the
+Numerical Python package (NumPy version 1.1.1 or later), as well as an ANSI C
+compiler such as GNU gcc. You may need to log in as root the install Pycluster.
+If you do not have root access, do
+  python setup.py install --prefix=/some/other/directory
+and set the environment variable
+  PYTHONPATH=/some/other/directory/lib/python2.2/site-packages
+The exact command depends on which shell you are using; the exact path will
+depend on the version of Python you are using.
+
+Note that Pycluster is also available as a tarball containing only the source
+code needed for Pycluster. A Windows installer for Pycluster is available from
+our website (http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster).
+
+Biopython versions 1.11 and up also contain Pycluster. There, it is referred to
+as Bio.Cluster. See http://www.biopython.org.
+
+
+Perl
+----
+
+For Perl, type
+  perl Makefile.PL
+  make
+  make test
+  make install
+You will need Perl version 5.6 or newer. For the install step, you will need
+root access. If you do not have root priviliges, use
+  perl Makefile.PL prefix=/some/other/directory
+to install the module in /some/other/directory/lib/perl5/.
+The subdirectory perl/examples contains some example Perl scripts that use
+Algorithm::Cluster.
+
+To install Algorithm::Cluster for Perl 5.8 and Perl 5.10 on Windows, you can
+use the precompiled package by executing
+  ppm install http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/Algorithm-Cluster.ppd
+
+
+CONTACT
+=======
+
+Michiel de Hoon, University of Tokyo, Human Genome Center
+(currently at the RIKEN Genomic Sciences Center)
+Email: mdehoon 'AT' gsc.riken.jp
