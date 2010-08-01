@@ -1,3 +1,23 @@
+[params]
+background = genomic_matched,random
+use_strand = False
+tools = meme,MDmodule 
+analysis = medium
+pvalue = 0.001
+width = 200
+fraction = 0.2
+genome = hg18
+lwidth = 500
+cluster_threshold = 0.95
+available_tools = meme,MDmodule 
+abs_max = 1000
+enrichment = 1.5
+
 [main]
-index_dir = /usr/share/motiftools/genome_index
-template_dir = /usr/share/motiftools/templates
+index_dir = /usr/share/gimmemotifs/genome_index
+bg = /usr/share/gimmemotifs/bg
+template_dir = /usr/share/gimmemotifs/templates
+seqlogo = /usr/local/bin/seqlogo
+score_dir = /usr/share/gimmemotifs/score_dists
+motif_databases = /usr/share/gimmemotifs/motif_databases
+gene_dir = /usr/share/gimmemotifs/genes
