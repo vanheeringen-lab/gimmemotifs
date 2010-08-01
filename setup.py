@@ -2,6 +2,7 @@ from distutils.core import setup, Extension, Command
 from distutils.command.install import install,INSTALL_SCHEMES
 from distutils.command.build import build
 from distutils import log as dlog
+from subprocess import Popen
 from gimmemotifs.utils import which
 from gimmemotifs.tools import *
 from glob import glob
@@ -142,11 +143,18 @@ class build_config(Command):
 			m = eval(program)()
 			cmd = m.cmd
 			
+			### ugly, fixme :)
+			if cmd == "trawler.pl":
+				cmd = "trawler/bin/trawler.pl"
+
 			bin = ""
 			if os.path.exists(os.path.join(self.build_tools_dir, cmd)):
 				bin = os.path.join(self.build_tools_dir, cmd)
 				dlog.info("using included version of %s: %s" % (program, bin))
 			else:
+				### ugly, fixme :)
+				if cmd == "trawler/bin/trawler.pl":
+					cmd = "trawler.pl"
 				if program in MOTIF_BINS.keys():
 					dlog.info("could not find compiled version of %s" % program)
 				bin = which(cmd)
@@ -155,8 +163,9 @@ class build_config(Command):
 				else:
 					dlog.info("not found: %s" % program)
 			
+			### Some more ugly stuff
 			if bin:
-				dir = bin.replace(cmd,"")
+				dir = bin.replace(m.cmd,"")
 				if program == "Weeder":
 					dir = bin.replace("weederTFBS.out","")
 				elif program == "Meme":
@@ -210,6 +219,10 @@ class install_tools(Command):
 		self.install_tools_dir = os.path.join(self.install_dir, "gimmemotifs/tools")
 
 	def run(self):
+		dir = "src/Algorithm-Cluster-1.49/"
+		if os.path.exists(os.path.join(dir, "Makefile")):
+			Popen(["make","install"], cwd=dir, stdout=PIPE).communicate()
+
 		dst = os.path.join(self.install_dir, "gimmemotifs/tools")
 		self.outfiles = self.copy_tree(self.tools_dir, self.install_tools_dir)
 
