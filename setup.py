@@ -1,15 +1,15 @@
-from distutils.core import setup, Extension
-from distutils.command.install import INSTALL_SCHEMES
+from distutils.core import setup, Extension, Command
+from distutils.command.install import install,INSTALL_SCHEMES
 from distutils.command.build import build
-from  distutils.command.install_data import install_data
-#from distutils import log
+from distutils import log as dlog
 from gimmemotifs.utils import which
 from gimmemotifs.tools import *
 from glob import glob
 import os
 import sys
-from shutil import copyfile
+import shutil
 from stat import ST_MODE
+import inspect
 
 CONFIG_NAME = "gimmemotifs.cfg" 
 DESCRIPTION  = """GimmeMotifs is a motif prediction pipeline. 
@@ -59,7 +59,7 @@ for platform, scheme in INSTALL_SCHEMES.iteritems():
 			scheme['data'] = os.path.join(scheme['data'], 'share')
 
 
-print "Checking dependencies"
+dlog.info("checking dependencies")
 try:
 	import pp
 	import matplotlib
@@ -71,39 +71,172 @@ except ImportError as inst:
 	print inst
 	sys.exit()	
 
-class custom_build(build):
+class build_tools(Command):
+	description = "compile all included motif prediction tools"
+
+	def initialize_options(self):
+		self.build_base = None
+		self.plat_name = None
+		self.build_tools_dir = None
+
+	def finalize_options(self):	
+		self.set_undefined_options('build',('plat_name', 'plat_name'))
+		self.set_undefined_options('build',('build_base', 'build_base'))
+		plat_specifier = ".%s-%s" % (self.plat_name, sys.version[0:3])
+		self.build_tools_dir = os.path.join(self.build_base, 'tools' + plat_specifier)
+		self.set_undefined_options('build',('custom_build', 'build_tools_dir'))
+
 	def run(self):
-		build.run(self)
-		self.compile_external()
-	
-	def compile_external(self):
 		from compile_externals import compile_all
+		if not os.path.exists(self.build_tools_dir):
+			os.mkdir(self.build_tools_dir)
+
+		# Try to compile everything
 		compile_all()
 
-class install_plus_config(install_data):
-	def run(self):
-		#print help(self)
-		#print self.distribution.data_files
-		#print self.install_data
-		#sys.exit()
-		self.write_config()
-		install_data.run(self)
-		self.chmod_tools()
+		# Copy everything that has been compiled
+		for bin in MOTIF_BINS.values():
+			if os.path.exists(bin):
+				shutil.copy(bin, self.build_tools_dir)
+
+		# Copy seqlogo
+		if os.path.exists("src/weblogo"):
+			dlog.info("building seqlogo")
+			patterns = ["src/weblogo/logo.*", "src/weblogo/template.*", "src/weblogo/seqlogo"]
+			for p in patterns:
+				for file in glob(p):
+					shutil.copy(file, self.build_tools_dir)
+
+		# Copy trawler
+		if os.path.exists("src/trawler_standalone-1.2"):
+			dlog.info("building trawler")
+			if os.path.exists(os.path.join(self.build_tools_dir, "trawler")):
+				shutil.rmtree(os.path.join(self.build_tools_dir, "trawler"))
+			shutil.copytree("src/trawler_standalone-1.2", os.path.join(self.build_tools_dir, "trawler"))
+
+class build_config(Command):
+	description = "create a rudimentary config file"
 	
-	def chmod_tools(self):
-		data_dir = os.path.abspath(self.install_dir)
-		dir = os.path.join(data_dir, "gimmemotifs/tools")
-		for file in os.listdir(dir):
-			mode = ((os.stat(os.path.join(dir,file))[ST_MODE]) | 0555) & 07777		
-			#log.info("changing mode of %s to %o", file, mode)
-			print os.path.join(dir,file)
+	def initialize_options(self):
+		self.build_cfg = None
+		self.build_base = None
+		self.build_tools_dir = None
+	
+	def finalize_options(self):	
+		self.set_undefined_options('build', ('build_base', 'build_base'))
+		self.set_undefined_options('build_tools', ('build_tools_dir', 'build_tools_dir'))
+		#self.set_undefined_options('install', ('install_data', 'install_dir'))
+		self.build_cfg = os.path.join(self.build_base, "cfg")
 
-			os.chmod(os.path.join(dir, file), mode)
+	def run(self):
+		if not os.path.exists(self.build_cfg):
+			os.mkdir(self.build_cfg)
 
-
-	def write_config(self):
 		from gimmemotifs.config import MotifConfig
 		cfg = MotifConfig(use_config="cfg/gimmemotifs.cfg.example")
+		
+		dlog.info("locating motif programs")
+		available = []
+		for program in MOTIF_CLASSES:
+			# Get class
+			m = eval(program)()
+			cmd = m.cmd
+			
+			bin = ""
+			if os.path.exists(os.path.join(self.build_tools_dir, cmd)):
+				bin = os.path.join(self.build_tools_dir, cmd)
+				dlog.info("using included version of %s: %s" % (program, bin))
+			else:
+				if program in MOTIF_BINS.keys():
+					dlog.info("could not find compiled version of %s" % program)
+				bin = which(cmd)
+				if bin:
+					dlog.info("using installed version of %s: %s" % (program, bin))
+				else:
+					dlog.info("not found: %s" % program)
+			
+			if bin:
+				dir = bin.replace(cmd,"")
+				if program == "Weeder":
+					dir = bin.replace("weederTFBS.out","")
+				elif program == "Meme":
+					dir = bin.replace("bin/meme.bin", "").replace("meme.bin", "")
+				elif program == "Trawler":
+					dir = bin.replace("bin/trawler.pl", "")
+
+				available.append(m.name)
+				cfg.set_program(m.name, {"bin":bin, "dir":dir})
+
+		# Weblogo
+		bin = ""
+		seq_included = os.path.join(self.build_tools_dir, "seqlogo")
+		if os.path.exists(seq_included):
+			bin = seq_included
+			dlog.info("using included version of weblogo: %s" % seq_included)
+		else:
+			bin = which("seqlogo")
+			dlog.info("using installed version of seqlogo: %s" % (bin))
+		if bin:
+			cfg.set_seqlogo(bin)
+		else:
+			dlog.info("couldn't find seqlogo")
+		
+		# Set the available tools in the config file
+		DEFAULT_PARAMS["available_tools"] = ",".join(available)
+		DEFAULT_PARAMS["tools"] = ",".join(available)
+		cfg.set_default_params(DEFAULT_PARAMS)
+
+		# Write (temporary) config file
+		config_file = os.path.join(self.build_cfg, "%s" % CONFIG_NAME)
+		dlog.info("writing (temporary) configuration file: %s" % config_file)
+		f = open(config_file, "wb")
+		cfg.write(f)
+		f.close()
+
+	def get_outputs(self):
+		return self.outfiles or []
+
+class install_tools(Command):
+	description = "install (compiled) motif prediction tools"
+	
+	def initialize_options(self):
+		self.tools_dir = None
+		self.install_dir = None
+		self.install_tools_dir = None
+	
+	def finalize_options(self):	
+		self.set_undefined_options('build_tools', ('build_tools_dir', 'tools_dir'))
+		self.set_undefined_options('install', ('install_data', 'install_dir'))
+		self.install_tools_dir = os.path.join(self.install_dir, "gimmemotifs/tools")
+
+	def run(self):
+		dst = os.path.join(self.install_dir, "gimmemotifs/tools")
+		self.outfiles = self.copy_tree(self.tools_dir, self.install_tools_dir)
+
+	def get_outputs(self):
+		return self.outfiles or []
+
+class install_config(Command):
+	description = "create and install a customized configuration file"
+
+	def initialize_options(self):
+		self.build_base = None
+		self.install_dir = None
+		self.build_cfg = None
+		self.build_tools_dir = None
+		self.install_tools_dir = None
+
+	def finalize_options(self):
+		self.set_undefined_options('build', ('build_base', 'build_base'))
+		self.set_undefined_options('install', ('install_data', 'install_dir'))
+		self.set_undefined_options('build_config', ('build_cfg', 'install_dir'))
+		self.set_undefined_options('build_tools', ('build_tools_dir', 'build_tools_dir'))
+		self.set_undefined_options('install_tools', ('install_tools_dir', 'install_tools_dir'))
+	
+	def run(self):
+		from gimmemotifs.config import MotifConfig
+		
+		cfg = MotifConfig(use_config=self.build_cfg)
 
 		data_dir = os.path.abspath(self.install_dir)
 		cfg.set_template_dir(os.path.join(data_dir, 'gimmemotifs/templates'))
@@ -114,58 +247,15 @@ class install_plus_config(install_data):
 		cfg.set_bg_dir(os.path.join(data_dir, 'gimmemotifs/bg'))
 		cfg.set_tools_dir(os.path.join(data_dir, 'gimmemotifs/tools'))
 		
-		print
-		print "Locating motif programs"
-		included_bins = []
-		available = []
 		for program in MOTIF_CLASSES:
 			m = eval(program)()
-			cmd = m.cmd
-			bin = which(cmd)
-			
-			if bin:
-				print "Found %s in %s" % (m.name, bin)
-			else:
-				if program in MOTIF_BINS.keys() and os.path.exists(MOTIF_BINS[program]):
-					print "Using included compiled version of %s" % program
-					bin = MOTIF_BINS[program]
-					copyfile(bin, os.path.join("tools", cmd))
-					included_bins.append(os.path.join("tools", cmd))
-					bin = os.path.join(data_dir, "gimmemotifs/tools", cmd)
-				else:
-					print "%s not installed!" % program
-			
-			if bin:
-				available.append(m.name)
-				dir = None
-				if program == "Weeder":
-					dir = bin.replace("weederTFBS.out","")
-				elif program == "Meme":
-					dir = bin.replace("bin/meme.bin", "")
-				elif program == "Trawler":
-					dir = bin.replace("bin/trawler.pl", "")
-		
+			if cfg.is_configured(m.name):
+				bin = cfg.bin(m.name).replace(self.build_tools_dir, self.install_tools_dir) 
+				dir = cfg.dir(m.name)
+				if dir:
+					dir = dir.replace(self.build_tools_dir, self.install_tools_dir)
 				cfg.set_program(m.name, {"bin":bin, "dir":dir})
-			else:
-				print "Couldn't find %s" % m.name
-	
-		if included_bins:
-			self.distribution.data_files.append	(("gimmemotifs/tools", included_bins))
-		
-		print
-		print "Trying to locate seqlogo"
-		bin = which("seqlogo")
-		if bin:
-			print "Found seqlogo in %s" % (bin)
-			cfg.set_seqlogo(bin)
-		else:
-			print "Couldn't find seqlogo"
-		print
-		
-		DEFAULT_PARAMS["available_tools"] = ",".join(available)
-		DEFAULT_PARAMS["tools"] = ",".join(available)
-		cfg.set_default_params(DEFAULT_PARAMS)
-		
+			
 		# Use a user-specific configfile if any other installation scheme is used
 		if os.path.abspath(self.install_dir) == "/usr/share":
 			config_file = "/usr/share/gimmemotifs/%s" % CONFIG_NAME
@@ -174,22 +264,39 @@ class install_plus_config(install_data):
 		
 		if os.path.exists(config_file):
 			new_config = config_file + ".tmp"
-			print "INFO: Configfile %s already exists!\n      Will create %s, which contains the new config.\n      If you want to use the newly generated config you can move %s to %s, otherwise you can delete %s.\n" % (config_file, new_config, new_config, config_file, new_config)
+			dlog.info("INFO: Configfile %s already exists!\n      Will create %s, which contains the new config.\n      If you want to use the newly generated config you can move %s to %s, otherwise you can delete %s.\n" % (config_file, new_config, new_config, config_file, new_config))
 
 			f =  open(new_config, "wb")
 			cfg.write(f)
 		else: 
-			print "Writing configuration file %s" % config_file
+			dlog.info("writing configuration file %s" % config_file)
 			f =  open(config_file, "wb")
 			cfg.write(f)
 		
-		print "Edit %s to further configure GimmeMotifs." % config_file
+		dlog.info("edit %s to further configure GimmeMotifs." % config_file)
+	
+class custom_build(build):
+	def run(self):
+		build.run(self)
+		self.run_command('build_tools')
+		self.run_command('build_config')
 
+class custom_install(install):
+	def run(self):
+		install.run(self)
+		self.run_command('install_tools')
+		self.run_command('install_config')
+	
 module1 = Extension('gimmemotifs.c_metrics', sources = ['gimmemotifs/c_metrics.c'], libraries = ['gsl', 'gslcblas'])
 
-
 setup (name = 'gimmemotifs',
-		cmdclass={"install_data":install_plus_config, "build":custom_build},
+		cmdclass={"build":custom_build, 
+							"build_tools":build_tools,
+							"build_config":build_config,
+							"install":custom_install, 
+							"install_tools":install_tools,
+							"install_config":install_config,
+							},
 		version = '0.50',
 		description = DESCRIPTION,
 		author='Simon van Heeringen',
@@ -214,6 +321,3 @@ setup (name = 'gimmemotifs',
 			],
 		data_files=data_files
 )
-
-
-

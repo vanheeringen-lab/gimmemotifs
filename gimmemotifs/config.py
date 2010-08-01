@@ -52,7 +52,10 @@ class MotifConfig:
 	def dir(self, program):
 		if self.config.has_section(program):
 			if self.config.has_option(program, "dir"):
-				return self.config.get(program, "dir")
+				try: 
+					return self.config.get(program, "dir")
+				except:
+					return None
 			else:
 				return os.path.dirname(self.bin(program))
 		else:
