@@ -3,6 +3,7 @@ include INSTALL
 include COPYING
 include setup.py
 include run_tests.py
+include compile_externals.py
 include cfg/gimmemotifs.cfg.example
 include doc/README.txt
 include doc/gimmemotifs_manual.pdf
@@ -14,6 +15,7 @@ include gimmemotifs/*.py
 include gimmemotifs/*.c
 include score_dists/*.txt
 include templates/*.kid
+recursive-include src *
 recursive-include test/data/fasta/ *
 recursive-include test/data/genome_index/ *
 recursive-include test/data/motif/ *

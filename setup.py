@@ -86,7 +86,7 @@ class build_tools(Command):
 		plat_specifier = ".%s-%s" % (self.plat_name, sys.version[0:3])
 		self.build_tools_dir = os.path.join(self.build_base, 'tools' + plat_specifier)
 		self.set_undefined_options('build',('custom_build', 'build_tools_dir'))
-
+	
 	def run(self):
 		from compile_externals import compile_all
 		if not os.path.exists(self.build_tools_dir):
@@ -225,12 +225,19 @@ class install_tools(Command):
 
 		dst = os.path.join(self.install_dir, "gimmemotifs/tools")
 		self.outfiles = self.copy_tree(self.tools_dir, self.install_tools_dir)
-
 	def get_outputs(self):
 		return self.outfiles or []
 
 class install_config(Command):
 	description = "create and install a customized configuration file"
+
+	def remove_rpm_nonsense(self, dir):
+		components = os.path.normpath(os.path.abspath(dir)).split(os.sep)
+		for i in range(len(components)):
+			if components[i] == "BUILDROOT":
+				return os.path.sep.join([""] + components[i + 2:])
+		return dir
+
 
 	def initialize_options(self):
 		self.build_base = None
@@ -251,7 +258,8 @@ class install_config(Command):
 		
 		cfg = MotifConfig(use_config=self.build_cfg)
 
-		data_dir = os.path.abspath(self.install_dir)
+		data_dir = self.remove_rpm_nonsense(os.path.abspath(self.install_dir))
+		
 		cfg.set_template_dir(os.path.join(data_dir, 'gimmemotifs/templates'))
 		cfg.set_gene_dir(os.path.join(data_dir, 'gimmemotifs/genes'))
 		cfg.set_score_dir(os.path.join(data_dir, 'gimmemotifs/score_dists'))
@@ -260,20 +268,22 @@ class install_config(Command):
 		cfg.set_bg_dir(os.path.join(data_dir, 'gimmemotifs/bg'))
 		cfg.set_tools_dir(os.path.join(data_dir, 'gimmemotifs/tools'))
 		
+		final_tools_dir = self.remove_rpm_nonsense(self.install_tools_dir)
 		for program in MOTIF_CLASSES:
 			m = eval(program)()
 			if cfg.is_configured(m.name):
-				bin = cfg.bin(m.name).replace(self.build_tools_dir, self.install_tools_dir) 
+				bin = cfg.bin(m.name).replace(self.build_tools_dir, final_tools_dir) 
 				dir = cfg.dir(m.name)
 				if dir:
-					dir = dir.replace(self.build_tools_dir, self.install_tools_dir)
+					dir = dir.replace(self.build_tools_dir, final_tools_dir)
 				cfg.set_program(m.name, {"bin":bin, "dir":dir})
 			
 		# Use a user-specific configfile if any other installation scheme is used
-		if os.path.abspath(self.install_dir) == "/usr/share":
-			config_file = "/usr/share/gimmemotifs/%s" % CONFIG_NAME
-		else:
-			config_file = os.path.expanduser("~/.%s" % CONFIG_NAME)
+#		if os.path.abspath(self.install_dir) == "/usr/share":
+		config_file = os.path.join(self.install_dir, "gimmemotifs/%s" % CONFIG_NAME)
+		self.outfiles = [config_file] 
+#		else:
+#			config_file = os.path.expanduser("~/.%s" % CONFIG_NAME)
 		
 		if os.path.exists(config_file):
 			new_config = config_file + ".tmp"
@@ -288,6 +298,9 @@ class install_config(Command):
 		
 		dlog.info("edit %s to further configure GimmeMotifs." % config_file)
 	
+	def get_outputs(self):
+		return self.outfiles or []
+
 class custom_build(build):
 	def run(self):
 		build.run(self)
@@ -295,10 +308,16 @@ class custom_build(build):
 		self.run_command('build_config')
 
 class custom_install(install):
+	sub_commands = install.sub_commands + [
+			('install_tools', lambda self: True),
+			('install_config', lambda self: True)
+			]
+	
 	def run(self):
+		
 		install.run(self)
-		self.run_command('install_tools')
-		self.run_command('install_config')
+		#self.run_command('install_tools')
+		#self.run_command('install_config')
 	
 module1 = Extension('gimmemotifs.c_metrics', sources = ['gimmemotifs/c_metrics.c'], libraries = ['gsl', 'gslcblas'])
 
