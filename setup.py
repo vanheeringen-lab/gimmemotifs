@@ -277,7 +277,12 @@ class install_config(Command):
 				if dir:
 					dir = dir.replace(self.build_tools_dir, final_tools_dir)
 				cfg.set_program(m.name, {"bin":bin, "dir":dir})
-			
+	
+		# seqlogo
+		dir = cfg.get_seqlogo()
+		dir = dir.replace(self.build_tools_dir, final_tools_dir)
+		cfg.set_seqlogo(dir)
+
 		# Use a user-specific configfile if any other installation scheme is used
 #		if os.path.abspath(self.install_dir) == "/usr/share":
 		config_file = os.path.join(self.install_dir, "gimmemotifs/%s" % CONFIG_NAME)
