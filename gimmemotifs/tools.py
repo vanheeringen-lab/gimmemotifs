@@ -403,7 +403,7 @@ class Weeder(MotifProgram):
 			return out, err
 			
 		if default_params["parallel"]:
-			job_server = pp.Server()
+			job_server = pp.Server(secret="pumpkinrisotto")
 			jobs = []
 			for (w,e) in coms:
 				jobs.append(job_server.submit(run_weeder_subset, (weeder, fastafile, w, e, organism, strand,), (), ()))

@@ -42,7 +42,7 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 		analysis = "small"
 
 	if not job_server:
-		job_server = pp.Server(n_cpu)
+		job_server = pp.Server(n_cpu, secret='pumpkinrisotto")
 	
 	result = []
 	jobs = []

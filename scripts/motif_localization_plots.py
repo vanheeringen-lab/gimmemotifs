@@ -51,7 +51,7 @@ if not lwidth:
 	lwidth = len(f.items()[0][1])
 	f = None
 
-job_server = pp.Server()
+job_server = pp.Server(secret="pumpkinrisotto")
 jobs = []
 motifs = pwmfile_to_motifs(pwmfile)
 ids = [motif.id for motif in motifs]

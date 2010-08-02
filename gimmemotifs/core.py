@@ -204,7 +204,7 @@ class GimmeMotifs:
 	def _get_job_server(self):
 		self.logger.debug("Creating parallel python job server")
 		import pp
-		return pp.Server()
+		return pp.Server(secret="pumpkinrisotto")
 
 	def _check_input(self, file):
 		""" Check if the inputfile is a valid bed-file """

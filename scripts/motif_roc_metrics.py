@@ -49,7 +49,7 @@ def get_scores(motif, file):
 	return vals
 
 
-job_server = pp.Server()
+job_server = pp.Server(secret="pumpkinrisotto")
 
 pwmfile = options.pwmfile
 fg_file = options.sample

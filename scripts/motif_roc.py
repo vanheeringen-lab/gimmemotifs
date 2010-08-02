@@ -55,7 +55,7 @@ def get_scores(motif, file):
 	return vals
 
 n_cpu = 8
-job_server = pp.Server(n_cpu)
+job_server = pp.Server(n_cpu, secret="pumpkinrisotto")
 
 tiny = options.tiny
 

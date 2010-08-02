@@ -31,7 +31,7 @@ except ImportError:
 	pass
 
 # Create a parallel python job server, to use for fast motif comparison
-job_server = pp.Server()	
+job_server = pp.Server(secret="pumpkinrisotto")	
 
 class MotifComparer:
 	def __init__(self):
