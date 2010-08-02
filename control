@@ -1,0 +1,13 @@
+Source: gimmemotifs
+Section: python
+Priority: extra
+Maintainer: Simon van Heeringen <simon@unknown>
+Build-Depends: debhelper (>= 7), python-support, python (>=2.6), libgsl0-dev
+Standards-Version: 3.8.1
+Homepage: http://www.bla.com/
+
+Package: gimmemotifs
+Architecture: any
+Depends: ${misc:Depends}, ${python:Depends}
+Description: bla short
+ bla long
