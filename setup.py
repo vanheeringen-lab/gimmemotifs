@@ -324,11 +324,15 @@ class custom_install(install):
 			('install_config', lambda self: True)
 			]
 	
+	# This is necessary to make sure the right location is used on Ubuntu!
+	def finalize_options():
+		install.finalize_options(self)
+		if self.install_data == "/usr":
+			self.install_data = "/usr/share"
+
 	def run(self):
 		
 		install.run(self)
-		#self.run_command('install_tools')
-		#self.run_command('install_config')
 	
 module1 = Extension('gimmemotifs.c_metrics', sources = ['gimmemotifs/c_metrics.c'], libraries = ['gsl', 'gslcblas'])
 
