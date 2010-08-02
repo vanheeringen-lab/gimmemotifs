@@ -231,11 +231,18 @@ class install_tools(Command):
 class install_config(Command):
 	description = "create and install a customized configuration file"
 
-	def remove_rpm_nonsense(self, dir):
-		components = os.path.normpath(os.path.abspath(dir)).split(os.sep)
-		for i in range(len(components)):
-			if components[i] == "BUILDROOT":
-				return os.path.sep.join([""] + components[i + 2:])
+	def remove_nonsense(self, dir):
+		if dir.find("BUILDROOT") != -1:
+			components = os.path.normpath(os.path.abspath(dir)).split(os.sep)
+			for i in range(len(components)):
+				if components[i] == "BUILDROOT":
+					return os.path.sep.join([""] + components[i + 2:])
+		elif dir.find("debian") != -1:
+			components = os.path.normpath(os.path.abspath(dir)).split(os.sep)
+			for i in range(len(components)):
+				if components[i] == "debian":
+					return remove_nonsense(os.path.sep.join([""] + components[i + 2:]))
+			
 		return dir
 
 
@@ -258,7 +265,7 @@ class install_config(Command):
 		
 		cfg = MotifConfig(use_config=self.build_cfg)
 
-		data_dir = self.remove_rpm_nonsense(os.path.abspath(self.install_dir))
+		data_dir = self.remove_nonsense(os.path.abspath(self.install_dir))
 		
 		cfg.set_template_dir(os.path.join(data_dir, 'gimmemotifs/templates'))
 		cfg.set_gene_dir(os.path.join(data_dir, 'gimmemotifs/genes'))
@@ -268,7 +275,7 @@ class install_config(Command):
 		cfg.set_bg_dir(os.path.join(data_dir, 'gimmemotifs/bg'))
 		cfg.set_tools_dir(os.path.join(data_dir, 'gimmemotifs/tools'))
 		
-		final_tools_dir = self.remove_rpm_nonsense(self.install_tools_dir)
+		final_tools_dir = self.remove_nonsense(self.install_tools_dir)
 		for program in MOTIF_CLASSES:
 			m = eval(program)()
 			if cfg.is_configured(m.name):
@@ -277,12 +284,7 @@ class install_config(Command):
 				if dir:
 					dir = dir.replace(self.build_tools_dir, final_tools_dir)
 				cfg.set_program(m.name, {"bin":bin, "dir":dir})
-	
-		# seqlogo
-		dir = cfg.get_seqlogo()
-		dir = dir.replace(self.build_tools_dir, final_tools_dir)
-		cfg.set_seqlogo(dir)
-
+			
 		# Use a user-specific configfile if any other installation scheme is used
 #		if os.path.abspath(self.install_dir) == "/usr/share":
 		config_file = os.path.join(self.install_dir, "gimmemotifs/%s" % CONFIG_NAME)
