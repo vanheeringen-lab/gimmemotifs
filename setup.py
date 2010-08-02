@@ -241,7 +241,7 @@ class install_config(Command):
 			components = os.path.normpath(os.path.abspath(dir)).split(os.sep)
 			for i in range(len(components)):
 				if components[i] == "debian":
-					return remove_nonsense(os.path.sep.join([""] + components[i + 2:]))
+					return self.remove_nonsense(os.path.sep.join([""] + components[i + 2:]))
 			
 		return dir
 

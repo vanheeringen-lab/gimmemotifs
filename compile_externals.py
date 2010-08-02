@@ -2,6 +2,7 @@ import sys
 import os
 from subprocess import *
 from platform import platform
+from distutils import log
 
 def compile_simple(name):
 	path = "src/%s" % name
@@ -66,9 +67,9 @@ def compile_perl(path):
 
 def print_result(result):
 	if not result:
-		print "... failed"
+		log.info("... failed")
 	else:
-		print "... ok"
+		log.info("... ok")
 	
 def compile_all():
 	
@@ -80,9 +81,9 @@ def compile_all():
 	result = compile_simple("MDmodule")
 	print_result(result)
 	
-	sys.stderr.write("compiling MEME")
-	result = compile_configmake("meme_4.4.0", "src/meme.bin")
-	print_result(result)
+	#sys.stderr.write("compiling MEME")
+	#result = compile_configmake("meme_4.4.0", "src/meme.bin")
+	#print_result(result)
 	
 	sys.stderr.write("compiling GADEM")
 	result = compile_configmake("GADEM_v1.3", "src/gadem")
