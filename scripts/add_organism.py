@@ -46,7 +46,7 @@ if os.path.exists(index_dir) and not options.replace:
 gene_dir = config.get_gene_dir()
 try:
 	shutil.copy(gene_file, gene_dir)
-except (shutil.Error,IOError) as e:
+except (shutil.Error,IOError), e:
 	if e.args[0] == 13:
 		print "No permission to copy gene file in directory %s. Superuser access needed?" % gene_dir
 		sys.exit()

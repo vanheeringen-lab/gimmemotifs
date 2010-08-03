@@ -94,7 +94,7 @@ class GenomeIndex:
 		if not os.path.exists(index_dir):
 			try:
 				os.mkdir(index_dir)
-			except OSError as e:
+			except OSError, e:
 				if e.args[0] == 13:
 					sys.stderr.write("No permission to create index directory. Superuser access needed?\n")
 					sys.exit()
@@ -119,7 +119,7 @@ class GenomeIndex:
 		
 		try:
 			out = open(param_file, "w")
-		except IOError as e:
+		except IOError, e:
 				if e.args[0] == 13:
 					sys.stderr.write("No permission to create files in index directory. Superuser access needed?\n")
 					sys.exit()

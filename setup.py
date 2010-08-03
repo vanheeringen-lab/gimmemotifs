@@ -1,6 +1,7 @@
 from distutils.core import setup, Extension, Command
 from distutils.command.install import install,INSTALL_SCHEMES
 from distutils.command.build import build
+from distutils.util import get_platform
 from distutils import log as dlog
 from subprocess import Popen
 from gimmemotifs.utils import which
@@ -68,7 +69,7 @@ try:
 	import kid
 	import scipy
 	import numpy
-except ImportError as inst:
+except ImportError, inst:
 	print "Error: required dependency not found!"
 	print inst
 	sys.exit()	
@@ -82,7 +83,8 @@ class build_tools(Command):
 		self.build_tools_dir = None
 
 	def finalize_options(self):	
-		self.set_undefined_options('build',('plat_name', 'plat_name'))
+		if self.plat_name is None:
+			self.plat_name = get_platform()
 		self.set_undefined_options('build',('build_base', 'build_base'))
 		plat_specifier = ".%s-%s" % (self.plat_name, sys.version[0:3])
 		self.build_tools_dir = os.path.join(self.build_base, 'tools' + plat_specifier)
