@@ -1,8 +1,19 @@
 # This script creates a RPM package of gimmemotifs for distribution
 import os
+import sys
 from subprocess import Popen, PIPE
 from glob import glob
 import shutil
+
+build_dir = "build/debian"
+email = "s.vanheeringen@ncmls.ru.nl"
+
+# Get package name
+name = Popen(["python","setup.py","--name"], stdout=PIPE).communicate()[0].strip()
+# Get package version
+version  = Popen(["python","setup.py","--version"], stdout=PIPE).communicate()[0].strip()
+
+package = "%s-%s" % (name, version)
 
 Popen(["python","setup.py","sdist"]).communicate()
 if not os.path.exists("build"):
@@ -11,28 +22,18 @@ if not os.path.exists("build"):
 if os.path.exists("build/debian"):
 	shutil.rmtree("build/debian")
 os.mkdir("build/debian")
-shutil.copyfile("dist/gimmemotifs-0.50.tar.gz", "build/debian/gimmemotifs-0.50.tar.gz")
-Popen(["tar","xvzf","gimmemotifs-0.50.tar.gz"], cwd="build/debian").communicate()
-Popen(["dh_make -c bsd -e s.vanheeringen@ncmls.ru.nl -s -f ../gimmemotifs-0.50.tar.gz"], cwd="build/debian/gimmemotifs-0.50", shell=True, stdin=PIPE).communicate("\n")
+shutil.copyfile("dist/%s.tar.gz" % package, "%s/%s.tar.gz" % (build_dir, package))
+Popen(["tar","xvzf","%s.tar.gz" % package], cwd=build_dir).communicate()
+Popen(["dh_make -c bsd -e %s -s -f ../%s.tar.gz" % (email, package) ], cwd="%s/%s" % (build_dir, package), shell=True, stdin=PIPE).communicate("\n")
 
-files = glob("build/debian/gimmemotifs-0.50/debian/*.ex") + glob("build/debian/gimmemotifs-0.50/debian/*.EX") + ["build/debian/gimmemotifs-0.50/debian/dirs", "build/debian/gimmemotifs-0.50/debian/docs", "build/debian/gimmemotifs-0.50/debian/README.Debian"]
+files = []
+patterns = ["*ex", "*EX", "dirs", "docs", "README.Debian"]
+for p in patterns:
+	files += glob("%s/%s/debian/%s" % (build_dir, package, p))
 
 for file in files:
 	os.remove(file)
 
 for file in ["control", "pyversions", "rules"]:
-	shutil.copyfile(file, "build/debian/gimmemotifs-0.50/debian/" + file)	
-Popen(["debuild -us -uc"], cwd="build/debian/gimmemotifs-0.50", shell=True).communicate("")
-
-#Popen(["dh_make]).communicate()
-
-
-#lines = [line for line in open(SPECFILE)]
-#f = open(SPECFILE, "w")
-#f.write("%define debug_package %{nil}\n")
-#f.write("%define __spec_install_port /usr/lib/rpm/brp-compress\n")
-#for line in lines:
-#	f.write(line)
-#f.close()
-
-#Popen(["rpmbuild","-ba", "dist/gimmemotifs.spec"])
+	shutil.copyfile(file, ("%s/%s/debian/" % (build_dir, package)) + file)	
+Popen(["debuild -us -uc"], cwd="%s/%s" % (build_dir, package), shell=True).communicate("")

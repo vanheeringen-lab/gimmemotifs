@@ -54,11 +54,12 @@ data_files=[
 
 
 # Fix for install_data, add share to prefix (borrowed from Dan Christiansen) 
+
+
 for platform, scheme in INSTALL_SCHEMES.iteritems():
 	if platform.startswith('unix_'):
 		if scheme['data'][0] == '$' and '/' not in scheme['data']:
 			scheme['data'] = os.path.join(scheme['data'], 'share')
-
 
 dlog.info("checking dependencies")
 try:
@@ -287,7 +288,7 @@ class install_config(Command):
 			
 		dir = cfg.get_seqlogo()
 		dir = dir.replace(self.build_tools_dir, final_tools_dir)
-		cf.set_seqlogo(dir)
+		cfg.set_seqlogo(dir)
 
 		# Use a user-specific configfile if any other installation scheme is used
 #		if os.path.abspath(self.install_dir) == "/usr/share":
@@ -323,15 +324,19 @@ class custom_install(install):
 			('install_tools', lambda self: True),
 			('install_config', lambda self: True)
 			]
-	
-	# This is necessary to make sure the right location is used on Ubuntu!
-	def finalize_options():
+
+	# Make sure we install in the correct locations on Ubuntu
+	def finalize_options(self):
 		install.finalize_options(self)
 		if self.install_data == "/usr":
 			self.install_data = "/usr/share"
+		if self.install_data.endswith("/usr"):
+			parts = self.install_data.split(os.sep)
+			if parts[-3] == "debian":
+				self.install_data = os.path.join(self.install_data, "share")
 
+	
 	def run(self):
-		
 		install.run(self)
 	
 module1 = Extension('gimmemotifs.c_metrics', sources = ['gimmemotifs/c_metrics.c'], libraries = ['gsl', 'gslcblas'])
