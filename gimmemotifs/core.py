@@ -492,9 +492,13 @@ class GimmeMotifs:
 		for id in motifs.keys():
 			x,y = jobs[id]()
 			fig = plt.figure()
-			rect = fig.patch # a rectangle instance
-			#ax1 = fig.add_axes([0.1,0.1,0.5,0.8])
-			#rect = ax1.patch
+			try:
+				# matplotlib >= 0.99
+				rect = fig.patch # a rectangle instance
+			else:
+				# matplotlib 0.98
+				rect = fig.figurePatch # a rectangle instance
+				
 			plt.xlim(0,0.2)
 			plt.ylim(0,1.0)
 			colors = [cm.Paired(256 / 11 * i) for i in range(11)]

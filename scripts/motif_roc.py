@@ -94,9 +94,17 @@ for id in ids:
 
 if options.tiny:
 	fig = plt.figure(figsize=(1.1,1))
-	rect = fig.patch # a rectangle instance
-	ax1 = fig.add_axes([0.2, 0.15, 0.75, 0.8])
-	rect = ax1.patch
+	try:
+		# matplotlib >= 0.99
+		rect = fig.patch # a rectangle instance
+		ax1 = fig.add_axes([0.2, 0.15, 0.75, 0.8])
+		rect = ax1.patch
+	except:
+		# matplotlib >= 0.98
+		rect = fig.figurePatch # a rectangle instance
+		ax1 = fig.add_axes([0.2, 0.15, 0.75, 0.8])
+		rect = ax1.figurePatch
+		
 	ax1.xaxis.set_ticks([0,0.5,1])
 	ax1.yaxis.set_ticks([0,0.5,1])
 	# plt.figure creates a matplotlib.figure.Figure instance
@@ -122,12 +130,20 @@ if options.tiny:
 
 else:
 	fig = plt.figure()
-	rect = fig.patch # a rectangle instance
+	try:
+		rect = fig.patch # a rectangle instance
+	except:
+		rect = fig.figurePatch # a rectangle instance
+	
 	if not options.nolegend:
 	#	ax1 = fig.add_axes([0.1,0.1,0.8,0.8])
 	#else:
 		ax1 = fig.add_axes([0.1,0.1,0.5,0.8])
-		rect = ax1.patch
+		try: 
+			rect = ax1.patch
+		except:
+			rect = ax1.figurePatch
+	
 	plt.xlim(0,0.2)
 	plt.ylim(0,1.0)
 
