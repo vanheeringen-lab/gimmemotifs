@@ -22,6 +22,8 @@ from gimmemotifs.background import *
 from gimmemotifs.comparison import *
 from gimmemotifs import genome_index
 from gimmemotifs.cluster import *
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 def run_command(cmd):
 	#print args
@@ -55,6 +57,37 @@ def scan_fasta_file_with_motifs(fastafile, motiffile, threshold, gfffile):
 	for motif in motifs:
 		motif.pwm_scan_to_gff(fa, gfffile, nreport=1, cutoff=float(threshold), append=True)
 	
+def get_scores(motif, fg_file, bg_file):
+	from gimmemotifs.fasta import Fasta
+	from gimmemotifs.rocmetrics import ROC_values,ROC_AUC,MNCP,max_fmeasure
+
+	fg_result = motif.pwm_scan_score(Fasta(fg_file), cutoff=0.0, nreport=1)
+	fg_vals = [sorted(x)[-1] for x in fg_result.values()]
+
+	bg_result = motif.pwm_scan_score(Fasta(bg_file), cutoff=0.0, nreport=1)
+	bg_vals = [sorted(x)[-1] for x in bg_result.values()]
+
+	(x, y) = ROC_values(fg_vals, bg_vals)
+	auc = ROC_AUC(fg_vals, bg_vals)
+	mncp = MNCP(fg_vals, bg_vals)
+	max_f, y = max_fmeasure(x,y)
+
+	return (auc, mncp, max_f, y)
+
+def get_roc_values(motif, fg_file, bg_file):
+	from gimmemotifs.fasta import Fasta
+	from gimmemotifs.rocmetrics import ROC_values,ROC_AUC,MNCP,max_fmeasure
+
+	fg_result = motif.pwm_scan_score(Fasta(fg_file), cutoff=0.0, nreport=1)
+	fg_vals = [sorted(x)[-1] for x in fg_result.values()]
+
+	bg_result = motif.pwm_scan_score(Fasta(bg_file), cutoff=0.0, nreport=1)
+	bg_vals = [sorted(x)[-1] for x in bg_result.values()]
+
+	(x, y) = ROC_values(fg_vals, bg_vals)
+
+	return (x,y)
+
 
 class GimmeMotifs:
 	NAME = "gimme_motifs"
@@ -448,13 +481,28 @@ class GimmeMotifs:
 		return clusters
 
 	def create_roc_plots(self, pwm_file, fg_fasta, bg_fasta, name):
-		roc_cmd = "motif_roc.py -p %s -s %s -b %s -o %s -i %s -l"
-		roc_img_file = os.path.join(self.imgdir, "%s_%s_roc")
+		motifs = dict([(m.id, m) for m in pwmfile_to_motifs(pwm_file)])
 		
-		motifs = pwmfile_to_motifs(pwm_file)
-		for motif in motifs:
-			p = Popen(roc_cmd % (pwm_file, fg_fasta, bg_fasta, roc_img_file % (motif.id, name), motif.id), shell=True)
-			p.communicate()
+		jobs = {}
+		for id,m in motifs.items():
+			jobs[id] = job_server.submit(get_roc_values, (motifs[id],fg_fasta,bg_fasta,))
+	
+		roc_img_file = os.path.join(self.imgdir, "%s_%s_roc.png")
+		
+		for id in motifs.keys():
+			x,y = jobs[id]()
+			fig = plt.figure()
+			rect = fig.patch # a rectangle instance
+			#ax1 = fig.add_axes([0.1,0.1,0.5,0.8])
+			#rect = ax1.patch
+			plt.xlim(0,0.2)
+			plt.ylim(0,1.0)
+			colors = [cm.Paired(256 / 11 * i) for i in range(11)]
+			plt.plot(x, y, color=colors[(0 * 2) % 10 + 1])
+			plt.axis([0,1,0,1])
+			plt.xlabel("1 - Specificity")
+			plt.ylabel("Sensitivity")
+			plt.savefig(roc_img_file % (id,name), format="png")
 
 	def calculate_cluster_enrichment(self, pwm, background):
 		fg = [self.validation_fa, self.validation_cluster_gff]
@@ -488,19 +536,25 @@ class GimmeMotifs:
 		#	job()
 
 	def _roc_metrics(self, pwm, sample_fa, bg_fa, roc_file):
-		roc_metrics_cmd = "motif_roc_metrics.py -p %s -s %s -b %s > %s"
-		pipe = Popen(roc_metrics_cmd % (pwm, sample_fa, bg_fa, roc_file), shell=True)
-		pipe.communicate()
-		auc = {}
-		mncp = {}
-		f = open(roc_file)
-		f.readline()
-		for line in f.readlines():
-			vals = line.strip().split("\t")
-			auc[vals[0]] = float(vals[1])
-			mncp[vals[0]] = float(vals[2])
+		motifs = dict([(m.id, m) for m in pwmfile_to_motifs(pwm)])
+		
+		jobs = {}
+		for id,m in motifs.items():
+			jobs[id] = job_server.submit(get_scores, (motifs[id],sample_fa,bg_fa,))
+		
+		all_auc = {}
+		all_mncp = {}
+		f = open(roc_file, "w")
+		f.write("Motif\tROC AUC\tMNCP\tMax f-measure\tSens @ max f-measure\n")
+		for id in motifs.keys():
+       			auc,mncp,max_f, y = jobs[id]()
+		        f.write("%s\t%s\t%s\t%s\t%s\n" % (id,auc,mncp,max_f,y))
+			all_auc[id] = auc
+			all_mncp[id] = mncp
+		
 		f.close()
-		return auc,mncp
+		
+		return all_auc,all_mncp
 
 	def _calc_report_values(self, pwm, background):
 
