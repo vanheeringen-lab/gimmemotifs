@@ -11,6 +11,7 @@ import os
 from gimmemotifs.motif import pwmfile_to_motifs
 from optparse import  OptionParser
 from gimmemotifs.rocmetrics import * 
+from gimmemotifs.fasta import Fasta
 
 parser = OptionParser()
 parser.add_option("-p", "--pwmfile", dest="pwmfile", help="File with pwms", metavar="FILE")
@@ -33,21 +34,10 @@ if not os.path.exists(options.background):
 	exit()
 
 def get_scores(motif, file):
-	from subprocess import Popen, PIPE
-	from tempfile import NamedTemporaryFile
-
-	pwm = NamedTemporaryFile()
-	pwm.write(motif.to_pwm())
-	pwm.flush()
-	
-	cmd = "pwmscan.py -i %s -p %s -c 0.0" % (file, pwm.name)
-	
-	out = Popen(cmd, shell=True, stdout=PIPE).stdout
-	vals = []
-	for line in out.readlines():
-		vals.append(float(line.split("\t")[5]))
+	from gimmemotifs.fasta import Fasta
+	result = motif.pwm_scan_score(Fasta(file), cutoff=0.0, nreport=1)
+	vals = [sorted(x)[-1] for x in result.values()]
 	return vals
-
 
 job_server = pp.Server(secret="pumpkinrisotto")
 

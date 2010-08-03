@@ -20,10 +20,10 @@ from string import maketrans
 import pp
 # GimmeMotifs imports
 from gimmemotifs.motif import * 
-import gimmemotifs.config
 
 class MotifProgram:
-	config = gimmemotifs.config.MotifConfig()
+	from gimmemotifs.config import MotifConfig
+	config = MotifConfig()
 
 	def __init__(self):
 		pass	
