@@ -48,7 +48,7 @@ def compile_moan():
 				f.write("CC=gcc34\n")
 			elif platform().find("gentoo") != -1:
 				f.write("CC=gcc-4.1.2\n")
-			elif platform().find("debian") != -1:
+			elif platform().find("Ubuntu") != -1:
 				f.write("CC=gcc-4.1\n")
 			else:
 				f.write(line)

@@ -1,5 +1,5 @@
 # This script creates a RPM package of gimmemotifs for distribution
-from subprocess import Popen
+from subprocess import Popen,PIPE
 from shutil import copyfile
 
 # Get package name
