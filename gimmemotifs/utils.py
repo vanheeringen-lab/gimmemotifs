@@ -73,7 +73,11 @@ def plot_histogram(values, outfile, xrange=None, breaks=10, title=None, xlabel=N
 	colors = [cm.Paired(256 / 11 * i) for i in range(11)]
 	
 	plt.clf()
-	plt.hist(values, range=xrange, bins=breaks, color=colors[color], edgecolor="black")
+	try:
+		# matplotlib >= 0.99
+		plt.hist(values, range=xrange, bins=breaks, color=colors[color], edgecolor="black")
+	except:	
+		plt.hist(values, range=xrange, bins=breaks)
 	plt.xlim(xrange)
 
 	if title:
@@ -82,8 +86,9 @@ def plot_histogram(values, outfile, xrange=None, breaks=10, title=None, xlabel=N
 	plt.ylabel("Frequency")
 	if xlabel:
 		plt.xlabel(xlabel)
-
-	plt.savefig(outfile)
+	if not outfile.endswith(".svg"):
+		outfile += ".svg"
+	plt.savefig(outfile, format="svg")
 
 def make_gff_histogram(gfffile, outfile, l, title, breaks=21):
 	import matplotlib.pyplot as plt
