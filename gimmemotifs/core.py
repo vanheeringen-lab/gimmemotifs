@@ -800,7 +800,6 @@ class GimmeMotifs:
 		self._create_report(self.final_pwm, background)
 		self._create_text_report(self.final_pwm, background)
 		self.logger.info("Open %s in your browser to see your results." % (self.motif_report))
-		self.logger.info("WARNING: names and locations of outputfiles have changed using a more consistent naming scheme!")
 		
 		if not(params["keep_intermediate"]):
 			
