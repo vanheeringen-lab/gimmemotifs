@@ -2,8 +2,15 @@
 from subprocess import Popen
 from shutil import copyfile
 
+# Get package name
+name = Popen(["python","setup.py","--name"], stdout=PIPE).communicate()[0].strip()
+# Get package version
+version  = Popen(["python","setup.py","--version"], stdout=PIPE).communicate()[0].strip()
+
+package = "%s-%s" % (name, version)
+
 Popen(["python","setup.py","sdist"]).communicate()
-copyfile("dist/gimmemotifs-0.50.tar.gz", "/root/rpmbuild/SOURCES/gimmemotifs-0.50.tar.gz")
+copyfile("dist/%s.tar.gz" % (package), "/root/rpmbuild/SOURCES/%s.tar.gz" % package)
 
 SPECFILE="dist/gimmemotifs.spec"
 Popen(["python","setup.py","bdist_rpm","--spec-only"]).communicate()
