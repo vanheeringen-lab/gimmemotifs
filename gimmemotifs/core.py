@@ -91,7 +91,7 @@ def get_roc_values(motif, fg_file, bg_file):
 
 class GimmeMotifs:
 	NAME = "gimme_motifs"
-	VERSION = "0.50"
+	VERSION = "0.60"
 	SCAN_THRESHOLD = "0.9"
 
 	def __init__(self, name=None):
