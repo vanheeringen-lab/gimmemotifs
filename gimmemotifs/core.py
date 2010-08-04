@@ -495,7 +495,7 @@ class GimmeMotifs:
 			try:
 				# matplotlib >= 0.99
 				rect = fig.patch # a rectangle instance
-			else:
+			except:
 				# matplotlib 0.98
 				rect = fig.figurePatch # a rectangle instance
 				
