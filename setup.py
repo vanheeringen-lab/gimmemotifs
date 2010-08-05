@@ -29,20 +29,22 @@ DEFAULT_PARAMS = {
 	"background": "genomic_matched,random",
 	"genome": "hg18",
 	"tools": "MDmodule,Weeder,MotifSampler",
-	"available_tools": "Weeder,MDmodule,MotifSampler,gadem,meme,trawler,WannaMotif,Improbizer,MoAn,BioProspector",
+	"available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,trawler,WannaMotif,Improbizer,MoAn,BioProspector",
 	"cluster_threshold": "0.95",
 	"use_strand": False
 }
 
 MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector"]
+LONG_RUNNING = ["MoAn", "GADEM"]
+
 
 # Included binaries after compile
 MOTIF_BINS = {
-	"Meme": "src/meme_4.4.0/src/meme.bin",
+	"MEME": "src/meme_4.4.0/src/meme.bin",
 	"MDmodule": "src/MDmodule/MDmodule",
 	"BioProspector": "src/BioProspector/BioProspector",
 	"MoAn": "src/MoAn/moan",
-	"Gadem": "src/GADEM_v1.3/src/gadem"
+	"GADEM": "src/GADEM_v1.3/src/gadem"
 }
 
 data_files=[
@@ -196,6 +198,12 @@ class build_config(Command):
 		
 		# Set the available tools in the config file
 		DEFAULT_PARAMS["available_tools"] = ",".join(available)
+		
+		for tool in available:
+			if tool in LONG_RUNNING:
+				dlog.info("PLEASE NOTE: %s can take a very long time to run on large datasets. Therefore it is not added to the default tools. You can always enable it later, see documentation for details" % tool)
+				available.remove(tool)
+
 		DEFAULT_PARAMS["tools"] = ",".join(available)
 		cfg.set_default_params(DEFAULT_PARAMS)
 

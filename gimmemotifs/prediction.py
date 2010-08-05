@@ -85,14 +85,17 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 	
 	# Start with longer running jobs
 	if tools.has_key("MoAn") and tools["MoAn"]:
+		logger.info("WARNING: MoAn can take a very long time!")
 		moan = MoAn()
+		job_name = "MoAn"
 		logger.debug("Starting MoAn job")
-		jobs.append(job_server.submit(moan.run, (fastafile, ".",{"analysis": analysis, "background":background}), (MotifProgram,),("gimmemotifs.config",)))
+		jobs[job_name] = job_server.submit(moan.run, (fastafile, ".",{"analysis": analysis, "background":background}), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
 	else:
 		logger.debug("Skipping MoAn")
 
 	
-	if tools.has_key("gadem") and tools["gadem"]:
+	if tools.has_key("GADEM") and tools["GADEM"]:
+		logger.info("WARNING: GADEM  can take a very long time!")
 		gadem = Gadem()
 		logger.debug("Starting gadem job")
 		job_name = "GADEM"
@@ -102,6 +105,8 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 
 	
 	if tools.has_key("Weeder") and tools["Weeder"]:
+		if analysis == "xl":	
+			logger.info("WARNING: Weeder with analysis 'xl' can take a very long time!")
 		weeder = Weeder()
 		logger.debug("Starting Weeder job, analysis %s" % analysis)
 		job_name = "Weeder"
@@ -109,21 +114,21 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 	else:
 		logger.debug("Skipping Weeder")
 
-	if tools.has_key("meme") and tools["meme"]:
+	if tools.has_key("MEME") and tools["MEME"]:
 		meme = Meme()
 
 		# This check is necessary because meme errors and pp don't play nice together
-		p = subprocess.Popen(meme.bin(),stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-		stdout,stderr = p.communicate()
-		if not stderr:
-			for i in range(wmin, wmax + 1, step):
-				job_name = "MEME_width_%s" % i
-				logger.debug("Starting Meme job, width %s" % i)
-				jobs[job_name] = job_server.submit(meme.run, (fastafile, ".",{"width":i, "single":single}), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
-		else:
-			print "Error running meme: %s" % stderr
+		#p = subprocess.Popen(meme.bin(),stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+		#stdout,stderr = p.communicate()
+		#if not stderr:
+		for i in range(wmin, wmax + 1, step):
+			job_name = "MEME_width_%s" % i
+			logger.debug("Starting Meme job, width %s" % i)
+			jobs[job_name] = job_server.submit(meme.run, (fastafile, ".",{"width":i, "single":single}), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
+		#else:
+		#	print "Error running meme: %s" % stderr
 	else:
-		logger.debug("Skipping meme")
+		logger.debug("Skipping MEME")
 	
 	
 	if  tools.has_key("MotifSampler") and tools["MotifSampler"]:	
