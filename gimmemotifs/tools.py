@@ -47,7 +47,10 @@ class MotifProgram:
 		if not self.is_installed():
 			raise ValueError, "%s is not installed or not correctly configured" % self.name
 
-		return self._run_program(self.bin(), fastafile, savedir, params)
+		try:
+			return self._run_program(self.bin(), fastafile, savedir, params)
+		except KeyboardInterrupt:
+			return ([], "Killed", "Killed")
 
 class BioProspector(MotifProgram):
 	def __init__(self):

@@ -18,6 +18,7 @@ DESCRIPTION  = """GimmeMotifs is a motif prediction pipeline.
 """
 
 DEFAULT_PARAMS = {
+	"max_time": None,
 	"analysis": "medium",
 	"fraction": 0.2,
 	"abs_max": 1000,

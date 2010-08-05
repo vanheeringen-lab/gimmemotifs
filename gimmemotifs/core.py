@@ -25,6 +25,9 @@ from gimmemotifs.cluster import *
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
+def job_server_ok():
+	return True
+
 def run_command(cmd):
 	#print args
 	from subprocess import Popen
@@ -96,7 +99,8 @@ class GimmeMotifs:
 
 	def __init__(self, name=None):
 		self.config = MotifConfig()
-		
+		self.server = None
+
 		if not name:
 			name = "%s_%s" % (self.NAME, datetime.today().strftime("%d_%m_%Y"))
 		self.name = name
@@ -116,9 +120,15 @@ class GimmeMotifs:
 		self.parallel = self._is_parallel_enabled()
 		if self.parallel:
 			self.logger.debug("Parallel Python is installed")
-			self.job_server = self._get_job_server()
 		else:
 			self.logger.info("Couldn't find Parallel Python! I will continue, but installing pp will signifcantly speed up your analysis!")
+	
+	def job_server(self):
+		try:
+			self.server.submit(job_server_ok)
+		except:	
+				self.server = self._get_job_server()
+		return self.server
 
 	def _setup_output_dir(self, name):
 
@@ -301,7 +311,7 @@ class GimmeMotifs:
 		""" Predict motifs, input is a FASTA-file"""
 		self.logger.info("Starting motif prediction (%s) using %s" % (analysis, ", ".join([x for x in tools.keys() if tools[x]])))
 
-		motifs = pp_predict_motifs(fastafile, analysis, organism, use_strand, self.prediction_bg, tools, job_server)
+		motifs = pp_predict_motifs(fastafile, analysis, organism, use_strand, self.prediction_bg, tools, job_server, logger=self.logger, max_time=self.max_time)
 
 		f = open(self.predicted_pwm, "w")
 		fw = open(self.predicted_pfm, "w")
@@ -353,15 +363,15 @@ class GimmeMotifs:
 		scan_cmd = scan_fasta_file_with_motifs
 		jobs = []
 		if self.parallel:
-			jobs.append(self.job_server.submit(scan_cmd, (fg[0], motif_file, self.SCAN_THRESHOLD, fg[1],), (),()))
+			jobs.append(self.job_server().submit(scan_cmd, (fg[0], motif_file, self.SCAN_THRESHOLD, fg[1],), (),()))
 		else:
 			scan_cmd(fg[0], motif_file, self.SCAN_THRESHOD, fg[1])
 
 		for fasta_file, gff_file in [x[:2] for x in bg]:
 			if self.parallel:
-				jobs.append(self.job_server.submit(scan_cmd, (fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file,), (),()))
+				jobs.append(self.job_server().submit(scan_cmd, (fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file,), (),()))
 			else:
-				_scan_cmd(fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file)
+				scan_cmd(fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file)
 			
 		for job in jobs:
 				job()
@@ -485,7 +495,7 @@ class GimmeMotifs:
 		
 		jobs = {}
 		for id,m in motifs.items():
-			jobs[id] = job_server.submit(get_roc_values, (motifs[id],fg_fasta,bg_fasta,))
+			jobs[id] = self.job_server().submit(get_roc_values, (motifs[id],fg_fasta,bg_fasta,))
 	
 		roc_img_file = os.path.join(self.imgdir, "%s_%s_roc.png")
 		
@@ -544,7 +554,7 @@ class GimmeMotifs:
 		
 		jobs = {}
 		for id,m in motifs.items():
-			jobs[id] = job_server.submit(get_scores, (motifs[id],sample_fa,bg_fa,))
+			jobs[id] = self.job_server().submit(get_scores, (motifs[id],sample_fa,bg_fa,))
 		
 		all_auc = {}
 		all_mncp = {}
@@ -746,6 +756,28 @@ class GimmeMotifs:
 		# is it a valid bed-file etc.
 		self._check_input(inputfile)
 
+		self.max_time = None
+		max_time = None
+		# Maximum time?
+		if params["max_time"]:
+			try:
+				max_time = float(params["max_time"])
+			except:
+				self.logger.info("Could not parse max_time value, setting to no limit")
+				self.max_time = None
+
+			if max_time > 0:
+				self.logger.info("Time limit for motif prediction: %0.2f hours" % max_time)
+				max_time = 3600 * max_time
+				self.max_time = max_time
+				self.logger.debug("Max_time in seconds %0.0f" % self.max_time)
+			else:
+				self.logger.info("Invalid time limit for motif prediction, setting to no limit")
+				self.max_time = None
+		else:
+				self.logger.info("No time limit for motif prediction")
+			
+
 		# Create the necessary files for motif prediction and validation
 		self.prepare_input(inputfile, params["genome"], params["width"], params["fraction"], params["abs_max"], params["use_strand"])
 
@@ -755,7 +787,7 @@ class GimmeMotifs:
 
 		# Predict the motifs
 		if self.parallel:
-			num_motifs = self.predict_motifs(self.prediction_fa, params["analysis"], params["genome"], params["use_strand"], tools, self.job_server  )
+			num_motifs = self.predict_motifs(self.prediction_fa, params["analysis"], params["genome"], params["use_strand"], tools, self.job_server()  )
 
 		if num_motifs == 0:
 			self.logger.info("No motifs found. Done.")
