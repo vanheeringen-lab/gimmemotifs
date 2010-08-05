@@ -30,8 +30,6 @@ try:
 except ImportError:
 	pass
 
-# Create a parallel python job server, to use for fast motif comparison
-job_server = pp.Server(secret="pumpkinrisotto")	
 
 class MotifComparer:
 	def __init__(self):
@@ -39,7 +37,7 @@ class MotifComparer:
 		self.metrics = ["pcc", "ed", "distance", "wic", "chisq", "fisim"]
 		self.combine = ["mean", "sum"]
 		self._load_scores()
-	
+
 	def _load_scores(self):
 		self.scoredist = {}
 		for metric in self.metrics:
@@ -274,6 +272,9 @@ class MotifComparer:
 		scores ={}
 		
 		if parallel:	
+			# Create a parallel python job server, to use for fast motif comparison
+			job_server = pp.Server(secret="pumpkinrisotto")	
+			
 			# Divide the job into big chunks, to keep parallel overhead to minimum
 			# Number of chunks = number of processors available
 			n_cpus = job_server.get_ncpus()
@@ -296,8 +297,8 @@ class MotifComparer:
 		return scores
 
 
-	def get_closest_match(self, motifs, dbmotifs, match, metric, combine):
-		scores = self.get_all_scores(motifs, dbmotifs, match, metric, combine)
+	def get_closest_match(self, motifs, dbmotifs, match, metric, combine, parallel=True):
+		scores = self.get_all_scores(motifs, dbmotifs, match, metric, combine, parallel=parallel)
 		for motif, matches in scores.items():
 			scores[motif] = sorted(scores[motif].items(), cmp=lambda x,y: cmp(y[1][0], x[1][0]))[0]
 		return scores

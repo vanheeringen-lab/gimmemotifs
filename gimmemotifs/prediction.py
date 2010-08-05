@@ -183,8 +183,7 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 			job_server.destroy()
 	except KeyboardInterrupt, e:
 		# Destroy all running jobs
-		if logger:
-			logger.info("Caught interrupt, destroying all running jobs")
+		logger.info("Caught interrupt, destroying all running jobs")
 		job_server.destroy()
 
 	

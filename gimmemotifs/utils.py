@@ -19,6 +19,7 @@ from subprocess import Popen, PIPE
 import numpy
 from scipy import special
 from gimmemotifs import tools
+from gimmemotifs.fasta import *
 
 lgam = special.gammaln
 
@@ -66,6 +67,28 @@ def divide_file(file, sample, rest, fraction, abs_max):
 	#	os.unlink(tmp.name)
 	return x, len(lines[x:])	
 	
+def divide_fa_file(file, sample, rest, fraction, abs_max):
+	fa = Fasta(file)
+	ids = fa.ids[:]
+
+	x = int(fraction * len(ids))
+	if x > abs_max:
+		x = abs_max
+
+	sample_seqs = random.sample(ids, x)
+
+	# Rest
+	f_sample = open(sample, "w")
+	f_rest = open(rest, "w")
+	for id,seq in fa.items():
+		if id in sample_seqs:
+			f_sample.write(">%s\n%s\n" % (id, seq))
+		else:
+			f_rest.write(">%s\n%s\n" % (id, seq))
+	f_sample.close()
+	f_rest.close()
+	
+	return x, len(ids[x:])	
 
 def plot_histogram(values, outfile, xrange=None, breaks=10, title=None, xlabel=None, color=10):
 	import matplotlib.pyplot as plt
