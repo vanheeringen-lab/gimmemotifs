@@ -12,7 +12,7 @@ import sys
 
 parser = OptionParser()
 parser.add_option("-p", "--pwmfile", dest="pwmfile", help="File with pwms", metavar="FILE")
-parser.add_option("-d", "--dbpwmfile", dest="dbpwmfile", help="Databse of pwms to match against", metavar="FILE")
+parser.add_option("-d", "--dbpwmfile", dest="dbpwmfile", help="Database of pwms to match against", metavar="FILE")
 
 (options, args) = parser.parse_args()
 if not (options.pwmfile and options.dbpwmfile):

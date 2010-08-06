@@ -305,12 +305,13 @@ class install_config(Command):
 #		if os.path.abspath(self.install_dir) == "/usr/share":
 		config_file = os.path.join(self.install_dir, "gimmemotifs/%s" % CONFIG_NAME)
 		self.outfiles = [config_file] 
-#		else:
-#			config_file = os.path.expanduser("~/.%s" % CONFIG_NAME)
-		
+
+
 		if os.path.exists(config_file):
 			new_config = config_file + ".tmp"
-			dlog.info("INFO: Configfile %s already exists!\n      Will create %s, which contains the new config.\n      If you want to use the newly generated config you can move %s to %s, otherwise you can delete %s.\n" % (config_file, new_config, new_config, config_file, new_config))
+			dlog.info("INFO: Configfile %s already exists!" % config_file)
+			dlog.info("INFO: Will create %s, which contains the new config." % new_config)
+			dlog.info("INFO: If you want to use the newly generated config you can move %s to %s, otherwise you can delete %s.\n" % (new_config, config_file, new_config))
 
 			f =  open(new_config, "wb")
 			cfg.write(f)
@@ -319,7 +320,10 @@ class install_config(Command):
 			f =  open(config_file, "wb")
 			cfg.write(f)
 		
-		dlog.info("edit %s to further configure GimmeMotifs." % config_file)
+		if os.path.abspath(self.install_dir) != "/usr/share":
+			dlog.info("PLEASE NOTE: GimmeMotifs is installed in a non-standard location.")
+			dlog.info("PLEASE NOTE: This is fine, but then every user should have a file called ~/.gimmemotifs.cfg")
+			dlog.info("PLEASE NOTE: The file %s is fully configured during install and can be used for that purpose." % config_file)
 	
 	def get_outputs(self):
 		return self.outfiles or []

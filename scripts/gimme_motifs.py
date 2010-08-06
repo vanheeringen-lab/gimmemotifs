@@ -13,7 +13,7 @@ config = MotifConfig()
 params = config.get_default_params()
 
 parser = OptionParser(version="%prog " + VERSION)
-parser.add_option("-i", "--inputfile", dest="inputfile", help="Inputfile in bed format", metavar="FILE")
+parser.add_option("-i", "--inputfile", dest="inputfile", help="Inputfile in BED or FASTA format", metavar="FILE")
 parser.add_option("-k", "--keepintermediate", dest="keep_intermediate", help="Don't delete intermediate files", default=False, action="store_true")
 parser.add_option("-n", "--name", dest="name", help="Give your analysis a name", metavar="NAME")
 parser.add_option("-a", "--analysis",dest="analysis", help="Analysis type: small, medium, large, xl (%s)" % params["analysis"], metavar="ANALYSIS", default=params["analysis"])
