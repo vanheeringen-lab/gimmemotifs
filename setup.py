@@ -4,6 +4,7 @@ from distutils.command.build import build
 from distutils.util import get_platform
 from distutils import log as dlog
 from subprocess import Popen
+from platform import machine
 from gimmemotifs.utils import which
 from gimmemotifs.tools import *
 from glob import glob
@@ -84,6 +85,7 @@ class build_tools(Command):
 		self.build_base = None
 		self.plat_name = None
 		self.build_tools_dir = None
+		self.machine = None
 
 	def finalize_options(self):	
 		if self.plat_name is None:
@@ -92,7 +94,8 @@ class build_tools(Command):
 		plat_specifier = ".%s-%s" % (self.plat_name, sys.version[0:3])
 		self.build_tools_dir = os.path.join(self.build_base, 'tools' + plat_specifier)
 		self.set_undefined_options('build',('custom_build', 'build_tools_dir'))
-	
+		self.machine = machine()
+
 	def run(self):
 		from compile_externals import compile_all
 		if not os.path.exists(self.build_tools_dir):
@@ -120,6 +123,20 @@ class build_tools(Command):
 			if os.path.exists(os.path.join(self.build_tools_dir, "trawler")):
 				shutil.rmtree(os.path.join(self.build_tools_dir, "trawler"))
 			shutil.copytree("src/trawler_standalone-1.2", os.path.join(self.build_tools_dir, "trawler"))
+
+		# Copy MotifSampler
+		if self.machine == "x86_64":
+			if os.path.exists("src/MotifSampler"):
+				dlog.info("copying MotifSampler 64bit")
+				shutil.copy("src/MotifSampler/MotifSampler_x86_64", os.path.join(self.build_tools_dir, "MotifSampler"))
+				shutil.copy("src/MotifSampler/CreateBackgroundModel_x86_64", os.path.join(self.build_tools_dir, "CreateBackgroundModel"))
+		else: 
+			if os.path.exists("src/MotifSampler"):
+				dlog.info("copying MotifSampler 32bit")
+				shutil.copy("src/MotifSampler/MotifSampler_i386", os.path.join(self.build_tools_dir, "MotifSampler"))
+				shutil.copy("src/MotifSampler/CreateBackgroundModel_i386", os.path.join(self.build_tools_dir, "CreateBackgroundModel"))
+
+			
 
 class build_config(Command):
 	description = "create a rudimentary config file"
