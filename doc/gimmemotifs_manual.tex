@@ -28,7 +28,7 @@ This document describes how to install and use GimmeMotifs, for theoretical deta
 Hopefully this document explains at least the basics of installation and usage, but it's probably far from complete. If you have any further question, please don't hesistate to contact me: \url{s.vanheeringen@ncmls.ru.nl}.
 
 \section{What's included?}
-GimmeMotifs is dependent upon the great work of others: motif prediction algorithms. GimmeMotifs includes several tools by default:
+GimmeMotifs is dependent upon the great work of others, motif prediction algorithms. GimmeMotifs includes several tools by default:
 \begin{itemize}
 \item MEME \cite{bailey_meme_2009} \url{http://meme.sdsc.edu/}
 \item MDmodule \cite{liu_algorithm_2002} (included in the MotifRegressor
@@ -37,8 +37,9 @@ Package) \url{http://www.math.umass.edu/~conlon/mr.html}
 \item GADEM \cite{li_gadem:genetic_2009} \url{http://www.niehs.nih.gov/research/resources/software/gadem/index.cfm}
 \item BioProspector \cite{liu_bioprospector:_2001} \url{http://motif.stanford.edu/distributions/bioprospector/}
 \item MoAn \cite{valen_discovery_2009} \url{http://moan.binf.ku.dk/}
+\item MotifSampler \cite{thijs_higher-order_2001,thijs_gibbs_2002} \url{http://homes.esat.kuleuven.be/~sistawww/bioi/thijs/download.html}
 \end{itemize}
-To use these programs \emph{no additional steps have to be taken}, all these tools are installed automatically with GimmeMotifs. \textbf{Please note: all these programs include their own license. For commercial use of any of these programs, please consult the respective author!}
+All these tools are installed automatically with GimmeMotifs. To use these programs \emph{no additional steps have to be taken} (except for MotifSampler see \ref{sec:MotifSampler}). \textbf{Please note: all these programs include their own license and most are free for academic or non-commercial use only! For commercial use of any of these programs, please consult the respective author!}
 
 \section{Installation}
 GimmeMotifs runs on Linux. Definitely not on Windows, sorry. Mac OS X should work in theory, but as I don't have the means to test this, I'm not completely sure. I have tried to make installation of GimmeMotifs as easy as possible. There are installation packages available for Fedora, Ubuntu and Debian. It's also possible to install GimmeMotifs from source, but it depends on quite some external packages. Please make sure all prerequisites are installed before installing GimmeMotifs from source. 
@@ -110,11 +111,8 @@ Most motif prediction tools are compiled and/or installed with GimmeMotifs. The 
 \begin{itemize}
 \item Weeder \cite{pavesi_weeder_2004} \url{http://159.149.109.9/modtools/}
 \item Improbizer \cite{ao_environmentally_2004} \url{http://users.soe.ucsc.edu/~kent/}
-\item MotifSampler \cite{thijs_higher-order_2001} \url{http://homes.esat.kuleuven.be/~sistawww/bioi/thijs/download.html}
 \end{itemize}
 Please consult the respective manuals regarding installation of these tools. It's always possible to install these programs after installation of GimmeMotifs and update the configuration files to include the new tools (see section \ref{sec:adding_tools}). However, during installation, GimmeMotifs will try to find any installed tools and add them automatically, so that's the easiest option.
-
-After installation of MotifSampler, one additional configuration step is necessary, described in section \ref{sec:MotifSampler}.
 
 \subsubsection{Building from source}
 You can download the lastest version of GimmeMotifs at:\\
@@ -194,18 +192,9 @@ dir = /usr/bin
 \end{verbatim}
 The \texttt{bin} option should point towards the \texttt{ameme} binary, the \texttt{dir} option is not important.
 
-\subsubsection*{MotifSampler}
-After installing MotifSampler the following section needs to be added to the GimmeMotifs configuration file:
-\begin{verbatim}
-[MotifSampler]
-bin = /usr/bin/MotifSampler
-dir = /usr/bin
-\end{verbatim}
-The \texttt{bin} option should point towards the \texttt{MotifSampler} binary, the \texttt{dir} option is not important. Also see the next section for additional required MotifSampler configuration.
-
 \subsubsection{MotifSampler configuration}
 \label{sec:MotifSampler}
-If you want to use MotifSampler there is one more step that you'll have to take \emph{after} installation of GimmeMotifs. For every organism, you'll need a MotifSampler background. These can be created with \texttt{CreateBackgroundModel} (which can be downloaded from the same site as MotifSampler). The background model file needs to be saved in the directory \texttt{/usr/share/gimmemotifs/MotifSampler} and it should be named \texttt{<organism\_index\_name>.bg}. So, for instance, if I downloaded the human epd background (\texttt{epd\_homo\_sapiens\_499\_chromgenes\_non\_split\_3.bg}), this file should be saved as \texttt{/usr/share/gimmemotifs/MotifSampler/hg18.bg}.
+If you want to use MotifSampler there is one more step that you'll have to take \emph{after} installation of GimmeMotifs. For every organism, you'll need a MotifSampler background. These can be created with \texttt{CreateBackgroundModel} (which is included with GimmeMotifs or can be downloaded from the same site as MotifSampler). The background model file needs to be saved in the directory \texttt{/usr/share/gimmemotifs/MotifSampler} and it should be named \texttt{<organism\_index\_name>.bg}. So, for instance, if I downloaded the human epd background (\texttt{epd\_homo\_sapiens\_499\_chromgenes\_non\_split\_3.bg}), this file should be saved as \texttt{/usr/share/gimmemotifs/MotifSampler/hg18.bg}.
 
 \subsubsection{Other configuration options}
 All of GimmeMotifs configuration is stored in \texttt{/usr/share/gimmemotifs/gimmemotifs.cfg} or \texttt{\textasciitilde{}/.gimmemotifs.cfg}. If the file \texttt{\textasciitilde{}/.gimmemotifs.cfg} exists in your home directory this will always have precedence over the system-wide configuration.
