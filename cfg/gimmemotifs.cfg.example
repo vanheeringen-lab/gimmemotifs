@@ -1,23 +1,62 @@
-[params]
-background = genomic_matched,random
-use_strand = False
-tools = meme,MDmodule 
-analysis = medium
-pvalue = 0.001
-width = 200
-fraction = 0.2
-genome = hg18
-lwidth = 500
-cluster_threshold = 0.95
-available_tools = meme,MDmodule 
-abs_max = 1000
-enrichment = 1.5
-
 [main]
 index_dir = /usr/share/gimmemotifs/genome_index
 bg = /usr/share/gimmemotifs/bg
 template_dir = /usr/share/gimmemotifs/templates
-seqlogo = /usr/local/bin/seqlogo
 score_dir = /usr/share/gimmemotifs/score_dists
-motif_databases = /usr/share/gimmemotifs/motif_databases
 gene_dir = /usr/share/gimmemotifs/genes
+motif_databases = /usr/share/gimmemotifs/motif_databases
+seqlogo = /usr/share/gimmemotifs/tools/seqlogo
+tools = /usr/share/gimmemotifs/tools
+
+[params]
+fraction = 0.2
+use_strand = False
+abs_max = 1000
+analysis = medium
+enrichment = 1.5
+width = 200
+lwidth = 500
+genome = hg18
+background = genomic_matched,random
+cluster_threshold = 0.95
+available_tools = MDmodule,MEME,Weeder,GADEM,MotifSampler,trawler,Improbizer,MoAn,BioProspector
+tools = MDmodule,MEME,Weeder,MotifSampler,trawler,Improbizer,BioProspector
+pvalue = 0.001
+max_time = None
+
+[MEME]
+bin = /usr/share/gimmemotifs/tools/meme.bin
+dir = /usr/share/gimmemotifs/tools/
+
+[MoAn]
+bin = /usr/share/gimmemotifs/tools/moan
+dir = /usr/share/gimmemotifs/tools/
+
+[MDmodule]
+bin = /usr/share/gimmemotifs/tools/MDmodule
+dir = /usr/share/gimmemotifs/tools/
+
+[Improbizer]
+bin = /usr/local/bin/ameme
+dir = /usr/local/bin/
+
+[MotifSampler]
+bin = /usr/local/bin/MotifSampler
+dir = /usr/local/bin/
+
+[GADEM]
+bin = /usr/share/gimmemotifs/tools/gadem
+dir = /usr/share/gimmemotifs/tools/
+
+[trawler]
+bin = /usr/share/gimmemotifs/tools/trawler/bin/trawler.pl
+dir = /usr/share/gimmemotifs/tools/trawler/
+
+[Weeder]
+bin = /usr/share/Weeder/weederTFBS.out
+dir = /usr/share/Weeder/
+
+[BioProspector]
+bin = /usr/share/gimmemotifs/tools/BioProspector
+dir = /usr/share/gimmemotifs/tools/
+
