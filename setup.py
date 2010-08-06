@@ -140,7 +140,7 @@ class build_config(Command):
 			os.mkdir(self.build_cfg)
 
 		from gimmemotifs.config import MotifConfig
-		cfg = MotifConfig(use_config="cfg/gimmemotifs.cfg.example")
+		cfg = MotifConfig(use_config="cfg/gimmemotifs.cfg.base")
 		
 		dlog.info("locating motif programs")
 		available = []
