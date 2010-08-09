@@ -16,6 +16,7 @@ from datetime import datetime
 import kid
 # GimmeMotifs imports
 from gimmemotifs.config import *
+from gimmemotifs.fasta import *
 from gimmemotifs.utils import *
 from gimmemotifs.prediction import *
 from gimmemotifs.background import *
@@ -24,6 +25,9 @@ from gimmemotifs import genome_index
 from gimmemotifs.cluster import *
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+
+def job_server_ok():
+	return True
 
 def run_command(cmd):
 	#print args
@@ -50,43 +54,61 @@ def motif_localization(fastafile, motif, width, outfile):
 		return motif.id, 1.0
 
 def scan_fasta_file_with_motifs(fastafile, motiffile, threshold, gfffile):
-	from gimmemotifs.fasta import Fasta
-	from gimmemotifs.motif import pwmfile_to_motifs
-	motifs = pwmfile_to_motifs(motiffile)
-	fa = Fasta(fastafile)
-	for motif in motifs:
-		motif.pwm_scan_to_gff(fa, gfffile, nreport=1, cutoff=float(threshold), append=True)
-	
+	error = None
+	try:
+		from gimmemotifs.fasta import Fasta
+		from gimmemotifs.motif import pwmfile_to_motifs
+		motifs = pwmfile_to_motifs(motiffile)
+		fa = Fasta(fastafile)
+		for motif in motifs:
+			motif.pwm_scan_to_gff(fa, gfffile, nreport=1, cutoff=float(threshold), append=True)
+	except Exception,e :
+		error = e
+	return error
+
 def get_scores(motif, fg_file, bg_file):
-	from gimmemotifs.fasta import Fasta
-	from gimmemotifs.rocmetrics import ROC_values,ROC_AUC,MNCP,max_fmeasure
+	error = None
+	auc = None
+	mncp = None
+	max_f = None
+	y = None
+	try:
+		from gimmemotifs.fasta import Fasta
+		from gimmemotifs.rocmetrics import ROC_values,ROC_AUC,MNCP,max_fmeasure
 
-	fg_result = motif.pwm_scan_score(Fasta(fg_file), cutoff=0.0, nreport=1)
-	fg_vals = [sorted(x)[-1] for x in fg_result.values()]
+		fg_result = motif.pwm_scan_score(Fasta(fg_file), cutoff=0.0, nreport=1)
+		fg_vals = [sorted(x)[-1] for x in fg_result.values()]
 
-	bg_result = motif.pwm_scan_score(Fasta(bg_file), cutoff=0.0, nreport=1)
-	bg_vals = [sorted(x)[-1] for x in bg_result.values()]
+		bg_result = motif.pwm_scan_score(Fasta(bg_file), cutoff=0.0, nreport=1)
+		bg_vals = [sorted(x)[-1] for x in bg_result.values()]
 
-	(x, y) = ROC_values(fg_vals, bg_vals)
-	auc = ROC_AUC(fg_vals, bg_vals)
-	mncp = MNCP(fg_vals, bg_vals)
-	max_f, y = max_fmeasure(x,y)
+		(x, y) = ROC_values(fg_vals, bg_vals)
+		auc = ROC_AUC(fg_vals, bg_vals)
+		mncp = MNCP(fg_vals, bg_vals)
+		max_f, y = max_fmeasure(x,y)
 
-	return (auc, mncp, max_f, y)
+	except Exception,e:
+		error = e
+	return (error, auc, mncp, max_f, y)
 
 def get_roc_values(motif, fg_file, bg_file):
-	from gimmemotifs.fasta import Fasta
-	from gimmemotifs.rocmetrics import ROC_values,ROC_AUC,MNCP,max_fmeasure
-
-	fg_result = motif.pwm_scan_score(Fasta(fg_file), cutoff=0.0, nreport=1)
-	fg_vals = [sorted(x)[-1] for x in fg_result.values()]
-
-	bg_result = motif.pwm_scan_score(Fasta(bg_file), cutoff=0.0, nreport=1)
-	bg_vals = [sorted(x)[-1] for x in bg_result.values()]
-
-	(x, y) = ROC_values(fg_vals, bg_vals)
-
-	return (x,y)
+	error = None
+	x = []
+	y = []
+	try:
+		from gimmemotifs.fasta import Fasta
+		from gimmemotifs.rocmetrics import ROC_values,ROC_AUC,MNCP,max_fmeasure
+	
+		fg_result = motif.pwm_scan_score(Fasta(fg_file), cutoff=0.0, nreport=1)
+		fg_vals = [sorted(x)[-1] for x in fg_result.values()]
+	
+		bg_result = motif.pwm_scan_score(Fasta(bg_file), cutoff=0.0, nreport=1)
+		bg_vals = [sorted(x)[-1] for x in bg_result.values()]
+	
+		(x, y) = ROC_values(fg_vals, bg_vals)
+	except Exception,e:
+		error = e
+	return error,x,y
 
 
 class GimmeMotifs:
@@ -96,7 +118,8 @@ class GimmeMotifs:
 
 	def __init__(self, name=None):
 		self.config = MotifConfig()
-		
+		self.server = None
+
 		if not name:
 			name = "%s_%s" % (self.NAME, datetime.today().strftime("%d_%m_%Y"))
 		self.name = name
@@ -116,9 +139,15 @@ class GimmeMotifs:
 		self.parallel = self._is_parallel_enabled()
 		if self.parallel:
 			self.logger.debug("Parallel Python is installed")
-			self.job_server = self._get_job_server()
 		else:
 			self.logger.info("Couldn't find Parallel Python! I will continue, but installing pp will signifcantly speed up your analysis!")
+	
+	def job_server(self):
+		try:
+			self.server.submit(job_server_ok)
+		except:	
+				self.server = self._get_job_server()
+		return self.server
 
 	def _setup_output_dir(self, name):
 
@@ -266,7 +295,7 @@ class GimmeMotifs:
 						pass
 						#self.logger.warn("No numerical value in column 4 on line %s of file %s, ignoring..." % (i + 1, file))
 
-	def prepare_input(self, inputfile, organism="hg18", width=200, fraction=0.2, abs_max=1000, use_strand=False):
+	def prepare_input_bed(self, inputfile, organism="hg18", width=200, fraction=0.2, abs_max=1000, use_strand=False):
 		""" Create all the bed- and fasta-files necessary for motif prediction and validation """	
 		self.inputfile = inputfile
 
@@ -275,7 +304,7 @@ class GimmeMotifs:
 		abs_max = int(abs_max)
 		use_strand = bool(use_strand)
 
-		self.logger.info("Preparing input")
+		self.logger.info("Preparing input (BED)")
 		
 		# Set all peaks to specific width
 		self.logger.debug("Creating inputfile %s, width %s" % (self.input_bed, width))
@@ -297,11 +326,26 @@ class GimmeMotifs:
 			self.logger.debug("Creating %s" % (self.validation_fa))
 			genome_index.track2fasta(index_dir, self.validation_bed, self.validation_fa, use_strand=use_strand)
 
+	def prepare_input_fa(self, inputfile, width=200, fraction=0.2, abs_max=1000):
+		""" Create all the bed- and fasta-files necessary for motif prediction and validation """	
+		self.inputfile = inputfile
+
+		width = int(width)
+		fraction = float(fraction)
+		abs_max = int(abs_max)
+
+		self.logger.info("Preparing input (FASTA)")
+		
+		# Split inputfile in prediction and validation set 
+		self.logger.debug("Splitting %s into prediction set (%s) and validation set (%s)" % (self.inputfile, self.prediction_fa, self.validation_fa))
+			
+		self.prediction_num, self.validation_num = divide_fa_file(self.inputfile, self.prediction_fa, self.validation_fa, fraction, abs_max)
+
 	def predict_motifs(self, fastafile, analysis="medium", organism="hg18", use_strand=False, tools={}, job_server=None):
 		""" Predict motifs, input is a FASTA-file"""
 		self.logger.info("Starting motif prediction (%s) using %s" % (analysis, ", ".join([x for x in tools.keys() if tools[x]])))
 
-		motifs = pp_predict_motifs(fastafile, analysis, organism, use_strand, self.prediction_bg, tools, job_server)
+		motifs = pp_predict_motifs(fastafile, analysis, organism, use_strand, self.prediction_bg, tools, job_server, logger=self.logger, max_time=self.max_time)
 
 		f = open(self.predicted_pwm, "w")
 		fw = open(self.predicted_pfm, "w")
@@ -353,19 +397,22 @@ class GimmeMotifs:
 		scan_cmd = scan_fasta_file_with_motifs
 		jobs = []
 		if self.parallel:
-			jobs.append(self.job_server.submit(scan_cmd, (fg[0], motif_file, self.SCAN_THRESHOLD, fg[1],), (),()))
+			jobs.append(self.job_server().submit(scan_cmd, (fg[0], motif_file, self.SCAN_THRESHOLD, fg[1],), (),()))
 		else:
 			scan_cmd(fg[0], motif_file, self.SCAN_THRESHOD, fg[1])
 
 		for fasta_file, gff_file in [x[:2] for x in bg]:
 			if self.parallel:
-				jobs.append(self.job_server.submit(scan_cmd, (fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file,), (),()))
+				jobs.append(self.job_server().submit(scan_cmd, (fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file,), (),()))
 			else:
-				_scan_cmd(fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file)
+				scan_cmd(fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file)
 			
 		for job in jobs:
-				job()
-		
+				error = job()
+				if error:
+					self.logger.error("Error in thread: %s" % error)
+					sys.exit(1)
+
 		self.logger.info("Calculating enrichment")
 		enrichment_cmd = gff_enrichment
 		num_sample = len(Fasta(fg[0]).items())	
@@ -485,12 +532,16 @@ class GimmeMotifs:
 		
 		jobs = {}
 		for id,m in motifs.items():
-			jobs[id] = job_server.submit(get_roc_values, (motifs[id],fg_fasta,bg_fasta,))
+			jobs[id] = self.job_server().submit(get_roc_values, (motifs[id],fg_fasta,bg_fasta,))
 	
 		roc_img_file = os.path.join(self.imgdir, "%s_%s_roc.png")
 		
 		for id in motifs.keys():
-			x,y = jobs[id]()
+			error, x, y = jobs[id]()
+			if error:
+				self.logger.error("Error in thread: %s" % error)
+				sys.exit(1)
+
 			fig = plt.figure()
 			try:
 				# matplotlib >= 0.99
@@ -516,43 +567,50 @@ class GimmeMotifs:
 		if "random" in background:
 			bg.append([self.bg_random_fa, self.bg_random_cluster_gff, self.bg_random_cluster_enrichment])
 		self.calculate_enrichment(pwm, fg, bg)
-
 		pass
 
 
-	def create_location_plots(self, motif_file, fasta_file, params):
+	def create_location_plots(self, motif_file, params):
 		self.logger.info("Creating localization plots")
-		index_dir = os.path.join(self.config.get_index_dir(), params["genome"])
-		lwidth = int(params["lwidth"])
-		width = int(params["width"])
-		extend = (lwidth - width) / 2
+		if self.input_type == "BED":
 		
-		genome_index.track2fasta(index_dir, self.validation_bed, self.location_fa, extend_up=extend, extend_down=extend, use_strand=params["use_strand"])
-
-		jobs = []
+			index_dir = os.path.join(self.config.get_index_dir(), params["genome"])
+			lwidth = int(params["lwidth"])
+			width = int(params["width"])
+			extend = (lwidth - width) / 2
+		
+			genome_index.track2fasta(index_dir, self.validation_bed, self.location_fa, extend_up=extend, extend_down=extend, use_strand=params["use_strand"])
+		else:
+			self.location_fa = self.validation_fa
+			fa = Fasta(self.location_fa)
+			seqs = fa.seqs
+			lwidth = len(seqs[0]) 
+			all_same_width = not(False in [len(seq) == lwidth for seq in seqs])
+			if not all_same_width:
+				self.logger.warn("PLEASE NOTE: FASTA file contains sequences of different lengths. Positional preference plots will be incorrect!")
+		
 		motifs = pwmfile_to_motifs(motif_file)
-		
 		for motif in motifs:
 			outfile = os.path.join(self.imgdir, "%s_histogram.svg" % motif.id)
-			motif_localization(fasta_file, motif, lwidth, outfile)
-			#jobs.append(self.job_server.submit(motif_localization, (fasta_file, motif, lwidth, outfile), (),()))
-		#for job in jobs:
-		#	job()
+			motif_localization(self.location_fa, motif, lwidth, outfile)
 
 	def _roc_metrics(self, pwm, sample_fa, bg_fa, roc_file):
 		motifs = dict([(m.id, m) for m in pwmfile_to_motifs(pwm)])
 		
 		jobs = {}
 		for id,m in motifs.items():
-			jobs[id] = job_server.submit(get_scores, (motifs[id],sample_fa,bg_fa,))
+			jobs[id] = self.job_server().submit(get_scores, (motifs[id],sample_fa,bg_fa,))
 		
 		all_auc = {}
 		all_mncp = {}
 		f = open(roc_file, "w")
 		f.write("Motif\tROC AUC\tMNCP\tMax f-measure\tSens @ max f-measure\n")
 		for id in motifs.keys():
-       			auc,mncp,max_f, y = jobs[id]()
-		        f.write("%s\t%s\t%s\t%s\t%s\n" % (id,auc,mncp,max_f,y))
+			error, auc, mncp, max_f, y = jobs[id]()
+			if error:
+				self.logger.error("Error in thread: %s" % e)
+				sys.exit(1)
+			f.write("%s\t%s\t%s\t%s\t%s\n" % (id,auc,mncp,max_f,y))
 			all_auc[id] = auc
 			all_mncp[id] = mncp
 		
@@ -561,7 +619,7 @@ class GimmeMotifs:
 		return all_auc,all_mncp
 
 	def _calc_report_values(self, pwm, background):
-
+		self.logger.info("Calculating final statistics for report")
 		self.p = dict([(b,{}) for b in background])
 		self.e = dict([(b,{}) for b in background])
 
@@ -589,12 +647,12 @@ class GimmeMotifs:
 		for bg in self.auc.keys():
 			bg_fasta_file, roc_file = rocs[bg]
 			self.auc[bg], self.mncp[bg] = self._roc_metrics(pwm, self.validation_fa, bg_fasta_file, roc_file)
-
 	
 		motifs = pwmfile_to_motifs(pwm)
 		self.closest_match = self.determine_closest_match(motifs)
 		
 	def _create_text_report(self, pwm, background):
+		self.logger.info("Creating text report")
 		motifs = pwmfile_to_motifs(pwm)
 
 		if "genomic_matched" in background:
@@ -621,6 +679,7 @@ class GimmeMotifs:
 		f.close()
 
 	def _create_report(self, pwm, background):
+		self.logger.info("Creating graphical report")
 		class ReportMotif:
 			pass
 		
@@ -678,6 +737,7 @@ class GimmeMotifs:
 
 
 	def determine_closest_match(self, motifs):
+		self.logger.info("Determining closest matching motifs in database (JASPAR)")
 		jaspar = os.path.join(self.config.get_motif_dir(), [x for x in os.listdir(self.config.get_motif_dir()) if x.startswith("jaspar")][0])
 		db_motifs = []
 		if jaspar.endswith("pwm") or jaspar.endswith("pfm"):
@@ -688,7 +748,7 @@ class GimmeMotifs:
 		closest_match = {}
 		mc = MotifComparer()
 		db_motif_lookup = dict([(m.id, m) for m in db_motifs])
-		match = mc.get_closest_match(motifs, db_motifs, "partial", "wic", "mean")
+		match = mc.get_closest_match(motifs, db_motifs, "partial", "wic", "mean", parallel=False)
 		for motif in motifs:
 			# Calculate p-value
 			pval, pos, orient = mc.compare_motifs(motif, db_motif_lookup[match[motif.id][0]], "partial", "wic", "mean", pval=True)
@@ -737,17 +797,62 @@ class GimmeMotifs:
 		for param, value in params.items():
 			self.logger.info("  %s: %s" % (param, value))
 
-		# Does the index_dir exist?
-		index_dir = os.path.join(self.config.get_index_dir(), params["genome"])
-		if not os.path.exists(index_dir):
-			self.logger.error("No index found for genome %s! Has GimmeMotifs been configured correctly and is the genome indexed?" % params["genome"])
-			sys.exit(1)
+		# Checking input
+		self.input_type = "BED"
+		# If we can load it as fasta then it is a fasta, yeh?
+		try:
+			Fasta(inputfile)
+			self.logger.info("Inputfile is a FASTA file")
+			self.input_type = "FASTA"
+		except:
+			# Leave it to BED
+			pass
 
-		# is it a valid bed-file etc.
-		self._check_input(inputfile)
+		if self.input_type == "FASTA":
+			if len(background) > 1 or "random" not in background:
+				self.logger.info("Input type is FASTA, so only possible background is 'random'")
+				background = ["random"]
+			
+		if self.input_type == "BED":
+			# Does the index_dir exist?  #bed-specific
+			index_dir = os.path.join(self.config.get_index_dir(), params["genome"])
+			if not os.path.exists(index_dir):
+				self.logger.error("No index found for genome %s! Has GimmeMotifs been configured correctly and is the genome indexed?" % params["genome"])
+				sys.exit(1)
+
+			# is it a valid bed-file etc.
+			self._check_input(inputfile)	# bed-specific
+
+		self.max_time = None
+		max_time = None
+		# Maximum time?
+		if params["max_time"]:
+			try:
+				max_time = float(params["max_time"])
+			except:
+				self.logger.info("Could not parse max_time value, setting to no limit")
+				self.max_time = None
+
+			if max_time > 0:
+				self.logger.info("Time limit for motif prediction: %0.2f hours" % max_time)
+				max_time = 3600 * max_time
+				self.max_time = max_time
+				self.logger.debug("Max_time in seconds %0.0f" % self.max_time)
+			else:
+				self.logger.info("Invalid time limit for motif prediction, setting to no limit")
+				self.max_time = None
+		else:
+				self.logger.info("No time limit for motif prediction")
+			
 
 		# Create the necessary files for motif prediction and validation
-		self.prepare_input(inputfile, params["genome"], params["width"], params["fraction"], params["abs_max"], params["use_strand"])
+		if self.input_type == "BED":
+			self.prepare_input_bed(inputfile, params["genome"], params["width"], params["fraction"], params["abs_max"], params["use_strand"])
+		elif self.input_type == "FASTA":
+			self.prepare_input_fa(inputfile, params["width"], params["fraction"], params["abs_max"])
+		else:
+			self.logger.error("Unknown input type, shouldn't happen")
+			sys.exit(1)
 
 		tools = dict([(x.strip(), x in [y.strip() for y in  params["tools"].split(",")]) for x in params["available_tools"].split(",")])
 	
@@ -755,7 +860,7 @@ class GimmeMotifs:
 
 		# Predict the motifs
 		if self.parallel:
-			num_motifs = self.predict_motifs(self.prediction_fa, params["analysis"], params["genome"], params["use_strand"], tools, self.job_server  )
+			num_motifs = self.predict_motifs(self.prediction_fa, params["analysis"], params["genome"], params["use_strand"], tools, self.job_server()  )
 
 		if num_motifs == 0:
 			self.logger.info("No motifs found. Done.")
@@ -793,7 +898,7 @@ class GimmeMotifs:
 		
 		
 		# Location plots
-		self.create_location_plots(self.final_pwm, self.location_fa, params)
+		self.create_location_plots(self.final_pwm, params)
 
 		# Calculate enrichment of final, clustered motifs
 		self.calculate_cluster_enrichment(self.final_pwm, background)

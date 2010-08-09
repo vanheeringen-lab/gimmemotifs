@@ -47,7 +47,10 @@ class MotifProgram:
 		if not self.is_installed():
 			raise ValueError, "%s is not installed or not correctly configured" % self.name
 
-		return self._run_program(self.bin(), fastafile, savedir, params)
+		try:
+			return self._run_program(self.bin(), fastafile, savedir, params)
+		except KeyboardInterrupt:
+			return ([], "Killed", "Killed")
 
 class BioProspector(MotifProgram):
 	def __init__(self):
@@ -686,7 +689,7 @@ class MDmodule(MotifProgram):
 
 class Gadem(MotifProgram):
 	def __init__(self):
-		self.name = "gadem"
+		self.name = "GADEM"
 		self.cmd = "gadem"
 
 	def _run_program(self, bin, fastafile, savedir, params={}):
@@ -764,7 +767,7 @@ class Gadem(MotifProgram):
 
 class Meme(MotifProgram):
 	def __init__(self):
-		self.name = "meme"
+		self.name = "MEME"
 		self.cmd = "meme.bin"
 
 	def _run_program(self, bin, fastafile, savedir, params={}):
@@ -788,7 +791,7 @@ class Meme(MotifProgram):
 		number = default_params["number"]
 		
 		cmd = (bin, fastafile, "-text","-dna","-nostatus","-mod", "zoops","-nmotifs", "%s" % number, "-w","%s" % width, "-maxsize", "10000000", "%s" % strand)
-		p = Popen(cmd, bufsize=1,stderr=PIPE, stdout=PIPE) 
+		p = Popen(cmd, bufsize=1, stderr=PIPE, stdout=PIPE) 
 		stdout,stderr = p.communicate()
 
 		motifs = []

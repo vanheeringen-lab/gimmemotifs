@@ -1,9 +1,10 @@
-\documentclass[10pt]{article}
+\documentclass[11pt]{article}
+
+\usepackage[margin=2.44cm,includehead,includefoot]{geometry}
 
 \usepackage{url}
 \usepackage[numbers]{natbib}
-
-\bibliographystyle{plainnat}
+\bibliographystyle{unsrtnatnourl}
 
 \title{GimmeMotifs documentation}
 \author{Simon van Heeringen}
@@ -20,19 +21,34 @@
 \section{Introduction}
 GimmeMotifs is a \textit{de novo} motif prediction pipeline, especially suited for ChIP-seq datasets. It incorporates several existing motif prediction algorithms in an ensemble method to predict motifs and clusters these motifs using the WIC similarity scoring metric. It is freely available for download and use under the MIT license. If you find GimmeMotifs useful, please cite:
 \begin{itemize}
-\item van Heeringen SJ and Veenstra GJC, GimmeMotifs: a \textit{de novo} motif prediction pipeline for ChIP-sequencing experiments, \textit{in preparation}.
+\item van Heeringen SJ and Veenstra GJC, GimmeMotifs: a \textit{de novo} motif prediction pipeline for ChIP-sequencing experiments, \textit{submitted}.
 \end{itemize}
-
-This document describes how to install and use GimmeMotifs, for theoretical details, please see our publication \citetext{van Heeringen \textit{et al.}, in preparation}.
+This document describes how to install and use GimmeMotifs, for theoretical details, please see our publication \citetext{van Heeringen \textit{et al.}, submitted}.
 
 Hopefully this document explains at least the basics of installation and usage, but it's probably far from complete. If you have any further question, please don't hesistate to contact me: \url{s.vanheeringen@ncmls.ru.nl}.
 
-\section{Installation}
-GimmeMotifs runs on Linux. Definitely not on Windows, sorry. Mac OS X should work in theory, but as I don't have the option to test this, I'm not completely sure. I have tried to make installation of GimmeMotifs as easy as possible. There are installation packages available for Fedora and Ubuntu. It's also possible to install GimmeMotifs from source, but it depends on quite some external packages (motif prediction tools!). Please make sure all prerequisites are installed before installing GimmeMotifs from source. 
+\section{What's included?}
+GimmeMotifs is dependent upon the great work of others, motif prediction algorithms. GimmeMotifs includes several tools by default:
+\begin{itemize}
+\item MEME \cite{bailey_meme_2009} \url{http://meme.sdsc.edu/}
+\item MDmodule \cite{liu_algorithm_2002} (included in the MotifRegressor
+Package) \url{http://www.math.umass.edu/~conlon/mr.html}
+\item trawler \cite{ettwiller_trawler:_2007} \url{http://ani.embl.de/trawler/}
+\item GADEM \cite{li_gadem:genetic_2009} \url{http://www.niehs.nih.gov/research/resources/software/gadem/index.cfm}
+\item BioProspector \cite{liu_bioprospector:_2001} \url{http://motif.stanford.edu/distributions/bioprospector/}
+\item MoAn \cite{valen_discovery_2009} \url{http://moan.binf.ku.dk/}
+\item MotifSampler \cite{thijs_higher-order_2001,thijs_gibbs_2002} \url{http://homes.esat.kuleuven.be/~sistawww/bioi/thijs/download.html}
+\end{itemize}
+All these tools are installed automatically with GimmeMotifs. To use these programs \emph{no additional steps have to be taken} (except for MotifSampler see \ref{sec:MotifSampler}). \textbf{Please note: all these programs include their own license and most are free for academic or non-commercial use only! For commercial use of any of these programs, please consult the respective author!}
 
-\subsection{Installation package}
-\subsubsection{Installation on Ubuntu}
-Download the latest GimmeMotifs .deb package from \url{http://www.ncmls.nl/bioinfo/gimmemotifs/} (available for 32-bit and 64-bit systems). This package has been tested on up-to-date versions of Karmic Koala (9.10) and Lucid Lynx (10.04). Install GimmeMotifs as follows (substitute the package name for the .deb package you downloaded):
+\section{Installation}
+GimmeMotifs runs on Linux. Definitely not on Windows, sorry. Mac OS X should work in theory, but as I don't have the means to test this, I'm not completely sure. I have tried to make installation of GimmeMotifs as easy as possible. There are installation packages available for Fedora, Ubuntu and Debian. It's also possible to install GimmeMotifs from source, but it depends on quite some external packages. Please make sure all prerequisites are installed before installing GimmeMotifs from source. 
+
+\subsection{Installation packages}
+\subsubsection{Installation on Ubuntu or Debian}
+Download the latest GimmeMotifs .deb package for your distribution  from \url{http://www.ncmls.nl/bioinfo/gimmemotifs/} (available for 32-bit and 64-bit systems). Please note: due to a different Python version, the Debian and Ubuntu .deb packages are different! Please use the correct one for your distribution.
+These packages have been tested on up-to-date versions of Karmic Koala (9.10), Lucid Lynx (10.04) and Debian Lenny (5.05). 
+Install GimmeMotifs as follows (substitute the package name for the .deb package you downloaded):
 \begin{verbatim}
 sudo dpkg -i gimmemotifs_0.60-1_i386.deb 
 \end{verbatim}
@@ -44,11 +60,11 @@ Complete the GimmeMotifs installation with:
 \begin{verbatim}
 sudo dpkg -i gimmemotifs_0.60-1_i386.deb 
 \end{verbatim}
-Currently, there is a bug with the versions of the Parallel Python (python-pp) and Numpy (python-numpy) in the Ubuntu repository. Therefore the Ubuntu package python-pp is not installed as a dependency. This can be fixed by installing the latest version of Parallel Python from the Python Package Index:
+Currently, there is a bug with the versions of the Parallel Python (python-pp) and Numpy (python-numpy) in the Ubuntu and Debian repositories. Therefore the package python-pp is not installed as a dependency. This can be fixed by installing the latest version of Parallel Python from the Python Package Index:
 \begin{verbatim}
 sudo easy_install pp 
 \end{verbatim}
-Now you should have a working version of GimmeMotifs. The next step is to do some configuration, see section \ref{sec:configuration}.
+Now you should have a working version of GimmeMotifs! The next steps are to install additional motif tools (optional, see section \ref{sec:adding_tools}) and to do some configuration (required, see section \ref{sec:configuration} ).
 
 \subsubsection{Installation on Fedora}
 Download the latest GimmeMotifs .rpm package from \url{http://www.ncmls.nl/bioinfo/gimmemotifs/} (available for 32-bit and 64-bit systems). This package has been tested on an up-to-date version of Fedora 13. Install GimmeMotifs as follows (substitute the package name for the .rpm package you downloaded):
@@ -59,16 +75,14 @@ GimmeMotifs doesn't play nice with SELinux enabled on Fedora, sorry. To turn it 
 \begin{verbatim}
 sudo setenforce 0
 \end{verbatim}
-
-Now you should have a working version of GimmeMotifs. The next step is to do some configuration, see section \ref{sec:configuration}.
+Now you should have a working version of GimmeMotifs. The next steps are to install additional motif tools (optional, see section \ref{sec:adding_tools}) and to do some configuration (required, see section \ref{sec:configuration} ).
 
 \subsection{Installation from source}
 
 \subsubsection{Prerequisites}
 Before you can install GimmeMotifs you'll need: 
 \begin{itemize}
- \item some Python modules and other packages
- \item genomic sequences 
+ \item some Python modules and other packages 
  \item motif prediction tools
 \end{itemize}
 
@@ -79,7 +93,7 @@ Before you can install GimmeMotifs you'll need:
 SciPy is the fundamental package needed for scientific computing with Python. 
 \item matplotlib (0.98 or higher) \url{http://matplotlib.sourceforge.net/} \\
 A python 2D plotting library. All figures and plots produced by GimmeMotifs are made using matplotlib.
-\item parallel python \url{http://www.parallelpython.com/} \\
+\item parallel python 1.6.0 \url{http://www.parallelpython.com/} \\
 A python module which provides mechanism for parallel execution of python code. This Python library is used for parallel execution of for instance the motif finding tools. 
 \item kid \url{http://www.kid-templating.org/} \\
 A simple template language for XML based vocabularies; used to produce the HTML reports.
@@ -89,35 +103,16 @@ A simple template language for XML based vocabularies; used to produce the HTML 
 \begin{itemize}
  \item gsl \url{http://www.gnu.org/software/gsl/} \\
 The GNU Scientific Library. 
-This library might already be installed on your system, but you'll also need the development headers to compile GimmeMotifs. 
+This library might already be installed on your system, but you'll also need the development headers to compile GimmeMotifs!. 
 \end{itemize}
 
 \subsubsection{Motif prediction programs}
-In addition to all the basics you need to get GimmeMotifs up and running you will also need the motif prediction tools, which can be used by GimmeMotifs to predict motifs. You can use any or all of these according to your preference. GimmeMotifs includes several tools by default:
-\begin{itemize}
-\item MEME \cite{bailey_meme_2009} \url{http://meme.sdsc.edu/}
-\item MDmodule \cite{liu_algorithm_2002} (included in the MotifRegressor
-Package) \url{http://www.math.umass.edu/~conlon/mr.html}
-\item trawler \cite{ettwiller_trawler:_2007} \url{http://ani.embl.de/trawler/}
-\item GADEM \cite{li_gadem:genetic_2009} \url{http://www.niehs.nih.gov/research/resources/software/gadem/index.cfm}
-\item BioProspector \cite{liu_bioprospector:_2001} \url{http://motif.stanford.edu/distributions/bioprospector/}
-\item MoAn \cite{valen_discovery_2009} \url{http://moan.binf.ku.dk/}
-\end{itemize}
-To use these programs \emph{no additional steps have to be taken}, all these tools are installed automatically with GimmeMotifs. \textbf{Please note: all these programs include their own license. For commercial use of any of these programs, please consult the respective author!}
-
-The following tools have to be installed seperately: 
+Most motif prediction tools are compiled and/or installed with GimmeMotifs. The following tools have to be installed seperately: 
 \begin{itemize}
 \item Weeder \cite{pavesi_weeder_2004} \url{http://159.149.109.9/modtools/}
 \item Improbizer \cite{ao_environmentally_2004} \url{http://users.soe.ucsc.edu/~kent/}
-\item MotifSampler \cite{thijs_higher-order_2001} \url{http://homes.esat.kuleuven.be/~sistawww/bioi/thijs/download.html}
 \end{itemize}
-
-Please consult the respective manuals regarding installation of these tools. As mentioned, you can install any or all of them, according to your needs. However, we recommend installing at least several to leverage the ensemble approach of GimmeMotifs. All programs we tested find motifs that are not found by other tools. In fact, it's because there is no single all-round top performing method that GimmeMotifs exists. 
-
-It's always possible to install these programs after installation of GimmeMotifs and update the configuration files to include the new tools. However, during installation, GimmeMotifs will try to find any installed tools and add them automatically, so that's the easiest option.
-
-After installation of MotifSampler, one additional configuration step is necessary, described in section \ref{sec:MotifSampler}.
-
+Please consult the respective manuals regarding installation of these tools. It's always possible to install these programs after installation of GimmeMotifs and update the configuration files to include the new tools (see section \ref{sec:adding_tools}). However, during installation, GimmeMotifs will try to find any installed tools and add them automatically, so that's the easiest option.
 
 \subsubsection{Building from source}
 You can download the lastest version of GimmeMotifs at:\\
@@ -140,17 +135,22 @@ If you encounter no errors, go ahead with installing GimmeMotifs (root privilege
 \begin{verbatim}
 sudo python setup.py install
 \end{verbatim}
-During installation GimmeMotifs will try to locate the tools you have installed. If you have recently installed them, running an \texttt{updatedb} will be necessary. Using this option GimmeMotifs will create a configuration file \texttt{/usr/share/gimmemotifs/gimmemotifs.cfg} by default. This is a system-wide configuration that can be used by all users. 
+During installation GimmeMotifs will try to locate the tools you have installed. If you have recently installed them, running an \texttt{updatedb} will be necessary. Using this option GimmeMotifs will create a configuration file, the default is:
+\begin{verbatim}
+/usr/share/gimmemotifs/gimmemotifs.cfg
+\end{verbatim}
+This is a system-wide configuration that can be used by all users.
 
-It is also possible to run the \texttt{setup.py install} command with the \texttt{--prefix}, \texttt{--home}, or \texttt{--install-data} options, to install in GimmeMotifs in a different location (for instance, in your own home directory). In this case a configuration file \texttt{\textasciitilde{}/.gimmemotifs.cfg} will be created. However, these alternative methods of installing GimmeMotifs have not been extensively tested. Let me know if you run into problems.
+It is also possible to run the \texttt{setup.py install} command with the \texttt{--prefix}, \texttt{--home}, or \texttt{--install-data} options, to install in GimmeMotifs in a different location (for instance, in your own home directory). This should be fine, however, these alternative methods of installing GimmeMotifs have not been extensively tested. Please not that in this case the configuration file will be created, but every user will have to put this configuration file in his/her home directory: \texttt{\textasciitilde{}/.gimmemotifs.cfg}. The install script will also inform you of this during install. Please contact me if you run into problems with the installation.
 
 \subsection{Configuration}
 \label{sec:configuration}
 
 \subsubsection{Data sources}
-You will need some genome fasta files for any motif-prediction. Currently GimmeMotifs uses BED files as input (as that's the data-format ChIP-seq pipelines commonly produce), so the genomic fasta files are absolutely required to get the sequence information. These files should be organized in one directory with one file per chromosome or scaffold, with the filename being the chromosome name with an extension of \texttt{.fa}, \texttt{.fsa} or \texttt{.fasta}. No exceptions, no different layouts. A good source is the UCSC Genome Browser database \cite{rhead_ucsc_2010}. For instance, the human hg18 files needed to run the examples included with GimmeMotifs can be downloaded here:\\
-\url{ftp://hgdownload.cse.ucsc.edu/goldenPath/hg18/bigZips/chromFa.zip}.\\
-\\
+You will need some genome fasta files for any motif-prediction if you want to run GimmeMotifs with BED files as input (which is recommended). To get from a BED file to the sequence information these genomic fasta files are absolutely required. The fasta files should be organized in one directory with one file per chromosome or scaffold, with the filename being the chromosome name with an extension of \texttt{.fa}, \texttt{.fsa} or \texttt{.fasta}. No exceptions, no different layouts. A good source is the UCSC Genome Browser database \cite{rhead_ucsc_2010}. For instance, the human hg18 files needed to run the examples included with GimmeMotifs can be downloaded here:
+\begin{verbatim}
+ftp://hgdownload.cse.ucsc.edu/goldenPath/hg18/bigZips/chromFa.zip
+ \end{verbatim}
 All fasta files need to be indexed before GimmeMotifs can use them, see section \ref{sec:indexing}.
 
 \subsubsection{Indexing the genomes}
@@ -163,19 +163,38 @@ For instance, if I wanted to index the human genome (version hg18) on my compute
 \begin{verbatim}
 sudo create_genome_index.py -f /usr/share/genome/hg18/ -n hg18
 \end{verbatim}
-Repeat this step for every additional genome or organism that you want to use GimmeMotifs with.
-
-Please note: for Weeder, currently only hg18, hg19, mm9, sacCer2 and xenTro2 are supported as organism names (following the UCSC naming convention). This will be fixed as a configuration file in a later release.
+Repeat this step for every additional genome or organism that you want to use GimmeMotifs with. Please note: for Weeder, currently only hg18, hg19, mm9, sacCer2 and xenTro2 are supported as organism names (following the UCSC naming convention). This will be fixed as a configuration file in a later release.
 
 \subsubsection{Adding gene files}
-When using the \texttt{genomic\_matched} background setting (which is the default), there needs to be a file describing genes in BED format in the \texttt{/usr/share/gimmemotifs/genes/} directory. The file needs to be named \texttt{<index\_name>.bed}, so for instance \texttt{hg18.bed}. By default \texttt{hg18.bed}, \texttt{mm9.bed} and \texttt{xenTro2.bed} are included.
+When using the \texttt{genomic\_matched} background setting (which is the default), there needs to be a file describing genes in BED format in the \texttt{gene\_dir}, which is defined in the configuration file. By default this is: \texttt{/usr/share/gimmemotifs/genes/}. The file needs to be named \texttt{<index\_name>.bed}, so for instance \texttt{hg18.bed}. By default \texttt{hg18.bed}, \texttt{mm9.bed} and \texttt{xenTro2.bed} are included.
 
 \subsubsection{The easy way: \texttt{add\_organism.py}}
 The script \texttt{add\_organism.py} combines the previous two steps (indexing the fasta files, and adding a gene file), and makes sure the gene BED file is in the correct place with the correct name. This is the easiest way to add a new genome/organism for use with GimmeMotifs.
 
+\subsubsection{Adding motif prediction tools} \label{sec:adding_tools}
+Please note that these steps are only necessary when you have installed any of these tools after you have installed GimmeMotifs.
+
+\subsubsection*{Weeder}
+After installing Weeder the following section needs to be added to the GimmeMotifs configuration file:
+\begin{verbatim}
+[Weeder]
+bin = /usr/share/Weeder/weederTFBS.out
+dir = /usr/share/Weeder/ 
+\end{verbatim}
+All other Weeder binaries should be present in the same directory as \texttt{weederTFBS.out}. The directory specified by \texttt{dir} should contain the FreqFiles directory included with Weeder.
+
+\subsubsection*{Improbizer}
+After installing Improbizer the following section needs to be added to the GimmeMotifs configuration file:
+\begin{verbatim}
+[Improbizer]
+bin = /usr/bin/ameme
+dir = /usr/bin
+\end{verbatim}
+The \texttt{bin} option should point towards the \texttt{ameme} binary, the \texttt{dir} option is not important.
+
 \subsubsection{MotifSampler configuration}
 \label{sec:MotifSampler}
-If you want to use MotifSampler there is one more step that you'll have to take \emph{after} installation of GimmeMotifs. For every organism, you'll need a MotifSampler background. These can be obtained from \url{http://homes.esat.kuleuven.be/~thijs/Work/BackgroundModel.html} or, alternatively, be created with \texttt{CreateBackgroundModel} (which can be downloaded from the same site as MotifSampler). The background model file needs to be saved in the directory \texttt{/usr/share/gimmemotifs/MotifSampler} and it should be named \texttt{<organism\_index\_name>.bg}. So, for instance, if I downloaded the human epd background (\texttt{epd\_homo\_sapiens\_499\_chromgenes\_non\_split\_3.bg}), this file should be saved as \texttt{/usr/share/gimmemotifs/MotifSampler/hg18.bg}.
+If you want to use MotifSampler there is one more step that you'll have to take \emph{after} installation of GimmeMotifs. For every organism, you'll need a MotifSampler background. These can be created with \texttt{CreateBackgroundModel} (which is included with GimmeMotifs or can be downloaded from the same site as MotifSampler). The background model file needs to be saved in the directory \texttt{/usr/share/gimmemotifs/MotifSampler} and it should be named \texttt{<organism\_index\_name>.bg}. So, for instance, if I downloaded the human epd background (\texttt{epd\_homo\_sapiens\_499\_chromgenes\_non\_split\_3.bg}), this file should be saved as \texttt{/usr/share/gimmemotifs/MotifSampler/hg18.bg}.
 
 \subsubsection{Other configuration options}
 All of GimmeMotifs configuration is stored in \texttt{/usr/share/gimmemotifs/gimmemotifs.cfg} or \texttt{\textasciitilde{}/.gimmemotifs.cfg}. If the file \texttt{\textasciitilde{}/.gimmemotifs.cfg} exists in your home directory this will always have precedence over the system-wide configuration.
@@ -189,6 +208,7 @@ seqlogo = /usr/local/bin/seqlogo
 score_dir = /usr/share/gimmemotifs/score_dists
 motif_databases = /usr/share/gimmemotifs/motif_databases
 gene_dir = /usr/share/gimmemotifs/genes
+tools_dir = /usr/share/gimmemotifs/tools
 \end{verbatim}
 \begin{itemize}
  \item \texttt{index\_dir} The location of the indeces of the genome fasta-files.
@@ -196,7 +216,8 @@ gene_dir = /usr/share/gimmemotifs/genes
  \item \texttt{seqlogo} The seqlogo executable.
  \item \texttt{score\_dir} To generate p-values, a pre-calculated file with mean and sd of score distributions is needed. These are located here.
  \item \texttt{motif\_databases} For now contains only the JASPAR motifs.
- \item \texttt{gene\_dir} A bed-file containing gene locations for every indexed organism. This is needed to create the matched genomic background.
+ \item \texttt{gene\_dir} Directory with bed-files containing gene locations for every indexed organism. This is needed to create the matched genomic background.
+ \item \texttt{tools\_dir} Here all tools included with GimmeMotifs are stored.
 \end{itemize}
 
 \begin{verbatim}
@@ -214,12 +235,13 @@ cluster_threshold = 0.95
 available_tools = Weeder,MDmodule,MotifSampler,gadem,meme,trawler
 abs_max = 1000
 enrichment = 1.5
+max_time = None
 \end{verbatim}
 This section specifies all the default GimmeMotifs parameters. Most of these can also be specified at the command-line when running GimmeMotifs, in which case they will override the parameters specified here.
 
 \section{Usage}
 \subsection{Quick GimmeMotifs example}
-You can try GimmeMotifs with two example datasets included in the examples directory. This example does require you to have hg18 present and indexed. 
+You can try GimmeMotifs with a small example dataset included in the examples directory. This example does require you to have hg18 present and indexed. 
 Change to the examples directory and run the following command:
 \begin{verbatim}
 gimme_motifs.py -i TAp73alpha.fa -n p73
@@ -229,12 +251,32 @@ The \texttt{-n} or \texttt{--name} option defines the name of the output directo
 
 Depending on your computer you may have to wait some minutes for your results. Once GimmeMotifs is finished you can open \url{p73/p73_motif_report.html} in your browser. 
 
+\subsection{Using GimmeMotifs: best practices and tips}
+\subsubsection{GimmeMotifs is multi-threaded}
+GimmeMotifs runs multi-threaded and uses all the CPU's in the system. This means that all the programs will be run in parallel as much as possible. Of course some programs are still single-threaded, and will not benefit from this. Because GimmeMotifs uses all the available CPU's it does not make much sense to start multiple GimmeMotifs jobs at the same time. 
+
+\subsubsection{Running time}
+The running time of GimmeMotifs greatly depends on which tools you use for prediction and how large the dataset is. Some of the tools might take a very long time and two of them, GADEM and MoAn, are not added to the default tools because of this reason. You can always use them for an analysis (by specifying the \texttt{-t} command-line option), but it is recommended to only do this for a small dataset (say, less than 5000 peaks). Weeder in combination with the \texttt{xl} analysis can also take a very long time, so be prepared. In general a \texttt{small} analysis will be the quickest, and a \texttt{xl} analysis will be the slowest.
+
+While GimmeMotifs is developed specifically for ChIP-seq datasets, most motif prediction tools are not. In practice this means that it does not make much sense to predict motifs on a large amount of sequences, as this will usually not result in higher quality motifs. Therefore GimmeMotifs uses an absolute limit for the prediction set. By default 20\% of the sequences are used as input for motif prediction, but with an absolute maximum. This is controlled by the \texttt{abs\_max} parameter in the configuration file, which is set to 1000 by default. In general, if you have a large amount of peaks, you can also consider to run GimmeMotifs on the top sequences of your input, for instance the 5000 highest peaks. 
+
+There are two options that you can use to control the running time of GimmeMotifs. First, you can set an absolute time limit with the \texttt{max\_time} option. This option (in hours) determines the maximum time used for motif prediction. If some programs take longer, the running jobs will be terminated, and the program will continue with all the motifs that have been predicted so far. The other option is kind of an emergency button: when you think that GimmeMotifs has been running long enough, you can press Ctrl+C \textbf{once, and only once!}. This will signal GimmeMotifs to terminate the running jobs and continue with the analysis. Please note that this works almost always, but still, there is a small chance that program might be in a function where the Ctrl-C option screws up, and GimmeMotifs will not be able to handle the result gracefully. 
+
+\subsubsection{Intermediate results}
+GimmeMotifs produces a lot of intermediate results, such as all predicted motifs, fasta-files used for validation and so on. These are deleted by default (as they can get quite large), but if you are interested in them, you can specify the \texttt{-k} option.
+
+\subsubsection{Running on FASTA files}
+It is also possible to run GimmeMotifs on a FASTA file as input instead of a BED file. This is detected automatically if you're inputfile correctly formatted according to FASTA specifications. In this case it is not possible to generate a genomic matched background, so only the random Markov background will be used. Please not that for best results, all the sequences should be of the same length. This is not necessary for motif prediction, but the statistics and positional preference plots will be wrong if sequences have different lengths. Also see the next section.
+
+\subsubsection{Small input sets}
+Keep in mind that GimmeMotifs is developed for larger datasets, where you have the luxury to use a large fraction of your input for validation. So, at least several hundred sequences would be optimal. If you want to run GimmeMotifs on a small input dataset, it might be worthwile to increase the fraction used for prediction (with the \texttt{-f} parameter.
+
 \subsection{Detailed options}
 \begin{itemize}
 \item 
 \texttt{-i} or \texttt{--inputfile}
 
-This is the only mandatory option. The inputfile needs to be in BED format: at least three tab-seperated columns describing chromosome name, start and end. The fourth column is optional, if specified it will be used by MDmodule to sort the features before motif prediction. GimmeMotifs will take the middle of these features, and subsequently extend those to the width specified by the \texttt{width} parameter (see below).
+This is the only mandatory option. The inputfile needs to be in BED or FASTA format. BED-fomatted files need to contain at least three tab-seperated columns describing chromosome name, start and end. The fourth column is optional, if specified it will be used by MDmodule to sort the features before motif prediction. GimmeMotifs will take the center of these features, and subsequently extend those to the width specified by the \texttt{width} parameter (see below).
 
 \item 
 \texttt{-n} or \texttt{--name}
@@ -290,29 +332,72 @@ Width used in the positional preference plots.
 \texttt{-t} or \texttt{--tools}
 
 A comma-seperated list of all the motif prediction tools to use. By default all installed tools that are specified in the GimmeMotifs configuration file are used.
+
+\item
+\texttt{--max\_time}
+
+ Time limit for motif prediction in hours. Use this to control the maximum number of hours that GimmeMotifs uses for motif prediction. After this time, all jobs that are still running will be terminated, and GimmeMotifs will continue with the motifs that are predicted so far.
+
 \end{itemize}
 
-\subsection{Other scripts}
+
+\section{Other scripts}
 In addition to \texttt{gimme\_motifs.py} the GimmeMotifs package contains several other tools that can perform the various substeps of GimmeMotifs, as well as other useful tools. Run them to see the options.
 
+\subsection{Input formats}
+Most tools in this section take a file in PWM format as input. This is actually a file with Position Specific Scoring Matrices (PSSMs) containing \emph{frequencies}. It looks like this:
 \begin{verbatim}
-closest_motif_match.py
-create_genome_index.py
-generate_sequences.py
-motif_cluster.py
-motif_localization_plots.py
-motif_roc.py
-motif_roc_metrics.py
-pwm2logo.py
-pwmscan.py
-track2fasta.py 
+>motif1
+0.3611	0.0769	0.4003	0.1664
+0.2716	0.0283	0.5667	0.1381
+0.6358	0.0016	0.3344	0.0330
+0.0016	0.9859	0.0016	0.0157
+0.8085	0.0063	0.0502	0.1397
+>motif2
+0.2276	0.0157	0.0330	0.7284
+0.0031	0.0016	0.9984	0.0016
+0.0377	0.3799	0.0016	0.5856
+0.0816	0.7096	0.0173	0.1962
+0.1350	0.4035	0.0675	0.3987
 \end{verbatim}
+The frequencies are seperated by tabs, and in the order A,C,G,T.
+
+\subsection{Descriptions}
+\subsection*{closest\_motif\_match.py}
+Taking an input file with motifs, find the best matching file in another file of motifs (according to the WIC metric).
+
+\subsection*{create\_genome\_index.py}
+Creates an index to use with GimmeMotifs. See section \ref{sec:configuration} for details.
+
+\subsection*{generate\_sequences.py}
+Generate random sequences with the same dinucleotide distribution as the input sequences according to a 1st order Markov model trained on the input sequences. The \texttt{-n} options is set to 10 by default. The length distribution of the sequences in the outputfile will be similar as the inputfile.
+
+\subsection*{motif\_cluster.py}
+Cluster a set of motifs with the WIC metric.
+
+\subsection*{motif\_localization\_plots.py}
+Create the positional preference plots for all the motifs in the input PWM file. This will give best results if all the sequences in the FASTA-formatted inputfile have the same length. Keep in mind that this only makes sense if the sequences are centered around a similar feature (transcription start site, highest point in a peak, etc.). The default threshold for motif scanning is 0.95, see \texttt{pwmscan.py} for more details.
+
+\subsection*{motif\_roc.py}
+Given a sample (positives, peaks) and a background file (random sequences, random promoters or similar),  creates a ROC plot for all the motifs in an input PWM file. All the motifs will be plotted in the same graph, you can select one or more specific motifs to plot with the \texttt{-i} option.
+
+\subsection*{motif\_roc\_metrics.py}
+Given a sample (positives, peaks) and a background file (random sequences, random promoters or similar),  calculated several statistics for all the motifs in an input PWM file. You can select one or more specific motifs with the \texttt{-i} option. The ROC area under curve (ROC\_AUC), Mean Normalized Conditional Probability (MNCP) and maximum f-measure are reported for each motif.
+
+\subsection*{pwm2logo.py}
+Convert the motifs in a PWM file to a logo using weblogo.
+
+\subsection*{pwmscan.py}
+Scan a set of sequences with a set of motifs, and give the resulting matches in GFF or BED format. The threshold is based on the maximum and minimum possible score for each motif. So, 0.95 means that the score of a motif should be at least 95\% of the (maximum score - minimum score). This should probably not be set much lower than 0.8, and should be generally at least 0.9 for good specificity. Keep in mind that the optimal threshold might be different for each motif!
+
+\subsection*{track2fasta.py }
+Convert a set of BED formatted sequences to a FASTA file. The genome needs to be indexed for GimmeMotifs using \texttt{create\_genome\_index.py}.
 
 %\section{Frequently Asked Questions}
 
 \section{Acknowledgements}
-We are grateful to Waseem Akhtar, Robert Akkers, Max Koeppel, Evelyn Kouwenhoven, Leonie Smeenk and Jo Zhou for providing data and feedback during GimmeMotifs development. Also we would like to thank Stefanie Bartels, Adalberto Costessi, Joost Martens and Nagesha Rao for testing and helpful discussion.
-Of course GimmeMotifs by itself wouldn't be able to do anything, if there wasn't such a number of excellent tools available. Therefore, thanks to all the authors of the motif prediction programs for making their software publicly available!
+We are grateful to Waseem Akhtar, Robert Akkers, Max Koeppel, Evelyn Kouwenhoven, Marion Lohrum, Leonie Smeenk and Jo Zhou for providing data and feedback during GimmeMotifs development. Also we would like to thank Stefanie Bartels, Adalberto Costessi, Joost Martens and Nagesha Rao for testing and helpful discussion.
+Of course GimmeMotifs by itself wouldn't be able to do anything, if there wasn't such a number of excellent tools available. Therefore, a big thanks to all the authors of the motif prediction programs for making their software publicly available!
 
 \bibliography{gimmemotifs}
 

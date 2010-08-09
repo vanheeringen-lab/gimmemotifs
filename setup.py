@@ -4,6 +4,7 @@ from distutils.command.build import build
 from distutils.util import get_platform
 from distutils import log as dlog
 from subprocess import Popen
+from platform import machine
 from gimmemotifs.utils import which
 from gimmemotifs.tools import *
 from glob import glob
@@ -18,6 +19,7 @@ DESCRIPTION  = """GimmeMotifs is a motif prediction pipeline.
 """
 
 DEFAULT_PARAMS = {
+	"max_time": None,
 	"analysis": "medium",
 	"fraction": 0.2,
 	"abs_max": 1000,
@@ -28,20 +30,22 @@ DEFAULT_PARAMS = {
 	"background": "genomic_matched,random",
 	"genome": "hg18",
 	"tools": "MDmodule,Weeder,MotifSampler",
-	"available_tools": "Weeder,MDmodule,MotifSampler,gadem,meme,trawler,WannaMotif,Improbizer,MoAn,BioProspector",
+	"available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,trawler,WannaMotif,Improbizer,MoAn,BioProspector",
 	"cluster_threshold": "0.95",
 	"use_strand": False
 }
 
 MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector"]
+LONG_RUNNING = ["MoAn", "GADEM"]
+
 
 # Included binaries after compile
 MOTIF_BINS = {
-	"Meme": "src/meme_4.4.0/src/meme.bin",
+	"MEME": "src/meme_4.4.0/src/meme.bin",
 	"MDmodule": "src/MDmodule/MDmodule",
 	"BioProspector": "src/BioProspector/BioProspector",
 	"MoAn": "src/MoAn/moan",
-	"Gadem": "src/GADEM_v1.3/src/gadem"
+	"GADEM": "src/GADEM_v1.3/src/gadem"
 }
 
 data_files=[
@@ -81,6 +85,7 @@ class build_tools(Command):
 		self.build_base = None
 		self.plat_name = None
 		self.build_tools_dir = None
+		self.machine = None
 
 	def finalize_options(self):	
 		if self.plat_name is None:
@@ -89,7 +94,8 @@ class build_tools(Command):
 		plat_specifier = ".%s-%s" % (self.plat_name, sys.version[0:3])
 		self.build_tools_dir = os.path.join(self.build_base, 'tools' + plat_specifier)
 		self.set_undefined_options('build',('custom_build', 'build_tools_dir'))
-	
+		self.machine = machine()
+
 	def run(self):
 		from compile_externals import compile_all
 		if not os.path.exists(self.build_tools_dir):
@@ -118,6 +124,20 @@ class build_tools(Command):
 				shutil.rmtree(os.path.join(self.build_tools_dir, "trawler"))
 			shutil.copytree("src/trawler_standalone-1.2", os.path.join(self.build_tools_dir, "trawler"))
 
+		# Copy MotifSampler
+		if self.machine == "x86_64":
+			if os.path.exists("src/MotifSampler"):
+				dlog.info("copying MotifSampler 64bit")
+				shutil.copy("src/MotifSampler/MotifSampler_x86_64", os.path.join(self.build_tools_dir, "MotifSampler"))
+				shutil.copy("src/MotifSampler/CreateBackgroundModel_x86_64", os.path.join(self.build_tools_dir, "CreateBackgroundModel"))
+		else: 
+			if os.path.exists("src/MotifSampler"):
+				dlog.info("copying MotifSampler 32bit")
+				shutil.copy("src/MotifSampler/MotifSampler_i386", os.path.join(self.build_tools_dir, "MotifSampler"))
+				shutil.copy("src/MotifSampler/CreateBackgroundModel_i386", os.path.join(self.build_tools_dir, "CreateBackgroundModel"))
+
+			
+
 class build_config(Command):
 	description = "create a rudimentary config file"
 	
@@ -137,7 +157,7 @@ class build_config(Command):
 			os.mkdir(self.build_cfg)
 
 		from gimmemotifs.config import MotifConfig
-		cfg = MotifConfig(use_config="cfg/gimmemotifs.cfg.example")
+		cfg = MotifConfig(use_config="cfg/gimmemotifs.cfg.base")
 		
 		dlog.info("locating motif programs")
 		available = []
@@ -195,6 +215,12 @@ class build_config(Command):
 		
 		# Set the available tools in the config file
 		DEFAULT_PARAMS["available_tools"] = ",".join(available)
+		
+		for tool in available:
+			if tool in LONG_RUNNING:
+				dlog.info("PLEASE NOTE: %s can take a very long time to run on large datasets. Therefore it is not added to the default tools. You can always enable it later, see documentation for details" % tool)
+				available.remove(tool)
+
 		DEFAULT_PARAMS["tools"] = ",".join(available)
 		cfg.set_default_params(DEFAULT_PARAMS)
 
@@ -296,12 +322,13 @@ class install_config(Command):
 #		if os.path.abspath(self.install_dir) == "/usr/share":
 		config_file = os.path.join(self.install_dir, "gimmemotifs/%s" % CONFIG_NAME)
 		self.outfiles = [config_file] 
-#		else:
-#			config_file = os.path.expanduser("~/.%s" % CONFIG_NAME)
-		
+
+
 		if os.path.exists(config_file):
 			new_config = config_file + ".tmp"
-			dlog.info("INFO: Configfile %s already exists!\n      Will create %s, which contains the new config.\n      If you want to use the newly generated config you can move %s to %s, otherwise you can delete %s.\n" % (config_file, new_config, new_config, config_file, new_config))
+			dlog.info("INFO: Configfile %s already exists!" % config_file)
+			dlog.info("INFO: Will create %s, which contains the new config." % new_config)
+			dlog.info("INFO: If you want to use the newly generated config you can move %s to %s, otherwise you can delete %s.\n" % (new_config, config_file, new_config))
 
 			f =  open(new_config, "wb")
 			cfg.write(f)
@@ -310,7 +337,10 @@ class install_config(Command):
 			f =  open(config_file, "wb")
 			cfg.write(f)
 		
-		dlog.info("edit %s to further configure GimmeMotifs." % config_file)
+		if os.path.abspath(self.install_dir) != "/usr/share":
+			dlog.info("PLEASE NOTE: GimmeMotifs is installed in a non-standard location.")
+			dlog.info("PLEASE NOTE: This is fine, but then every user should have a file called ~/.gimmemotifs.cfg")
+			dlog.info("PLEASE NOTE: The file %s is fully configured during install and can be used for that purpose." % config_file)
 	
 	def get_outputs(self):
 		return self.outfiles or []

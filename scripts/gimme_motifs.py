@@ -13,7 +13,7 @@ config = MotifConfig()
 params = config.get_default_params()
 
 parser = OptionParser(version="%prog " + VERSION)
-parser.add_option("-i", "--inputfile", dest="inputfile", help="Inputfile in bed format", metavar="FILE")
+parser.add_option("-i", "--inputfile", dest="inputfile", help="Inputfile in BED or FASTA format", metavar="FILE")
 parser.add_option("-k", "--keepintermediate", dest="keep_intermediate", help="Don't delete intermediate files", default=False, action="store_true")
 parser.add_option("-n", "--name", dest="name", help="Give your analysis a name", metavar="NAME")
 parser.add_option("-a", "--analysis",dest="analysis", help="Analysis type: small, medium, large, xl (%s)" % params["analysis"], metavar="ANALYSIS", default=params["analysis"])
@@ -26,6 +26,7 @@ parser.add_option("-p", "--pvalue", dest="pvalue", help="Motif significance: p-v
 parser.add_option("-b", "--background", dest="background", help="Background to determine significance genomic_matched,random (%s)" % params["background"], metavar="N", default=params["background"])
 parser.add_option("-l", "--localization_width", dest="lwidth", help="Width to use for motif localization graphs (%s)" % params["lwidth"], metavar="N", default=params["lwidth"], type=int)
 parser.add_option("-t", "--tools", dest="tools", help="Tools to use, any combination of %s (default %s)" % (params["available_tools"], params["tools"]), metavar="N", default=params["tools"])
+parser.add_option("--max_time", dest="max_time", help="Time limit for motif prediction in hours (default: %s)" % str(params["max_time"]), metavar="HOURS", default=params["max_time"])
 parser.add_option("-x", dest="weird_option", help="Do NOT use this!", default=False, action="store_true")
 
 (options, args) = parser.parse_args()
@@ -76,6 +77,7 @@ params = {
 	"fraction": options.fraction,
 	"use_strand": options.single,
 	"keep_intermediate": options.keep_intermediate,
+	"max_time": options.max_time,
 	"weird_option": options.weird_option
 }
 

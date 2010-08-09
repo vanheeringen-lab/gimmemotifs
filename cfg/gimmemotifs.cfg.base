@@ -1,0 +1,25 @@
+[main]
+index_dir = /usr/share/gimmemotifs/genome_index
+bg = /usr/share/gimmemotifs/bg
+template_dir = /usr/share/gimmemotifs/templates
+score_dir = /usr/share/gimmemotifs/score_dists
+gene_dir = /usr/share/gimmemotifs/genes
+motif_databases = /usr/share/gimmemotifs/motif_databases
+seqlogo = /usr/share/gimmemotifs/tools/seqlogo
+tools = /usr/share/gimmemotifs/tools
+
+[params]
+fraction = 0.2
+use_strand = False
+abs_max = 1000
+analysis = medium
+enrichment = 1.5
+width = 200
+lwidth = 500
+genome = hg18
+background = genomic_matched,random
+cluster_threshold = 0.95
+available_tools = MDmodule,MEME,Weeder,GADEM,MotifSampler,trawler,Improbizer,MoAn,BioProspector
+tools = MDmodule,MEME,Weeder,MotifSampler,trawler,Improbizer,BioProspector
+pvalue = 0.001
+max_time = None
