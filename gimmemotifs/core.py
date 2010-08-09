@@ -23,6 +23,10 @@ from gimmemotifs.background import *
 from gimmemotifs.comparison import *
 from gimmemotifs import genome_index
 from gimmemotifs.cluster import *
+
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
