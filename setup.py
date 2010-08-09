@@ -254,6 +254,11 @@ class install_tools(Command):
 
 		dst = os.path.join(self.install_dir, "gimmemotifs/tools")
 		self.outfiles = self.copy_tree(self.tools_dir, self.install_tools_dir)
+		for file in self.outfiles:
+			#trawler pl's
+			if file.endswith("pl"):
+				os.chmod(file, 0755)
+	
 	def get_outputs(self):
 		return self.outfiles or []
 
