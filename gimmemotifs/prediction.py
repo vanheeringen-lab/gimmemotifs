@@ -32,8 +32,6 @@ class PredictionResult:
 		# Callback function for motif programs
 		motifs, stdout, stderr = args
 		
-		self.finished.append(job)
-		
 		if self.logger:
 			self.logger.info("%s finished, found %s motifs" % (job, len(motifs))) 
 		if len(motifs) > 0:
@@ -42,6 +40,8 @@ class PredictionResult:
 			self.lock.release()
 		self.logger.debug("stdout %s: %s" % (job, stdout))
 		self.logger.debug("stdout %s: %s" % (job, stderr))
+
+		self.finished.append(job)
 
 def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False, background="", tools={}, job_server="", n_cpu=8, logger=None, max_time=None):
 	
