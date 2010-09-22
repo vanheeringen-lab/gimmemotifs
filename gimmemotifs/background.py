@@ -46,18 +46,21 @@ class MarkovFasta(Fasta):
 	
 	"""
 	
-	def __init__(self, fasta, length=None, multiply=10):
+	def __init__(self, fasta, length=None, multiply=10, k=1):
 		
+		
+		self.k = k
+
 		# Initialize super Fasta object
 		Fasta.__init__(self)
 		
 		# Initialize Markov transition matrix
-		self._initialize_matrices(fasta.seqs)
+		self._initialize_matrices(fasta.seqs, k=k)
 
 		c = 0
 		for seq in fasta.seqs:
 			for i in range(multiply):
-				id = "random_1st_order_%s" % (c)
+				id = "random_Markov%s_%s" % (k,c)
 				if length:
 					random_seq = self._generate_sequence(length)
 				else:
@@ -84,15 +87,14 @@ class MarkovFasta(Fasta):
 				new_init.append(x + l)
 		
 		kmercount = dict([(word, 0) for word in new_init])
-		lettercount =  dict([(l, 0) for l in alphabet])
-
+		lettercount =  dict([(word[:k], 0) for word in new_init])
 		p = re.compile("^[%s]+$" % "".join(alphabet))
 		total = 0
 		for seq in seqs:
 			seq = seq.lower()
 			for i in range(len(seq) - k):
 				if p.search(seq[i:i + k + 1]):
-					lettercount[seq[i]] += 1
+					lettercount[seq[i:i + k]] += 1
 					kmercount[seq[i:i + k + 1]] += 1
 					total += 1
 		
@@ -110,9 +112,9 @@ class MarkovFasta(Fasta):
 			self.init[k] = v / total
 			
 	def _generate_sequence(self, l):
-		sequence = [self._weighted_random(self.init.items())] 
-		for i in range(l - 1):
-			sequence.append(self._weighted_random(self.trans[sequence[-1]].items()))
+		sequence = list(self._weighted_random(self.init.items()))
+		for i in range(l - self.k):
+			sequence.append(self._weighted_random(self.trans["".join(sequence[-self.k:])].items()))
 		return "".join(sequence)
 
 	def _weighted_random(self, l):

@@ -791,6 +791,7 @@ class Meme(MotifProgram):
 		number = default_params["number"]
 		
 		cmd = (bin, fastafile, "-text","-dna","-nostatus","-mod", "zoops","-nmotifs", "%s" % number, "-w","%s" % width, "-maxsize", "10000000", "%s" % strand)
+		sys.stderr.write(" ".join(cmd) + "\n")
 		p = Popen(cmd, bufsize=1, stderr=PIPE, stdout=PIPE) 
 		stdout,stderr = p.communicate()
 
