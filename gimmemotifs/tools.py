@@ -483,7 +483,7 @@ class Weeder(MotifProgram):
 					
 		return motifs
 
-class MotifSampler(MotifProgram):
+class 	MotifSampler(MotifProgram):
 	def __init__(self):
 		self.name = "MotifSampler"
 		self.cmd = "MotifSampler"
@@ -784,13 +784,13 @@ class Meme(MotifProgram):
 		tmpname = tmp.name
 	
 		strand = "-revcomp"
-		if default_params["single"]:
-			strand = ""
-
 		width = default_params["width"]
 		number = default_params["number"]
 		
-		cmd = (bin, fastafile, "-text","-dna","-nostatus","-mod", "zoops","-nmotifs", "%s" % number, "-w","%s" % width, "-maxsize", "10000000", "%s" % strand)
+		cmd = [bin, fastafile, "-text","-dna","-nostatus","-mod", "zoops","-nmotifs", "%s" % number, "-w","%s" % width, "-maxsize", "10000000"]
+		if not default_params["single"]:
+			cmd.append(strand)
+		
 		sys.stderr.write(" ".join(cmd) + "\n")
 		p = Popen(cmd, bufsize=1, stderr=PIPE, stdout=PIPE) 
 		stdout,stderr = p.communicate()
@@ -824,7 +824,11 @@ class Meme(MotifProgram):
 						if not pfm:
 							pfm = [[0 for x in range(4)] for x in range(len(l))]
 						for pos in range(len(l)):
-							pfm[pos][nucs[l[pos]]] += 1
+							if l[pos] in nucs.keys():
+								pfm[pos][nucs[l[pos]]] += 1
+							else:
+								for i in range(4):
+									pfm[pos][i] += 0.25
 					
 					line = fo.readline()
 				
