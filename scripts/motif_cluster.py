@@ -16,7 +16,7 @@ from optparse import OptionParser
 
 parser = OptionParser()
 parser.add_option("-i", "--inputfile", dest="inputfile", help="Inputfile (PFM format)", metavar="FILE")
-parser.add_option("-o", "--outdir", dest="outdir", help="Inputfile in bed format", metavar="FILE")
+parser.add_option("-o", "--outdir", dest="outdir", help="Name of output directory", metavar="FILE")
 parser.add_option("-b", "--bg", dest="include_bg", help="bg (don't use this)", default=True, action="store_false")
 parser.add_option("-s", "--singlestrand", dest="single", help="Don't compare reverse complements of motifs", default=False,action="store_true")
 parser.add_option("-t", "--threshold", dest="threshold", help="Cluster threshold", default=0.95, type="float")
