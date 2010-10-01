@@ -54,13 +54,13 @@ data_files=[
 	('gimmemotifs/genes', ['genes/hg18.bed', 'genes/mm9.bed', 'genes/xenTro2.bed']),
 	('gimmemotifs/bg', ['bg/hg18.MotifSampler.bg', 'bg/mm9.MotifSampler.bg', 'bg/xenTro2.MotifSampler.bg']),
 	('gimmemotifs/motif_databases', ['motif_databases/jaspar.pfm']),
+	('gimmemotifs/doc', ['doc/gimmemotifs_manual.pdf','doc/gimmemotifs_manual.html']),
+	('gimmemotifs/examples', ['examples/TAp73alpha.bed','examples/TAp73alpha.fa']),
 	('gimmemotifs/genome_index', ['genome_index/README.txt'])
 ]
 
 
 # Fix for install_data, add share to prefix (borrowed from Dan Christiansen) 
-
-
 for platform, scheme in INSTALL_SCHEMES.iteritems():
 	if platform.startswith('unix_'):
 		if scheme['data'][0] == '$' and '/' not in scheme['data']:
