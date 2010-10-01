@@ -791,7 +791,7 @@ class Meme(MotifProgram):
 		if not default_params["single"]:
 			cmd.append(strand)
 		
-		sys.stderr.write(" ".join(cmd) + "\n")
+		#sys.stderr.write(" ".join(cmd) + "\n")
 		p = Popen(cmd, bufsize=1, stderr=PIPE, stdout=PIPE) 
 		stdout,stderr = p.communicate()
 
