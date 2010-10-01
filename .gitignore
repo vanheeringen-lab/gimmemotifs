@@ -4,6 +4,7 @@ build/*
 doc/*
 !doc/*.tex
 !doc/*.pdf
+!doc/*.txt
 examples/*
 !examples/*.bed
 !examples/*.fa
