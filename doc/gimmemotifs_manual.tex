@@ -28,16 +28,16 @@ This document describes how to install and use GimmeMotifs, for theoretical deta
 Hopefully this document explains at least the basics of installation and usage, but it's probably far from complete. If you have any further question, please don't hesistate to contact me: \url{s.vanheeringen@ncmls.ru.nl}.
 
 \section{What's included?}
-GimmeMotifs is dependent upon the great work of others, motif prediction algorithms. GimmeMotifs includes several tools by default:
+GimmeMotifs is dependent upon the great work of others: motif prediction algorithms. GimmeMotifs includes several tools by default:
 \begin{itemize}
-\item MEME \cite{bailey_meme_2009} \url{http://meme.sdsc.edu/}
-\item MDmodule \cite{liu_algorithm_2002} (included in the MotifRegressor
-Package) \url{http://www.math.umass.edu/~conlon/mr.html}
-\item trawler \cite{ettwiller_trawler:_2007} \url{http://ani.embl.de/trawler/}
-\item GADEM \cite{li_gadem:genetic_2009} \url{http://www.niehs.nih.gov/research/resources/software/gadem/index.cfm}
 \item BioProspector \cite{liu_bioprospector:_2001} \url{http://motif.stanford.edu/distributions/bioprospector/}
+\item GADEM \cite{li_gadem:genetic_2009} \url{http://www.niehs.nih.gov/research/resources/software/gadem/index.cfm}
+\item Improbizer \cite{ao_environmentally_2004} \url{http://users.soe.ucsc.edu/~kent/}
+\item MDmodule \cite{liu_algorithm_2002} (included in the MotifRegressor Package) \url{http://www.math.umass.edu/~conlon/mr.html}
+\item MEME \cite{bailey_meme_2009} \url{http://meme.sdsc.edu/}
 \item MoAn \cite{valen_discovery_2009} \url{http://moan.binf.ku.dk/}
 \item MotifSampler \cite{thijs_higher-order_2001,thijs_gibbs_2002} \url{http://homes.esat.kuleuven.be/~sistawww/bioi/thijs/download.html}
+\item trawler \cite{ettwiller_trawler:_2007} \url{http://ani.embl.de/trawler/}
 \end{itemize}
 All these tools are installed automatically with GimmeMotifs. To use these programs \emph{no additional steps have to be taken} (except for MotifSampler see \ref{sec:MotifSampler}). \textbf{Please note: all these programs include their own license and most are free for academic or non-commercial use only! For commercial use of any of these programs, please consult the respective author!}
 
@@ -54,7 +54,7 @@ cd ~/Downloads
 \end{verbatim}
 Start the install (substitute the package name for the .deb package you downloaded):
 \begin{verbatim}
-sudo dpkg -i gimmemotifs_0.60-1_i386.deb 
+sudo dpkg -i gimmemotifs_0.61-1_i386.deb 
 \end{verbatim}
 Likely, dpkg will complain about some missing dependencies. Install all dependencies with:
 \begin{verbatim}
@@ -62,7 +62,7 @@ sudo apt-get -f install
 \end{verbatim}
 Complete the GimmeMotifs installation with:
 \begin{verbatim}
-sudo dpkg -i gimmemotifs_0.60-1_i386.deb 
+sudo dpkg -i gimmemotifs_0.61-1_i386.deb 
 \end{verbatim}
 Currently, there is a bug with the versions of the Parallel Python (python-pp) and Numpy (python-numpy) in the Ubuntu and Debian repositories. Therefore the package python-pp is not installed as a dependency. This can be fixed by installing the latest version of Parallel Python from the Python Package Index:
 \begin{verbatim}
@@ -73,7 +73,7 @@ Now you should have a working version of GimmeMotifs! The next steps are to inst
 \subsubsection{Installation on Fedora}
 Download the latest GimmeMotifs .rpm package from \url{http://www.ncmls.nl/bioinfo/gimmemotifs/} (available for 32-bit and 64-bit systems). This package has been tested on an up-to-date version of Fedora 13. Install GimmeMotifs as follows (substitute the package name for the .rpm package you downloaded):
 \begin{verbatim}
-sudo yum install --nogpgcheck gimmemotifs_0.60-1_i386.rpm 
+sudo yum install --nogpgcheck gimmemotifs_0.61-1_i386.rpm 
 \end{verbatim}
 GimmeMotifs doesn't play nice with SELinux enabled on Fedora, sorry. To turn it off:
 \begin{verbatim}
@@ -110,11 +110,10 @@ The GNU Scientific Library.
 This library might already be installed on your system, but you'll also need the development headers to compile GimmeMotifs!. 
 \end{itemize}
 
-\subsubsection{Motif prediction programs}
-Most motif prediction tools are compiled and/or installed with GimmeMotifs. The following tools have to be installed seperately: 
+\subsubsection{Additional motif prediction programs}
+A lot of motif prediction tools are compiled and/or installed with GimmeMotifs. The following tools have to be installed seperately: 
 \begin{itemize}
 \item Weeder \cite{pavesi_weeder_2004} \url{http://159.149.109.9/modtools/}
-\item Improbizer \cite{ao_environmentally_2004} \url{http://users.soe.ucsc.edu/~kent/}
 \end{itemize}
 Please consult the respective manuals regarding installation of these tools. It's always possible to install these programs after installation of GimmeMotifs and update the configuration files to include the new tools (see section \ref{sec:adding_tools}). However, during installation, GimmeMotifs will try to find any installed tools and add them automatically, so that's the easiest option.
 
@@ -186,15 +185,6 @@ bin = /usr/share/Weeder/weederTFBS.out
 dir = /usr/share/Weeder/ 
 \end{verbatim}
 All other Weeder binaries should be present in the same directory as \texttt{weederTFBS.out}. The directory specified by \texttt{dir} should contain the FreqFiles directory included with Weeder.
-
-\subsubsection*{Improbizer}
-After installing Improbizer the following section needs to be added to the GimmeMotifs configuration file:
-\begin{verbatim}
-[Improbizer]
-bin = /usr/bin/ameme
-dir = /usr/bin
-\end{verbatim}
-The \texttt{bin} option should point towards the \texttt{ameme} binary, the \texttt{dir} option is not important.
 
 \subsubsection{MotifSampler configuration}
 \label{sec:MotifSampler}
