@@ -102,7 +102,7 @@ def build():
 	with cd('git/gimmemotifs'):
 		run('git pull origin master')
 		run('python make_deb.py')
-	get('git/gimmemotifs/build/debian/gimmemotifs/gimmemotifs_0.61-1_x86_64.deb', '/tmp/')
+	get('git/gimmemotifs/build/debian/gimmemotifs_0.61-1_amd64.deb', '/tmp/')
 	
 	_vbox_stop(machine)
 
