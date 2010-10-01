@@ -68,7 +68,7 @@ Currently, there is a bug with the versions of the Parallel Python (python-pp) a
 \begin{verbatim}
 sudo easy_install pp 
 \end{verbatim}
-Now you should have a working version of GimmeMotifs! The next steps are to install additional motif tools (optional, see section \ref{sec:adding_tools}) and to do some configuration (required, see section \ref{sec:configuration} ).
+Now you should have a working version of GimmeMotifs! The next steps are to install additional motif tools (optional, see section \ref{sec:adding_tools}) and to do some configuration (required, see section \ref{sec:configuration} ). You can also directly try the quick example (section \ref{sec:quick_example}), if you're impatient (but don't forget to perform the additional steps!)
 
 \subsubsection{Installation on Fedora}
 Download the latest GimmeMotifs .rpm package from \url{http://www.ncmls.nl/bioinfo/gimmemotifs/} (available for 32-bit and 64-bit systems). This package has been tested on an up-to-date version of Fedora 13. Install GimmeMotifs as follows (substitute the package name for the .rpm package you downloaded):
@@ -79,7 +79,7 @@ GimmeMotifs doesn't play nice with SELinux enabled on Fedora, sorry. To turn it 
 \begin{verbatim}
 sudo setenforce 0
 \end{verbatim}
-Now you should have a working version of GimmeMotifs. The next steps are to install additional motif tools (optional, see section \ref{sec:adding_tools}) and to do some configuration (required, see section \ref{sec:configuration} ).
+Now you should have a working version of GimmeMotifs. The next steps are to install additional motif tools (optional, see section \ref{sec:adding_tools}) and to do some configuration (required, see section \ref{sec:configuration} ). You can also directly try the quick example (section \ref{sec:quick_example}), if you're impatient (but don't forget to perform the additional steps!)
 
 \subsection{Installation from source}
 
@@ -144,13 +144,13 @@ During installation GimmeMotifs will try to locate the tools you have installed.
 \end{verbatim}
 This is a system-wide configuration that can be used by all users.
 
-It is also possible to run the \texttt{setup.py install} command with the \texttt{--prefix}, \texttt{--home}, or \texttt{--install-data} options, to install in GimmeMotifs in a different location (for instance, in your own home directory). This should be fine, however, these alternative methods of installing GimmeMotifs have not been extensively tested. Please not that in this case the configuration file will be created, but every user will have to put this configuration file in his/her home directory: \texttt{\textasciitilde{}/.gimmemotifs.cfg}. The install script will also inform you of this during install. Please contact me if you run into problems with the installation.
-
+It is also possible to run the \texttt{setup.py install} command with the \texttt{--prefix}, \texttt{--home}, or \texttt{--install-data} options, to install in GimmeMotifs in a different location (for instance, in your own home directory). This should be fine, however, these alternative methods of installing GimmeMotifs have not been extensively tested. Please note that in this case the configuration file will be created, but every user will have to put this configuration file in his/her home directory: \texttt{\textasciitilde{}/.gimmemotifs.cfg}. The install script will also inform you of this during install. Please contact me if you run into problems with the installation.
+Once the installation is finished, you can try the quick example (section \ref{sec:quick_example}), or continue with the configuration in the next section.
 \subsection{Configuration}
 \label{sec:configuration}
 
 \subsubsection{Data sources}
-You will need some genome fasta files for any motif-prediction if you want to run GimmeMotifs with BED files as input (which is recommended). To get from a BED file to the sequence information these genomic fasta files are absolutely required. The fasta files should be organized in one directory with one file per chromosome or scaffold, with the filename being the chromosome name with an extension of \texttt{.fa}, \texttt{.fsa} or \texttt{.fasta}. No exceptions, no different layouts. A good source is the UCSC Genome Browser database \cite{rhead_ucsc_2010}. For instance, the human hg18 files needed to run the examples included with GimmeMotifs can be downloaded here:
+You will need some genome fasta files for any motif-prediction if you want to run GimmeMotifs with BED files as input (which is recommended, although GimmeMotifs will also work on FASTA files). To get from a BED file to the sequence information these genomic fasta files are absolutely required. The fasta files should be organized in one directory with one file per chromosome or scaffold, with the filename being the chromosome name with an extension of \texttt{.fa}, \texttt{.fsa} or \texttt{.fasta}. No exceptions, no different layouts. A good source is the UCSC Genome Browser database \cite{rhead_ucsc_2010}. For instance, the human hg18 files needed to run the examples included with GimmeMotifs can be downloaded here:
 \begin{verbatim}
 ftp://hgdownload.cse.ucsc.edu/goldenPath/hg18/bigZips/chromFa.zip
  \end{verbatim}
@@ -235,15 +235,28 @@ This section specifies all the default GimmeMotifs parameters. Most of these can
 
 \section{Usage}
 \subsection{Quick GimmeMotifs example}
-You can try GimmeMotifs with a small example dataset included in the examples directory. This example does require you to have hg18 present and indexed. 
-Change to the examples directory and run the following command:
+\label{sec:quick_example}
+You can try GimmeMotifs with a small example dataset included in the examples directory, included with GimmeMotifs. This example does not require any additional configuration if GimmeMotifs is installed correctly.
+
+Change to a directory where you have write permissions and run the following command (substitute the filename with the location of the file on your system):
 \begin{verbatim}
-gimme_motifs.py -i TAp73alpha.fa -n p73
+gimme_motifs.py -i /usr/share/gimmemotifs/examples/TAp73alpha.fa -n p73
 \end{verbatim}
 
 The \texttt{-n} or \texttt{--name} option defines the name of the output directory that is created. All output files are stored in this directory.
 
 Depending on your computer you may have to wait some minutes for your results. Once GimmeMotifs is finished you can open \url{p73/p73_motif_report.html} in your browser. 
+
+\subsection{GimmeMotifs example}
+This example is the same as above, except it will start from a BED file. This example does require you to have hg18 present and indexed. 
+Change to a directory where you have write permissions and run the following command (substitute the filename with the location of the file on your system):
+\begin{verbatim}
+gimme_motifs.py -i /usr/share/gimmemotifs/examples/TAp73alpha.bed -n example
+\end{verbatim}
+
+The \texttt{-n} or \texttt{--name} option defines the name of the output directory that is created. All output files are stored in this directory.
+
+Depending on your computer you may have to wait some minutes for your results. Once GimmeMotifs is finished you can open \url{example/example_motif_report.html} in your browser. 
 
 \subsection{Using GimmeMotifs: best practices and tips}
 \subsubsection{GimmeMotifs is multi-threaded}
@@ -260,7 +273,7 @@ There are two options that you can use to control the running time of GimmeMotif
 GimmeMotifs produces a lot of intermediate results, such as all predicted motifs, fasta-files used for validation and so on. These are deleted by default (as they can get quite large), but if you are interested in them, you can specify the \texttt{-k} option.
 
 \subsubsection{Running on FASTA files}
-It is also possible to run GimmeMotifs on a FASTA file as input instead of a BED file. This is detected automatically if you're inputfile correctly formatted according to FASTA specifications. In this case it is not possible to generate a genomic matched background, so only the random Markov background will be used. Please not that for best results, all the sequences should be of the same length. This is not necessary for motif prediction, but the statistics and positional preference plots will be wrong if sequences have different lengths. Also see the next section.
+It is also possible to run GimmeMotifs on a FASTA file as input instead of a BED file. This is detected automatically if you're inputfile correctly formatted according to FASTA specifications. In this case it is not possible to generate a genomic matched background, so only the random Markov background will be used. Please note that for best results, all the sequences should be of the same length. This is not necessary for motif prediction, but the statistics and positional preference plots will be wrong if sequences have different lengths. Also see the next section.
 
 \subsubsection{Small input sets}
 Keep in mind that GimmeMotifs is developed for larger datasets, where you have the luxury to use a large fraction of your input for validation. So, at least several hundred sequences would be optimal. If you want to run GimmeMotifs on a small input dataset, it might be worthwile to increase the fraction used for prediction (with the \texttt{-f} parameter.
@@ -391,7 +404,7 @@ Convert a set of BED formatted sequences to a FASTA file. The genome needs to be
 
 \section{Acknowledgements}
 We are grateful to Waseem Akhtar, Robert Akkers, Max Koeppel, Evelyn Kouwenhoven, Marion Lohrum, Leonie Smeenk and Jo Zhou for providing data and feedback during GimmeMotifs development. Also we would like to thank Stefanie Bartels, Adalberto Costessi, Joost Martens and Nagesha Rao for testing and helpful discussion.
-Of course GimmeMotifs by itself wouldn't be able to do anything, if there wasn't such a number of excellent tools available. Therefore, a big thanks to all the authors of the motif prediction programs for making their software publicly available!
+Of course GimmeMotifs by itself wouldn't be able to do anything, if there wasn't such a number of excellent tools available. Therefore, a big thanks to all the authors of the motif prediction programs for making their software publicly available and allowing me to distribute them with GimmeMotifs!
 
 \bibliography{gimmemotifs}
 
