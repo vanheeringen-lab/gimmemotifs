@@ -6,4 +6,5 @@ doc/*
 !doc/*.pdf
 examples/*
 !examples/*.bed
+!examples/*.fa
 *.pyc
