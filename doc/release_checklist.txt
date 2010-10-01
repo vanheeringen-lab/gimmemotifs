@@ -6,14 +6,20 @@ RELEASE CHECKLIST (for personal use ;))
 - Convert gimmemotifs_manual.tex to html (tth)
 
 - Build Debian i386 package
-	git pull origin master												# Update git repository
-	sudo python make_deb.py 											# Make .deb package
-	./build/debian/gimmemotifs_0.61-1_i483.deb		# deb file
+		git pull origin master												# Update git repository
+		python make_deb.py 														# Make .deb package
+		./build/debian/gimmemotifs_0.61-1_i386.deb		# deb file
 - Test Debian i386 package
-
-
 - Build Debian x86_64 package
+- Test Debian x86_64 package
 - Build Ubuntu 9.10 i386 package
+- Test Ubuntu 9.10 i386 package
 - Build Ubuntu 9.10 x86_64 package
-- Build Fedora i386 package
+- Test Ubuntu 9.10 x86_64 package
+- Build Fedora i686 package
+		git pull origin master														#	Update git repository
+		python make_rpm.py 																# Make .rpm package
+		~/rpmbuild/RPMS/i386/gimmemotifs-0.61-1.i686.rpm	# rpm file
+- Test Fedora i686 package
+
 - Build Fedora x86_64 package
