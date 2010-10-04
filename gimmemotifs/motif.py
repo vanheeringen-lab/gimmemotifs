@@ -200,6 +200,20 @@ class Motif:
 					matches[id].append(pos)
 		return matches
 	
+	def pwm_scan_all(self, fa, cutoff=0.9, scan_strand=None, nreport=50):
+		from gimmemotifs.c_metrics import pwmscan
+		c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff		
+		pwm = self.pwm
+		strandmap = {"+":"+",1:"+","1":"+","-":"-",-1:"-","-1":"-"}
+		matches = {}
+		for id, seq in fa.items():
+			matches[id] = [] 
+			result = pwmscan(seq.upper(), pwm, c, nreport)
+			for score,pos,strand in result:
+				if not scan_strand or (scan_strand and strandmap[scan_strand] == strandmap[strand]):
+					matches[id].append((pos,score,strand))
+		return matches
+
 	def pwm_scan_score(self, fa, cutoff=0, scan_strand=None, nreport=1):
 		from gimmemotifs.c_metrics import pwmscan
 		c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff		

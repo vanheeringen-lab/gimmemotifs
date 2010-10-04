@@ -83,9 +83,9 @@ def compile_all():
 	result = compile_simple("MDmodule")
 	print_result(result)
 	
-	#sys.stderr.write("compiling MEME")
-	#result = compile_configmake("meme_4.4.0", "src/meme.bin")
-	#print_result(result)
+	sys.stderr.write("compiling MEME")
+	result = compile_configmake("meme_4.4.0", "src/meme.bin")
+	print_result(result)
 	
 	sys.stderr.write("compiling GADEM")
 	result = compile_configmake("GADEM_v1.3", "src/gadem")

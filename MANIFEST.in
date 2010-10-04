@@ -7,7 +7,9 @@ include compile_externals.py
 include cfg/gimmemotifs.cfg.example
 include doc/README.txt
 include doc/gimmemotifs_manual.pdf
+include doc/gimmemotifs_manual.html
 include examples/TAp73alpha.bed
+include examples/TAp73alpha.fa
 include genes/*.bed
 include genome_index/README.txt
 include motif_databases/jaspar.pfm
