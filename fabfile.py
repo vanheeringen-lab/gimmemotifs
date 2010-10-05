@@ -29,7 +29,7 @@ HOST_DATA = {
 										"autobuild",
 										"python make_deb.py 2>&1",
 										"git/gimmemotifs/build/debian/gimmemotifs_%s-1_i386.deb",
-										"gimmemotifs_%s-1_i386.debian.deb"],
+										"gimmemotifs_%s-1_i386.debian.deb"]
 	'192.168.56.13': ["Debian 64-bit", 
 										"autobuild",
 										"python make_deb.py 2>&1",
@@ -131,9 +131,10 @@ def _build_general(machine, snapshot, server, port, build_cmd, build_file, local
 	time.sleep(5)
 	
 	# Checkout latest version and compile
+	with cd('git/'):
+		run('git clone git://github.com/simonvh/gimmemotifs.git')
 	with cd('git/gimmemotifs'):
-		run('git pull origin master')
-	#	run(build_cmd)
+		run(build_cmd)
 	
 	# Download the package
 	file = os.path.join("dist", local_file)
