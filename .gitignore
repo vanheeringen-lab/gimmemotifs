@@ -9,3 +9,12 @@ examples/*
 !examples/*.bed
 !examples/*.fa
 *.pyc
+src/meme_4.4.0/
+src/BioProspector/BioProspector
+src/MDmodule/MDmodule
+src/Algorithm-Cluster-1.49/
+src/MoAn/moan
+src/MoAn/obj/
+src/MoAn/Makefile
+src/GADEM_v1.3/src/*.o
+
