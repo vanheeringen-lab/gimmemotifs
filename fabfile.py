@@ -1,28 +1,59 @@
-# Borrows heavily from code by whiteinge http://gist.github.com/234001
+# Script to compile GimmeMotifs for packaging for several different distributions
+# A VirtualBox image needs to be present for every "host"
+# Borrows some code from whiteinge http://gist.github.com/234001
+#
 from __future__ import with_statement
 from fabric.api import *
 from fabric.contrib.console import confirm
+from fabric import state
 import subprocess
 import time
 import socket
+import os
 
-env.hosts = ['localhost:2223']
+
+DEFAULT_PORT = 22
+
+HOST_DATA = {
+#	'192.168.56.10': ["Fedora 13 32-bit", 
+#										"autobuild",
+#										"python make_rpm.py 2>&1",
+#										"rpmbuild/RPMS/i686/gimmemotifs-%s-1.i686.rpm",
+#										"gimmemotifs-%s-1.i686.rpm"],
+#	'192.168.56.11': ["Fedora 13 64-bit", 
+#										"autobuild",
+#										"python make_rpm.py 2>&1",
+#										"rpmbuild/RPMS/x86_64/gimmemotifs-%s-1.x86_64.rpm",
+#										"gimmemotifs-%s-1.x86_64.rpm"],
+#	'192.168.56.12': ["Debian 32-bit", 
+#										"autobuild",
+#										"python make_deb.py 2>&1",
+#										"git/gimmemotifs/build/debian/gimmemotifs_%s-1_i386.deb",
+#										"gimmemotifs_%s-1_i386.debian.deb"],
+	'192.168.56.13': ["Debian 64-bit", 
+										"autobuild",
+										"python make_deb.py 2>&1",
+										"git/gimmemotifs/build/debian/gimmemotifs_%s-1_amd64.deb",
+										"gimmemotifs_%s-1_amd64.debian.deb"]
+#	'192.168.56.14': ["Ubuntu 9.10 32-bit", 
+#										"autobuild",
+#										"python make_deb.py 2>&1",
+#										"git/gimmemotifs/build/debian/gimmemotifs_%s-1_i386.deb",
+#										"gimmemotifs_%s-1_i386.ubuntu.deb"]
+#	'192.168.56.15': ["Ubuntu 9.10 64bit", 
+#										"autobuild",
+#										"python make_deb.py 2>&1",
+#										"git/gimmemotifs/build/debian/gimmemotifs_%s-1_amd64.deb",
+#										"gimmemotifs_%s-1_amd64.ubuntu.deb"]
+}
+
+env.hosts = HOST_DATA.keys()
 
 def _local(*args, **kwargs):
 	"""A wrapper around fabric.local() that takes a list. It will take care of
 	the shell quoting for you. This makes interspersing variables a bit easier.
-	
-	E.g.: instead of::
-
-		local('echo "Hello, this has spaces in it.")
-
-	Use::
-											        
-		_local(['echo', 'This has spaces in it.'])
-
 	"""
 	return local(subprocess.list2cmdline(*args), **kwargs)
-
 
 def _vbox_state(machine):
 	"""Get the state of the specified machine."""
@@ -31,7 +62,7 @@ def _vbox_state(machine):
 	result = filter(lambda x: 'VMState="' in x, vminfo.stdout.readlines()).pop()
 	return result.split('"')[1]
 
-def _vbox_start(machine, port=2222):
+def _vbox_start(machine, server="localhost", port=2222):
 	""" Start the virtual machine and wait until it's up and running."""
 	
 	# Check if the machine is already running
@@ -46,7 +77,7 @@ def _vbox_start(machine, port=2222):
 		try:
 			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			s.settimeout(3.0)
-			s.connect(('localhost', port))
+			s.connect((server, port))
 			response = s.recv(1024)
 		except (socket.error, socket.timeout), e:
 			pass
@@ -61,8 +92,10 @@ def _vbox_start(machine, port=2222):
 
 	
 def _vbox_stop(machine):
-	_local(['VBoxManage','-q','controlvm',machine,'poweroff'])
+	""" Stop a virtual macbhine"""
 
+	_local(['VBoxManage','-q','controlvm',machine,'poweroff'])
+	
 	while True:
 		state = _vbox_state(machine)
 
@@ -83,35 +116,50 @@ def _vbox_load_snapshot(machine, name, force=True):
 
 	_local(['VBoxManage','-q','snapshot',machine,'restore', name])
 
-def deploy():
-	#put('/tmp/my_project.tgz', '/tmp/')
-	with cd('git/gimmemotifs'):
-		run('git pull origin master')
-		#run('python make_deb.py')
-	get('git/gimmemotifs/build/debian/gimmemotifs_0.61-1_i386.deb', '/tmp/')
-
-def build():
+def _get_version():
+	""" Get package version, based on local repository """
+	version  = subprocess.Popen(["python","setup.py","--version"], stdout=subprocess.PIPE).communicate()[0].strip()
+	return version
+		
+def _build_general(machine, snapshot, server, port, build_cmd, build_file, local_file):
+	""" The scaffold of the build sequence. """
 	# Load snapshot
-	# Start machine
-	snapshot = "autobuild2"
-	machine = "Ubuntu-9.10-x86_64"
-	
 	_vbox_load_snapshot(machine, snapshot)
-	_vbox_start(machine, port=2223)
+	# Start machine
+	_vbox_start(machine, server=server, port=port)
+	# Wait to make sure networking is up and running
+	time.sleep(5)
 	
+	# Checkout latest version and compile
 	with cd('git/gimmemotifs'):
 		run('git pull origin master')
-		run('python make_deb.py')
-	get('git/gimmemotifs/build/debian/gimmemotifs_0.61-1_amd64.deb', '/tmp/')
+		run(build_cmd)
 	
+	# Download the package
+	file = os.path.join("dist", local_file)
+	get(build_file, file)
+
+	# Rename if fabric insists on including the hostname in the file
+	if os.path.exists("%s.%s" % (file, state.env.host)):
+		os.rename("%s.%s" % (file, state.env.host), file)
+	
+	# And we're done with this virtual machine
 	_vbox_stop(machine)
 
-if __name__ == "__main__":
-	#snapshot = "c0bf134f-8426-4e2b-bd2e-f6857c302e52"
-	#machine = "Ubuntu-9.10-i386"
-	#snapshot = "db8acfda-1bd5-48e7-a2b6-ce73059d6e16"
-	snapshot = "autobuild"
-	machine = "Ubuntu-9.10-x86_64"
-	
-	#_vbox_stop(machine)
+def build_packages():
+	""" Build packages for all specified distributions"""
 
+	# Get current host
+	hostname = state.env.host
+	
+	# Get parameters for this machine / host
+	machine, snapshot, build_cmd, build_file, local_file = HOST_DATA[hostname]
+	
+	# Get the current version
+	version = _get_version()
+	# Replace %s with current version
+	build_file = build_file % version
+	local_file = local_file % version
+	
+	# Build the package on each host
+	_build_general(machine, snapshot, hostname, DEFAULT_PORT, build_cmd, build_file, local_file)
