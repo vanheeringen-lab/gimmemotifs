@@ -37,7 +37,7 @@ for file in files:
 for file in ["pyversions", "rules"]:
 	shutil.copyfile(file, ("%s/%s/debian/" % (build_dir, package)) + file)
 
-if  subprocess.Popen(["python","--version"], stderr=subprocess.PIPE).communicate()[1].find("2.6") != -1:
+if Popen(["python","--version"], stderr=PIPE).communicate()[1].find("2.6") != -1:
 	shutil.copyfile("control2.6", "%s/%s/debian/control" % (build_dir, package))
 else:
 	shutil.copyfile("control2.5", "%s/%s/debian/control" % (build_dir, package))
