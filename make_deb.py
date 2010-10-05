@@ -34,13 +34,19 @@ for p in patterns:
 for file in files:
 	os.remove(file)
 
-for file in ["pyversions", "rules"]:
+for file in ["rules"]:
 	shutil.copyfile(file, ("%s/%s/debian/" % (build_dir, package)) + file)
 
 if Popen(["python","--version"], stderr=PIPE).communicate()[1].find("2.6") != -1:
 	shutil.copyfile("control2.6", "%s/%s/debian/control" % (build_dir, package))
+	f = open("%s/%s/debian/pyversions" % (build_dir, package),"w")
+	f.write("2.6-")
+	f.close()
 else:
 	shutil.copyfile("control2.5", "%s/%s/debian/control" % (build_dir, package))
+	f = open("%s/%s/debian/pyversions" % (build_dir, package),"w")
+	f.write("2.5-")
+	f.close()
 
 
 Popen(["debuild -us -uc"], cwd="%s/%s" % (build_dir, package), shell=True).communicate("")
