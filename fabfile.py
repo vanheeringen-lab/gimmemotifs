@@ -15,36 +15,36 @@ import os
 DEFAULT_PORT = 22
 
 HOST_DATA = {
-#	'192.168.56.10': ["Fedora 13 32-bit", 
-#										"autobuild",
-#										"python make_rpm.py 2>&1",
-#										"rpmbuild/RPMS/i686/gimmemotifs-%s-1.i686.rpm",
-#										"gimmemotifs-%s-1.i686.rpm"],
-#	'192.168.56.11': ["Fedora 13 64-bit", 
-#										"autobuild",
-#										"python make_rpm.py 2>&1",
-#										"rpmbuild/RPMS/x86_64/gimmemotifs-%s-1.x86_64.rpm",
-#										"gimmemotifs-%s-1.x86_64.rpm"],
-#	'192.168.56.12': ["Debian 32-bit", 
-#										"autobuild",
-#										"python make_deb.py 2>&1",
-#										"git/gimmemotifs/build/debian/gimmemotifs_%s-1_i386.deb",
-#										"gimmemotifs_%s-1_i386.debian.deb"],
+	'192.168.56.10': ["Fedora 13 32-bit", 
+										"autobuild",
+										"python make_rpm.py 2>&1",
+										"rpmbuild/RPMS/i686/gimmemotifs-%s-1.i686.rpm",
+										"gimmemotifs-%s-1.i686.rpm"],
+	'192.168.56.11': ["Fedora 13 64-bit", 
+										"autobuild",
+										"python make_rpm.py 2>&1",
+										"rpmbuild/RPMS/x86_64/gimmemotifs-%s-1.x86_64.rpm",
+										"gimmemotifs-%s-1.x86_64.rpm"],
+	'192.168.56.12': ["Debian 32-bit", 
+										"autobuild",
+										"python make_deb.py 2>&1",
+										"git/gimmemotifs/build/debian/gimmemotifs_%s-1_i386.deb",
+										"gimmemotifs_%s-1_i386.debian.deb"],
 	'192.168.56.13': ["Debian 64-bit", 
 										"autobuild",
 										"python make_deb.py 2>&1",
 										"git/gimmemotifs/build/debian/gimmemotifs_%s-1_amd64.deb",
-										"gimmemotifs_%s-1_amd64.debian.deb"]
-#	'192.168.56.14': ["Ubuntu 9.10 32-bit", 
-#										"autobuild",
-#										"python make_deb.py 2>&1",
-#										"git/gimmemotifs/build/debian/gimmemotifs_%s-1_i386.deb",
-#										"gimmemotifs_%s-1_i386.ubuntu.deb"]
-#	'192.168.56.15': ["Ubuntu 9.10 64bit", 
-#										"autobuild",
-#										"python make_deb.py 2>&1",
-#										"git/gimmemotifs/build/debian/gimmemotifs_%s-1_amd64.deb",
-#										"gimmemotifs_%s-1_amd64.ubuntu.deb"]
+										"gimmemotifs_%s-1_amd64.debian.deb"],
+	'192.168.56.14': ["Ubuntu 9.10 32-bit", 
+										"autobuild",
+										"python make_deb.py 2>&1",
+										"git/gimmemotifs/build/debian/gimmemotifs_%s-1_i386.deb",
+										"gimmemotifs_%s-1_i386.ubuntu.deb"],
+	'192.168.56.15': ["Ubuntu 9.10 64bit", 
+										"autobuild",
+										"python make_deb.py 2>&1",
+										"git/gimmemotifs/build/debian/gimmemotifs_%s-1_amd64.deb",
+										"gimmemotifs_%s-1_amd64.ubuntu.deb"]
 }
 
 env.hosts = HOST_DATA.keys()
@@ -133,7 +133,7 @@ def _build_general(machine, snapshot, server, port, build_cmd, build_file, local
 	# Checkout latest version and compile
 	with cd('git/gimmemotifs'):
 		run('git pull origin master')
-		run(build_cmd)
+	#	run(build_cmd)
 	
 	# Download the package
 	file = os.path.join("dist", local_file)
