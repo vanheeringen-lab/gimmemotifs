@@ -362,9 +362,14 @@ class GimmeMotifs:
 		return len(motifs)
 
 	def _create_random_background(self, fastafile, random_fasta):
-		self.logger.info("Creating random background (1st order Markov)")
+		if int(self.markov_model) >= 6:
+			self.logger.warn("Are you sure about the Markov model? It seems too high!")
+		else:
+			order = {"1":"1st","2":"2nd", "3":"3rd", "4":"4th", "5":"5th"}[str(self.markov_model)]
+			self.logger.info("Creating random background (%s order Markov)" % order)
+		
 		f = Fasta(fastafile)
-		m = MarkovFasta(f)
+		m = MarkovFasta(f,k=int(self.markov_model))
 		m.writefasta(random_fasta)
 		self.logger.debug("Random background: %s" % (random_fasta))
 		# return the number of random sequences created
@@ -848,6 +853,8 @@ class GimmeMotifs:
 		else:
 				self.logger.info("No time limit for motif prediction")
 			
+		if "random" in background:
+			self.markov_model = params["markov_model"]
 
 		# Create the necessary files for motif prediction and validation
 		if self.input_type == "BED":

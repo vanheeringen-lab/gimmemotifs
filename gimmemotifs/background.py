@@ -33,7 +33,8 @@ class MarkovFasta(Fasta):
 	Required arg 'fasta' is a Fasta object
 	Optional arg 'length' can be used to generate sequences of a different length
 	Optional arg 'multiply' specifies the number of sequences to generate, based
-	on the number of input sequences.
+	Optional arg 'k' specifies the order of the Markov model, default is 1 for 1st
+	order
 
 	Returns a Fasta object
 	

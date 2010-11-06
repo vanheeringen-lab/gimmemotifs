@@ -32,7 +32,8 @@ DEFAULT_PARAMS = {
 	"tools": "MDmodule,Weeder,MotifSampler",
 	"available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,trawler,WannaMotif,Improbizer,MoAn,BioProspector",
 	"cluster_threshold": "0.95",
-	"use_strand": False
+	"use_strand": False,
+	"markov_model": 1
 }
 
 MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector"]
