@@ -2,8 +2,10 @@ import os
 import re
 import sys
 import unittest
+from glob import glob
 
-p = [os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), "build/lib.linux-x86_64-2.6")), "test"]
+libdir = glob('build/lib.*')[0]
+p = [os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), libdir)), "test"]
 sys.path = p + sys.path
 
 p = re.compile(r'^test_\w+\.py$')
