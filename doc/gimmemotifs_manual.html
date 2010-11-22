@@ -20,7 +20,7 @@
 
 <h3 align="center">Simon van Heeringen </h3>
 
-<h3 align="center">Oct  1, 2010
+<h3 align="center">Nov 22, 2010
 </h3>
 
 <div class="p"><!----></div>
@@ -101,11 +101,12 @@
 GimmeMotifs is a <i>de novo</i> motif prediction pipeline, especially suited for ChIP-seq datasets. It incorporates several existing motif prediction algorithms in an ensemble method to predict motifs and clusters these motifs using the WIC similarity scoring metric. It is freely available for download and use under the MIT license. If you find GimmeMotifs useful, please cite:
 
 <ul>
-<li> van Heeringen SJ and Veenstra GJC, GimmeMotifs: a <i>de novo</i> motif prediction pipeline for ChIP-sequencing experiments, <i>submitted</i>.
+<li> van Heeringen SJ and Veenstra GJC, GimmeMotifs: a <i>de novo</i> motif prediction pipeline for ChIP-sequencing experiments, Bioinformatics Advance Access published November 15, 2010,
+doi:10.1093/bioinformatics/btq636.
 <div class="p"><!----></div>
 </li>
 </ul>
-This document describes how to install and use GimmeMotifs, for theoretical details, please see our publication .
+This document describes how to install and use GimmeMotifs, for theoretical details, please see our publication <a href="#van_heeringen_gimmemotifs:_2010" name="CITEvan_heeringen_gimmemotifs:_2010">[1</a>].
 
 <div class="p"><!----></div>
 Hopefully this document explains at least the basics of installation and usage, but it's probably far from complete. If you have any further question, please don't hesistate to contact me: <a href="s.vanheeringen@ncmls.ru.nl"><tt>s.vanheeringen@ncmls.ru.nl</tt></a>.
@@ -116,11 +117,11 @@ Hopefully this document explains at least the basics of installation and usage, 
 GimmeMotifs is dependent upon the great work of others: motif prediction algorithms. GimmeMotifs includes several tools by default:
 
 <ul>
-<li> BioProspector <a href="#liu_bioprospector:_2001" name="CITEliu_bioprospector:_2001">[1</a>] <a href="http://motif.stanford.edu/distributions/bioprospector/"><tt>http://motif.stanford.edu/distributions/bioprospector/</tt></a>
+<li> BioProspector <a href="#liu_bioprospector:_2001" name="CITEliu_bioprospector:_2001">[2</a>] <a href="http://motif.stanford.edu/distributions/bioprospector/"><tt>http://motif.stanford.edu/distributions/bioprospector/</tt></a>
 <div class="p"><!----></div>
 </li>
 
-<li> GADEM <a href="#li_gadem:genetic_2009" name="CITEli_gadem:genetic_2009">[2</a>] <a href="http://www.niehs.nih.gov/research/resources/software/gadem/index.cfm"><tt>http://www.niehs.nih.gov/research/resources/software/gadem/index.cfm</tt></a>
+<li> GADEM ] <a href="http://www.niehs.nih.gov/research/resources/software/gadem/index.cfm"><tt>http://www.niehs.nih.gov/research/resources/software/gadem/index.cfm</tt></a>
 <div class="p"><!----></div>
 </li>
 
@@ -140,11 +141,11 @@ GimmeMotifs is dependent upon the great work of others: motif prediction algorit
 <div class="p"><!----></div>
 </li>
 
-<li> MotifSampler <a href="#thijs_higher-order_2001" name="CITEthijs_higher-order_2001">[7</a>,<a href="#thijs_gibbs_2002" name="CITEthijs_gibbs_2002">[8</a>] <a href="http://homes.esat.kuleuven.be/~sistawww/bioi/thijs/download.html"><tt>http://homes.esat.kuleuven.be/~sistawww/bioi/thijs/download.html</tt></a>
+<li> MotifSampler <a href="#thijs_higher-order_2001" name="CITEthijs_higher-order_2001">[7</a>,] <a href="http://homes.esat.kuleuven.be/~sistawww/bioi/thijs/download.html"><tt>http://homes.esat.kuleuven.be/~sistawww/bioi/thijs/download.html</tt></a>
 <div class="p"><!----></div>
 </li>
 
-<li> trawler <a href="#ettwiller_trawler:_2007" name="CITEettwiller_trawler:_2007">[9</a>] <a href="http://ani.embl.de/trawler/"><tt>http://ani.embl.de/trawler/</tt></a>
+<li> trawler <a href="#ettwiller_trawler:_2007" name="CITEettwiller_trawler:_2007">[8</a>] <a href="http://ani.embl.de/trawler/"><tt>http://ani.embl.de/trawler/</tt></a>
 <div class="p"><!----></div>
 </li>
 </ul>
@@ -279,7 +280,7 @@ This library might already be installed on your system, but you'll also need the
 A lot of motif prediction tools are compiled and/or installed with GimmeMotifs. The following tools have to be installed seperately: 
 
 <ul>
-<li> Weeder <a href="#pavesi_weeder_2004" name="CITEpavesi_weeder_2004">[10</a>] <a href="http://159.149.109.9/modtools/"><tt>http://159.149.109.9/modtools/</tt></a>
+<li> Weeder <a href="#pavesi_weeder_2004" name="CITEpavesi_weeder_2004">[9</a>] <a href="http://159.149.109.9/modtools/"><tt>http://159.149.109.9/modtools/</tt></a>
 <div class="p"><!----></div>
 </li>
 </ul>
@@ -336,7 +337,7 @@ Once the installation is finished, you can try the quick example (section <a hre
 <div class="p"><!----></div>
       <h4><a name="tth_sEc3.3.1">
 3.3.1</a>&nbsp;&nbsp;Data sources</h4>
-You will need some genome fasta files for any motif-prediction if you want to run GimmeMotifs with BED files as input (which is recommended, although GimmeMotifs will also work on FASTA files). To get from a BED file to the sequence information these genomic fasta files are absolutely required. The fasta files should be organized in one directory with one file per chromosome or scaffold, with the filename being the chromosome name with an extension of <tt>.fa</tt>, <tt>.fsa</tt> or <tt>.fasta</tt>. No exceptions, no different layouts. A good source is the UCSC Genome Browser database <a href="#rhead_ucsc_2010" name="CITErhead_ucsc_2010">[11</a>]. For instance, the human hg18 files needed to run the examples included with GimmeMotifs can be downloaded here:
+You will need some genome fasta files for any motif-prediction if you want to run GimmeMotifs with BED files as input (which is recommended, although GimmeMotifs will also work on FASTA files). To get from a BED file to the sequence information these genomic fasta files are absolutely required. The fasta files should be organized in one directory with one file per chromosome or scaffold, with the filename being the chromosome name with an extension of <tt>.fa</tt>, <tt>.fsa</tt> or <tt>.fasta</tt>. No exceptions, no different layouts. A good source is the UCSC Genome Browser database ]. For instance, the human hg18 files needed to run the examples included with GimmeMotifs can be downloaded here:
 
 <pre>
 ftp://hgdownload.cse.ucsc.edu/goldenPath/hg18/bigZips/chromFa.zip
@@ -740,29 +741,32 @@ Convert a set of BED formatted sequences to a FASTA file. The genome needs to be
 6</a>&nbsp;&nbsp;Acknowledgements</h2>
 We are grateful to Waseem Akhtar, Robert Akkers, Max Koeppel, Evelyn Kouwenhoven, Marion Lohrum, Leonie Smeenk and Jo Zhou for providing data and feedback during GimmeMotifs development. Also we would like to thank Stefanie Bartels, Adalberto Costessi, Joost Martens and Nagesha Rao for testing and helpful discussion.
 Of course GimmeMotifs by itself wouldn't be able to do anything, if there wasn't such a number of excellent tools available. Therefore, a big thanks to all the authors of the motif prediction programs for making their software publicly available and allowing me to distribute them with GimmeMotifs!
+In addition, I would like to thank Wolfgang Lugmayr and Aaron Statham for various bugfixes.
 
 <div class="p"><!----></div>
 
 <h2>References</h2>
 
 <dl compact="compact">
- <dt><a href="#CITEliu_bioprospector:_2001" name="liu_bioprospector:_2001">[1]</a></dt><dd>
+ <dt><a href="#CITEvan_heeringen_gimmemotifs:_2010" name="van_heeringen_gimmemotifs:_2010">[1]</a></dt><dd>
+Simon&nbsp;J van Heeringen and Gert Jan&nbsp;C Veenstra.
+ GimmeMotifs: a de novo motif prediction pipeline for
+  ChIP-sequencing experiments.
+ <em>Bioinformatics (Oxford, England)</em>, November 2010.
+ ISSN 1367-4811.
+ doi: 10.1093/bioinformatics/btq636.
+ PMID: 21081511.
+
+<div class="p"><!----></div>
+</dd>
+ <dt><a href="#CITEliu_bioprospector:_2001" name="liu_bioprospector:_2001">[2]</a></dt><dd>
 X&nbsp;Liu, D&nbsp;L Brutlag, and J&nbsp;S Liu.
  BioProspector: discovering conserved DNA motifs in upstream
   regulatory regions of co-expressed genes.
  <em>Pacific Symposium on Biocomputing. Pacific Symposium on
   Biocomputing</em>, pages 127-138, 2001.
+ ISSN 1793-5091.
  PMID: 11262934.
-
-<div class="p"><!----></div>
-</dd>
- <dt><a href="#CITEli_gadem:genetic_2009" name="li_gadem:genetic_2009">[2]</a></dt><dd>
-Leping Li.
- GADEM: a genetic algorithm guided formation of spaced dyads coupled
-  with an EM algorithm for motif discovery.
- <em>Journal of computational biology : a journal of computational
-  molecular cell biology</em>, 16 (2): 317-329, February 2009.
- PMID: 19193149 PMCID: 2756050.
 
 <div class="p"><!----></div>
 </dd>
@@ -772,6 +776,7 @@ Wanyuan Ao, Jeb Gaudet, W.&nbsp;James Kent, Srikanth Muttumu, and Susan&nbsp;E. 
   DAF-12/NHR.
  <em>Science</em>, 305 (5691): 1743-1746, September
   2004.
+ doi: 10.1126/science.1102216.
 
 <div class="p"><!----></div>
 </dd>
@@ -780,6 +785,8 @@ X.&nbsp;Shirley Liu, Douglas&nbsp;L. Brutlag, and Jun&nbsp;S. Liu.
  An algorithm for finding protein-DNA binding sites with
   applications to chromatin-immunoprecipitation microarray experiments.
  <em>Nat Biotech</em>, 20 (8): 835-839, 2002.
+ ISSN 1087-0156.
+ doi: 10.1038/nbt717.
 
 <div class="p"><!----></div>
 </dd>
@@ -789,6 +796,7 @@ Timothy&nbsp;L. Bailey, Mikael Boden, Fabian&nbsp;A. Buske, Martin Frith, Charle
  MEME SUITE: tools for motif discovery and searching.
  <em>Nucl. Acids Res.</em>, 37 (suppl_2): W202-208,
   July 2009.
+ doi: 10.1093/nar/gkp335.
 
 <div class="p"><!----></div>
 </dd>
@@ -798,6 +806,7 @@ Eivind Valen, Albin Sandelin, Ole Winther, and Anders Krogh.
   approach.
  <em>PLoS Comput Biol</em>, 5 (11): e1000562,
   November 2009.
+ doi: 10.1371/journal.pcbi.1000562.
 
 <div class="p"><!----></div>
 </dd>
@@ -807,49 +816,29 @@ G&nbsp;Thijs, M&nbsp;Lescot, K&nbsp;Marchal, S&nbsp;Rombauts, B&nbsp;De Moor, P&
   regulatory elements by gibbs sampling.
  <em>Bioinformatics (Oxford, England)</em>, 17 (12):
   1113-1122, December 2001.
+ ISSN 1367-4803.
  PMID: 11751219.
 
 <div class="p"><!----></div>
 </dd>
- <dt><a href="#CITEthijs_gibbs_2002" name="thijs_gibbs_2002">[8]</a></dt><dd>
-Gert Thijs, Kathleen Marchal, Magali Lescot, Stephane Rombauts, Bart&nbsp;De Moor,
-  Pierre Rouzé, and Yves Moreau.
- A gibbs sampling method to detect overrepresented motifs in the
-  upstream regions of coexpressed genes.
- <em>Journal of Computational Biology: A Journal of Computational
-  Molecular Cell Biology</em>, 9 (2): 447-464, 2002.
- PMID: 12015892.
-
-<div class="p"><!----></div>
-</dd>
- <dt><a href="#CITEettwiller_trawler:_2007" name="ettwiller_trawler:_2007">[9]</a></dt><dd>
+ <dt><a href="#CITEettwiller_trawler:_2007" name="ettwiller_trawler:_2007">[8]</a></dt><dd>
 Laurence Ettwiller, Benedict Paten, Mirana Ramialison, Ewan Birney, and Joachim
   Wittbrodt.
  Trawler: de novo regulatory motif discovery pipeline for chromatin
   immunoprecipitation.
  <em>Nat Meth</em>, 4 (7): 563-565, July 2007.
+ ISSN 1548-7091.
+ doi: 10.1038/nmeth1061.
 
 <div class="p"><!----></div>
 </dd>
- <dt><a href="#CITEpavesi_weeder_2004" name="pavesi_weeder_2004">[10]</a></dt><dd>
+ <dt><a href="#CITEpavesi_weeder_2004" name="pavesi_weeder_2004">[9]</a></dt><dd>
 Giulio Pavesi, Paolo Mereghetti, Giancarlo Mauri, and Graziano Pesole.
  Weeder web: discovery of transcription factor binding sites in a set
   of sequences from co-regulated genes.
  <em>Nucl. Acids Res.</em>, 32 (suppl_2): W199-203,
   July 2004.
-
-<div class="p"><!----></div>
-</dd>
- <dt><a href="#CITErhead_ucsc_2010" name="rhead_ucsc_2010">[11]</a></dt><dd>
-Brooke Rhead, Donna Karolchik, Robert&nbsp;M. Kuhn, Angie&nbsp;S. Hinrichs, Ann&nbsp;S. Zweig,
-  Pauline&nbsp;A. Fujita, Mark Diekhans, Kayla&nbsp;E. Smith, Kate&nbsp;R. Rosenbloom,
-  Brian&nbsp;J. Raney, Andy Pohl, Michael Pheasant, Laurence&nbsp;R. Meyer, Katrina
-  Learned, Fan Hsu, Jennifer Hillman-Jackson, Rachel&nbsp;A. Harte, Belinda
-  Giardine, Timothy&nbsp;R. Dreszer, Hiram Clawson, Galt&nbsp;P. Barber, David Haussler,
-  and W.&nbsp;James Kent.
- The UCSC genome browser database: update 2010.
- <em>Nucl. Acids Res.</em>, 38 (suppl_1): D613-619,
-  January 2010.</dd>
+ doi: 10.1093/nar/gkh465.</dd>
 </dl>
 
 
@@ -859,5 +848,5 @@ Brooke Rhead, Donna Karolchik, Robert&nbsp;M. Kuhn, Angie&nbsp;S. Hinrichs, Ann&
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.77.<br />On  1 Oct 2010, 14:12.</small>
+version 3.77.<br />On 22 Nov 2010, 15:58.</small>
 </html>
