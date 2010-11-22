@@ -30,6 +30,7 @@ try:
 except ImportError:
 	pass
 
+job_server = pp.Server(secret="pumpkinrisotto")	
 
 class MotifComparer:
 	def __init__(self):
@@ -37,6 +38,8 @@ class MotifComparer:
 		self.metrics = ["pcc", "ed", "distance", "wic", "chisq", "fisim"]
 		self.combine = ["mean", "sum"]
 		self._load_scores()
+		# Create a parallel python job server, to use for fast motif comparison
+		
 
 	def _load_scores(self):
 		self.scoredist = {}
@@ -272,13 +275,13 @@ class MotifComparer:
 		scores ={}
 		
 		if parallel:	
-			# Create a parallel python job server, to use for fast motif comparison
-			job_server = pp.Server(secret="pumpkinrisotto")	
-			
 			# Divide the job into big chunks, to keep parallel overhead to minimum
 			# Number of chunks = number of processors available
 			n_cpus = job_server.get_ncpus()
-			batch_len = n_cpus
+			#print n_cpus
+			batch_len = len(motifs) / n_cpus
+			if batch_len <= 0:
+				batch_len = 1
 			jobs = []
 			for i in range(0, len(motifs), batch_len): 
 				# submit jobs to the job server
