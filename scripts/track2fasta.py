@@ -35,7 +35,7 @@ if not os.path.exists(options.inputfile):
 	print "File %s does not exist!" % options.inputfile
 	sys.exit()
 
-if not options.genome in available_genome(index_dir):
+if not options.genome in available_genomes(index_dir):
 	print "Sorry, %s is not supported!" % options.genome
 	sys.exit()
 
