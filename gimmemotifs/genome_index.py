@@ -7,8 +7,12 @@
 
 from struct import pack,unpack
 from string import maketrans
+from glob import glob
 import sys
 import os
+
+def available_genomes(index_dir):
+	return [os.path.basename(x) for x in glob(os.path.join(index_dir, "*")) if os.path.isdir(x)]
 
 class GenomeIndex:
 	""" Index fasta-formatted files for faster retrieval of sequences
