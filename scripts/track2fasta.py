@@ -11,8 +11,7 @@ import os
 import sys
 from optparse import OptionParser
 
-VERSION = "0.1"
-GENOMES = ["mm9", "hg18", "xenTro2"]
+VERSION = "0.2"
 DEFAULT_GENOME = "hg18"
 
 config = MotifConfig()
@@ -36,7 +35,7 @@ if not os.path.exists(options.inputfile):
 	print "File %s does not exist!" % options.inputfile
 	sys.exit()
 
-if not options.genome in GENOMES:
+if not options.genome in available_genomes(index_dir):
 	print "Sorry, %s is not supported!" % options.genome
 	sys.exit()
 
