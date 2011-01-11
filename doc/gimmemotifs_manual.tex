@@ -186,6 +186,14 @@ bin = /usr/share/Weeder/weederTFBS.out
 dir = /usr/share/Weeder/ 
 \end{verbatim}
 All other Weeder binaries should be present in the same directory as \texttt{weederTFBS.out}. The directory specified by \texttt{dir} should contain the FreqFiles directory included with Weeder.
+In addition \texttt{Weeder} should be added to the line in the \texttt{params} section of the configuration file. For instance 
+\begin{verbatim}
+tools = MDmodule,MEME,MotifSampler,trawler,Improbizer,BioProspector
+\end{verbatim}
+needs to be changed to:
+\begin{verbatim}
+tools = MDmodule,MEME,MotifSampler,trawler,Improbizer,BioProspector,Weeder
+\end{verbatim}
 
 \subsubsection{MotifSampler configuration}
 \label{sec:MotifSampler}
