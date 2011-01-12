@@ -13,7 +13,7 @@ from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("-i", "--inputfile", dest="inputfile", help="Fasta formatted inputfile", metavar="FILE")
 parser.add_option("-o", "--outputfile", dest="outputfile", help="Fasta formatted outputfile", metavar="FILE")
-parser.add_option("-n", "--number", dest="number", help="Number of sequence to generate compared to input (1 means same amount)", metavar="NUMBER", default=1, type="int")
+parser.add_option("-n", "--number", dest="number", help="Number of sequence to generate compared to input (1 means same amount, default is 10)", metavar="NUMBER", default=10, type="int")
 
 (options, args) = parser.parse_args()
 
@@ -24,6 +24,6 @@ if not inputfile or not out:
 	sys.exit(0)
 
 f = Fasta(inputfile)
-m = MarkovFasta(f)
+m = MarkovFasta(f, multiply=options.number)
 
 m.writefasta(out)
