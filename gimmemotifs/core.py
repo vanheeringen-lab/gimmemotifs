@@ -57,7 +57,7 @@ def motif_localization(fastafile, motif, width, outfile):
 	else:
 		return motif.id, 1.0
 
-def scan_fasta_file_with_motifs(fastafile, motiffile, threshold, gfffile):
+def scan_fasta_file_with_motifs(fastafile, motiffile, threshold, gfffile, scan_rc=True):
 	error = None
 	try:
 		from gimmemotifs.fasta import Fasta
@@ -65,7 +65,7 @@ def scan_fasta_file_with_motifs(fastafile, motiffile, threshold, gfffile):
 		motifs = pwmfile_to_motifs(motiffile)
 		fa = Fasta(fastafile)
 		for motif in motifs:
-			motif.pwm_scan_to_gff(fa, gfffile, nreport=1, cutoff=float(threshold), append=True)
+			motif.pwm_scan_to_gff(fa, gfffile, nreport=1, cutoff=float(threshold), scan_rc=scan_rc, append=True)
 	except Exception,e :
 		error = e
 	return error
