@@ -617,7 +617,7 @@ class GimmeMotifs:
 		for id in motifs.keys():
 			error, auc, mncp, max_f, y = jobs[id]()
 			if error:
-				self.logger.error("Error in thread: %s" % e)
+				self.logger.error("Error in thread: %s" % error)
 				sys.exit(1)
 			f.write("%s\t%s\t%s\t%s\t%s\n" % (id,auc,mncp,max_f,y))
 			all_auc[id] = auc
