@@ -47,7 +47,7 @@ class MarkovFasta(Fasta):
 	
 	"""
 	
-	def __init__(self, fasta, length=None, multiply=10, k=1):
+	def __init__(self, fasta, length=None, multiply=10, k=1, matrix_only=False):
 		
 		
 		self.k = k
@@ -58,6 +58,9 @@ class MarkovFasta(Fasta):
 		# Initialize Markov transition matrix
 		self._initialize_matrices(fasta.seqs, k=k)
 
+		if matrix_only:
+			return
+		
 		c = 0
 		for seq in fasta.seqs:
 			for i in range(multiply):

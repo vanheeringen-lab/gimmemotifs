@@ -186,7 +186,7 @@ class Motif:
 				matches[id].append(middle)
 		return matches
 
-	def pwm_scan(self, fa, cutoff=0.9, scan_strand=None, nreport=50):
+	def pwm_scan(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
 		from gimmemotifs.c_metrics import pwmscan
 		c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff		
 		pwm = self.pwm
@@ -194,13 +194,12 @@ class Motif:
 		matches = {}
 		for id, seq in fa.items():
 			matches[id] = [] 
-			result = pwmscan(seq.upper(), pwm, c, nreport)
+			result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
 			for score,pos,strand in result:
-				if not scan_strand or (scan_strand and strandmap[scan_strand] == strandmap[strand]):
-					matches[id].append(pos)
+				matches[id].append(pos)
 		return matches
 	
-	def pwm_scan_all(self, fa, cutoff=0.9, scan_strand=None, nreport=50):
+	def pwm_scan_all(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
 		from gimmemotifs.c_metrics import pwmscan
 		c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff		
 		pwm = self.pwm
@@ -208,13 +207,12 @@ class Motif:
 		matches = {}
 		for id, seq in fa.items():
 			matches[id] = [] 
-			result = pwmscan(seq.upper(), pwm, c, nreport)
+			result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
 			for score,pos,strand in result:
-				if not scan_strand or (scan_strand and strandmap[scan_strand] == strandmap[strand]):
-					matches[id].append((pos,score,strand))
+				matches[id].append((pos,score,strand))
 		return matches
 
-	def pwm_scan_score(self, fa, cutoff=0, scan_strand=None, nreport=1):
+	def pwm_scan_score(self, fa, cutoff=0, nreport=1, scan_rc=True):
 		from gimmemotifs.c_metrics import pwmscan
 		c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff		
 		pwm = self.pwm
@@ -222,13 +220,13 @@ class Motif:
 		matches = {}
 		for id, seq in fa.items():
 			matches[id] = [] 
-			result = pwmscan(seq.upper(), pwm, c, nreport)
+			result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
 			for score,pos,strand in result:
-				if not scan_strand or (scan_strand and strandmap[scan_strand] == strandmap[strand]):
-					matches[id].append(score)
+				matches[id].append(score)
 		return matches
 			
-	def pwm_scan_to_gff(self, fa, gfffile, cutoff=0.9, rc=True, nreport=50, append=False):
+	def pwm_scan_to_gff(self, fa, gfffile, cutoff=0.9, nreport=50, scan_rc=True, append=False):
+		#print "received", gfffile, cutoff, nreport, scan_rc, append
 		from gimmemotifs.c_metrics import pwmscan
 		if append:
 			out = open(gfffile, "a")
@@ -240,7 +238,7 @@ class Motif:
 
 		strandmap = {-1:"-","-1":"-","-":"-","1":"+",1:"+","+":"+"}
 		for id, seq in fa.items():
-			result = pwmscan(seq.upper(), pwm, c, nreport)
+			result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
 			for score, pos, strand in result:
 				out.write("%s\tpwmscan\tmisc_feature\t%s\t%s\t%s\t%s\t.\tmotif_name \"%s\" ; motif_instance \"%s\"\n" % 
 					(id, pos, pos + len(pwm), score, strandmap[strand], self.id, seq[pos:pos + len(pwm)]))

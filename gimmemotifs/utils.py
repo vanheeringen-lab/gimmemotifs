@@ -329,6 +329,65 @@ def calc_motif_enrichment(sample, background, mtc=None, len_sample=None, len_bac
 
 	return (sig, p_value, n_sample, n_back)
 
+def calc_enrichment(sample, background, len_sample, len_back, mtc=None):
+	"""Calculate enrichment based on hypergeometric distribution"""
+	
+	INF = "Inf"
+
+	# Local imports to enable parellel Python calls
+	from scipy.stats import hypergeom
+
+	if mtc not in [None, "Bonferroni", "Benjamini-Hochberg", "None"]:
+		raise RuntimeError, "Unknown correction: %s" % mtc
+
+	sig = {}
+	p_value  = {}
+	n_sample = {}
+	n_back = {}
+	
+	for motif in sample.keys():
+		p = "NA"
+		s = "NA"
+		q = sample[motif]
+		m = 0
+		if(background[motif]):
+			m = background[motif]
+			n = len_back - m
+			k = len_sample
+			p = phyper(q - 1, m, n, k) 
+			if p != 0:
+				s = -(log(p)/log(10))
+			else:
+				s = INF
+		else:
+			s = INF
+			p = 0.0
+
+		sig[motif] = s
+		p_value[motif] = p
+		n_sample[motif] = q
+		n_back[motif] = m
+	
+	if mtc == "Bonferroni":
+		for motif in p_value.keys():
+			if  p_value[motif] != "NA":
+				p_value[motif] = p_value[motif] * len(p_value.keys())
+				if p_value[motif] > 1:
+					p_value[motif] = 1
+	
+	elif mtc == "Benjamini-Hochberg":
+		motifs = p_value.keys()
+		motifs.sort(cmp=lambda x,y: -cmp(p_value[x],p_value[y]))
+		l = len(p_value)
+		c = l
+		for	m in motifs:
+			if  p_value[motif] != "NA":
+				p_value[m] = p_value[m] * l / c 
+			c -= 1
+
+	return (sig, p_value, n_sample, n_back)
+
+
 def gff_enrichment(sample, background, numsample, numbackground, outfile):
 	data_sample = parse_gff(sample)
 	data_bg = parse_gff(background)

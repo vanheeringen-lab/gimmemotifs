@@ -495,8 +495,9 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 	int pwm_len;
 	int i, j;
 	double zeta = 0.01;
+	int scan_rc;
 
-	if (!PyArg_ParseTuple(args, "OOOi", &seq_o, &pwm_o, &cutoff_o, &n_report))
+	if (!PyArg_ParseTuple(args, "OOOii", &seq_o, &pwm_o, &cutoff_o, &n_report, &scan_rc))
 		return NULL;
 	
 	// Sequence and length
@@ -607,37 +608,39 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 		}
 	}
 
-	for (j = 0; j < j_max; j++) {
-		score = rc_score_matrix[j];
-		if (n_report > 0) {
-			if (score >= cutoff) {
-				p = n_report - 1;
-				while ((p >= 0) && (score > maxScores[p])) {
-					p--;
-				}
-				if (p < (n_report-1)) {
-					for (q = n_report - 1; q > (p + 1); q--) {
-						maxScores[q] = maxScores[q - 1];
-						maxPos[q] = maxPos[q - 1];
-						maxStrand[q] = maxStrand[q - 1];
+	if (scan_rc) {
+		for (j = 0; j < j_max; j++) {
+			score = rc_score_matrix[j];
+			if (n_report > 0) {
+				if (score >= cutoff) {
+					p = n_report - 1;
+					while ((p >= 0) && (score > maxScores[p])) {
+						p--;
 					}
-					maxScores[p + 1] = score;
-					maxPos[p + 1] = j;
-					maxStrand[p + 1] = -1;
+					if (p < (n_report-1)) {
+						for (q = n_report - 1; q > (p + 1); q--) {
+							maxScores[q] = maxScores[q - 1];
+							maxPos[q] = maxPos[q - 1];
+							maxStrand[q] = maxStrand[q - 1];
+						}
+						maxScores[p + 1] = score;
+						maxPos[p + 1] = j;
+						maxStrand[p + 1] = -1;
+					}
 				}
 			}
-		}
-		else {
-			if (score >= cutoff) {
-				PyObject* row = PyList_New(0);
-				x = PyFloat_FromDouble(score);
-				PyList_Append(row, x); Py_DECREF(x);
-				x = PyInt_FromLong((long) j);
-				PyList_Append(row, x); Py_DECREF(x);
-				x =  PyInt_FromLong((long) 1);
-				PyList_Append(row, x); Py_DECREF(x);
-				PyList_Append(return_list, row);
-				Py_DECREF(row);
+			else {
+				if (score >= cutoff) {
+					PyObject* row = PyList_New(0);
+					x = PyFloat_FromDouble(score);
+					PyList_Append(row, x); Py_DECREF(x);
+					x = PyInt_FromLong((long) j);
+					PyList_Append(row, x); Py_DECREF(x);
+					x =  PyInt_FromLong((long) 1);
+					PyList_Append(row, x); Py_DECREF(x);
+					PyList_Append(return_list, row);
+					Py_DECREF(row);
+				}
 			}
 		}
 	}

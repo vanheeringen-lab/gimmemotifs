@@ -14,7 +14,7 @@ from optparse import OptionParser,TitledHelpFormatter
 from math import log
 import re
 
-VERSION = "1.02"
+VERSION = "1.03"
 
 nreport = 1 
 
@@ -23,6 +23,7 @@ parser = OptionParser(version=VERSION, usage=usage, formatter=TitledHelpFormatte
 parser.add_option("-i", "--input", dest="inputfile", help="FASTA-formatted inputfile", metavar="FILE")
 parser.add_option("-p", "--pwm", dest="pwmfile", help="specify your own PWM file instead of MDmodule file", metavar="FILE")
 parser.add_option("-n", "--nreport", dest="nreport", help="report the N best matches", metavar="N")
+parser.add_option("-r", "--norc", dest="scan_rc", help="don't scan reverse complement (- strand)", default=True, action="store_false")
 parser.add_option("-c", "--cutoff", dest="cutoff", help="motif score cutoff (fraction of maxscore, default 0.9)", metavar="", default=0.9)
 parser.add_option("-b", "--bed", action="store_true", dest="bed", default=False, help="output bed format")
 
@@ -49,7 +50,7 @@ for (id,seq) in f.items():
 	for motif in motifs:
 		pwm = motif.pwm
 		c =  motif.pwm_min_score() + (motif.pwm_max_score() - motif.pwm_min_score()) * cutoff 
-		result = pwmscan(seq.upper(), pwm, c, nreport)
+		result = pwmscan(seq.upper(), pwm, c, nreport, options.scan_rc)
 		for (score, pos, strand) in result:
 			if bed:
 				first = id.split(" ")[0]	
