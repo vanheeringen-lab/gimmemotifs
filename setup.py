@@ -42,7 +42,7 @@ LONG_RUNNING = ["MoAn", "GADEM"]
 
 # Included binaries after compile
 MOTIF_BINS = {
-	"MEME": "src/meme_4.4.0/src/meme.bin",
+	"MEME": "src/meme_4.6.0/src/meme.bin",
 	"MDmodule": "src/MDmodule/MDmodule",
 	"BioProspector": "src/BioProspector/BioProspector",
 	"MoAn": "src/MoAn/moan",
