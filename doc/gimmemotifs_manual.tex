@@ -55,7 +55,7 @@ cd ~/Downloads
 \end{verbatim}
 Start the install (substitute the package name for the .deb package you downloaded):
 \begin{verbatim}
-sudo dpkg -i gimmemotifs_0.61-1_i386.deb 
+sudo dpkg -i gimmemotifs_0.63-1_i386.deb 
 \end{verbatim}
 Likely, dpkg will complain about some missing dependencies. Install all dependencies with:
 \begin{verbatim}
@@ -63,7 +63,7 @@ sudo apt-get -f install
 \end{verbatim}
 Complete the GimmeMotifs installation with:
 \begin{verbatim}
-sudo dpkg -i gimmemotifs_0.61-1_i386.deb 
+sudo dpkg -i gimmemotifs_0.63-1_i386.deb 
 \end{verbatim}
 Currently, there is a bug with the versions of the Parallel Python (python-pp) and Numpy (python-numpy) in the Ubuntu and Debian repositories. Therefore the package python-pp is not installed as a dependency. This can be fixed by installing the latest version of Parallel Python from the Python Package Index:
 \begin{verbatim}
@@ -74,7 +74,7 @@ Now you should have a working version of GimmeMotifs! The next steps are to inst
 \subsubsection{Installation on Fedora}
 Download the latest GimmeMotifs .rpm package from \url{http://www.ncmls.nl/bioinfo/gimmemotifs/} (available for 32-bit and 64-bit systems). This package has been tested on an up-to-date version of Fedora 13. Install GimmeMotifs as follows (substitute the package name for the .rpm package you downloaded):
 \begin{verbatim}
-sudo yum install --nogpgcheck gimmemotifs_0.61-1_i386.rpm 
+sudo yum install --nogpgcheck gimmemotifs_0.63-1_i386.rpm 
 \end{verbatim}
 GimmeMotifs doesn't play nice with SELinux enabled on Fedora, sorry. To turn it off:
 \begin{verbatim}
@@ -93,7 +93,7 @@ Before you can install GimmeMotifs you'll need:
 
 \subsubsection{Required packages (Python)}
 \begin{itemize}
-\item Python 2.5 or 2.6 (not Python 3) \url{http://www.python.org}
+\item Python 2.5, 2.6 or 2.7 (not Python 3) \url{http://www.python.org}
 \item Scipy \url{http://www.scipy.org/} \\
 SciPy is the fundamental package needed for scientific computing with Python. 
 \item matplotlib (0.98 or higher) \url{http://matplotlib.sourceforge.net/} \\
