@@ -1,0 +1,154 @@
+#!@WHICHPERL@ -w
+#
+# $Id $
+# $Log $
+#
+# FILE: priority2meme.pl
+# AUTHOR: Philip Machanick
+# CREATE DATE: 5/15/2009
+# DESCRIPTION: Convert a file containing a TFBS motif matrix from 
+# PRIORITY (Hartemink) to MEME output format.
+
+# requires a background file in MEME format as command line arg
+# Input format (# at end of line is a comment, not part of actual data):
+# ###blank lines etc. skipped up to here
+# Transcription factor: <TF name> ### <TF name> contains alphanumerics, _ or -
+# ###skip any lines until one containing
+# Number of sequences: <number>
+# ###skip any lines until one containing
+# Motif length: <number>
+###skip any lines until one starting
+# Phi:  ### followed by a line starting with 1 ending with a number
+### that number must be = Motif length: <number>
+## next 4 lines should be of form 
+# <base> <number> <number> ... # where base is one of a, c, g, t
+## rest of file is ignored
+
+use warnings;
+use strict;
+
+use lib qw(@PERLLIBDIR@);
+
+use MotifUtils qw(matrix_to_intern intern_to_meme read_background_file);
+
+use Fcntl qw(O_RDONLY);
+use Getopt::Long;
+use Pod::Usage;
+
+=head1 NAME
+
+priority2meme - Converts a PRIORITY (Hartemink) matrix file into MEME motifs.
+
+=head1 SYNOPSIS
+
+priority2meme [options] <matrix file>
+
+ Options:
+  -numbers                      use numbers instead of strings as motif names;
+  -bg <background file>         file with background frequencies of letters; 
+                                default: uniform background
+  -pseudo <total pseudocounts>  add <total pseudocounts> times letter
+                                background to each frequency; default: 0
+  -logodds                      print log-odds matrix, too;
+                                default: print frequency matrix only
+  -url <website>                website for the motif; default: no url
+
+ Converts a PRIORITY (Hartemink) matrix file into MEME motifs.
+
+ Writes standard output.
+
+=cut
+
+# Set option defaults
+my $use_numbers = 0;
+my $bg_file;
+my $pseudo_total = 0;
+my $print_logodds = 0;
+my $url = "";
+
+GetOptions("numbers" => \$use_numbers, "bg=s" => \$bg_file, "pseudo=f" => \$pseudo_total, 
+  "logodds" => \$print_logodds, "url=s" => \$url) or pod2usage(2);
+#check matrix file
+pod2usage("A matrix file must be specified for the conversion.") unless @ARGV;
+my $matrix_file = shift(@ARGV);
+pod2usage("Only one matrix file may be specified for the conversion.") if @ARGV;
+#check pseudo total
+pod2usage("Option -pseudo must have a positive value.") if ($pseudo_total < 0);
+
+# get the background model
+my %bg = &read_background_file(1, $bg_file);
+
+# Open the matrix file for reading.
+my $fp;
+sysopen($fp, $matrix_file, O_RDONLY) || die("Can't open $matrix_file.\n");
+
+# Read the input file.
+my $num_skipped = 0;
+# skip blank lines and get TF name
+my $tf_name;
+while (<$fp>) {
+  next if (/^\s*$/);     # skip blank lines
+  if (/^\s*Transcription factor:\s*(\S+)/) {
+    $tf_name = $1;
+    last;
+  } else {
+    die "`$_': should contain TF name";
+  }
+}
+die "premature end of file, no TF name" unless (defined($tf_name));
+
+#get number of sequences
+my $num_seqs;
+while (<$fp>) {
+  if (/\s*Number of sequences:\s*(\d+)/) {
+    $num_seqs = $1;
+    last;
+  }
+}
+die "Number of sequences: line missing in motif file" if (!defined($num_seqs));
+#get motif length
+my $motif_length;
+while (<$fp>) {
+  next if (/^\s*$/);     # skip blank lines
+  if (/^\s*Motif length:\s*(\d+)\s*/) {
+    $motif_length = $1;
+    last;
+  }
+}
+die "Motif length: line missing in motif file" if (!defined($motif_length));
+
+my $second_last = 0;
+# skip to 'Phi:' line and line containing numbers of sequence positions
+while (<$fp>) {
+  next if (/^\s*$/);     # skip blank lines
+  if ($second_last) {
+    if (/^\s*1\s*.*(\d+)\s*$/) {  # this line should be 1 2 ... motif length
+      die "motif length in motif file inconsistent" if ($motif_length != $1);
+      last;
+    }
+  }
+  if (/^\s*Phi/) {  # stop one past Phi line
+    $second_last = 1;
+  }
+}
+
+my $motif_matrix = '';
+my $line;
+while ($line = readline($fp)) {
+  chomp($line);
+  last if ($line =~ /^\s*$/);     # blank line at end
+  # get everything that isn't the base name
+  if ($line =~ /^\s*[acgtACGT](.*)$/) {
+    $motif_matrix .= $1 . "\n";
+  } else {
+    last;
+  }
+}
+close($fp);
+
+my ($motif, $errors) = matrix_to_intern(\%bg, $motif_matrix, 'col', $num_seqs, $pseudo_total, 
+  name => ($use_numbers ? 1 : ''), alt => $tf_name, url => $url);
+print STDERR join("\n", @{$errors}), "\n" if @{$errors};
+print STDERR "Conversion of \"$matrix_file\" failed.\n" unless $motif;
+print intern_to_meme($motif, $print_logodds, 1, 1) if $motif;
+

@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang=en>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>GLAM2 Alphabets</title>
+<link type="text/css" rel="stylesheet" href="glam2.css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+</head>
+<body>
+
+<h1>GLAM2 Alphabets</h1>
+
+<h2>Alphabet files</h2>
+
+<p>Alphabet files allow glam2 and glam2scan to operate on sequences
+over arbitrary, user-defined alphabets. They also allow residue
+abundances to be specified. Their format is inspired by that of <a
+	href="http://www.vmatch.de/">vmatch</a>. For examples, see
+robinson.alph and dna.alph in the GLAM2 examples directory.</p>
+
+<p><strong style="color: red">Note:</strong> as soon as you specify
+an alphabet file, the glam2 programs lose all knowledge about residues'
+tendencies to align with each other. So, if you use an alphabet file to
+specify amino-acid or nucleotide abundances, you probably want to
+specify a <a href="glam2_dirichlet.html">Dirichlet mixture</a> file too:
+recode3.20comp or glam_tfbs.1comp.</p>
+
+<p>In alphabet files, the # character introduces a comment:
+everything from it to the end of the line is ignored. Otherwise, each
+non-blank line defines a symbol of the alphabet. The first
+non-whitespace character on the line is the main character representing
+the symbol: this is how the symbol is printed. Any characters that
+follow it without any whitespace are aliases (when reading input). This
+is optionally followed by whitespace and then a number, indicating the
+abundance of the symbol. The abundances can be counts, fractions, or
+percentages: they will be normalized so that they sum to 1. Unspecified
+abundances default to 1. The final symbol is the <em>wildcard</em>: it
+is forbidden from appearing in aligned columns, and all characters not
+defined in the alphabet file are aliases of it. No abundance is defined
+for the wildcard (any number will be ignored).</p>
+
+<p>The order of the symbols matters when reading Dirichlet mixture
+files or looking at reverse strands.</p>
+
+<h2>Built-in alphabets</h2>
+
+<p>The p (protein) alphabet is equivalent to using robinson.alph
+(and recode3.20comp) in the GLAM2 examples directory. The n (nucleotide)
+alphabet is equivalent to using dna.alph (and glam_tfbs.1comp) in the
+GLAM2 examples directory.</p>
+
+<h2>FASTA format</h2>
+
+<p>When reading sequences in FASTA format, the &gt; character begins
+the title of the next sequence, which continues till the end of the
+line. In the sequence itself, whitespace is always ignored, and
+non-whitespace characters are always part of the sequence: if not
+defined in the alphabet file, they are interpreted as wildcards.</p>
+
+<h2>Reverse strands</h2>
+
+<p>glam2 and glam2scan provide options to look at both strands of
+the input sequences. This may only be meaningful for nucleotide
+sequences, but is actually defined for all alphabets. The reverse strand
+is obtained by first reversing the sequence, and then swapping each
+symbol with its opposite in the alphabet's order (apart from wildcards).
+Thus, for nucleotides, these symbols are swapped: a:t and c:g. For
+proteins, these symbols are swapped: A:Y, C:W, D:V, E:T, F:S, G:R, H:Q,
+I:P, K:N, and L:M.</p>
+
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>FIMO - a motif search tool</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <img src="images/fimo_logo.png" alt="FIMO logo" />
+      <p><b>Usage:</b></p>
+      <p>
+      <code>fimo [options] &lt;motifs&gt; &lt;database&gt;</code>
+      </p>
+      <p>
+      <b>Description:</b>
+      </p>
+      <p>
+      The name <code>FIMO</code> stands for "Find Individual Motif Occurences."  
+      The program searches a sequence database for occurrences of known motifs,
+      treating each motif independently.  
+      The program uses a dynamic programming algorithm to convert log-odds scores into p-values,
+      assuming a zero-order background model.
+      The program reports all motif occurrences that have p-values smaller than 
+      the output p-value threshold.  
+      The p-value threshold can be set using the <code>--outptu-pthresh</code> option.
+      The default p-value threshold is <code>1e-4</code>.
+      The p-values for each motif occurence are converted to q-values following the method of
+      Benjamini and Hochberg ("q-value" is defined as the minimal
+      false discovery rate at which a given motif occurrence is deemed significant).
+      If a motif has the <code>strand</code> feature set
+      to <code>+/-</code> (rather than <code>+</code>), then
+      <code>fimo</code> will search both strands for occurrences.
+      </p>
+      <p>
+      The parameter <code>--max-stored-scores</code> sets the maximum number of motif
+      occurrences that will be retained in memory.
+      It defaults to 100,000.
+      If the number of matches found reaches the maximum value allowed, 
+      FIMO will discard 50% of the least significant matches,
+      and new matches falling below the significance level of the retained matches
+      will also be discarded.
+      </p>
+      <p>
+      <code>FIMO</code> can make use of position specific priors (PSP) to improve its
+      identification of true motif occurrences.
+      To take advantage of PSP in FIMO you use must provide two command line options.
+      The <code>--psp</code> option is  used to set the name of a 
+      <a href="meme.html#MEME-PSP">MEME PSP file</a>,
+      and the <code>--prior-dist</code> option is used to set the name of a file
+      containing the binned distribution of priors.
+      </p>
+
+      <p><b>Input:</b></p> 
+      <ul> 
+      <li>
+      <code>&lt;motifs&gt;</code> is a list of motifs, in 
+      <a href="meme-format.html">MEME format</a>.
+      </li>
+      <li>
+      <code>&lt;database&gt;</code> is a collection of sequences in
+      <a href="fasta-format.html">FASTA</a> format. 
+      </li>
+      </ul>
+      <p><b>Output:</b></p>
+      <p>
+      FIMO will create a directory, named <code>fimo_out</code> by default.
+      Any existing output files in the directory will be overwritten.
+      The directory will contain:
+      </p>
+      <ul>
+      <li>
+      An XML file named <code>fimo.xml</code> using the 
+      <a href="http://zlab.bu.edu/~phaverty/SupplementalData/CisML">CisML</a> schema.
+      </li>
+      <li>
+      An HTML file named <code>fimo.html</code>
+      </li>
+      <li>
+      A plain text file named <code>fimo.text</code>
+      </li>
+      <li>
+      A plain text file in 
+      <a href="http://www.sanger.ac.uk/resources/software/gff/">GFF format</a>
+      named <code>fimo.gff</code>
+      </li>
+      <li>
+      A plain text file in 
+      <a href="https://cgwb.nci.nih.gov/goldenPath/help/wiggle.html">wiggle track format</a>
+      named <code>fimo.wig</code>
+      </li>
+      </ul>
+      <p>
+      The default output directory can be overridden using the <code>--o</code> or <code>--oc</code>
+      options which are described below.
+      </p>
+      <p>
+      The <code>--text</code> option will limit output to plain text sent to the standard output.
+      </p>
+      <p>The HTML and plain text output contain the following columns:</p>
+      <ul>
+        <li>The motif identifier</li>
+        <li>The sequence identiifer</li>
+        <li>The start position of the motif occurence</li>
+        <li>The end position of the motif occurence. 
+        If the start position is larger then the end position,
+        the motif occurrence is on the reverse strand.
+        </li>
+        <li>The score for the motif occurence.
+        The score is computed by by summing the appropriate entries from each column of
+        the position-dependent scoring matrix that represents the motif.</li>
+        <li>The p-value of the motif occurence. 
+        The p-value is the
+        probability of a random sequence of the same length as the motif
+        matching that position of the sequence with a score at least as good.
+        </li>
+        <li>The q-value of the motif occurence.
+        The q-value is the estimated
+        false discovery rate if the occurrence is accepted as significant.
+        See Storey JD, Tibshirani R. Statistical significance for genome-wide studies. 
+        <i>Proc. Natl Acad. Sci. USA (2003) 100:9440–9445</i>
+        </li>
+        <li>
+        The sequence matched to the motif.
+        </li>
+      </ul>
+      <p>The HTML and plain text output is sorted by increasing p-value.</p>
+      <p>
+      <b>Options:</b> 
+      </p>
+      <ul>
+      <li><command-option name="bgfile"/></li>
+      <li><command-option name="max-seq-length"/></li>
+      <li><command-option name="max-stored-scores"/></li>
+      <li><command-option name="motif"/></li>
+      <li><command-option name="motif-pseudo"/></li>
+      <li><command-option name="no-qvalue"/></li>
+      <li><command-option name="norc"/></li>
+      <li><command-option name="o"/></li>
+      <li><command-option name="oc"/></li>
+      <li><command-option name="output-pthresh"/></li>
+      <li><command-option name="output-qthresh"/></li>
+      <li><command-option prorgram="fimo" name="psp"/></li>
+      <li><command-option prorgram="fimo" name="prior-dist"/></li>
+      <li><command-option name="text"/></li>
+      <li><command-option name="verbosity"/></li>
+      </ul>
+    </div>
+  </body>
+</html>

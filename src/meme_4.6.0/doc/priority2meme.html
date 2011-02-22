@@ -1,0 +1,46 @@
+<!--
+FILE: priority2meme.html
+AUTHOR: Timothy Bailey, Philip Machanick
+CREATE DATE: 08/07/2009
+PROJECT: MEME Suite
+-->
+<head>
+<title>priority2meme</title>
+<link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+</head>
+<body>
+<div id="main">
+<script src="./meme-suite-logo.js" type="text/javascript">></script>
+<h1>priority2meme</h1>
+<p><b>Usage:</b> <code>priority2meme [options]
+&lt;matrix file&gt;</code></p>
+<p><b>Description:</b></p>
+<p>
+Convert a PRIORITY file into a MEME version 4 formatted file
+suitable for use with MAST and other MEME Suite programs.
+</p>
+<p><b>Input:</b></p>
+<p>A PRIORITY file describes a motif in terms of a position weight matrix.</p>
+
+<p>A probability matrix and optionally a log-odds matrix are output for the
+motif. The probability matrix is computed using
+pseudo-counts consisting of the background frequency (see -bg, below)
+multiplied by the total pseudocounts (see -pseudo, below). The log-odds
+matrix uses the background frequencies in the denominator and is log
+base 2.</p>
+<p><b>Options:</b></p>
+<dl>
+  <dt>-numbers</dt><dd>use numbers instead of strings as motif names;</dd>
+  <dt>-bg &lt;background file&gt;</dt><dd>file with background frequencies of letters; default: uniform background</dd>
+  <dt>-pseudo &lt;total pseudocounts&gt;</dt><dd>add &lt;total pseudocounts&gt; times letter background to each frequency; default: 0</dd>
+  <dt>-logodds</dt><dd>print log-odds matrix, too; default: print frequency matrix only</dd>
+  <dt>-url &lt;website&gt;</dt><dd>website for the motif; default: no url</dd>
+</dl>
+<p><b>Output:</b></p>
+<p>
+Writes MEME format to standard output.
+</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,102 @@
+#!@WHICHPERL@
+
+package OpalServices;
+require Exporter;
+require OpalTypes;
+
+use SOAP::Lite;
+use MIME::Base64;
+use OpalTypes;
+
+our @ISA = qw(Exporter);
+our $VERSION = 0.1;
+
+sub new {
+  my $invocant = shift;
+  my $class = ref($invocant) || $invocant;
+  %inputs = @_;
+  my $soapSocket = SOAP::Lite
+    ->uri('http://nbcr.sdsc.edu/opal')
+    ->on_action(sub{sprintf '%s%s', @_})
+    ->proxy($inputs{service_url})
+    ->on_fault(sub{
+        my($soap,$result) = @_;
+        print FaultType->new($result->match('//opalFaultOutput'))->getMessage(),"\n";
+        die ref $result ? $result->faultstring : $soap->transport->status,"\n";
+    });
+  my $self = {
+    appPort => $soapSocket,
+    @_
+  };
+  bless($self,$class);
+  return $self;
+}
+
+sub getAppMetadata {
+  # method to get application metadata
+  my $self = shift;
+  my $app = $self->{appPort};
+  my $result = $app->getAppMetadata();
+  unless ($result->fault) {return AppMetadataType->new($result->match('//getAppMetadataOutput'))}
+}
+
+sub getAppConfig {
+  my $self = shift;
+  my $app = $self->{appPort};
+  my $result = $app->getAppConfig();
+  unless ($result->fault) {return AppConfigType->new($result->match('//AppConfigOutput'))}
+}
+
+sub launchJob {
+  # Method which takes an argument list and a set of input files.
+  # Returns a job id.
+  my $self = shift;
+  my $app = $self->{appPort};
+  my $req = shift;
+  my $result = $app->launchJob($req->toSOAP());
+  unless ($result->fault) {return JobSubOutputType->new($result)}
+}
+
+sub launchJobBlocking {
+  my $self = shift;
+  my $app = $self->{appPort};
+  my $req = shift;
+  my $result = $app->launchJobBlocking($req->toSOAP());
+  unless ($result->fault) {return BlockingOutputType->new($result->match('//launchJobBlockingOutput'))}
+}
+
+sub queryStatus {
+  my $self = shift;
+  my $jobid = shift;
+  my $app = $self->{appPort};
+  my $element = SOAP::Data
+    ->type('xml' => "$jobid");
+  my $result = $app->queryStatus($element);
+  unless ($result->fault) {return StatusOutputType->new($result->match('//queryStatusOutput'))}
+}
+
+sub getOutputs {
+  my $self = shift;
+  my $jobid = shift;
+  my $app = $self->{appPort};
+  my $element = SOAP::Data
+    ->type('xml' => "$jobid");
+  my $result = $app->getOutputs($element);
+  unless ($result->fault) {return JobOutputType->new($result->match('//getOutputsOutput'))}
+}
+
+sub getOutputAsBase64ByName {
+  my $self = shift;
+  my $req = shift;
+  my $app = $self->{appPort};
+  my $result = $app->getOutputAsBase64ByName($req->toSOAP());
+  unless ($result->fault) {return decode_base64($result->valueof('//getOutputAsBase64ByNameOutput'))}
+}
+
+sub destroy {
+  my $self = shift;
+  my $jobid = shift;
+  my $app = $self->{appPort};
+  my $result = $app->destroy(SOAP::Data->type('xml'=>"$jobid"));
+  unless ($result->fault) {return StatusOutputType->new($result->match('//destroyOutput'))}
+}

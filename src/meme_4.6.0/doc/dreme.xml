@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+	<head>
+		<title>DREME - a motif discovery tool</title>
+		<link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+	</head>
+	<body>
+		<div id="main">
+			<script src="./meme-suite-logo.js" type="text/javascript">></script>
+			<p><b>Usage:</b></p>
+      <p>
+			<code>dreme [options] -p &lt;sequence file&gt; [-n &lt;background file&gt;]</code>
+    	</p>
+      <p>
+      <b>Description:</b>
+      </p>
+
+      <p>
+        <code>DREME</code> (Discriminative Regular Expression Motif
+	Elicitation) finds relatively short motifs (up to 8 bases) fast, and can perform
+	<i>discriminative</i> motif discovery if given a negative set, consisting of
+	sequences unlikely to contain a motif of interest that is however likely to be
+	found in the main ("positive") sequence set. If you do not provide a negative set
+	the program shuffles the positive set to provide a background (in the role of the negative
+	set).
+      </p>
+      <p>
+        The input to <code>DREME</code> is one or two sets of DNA sequences. The program
+	uses a Fisher Exact Test to determine significance of each motif found in the postive set
+	as compared with its representation in the negative set, using a significance threshold
+	that may be set on the command line.
+      </p>
+      <p>
+	<code>DREME</code> achieves its high speed by restricting its search to regular expressions
+	based on the IUPAC alphabet representing bases and ambiguous characters, and by using a heuristic
+	estimate of generalised motifs' statistical significance.
+      </p>
+
+      <p><b>Input:</b></p> 
+      <ul> 
+      <li>
+      <code>&lt;sequence file&gt;</code> is a collection of sequences in
+      <a href="fasta-format.html">FASTA</a> format. 
+      </li>
+      <li>
+      <code>&lt;background file&gt;</code> (optional) is a collection of sequences in
+      <a href="fasta-format.html">FASTA</a> format. 
+      </li>
+      </ul>
+      
+    	<p><b>Output:</b></p>
+      <p>
+      <code>DREME</code> writes a minimal MEME-formatted motif file to standard out.
+      </p>
+
+      <p>
+      <b>Options:</b> 
+      </p>
+      <ul>
+    		<li><command-option program="dreme" name="e"/></li>
+    		<li><command-option program="dreme" name="m"/></li>
+    		<li><command-option program="dreme" name="g"/></li>
+    		<li><command-option program="dreme" name="s"/></li>
+    		<li><command-option program="dreme" name="v"/></li>
+    		<li><command-option program="dreme" name="h"/></li>
+   		</ul>
+      <p>
+	<b>Setting Core Motif Width</b>
+	<ul>
+	  <li><command-option program="dreme" name="mink"/></li>
+	  <li><command-option program="dreme" name="maxk"/></li>
+	  <li><command-option program="dreme" name="k"/></li>
+	</ul>
+      </p>
+      <p>
+	<b>Experimental below here; enter at your own risk</b>
+	<ul>
+	  <li><command-option program="dreme" name="l"/></li>
+	</ul>
+      </p>
+		</div>
+  </body>
+</html>

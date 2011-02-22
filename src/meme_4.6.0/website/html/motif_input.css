@@ -1,0 +1,7 @@
+table.examplematrix {padding: 0px; margin: 0px; border-collapse: collapse; cursor:pointer;}
+table.examplematrix tr {border-collapse: collapse; padding: 0px; margin:0px;}
+table.examplematrix tr th {font-size: x-small; border-collapse: collapse; color:gray; padding: 0px 3px; margin:0px;}
+table.examplematrix tr td {font-size: x-small; text-align:right; border-collapse: collapse; padding: 0px 3px; margin:0px;}
+td.matrixcont {vertical-align:top;}
+textarea.log {font-family:monospace; width:200px; height:100px; border: 1px solid black;}
+canvas.preview {border:1px solid black; margin:0px; padding:1px;}

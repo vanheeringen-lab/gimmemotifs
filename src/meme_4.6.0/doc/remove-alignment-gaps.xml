@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>remove-alignment-gaps</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>remove-alignment-gaps</h1>
+
+      <p><b>Usage:</b> <code>reduce-alignment-gaps &lt;species&gt; &lt;alignment&gt; </code>
+      </p>
+
+      <p><b>Description:</b></p>
+
+      <p>
+      Remove from an alignment all columns that contain a gap in
+      the specified species.  </p>
+
+      <p><b>Input:</b> </p>
+
+      <ul>
+
+      <li>Species name</li>
+      <li>
+      A DNA or protein sequence alignment in <a
+      href="clustalw-format.html">clustalw format</a>.</li>
+
+      </ul>
+
+
+      <p><b>Output:</b></p>
+
+      <ul>
+        <li>
+          The extracted columns are written to <code>stdout</code>.
+        </li>
+      </ul>
+
+      <p><b>Options:</b></p>
+
+      <ul>
+        <li>
+          None
+        </li>
+      </ul>
+
+      <p>
+      <b>Warning messages:</b>
+      </p>
+
+      <ul>
+        <li>
+          None
+        </li>
+      </ul>
+
+      <p><b>Bugs:</b>
+        None known.
+      </p>
+
+    </div>
+  </body>
+</html>

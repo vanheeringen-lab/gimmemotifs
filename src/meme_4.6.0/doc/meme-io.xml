@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>meme-io</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>meme-io</h1>
+
+      <p>
+        <b>Usage:</b> <code>meme-io [options] &lt;<i>motif</i>&gt;</code>
+      </p>
+
+      <p><b>Description:</b></p>
+      <p>
+        This utility parses a motif file in MEME HTML format and writes as plain text 
+        basic information about the motif to standard out.
+      </p>
+
+      <p><b>Input:</b></p>
+
+      <ul>
+      <li>&lt;<i>motif</i>&gt; - a file containing a set of motifs in 
+      <a href="meme.html">MEME HTML format</a>.
+      </li>
+      </ul>
+
+      <p><b>Output:</b></p>
+      <p>
+      The program prints to standard output.
+      </p>
+
+      <p><b>Options:</b></p>
+
+      <ul>
+      <li><command-option name="indices"/></li>
+      <li><command-option name="verbosity"/></li>
+      </ul>
+
+      <p><b>Bugs:</b> None known.</p>
+
+    </div>
+  </body>
+</html>

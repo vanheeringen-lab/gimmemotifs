@@ -1,0 +1,19 @@
+Simple tests of whether fasta centring work.
+
+To check a very simple example:
+fasta-center -cmin 6 -cmax 6 -wmin 3 -wmax 3 -p 1 \
+   < mid3.fasta > mid3-centred.fasta
+
+To check if reverse complementing works in a simple example:
+fasta-center -cmin 6 -cmax 6 -wmin 3 -wmax 3 -p 1 \
+   < mid3rc.fasta > mid3rc-centred.fasta
+
+To check that running without reverse complementing gives a
+different answer:
+fasta-center -cmin 6 -cmax 6 -wmin 3 -wmax 3 -p 1 -norc \
+  < mid3rc.fasta > mid3norc-centred.fasta
+
+To check that making the maximum window size the total data
+width works:
+fasta-center -cmin 12 -cmax 12 -wmin 3 -wmax 3 -p 1 \
+   < fasta-center/mid3.fasta > fasta-center/mid3-C12.fasta

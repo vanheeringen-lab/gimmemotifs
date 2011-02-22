@@ -1,0 +1,172 @@
+# $Id: Log.txt,v 1.1.1.1 2004/10/07 19:44:13 cegrant Exp $
+# Log.pm.
+# Paul Pavlidis
+# DESCRIPTION: Functions to use error and user logs. A log object can
+# be instantiated and passed around. The same log can be written to by
+# multiple processes.
+package Log;
+
+require Exporter;
+@ISA = qw(Exporter);
+@EXPORT = qw(new log debug closelog reopen);
+
+use strict;
+use CGI::Carp qw(fatalsToBrowser);
+use File::Basename;
+use FileHandle;
+use lib qw(@MODULE_DIR@);
+use MetaGlobals;
+
+=head2 new
+
+instantiate a new log object
+
+=cut
+sub new {
+  my ($class, $uid, $clobber) = @_;
+  my $self = { };
+  bless($self, $class);
+  $self->{_uid} = $uid;
+  $self->_init($clobber);
+  return($self);
+}
+
+=head2 _init
+
+Internal function to ready the object
+
+=cut
+sub _init {
+  my $self = shift @_;
+  my $clobber = shift @_;
+  my $uid = $self->{_uid};
+  my $scriptName = $ENV{SCRIPT_NAME};
+
+  $scriptName =~ s/(.+)/$1/; # untaint it the script name
+  if (! $scriptName) { # called from command line
+    $scriptName = $0;
+  }
+  $scriptName = basename($scriptName); # remove path
+#  print STDERR "Creating log object in $scriptName.\n";
+
+  my ($fh, $dbfh);
+  #eval {
+    if (-e "$LOG_DIR/${uid}.log" || !$clobber) {
+      $clobber = ">>";
+    } else {
+      $clobber = ">";
+    }
+    $fh = new FileHandle;
+    if (!($fh->open("$clobber$LOG_DIR/${uid}.log"))) {
+      confess "Could not open log file $LOG_DIR/${uid}.log: $!\n";
+    }
+    $dbfh = new FileHandle;
+    if (!($dbfh->open(">>$DEBUG_LOG"))) {
+      confess "Could not open debugging log file $DEBUG_LOG: $!\n";
+    }
+  #};
+
+  if ($@) {
+    # do something intelligent here.
+  }
+
+  $self->{_logfh} = $fh;
+  $self->{_dbfh} = $dbfh;
+  $self->{_uid} = $uid;
+  $self->{_dblogfile} = $DEBUG_LOG;
+  $self->{_scriptname} = $scriptName;
+  #  $self->log("Log initialized for $scriptName");
+  #  $self->debug("Log initialized for $scriptName, $uid");
+}
+
+=head2 DESTROY
+
+
+=cut
+sub DESTROY {
+  my ($self) = @_;
+  close($self->{_logfh});
+  close($self->{_dbfh});
+}
+
+=head2 log
+
+Write to the regular log.
+
+=cut
+sub log {
+  my ($self, $message) = @_;
+  my $time = scalar localtime();
+  my $fh = $self->{_logfh};
+#  print STDERR "|$time|$message\n";
+  eval {
+    flock($fh, LOCK_EX() );
+    print $fh ($self->{_scriptname}, "|$time|$message\n");
+    flock($fh, LOCK_UN() ); # this is okay in perl > 5.004
+  };
+  if ($@) {
+    confess "Could not write to the log: $!";
+  }
+}
+
+
+=head2 debug
+
+Write to the debug log.
+
+=cut
+sub debug {
+  my ($self, $message) = @_;
+  my $time = scalar localtime();
+  my $fh = $self->{_dbfh};
+  my $uid = $self->{_uid};
+#  print STDERR "|$time|$message\n";
+  eval {
+    flock($fh, LOCK_EX() );
+    print $fh ($self->{_scriptname}, "|$time|$uid|$message\n");
+    flock($fh, LOCK_UN() );
+  };
+  if ($@) {
+    confess "Could not write to the debug log: $!";
+  }
+}
+
+
+=head2 close
+
+Close the main log. This is meant to be temporary. The debug log is left alone.
+
+=cut
+sub closelog {
+  my ($self) = @_;
+  my $fh = $self->{_logfh};
+  eval {
+    close($fh);
+  };
+  if($@) {
+    confess "Could not closelog: $!\n";
+  }
+}
+
+
+=head2 reopen
+
+Reopen the log after having closed it.
+
+=cut
+sub reopen {
+  my ($self) = @_;
+  my $fh = new FileHandle;
+  my $uid = $self->{_uid};
+
+  if (!$uid) {
+    confess "Could not get a uid to reopen the log\n";
+    return 1;
+  } else {
+    if (!($fh->open(">>$LOG_DIR/${uid}.log"))) {
+      confess "Could not open log file $LOG_DIR/${uid}.log: $!\n";
+    }
+    $self->{_dbfh} = $fh;
+    return 0;
+  }
+}

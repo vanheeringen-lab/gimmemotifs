@@ -1,0 +1,120 @@
+#!@WHICHPERL@
+#
+# $Id: fasta-make-index.pl.in 5026 2010-10-20 07:00:35Z james_johnson $
+# $Log$
+# Revision 1.2  2005/10/05 06:18:35  nadya
+# use full path for "rm". Asssume everybody has /bin/rm.
+#
+# Revision 1.1.1.1  2005/07/28 23:53:45  nadya
+# Importing from meme-3.0.14, and adding configure/make
+#
+#
+
+$pgm = $0;			# name of program
+$pgm =~ s#.*/##;                # remove part up to last slash
+@args = @ARGV;			# arguments to program
+$status = 0;			# exit status 
+$SIG{'INT'} = 'cleanup';	# interrupt handler
+
+$usage = <<USAGE;		# usage message
+  USAGE:
+	$pgm <file> [-f] [-sp] [-l] [-aa] [-gc] [-gi]
+
+	<file>		name of FASTA file
+
+	[-f]		overwrite existing index file if one exists
+	[-sp]		make a swissprot index by stripping all but
+			last part of sequence names
+	[-l]		index by sequence name and lowercased name
+	[-aa]		include first amino acid index found in parens
+	[-gc]		genechip format: first field in pipes
+	[-gi]		if identifier starts with "gi|<number>" replace
+			it with <number>
+
+	Make an index for a FASTA file for use by fasta-fetch.
+
+	Creates file <file>.index.
+USAGE
+
+$nargs = 1;
+if ($#ARGV+1 < $nargs) {		# wrong number of arguments
+  print $usage;
+  exit(1);
+}
+
+# get input arguments
+$file = shift;
+while ($#ARGV >= 0) {
+  if ($ARGV[0] eq "-sp") {
+    $sprot = 1;
+  } elsif ($ARGV[0] eq "-l") {
+    $lower = 1;
+  } elsif ($ARGV[0] eq "-aa") {
+    $aa = 1;
+  } elsif ($ARGV[0] eq "-gc") {
+    $gc = 1;
+  } elsif ($ARGV[0] eq "-gi") {
+    $gi = 1;
+  } elsif ($ARGV[0] eq "-f") {
+    $force = 1;
+  } else {
+    print $usage;
+    exit(1);
+  }
+  shift;
+}
+
+open FILE, "<$file" || die "Couldn't open $file";
+if (!$force && -e "$file.index") {
+  print STDERR "Can't create fetch index file for file $file.\n";
+  print STDERR "File $file.index already exists.\n";
+  print STDERR "Move or rename file $file.index and try again.\n";
+  exit 1;
+}
+
+open INDEX, ">$file.index" || die "Couldn't open $file.index";
+$byte = 0;
+while (<FILE>) {
+  if (/^>/) {
+    #if (++$i % 1000 == 0) {print stderr "seq: $i\r";}
+    @words = split;
+    $id = $words[0] eq ">" ? $words[1] : $words[0];
+    $id =~ s/>//;			# remove ">"
+    if ($sprot) {
+      $id =~ s/.*\|//;			# remove up to last "|"
+    } elsif ($gc) {
+      # first to last field between "|"
+      @words = split(/\|/, $id);	# split on pipes
+      $id = $words[0];
+    } elsif ($gi) {
+      if ($id =~ /^gi\|(\d+)/) { $id = $1; }
+    }
+    @ids = ($id);
+    if ($aa) {				# add amino acid id
+      foreach $id (@words[1..$#words]) {
+        if ($id =~ /^\(([A-Z][0-9]+)\)$/) {
+          push @ids, "$1";
+          last;
+        } 
+      }
+    }
+    foreach $id (@ids) {
+      printf INDEX ">%s %d\n", $id, $byte;
+      if ($lower) {
+	$l = $id;
+	$l =~ tr/A-Z/a-z/;
+	printf INDEX ">%s %d\n", $l, $byte;
+      }
+    }
+  }
+  $byte += length;
+}
+    
+# cleanup files
+# note: "if ($status == 130) {cleanup(1);}" must follow $status = system(...)
+#&cleanup($status);
+ 
+sub cleanup {
+  system "/bin/rm $pgm.$$.*.tmp";
+  if ($_[0] eq "INT") { exit(1); } else { exit($_[0]); }
+}

@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st January 2004), see www.w3.org">
+<title>Meta-MEME v3.3</title>
+<link href="metameme.css" rel="styleSheet" type="text/css">
+</head>
+<body bgcolor="white">
+<blockquote>
+<h1><img height="81" width="444" src="images/meta-meme.gif"></h1>
+<h3>Papers &amp; publications</h3>
+<hr>
+Click on the links below to see abstracts.
+<ul>
+<li>Shobhit Gupta, John A. Stamatoyannopoulos, Timothy L. Bailey and William Stafford Noble.
+<a href=
+"http://noble.gs.washington.edu/papers/gupta_quantifying.html">"Quantifying similarity between motifs"</a> 
+<a href=
+"http://genomebiology.com/"><i>Genome Biology</i></a> <a href=
+"http://genomebiology.com/2007/8/2/R24">8:R24</a>, 2007.<br></li>
+<li style="list-style: none"><br></li>
+<li>Grundy, William Noble. <a href=
+"http://noble.gs.washington.edu/papers/thesis.html">A Bayesian
+Approach to Motif-based Protein Modeling.</a> Ph.D. dissertation.
+University of California, San Diego. June, 1998.<br></li>
+<li style="list-style: none"><br></li>
+<li>Grundy, William N., Timothy L. Bailey, Charles P. Elkan and
+Michael E. Baker. <a href=
+"http://noble.gs.washington.edu/papers/metameme.html">"Meta-MEME:
+Motif-based Hidden Markov Models of Biological Sequences"</a>.
+<a href="http://bioinformatics.oxfordjournals.org"><i>Computer
+Applications in the Biosciences</i></a>, <a href=
+"http://bioinformatics.oxfordjournals.org/content/vol13/issue4/index.dtl">13(4)</a>:397-406,
+1997.<br></li>
+<li style="list-style: none"><br></li>
+<li>Grundy, William N., Timothy L. Bailey, Charles P. Elkan and
+Michael E. Baker. <a href=
+"http://noble.gs.washington.edu/papers/dehydrog.html">"Hidden
+Markov Model Analysis of Motifs in Steroid Dehydrogenases and their
+Homologs."</a> <a href=
+"http://www.elsevier.com/wps/find/journaldescription.cws_home/622790/description#description"><i>Biochemical and
+Biophysical Research Communications</i></a>, 231(3):760-766,
+1997.<br></li>
+<li style="list-style: none"><br></li>
+<li>Grundy, William N. and Charles P. Elkan. <a href=
+"http://noble.gs.washington.edu/papers/ismb-poster.html">"Motif-based
+Hidden Markov Models for Multiple Sequence Alignment"</a> (poster).
+<a href="http://www.cse.ucsc.edu/research/compbio/ismb97">Fifth
+International Conference on Intelligent Systems for Molecular
+Biology (ISMB-97)</a>. Halkidiki, Greece. June 21-25,
+1997.<br></li>
+<li style="list-style: none"><br></li>
+<li>Bailey, Timothy L., Michael E. Baker, Charles P. Elkan and
+William N. Grundy. "MEME, MAST, and Meta-MEME: New Tools for Motif
+Discovery in Protein Sequences" in <i>Pattern Discovery in
+Molecular Biology.</i> J. Wang, B. Shapiro and D. Shasha, editors.
+Oxford UP, 1998. <i>In press</i>.<br></li>
+<li style="list-style: none"><br></li>
+<li>Grundy, William N., Timothy L. Bailey and Charles P. Elkan.
+<a href=
+"http://noble.gs.washington.edu/papers/parameme.html">"ParaMEME:
+A Parallel Implementation and a Web Interface for a DNA and Protein
+Motif Discovery Tool"</a> (with corrections). <a href=
+"http://bioinformatics.oxfordjournals.org"><i>Computer Applications
+in the Biosciences</i></a> <a href=
+"http://bioinformatics.oxfordjournals.org/content/vol12/issue4/index.dtl">12(4)</a>:303-310,
+1996.<br></li>
+</ul>
+<hr>
+<a href="metameme-intro.html">Return</a> to the Meta-MEME home page.
+<p><i>Please send comments and questions to:
+<a href=
+"mailto:@METAMEME_CONTACT@">@METAMEME_CONTACT@</a>.</i></p>
+</blockquote>
+</body>
+</html>

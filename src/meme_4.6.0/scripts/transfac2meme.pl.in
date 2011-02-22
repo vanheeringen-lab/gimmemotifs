@@ -1,0 +1,201 @@
+#!@WHICHPERL@ -w
+#
+# $Id: transfac2meme.pl.in 5026 2010-10-20 07:00:35Z james_johnson $
+# $Log$
+# Revision 1.1  2005/07/28 23:57:08  nadya
+# Initial revision
+#
+#
+# FILE: transfac2meme
+# AUTHOR: William Stafford Noble and Timothy L. Bailey
+# CREATE DATE: 4/22/99
+# DESCRIPTION: Convert a Transfac matrix file to MEME output format. 
+
+use strict;
+use warnings;
+
+use lib qw(@PERLLIBDIR@);
+
+use MotifUtils qw(matrix_to_intern intern_to_meme read_background_file);
+
+use Fcntl qw(O_RDONLY);
+use Getopt::Long;
+use Pod::Usage;
+
+=head1 SYNOPSIS
+
+transfac2meme [options] <matrix file>
+
+ Options:
+  -numbers                      use numbers instead of strings as motif names
+  -use_acc                      use accession names instead of IDs
+  -ids <idfile>                 keep any motifs listed in the file
+  -species <name>               keep only motifs for this species
+  -skip <ID>                    skip this ID (may be repeated)
+  -bg <background file>         file with background frequencies of letters;
+                                default: uniform background
+  -pseudo <total pseudocounts>  add <total pseudocounts> times letter
+                                background to each frequency; default: 0
+  -logodds                      print log-odds matrix, too;
+                                default: print frequency matrix only
+  -url <website>                website for the motif; The ID (or accession) is
+                                substituted for MOTIF_NAME; default: no url
+
+ Converts a transfac matrix.dat file into MEME motifs.
+
+ N.B. Dollar signs in TRANSFAC IDs are converted to underscores.
+
+ Writes to standard output.
+
+=cut
+
+# Set option defaults
+my $use_numbers = 0;
+my $id_type = "ID";
+my $species = "";
+my %skips = ();
+my $id_file = "";
+my $bg_file;
+my $pseudo_total = 0;
+my $print_logodds = 0;
+my $url_pattern = "";
+my $matrix_file;
+
+GetOptions("numbers" => \$use_numbers, "use_acc" => sub {$id_type = "AC"},
+  "species=s" => \$species, "skip=s" => sub {$skips{$_[1]} = 1},
+  "ids=s" => \$id_file, "bg=s" => \$bg_file, "logodds" => \$print_logodds, 
+  "pseudo=f" => \$pseudo_total, "url=s" => \$url_pattern) or pod2usage(2);
+#check matrix file
+pod2usage("A matrix file must be specified for the conversion.") unless @ARGV;
+$matrix_file = shift(@ARGV);
+pod2usage("Only one matrix file may be specified for the conversion.") if @ARGV;
+#check pseudo total
+pod2usage("Option -pseudo must have a positive value.") if ($pseudo_total < 0);
+
+# read the background file
+my %bg = &read_background_file(1, $bg_file);
+
+my $line;
+
+# Store the target IDs.
+my %id_list = ();
+if ($id_file) {
+  my $fp;
+  sysopen($fp, $id_file, O_RDONLY) || die("Can't open \"$id_file\".");
+  while ($line = <$fp>) {
+    chomp($line);
+    my @words = split(' ', $line);
+    foreach my $word (@words) {
+      $id_list{$word} = 1;
+    }
+  }
+  close($fp);
+}
+
+# Open the matrix file for reading.
+my $matrix_fp;
+sysopen($matrix_fp, $matrix_file, O_RDONLY) || die("Can't open \"$matrix_file\".\n");
+
+# Read the input file.
+my $num_motifs = 0;
+my $num_skipped = 0;
+my $num_bad = 0;
+while ($line = <$matrix_fp>) {
+  chomp($line);
+  # Split the line into type and everything else.
+  my ($type, $data) = split(/\s+/, $line, 2);
+  next unless $type;
+
+  # Have we reached a new matrix?
+  if ($type eq $id_type) {
+    my $matrix_name;
+    chomp($matrix_name = $data);
+    $matrix_name =~ tr/\$/_/;
+
+    # Read to the beginning of the motif.
+    my $this_species = "";
+    my $this_name = "";
+    my $this_descr = "";
+
+    # Old versions of TRANSFAC use pee-zero; new use pee-oh.
+    while (($type ne "PO") && ($type ne "P0")) {
+      $line = <$matrix_fp>;
+      if (! defined($line)) {
+        die ("Can't find PO line for TRANSFAC matrix $matrix_name.\n");
+      }
+      chomp($line);
+      ($type, $data) = split(/\s+/, $line, 2);
+
+      # Store the species line.
+      if ($type eq "BF") { $this_species .= $data . "\n"; }
+
+      # Store the name line.
+      if ($type eq "NA") { $this_name = $data; }
+
+      # Store the description line.
+      if ($type eq "DE") { $this_descr = $data; }
+    }
+
+    # Read the motif.
+    my $matrix = "";
+    while () {
+      $line = <$matrix_fp>;
+      die ("Can't find `XX' line for TRANSFAC matrix $matrix_name.\n") unless $line;
+      chomp($line);
+
+      ($type, $data) = split(/\s+/, $line, 2);
+
+      # Look for the end of the motif.
+      last if (($type eq "XX") || ($type eq "//"));
+
+      # trim the IUPAC code off the end
+      $data =~ s/\w$//;
+
+      # append to the matrix
+      $matrix .= $data . "\n";
+    }
+
+    ###### Decide whether to print the motif.
+
+    # If no criteria are given, then print it.
+    my $print_it = 1;
+
+    # If we were given a list,
+    if ($id_file) {
+      #  was this matrix in the list?
+      $print_it = 0 unless defined($id_list{$matrix_name});
+    }
+
+    # If we were given a species.
+    if ($species ne "") {
+      # is this the right species?
+      $print_it = 0 unless ($this_species =~ m/$species/);
+      if ($this_species eq "") {
+        print(STDERR "Warning: No species given for $matrix_name.\n");
+      }
+    }
+
+    # Were we explicitly asked to skip this one?
+    if ($skips{$matrix_name}) {
+      $print_it = 0;
+    }
+    # Print the motif.
+    if ($print_it) {
+      my $url = $url_pattern;
+      $url =~ s/MOTIF_NAME/$matrix_name/g;
+      my $name = ($use_numbers ? $num_motifs + 1 : $matrix_name);
+      my $alt = ($use_numbers ? $matrix_name : $this_name);
+      my ($motif, $errors) = matrix_to_intern(\%bg, $matrix, 'row', 1, $pseudo_total, id => $name, alt => $alt, url => $url);
+      print(STDERR join("\n", @{$errors}), "\n") if @{$errors};
+      $num_bad++ unless $motif;
+      print intern_to_meme($motif, $print_logodds, 1, !($num_motifs++)) if $motif;
+    } else {
+      $num_skipped++;
+    }
+  }
+}
+print(STDERR "Converted $num_motifs motifs.\n");
+print(STDERR "Skipped $num_skipped motifs.\n");
+print(STDERR "$num_bad conversion errors.\n");
+
+close($matrix_fp);

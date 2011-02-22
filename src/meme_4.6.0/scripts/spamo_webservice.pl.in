@@ -1,0 +1,151 @@
+#!@WHICHPERL@
+#
+# spamo_webservice
+# This script must be run in the directory you want your output.
+#
+#
+
+
+use strict;
+use warnings;
+
+use lib qw(@PERLLIBDIR@);
+
+use Cwd qw(getcwd abs_path);
+use File::Basename qw(fileparse);
+use Getopt::Long;
+use Time::HiRes qw(gettimeofday tv_interval);
+
+use MemeWebUtils qw(add_status_msg update_status);
+
+# paths
+my $spamo = '@MEMEDIR@/bin/spamo';
+my $db_dir = '@MEMEDIR@/db/motif_databases';
+my $work_dir = getcwd;
+
+# letters allowed in names
+my $SAFE_FILENAME = qr/^[a-zA-Z0-9:_\.][a-zA-Z0-9:_\.-]*$/;
+
+# error files
+my $err = "stderr.txt";
+my $other = "stdout.txt";
+
+# get the parameters
+my $margin;
+my $uploaded_db;
+
+GetOptions('margin=i' => \$margin, 'uploaded=s' => \$uploaded_db);
+my ($sequences, $primary_motif, @db_patterns) = @ARGV;
+
+my $secondaries = '';
+
+eval {
+
+  if (defined $margin) {
+    die("Margin must be larger than zero") unless $margin > 0;
+  }
+
+  die("Sequences file must be passed.") unless defined $sequences;
+  # remove any directory path
+  $sequences = fileparse($sequences);
+  die("Sequences file contains unaccepted characters.") unless ($sequences =~ $SAFE_FILENAME);
+  die("Can't find sequences file \"$sequences\" specified.") unless -e $sequences;
+
+  
+  die("Primary motif file must be passed.") unless defined $primary_motif;
+  # remove any directory path
+  $primary_motif = fileparse($primary_motif);
+  die("Primary motif file contains unaccepted characters.") unless ($primary_motif =~ $SAFE_FILENAME);
+  die("Can't find primary motif file \"$primary_motif\" specified.") unless -e $primary_motif;
+
+  if ($uploaded_db) {
+    # uploaded file so look in the current directory
+    $uploaded_db = fileparse($uploaded_db); 
+    die("Uploaded database filename contains unaccepted characters.") unless ($uploaded_db =~ $SAFE_FILENAME);
+    die("Can't find uploaded database file \"$uploaded_db\" specified.") unless -e $uploaded_db;
+    $secondaries = $uploaded_db;
+  }
+  if (@db_patterns) {
+    # look in the database directory
+    chdir($db_dir);
+    my @db_paths = glob(join(" ", @db_patterns));
+    for (my $i = 0; $i < scalar(@db_paths); $i++) {
+      my $file = fileparse($db_paths[$i]);
+      next unless (-e $file);
+      $secondaries .= " db/$file"; 
+    }
+  }
+  die("Secondaries pattern does not match any databases.") unless $secondaries;
+
+};
+
+my $param_error = $@; # store the error msg
+print STDERR $param_error if $param_error;
+
+chdir($work_dir);
+
+#create a job status for the user
+my $file_list = [{file => 'spamo.html', desc => 'Spamo html output'},
+    {file => 'spamo.xml', desc => 'Spamo xml output'}, 
+    {file => $sequences, desc => 'Input sequences'}, 
+    {file => $primary_motif, desc => 'Input primary motif'}, 
+    {file => $uploaded_db, desc => 'Input secondary motifs (uploaded)'}, 
+    {file => $other, desc => 'Processing messages'},
+    {file => $err, desc => 'Error messages'}];
+my $msg_list = [];
+my $program = 'Spamo';
+my $status = 'index.html';
+my $refresh = 60;
+
+if ($param_error) {
+  add_status_msg("Error reading parameters: $param_error", $msg_list);
+} else {
+  add_status_msg('Parameters ok', $msg_list);
+}
+
+update_status($status, $program, ($param_error ? 0 : $refresh), $file_list, $msg_list, ($param_error ? "Error" : "Starting"));
+
+# exit if there was an error reading the params
+exit(1) if ($param_error);
+
+# create a link to tomtom and the databases
+symlink($spamo, "spamo");
+symlink($db_dir, "db");
+
+
+#build the command that needs to run
+my $cmd = "./spamo -v 1 -oc . -png -numgen 1 " . ($margin ? "-margin $margin " : "") ."$sequences $primary_motif $secondaries";
+
+# tell the user in case something goes wrong
+update_status($status, $program, $refresh, $file_list, add_status_msg("Running \"$cmd\"", $msg_list), "Running");
+
+# run the command
+my $before = [gettimeofday()];
+my $result = system($cmd);
+my $elapsed = int(tv_interval($before) * 100 + 0.5) / 100;
+
+# delete the links
+unlink "spamo";
+unlink "db";
+
+# check the result for errors
+my $error_msg = '';
+if ($result != 0) {
+  if ($result == -1) {
+    $error_msg = "Spamo failed to run";
+  } elsif ($result & 127) {
+    $error_msg = "Spamo process died with signal ".($result & 127).", ".(($result & 128) ? 'with' : 'without')." coredump";
+  } else {
+    $error_msg = "Spamo exited with error code ".($result >> 8);
+  }
+  print STDERR $error_msg;
+  add_status_msg($error_msg, $msg_list);
+} else {
+  add_status_msg("Spamo ran successfully in $elapsed seconds", $msg_list);
+}
+update_status($status, $program, 0, $file_list, $msg_list, ($result ? "Error" : "Done"));
+
+# exit if there was an error running spamo
+exit(1) if ($error_msg);
+
+1;

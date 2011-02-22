@@ -1,0 +1,1021 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>MEME &#8212; Multiple EM for Motif Elicitation</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>MEME &#8212; Multiple EM for Motif Elicitation</h1>
+      <h2>USAGE:</h2>
+    </div>
+
+    <div class="Usage">
+      &nbsp;&nbsp;&nbsp&nbsp;</td><td>meme &lt;dataset&gt; [optional arguments]
+      <table>
+        <tr><td>&nbsp;&nbsp&nbsp;</td></tr>
+        <tr><td></td><td>&lt;dataset&gt;</td><td>file containing sequences in FASTA format</td></tr>
+        <tr><td></td><td>[-h]</td><td>print this message</td></tr>
+        <tr><td></td><td>[-o &lt;output dir&gt;]</td><td>name of directory for output files will not replace existing directory</td></tr>
+        <tr><td></td><td>[-oc &lt;output dir&gt;]</td><td>name of directory for output files will replace existing directory</td></tr>
+        <tr><td></td><td>[-text]</td><td>output in text format (default is HTML)</td></tr>
+        <tr><td></td><td>[-dna]</td><td>sequences use DNA alphabet</td></tr>
+        <tr><td></td><td>[-protein]</td><td>sequences use protein alphabet</td></tr>
+        <tr><td></td><td>[-mod oops|zoops|anr]</td><td>distribution of motifs</td></tr>
+        <tr><td></td><td>[-nmotifs &lt;nmotifs&gt;]</td><td>maximum number of motifs to find</td></tr>
+        <tr><td></td><td>[-evt &lt;ev&gt;]</td><td>stop if motif E-value greater than &lt;evt&gt;</td></tr>
+        <tr><td></td><td>[-nsites &lt;sites&gt;]</td><td>number of sites for each motif</td></tr>
+        <tr><td></td><td>[-minsites &lt;minsites&gt;]</td><td>minimum number of sites for each motif</td></tr>
+        <tr><td></td><td>[-maxsites &lt;maxsites&gt;]</td><td>maximum number of sites for each motif</td></tr>
+        <tr><td></td><td>[-wnsites &lt;wnsites&gt;]</td><td>weight on expected number of sites</td></tr>
+        <tr><td></td><td>[-w &lt;w&gt;]</td><td>motif width</td></tr>
+        <tr><td></td><td>[-minw &lt;minw&gt;]</td><td>minumum motif width</td></tr>
+        <tr><td></td><td>[-maxw &lt;maxw&gt;]</td><td>maximum motif width</td></tr>
+        <tr><td></td><td>[-nomatrim]</td><td>do not adjust motif width using multiple alignments </td></tr>
+        <tr><td></td><td>[-wg &lt;wg&gt;]</td><td>gap opening cost for multiple alignments</td></tr>
+        <tr><td></td><td>[-ws &lt;ws&gt;]</td><td>gap extension cost for multiple alignments</td></tr>
+        <tr><td></td><td>[-noendgaps]</td><td>do not count end gaps in multiple alignments</td></tr>
+        <tr><td></td><td>[-bfile &lt;bfile&gt;]</td><td>name of background Markov model file</td></tr>
+        <tr><td></td><td>[-revcomp]</td><td>allow sites on + or - DNA strands</td></tr>
+        <tr><td></td><td>[-pal]</td><td>force palindromes (requires -dna)</td></tr>
+        <tr><td></td><td>[-maxiter &lt;maxiter&gt;]</td><td>maximum EM iterations to run</td></tr>
+        <tr><td></td><td>[-distance &lt;distance&gt;]</td><td>EM convergence criterion</td></tr>
+        <tr><td></td><td>[-psp &lt;pspfile&gt;]</td><td>name of positional priors file</td></tr>
+        <tr><td></td><td>[-prior dirichlet|dmix|</td><td>type of prior to use</td></tr>
+        <tr><td></td><td>&nbsp;&nbsp;mega|megap|addone]</td><td></td></tr>
+        <tr><td></td><td>[-b &lt;b&gt;]</td><td>strength of the prior</td></tr>
+        <tr><td></td><td>[-plib &lt;plib&gt;]</td><td>name of Dirichlet prior file</td></tr>
+        <tr><td></td><td>[-spfuzz &lt;spfuzz&gt;]</td><td>fuzziness of sequence to theta mapping</td></tr>
+        <tr><td></td><td>[-spmap uni|pam]</td><td>starting point seq to theta mapping type</td></tr>
+        <tr><td></td><td>[-cons &lt;cons&gt;]</td><td>consensus sequence to start EM from</td></tr>
+        <tr><td></td><td>[-heapsize &lt;hs&gt;]</td><td>size of heaps for widths where substring </td></tr>
+        <tr><td></td><td></td><td>search occurs</td></tr>
+        <tr><td></td><td>[-x_branch]</td><td>perform x-branching</td></tr>
+        <tr><td></td><td>[-w_branch]</td><td>perform width branching</td></tr>
+        <tr><td></td><td>[-bfactor &lt;bf&gt;]</td><td>branching factor for branching search</td></tr>
+        <tr><td></td><td>[-maxsize &lt;maxsize&gt;]</td><td>maximum dataset size in characters</td></tr>
+        <tr><td></td><td>[-nostatus]</td><td>do not print progress reports to terminal</td></tr>
+        <tr><td></td><td>[-p &lt;np&gt;]</td><td>use parallel version with &lt;np&gt; processors</td></tr>
+        <tr><td></td><td>[-time &lt;t&gt;]</td><td>quit before &lt;t&gt; CPU seconds consumed</td></tr>
+        <tr><td></td><td>[-sf &lt;sf&gt;]</td><td> print &lt;sf&gt; as name of sequence file</td></tr>
+        <tr><td></td><td>[-V]</td><td>verbose mode</td></tr>
+      </table>
+    </div>
+
+    <div id="main">
+      <p>
+      MEME is a tool for discovering motifs in a group of related DNA or protein sequences.
+      </p>
+      <p>
+      A motif is a sequence pattern that occurs repeatedly in a group of related
+      protein or DNA sequences. MEME represents motifs as position-dependent
+      letter-probability matrices which describe the probability of each possible
+      letter at each position in the pattern. Individual MEME motifs do not 
+      contain gaps. Patterns with variable-length gaps are split by MEME into two 
+      or more separate motifs.
+      </p>
+      <p>
+      MEME takes as input a group of DNA or protein sequences (the training set)
+      and outputs as many motifs as requested. MEME uses statistical modeling
+      techniques to automatically choose the best width, number of occurrences,
+      and description for each motif.
+      </p>
+      <p>
+      MEME outputs its results primarily as a hypertext (HTML) document
+      named <code>meme.html</code>.  This is placed in a directory named <code>meme_out/</code>".  
+      You can select for the directory to have a different name.
+      MEME also outputs machine-readable (XML) a plain-text versions
+      of its output, named <code>meme.xml</code> and <code>meme.txt</code>, respectively.  These
+      are placed in the same output directory as <code>meme.html</code>.
+      </p>
+      <p>
+      The MEME results consist of:
+      </p>
+      <ul>
+      <li>
+      The version of MEME and the date it was released. 
+      </li>
+      <li>
+      The reference to cite if you use MEME in your research. 
+      </li>
+      <li>
+      A description of the sequences you submitted (the "training set")
+      showing the name, "weight" and length of each sequence. 
+      </li>
+      <li>
+      The command line summary detailing the parameters with which you
+      ran MEME. 
+      </li>
+      <li>
+      Information on each of the motifs MEME discovered, including: 
+      <ol>
+      <li>A summary line showing the width, number of occurrences, log
+      likelihood ratio and statistical significance of the motif.</li>
+      <li>A sequence "LOGO" illustrating the motif, along with links to 
+      publication-ready versions of the LOGO (postscript and PNG formats).</li>
+      <li>
+      The occurrences of the motif sorted by <i>p</i>-value and aligned with each other. 
+      </li>
+      <li>
+      Block diagrams of the occurrences of the motif within each sequence in the training set. 
+      </li>
+      <li>
+      The motif in BLOCKS format: buttons for viewing the motif in various formats
+      and for submitting it to the BLOCKS multiple alignment processor.
+      </li>
+      <li>
+      A position-specific scoring matrix (PSSM) for use in scanning sequence databases
+      and a button for submitting the motif to the MAST scanning program.
+      </li>
+      <li>
+      The position specific probability matrix (PSPM) describing the motif
+      and a button for comparing the motif to known motifs.
+      </li>
+      <li>
+      A regular expression describing the motif.
+      </li>
+      </ol>
+      </li>
+      <li>
+      A summary of motifs showing an optimized (non-overlapping) tiling of
+      all of the motifs onto each of the sequences in the training set. 
+      </li>
+      <li>
+      The reason why MEME stopped and the name of the CPU on which it ran. 
+      </li>
+      <li>
+      This explanation of how to interpret MEME results.
+      </li>
+      </ul>
+      <h2>REQUIRED ARGUMENTS:</h2>
+      <ul>
+      <li>
+      <p>
+      <code>&lt;dataset&gt;</code> The name of the file containing the training set sequences.  
+      If <code>&lt;dataset&gt;</code> is the word <code>stdin</code>, MEME reads from standard input.  
+      </p>
+      <p>
+      The sequences in the dataset should be in Pearson/FASTA format.  For example:
+      </p>
+      <pre>
+          &gt;ICYA_MANSE INSECTICYANIN A FORM (BLUE BILIPROTEIN)
+          GDIFYPGYCPDVKPVNDFDLSAFAGAWHEIAK
+          LPLENENQGKCTIAEYKYDGKKASVYNSFVSNGVKEYMEGDLEIAPDA
+          &gt;LACB_BOVIN BETA-LACTOGLOBULIN PRECURSOR (BETA-LG) 
+          MKCLLLALALTCGAQALIVTQTMKGLDI
+          QKVAGTWYSLAMAASDISLLDAQSAPLRVYVEELKPTPEGDLEILLQKW
+      </pre>
+      <p>
+      Sequences start with a header line followed by
+      sequence lines.  A header line has
+      the character "<code>&gt;</code>" in position one, followed by
+      an unique name without any spaces, followed by
+      (optional) descriptive text.  After the header line 
+      come the actual sequence lines.  Spaces and blank 
+      lines are ignored.  Sequences may be in capital or 
+      lowercase or both.  
+      </p>
+      <p>
+      MEME uses the first word in the header line of each 
+      sequence, truncated to 24 characters if necessary,
+      as the name of the sequence. This name must be unique. 
+      Sequences with duplicate names will be ignored. 
+      (The first word in the title line is 
+      everything following the "<code>&gt;</code>" up to the first blank.)
+      </p>
+      <p>
+      Sequence weights may be specified in the dataset
+      file by special header lines where the unique name
+      is "<code>WEIGHTS</code>" (all caps) and the descriptive 
+      text is a list of sequence weights. 
+      Sequence weights are numbers in the range <code>0 &lt; w &lt;= 1</code>.
+      All weights are assigned in order to the
+      sequences in the file. If there are more sequences
+      than weights, the remainder are given weight one.
+      Weights must be greater than zero and less than
+      or equal to one.  Weights may be specified by
+      more than one "<code>WEIGHT</code>" entry which may appear
+      anywhere in the file.  When weights are used, 
+      sequences will contribute to motifs in proportion
+      to their weights.  Here is an example for a file
+      of three sequences where the first two sequences are 
+      very similar and it is desired to down-weight them:
+      </p>
+      <pre>
+          &gt;WEIGHTS 0.5 .5 1.0 
+          &gt;seq1
+          GDIFYPGYCPDVKPVNDFDLSAFAGAWHEIAK
+          &gt;seq2
+          GDMFCPGYCPDVKPVGDFDLSAFAGAWHELAK
+          &gt;seq3
+          QKVAGTWYSLAMAASDISLLDAQSAPLRVYVEELKPTPEGDLEILLQKW
+      </pre>
+      </li>
+      </ul>
+      <h2>OPTIONAL ARGUMENTS:</h2>
+      <p>
+      MEME has a large number of optional inputs that can be used
+      to fine-tune its behavior.  To make these easier to understand
+      they are divided into the following categories:
+      </p>
+      <ul>
+      <li>
+      OUTPUT DESTINATION &#8212; control where MEME places its output
+      </li>
+      <li>
+      ALPHABET &#8212; control the alphabet for the motifs (patterns) that MEME will search for
+      </li>
+      <li>
+      DISTRIBUTION &#8212; control how MEME assumes the occurrences of the motifs are distributed 
+      throughout the training set sequences
+      </li>
+      <li>
+      SEARCH &#8212; control how MEME searches for motifs
+      </li>
+      <li>
+      SYSTEM  &#8212; 
+      the <code>-p &lt;np&gt;</code> argument causes a version of MEME compiled for a parallel CPU 
+      architecture to be run.  
+      (By placing <code>&lt;np&gt;</code> in quotes you may pass installation specific switches to
+      the 'mpirun' command.  The number of processors to run on must be the first 
+      argument following <code>-p</code>).
+      </li>
+      </ul>
+      <p>
+      In what follows, <code>&lt;n&gt;</code> is an integer, <code>&lt;a&gt;</code> 
+      is a decimal number, and <code>&lt;string&gt;</code> is a string of characters.
+      </p>
+
+      <h3>OUTPUT DESTINATION</h3>
+      <p>
+      By default MEME writes its results to a directory named <code>meme_out/</code>,
+      which is created if it doesn't exist.
+      The main results include file is <code>meme.html</code>.
+      You can specify that a different directory be created or used for results.
+      You can also specify that MEME create only a text file.
+      <ul>
+      <li>
+      <code>-o &lt;output dir&gt;</code> &#8212; Name of directory for output files;
+      will <b>not</b> replace existing directory.
+      </li>
+      <li>
+      <code>-oc &lt;output dir&gt;</code> &#8212; Name of directory for output files;
+      <b>will</b> replace existing directory.
+      </li>
+      <li>
+      <code>-text</code> &#8212; Output in text format only to standard output.
+      </li>
+      </ul>
+      </p>
+
+      <h3>ALPHABET</h3>
+      <p>
+      MEME accepts either DNA or protein sequences, but not both in the same run.
+      By default, sequences are assumed to be protein.  The sequences must be in 
+      FASTA format.
+      </p>
+      <p>
+      DNA sequences must contain only the letters "<code>ACGT</code>", plus the ambiguous
+      letters "<code>BDHKMNRSUVWY*-</code>". 
+      Protein sequences must contain only the letters "<code>ACDEFGHIKLMNPQRSTVWY</code>",
+      plus the ambiguous letters "<code>BUXZ*-</code>".
+      </p>
+      <p>
+      MEME converts all ambiguous letters to "<code>X</code>", which is treated as "unknown".
+      </p>
+      <ul>
+      <li>
+      <code>-dna</code> &#8212; Assume sequences are DNA; default: protein sequences.
+      </li>
+      <li>
+      <code>-protein</code> &#8212; Assume sequences are protein.
+      </li>
+      </ul>
+
+      <h3>DISTRIBUTION</h3>
+      <p>
+      If you know how occurrences of motifs are distributed in the training set 
+      sequences, you can specify it with the following optional switches.  The 
+      default distribution of motif occurrences is assumed to be zero or one 
+      occurrence of per sequence.
+      </p>
+      <p>
+      If you know how occurrences of motifs are distributed in the training set 
+      </p>
+      <ul>
+      <li>
+      <code>-mod &lt;string&gt;</code> &#8212; The type of distribution to assume.  
+      <ul>
+      <li>
+      <code>oops</code> &#8212; One Occurrence Per Sequence MEME assumes that each sequence in the dataset
+      contains exactly one occurrence of each motif.
+      This option is the fastest and most sensitive but the motifs returned by MEME may be 
+      "blurry" if any of the sequences is missing them.        
+      </li>
+      <li>
+      <code>zoops</code> &#8212; Zero or One Occurrence Per Sequence
+      MEME assumes that each sequence may contain at
+      most one occurrence of each motif. This option
+      is useful when you suspect that some motifs
+      may be missing from some of the sequences. In
+      that case, the motifs found will be more
+      accurate than using the first option. This
+      option takes more computer time than the
+      first option (about twice as much) and is
+      slightly less sensitive to weak motifs present
+      in all of the sequences.
+      </li>
+      <li>
+      <code>anr</code> &#8212;       Any Number of Repetitions
+      MEME assumes each sequence may contain any
+      number of non-overlapping occurrences of each
+      motif. This option is useful when you suspect
+      that motifs repeat multiple times within a
+      single sequence. In that case, the motifs 
+      found will be much more accurate than using 
+      one of the other options. This option can also
+      be used to discover repeats within a single
+      sequence. This option takes the much more
+      computer time than the first option (about ten
+      times as much) and is somewhat less sensitive
+      to weak motifs which do not repeat within a
+      single sequence than the other two options.
+      </li>
+      </ul>
+      </li>
+      </ul>
+      <h3>SEARCH</h3>
+      <ol style="list-style: upper-latin;">
+        <li>
+          OBJECTIVE FUNCTION
+          <p>
+          MEME uses an objective function on motifs to select the "best" motif.
+          The objective function is based on the statistical significance of the 
+          log likelihood ratio (LLR) of the occurrences of the motif.  
+          The <i>E</i>-value of the motif is an estimate of the number of motifs (with the 
+          same width and number of occurrences) that would have equal or higher log 
+          likelihood ratio if the training set sequences had been generated randomly 
+          according to the (0-order portion of the) background model. 
+          </p>
+          <p>
+          MEME searches for the motif with the smallest <i>E</i>-value.
+          It searches over different motif widths, numbers of occurrences, and
+          positions in the training set for the motif occurrences.
+          The user may limit the range of motif widths and number of occurrences
+          that MEME tries using the switches described below.  In addition,
+          MEME trims the motif (using a dynamic programming multiple alignment) to 
+          eliminate any positions where there is a gap in any of the occurrences.  
+          </p>
+          <p>
+          The log likelihood ratio of a motif is
+          <code>llr = log (Pr(sites | motif) / Pr(sites | back))</code>
+          and is a measure of how different the sites are from the background model.
+          Pr(sites | motif) is the probability of the occurrences given the a model
+          consisting of the position-specific probability matrix (PSPM) of the motif.
+          (The PSPM is output by MEME).
+          Pr(sites | back) is the  probability of the occurrences given the background
+          model.  The background model is an n-order Markov model.  By default,
+          it is a 0-order model consisting of the frequencies of the letters in
+          the training set.  A different 0-order Markov model or higher order Markov 
+          models can be specified to MEME using the -bfile option described below.
+          </p>
+          <p>
+          The <i>E</i>-value reported by MEME is actually an approximation of the <i>E</i>-value
+          of the log likelihood ratio.  (An approximation is used because it is far
+          more efficient to compute.)  The approximation is based on the fact that
+          the log likelihood ratio of a motif is the sum of the log 
+          likelihood ratios of each column of the motif.  Instead of computing the 
+          statistical significance of this sum (its <i>p</i>-value), MEME computes the 
+          <i>p</i>-value of each column and then computes the significance of their product.  
+          Although not identical to the significance of the log likelihood ratio, this 
+          easier to compute objective function works very similarly in practice.
+          </p>
+          <p>
+          The motif significance is reported as the <i>E</i>-value of the motif.  
+          The statistical significance of a motif is computed based on:
+          </p>
+          <ol>
+          <li>
+          the log likelihood ratio,
+          </li>
+          <li>
+          the width of the motif,
+          </li>
+          <li>
+          the number of occurrences,
+          </li>
+          <li>
+          the 0-order portion of the background model,
+          </li>
+          <li>
+          the size of the training set, and
+          </li>
+          <li>
+          the type of model (oops, zoops, or anr, which determines the
+          number of possible different motifs of the given width and
+          number of occurrences).
+          </li>
+          </ol>
+          <p>
+          MEME searches for motifs by performing Expectation Maximization (EM) on a 
+          motif model of a fixed width and using an initial estimate of the number of 
+          sites.  It then sorts the possible sites according to their probability 
+          according to EM.  MEME then and calculates the <i>E</i>-values of the first n sites 
+          in the sorted list for different values of n.  This procedure (first EM, 
+          followed by computing <i>E</i>-values for different numbers of sites) is repeated 
+          with different widths and different initial estimates of the number of 
+          sites.  MEME outputs the motif with the lowest <i>E</i>-value.
+          </p>
+        </li>
+        <br />
+        <li>
+          NUMBER OF MOTIFS
+          <ul>
+          <li>
+          <code>-nmotifs &lt;n&gt;</code> &#8212; The number of *different* motifs to search for.
+          MEME will search for and output <code>&lt;n&gt;</code> motifs.  Default: 1
+          </li>
+          <li>
+          <code>-evt &lt;p&gt;</code> &#8212; Quit looking for motifs if <i>E</i>-value exceeds
+          <code>&lt;p&gt;</code>.
+          Default: infinite (so by default MEME never quits
+          before <code>-nmotifs &lt;n&gt;</code> have been found.)
+          </li>
+          </ul>
+        </li>
+        <br />
+        <li>
+          NUMBER OF MOTIF OCCURRENCES
+          <ul>
+          <li>
+          <code>-nsites &lt;n&gt;</code> <br />
+          <code>-minsites &lt;n&gt;</code> <br />
+          <code>-maxsites &lt;n&gt;</code> <br />
+          The (expected) number of occurrences of each motif.
+          If <code>-nsites</code> is given, only that number of occurrences
+          is tried.  Otherwise, numbers of occurrences between
+          <code>-minsites</code> and <code>-maxsites</code> are tried as initial guesses
+          for the number of motif occurrences.  These switches are ignored if mod = oops.
+          <br />
+          Defaults: 
+          <pre>
+             -minsites : 2
+             -maxsites :
+               zoops : number of sequences
+               anr   : MIN(5*(number of sequences), 50) </pre>
+          </li>
+          <li>
+          <code>-wnsites &lt;n&gt;</code> &#8212; The weight on the prior on nsites.  This controls
+          how strong the bias towards motifs with exactly
+          nsites sites (or between minsites and maxsites sites)
+          is.  It is a number in the range [0..1).  The
+          larger it is, the stronger the bias towards 
+          motifs with exactly nsites occurrences is.
+          <br />
+          Default: 0.8
+          </li>
+          </ul>
+        </li>
+        <br />
+        <li>
+          MOTIF WIDTH
+          <ul>
+          <li>
+          <code>-w &lt;n&gt;</code><br/>
+          <code>-minw &lt;n&gt;</code><br/>
+          <code>-maxw &lt;n&gt;</code><br/>
+          <p>
+          The width of the motif(s) to search for.
+          If -w is given, only that width is tried.
+          Otherwise, widths between -minw and -maxw are tried.
+          <br />
+          Default: -minw  8, -maxw 50 (defined in user.h)
+          </p>
+          <p>
+          Note: If &lt;n&gt; is less than the length of the shortest 
+          sequence in the dataset, &lt;n&gt; is reset by MEME to that value. 
+          </p>
+          </li>
+          <li>
+          <code>-nomatrim </code><br />
+          <code>-wg &lt;a&gt; </code><br />
+          <code>-ws &lt;a&gt; </code><br />
+          <code>-noendgaps </code><br />
+          <p>
+          These switches control trimming (shortening) of
+          motifs using the multiple alignment method.
+          Specifying -nomatrim causes MEME to skip this and
+          causes the other switches to be ignored.
+          MEME finds the best motif
+          found and then trims (shortens) it using the multiple 
+          alignment method (described below). The number of 
+          occurrences is then adjusted to maximize the motif 
+          <i>E</i>-value, and then the motif width is further
+          shortened to optimize the <i>E</i>-value.
+          </p>
+          <p>
+          The multiple alignment method performs a separate 
+          pairwise alignment of the site with the highest
+          probability and each other possible site.
+          (The alignment includes width/2 positions on either 
+          side of the sites.) The pairwise alignment
+          is controlled by the switches:
+          <br />
+          <code>-wg &lt;a&gt;</code> (gap cost; default: 11), <br />
+          <code>-ws &lt;a&gt;</code> (space cost; default 1), and, <br />
+          <code>-noendgaps</code> (do not penalize endgaps; default: 
+          penalize endgaps).  <br />
+          </p>
+          <p>
+          The pairwise alignments are then combined and the 
+          method determines the widest section of the motif with 
+          no insertions or deletions.  
+          If this alignment is shorter than <code>&lt;minw&gt;</code>, 
+          it tries to find an alignment
+          allowing up to one insertion/deletion per motif
+          column.  This continues (allowing up to 2, 3 ...
+          insertions/deletions per motif column) until an 
+          alignment of width at least <code>&lt;minw&gt;</code> is found. 
+          </p>
+          </li>
+          </ul>
+        </li>
+        <li>
+          BACKGROUND MODEL
+          <ul>
+          <li>
+          <code>-bfile &lt;bfile&gt;</code> &#8212; The name of the file containing the background model
+          for sequences.  The background model is the model
+          of random sequences used by MEME.  The background 
+          model is used by MEME 
+          <ol>
+          <li>
+          during EM as the "null model",
+          </li>
+          <li>
+          for calculating the log likelihood ratio of a motif,
+          </li>
+          <li>
+          for calculating the significance (<i>E</i>-value) of a motif, and, 
+          </li>
+          <li>
+          for creating the position-specific scoring matrix (log-odds matrix).
+          </li>
+          </ol>
+          </li>
+          </ul>
+          <p>
+          By default, the background model is a 0-order Markov 
+          model based on the letter frequencies in the training set.  
+          </p>
+          <p>
+          Markov models of any order can be specified in &lt;bfile&gt; 
+          by listing frequencies of all possible tuples of 
+          length up to order+1.  
+          </p>
+          <p>
+          Note that MEME uses only the 0-order portion (single
+          letter frequencies) of the background model for
+          purposes 3) and 4), but uses the full-order model
+          for purposes 1) and 2), above.
+          </p>
+          <p>
+          Example: To specify a 1-order Markov background model
+          for DNA, <code>&lt;bfile&gt;</code> might contain the following
+          lines.  Note that optional comment lines are
+          marked by "#" and are ignored by MEME.
+          </p>
+          <pre>
+                # tuple   frequency_non_coding
+                a       0.324
+                c       0.176
+                g       0.176
+                t       0.324
+                # tuple   frequency_non_coding
+                aa      0.119
+                ac      0.052
+                ag      0.056
+                at      0.097
+                ca      0.058
+                cc      0.033
+                cg      0.028
+                ct      0.056
+                ga      0.056
+                gc      0.035
+                gg      0.033
+                gt      0.052
+                ta      0.091
+                tc      0.056
+                tg      0.058
+                tt      0.119
+          </pre>
+          <p>
+          Sample -bfile files are given in directory tests: 
+          <code>tests/nt.freq</code> (DNA), and 
+          <code>tests/na.freq</code> (amino acid).
+          </p>
+        </li>
+       <li>
+            <a name="MEME-PSP"></a>POSITION-SPECIFIC PRIORS
+         <ul>
+            <li>
+             <code>-psp &lt;pspfile&gt;</code> &#8212; 
+             position-specific prior (PSP)
+
+             <p>
+             These priors allow the user to bias the search for motifs. 
+             They give a position-specific prior distribution on the location of motif sites
+             in sequence(s) in the input dataset.  The MEME PSP format used in the pspfile
+             includes the name of the sequence for which a prior distribution corresponds.
+             Sequences not named in the pspfile are given uniform prior distributions on
+             site locations by MEME.
+             </p>
+             <p>
+             A PSP must be created for a specific width of motif, <code>w</code>. 
+             This width must be specified for each entry in the pspfile, and must be the same
+             for all entries.  If MEME varies the motif width during computation, 
+             MEME renormalises the PSP for each sequence.
+             </p>
+             <p>
+              The pspfile should be in MEME PSP format, which is similar to FASTA format.  For example:
+              </p>
+             <pre>
+    &gt;ICYA_MANSE 4
+    0.075922 0.070764 0.082380 0.030292 0.025101 0.043139 0.032963
+    0.086047 0.057445 <span style="color:blue">0.000000 0.000000 0.000000</span>
+
+    &gt;LACB_BOVIN 4
+    0.107099 0.099822 0.116208 0.042731 0.035408 0.060854 0.046499
+    <span style="color:blue">0.000000 0.000000 0.000000</span>
+             </pre>
+              <p>
+              Each entry should start with a header line consisting of a sequence
+              name followed by the width, <code>w</code>, of the PSP prior.  The sequence name must
+              the name of a sequence in the FASTA file input to MEME. Any other
+              text on the header line after the name and <code>w</code> is
+              ignored by MEME.
+              The following lines contain one number for each position in the identically-named
+              named FASTA sequence, where the number gives the prior probability of a motif
+              site at that position in the sequence (or in the reverse complement if
+              <code>-revcomp</code> is specified).  
+                The last <code>w-1</code> numbers for each entry should be
+              0 (shown in blue in the example), since a motif of that width cannot start in those positions.
+              All numbers for an entry must be in the range [0,1], and must sum to a number no greater
+              than 1.  If they sum to less than 1 and <code>-mod oops</code> is specified,
+               MEME will rescale the numbers so that they sum to 1.
+             </p>
+             <p>For more detail on generation of PSP data, see documentation
+             of our simple tool <a href="psp-gen.html">psp-gen</a>.
+             </p>
+           </li>
+          </li>
+        </ul>
+
+        <li>
+          DNA PALINDROMES AND STRANDS
+          <ul>
+          <li>
+          <code>-revcomp</code> &#8212; motifs occurrences may be on the given DNA strand
+          or on its reverse complement.
+          <br />
+          Default: look for DNA motifs only on the strand given 
+          in the training set.
+          </li>
+          <li>
+          <code>-pal</code> &#8212; Choosing -pal causes MEME to look for palindromes in DNA datasets.  
+          </li>
+          </ul>
+          <p>
+          MEME averages the letter frequencies in corresponding 
+          columns of the motif (PSPM) together. For instance, 
+          if the width of the motif is 10, columns 1 and 10, 2 
+          and 9, 3 and 8, etc., are averaged together.  The 
+          averaging combines the frequency of A in one column 
+          with T in the other, and the frequency of C in one 
+          column with G in the other.  
+          If neither option is not chosen, MEME does not 
+          search for DNA palindromes.
+          </p>
+        </li>
+        <li>
+          EM ALGORITHM
+          <ul>
+           <li>
+             <code>-maxiter &lt;n&gt;</code> &#8212; The number of iterations of EM to run from
+             any starting point.  EM is run for <code>&lt;n&gt;</code> iterations or until convergence
+             (see <code>-distance</code>, below) from each starting point.
+             Default: 50
+           </li>
+           <li>
+             <code>-distance &lt;a&gt;</code> &#8212; The convergence criterion.  
+             MEME stops iterating EM when the change in the
+             motif frequency matrix is less than &lt;a&gt;
+             (Change is the euclidean distance between
+             two successive frequency matrices.)
+             Default: 0.001
+           </li>
+            <li>
+              <code>-prior &lt;string&gt;</code> &#8212; The prior distribution on the model parameters:
+              <ul>
+              <li>
+                <code>dirichlet</code> &#8212; simple Dirichlet prior. 
+                This is the default for <code>-dna</code>.
+                It is based on the non-redundant database letter frequencies.
+              </li>
+                <li>
+                <code>dmix</code> &#8212; mixture of Dirichlets prior. 
+                This is the default for <code>-protein</code>. 
+              </li>
+              <li>
+                <code>mega</code> &#8212; extremely low variance dmix; variance is scaled 
+                inversely with the size of the dataset.
+              </li>
+              <li>
+                <code>megap</code> &#8212; <code>mega</code> for all but last iteration of EM; 
+                <code>dmix</code> 
+              on last iteration.
+              </li>
+              <li>
+                <code>addone</code> &#8212; add +1 to each observed count
+              </li>
+              </ul>
+            </li>
+           <li>
+             <code>-b &lt;a&gt;</code> &#8212; The strength of the prior on model parameters:
+             <code>&lt;a&gt; = 0</code> means use intrinsic strength of prior for 
+             <code>prior = dmix</code>.
+             <br />
+             Defaults:
+             <br />
+             <ul>
+               <li>
+                  0.01 &#8212; if prior = dirichlet
+                </li>
+                <li>
+                  0 &#8212; if prior = dmix
+                </li>
+              </ul>
+            </li>
+           <li>
+             <code>-plib &lt;string&gt;</code>  &#8212; The name of the file containing the Dirichlet prior
+             in the format of file prior30.plib.
+           </li>
+          </ul>
+        </li>
+       <br />
+        <li> SELECTING STARTS FOR EM
+          <p>
+          The default is for MEME to search the dataset for good starts for EM.  How 
+          the starting points are derived from the dataset is specified by the 
+          following switches.
+          </p>
+          <p>
+          The default type of mapping MEME uses is:
+          </p>
+          <ul>
+          <li>
+          <code>-spmap uni</code> &#8212; for <code>-dna</code>
+          </li>
+          <li>
+          <code>-spmap pam</code> &#8212; for <code>-protein</code>
+          </li>
+          <li>
+          <code>-spfuzz &lt;a&gt;</code> &#8212; The fuzziness of the mapping.
+              Possible values are greater than 0.  Meaning
+              depends on <code>-spmap</code>, see below.
+          </li>
+          <li>
+            <code>-spmap &lt;string&gt;</code> &#8212; The type of mapping function to use.
+            <ul>
+              <li>
+              <code>uni</code> &#8212; Use add-&lt;a&gt; prior when converting a 
+              substring to an estimate of theta.
+              <br />
+              Default <code>-spfuzz &lt;a&gt;</code> 0.5
+              </li>
+              <li>
+              <code>pam</code> &#8212; Use columns of PAM &lt;a&gt; matrix when
+              converting a substring to an estimate of theta.
+              <br />
+              Default <code>-spfuzz &lt;a&gt;</code> 120 (PAM 120)
+              </li>
+            </ul>
+            <p>
+            Other types of starting points
+            can be specified using the following switches.
+            </p>
+          </li>
+          <li>
+          <code>-cons &lt;string&gt;</code> &#8212;  Override the sampling of starting points
+              and just use a starting point derived from
+              <code>&lt;string&gt;</code>.
+              This is useful when an actual occurrence of
+              a motif is known and can be used as the
+              starting point for finding the motif.
+          </li>
+          </ul>
+        </li>
+
+        <br />
+        <li>
+          BRANCHING SEARCH ON EM STARTS
+          <p>
+          The search for good EM starting points can be improved by using branching
+          search.
+          </p>
+          <p>
+          Branching search begins with a fixed-sized heap of best EM starts identified
+          during the search of subsequences from the dataset. These starts are also
+          called "seeds". The fixed-sized heap of seeds is used as the "branch_heap"
+          during the first iteration of branching search.
+          </p>
+          <p>
+          For each iteration of branching search, all seeds in the current branch_heap
+          are considered. All seeds in the ball within hamming distance 1 of a given
+          seed are evaluated and added to a new heap. The ball of new seeds is generated
+          by mutating each character of the initial seed to each alternative character
+          in the alphabet.
+          </p>
+          <p>
+          After the ball for every branch_heap seed has been evaluated, the seeds in the
+          resulting new heap are added to the heap of best EM starts. The new heap is
+          then used as the branch_heap for the next iteration of branching search.
+          </p>
+          <p>
+          By default MEME does not perform x-branching.
+          </p>
+          <ul>
+          <li>
+          <code>-x_branch</code> &#8212; Perform x-branching. 
+          </li>
+          <li>
+          <code>-bfactor &lt;bf&gt;</code> &#8212; The number of iterations of branching search. The
+          default number of branching iterations is three.
+          </li>
+          <li>
+          <code>-heapsize &lt;hs&gt;</code> &#8212; The maximum size of the heaps used during branching
+              search. The default heap size is 64.
+          </li>
+          </ul>
+        </li>
+      </ol>
+      <h2>EXAMPLES:</h2>
+      <p>
+      The following examples use data files provided in this release of MEME.  
+      MEME writes its output to standard output, so you will want to redirect it 
+      to a file in order for use with MAST.
+      </p>
+      <ol>
+      <li>
+      <p>
+      A simple DNA example:
+      </p>
+      <pre>
+      meme crp0.s -dna -mod oops -pal
+      </pre>
+      <p>
+      MEME looks for a single motif in the file <code>crp0.s</code> which contains DNA 
+      sequences in FASTA format.  The OOPS model is used so MEME assumes that 
+      every sequence contains exactly one occurrence of the motif.  The 
+      palindrome switch is given so the motif model (PSPM) is converted into a 
+      palindrome by combining corresponding frequency columns.  MEME automatically 
+      chooses the best width for the motif in this example since no width was 
+      specified.
+      </p>
+      </li>
+      <li>
+      Searching for motifs on both DNA strands:
+      <pre>
+      meme crp0.s -dna -mod oops -revcomp
+      </pre>
+      <p>
+      This is like the previous example except that the <code>-revcomp</code> switch tells
+      MEME to consider both DNA strands, and the <code>-pal</code> switch is absent so the
+      palindrome conversion is omitted.  When DNA uses both DNA strands, motif
+      occurrences on the two strands may not overlap.  That is, any position
+      in the sequence given in the training set may be contained in an occurrence
+      of a motif on the positive strand or the negative strand, but not both.
+      </p>
+      </li>
+      <li>
+      <p>
+      A fast DNA example:
+      </p>
+      <pre>
+      meme crp0.s -dna -mod oops -revcomp -w 20
+      </pre>
+      <p>
+      This example differs from example 1) in that MEME is told to only 
+      consider motifs of width 20.  This causes MEME to execute about 10 
+      times faster.  The <code>-w</code> switch can also be used with protein datasets if 
+      the width of the motifs is known in advance.
+      </p>
+      </li>
+      <li>
+      <p>
+      Using a higher-order background model:
+      </p>
+      <pre>
+      meme INO_up800.s -dna -mod anr -revcomp -bfile yeast.nc.6.freq
+      </pre>
+      <p>
+      In this example we use <code>-mod anr</code> and <code>-bfile yeast.nc.6.freq</code>.  
+      This specifies that
+      <br />
+      a) the motif may have any number of occurrences in each sequence, and,
+      <br />
+      b) the Markov model specified in yeast.nc.6.freq is used as the 
+      background model.  This file contains a fifth-order Markov model 
+      for the non-coding regions in the yeast genome.
+      </p>
+      <p>
+      Using a higher order background model can often result in more sensitive
+      detection of motifs.  This is because the background model more accurately
+      models non-motif sequence, allowing MEME to discriminate against it and find 
+      the true motifs.
+      </p>
+      </li>
+      <li>
+      <p>
+      A simple protein example:
+      </p>
+      <pre>
+      meme lipocalin.s -mod oops -maxw 20 -nmotifs 2
+      </pre>
+      <p>
+      The <code>-dna</code> switch is absent, so MEME assumes the file 
+      <code>lipocalin.s</code> contains protein sequences.  
+      MEME searches for two motifs each of width less than or equal to 20.
+      (Specifying <code>-maxw 20</code> makes MEME run faster since it does not have to 
+      consider motifs longer than 20.) Each motif is assumed to occur in each 
+      of the sequences because the OOPS model is specified.
+      </p>
+      </li>
+      <li>
+      <p>
+      Another simple protein example:
+      </p>
+      <pre>
+      meme farntrans5.s -mod anr -maxw 40 -maxsites 50
+      </pre>
+      <p>
+      MEME searches for a motif of width up to 40 with up to 50 occurrences in
+      the entire training set.  The ANR sequence model is specified,
+      which allows each motif to have any number of occurrences in each sequence.  
+      This dataset contains motifs with multiple repeats of motifs in each 
+      sequence.  This example is fairly time consuming due to the fact that the 
+      time required to initial the motif probability tables is proportional 
+      to <code>&lt;maxw&gt;</code> times <code>&lt;maxsites&gt;</code>.  
+      By default, MEME only looks for motifs up to 
+      29 letters wide with a maximum total of number of occurrences equal to twice 
+      the number of sequences or 30, whichever is less.
+      </p>
+      </li>
+      <li>
+      <p>
+      A much faster protein example:
+      </p>
+      <pre>
+      meme farntrans5.s -mod anr -w 10 -maxsites 30 -nmotifs 3
+      </pre>
+      <p>
+      This time MEME is constrained to search for three motifs of width exactly ten.  
+      The effect is to break up the long motif found in the previous example.  
+      The <code>-w</code> switch forces motifs to be *exactly* ten letters wide.
+      This example is much faster because, since only one width is considered, 
+      the time to build the motif probability tables is only proportional to 
+      <code>&lt;maxsites&gt;</code>.
+      </p>
+      </li>
+      <li>
+      <p>
+      Splitting the sites into three:
+      </p>
+      <pre>
+      meme farntrans5.s -mod anr -maxw 12 -nsites 24 -nmotifs 3
+      </pre>
+      <p>
+      This forces each motif to have 24 occurrences, exactly, and be up to 12 letters wide.
+      </p>
+      </li>
+      <li>
+      <p>
+      A larger protein example with <i>E</i>-value cutoff:
+      </p>
+      <pre>
+      meme adh.s -mod zoops -nmotifs 20 -evt 0.01
+      </pre>
+      <p>
+      In this example, MEME looks for up to 20 motifs, but stops when a motif is
+      found with <i>E</i>-value greater than 0.01.  Motifs with large <i>E</i>-values are likely
+      to be statistical artifacts rather than biologically significant.
+      </p>
+      </li>
+      </ol>
+    </div>
+  </body>
+</html>

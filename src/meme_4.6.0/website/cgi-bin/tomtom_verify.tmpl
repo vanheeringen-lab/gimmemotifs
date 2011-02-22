@@ -1,0 +1,27 @@
+<hr/>
+<ul><!-- TMPL_IF NAME=description -->
+  <li>Description: <b><!-- TMPL_VAR ESCAPE=HTML NAME=description --></b></li><!-- /TMPL_IF -->
+  <li>Searching: <b><!-- TMPL_VAR NAME=databases --></b></li>
+  <li>Measuring: <b><!-- TMPL_VAR NAME=distance --></b></li>
+  <li>Threshold: <b><!-- 
+  TMPL_IF NAME=ethresh --><i>E</i>-value<!-- 
+  TMPL_ELSE --><i>q</i>-value<!-- /TMPL_IF --> &lt; <!-- TMPL_VAR NAME=threshold --></b></li>
+  <li>Query: <b>
+  <!-- TMPL_IF NAME=consensus -->
+  IUPAC Sequence (<!-- TMPL_VAR NAME=sequence -->)
+  <!-- /TMPL_IF -->
+  <!-- TMPL_IF NAME=matrix -->
+  Count/Probability Matrix (<!-- TMPL_VAR NAME=sequence -->)
+  <!-- /TMPL_IF -->
+  <!-- TMPL_IF NAME=meme -->
+  Meme File "<!-- TMPL_VAR NAME=file -->" (<!-- TMPL_VAR NAME=count --> motifs, <!-- TMPL_VAR NAME=columns --> columns)
+  <!-- /TMPL_IF -->
+  <!-- TMPL_IF NAME=inline -->
+  Inline Motifs (<!-- TMPL_VAR NAME=count --> motifs, <!-- TMPL_VAR NAME=columns --> columns)
+  <!-- /TMPL_IF -->
+  </b>
+  </li>
+  <!-- TMPL_IF NAME=meme -->
+  <li>Using: <b><!-- TMPL_VAR NAME=filter --></b></li>
+  <!-- /TMPL_IF -->
+</ul>

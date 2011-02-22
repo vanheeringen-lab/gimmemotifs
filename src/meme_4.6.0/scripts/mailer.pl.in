@@ -1,0 +1,193 @@
+#!@WHICHPERL@
+
+#
+# $Id: mailer.pl.in 5026 2010-10-20 07:00:35Z james_johnson $
+# $Log$
+# Revision 1.6  2005/09/01 21:50:59  nadya
+# add a new line for making different version of sendmail to understand
+# first line in the inline plain text attachment
+#
+# Revision 1.5  2005/09/01 06:37:07  nadya
+# add extra new line before first body line. Some sendmail version need it to show it.
+#
+# Revision 1.4  2005/08/31 04:16:05  nadya
+# update usage
+#
+# Revision 1.3  2005/08/30 22:43:51  nadya
+# can send attachments that are not inlined
+# change command line arguments inb order to use filename
+# in the attachment. Alloow option of input from stdin.
+#
+# Revision 1.2  2005/08/20 23:19:59  nadya
+# fixing missing reference
+#
+# Revision 1.1.1.1  2005/07/28 23:55:28  nadya
+# Importing from meme-3.0.14, and adding configure/make
+#
+#
+# AUTHOR: Timothy L. Bailey
+# CREATE DATE: 11-1-2000
+
+use Sys::Hostname;
+use File::Basename;
+
+$PGM = $0;			# name of program
+$PGM =~ s#.*/##;                # remove part up to last slash
+@args = @ARGV;			# arguments to program
+$| = 1;				# flush after all prints
+$SIG{'INT'} = 'cleanup';	# interrupt handler
+# Note: so that interrupts work, always use for system calls:
+# 	if ($status = system($command)) {&cleanup($status)}
+
+# requires
+push(@INC, split(":", $ENV{'PATH'}));	# look in entire path
+
+# defaults
+$sendmail = "@sendmail@";  
+
+$usage = <<USAGE;		# usage message
+  USAGE:
+        $PGM address subject file [-html|-pre]
+      or
+        $PGM address subject -stdin [-html|-pre] < file
+
+        address    recipient's address
+        subject    subject of the email
+        file       name of the file to mail. When -stdin is used, a file
+                   is expected for reading a standard input.
+        -html      Optional. Mail file an HTML attachment.  
+                   An HTML file is expected as an input.
+        -pre       Optional. Mail file as HTML attachment with <PRE></PRE> around it.
+                   An HTML file is expected as an input.
+
+        Mail the file to the recipient specified by the address.  When -html or -pre 
+        flag is used, the file is mailed as an HTML attachment, otherwise as a text.
+
+USAGE
+
+$nargs = 3;			# number of required args
+if ($#ARGV+1 < $nargs) { &print_usage("$usage", 1); }
+
+# get input arguments
+$address = shift;
+$subject = shift;
+$file = shift;
+if( $file =~ m/-stdin/) { 
+   $stdin=1;
+} else {
+  $fullname=$file;
+  $name = basename($fullname, "");  # get the filename
+}
+
+while ($#ARGV >= 0) {
+  $_ = shift;
+  if ($_ eq "-h") {				# help
+    &print_usage("$usage", 0);
+  } elsif ($_ eq "-html") {
+    $html = 1;
+  } elsif ($_ eq "-pre") {
+    $pre = $html = 1;
+  } else {
+    &print_usage("$usage", 1);
+  }
+}
+
+# create the message header
+$hostname = hostname();
+$boundary .= "_----------=_112501485638080";
+
+$header .= "Content-Transfer-Encoding: binary\n";
+$header .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\n";
+$header .= "MIME-Version: 1.0\n";
+$header .= "From: meme\@$hostname\n";
+$header .= "To: $address\n";
+$header .= "Subject: $subject\n";
+
+$header .= "This is a multi-part message in MIME format.\n\n";
+$header .= "--$boundary\n";
+$header .= "Content-Disposition: inline;";
+$header .= "Content-Transfer-Encoding: binary\n";
+$header .= "Content-Type: text/plain; format=flowed\n";
+$header .= "\n";
+$header .= "$subject\n\n\n";
+$header .= "--$boundary\n";
+
+if ($html) {					# HTML
+  if( $name !~ m/\.html/) { $name="$name.html";}
+  $header .= "Content-Disposition: attachment; filename=\"$name\"\n";
+  $header .= "Content-Transfer-Encoding: binary\n";
+  $header .= "Content-Type: text/html; name=\"$name\"\n\n";
+
+} else {					# plain text
+  $header .= "Content-Disposition: inline;";
+  $header .= "Content-Transfer-Encoding: binary\n";
+  $header .= "Content-Type: text/plain;\n\n";
+  $header .= "\n";
+}
+
+# open a pipe to the mail program
+open(OUT, "|$sendmail $address") || die("Program $sendmail not found!");
+
+# print the header
+print(OUT $header) || die("Cannot write to pipe.");
+
+# copy standard output to message
+if ($pre) { print OUT "<PRE>\n"; }
+
+if ($stdin) {
+   while (<STDIN>) { print OUT $_; };
+} else {
+   open(IN, "<$file") || die("Can not open file $file: $!\n");
+   while (<IN>) { print OUT; }
+   close(IN);
+}
+
+if ($pre) { print OUT "</PRE>\n"; }
+
+# end the message
+if ($html) {
+  print OUT "\n\n--$boundary--\n";
+}
+
+# close the pipe to sendmail
+close OUT;
+
+# cleanup files
+&cleanup($status);
+ 
+################################################################################
+#                       Subroutines                                            #
+################################################################################
+ 
+################################################################################
+#
+#       print_usage
+#
+#	Print the usage message and exit.
+#
+################################################################################
+sub print_usage {
+  my($usage, $status) = @_;
+ 
+  if (-c STDOUT) {			# standard output is a terminal
+    open(C, "| more");
+    print C $usage;
+    close C;
+  } else {				# standard output not a terminal
+    print STDERR $usage;
+  }
+
+  exit $status;
+}
+ 
+################################################################################
+#       cleanup
+#
+#       cleanup stuff
+#
+################################################################################
+sub cleanup {
+  my($status, $msg) = @_;
+  if ($status && "$msg") {print STDERR "$msg: $status\n";}
+  exit($status);
+}

@@ -1,0 +1,42 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang=en>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>GLAM2 Dirichlet Mixtures</title>
+<link type="text/css" rel="stylesheet" href="glam2.css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+</head>
+<body>
+
+<h1>GLAM2 Dirichlet Mixtures</h1>
+
+<h2>Dirichlet mixture files</h2>
+
+<p>A Dirichlet mixture file specifies residues' tendencies to align
+with one another, and is the basis for scoring columns of aligned
+residues. The format is identical to that of <a
+	href="http://www.cse.ucsc.edu/research/compbio/dirichlets/">UCSC
+Dirichlet mixtures</a>. For examples, see recode3.20comp (copied from UCSC)
+and glam_tfbs.1comp in the GLAM2 examples directory.</p>
+
+<p>The GLAM2 programs only read lines beginning with Mixture= or
+Alpha=. Mixture= is followed by a number giving the weight of that
+mixture component: these weights should sum to 1. Alpha= is followed by
+a list of numbers giving the pseudocounts for that mixture component, as
+many as there are symbols in the alphabet. The first number after Alpha=
+is the sum of the pseudocounts, and is in fact ignored by the GLAM2
+programs.</p>
+
+<p>The pseudocounts should be in the same order as the alphabet
+symbols. For the n (nucleotide) alphabet, this is: acgt. For the p
+(protein) alphabet, this is: ACDEFGHIKLMNPQRSTVWY.</p>
+
+<h2>Built-in Dirichlet mixtures</h2>
+
+<p>If no Dirichlet mixture file is specified, the default is to use
+recode3.20comp for the p (protein) alphabet, glam_tfbs.1comp for the n
+(nucleotide) alphabet, and a uniform prior for user-specified alphabets.</p>
+
+</body>
+</html>

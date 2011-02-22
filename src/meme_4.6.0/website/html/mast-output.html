@@ -1,0 +1,334 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MAST - Output</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+            <h1>MAST -- Motif Alignment and Search Tool</h1>
+            <h2><i>Motif search tool</i></h2>
+            <hr />
+            <h3>Search Results</h3>
+            <!-- TODO fix the internal anchors-->
+            <h4>The MAST results consist of</h4>
+            <ul>
+              <li>The <a href="#inputs_doc"><b>inputs</b></a> to MAST including:
+                <ol>
+                  <li>The <a href="#databases_doc"><b>sequence databases</b></a> showing the sequence 
+                    and residue counts. [<a href="doc/examples/mast_example_output_files/mast.html#databases">View</a>]</li>
+                  <li>The <a href="#motifs_doc"><b>motifs</b></a> showing the name, width, best scoring match 
+                    and similarity to other motifs. [<a href="doc/examples/mast_example_output_files/mast.html#motifs">View</a>]</li> 
+                </ol>
+              </li>
+              <li>The <a href="#sequences_doc"><b>search results</b></a> showing top scoring sequences with 
+              tiling of all of the motifs matches shown for each of the sequences. [<a 
+                href="doc/examples/mast_example_output_files/mast.html#results">View</a>]
+              </li>
+              <li>The <b>program</b> details including:
+                <ol>
+                  <li>The <b>version</b> of MAST and the date it was released. [<a 
+                    href="doc/examples/mast_example_output_files/mast.html#version">View</a>]</li>
+                  <li>The <b>reference</b> to cite if you use MAST in your research. [<a 
+                    href="doc/examples/mast_example_output_files/mast.html#reference">View</a>]</li>
+                  <li>The <b>command line summary</b> detailing the parameters with which you ran MAST. [<a 
+                    href="doc/examples/mast_example_output_files/mast.html#command">View</a>]</li>
+                </ol>
+              </li>
+              <li>An <b>explanation</b> of how to interpret MAST results. [<a 
+                href="doc/examples/mast_example_output_files/mast.html#doc">View</a>]</li>
+            </ul>
+            
+            <a name="score"></a>
+            <h2>Match Scores</h2>
+            <p>
+            The match score of a motif to a position in a sequence is the sum of the
+            score from each column of the position-dependent scoring matrix
+            corresponding to the letter at that position in the sequence. For example, if
+            the sequence is 
+            </p>
+            <pre>
+             <span style="color:gray;">TAA</span><span class="L_T">T</span><span class="L_G">G</span><span class="L_T">T</span><span class="L_T">T</span><span class="L_G">G</span><span class="L_G">G</span><span class="L_T">T</span><span class="L_G">G</span><span style="color:gray;">CTGGTTTTTGTGGCATCGGGCGAGAATAGCGC</span>
+                ========
+            </pre>
+            <p>
+            and the motif is represented by the position-dependent scoring matrix (where
+            each row of the matrix corresponds to a position in the motif) 
+            </p>
+            <table>
+              <tr>
+                <th>Position</th><th><span class="L_A">A</span></td><th><span class="L_C">C</span></th>
+                <th><span class="L_G">G</span></th><th><span class="L_T">T</span></th>
+              </tr>
+              <tr><td>1</td><td>1.447</td><td>0.188</td><td>-4.025</td><td class="high">-4.095</td></tr>
+              <tr><td>2</td><td>0.739</td><td>1.339</td><td class="high">-3.945</td><td>-2.325</td></tr>
+              <tr><td>3</td><td>1.764</td><td>-3.562</td><td>-4.197</td><td class="high">-3.895</td></tr>
+              <tr><td>4</td><td>1.574</td><td>-3.784</td><td>-1.594</td><td class="high">-1.994</td></tr>
+              <tr><td>5</td><td>1.602</td><td>-3.935</td><td class="high">-4.054</td><td>-1.370</td></tr>
+              <tr><td>6</td><td>0.797</td><td>-3.647</td><td class="high">-0.814</td><td>0.215</td></tr>
+              <tr><td>7</td><td>-1.280</td><td>1.873</td><td>-0.607</td><td class="high">-1.993</td></tr>
+              <tr><td>8</td><td>-3.076</td><td>1.035</td><td class="high">1.414</td><td>-3.913</td></tr>
+            </table>
+            <p>
+            then the match score of the fourth position in the sequence (underlined)
+            would be found by summing the score for T in position 1, G in position 2 and
+            so on until G in position 8. So the match score would be 
+            </p>
+            <pre>
+               score = -4.095 + -3.945 + -3.895 + -1.994
+                       + -4.054 + -0.814 + -1.933 + 1.414 
+                     = -19.316
+            </pre>
+            <p>
+            The match scores for other positions in the sequence are calculated in the
+            same way. Match scores are only calculated if the match completely fits within
+            the sequence. Match scores are not calculated if the motif would overhang
+            either end of the sequence. <b>Note:</b> Scores for any 
+            <a href="doc/iupac.html">IUPAC ambiguous characters</a> appearing
+            in a sequence are calculated as the weighted average of the scores
+            of letters that match the ambiguous character.  The weights are the
+            background frequencies of the letters specified to MAST.</p>
+	
+            <a name="pvalues"></a>
+            <h3>P-values</h3>
+            <p>MAST reports all matches of a sequence to a motif or group of
+            motifs in terms of the p-value of the match. MAST considers the
+            p-values of four types of events:</p>
+            <ul>
+            <li><a href="#position"><b>position p-value:</b></a> the match of a
+            single position within a sequence to a given motif,</li>
+            <li><a href="#sequence"><b>sequence p-value:</b></a> the best match
+            of any position within a sequence to a given motif,</li>
+            <li><a href="#combined"><b>combined p-value:</b></a> the combined
+            best matches of a sequence to a group of motifs, and</li>
+            <li><a href="#evalue"><b>E-value:</b></a> observing a combined
+            p-value at least as small in a random database of the same
+            size.</li>
+            </ul>
+            <p>All p-values are based on a random sequence model that assumes each
+            position in a random sequence is generated according to the average
+            letter frequencies of all sequences in the database being searched.</p>
+            <div style="margin-left: 2em">
+            <a name="position"></a>
+            <h4>Position p-value</h4>
+            <p>The p-value of a match of a <b>given position</b> within a
+            sequence to a <b>motif</b> is defined as the probability of a
+            randomly selected position in a randomly generated sequence having
+            a <a href="#score"><b>match score</b></a> at least as large as that
+            of the given position. 
+            <b>Note:</b>If MAST is combining reverse complement DNA strands,
+            the position p-value is <b>not</b> corrected for multiple tests.</p>
+            <a name="sequence"></a>
+            <h4>Sequence p-value</h4>
+            <p>The p-value of a match of a <b>sequence</b> to a <b>motif</b>
+            is defined as the probability of a randomly generated sequence of
+            the same length having a match score at least as large as the
+            largest match score of any position in the sequence.</p>
+            <a name="combined"></a>
+            <h4>Combined p-value</h4>
+            <p>The p-value of a match of a <b>sequence</b> to a <b>group of
+            motifs</b> is defined as the probability of a randomly generated
+            sequence of the same length having sequence p-values whose
+            <b>product</b> is at least as small as the product of the sequence
+            p-values of the matches of the motifs to the given sequence.</p>
+            <a name="evalue"></a>
+            <h4>E-value</h4>
+            <p>The E-value of the match of a <b>sequence</b> in a
+            <b>database</b> to a a <b>group of motifs</b> is defined as the
+            expected number of sequences in a random database of the same size
+            that would match the motifs as well as the sequence does and is
+            equal to the combined p-value of the sequence times the number of
+            sequences in the database.</p>
+            </div>
+
+            <a name="inputs_doc"></a>
+            <h3>Input Database and Motifs</h3>
+            <p>This section shows information on the database that was searched
+            and the motifs in the search query. The <a name="databases_doc"></a>database section 
+            [<a href="doc/examples/mast_example_output_files/mast.html#databases">View</a>] 
+            gives the date the database was last updated as well as the number of
+            sequences and total sequence characters in it. The motifs <a name="motifs_doc"></a> 
+            [<a href="doc/examples/mast_example_output_files/mast.html#motifs">View</a>]
+            are listed by motif number. The width and subsequence which would be
+            given the best possible score for each motif is shown. If there is
+            more than one motif in the query, all pairwise correlations between
+            the motifs are shown. The correlations can range from -1 to +1,
+            with +1 meaning that the shorter motif is exactly identical to part
+            or all of the longer motif. High correlations can cause some
+            combined p-values and E-values to be inaccurate (too low). It may
+            be advisable to remove enough motifs from the query to insure that
+            no pairs of motifs have high correlations. Any high correlations
+            are indicated along with the suggestion that one of the motifs be
+            removed from the query.</p>
+
+            <a name="sequences_doc"></a>
+            <h3>Top Scoring Sequences</h3>
+            <p>MAST lists the names, <i>E</i>-values, link to 
+            <a href="#expanded_results">expanded results</a> 
+            and <a href="#diagrams">motif block diagram</a> of all
+            sequences whose <a href="#evalue">E-value</a> is less than
+            the set threshold. Sequences shorter than one or more of the motifs are
+            skipped. The sequences are sorted by increasing E-value. The <i>E</i>-value 
+            threshold is set to 10 for the web server by default.</p>
+
+            <a name="diagrams"></a>
+            <h4>Motif Block Diagrams</h4>
+            <p>Motif block diagrams show the order and spacing of non-overlapping
+            matches to the motifs in each high-scoring sequence. Motif
+            occurrences are determined based on the <a href=
+              "#position">position p-value</a> of matches to the motif. For each 
+            high scoring sequence the in the output, diagrams are shown like this:</p>
+            <style type="text/css">
+              span.var {color:#708090;}
+              td.high {background-color:#FFFACD;}
+              span.L_A {color:red;}
+              span.L_C {color:blue;}
+              span.L_G {color:orange;}
+              span.L_T {color:green;}
+              
+              .block_td {height:25px;}
+              .block_container {position:relative; width:99%; height:25px; padding:0px; margin:0px;}
+              .block_motif {position:absolute; z-index:3; height:12px; top:0px; text-align:center; vertical-align:middle; background-color:cyan;}
+              .block_rule {position:absolute; z-index:2; width:100%; height:1px; top:12px; left:0px; background-color:grey;}
+              .block_plus_sym {position:absolute; z-index:4; width:12px; height:12px; top:0px; left:0px; color:grey;}
+              .block_minus_sym {position:absolute; z-index:4; width:12px; height:12px; top:13px; left:0px; color:grey;}
+
+              .tic_major {position:absolute; border-left:2px solid blue; height:0.5em; top:0em;}
+              .tic_minor {position:absolute; border-left:1px solid blue; height:0.2em; top:0em;}
+              .tic_label {position:absolute; top:0.5em;  height: 1em; text-align:center; vertical-align:middle}
+            </style>
+            <div style="margin-left:auto; margin-right:auto; width:80%; border:1px solid black;">
+            <div style="text-align:right">
+            <table style="display:inline-block; padding:5px;"><tr>
+            <td><div style="width: 20px; height: 20px; background-color:aqua; border: 1px solid black"></div></td>
+            <td>Motif 1</td>
+            </tr></table>
+            <table style="display:inline-block; padding:5px;"><tr>
+            <td><div style="width: 20px; height: 20px; background-color:blue; border: 1px solid black"></div></td>
+            <td>Motif 2</td>
+            </tr></table>
+            <table style="display:inline-block; padding:5px;"><tr>
+            <td><div style="width: 20px; height: 20px; background-color:red; border: 1px solid black"></div></td>
+            <td>Motif 3</td>
+            </tr></table>
+            </div>
+            <table style="width:100%;">
+              <tr>
+              <td class="block_td">
+                <div class="block_container" id="seq_1_410_block_container">
+                    <div class="block_plus_sym">+</div>
+                    <div class="block_minus_sym">-</div>
+                    <div class="block_rule" style="width:100%"></div>
+                    <div class="block_motif" style="left:15.217%; top:12px; width:10.87%; height:7.2px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 9.5e-07    frame: a    starts: 85    ends: 144    "></div>
+                    <div class="block_motif" style="left:42.391%; top:6px; width:10.87%; height:5px; background-color:blue; border: 1px solid black;" title="Motif 2    p-value: 6.7e-05    frame: a    starts: 235    ends: 294    "></div>
+                </div>
+              </td>
+              </tr>
+              <tr>
+                <td class="block_td" style="color: blue;">
+                  <div class="block_container">
+                    <div class="tic_major" style="left:0%"><div class="tic_label" style="left:-0.5em; width:1em;">0</div></div>
+                    <div class="tic_minor" style="left:3.623%;"></div>
+                    <div class="tic_minor" style="left:7.246%;"></div>
+                    <div class="tic_minor" style="left:10.87%;"></div>
+                    <div class="tic_minor" style="left:14.493%;"></div>
+                    <div class="tic_major" style="left:18.116%"><div class="tic_label" style="left:-1.5em; width:3em;">100</div></div>
+                    <div class="tic_minor" style="left:21.739%;"></div>
+                    <div class="tic_minor" style="left:25.362%;"></div>
+                    <div class="tic_minor" style="left:28.986%;"></div>
+                    <div class="tic_minor" style="left:32.609%;"></div>
+                    <div class="tic_major" style="left:36.232%"><div class="tic_label" style="left:-1.5em; width:3em;">200</div></div>
+
+                    <div class="tic_minor" style="left:39.855%;"></div>
+                    <div class="tic_minor" style="left:43.478%;"></div>
+                    <div class="tic_minor" style="left:47.101%;"></div>
+                    <div class="tic_minor" style="left:50.725%;"></div>
+                    <div class="tic_major" style="left:54.348%"><div class="tic_label" style="left:-1.5em; width:3em;">300</div></div>
+                    <div class="tic_minor" style="left:57.971%;"></div>
+                    <div class="tic_minor" style="left:61.594%;"></div>
+                    <div class="tic_minor" style="left:65.217%;"></div>
+                    <div class="tic_minor" style="left:68.841%;"></div>
+                    <div class="tic_major" style="left:72.464%"><div class="tic_label" style="left:-1.5em; width:3em;">400</div></div>
+                    <div class="tic_minor" style="left:76.087%;"></div>
+                    <div class="tic_minor" style="left:79.71%;"></div>
+                    <div class="tic_minor" style="left:83.333%;"></div>
+                    <div class="tic_minor" style="left:86.957%;"></div>
+                    <div class="tic_major" style="left:90.58%"><div class="tic_label" style="left:-1.5em; width:3em;">500</div></div>
+
+                    <div class="tic_minor" style="left:94.203%;"></div>
+                    <div class="tic_minor" style="left:97.826%;"></div>
+                  </div>
+                </td>
+              </tr>
+            </table>
+            </div>
+            <p>The vertically central line shows the extent of the sequence relative to 
+            the lengths of the other sequences in the database. The ruler at the bottom 
+            gives an indication of the actual length of the sequence. The coloured 
+            blocks are motif occurrences. Blocks above the line are on the given strand, 
+            blocks below the line are on the reverse complement strand (DNA only). The 
+            colour and border of the block can be used to identify the motif by using 
+            the legend. The height of the block can be used to get an indication of the 
+            significance of the match with taller blocks being more significant. If you 
+            place the mouse cursor over any of the motif blocks then the "title" text 
+            will be displayed. It lists the name of the motif, the <i>p</i>-value of the 
+            occurrence, the frame (translated DNA only) and the extent.</p>
+
+            <a name="expanded_results"></a>
+            <h3>Expanded Results</h3>
+            <p>By clicking a link next to the <i>E</i>-value the expanded results become visible.
+            The expanded results include the sequence comment, <a href="#combined">combined <i>p</i>-value</a>,
+            the best frame (for translated sequences) and the <a href="#annotation">annotated sequence</a>.
+            <a name="annotation"></a>
+            <h4>Annotated Sequences</h4>
+            <p>In the expanded results view, MAST shows an annotated sequence by printing the sequence
+            along with the position and strength of all the non-overlapping motif occurrences for a user
+            selectable portion of the sequence. Dragging the buttons below the motif block diagram
+            modifies the visible portion of the annotated sequence. The four lines above each motif occurrence
+            contain, respectively,</p>
+            <ul>
+            <li>the motif name of the occurrence,</li>
+            <li>the <a href="#position">position p-value</a> of the
+            occurrence,</li>
+            <li>the best possible match to the motif, and</li>
+            <li>a plus sign (`+') above each letter in the occurrence that has
+            a positive match score to the motif.</li>
+            </ul>
+            <p>The <b>best possible match</b> to a motif is the sequence of
+            letters which would achieve the highest match score.</p>
+
+            <p>When peptide motifs are used to search nucleotide sequences, the
+            reading frame (a, b or c) of each match is indicated with the motif
+            name and the peptide translation of the matching sequence is
+            shown just above the motif occurrence.</p>
+            <a name="sample"></a>
+            <h3>Sample MAST Search Results</h3>
+            <p>Here is an actual <a 
+              href="doc/examples/mast_example_output_files/mast.html">MAST search results file</a> 
+            of a search of a peptide database with peptide motifs.</p>
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

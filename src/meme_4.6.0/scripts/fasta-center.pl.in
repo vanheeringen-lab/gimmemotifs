@@ -1,0 +1,143 @@
+#!@WHICHPERL@
+# AUTHOR: Philip Machanick
+# CREATE DATE: 20 October 2009
+#
+# centre sequences selected and trim the excess if they are
+# wider than a given threshold.  If string to be printed
+# contains only "n" and "N" characters, nothing is printed.
+
+use strict;
+
+use Cwd qw(abs_path);
+use Data::Dumper;
+use File::Basename qw(dirname);
+use Scalar::Util qw(looks_like_number);
+
+my $PGM = $0;      # name of program
+$PGM =~ s#.*/##;                # remove part up to last slash
+#@args = @ARGV;      # arguments to program
+my @args = ();
+
+#
+# defaults
+#
+# sequence alphabet choices
+#protein can include U (Sec) selenocysteine http://www.chem.qmul.ac.uk/iubmb/newsletter/1999/item3.html
+my $PROT_ALPHABET = "ACDEFGHIKLMNPQRSTUVWY"; 
+my $DNA_ALPHABET = "ACGT";    
+# set the alphabet: change if protein specified
+my $ALPHABET = $DNA_ALPHABET;
+my $DNAambigs = "URYKMSWBDHVN"; # IUPAC ambiguous letters
+
+# ambiguous characters: set to non-empty if allowed
+my $AMBIGS = $DNAambigs;
+
+$| = 1;        # flush after all prints
+$SIG{'INT'} = \&cleanup;  # interrupt handler
+# Note: so that interrupts work, always use for system calls:
+#   if ($status = system("$command")) {&cleanup($status)}
+
+# requires
+my $script_loc = dirname(abs_path($0));
+push(@INC, split(":", $ENV{'PATH'}));  # look in entire path
+push(@INC, "@PERLLIBDIR@"); # add in location of installed libraries
+push(@INC, "@BINDIR@"); # add in location of installed binaries
+push(@INC, $script_loc); # add in script directory
+require 'prior_utils.pl';
+
+my $centre_size = 100;
+
+my $usage = <<USAGE;    # usage message
+USAGE: $PGM @args [options]
+    options:
+        -len <len>  	  length of sequences to output
+                          default: $centre_size
+        -h                print this help message and exit
+        -flank <flank>    output flanking sequences to file <flank>
+
+    Reads DNA sequences in FASTA format.  For each sequence, it
+    outputs the length-$centre_size portion of the sequence
+    centred on the original sequence. If any sequence is less
+    than $centre_size long, it is output in its entirety.
+    Flanking sequences, if output, each have a FASTA name starting
+    with the name of the original sequence, with "-L" appended for
+    the left flanking sequence and "-R" for the right flanking
+    sequence.
+
+    Reads from standard input.
+    Writes to standard output.
+USAGE
+
+
+my $keepfile;
+
+while ($#ARGV >= 0) {
+  $_ = shift;
+  if ($_ eq "-h") {        # help
+    &print_usage("$usage", 0);
+  } elsif ($_ eq "-len") {
+    $centre_size = shift; # final trimmed width; check width later
+    &print_usage("$usage", 1) unless (check_numeric($centre_size, "int", 1));
+  } elsif ($_ eq "-flank") {
+    $keepfile = shift; # target p-value (reject if == 0 hence separate test)
+  } else {
+    &print_usage("bad arg: `$_'\n$usage", 1);
+  }
+}
+
+my ($NAMEPOS, $SEQPOS, $COMMENTPOS) = (0, 1, 2); # order in read_fasta_sequence
+# reading from "-" = STDIN
+
+my @sequences;
+my $totalN;
+
+&read_seq_file ("-", \@sequences, \$totalN, $ALPHABET.$AMBIGS, undef, undef);
+
+open(F, ">$keepfile") || die("Can't open -keep file $keepfile\n") if $keepfile;
+
+my $N = @sequences;
+for (my $i = 0; $i < $N; $i++) {		# foreach sequence
+    my $seqdata = $sequences[$i];
+    my $seq = $seqdata->[$SEQPOS];
+    my $name = $seqdata->[$NAMEPOS];
+    my $comment = $seqdata->[$COMMENTPOS];
+    my $hdr = ">$name".($comment?" $comment":"");
+    my $M = length($seq);
+    if ($M <= $centre_size) {
+        print "$hdr\n$seq\n" unless $seq =~ /^[nN]*$/;
+    } else {
+        my $offset = ($M - $centre_size) / 2;
+        my $out_str = substr($seq, $offset, $centre_size);
+        unless ($out_str =~ /^[nN]*$/) {
+            print "$hdr\n$out_str\n";
+        	  if ($keepfile) {
+        	      print F ">$name-L\n".substr($seq, 0, $offset)."\n";
+        	      print F ">$name-R\n".substr($seq, $offset+$centre_size)."\n";
+        	  }
+   	    }
+    }
+}
+
+close(F) if $keepfile;
+
+################################################################################
+#
+#       print_usage
+#
+#  Print the usage message and exit.
+#
+################################################################################
+sub print_usage {
+  my($usage, $status) = @_;
+ 
+  if (-c STDOUT) {      # standard output is a terminal
+    open(C, "| more");
+    print C $usage;
+    close C;
+  } else {        # standard output not a terminal
+    print STDERR $usage;
+  }
+
+  exit $status;
+}
+

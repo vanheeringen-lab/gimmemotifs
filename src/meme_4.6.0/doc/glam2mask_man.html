@@ -1,0 +1,39 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang=en>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>glam2mask Manual</title>
+<link type="text/css" rel="stylesheet" href="glam2.css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+</head>
+<body>
+
+<h1>glam2mask Manual</h1>
+
+<p>This program masks a glam2 motif out of sequences, so that weaker
+motifs can be found. Masking replaces residues aligned to key positions
+with the symbol 'x'. By alternately applying glam2 and glam2mask several
+times, it is possible to find the strongest, second-strongest,
+third-strongest, etc. motifs in a set of sequences.</p>
+
+<ul>
+
+	<li>Mask the top motif in my_motif.glam2 out of my_seqs.fa, and
+	store the result in mask1.fa: <pre>
+glam2mask -o mask1.fa my_motif.glam2 my_seqs.fa
+</pre></li>
+
+	<li>Mask the top motif in my_motif.glam2 out of my_seqs.fa, using
+	'n' as the mask symbol: <pre>
+glam2mask -x n my_motif.glam2 my_seqs.fa
+</pre></li>
+
+</ul>
+
+<p>If the sequences do not have unique names, glam2mask may mask the
+wrong ones. It also assumes that the order of the sequences does not
+change, so don't do that.</p>
+
+</body>
+</html>

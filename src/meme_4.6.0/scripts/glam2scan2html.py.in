@@ -1,0 +1,63 @@
+#!@WHICHPYTHON@
+# Read GLAM2SCAN output: write an HTML version of it 
+import fileinput
+
+version = ''
+commandline = ''
+alignments = []
+state = 0
+
+for line in fileinput.input():
+    if state == 0:
+        if line.startswith('Version'):
+            version = line
+        elif line.find('glam2scan') != -1:
+            commandline = line
+            state += 1
+
+    elif state == 1:
+        fields = line.split()
+        if len(fields) == 6:
+            alignments.append(fields)
+
+# print the HTML header:
+print '<html>'
+print '<head>'
+print '<title>GLAM2SCAN</title>'
+print '<style type="text/css">'
+print 'body {background: #D5F0FF}'
+print 'th {text-align: left}'
+print '</style>'
+print '</head>'
+print '<body>'
+print '<h1>GLAM2SCAN</h1>'
+print '<p style="font-family: monospace">', version, '<br><pre>', commandline, '</pre></p>'
+print '<p>If you use this program in your research, please cite:<b> \
+MC Frith, NFW Saunders, B Kobe, TL Bailey, &quot;Discovering sequence motifs with arbitrary insertions and deletions&quot;, PLoS Computational Biology, <b>4</b>(5):e1000071, 2008.\
+</b></p>'
+print '<table>'
+print '<tr>'
+print '<th style="padding-right: 1em">NAME</th>'
+print '<th style="padding-right: 1em">START</th>'
+print '<th style="text-align: center">SITE</th>'
+print '<th style="padding-left: 1em">END</th>'
+print '<th style="padding-left: 1em">STRAND</th>'
+print '<th style="padding-left: 1em">SCORE</th>'
+print '</tr>'
+print '<tbody>'
+
+for row in alignments:
+    print '<tr>'
+    print '<td style="padding-right: 1em">', row[0], '</td>'
+    print '<td style="padding-right: 1em;text-align: right">', row[1], '</td>'
+    print '<td style="text-align: center;font-family: monospace">', row[2], '</td>'
+    print '<td style="padding-left: 1em;text-align: right">', row[3], '</td>'
+    print '<td style="padding-left: 1em;text-align: center">', row[4], '</td>'
+    print '<td style="padding-left: 1em">', row[5], '</td>'
+    print '</tr>'
+
+# close the HTML:
+print '</tbody>'
+print '</table>'
+print '</body>'
+print '</html>'

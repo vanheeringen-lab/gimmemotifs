@@ -1,0 +1,173 @@
+#!@WHICHPERL@ -w
+
+#**********************************************************************/
+#* Copyright (c) University of Washington,                            */
+#* Department of Genome Sciences, 2006. Written by Shobhit Gupta      */
+#* and Timothy L. Bailey     					      */
+#* All rights reserved.                                               */
+#**********************************************************************/ 
+
+use warnings;
+use strict;
+
+use lib qw(@PERLLIBDIR@);
+
+use MotifUtils qw(seq_to_intern matrix_to_intern intern_to_meme read_background_file);
+
+use Fcntl qw(O_RDONLY);
+use Getopt::Long;
+use Pod::Usage;
+
+
+=head1 NAME
+
+=head1 SYNOPSIS
+
+jaspar2meme [options] <Jaspar directory>
+
+ Options: 
+  -pfm            read JASPAR count files (.pfm); 
+                  default: site files (.sites)
+  -cm             read count file with line labels 'A|' etc. (.cm);
+                  default: site files (.sites)
+  -numbers        use numbers instead of strings as motif names
+  -strands 1|2    print '+ -' '+' on the MEME strand line;
+                  default: 2 (prints '+ -')
+  -bg <bfile>     file with background frequencies in MEME
+                  -bfile format; default: uniform frequencies
+  -pseudo <A>     add <A> times background frequency to
+                  each count when computing letter frequencies
+                  default: 0
+  -logodds        print log-odds matrix as well as frequency matrix;
+                  default: frequency matrix only
+  -url <website>  website for the motif; The motif name
+                  is substituted for MOTIF_NAME;
+
+
+  Convert a directory of JASPAR files into a MEME version 4 formatted 
+  file suitable for use with MAST and other MEME Suite programs.
+
+  A JASPAR '.sites' file describes a motif in terms of a multiple
+  alignment of sites.  It contains a multiple alignment in modified 
+  FASTA format.  Only capitalized sequence letters are part of the alignment.
+
+  A JASPAR count file ('.pfm') contains a count matrix where the rows
+  correspond to A, C, G and T, respectively.  
+
+  A CM count file ('.cm') prefixes the rows with 'A| ', 'C| ', 'G| ' and 'T| '.
+
+  A log-odds matrix and a probability matrix are output for each
+  motif ('.sites') file.  The probability matrix is computed using
+  pseudo-counts consisting of the background frequency (see -bg, above)
+  multiplied by the total pseudocounts (see -pseudo, above).
+  The log-odds matrix uses the background frequencies in the denominator
+  and is log base 2.
+
+  If a matrix_list.txt file exists and -pfm is given, the JASPAR names of the
+  motifs are read from that file and included in the output.
+  
+  Writes standard output.
+
+=cut
+
+# Set option defaults
+my $ext = "sites";
+my $strands = 2;
+my $use_numbers = 0;
+my $bg_file;
+my $pseudo_total = 0;
+my $print_logodds = 0;
+my $url_pattern = '';
+
+GetOptions("pfm" => sub {$ext = "pfm"}, "cm" => sub {$ext = "cm"}, 
+  "numbers" => \$use_numbers, "strands=i" => \$strands, "bg=s" => \$bg_file, 
+  "pseudo=f" => \$pseudo_total, "logodds" => \$print_logodds, 
+  "url=s" => \$url_pattern) or pod2usage(2);
+#check directory
+pod2usage("A directory must be specified for the conversion.") unless @ARGV;
+my $target_directory = shift(@ARGV);
+pod2usage("Only one directory may be specified for the conversion.") if @ARGV;
+#check strands
+pod2usage("Option -strands must be either 1 or 2.") unless ($strands == 1 || $strands == 2);
+#check pseudo total
+pod2usage("Option -pseudo must have a positive value.") if ($pseudo_total < 0);
+
+# get the background model
+my %bg = &read_background_file(1, $bg_file);
+
+# change into the jaspar directory
+chdir($target_directory) or die("Failed to change into the Jaspar directory at \"$target_directory\".\n");
+
+# get the matrix_list.txt file if there is one and
+# get the motif names from it.
+my %motif_names;
+my $fp;
+if ($ext eq "pfm") {
+  my $names_file = "matrix_list.txt";
+  if (-e $names_file) {
+    printf(STDERR "Found $names_file file.  Reading in motif names.\n");
+    sysopen($fp, $names_file, O_RDONLY) || die "Can't open file \"$names_file\" in directory \"$target_directory\".\n";
+    while (my $line = <$fp>) {
+      my @words = split(/\s+/, $line);
+      $motif_names{$words[0]} = $words[2];
+    }
+    close($fp);
+  }
+}
+
+# read in motif files and print motifs
+my $count = 0; # number of motifs written
+my @files = glob("*.$ext");
+foreach my $file (@files) {
+  # get the id from the file name
+  $file =~ m/(\S*)\.$ext/;
+  my $jaspar_id = $1;
+  my $name = ($use_numbers ? $count + 1 : $jaspar_id);
+  my $alt = $motif_names{$jaspar_id};
+  $alt .= "($jaspar_id)" if $use_numbers;
+  my $url = $url_pattern;
+  $url =~ s/MOTIF_NAME/$jaspar_id/g;
+  # open the file
+  sysopen($fp, $file, O_RDONLY) || die "Can't open file \"$file\" in directory \"$target_directory\"\n";
+  # read the file
+  my ($motif, $errors);
+  if ($ext eq "pfm" || $ext eq "cm") {  # read a counts file (.pfm, .cm)
+    my $matrix = '';
+    while (my $line = <$fp>) {
+      $line =~ s/#.*$//; # delete comments
+      $line =~ s/^\s*[A-Za-z]\s*\|// if ($ext eq "cm");# discard line labels
+      $matrix .= $line;
+    }
+    ($motif, $errors) = matrix_to_intern(\%bg, $matrix, 'col', 1, $pseudo_total, 
+      strands => $strands, id => $name, alt => $alt, url => $url); #note: given site_count of 1
+  } elsif ($ext eq "sites") { # read a sites file
+    my $seq = '';
+    my $is_site = 0;
+    while (my $line = <$fp>) {
+      chomp($line);
+      if ($is_site) {
+        $line =~ s/[a-z]//g; # delete lower case letters
+        $seq .= $line . "\n";
+        $is_site = 0;
+      } elsif ($line =~ m/^\>/) {
+        # the line looks like:
+        # >MA0001	AGL3	1
+        if ($line =~ m/^\>\S+\s+(\S+)\s/ && !defined($alt)) {
+          $alt = $1;
+          $alt .= "($jaspar_id)" if $use_numbers;
+        }
+        $is_site = 1;
+      }
+    }
+    ($motif, $errors) = seq_to_intern(\%bg, $seq, 1, $pseudo_total, 
+      strands => $strands, id => $name, alt => $alt, url => $url);
+  } # read file
+  # close the file
+  close($fp);
+  #print errors
+  print(STDERR join("\n", @{$errors}), "\n") if @{$errors};
+  print STDERR "Conversion of \"$file\" failed.\n" unless $motif;
+  next unless $motif;
+  # print motif
+  print STDOUT intern_to_meme($motif, $print_logodds, 1, !($count++));
+} # foreach file

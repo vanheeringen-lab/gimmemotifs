@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang=en>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>GLAM2 Installation</title>
+<link type="text/css" rel="stylesheet" href="glam2.css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+</head>
+<body>
+
+<h1>GLAM2 Installation</h1>
+
+<h2>Requirements</h2>
+
+<p>The only requirement is a C compiler. If you have some kind of
+Unix or Linux system, you almost certainly have one already. If you have
+Mac OS X, you may need to install a developer toolkit, which should come
+for free with Mac OS X. If you have Windows, you can get a C compiler
+from various places, such as <a href="http://www.mingw.org/">MinGW</a>
+or <a href="http://www.cygwin.com/">Cygwin</a>.</p>
+
+<h2>Usual procedure</h2>
+
+<p>This procedure should be suitable in most cases.</p>
+
+<ol>
+
+	<li>You presumably obtained GLAM2 as a zipped package, called
+	something like glam2-9999.zip. The first step is to unzip it, creating
+	a new directory glam2-9999.</li>
+
+	<li>Using the command line, move into the src subdirectory and
+	type 'make'. This should compile the glam2 programs.</li>
+
+	<li>To compile purge, move into the purge subdirectory and type
+	'make'.</li>
+
+	<li>After successful compilation, the programs are ready to use.
+	Run them just by typing their names (possibly with leading ./ depending
+	on the settings for your command line environment). If you like, you
+	can put the programs in standard 'bin' directories, or add their
+	location to your system's PATH.</li>
+
+</ol>
+
+<h2>Alternatives</h2>
+
+<p>There is a <a href="http://packages.debian.org/glam2">Debian
+package</a>.</p>
+
+<p>The Makefile in the src subdirectory holds the commands for
+compiling the glam2 programs. (Likewise for the purge subdirectory.) The
+commands are customized for the widely-used <a
+	href="http://gcc.gnu.org/">gcc</a> compiler. To use a different
+compiler, you may have to modify the Makefile. The Makefile is very
+simple and commented, so this should be doable even if you know nothing
+about makefiles. However, you will obviously need to know what commands
+are suitable for your compiler. Use compiler options that make the
+resulting programs as fast as possible.</p>
+
+<p>The programs can also be compiled directly, without 'make'. For
+instance, to compile glam2mask, move into the src subdirectory and type:</p>
+
+<pre>
+cc -Wall -O3 -o glam2mask glam2mask.c alignment.c fasta.c util.c -lm
+</pre>
+
+<p>Modify as appropriate for your compiler. Look in the Makefile for
+commands to compile the other programs.</p>
+
+</body>
+</html>

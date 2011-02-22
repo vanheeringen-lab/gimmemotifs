@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+	<head>
+		<title>AMA - a motif search tool</title>
+		<link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+	</head>
+	<body>
+		<div id="main">
+			<script src="./meme-suite-logo.js" type="text/javascript">></script>
+			<p><b>Usage:</b></p>
+      <p>
+			<code>ama [options] &lt;motif file&gt; &lt;sequence file&gt; [&lt;background file&gt;]</code>
+    	</p>
+      <p>
+      <b>Description:</b>
+      </p>
+
+      <p>
+        The name <code>AMA</code> stands for "Average Motif Affinity".
+        The program scores a set of DNA sequences given a DNA-binding motif,
+        treating each position in the sequence as a possible
+        binding event. The score is calculated by averaging the
+        likelihood ratio scores for all feasible binding events to
+        the given sequence and to its reverse strand.
+        The binding strength at each potential site is defined as
+	the likelihood ratio of the site under the motif versus under
+        a zero-order background model provided by the user.
+      </p>
+      <p>
+        By default, <code>AMA</code> reports the average motif affinity score.
+	It can also report <i>p</i>-values, which are estimated analytically 
+	using the given zero-order background model or using the GC-content
+	of each sequence. 
+      </p>
+      <p>
+	<code>AMA</code> can also compute the 
+	sequence-dependent likelihood ratio score used by Clover.  The 
+	denominator of this score depends on the sequence being scored,
+        and is the likelihood of the site under a Markov model derived 
+        from the sequence itself.  Unlike Clover,
+	<code>AMA</code> also allows higher-order sequence-derived Markov
+	models (see <i>--sdbg</i> option below).
+      </p>
+      <p>
+        If the input file contains more than one motif, the motifs
+        will be processed consecutively.
+      </p>
+
+      <p><b>Input:</b></p> 
+      <ul> 
+      <li>
+      <code>&lt;motif file&gt;</code> containing a list of motifs, in 
+      <a href="meme-format.html">MEME format</a>.
+      </li>
+      <li>
+      <code>&lt;sequence file&gt;</code> is a collection of sequences in
+      <a href="fasta-format.html">FASTA</a> format. 
+      </li>
+      <li>
+      <code>[&lt;background file&gt;]</code> is a 0-order Markov model in
+	<a href="bfile-format.html">background model format</a>
+        such as produced by 
+        <a href="fasta-get-markov.html"><code>fasta-get-markov</code></a>.
+      </li>
+      </ul>
+      
+    	<p><b>Output:</b></p>
+      <p>
+      <code>AMA</code> writes to standard out, unless you specify one of
+      <code>--o</code> or <code>--oc</code> in which case the <code>o-format</code>
+      option (if given) is ignored and separate files containing each output format are
+      written to the named directory. The available output formats are
+      <a href="http://www.sanger.ac.uk/Software/formats/GFF">gff</a> and
+      <a href="http://zlab.bu.edu/~phaverty/SupplementalData/CisML">CisML</a>.
+      </p>
+      <p>
+      gff output has the format: <pre> &lt;sequence_name&gt; ama sequence 1 &lt;sequence_length&gt; &lt;sequence_score&gt; &lt;sequence_p-value&gt; . . .</pre> 
+      </p>
+
+      <p>
+      <b>Options:</b> 
+      </p>
+      <ul>
+    		<li><command-option name="sdbg"/></li>
+    		<li><command-option name="motif"/></li>
+    		<li><command-option name="motif-pseudo"/></li>
+    		<li><command-option name="norc"/></li>
+    		<li><command-option program="ama" name="scoring"/></li>
+    		<li><command-option program="ama" name="rma"/></li>
+    		<li><command-option program="ama" name="pvalues"/></li>
+    		<li><command-option program="ama" name="gcbins"/></li>
+    		<li><command-option program="ama" name="cs"/></li>
+    		<li><command-option program="ama" name="o-format"/></li>
+    		<li><command-option name="o"/></li>
+    		<li><command-option name="oc"/></li>
+    		<li><command-option name="verbosity"/></li>
+    		<li><command-option name="max-seq-length"/></li>
+    		<li><command-option name="last"/></li>
+   		</ul>
+		</div>
+  </body>
+</html>

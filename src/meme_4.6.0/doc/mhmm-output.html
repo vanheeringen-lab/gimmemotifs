@@ -1,0 +1,80 @@
+<html>
+  <head>
+    <title>MHMM Output</title>
+    <link href="./meme-suite.css" rel="styleSheet" type="text/css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>MHMM Output</h1>
+      <p><b>The Meta-MEME model file contains the following
+      information:</b></p>
+      <ul>
+      <li>The Meta-MEME version number and release date.</li>
+      <li>The program name, file contents and date the file was
+      created.</li>
+      <li>A link to the Meta-MEME home page.</li>
+      <li>A reference to cite if you publish results from Meta-MEME.</li>
+      <li>Some global information about the Meta-MEME model.</li>
+      <li>A list of the states in the Meta-MEME model.</li>
+      <li>The matrix of transition probabilities between states of the
+      model.</li>
+      </ul>
+      <br>
+      <br>
+      <p><b>HMM Global Information</b></p>
+      The list of states in the Meta-MEME model begins with eight lines
+      that specify the global characteristics of the model. These lines
+      tell<br>
+      <br>
+      <ul>
+      <li>whether the model has a linear or completely connected topology
+      (i.e., whether the model allows for repetition and shuffling of
+      motifs),</li>
+      <li>the total number of states in the model,</li>
+      <li>the total number of spacers (i.e., inter-motif regions) in the
+      model,</li>
+      <li>the number of states used to represent each spacer,</li>
+      <li>the number of letters in the alphabet (4 for DNA and 20 for
+      amino acids),</li>
+      <li>the alphabet,</li>
+      <li>the background frequencies used as emission probabilities in
+      the spacer states, and</li>
+      <li>the name of the MEME output file that was used to generate this
+      Meta-MEME model.</li>
+      </ul>
+      <br>
+      <br>
+      <p><b>HMM States</b></p>
+      <p>Following the global characteristics is a list of state
+      descriptions. Each state description consists of six lines. These
+      lines tell</p>
+      <ul>
+      <li>the index of the state (numbered from 0),</li>
+      <li>the type of state (i.e, whether it is a start or end state, a
+      spacer state, or the beginning, middle or end of a motif),</li>
+      <li>the index of the motif within which this state appears (This
+      value is arbitrarily set to -1 for non-motif states.),</li>
+      <li>the position of the state within the motif or spacer region,
+      and</li>
+      <li>the letter that is printed above this state when the MEME motif
+      ID is printed centered with respect to the motif,</li>
+      <li>the list of probabilities that this state will emit each of the
+      letters in the alphabet.</li>
+      </ul>
+      <br>
+      <br>
+      <p>The final item (the list of emission probabilities) is omitted
+      from the start and end states, which do not emit letters.</p>
+      <br>
+      <br>
+      <p><b>Transition probability matrix</b></p>
+      <p>The Meta-MEME model file ends with a square matrix containing n
+      rows and n columns, where n is the number of states in the model.
+      The entry in row i, column j of this matrix is the probability of
+      transitioning from state i to state j in the model. Consequently,
+      each row in the matrix sums to 1.0.</p>
+    </div>
+  </body>
+</html>

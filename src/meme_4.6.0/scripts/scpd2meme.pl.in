@@ -1,0 +1,129 @@
+#!@WHICHPERL@ -w
+#
+# $Id $
+# $Log $
+#
+# FILE: scpd2meme
+# AUTHOR: William Stafford Noble, Timothy L. Bailey, Charles Grant
+# CREATE DATE: 1/06/2006
+# DESCRIPTION: Convert a file containing list of TFBS motif matrices from SCPD 
+# to MEME output format.
+
+use warnings;
+use strict;
+
+use lib qw(@PERLLIBDIR@);
+
+use MotifUtils qw(matrix_to_intern intern_to_meme read_background_file);
+
+use Fcntl qw(O_RDONLY);
+use Getopt::Long;
+use Pod::Usage;
+
+=head1 SYNOPSIS
+
+scpd2meme [options] <matrix file>
+
+ Options:
+  -skip <scpd ID>               skip this ID (may be repeated)
+  -numbers                      use numbers instead of strings as motif names
+  -bg <background file>         file with background frequencies of letters;
+                                default: uniform background
+  -pseudo <total pseudocounts>  add <total pseudocounts> times letter
+                                background to each frequency; default: 0
+  -logodds                      print log-odds matrix, too;
+                                default: print frequency matrix only
+  -url <website>                website for the motif; The scpd ID is
+                                substituted for MOTIF_NAME; default: no url
+
+=cut
+
+# Set option defaults
+my %skips = ();
+my $use_numbers = 0;
+my $bg_file;
+my $pseudo_total = 0;
+my $print_logodds = 0;
+my $url_pattern = "";
+my $matrix_file;
+
+GetOptions("skip=s" => sub {$skips{$_[1]} = 1}, "numbers" => \$use_numbers,
+  "bg=s" => \$bg_file, "pseudo=f" => \$pseudo_total, "logodds" => \$print_logodds,
+  "url=s" => \$url_pattern) or pod2usage(2);
+#check matrix file
+pod2usage("A matrix file must be specified for the conversion.") unless @ARGV;
+$matrix_file = shift(@ARGV);
+pod2usage("Only one matrix file may be specified for the conversion.") if @ARGV;
+#check pseudo total
+pod2usage("Option -pseudo must have a positive value.") if ($pseudo_total < 0);
+
+# read the background file
+my %bg = &read_background_file(1, $bg_file);
+
+# Open the matrix file for reading.
+my $matrix_fp;
+sysopen($matrix_fp, $matrix_file, O_RDONLY) || die("Can't open $matrix_file.\n");
+
+# Read the input file.
+my $count = 0;
+my $num_skipped = 0;
+my $num_bad = 0;
+my $line_number = 0;
+my %motifs;
+my $line;
+while ($line = <$matrix_fp>) {
+  $line_number++;
+  #check the line is an id line
+  my $id;
+  if ($line =~ m/^>(\S+)\b/) {
+    $id = $1;
+  } else {
+    die ("No matrix id found at line $line_number in file $matrix_file.\n");
+  }
+  # Read the motif base counts. One line for each nucleotide.
+  my %rows = ();
+  for(my $base_index = 0; $base_index < 4; $base_index++) {
+    $line = <$matrix_fp>;
+    $line_number++;
+    die ("Missing motif counts at line $line_number in file $matrix_file.\n") unless (defined $line);
+    chomp($line);
+    if ($line =~ m/^([ACGT])(.*)$/i) {
+      my $base = uc($1);
+      my $row = $2;
+      $rows{$base} = $row;
+    } else {
+      die("Couldn't find base name at start of line.");
+    }
+  }
+  # skip unwanted motifs
+  if ($skips{$id}) {
+    $num_skipped++;
+    next;
+  }
+  # make a matrix I can convert into a motif
+  my $matrix = $rows{A} . "\n" . $rows{C} . "\n" . $rows{G} . "\n" . $rows{T};
+  # make a url
+  my $url = $url_pattern;
+  $url =~ s/MOTIF_NAME/$id/g;
+  # set the names
+  my $motif_name = ($use_numbers ? $count + 1 : $id);
+  my $alt = ($use_numbers ? $id : '');
+  # try to convert the motif
+  my ($motif, $errors) = matrix_to_intern(\%bg, $matrix, 'col', undef, 
+    $pseudo_total, id => $motif_name, alt => $alt, url => $url);
+  # display errors
+  print(STDERR join("\n", @{$errors}), "\n") if @{$errors};
+  # output motif
+  if ($motif) {
+    print STDOUT intern_to_meme($motif, $print_logodds, 1, !($count++));
+  } else {
+    $num_bad++;
+  }
+}
+
+print(STDERR "Converted $count motifs.\n");
+print(STDERR "Skipped $num_skipped motifs.\n");
+print(STDERR "$num_bad conversion errors.\n");
+
+
+close($matrix_fp);

@@ -1,0 +1,19 @@
+#!/bin/csh
+#
+# $Id: texit 318 2005-10-05 06:18:35Z nadya $
+# $Log$
+# Revision 1.2  2005/10/05 06:18:35  nadya
+# use full path for "rm". Asssume everybody has /bin/rm.
+#
+# Revision 1.1.1.1  2005/07/29 00:00:23  nadya
+# Importing from meme-3.0.14, and adding configure/make
+#
+#
+
+set file = $1
+if ($file:e == "tex") set file = $file:r
+latex $file.tex
+echo $file
+dvips -o $file.ps $file
+chmod 644 $file.ps
+/bin/rm $file.dvi $file.log

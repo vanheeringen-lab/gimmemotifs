@@ -1,0 +1,120 @@
+<appConfig xmlns="http://nbcr.sdsc.edu/opal/types" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <metadata appName="TOMTOM">
+    <usage><![CDATA[TOMTOM is a program for comparing a supplied motif with a database of motifs.]]></usage>
+    <info>
+    <![CDATA[
+    tomtom_webservice [--niced] [--uploaded <uploaded database>] [--m <name>] [--mi <index>] (pearson|ed|sandelin) (evalue|qvalue) <threshold> 
+                       <query motif file> <target databases>
+
+    Flags
+       niced     - run tomtom niced.
+     
+    Tagged Parameters
+       uploaded <uploaded database>  - add the uploaded database to the list of target databases
+       m <name> - filter query motifs by name (id); repeatable
+       mi <index> - filter query motifs by file order; repeatable
+
+    Parameters
+
+      Distance Functions
+        pearson - Pearson correlation coefficient
+        ed - Euclidean distance
+        sandelin - Sandelin-Wasserman similarity function
+
+      Threshold Type
+        evalue - Threshold is a E-value
+        qvalue - Threshold is a q-value
+
+      Threshold
+        The threshold value. A q-value of larger than or equal to 1 will cause an error.
+
+      Query Motif File
+        Name of the motif file. Paths not allowed and will dropped
+
+      Target Databases
+        A pattern or a list of target databases to be searched.
+    ]]>
+    </info>
+
+    <!-- information about command-line arguments -->
+    <types>
+      <flags>
+        <flag>
+          <id>niced</id>
+          <tag>--niced</tag>
+          <textDesc>Runs Tomtom niced</textDesc>
+          <default>false</default>
+        </flag>
+      </flags>
+      <taggedParams>
+        <separator> </separator>
+        <param>
+          <id>uploaded</id>
+          <tag>--uploaded</tag>
+          <paramType>FILE</paramType>
+          <ioType>INPUT</ioType>
+          <required>false</required>
+          <textDesc>Target Motif Database</textDesc>
+        </param>
+        <param>
+          <id>m</id>
+          <tag>--m</tag>
+          <paramType>STRING</paramType>
+          <required>false</required>
+          <textDesc>Filter by Motif Name</textDesc>
+        </param>
+        <param>
+          <id>mi</id>
+          <tag>--mi</tag>
+          <paramType>INT</paramType>
+          <required>false</required>
+          <textDesc>Filter by Motif Order</textDesc>
+        </param>
+      </taggedParams>
+      <untaggedParams>
+        <param>
+          <id>dist</id>
+          <paramType>STRING</paramType>
+          <value>pearson</value>
+          <value>ed</value>
+          <value>sandelin</value>
+          <required>true</required>
+          <default>pearson</default>
+          <textDesc>Distance Function</textDesc>
+        </param>
+        <param>
+          <id>ttype</id>
+          <paramType>STRING</paramType>
+          <value>evalue</value>
+          <value>qvalue</value>
+          <required>true</required>
+          <default>evalue</default>
+          <textDesc>Threshold Type</textDesc>
+        </param>
+        <param>
+          <id>thresh</id>
+          <paramType>FLOAT</paramType>
+          <required>true</required>
+          <default>0.5</default>
+          <textDesc>Threshold</textDesc>
+        </param>
+        <param>
+          <id>motif</id>
+          <paramType>FILE</paramType>
+          <ioType>INPUT</ioType>
+          <required>true</required>
+          <textDesc>Query Motif</textDesc>
+        </param>
+        <param>
+          <id>dbs</id>
+          <paramType>STRING</paramType>
+          <required>true</required>
+          <textDesc>Target Databases Pattern</textDesc>
+        </param>
+      </untaggedParams>
+    </types>
+  </metadata>
+  <binaryLocation>@TOMTOM_SERVICE@</binaryLocation>
+  <validateArgs>false</validateArgs>
+  <parallel>false</parallel>
+</appConfig>

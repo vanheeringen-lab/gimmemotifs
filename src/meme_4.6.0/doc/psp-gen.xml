@@ -1,0 +1,551 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+<head>
+<title>psp-gen</title>
+<link href="./meme-suite.css" rel="styleSheet" type="text/css" />
+</head>
+<body>
+<div id="main">
+  <script src="./meme-suite-logo.js" type="text/javascript">></script>
+<h1>psp-gen</h1>
+<p>
+<b>Usage:</b> <code>psp-gen -pos &lt;filename&gt; -neg  &lt;filename&gt; [options] </code>
+</p>
+
+<p>
+<b>Short description:</b>
+</p>
+<p>
+<code>psp-gen</code> is used to allow MEME to perform discriminative
+motif discovery&#x2014;to find motifs overrepresented in one set of
+sequences compared to in another set.  It takes two files as
+input&#x2014;the sequence file to be input to MEME, (the "positive"
+file) and a "negative" sequence file of sequences believed not to
+contain the same motifs as in the "positive"
+file.  <code>psp-gen</code> creates a file for use by MEME that
+encapsulates information about probable discriminative motifs.
+<code>psp-gen</code> records its chosen motif width in the file,
+and MEME is able to adjust the data when it tries different motif
+widths.
+</p>
+
+<p><b>Input:</b></p>
+<ul>
+<li><code> -pos &lt;positive filename&gt;</code> &#8211; specifies a file containing
+  sequences in <a href="fasta-format.html">FASTA format</a>, to be
+  used in the PSP calculation as the positive set.
+</li>
+<li><code> -neg &lt;negative filename&gt;</code> &#8211; specifies a file containing
+  sequences in <a href="fasta-format.html">FASTA format</a>, to be
+  used as the negative set in PSP calculation.
+</li>
+</ul>
+<p>
+You should choose the negative set as a contrast to the positive set:
+similar in most respects, but differing in the features that you would
+like to associate with motifs.
+</p>
+
+<p><b>Output:</b></p>
+<ul>
+<li>
+Writes to standard output.
+</li>
+<li>
+Writes to standard error if <code>-reportscores</code>
+or <code>-verbose</code> options are set.
+</li>
+</ul>
+<p>
+The output contains an entry for every sequence in the original data,
+in a FASTA-like format. The original FASTA name lines are retained,
+with additional annotation indicating the motif width and the scaling
+applied to raw scores.
+</p>
+<p>
+Only the name and the motif width are interpreted by MEME; the scaling
+information is recored as documentation of the run of <code>psp-gen</code>
+that generate the PSP file.
+</p>
+<p>
+Instead of sequence data, the output contains a
+number for each position in the sequence, representing the probability
+that a motif starts at that position. For example:
+</p>
+<pre>
+>A2ACQ1 3 scaledmin = 0.1 scaledmax = 0.9
+0.001514752 0.001571433 0.00130429 0.002221764 0.00194399
+</pre>
+<p>
+starts with a name line indicating that the original sequence is called
+"<code>A2ACQ1</code>", <code>psp-gen</code> found the "best" motif
+scores with a width of 3, and scores were scaled to 0.1..0.9, before
+converting them to probabilities. The next
+line contains the first 5 positional prior values for
+sequence <code>A2ACQ1</code>.
+</p>
+
+<p><a name="options" /><b>Options:</b></p>
+
+<p>Options are all case-specific:</p>
+<ul>
+
+<li>
+<code>-h</code> &#8211; print a usage message and quit.
+</li>
+
+<li>
+<code>-minw &lt;W&gt;</code> &#8211; minimum width to use when selecting the
+"best" width for PSPs.<br />
+Default: 4.
+</li>
+
+<li>
+<code>-maxw &lt;W&gt;</code> &#8211; maximum width to use when selecting the
+"best" width for PSPs.<br />
+Default: 20.
+</li>
+
+<li>
+<code>-alpha DNA|prot</code> &#8211; choose the sequence alphabet.<br />
+Default: DNA.
+</li>
+
+<li>
+<code>-triples</code> &#8211; Use spaced triples instead of whole-word
+matches. Recommended for protein.<br />
+Default: use whole words.
+</li>
+
+<li>
+<code>-fixedstart</code> &#8211; for triples, only consider triples starting
+at the start of the site.<br />
+Default: allow triples to start anywhere in a width <i>w</i> site.
+</li>
+
+<li>
+<code>-equiv "&lt;letter options&gt;"</code> &#8211; Any sequence of letters
+that appears together should be matched as equal. Separate letter
+groups using "-", e.g. <code>-equiv "IVL-HKR"</code> means treat all
+occurrences of <code>I</code>, <code>V</code> or <code>L</code> as the
+same, and all occurrences of <code>H</code>, <code>K</code>
+or <code>R</code> as the same.<br />
+Default: Treat every letter as unique.
+</li>
+
+<li>
+<code>-arbitraryOK</code> &#8211; Allow ambiguous letters (but score any
+sites containing them as zero).<br />
+Default: do not allow ambiguous letters.
+</li>
+
+<li>
+<code>-revcomp</code> &#8211; DNA only: score both strands.<br />
+Default: only score on one strand.
+</li>
+
+<li>
+<a name="scaling" /><code>-scalemin &lt;N&gt;</code> &#8211; lowest score value after
+scaling.<br />
+Default: 0.1, unless <code>scalemax</code> is set, in which
+case the default is <code>1-scalemax</code>
+</li>
+
+<li>
+<code>-scalemax  &lt;N&gt;</code> &#8211; highest score value after
+scaling.<br />
+Default: 0.9, unless <code>scalemin</code> is set, in which
+case the default is <code>1-scalemin</code>
+</li>
+
+<li>
+<code>-maxrange</code> &#8211; choose <code>w</code> with the biggest
+<i>difference</i> between minimum and maximum scores (before
+scaling).<br />
+Default: choose <code>w</code> with the biggest maximum score (before
+scaling).
+</li>
+
+<li>
+<code>-raw</code> &#8211; Output scores instead of PSPs.
+</li>
+
+<li>
+<code>-reportscores</code> &#8211; send to standard error positive and negative file
+names, min and max scores and min and max <code>w</code>,
+tab-separated.<br />
+Default: do not report to standard error.
+</li>
+
+<li>
+<code>-verbose</code> &#8211; send detailed stats to standard error, reporting
+frequency of each score<br />
+Default: do not report.
+</li>
+</ul>
+
+<p><b>Examples:</b></p>
+<p>
+In each example, the sequence file is the same as the postive set used
+for <code>psp-gen</code>. While there is no check that you have done
+this because MEME runs as a separate program (other than that the
+sequence names need to match, as do the number of sites), using a
+positive set different to the sequence set MEME searches is unlikely
+to be useful.
+</p>
+<p>Generate a discriminative prior for a DNA sequence set
+  (<code>pos-dna.fasta</code>) likely to contain TF binding sites, given
+  another DNA sequence set unlikely to contain TF binding sites
+  (<code>neg-dna.fasta</code>): <br />
+   <code>psp-gen -pos pos-dna.fasta -neg neg-dna.fasta &gt; dna.psp</code>
+</p>
+
+<p>Use these position-specific priors in MEME, searching both strands:<br/>
+   <code>meme pos-dna.fasta -psp dna.psp -oc meme_out_dna
+   -revcomp</code><br />
+</p>
+
+
+<p>Generate a discriminative prior for a protein sequence set
+  (<code>pos-prot.fasta</code>) associated with a specific function, given
+  another protein sequence set unlikely to relate to that function
+  (<code>neg-prot.fasta</code>): <br />
+   <code>psp-gen -pos pos-prot.fasta -neg neg-prot.fasta -alpha prot
+   -triples -maxrange &gt; prot.psp</code>
+</p>
+
+<p>Use these position-specific priors in MEME:<br/>
+   <code>meme pos-prot.fasta -psp prot.psp -oc meme_out_prot</code>
+</p>
+
+<p>View usage information:<br/>
+   <code>psp-gen -h</code>
+</p>
+
+<p><b>Detailed description:</b></p>
+
+<p>The <code>psp-gen</code> program generates a position-specific
+prior (PSP) in a data file, which can be used as an additional input
+to MEME to bias the search to sites more likely to
+contain a motif (or motifs) of interest. Without using a PSP, MEME
+assigns the same prior probability to all sites. A PSP is generated
+by <code>psp-gen</code> using two sequence sets, each
+in <a href="fasta-format.html">FASTA format</a>:
+<ul>
+  <li>the <i>positive set</i> (or <i>X</i>) contains the same
+    sequences as you intend to search for a motif using MEME</li>
+  <li>the <i>negative set</i> (or <i>Y</i>) is a contrasting set of
+    sequences that is unlikely to contain the motif or motifs of
+    interest, but is otherwise similar to the positive set.</li>
+</ul>
+</p>
+<p>
+The basic principle of a discriminative prior is to start from the
+question:
+</p>
+  <blockquote>
+  <p>What fraction of <i>all</i> instances of a <i>w</i>-wide
+  subsequence (or <i>w</i>-mer) across both sequence sets occur <i>in the
+  positive set</i>?
+  </p>
+</blockquote>
+
+<p>The intuition is that any <i>w</i>-mer that is common
+in the positive set but not the negative set could form part of motif
+of interest, based on the way the two sets are chosen.
+</p>
+<p>
+PSP calculation starts from the following equation based on the
+<i>D</i>-prior described in
+the Narlikar <i>et al</i>. <i>RECOMB</i> 2007 paper
+"<a href="http://www.springerlink.com/content/av526j7u275n1508/">Nucleosome
+Occupancy Information Improves <i>de novo</i> Motif
+Discovery</a>". We count the number of
+instances <i>X</i><sub><i>i</i>,<i>j</i></sub>(<i>w</i>) of the
+subsequence <i>w</i> wide starting at position <i>j</i> in sequence
+<i>X<sub>i</sub></i> of the positive set, and similarly
+count <i>Y</i><sub><i>i</i>,<i>j</i></sub>(<i>w</i>) in the negative
+set, then calculate for each site:
+</p>
+<p>
+<!-- warning: equation as table mess follows -->
+<table border="0">
+  <!-- LHS of equality lines up with middle of fraction-->
+  <tr><td rowspan="2">
+      <i>D</i><sub><i>i</i>,<i>j</i></sub></td><td rowspan="2"> =
+    </td>
+    <!-- underline the fraction -->
+    <td></td><td align="center" style="border-bottom:solid 1px">
+   <!-- denominator -->
+   <i>X</i><sub><i>i</i>,<i>j</i></sub>(<i>w</i>)
+   </td></tr>
+   <!-- enumerator -->
+   <tr><td></td><td align="center">
+       <i>X</i><sub><i>i</i>,<i>j</i></sub>(<i>w</i>) +
+       <i>Y</i><sub><i>i</i>,<i>j</i></sub>(<i>w</i>)
+   </td></tr>
+</table>
+</p>
+<p>
+As pseudocounts, we add 1 to the enumerator, and 1 +
+|<i>X</i>|/|<i>Y</i>| to the denominator.  The purpose of the
+pseudocounts is to avoid giving a high score to infrequent
+subsequences that are not (or rarely) found in the negative set.  Once
+we have scored all sites for a given value of <code>w</code>, we scale
+scores to a range that can be <a href="#scaling">set on the command
+line</a>, with the default range <code>[0.1,0.9]</code>.
+</p>
+<p>
+We repeat scoring for the whole range of motif widths under
+consideration, and choose a "best" width using one of two methods:
+either we choose the value of <code>w</code> that maximizes the score
+over all sequences, or the value of <code>w</code> that maximizes the
+difference between the maximum and minimum score over all
+sequences. We also allow an option of using <i>spaced triples</i>
+instead of whole words to match
+subsequences. See <a href="#variations">Variations</a> below for more
+details on triples and choosing the "best" width.
+</p>
+<p>
+Once we have scored every available site and chosen a specific value
+of <code>w</code>, we convert the scores to
+probabilities, based on the following proportionalities,
+where <i>Z<sub>i</sub></i> = <i>j</i> means that the site for a motif
+in sequence <i>X<sub>i</sub></i> is found at location <i>j</i> (with <i>j</i> = 0
+signifying there is no site in the given sequence)
+and <i>D</i><sub><i>i</i>,<i>j</i></sub> is the score for
+sequence <i>X<sub>i</sub></i> at the site starting at
+location <i>j</i>, numbered from 1:
+</p>
+<table>
+<tr><td valign="bottom"><i>P</i>(<i>Z<sub>i</sub></i> = 0)
+  </td><td>&#8733;</td> <!-- proportional -->
+  <td>1</td>
+</tr>
+<tr><td colspan="3" align="left">and</td></tr>
+<tr><td rowspan="2" valign="center">
+    <i>P</i>(<i>Z<sub>i</sub></i> =<i>j</i>)
+  </td>
+  <td rowspan="2" valign="center">&#8733;</td> <!-- proportional -->
+  <td align="center" style="border-bottom:solid 1px">
+    <i>D</i><sub><i>i</i>,<i>j</i></sub></td>
+</tr>
+<tr>
+  <td>1-<i>D</i><sub><i>i</i>,<i>j</i></sub></td>
+</tr>
+</table>
+<p>
+We
+convert these proportionalities to a PSP by normalizing them to add up
+to 1 over each sequence.
+</p>
+<p>
+<p><a name="vsMEME" /><i><b>Running with MEME:</b></i></p>
+<p>
+Since MEME runs as a separate program, there is no way to check that
+the positive set is the same as the sequence set given to MEME. There
+are however checks that every name in the PSP file matches a name in
+the MEME sequence set, and that the number of sites in the PSP file
+for a particular sequence name matches the number of sites in the
+sequence file seen by MEME. While it does not make sense to use a
+completely different sequence set for PSP generation and for running
+MEME (with the resulting PSP file), MEME can use a PSP file that does
+not provide probabilities for every sequence. Any sequences not in the
+PSP file are given a uniform prior
+probability. <a href="meme.html#MEME-PSP">MEME documentation</a>
+includes more detail on how PSPs are used.
+</p>
+</p>
+<p><a name="variations" /><i><b>Variations:</b></i></p>
+<p>
+For each variation, "default" means that you do not need to specify a
+command-line switch to turn on that setting.
+</p>
+<ul>
+  <li><i>sequence alphabet</i>: choose <code>-alpha DNA</code>
+  (default) or <code>-alpha prot</code> (protein). For DNA, you also
+  have the option to score matches on both strands:
+     <ul>
+       <li><code>-revcomp</code> (the default is to score only the given
+       strand). This setting applies to both the positive and negative
+       sequences.
+       </li>
+     </ul>
+  </li>
+  <li><i>choosing the "best" width</i>: specifying <code>-maxw</code>
+  and <code>-minw</code> provides limits to <code>psp-gen</code> but
+  the algorithm chooses one width to generate priors after scoring the
+  range of allowed widths, using one of two variations:
+  </li>
+  <ul>
+     <li><i>maximum score</i> (default): choose the value of <i>w</i> that
+     maximizes the score over all sequences.
+    </li>
+    <li><i>maximum range of values</i> (<code>-maxrange</code>):
+    choose the value of <i>w</i> that maximizes the difference between
+    the highest and lowest score over all sequences. This variant is
+    useful in data sets where a high number of sites achieve similar
+    high scores (more likely to happen with protein sequences).
+    </li>
+  </ul>
+  <li><i>type of word match</i>:
+  <ul>
+    <li><i>whole-word match</i> (default)
+    </li>
+    <li><i>spaced triples</i> (<code>-triples</code>): for a case
+     where exact-word matches are unlikely to succeed, spaced triples
+     are an alternative. Each <i>w</i>-wide word is broken down into
+     triples containing an initial, middle and final letter, and all
+     other letters are treated as don't cares (i.e., they match
+     anything). In spaced triples mode, <code>psp-gen</code> scores a
+     site on the basis of the spaced triple fitting the <i>w</i>-wide
+     word at that site that has the highest score.  For example, the
+     subsequence<br />
+     <code>MTFEKI</code> contains the following
+     triples:<br />
+     <code>MT...I</code><br />
+     <code>M.F..I</code><br />
+     <code>M..E.I</code><br />
+     <code>M...KI</code><br />
+     where "." matches anything when counting matches.
+     <ul>
+       <li>An option that only applies to triples
+	 is <code>-fixedstart</code>, which only allows triples for the
+	 current site under consideration that start at the beginning of the
+	 site. This option reduces execution time at the expense of
+	 considering fewer possibilities for scoring a site.
+       </li>
+       <li>default: consider triples of all widths that fit the current site.
+       </li>
+     </ul>
+    </li>
+  </ul>
+  </li>
+  <li><i>scaling variations</i> (<code>-scalemin</code> and
+  <code>-scalemax</code>): the scoring formula creates values in the
+  range <code>[0,1]</code>, but the conversion to PSPs from scores
+  requires values strictly less than 1. Choosing an option other than
+  scaling between the default <code>[0.1,0.9]</code> reduces (if you
+  narrow the range) or increases (if you widen the range) sensitivity
+  to small differences in scores. If you only set one
+  of <code>scalemin</code> or <code>scalemax</code>, the other is
+  calculated as described in <a href="#options">Options</a>.
+  </li>
+  <li><i>ambiguous characters</i>: you have two levels of control of
+  ambiguous characters:
+  <ul>
+    <li><i>ambiguous characters in the sequence data</i>:
+    if you use <code>-arbitraryOK</code>, for
+    DNA, <code>N</code> is recognized as standing for any letter; for
+    protein, <code>B</code>, <code>J</code>, <code>Z</code>
+    and <code>X</code> are recognized as ambiguous. In either case,
+    the effect of encountering any of these letters is to score a word
+    or triple containing them as zero (default: ambiguous characters
+    cause error termination).
+    </li>
+    <li><i>treat specific letters as equivalent</i>: use
+    the <code>-equiv</code> option to treat specific groups of letters
+    as if they were all the same (default: all letters are treated as
+    unique). For more detail, see <a href="#options">Options</a>.
+    </li>
+  </ul>
+  </li>
+  <li><i>reporting and debugging</i>: you have various options for
+  understanding better how PSPs are calculated.
+  <ul>
+    <li><i>see raw scores</i>: <code>-raw</code> stops the last stage
+    of computation that converts the scores to probabilities; the
+    scores sent to standard out are however scaled, using either the
+    defaults or selected values of <code>scalemin</code>
+    and <code>scalemax</code> (default: convert scores to PSPs).
+    </li>
+    <li><i>report range of scores</i>:
+    see <code>-reportscores</code> in <a href="#options">Options</a>
+    (default: do not report).
+    </li>
+    <li><i>see detailed statistics</i>: <code>-verbose</code> causes
+    detailed statistics on scores to be sent to standard error
+    (default: no statistics reported).
+    </li>
+  </ul>
+  </li>
+</ul>
+<p>
+</p>
+
+<p><i><b>Performance scalability:</b></i></p>
+<p>
+When you use exact-word (<i>w</i>-mer) search, <code>psp-gen</code>
+run time scales linearly in each of |<i>X</i>|, |<i>Y</i>| and
+<code>maxw</code>-<code>minw</code>. Formally, time is O((|<i>X</i>| +
+	|<i>Y</i>|)(<i>w<sub>max</sub></i> -
+	<i>w<sub>min</sub></i>)).
+For triples, <code>psp-gen</code> scales linearly in each of
+	|<i>X</i>| and |<i>Y</i>|, and quadratically
+	in <i>w<sub>max</sub></i>, so run time is O((|<i>X</i>| +
+	|<i>Y</i>|)<i>w<sub>max</sub></i><sup>2</sup>).
+</p>
+<p>
+Extra memory in both cases scales linearly with |<i>X</i>| +
+	|<i>Y</i>|.</p>
+<p>
+Since triples have a higher-order term in time complexity, we predict
+	run time scalability in more detail than for exact word
+	match. Adding in constants and a linear term, time complexity
+	for triples is approximated by (where <i>W</i>
+	= <i>w<sub>max</sub></i>-2, the number of variations in width
+	used by the algorithm):
+</p>
+<table border="0">
+<tr><td><i>t</i></td>
+  <td>=</td>
+  <td>(<i>k</i><sub>1</sub>|<i>X</i>| +
+    <i>k</i><sub>2</sub>|<i>Y</i>|)<i>W</i><sup>2</sup> +
+    <i>k</i><sub>3</sub>(|<i>X</i>| + |<i>Y</i>|)<i>W</i>
+  </td></tr>
+</table>
+<p>
+On a real machine (iMac, 3.06GHz Intel Core 2 Duo, 6MB L2 cache, 4GB
+RAM) the following is a good predictor of the upper bound on run time
+for likely values of |<i>X</i>|, |<i>Y</i>| and range of
+widths. Scale any results according to the speed of the actual machine
+on which you intend to run <code>psp-gen</code>. The formula reflects
+runs on randomly generated data; real data will likely result in
+faster runs because random data defeats some optimizations
+in <code>psp-gen</code>.
+</p>
+<table border="0">
+<tr><td><b><i>t</i></b></td><td><b>=</b></td><td><b>(4.37x10<sup>-6</sup>|<i>X</i>|+
+      2.46x10<sup>-06</sup>|<i>Y</i>|)<i>W</i><sup>2</sup> +
+      6.25x10<sup>-06</sup>(|<i>X</i>| + |<i>Y</i>|)<i>W</i> s</b></td></tr>
+</table>
+<p>
+For example, for |<i>X</i>| = |<i>Y</i>| = 60,000
+and  <i>w<sub>max</sub></i> = 50 (i.e., <i>W</i> = 48), estimated run
+time = 980s, the same in this case as measured run time. The following
+command line reproduces this run:
+</p>
+<pre>
+time psp-gen -neg pos60k.fasta -pos neg60k.fasta -alpha prot -minw 3 -maxw 50 -arbitraryOK -triples > priors60kmaxw50.psp
+</pre>
+
+<p>
+<b>Known problems:</b>
+</p>
+
+<ul>
+<li>
+Ambiguous letters cause words or triples containing them to be scored as zero.
+</li>
+</ul>
+
+
+<hr />
+
+<p>Author: Philip Machanick (p.machanick@imb.uq.edu.au) </p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>beadstring - a motif search tool</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+
+      <h1>beadstring</h1>
+
+      <p><b>Usage:</b></p>
+      <p>
+      <code>beadstring [options] &lt;motifs&gt; &lt;database&gt;</code>
+      </p>
+
+      <p>
+      <b>Description:</b>
+      </p>
+
+      <p>
+      <code>Beadstring</code> builds a linear hidden Markov model (HMM) from
+      the motifs and motif occurences listed in the motif file, and uses
+      that HMM to search a sequence database for a particular ordered series
+      of motifs.  A description of the algorithm is found in:
+      </p>
+
+      <p>
+      <a
+      href="http://bioinformatics.oxfordjournals.org/cgi/content/abstract/13/4/397">Grundy,
+      Bailey, Elkan and Baker. "Meta-MEME: Motif-based Hidden Markov Models
+      of Protein Families".  <i>Computer Applications in the
+      Biosciences.</i> 13(4):397-406, 1997.</a>
+      </p>
+
+      <p>
+      By default, the order and spacing of motifs in the model is determined
+      from the "Summary of Motifs" section of the MEME input file.
+      <code>Beadstring</code> searches the summary for the sequence that
+      contains the maximal number of distinct motif occurrences.  If there
+      is a tie, then <code>beadstring</code> selects the sequence with the
+      smallest combined p-value.  <code>Beadstring</code> then eliminates
+      all but the most significant occurrence of each motif and uses the
+      resulting order and spacing of motif occurrences to initialize the
+      HMM.  This procedure can be overridden by selecting the
+      <code>--motif</code>, <code>--motif-e-thresh</code>,
+      <code>--motif-p-thresh</code> or <code>--order</code> options.</p>
+
+      <p>
+      The command line option <code>--p-score</code> activates an
+      alternative scoring mode, called "p-value scoring."  This scoring
+      method is described in</p>
+
+      <p>
+      <a
+      href="http://bioinformatics.oxfordjournals.org/cgi/reprint/19/suppl_2/ii16">Bailey
+      and Noble.  "Searching for statistically significant regulatory
+      modules."  <i>Bioinformatics</i> 19(Suppl 2):ii16-ii25, 2003.</a>
+      </p>
+
+
+      <p><b>Input:</b></p> 
+      <ul> 
+      <li>
+      <code>&lt;motifs&gt;</code> is a list of motifs in <A
+      HREF="meme-format.html">MEME format</A>.
+      </li>
+      <li>
+      <code>&lt;database&gt;</code> is a collection of sequences in
+      <A HREF="fasta-format.html">FASTA</A> format. 
+      </li>
+      </ul>
+      <p><b>Output:</b></p>
+      <p>
+      Beadstring will create a directory, named <code>beadstring_out</code> by default.
+      Any existing output files in the directory will be overwritten.
+      The directory will contain:
+      </p>
+      <ul>
+      <li>
+      An XML file named <code>beadstring.xml</code> using the 
+      <a href="http://zlab.bu.edu/~phaverty/SupplementalData/CisML">CisML</a> schema.
+      </li>
+      <li>
+      An XML file named <code>model.xml</code> using the MEME_HMM schema.
+      </li>
+      <li>
+      An HTML file named <code>beadstring.html</code>
+      </li>
+      <li>
+      A plain text file named <code>beadstring.text</code>
+      </li>
+      </ul>
+      <p>
+      The default output directory can be overridden using the <code>--o</code> or <code>--oc</code>
+      options which are described below.
+      </p>
+      <p><b>Options:</b></p>
+
+      <p>
+      Options related to input and output:</p>
+
+      <ul>
+      <li><command-option name="bgfile"/></li>
+      <li><command-option name="e-thresh"/>  Default is 0.01.</li>
+      <li><command-option name="max-seqs"/></li>
+      <li><command-option name="model-file"/></li>
+      <li><command-option name="no-search"/></li>
+      <li><command-option name="o"/></li>
+      <li><command-option name="oc"/></li>
+      <li><command-option name="progress"/></li>
+      <li><command-option name="score-file"/></li>
+      <li><command-option name="verbosity"/></li>
+      </ul>
+
+      <p>
+      Options related to selecting motifs for the model:</p>
+
+      <ul>
+      <li><command-option name="motif"/></li>
+      <li><command-option name="motif-e-thresh"/></li>
+      <li><command-option name="motif-p-thresh"/></li>
+      <li><command-option name="order"/></li>
+
+      </ul>
+
+      <p>
+      Options related to building the model:</p>
+
+      <ul>
+      <li><command-option name="fim"/></li>
+      <li><command-option name="gap-extend"/></li>
+      <li><command-option name="gap-open"/></li>
+      <li><command-option name="motif-pseudo"/> Default value is 0.0.</li>
+      <li><command-option name="nspacer"/></li>
+      <li><command-option name="spacer-pseudo"/> Default value is 0.0.</li>
+      <li><command-option name="trans-pseudo"/> Default value is 0.1.</li>
+      <li><command-option name="zselo"/></li>
+      </ul>
+
+      <p>
+      Options related to scoring:</p>
+
+      <ul>
+      <li><command-option name="allow-weak-motifs"/></li>
+      <li><command-option name="global"/></li>
+      <li><command-option name="pam"/></li>
+      <li><command-option name="paths"/></li>
+      <li><command-option name="p-score"/></li>
+      </ul>
+
+    </div>
+  </body>
+</html>

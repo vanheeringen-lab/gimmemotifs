@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>GOMO - Introduction</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+            <h1>GOMO -- Gene Ontology for MOtifs </h1>
+            <p>
+              <b>
+	      The purpose of GOMO is to identify possible roles (Gene Ontology terms)
+	      for DNA binding motifs.
+              </b>
+            </p>
+            <p>
+              GOMO returns a list of GO-terms that are significantly
+	      associated with target genes of the motif, sorted by <i>q</i>-value 
+	      (minimum false discovery rate).
+            <p>
+            <p>
+         
+	    <p>
+	      Gene Ontology provides a controlled vocabulary to describe gene
+	      and gene product attributes in any organism.</p>
+	    <p>
+	    </p>
+	    <p>
+		    GOMO takes a motif and scores the upstream (promoter) region of
+		    each gene in the selected organism according to its binding affinity for
+		    the motif.  Using these scores and a the GO annotations of the 
+		    organism's genes, GOMO determines which GO terms are associated with the (putative)
+		    target genes of the binding motif.
+		    GOMO reports the <i>p</i>-value for each GO-term
+		    as well as the <i>q</i>-value, which adjusts the <i>p</i>-value for multiple
+		    tests.  The <i>q</i>-value is defined as the minimal
+                    false discovery rate at which a given GO-term occurrence is deemed
+                    significant.  GOMO determines <i>q</i>-values using the method of
+		    Benjamini and Hochberg.  GOMO reports all GO terms with 
+		    <i>q</i>-values smaller than the threshold specified by the user.</p>
+	    </p>
+	    <p>
+		    By default, for some organisms, GOMO also scores the upstream 
+	            (promoter) regions of all orthologous genes in a set of related genomes,
+		    and uses these scores to improve the sensitivity of the search for GO
+		    terms associated with the motif.  The organisms for which the GOMO website supports
+		    this comparative genomics mode can be seen by clicking on the <b>supported database</b>
+		    link on the GOMO submission form.
+	    <p>
+	    <a name="scoring_function"></a>
+		    To score upstream regions,
+		    the GOMO web service uses the average binding affinity
+		    score, which computes the average likelihood ratio of all positions
+		    in a sequence.  This score is computed using the 
+		    <a href="doc/ama.html">AMA</a> MEME Suite tool.
+            </p>
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+

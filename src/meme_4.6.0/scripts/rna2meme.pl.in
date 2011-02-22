@@ -1,0 +1,150 @@
+#!@WHICHPERL@ -w
+# FILE: rna2meme
+# AUTHOR: James Johnson
+# CREATE DATE: 19/8/2010
+# DESCRIPTION: Convert a RNA sequence to its binding motif in MEME format
+
+use warnings;
+use strict;
+
+
+use lib qw(@PERLLIBDIR@);
+
+use MotifUtils qw(matrix_to_intern intern_to_meme read_background_file);
+
+use Fcntl qw(O_RDONLY);
+use Getopt::Long;
+use List::Util qw(max min);
+use Pod::Usage;
+
+=head1 NAME
+
+rna2meme - takes a fasta file with short RNA sequences and creates MEME motifs. 
+
+=head1 SYNOPSIS
+
+rna2meme [options] <fasta>
+
+ Options:
+  -start <offset>               starting offset in rna sequence (inclusive);
+                                use negative numbers to count from end;
+                                default: 1
+  -end <offset>                 ending offset in rna sequence (inclusive);
+                                use negative numbers to count from end;
+                                default: -1
+  -match <count>                count to assign to a match (complement)
+                                default: 1
+  -wobble <count>               count to assign to a U for a G, or a G for a U
+                                default: 0.1
+  -miss <count>                 count to assign to a non-match non-wobble
+                                default: 0.01
+  -bg <background file>         file with background frequencies of letters; 
+                                default: uniform background
+  -pseudo <total pseudocounts>  add <total pseudocounts> times letter 
+                                background to each frequency; default: 0
+  -logodds                      output the log-odds (PSSM) and frequency 
+                                (PSPM) motifs; default: PSPM motif only
+  -url <website>                website for the motif; The FASTA ID is 
+                                substituted for MOTIF_NAME; default: no url
+
+  Convert an RNA sequence to its binding motif in MEME format.
+
+  Writes standard output.
+
+=cut
+
+# Constants
+my $sites = 20;
+
+# Set option defaults
+my $start = 1;
+my $end = -1;
+my $match = 1;
+my $wobble = 0.1;
+my $miss = 0.01;
+my $bg_file;
+my $pseudo_total = 0;
+my $print_logodds = 0;
+my $url_pattern = "";
+my $fasta_file;
+
+GetOptions("start=i" => \$start, "end=i" => \$end, "match=f" => \$match, 
+  "wobble=f" => \$wobble, "miss=f" => \$miss, "bg=s" => \$bg_file, 
+  "pseudo=f" => \$pseudo_total, "logodds" => \$print_logodds, 
+  "url=s" => \$url_pattern) or pod2usage(2);
+pod2usage("Option -start must not be zero.") if ($start == 0);
+pod2usage("Option -end must not be zero.") if ($end == 0);
+pod2usage("Option -match must have a positive value.") if ($match < 0);
+pod2usage("Option -wobble must have a positive value.") if ($wobble < 0);
+pod2usage("Option -miss must have a positive value.") if ($miss < 0);
+pod2usage("Option -pseudo must have a positive value.") if ($pseudo_total < 0);
+pod2usage("A FASTA file must be specified.") unless @ARGV;
+$fasta_file = shift(@ARGV);
+pod2usage("Only one FASTA file may be specified.") if @ARGV;
+
+# read the background file
+my %bg = &read_background_file(1, $bg_file); #should this be ACGU ?
+
+my $fasta_fp;
+sysopen($fasta_fp, $fasta_file, O_RDONLY);
+
+my $line;
+my $id = '';
+my $seq = '';
+my $num_motifs = 0;
+while ($line = <$fasta_fp>) {
+  chomp($line);
+  if ($line =~ m/^>(.*)$/) {
+    process_seq() if $id;
+    $id = $1;
+    $seq = '';
+  } else {
+    $seq .= $line;
+  }
+}
+process_seq() if $id;
+
+close($fasta_fp);
+
+# process the RNA sequence
+sub process_seq {
+  die("Missing sequence\n") unless $seq;
+  die("Sequence contains invalid characters\n") unless $seq =~ m/^[ACGTU]+$/;
+  my $len = length($seq);
+  my $s_index = position_to_index($start, $len);
+  my $e_index = position_to_index($end, $len);
+  if ($s_index > $e_index) {
+    my $temp = $s_index;
+    $s_index = $e_index;
+    $e_index = $temp;
+  }
+  my $sub_seq = substr($seq, $s_index, $e_index - $s_index + 1);
+  my @letters = reverse(split(//, uc($sub_seq)));
+  my $matrix = '';
+  foreach my $letter (@letters) {
+    if ($letter eq 'A') {
+      $matrix .= "$miss $miss $miss $match\n";
+    } elsif ($letter eq 'C') {
+      $matrix .= "$miss $miss $match $miss\n";
+    } elsif ($letter eq 'G') {
+      $matrix .= "$miss $match $miss $wobble\n";
+    } elsif ($letter eq 'T' || $letter eq 'U') {
+      $matrix .= "$match $miss $wobble $miss\n";
+    }
+  }
+  my $url = $url_pattern;
+  $url =~ s/MOTIF_NAME/$id/g;
+  my ($motif, $errors) = matrix_to_intern(\%bg, $matrix, 'row', $sites, $pseudo_total, id => $id, url => $url, strands => 1);
+  print(STDERR join("\n", @{$errors}), "\n") if @{$errors};
+  print intern_to_meme($motif, $print_logodds, 1, !($num_motifs++)) if $motif;
+}
+
+# converts a relative position to an actual index
+sub position_to_index {
+  my ($pos, $len) = @_;
+  if ($pos < 0) {
+    return max(0, $len + $pos);
+  } else {
+    return min($len, $pos) - 1;
+  }
+}

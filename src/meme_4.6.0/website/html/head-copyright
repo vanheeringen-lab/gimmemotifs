@@ -1,0 +1,38 @@
+<!--
+##
+## $Id: head-copyright 3562 2008-12-12 08:18:41Z tbailey $
+##
+## $Log$
+## Revision 1.2  2006/03/08 20:50:14  nadya
+## merge chamges from v3_5_2 branch
+##
+## Revision 1.1.2.1.2.1  2006/02/22 20:49:02  nadya
+## enabling styling with js and css
+##
+## Revision 1.1.2.1  2006/01/24 21:15:35  nadya
+## add header file for COPYRIGHT.html creation
+##
+##
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MEME Suite - COPYRIGHT NOTICE</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class='menubase'>
+          <div id='menu'>
+            <script src="meme-suite-menu.js" type="text/javascript">></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="meme-suite-logo.js" type="text/javascript">></script>
+  <pre>
+      MEME Suite
+      Authors: Timothy L. Bailey, William Noble
+

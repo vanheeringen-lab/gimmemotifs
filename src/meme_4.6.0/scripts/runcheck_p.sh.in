@@ -1,0 +1,145 @@
+#!/bin/sh
+
+# runcheck_p - for testing of the parallel version of MEME.
+#
+# $Id: runcheck 1537 2007-01-12 21:48:56Z cegrant $
+
+# set meme environment
+top=`pwd`/.. 
+MEME_DIRECTORY="$top"
+export MEME_DIRECTORY
+if [ ! $testdir ] ; then
+  testdir=$top/tests
+fi
+meme=$top/src/parallel/meme_p
+
+echo "****************************************"
+echo "Now Running Test for Parallel Version..."
+echo "****************************************"
+echo
+
+if [ ! -x $meme ] ; then
+    echo "$meme does not exist or is not executable"
+    echo "Run 'make' before running 'make check'"
+    exit 1
+fi
+
+####################################################################
+#                      define functions  
+####################################################################
+# run meme tests 
+func_run_meme () {
+    meme="@mpirun@ 2 $meme "
+    echo ""
+    echo  "              Meme test for "
+    echo  "    ---------------------------------"
+    echo  "      Dataset       Model     result " 
+    echo  "    ---------------------------------"
+    for mod in $models
+    do
+        memefile=meme/meme.$dset.$mod$suffix
+        $meme $pargs $dir/common/$dset.s -mod $mod $params > $dirout/$memefile
+        func_diff $memefile "meme"
+    done
+}
+
+# remove lines specified by regexpr from the file
+# takes a filename as an argument
+func_sed () {
+    e1="/Release date/d"
+    e2="/http:/d"
+    e3="/MOTIFS/d"
+    e4="/Time/d"
+    e5="/CPU:/d"
+    e6="/DATAFILE=/d"
+    e7="/DATABASE/d"
+    e8="/command: /d"
+    e9="/Background letter frequencies/d"
+    e10="/Last updated/d"
+    e11="/MPI/d"
+    e12="/^$/d"
+    sed -e "$e1" -e "$e2" -e "$e3" -e "$e4" -e "$e5" -e "$e6"  -e "$e7" \
+        -e "$e8" -e "$e9" -e "$e10" -e "$e11" -e "$e12" $1 > $1.sed
+}
+
+# checks two files for differences.  Arguments - a filename
+# and a string containing dataset and model info to print.
+func_diff () {
+    f1=$dir/$1      # first file
+    f2=$dirout/$1   # second file
+
+    # string to print
+	str=`echo $dset $mod | awk '{printf("    %-16s%-8s  ",$1,$2)}'`
+
+    if [ ! -f  $f1 ]; then
+        echo "File $f1 does not exist, can't compare output"
+        echo "$str" "SKIPPED"
+        return 
+    fi
+    if [ ! -f  $f2 ]; then
+        echo "File $f2 does not exist, can't compare output"
+        echo "$str" "SKIPPED"
+        return 
+    fi
+    func_sed $f1 
+    func_sed $f2 
+    num=`diff $f1.sed $f2.sed | wc -l`
+    status=$?
+    if [ $status -eq 0 -a  $num -eq 0 ]; then
+        echo "$str" "OK"
+    else
+        echo "$str" "FAIL"
+        err=1
+    fi
+    return 
+}
+
+# initializes tests parameters
+func_set () {
+    dset="crp0"
+    models="oops zoops tcm"
+    params="-text -dna -revcomp -nostatus -nmotifs 2 -minw 8"
+    dir=$top/tests
+    dirout=$top/tests/results
+    if [ ! -d $dirout/meme ]; then
+        cmd=`mkdir -p $dirout/meme`
+        status=$?
+        if [ $status -eq 1 ] ; then 
+            exit 1
+        fi
+    fi
+    err=0
+}
+
+# removes temp output files
+func_clean () {
+    /bin/rm -rf $dir/*.sed $dirout
+    if [ ! $err ] ; then
+        /bin/rm -rf $dirout
+    fi
+    echo 
+}
+
+
+####################################################################
+#             check command line arguments and run tests
+####################################################################
+# check arguments
+while test $# -gt 0; do
+    case "$1" in
+    -p)
+        shift
+        procs=$1
+        pargs="-p $1"
+        suffix=".$1"
+        ;;
+    esac
+    shift
+done
+
+# run tests
+func_set 
+func_run_meme
+func_clean
+
+exit $err

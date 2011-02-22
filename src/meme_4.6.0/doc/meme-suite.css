@@ -1,0 +1,191 @@
+/*
+ * $Id: meme-suite.css 2526 2008-03-28 19:22:52Z cegrant $
+ *
+ * $Log$
+ * Revision 1.2  2006/03/07 23:30:20  nadya
+ * merge branches v3_5_1 and v3_5_2 back to the trunk
+ *
+ * Revision 1.1.2.3  2006/02/23 21:28:58  nadya
+ * change text color when hovering over
+ *
+ * Revision 1.1.2.2  2006/02/23 19:04:32  nadya
+ * change copyright text attributes
+ *
+ * Revision 1.1.2.1  2006/02/22 20:47:48  nadya
+ * initial revision. enabling styling with js and css
+ *
+ */
+
+#main h1 {
+        font-size: 20px;
+        font-family: Arial;
+        color: #000000;
+}
+#main h2 {
+        font-size: 18px;
+        font-family: Arial;
+        color: #000000;
+}
+#main h3 {
+	font-size: 16px; 
+	font-family: Arial; 
+	color: #000000;
+}
+#main h4 {
+        font-size: 14px;
+        font-family: Arial;
+        color: #000000;
+}
+#main font {
+	font-size: 14px; 
+	font-family: Arial; 
+	color: #000000;
+}
+#main p {
+	font-size: 12px; 
+	font-family: Arial; 
+	color: #000000;
+}
+#main dt {
+	font-size: 12px; 
+	font-family: Arial; 
+	color: #000000;
+}
+#main dd {
+	font-size: 12px; 
+	font-family: Arial; 
+	color: #000000;
+}
+#main li {
+	font-size: 14px; 
+	font-family: Arial; 
+	color: #000000;
+}
+#main a {
+    text-decoration: none;
+    color: #02656A;
+}
+#main a:hover {
+    text-decoration: underline;
+    color: #AA2244;
+}
+#main table {
+    border-collapse: collapse;
+}
+#main th {
+    margin: 0px; 
+    padding: 5px;
+    font-family: Arial; 
+    font-size: 10pt;
+    color: #000000;     
+}
+#main td {
+    margin: 0px;
+    padding: 5px;
+    border: 0px;
+    font-family: Arial;
+    font-size: 12px;
+    color: #000000;
+}
+#main textarea {
+    background: #E4ECEC;	
+    font-size: 12px;
+    font-family: Arial;	
+    color: #000000;
+    border: #000000 solid 1px	
+}
+#main fieldset {
+    border: #000000 solid 1px;
+}
+#main legend{
+	border: #000000 solid 1px;
+	padding: 1px 10px;
+	font-size: 14px;
+        font-family: Arial;
+	font-weight: bold;
+}
+#main select {
+    background: #E4ECEC;
+    font-size: 12px;
+    color: #000000;
+    border: #000000 solid 1px
+}
+#main select[disabled] { 
+    color:lightgray;
+    background-color:gray;
+}
+.maininput { 
+    background: #E4ECEC;
+    font-family: Arial;
+    font-size: 12px;
+    color: #000000;
+    border: #000000 solid 1px
+}
+.mainbutton {
+    color: #E4ECEC;
+}
+.maintable {
+    padding:8px;
+}
+.maintablewidth {
+    width: 654px;	
+}
+.mainheadingmedium {
+        font-size: 16px;
+        font-family: Arial;
+	font-weight: bold;
+        color: #000000;
+}
+#menu table {
+    text-decoration: none;
+    color: #02656A;
+    padding-left: 0px;
+    background: #FFFFFF;
+    font-size: 13px;
+    font-family: Arial;
+}
+#menu a {
+    text-decoration: none;
+    color: #02656A;
+    padding-left: 0px;
+    background: #FFFFFF;
+    font-size: 13px;
+    font-family: Arial;
+}
+#menu a:hover {
+    color: #FFFFFF;
+    background: #02656A;
+}
+.menubase {
+    width: 130px;
+    vertical-align: top;
+}
+.menufont {
+    text-decoration: none;
+    color: #02656A;	
+    font-size: 13px;
+    font-family: Arial;
+}
+
+textcopyright { 
+    color: #220044; 
+    font-family: Helvetica; 
+    font-size: 11pt;
+}
+
+.command {
+  font-family: Monospace;
+  font-size: 10pt;
+}
+
+hr.progress {
+  height: 8px; 
+  background: gray;
+}
+
+DIV.Usage { 
+  font-family: Monospace; 
+  font-size: 10pt; 
+}
+
+

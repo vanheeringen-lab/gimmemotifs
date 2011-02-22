@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>getsize</title>
+    <link href="./meme-suite.css" rel="styleSheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>getsize</h1>
+      <p><b>Usage:</b> getsize &lt;datafile&gt; [options]</p>
+      <p><b>Description:</b></p>
+      <p>
+        <code>getsize</code> prints statistics about the sequences in 
+        <code><i>&lt;datafile&gt;</i></code>.
+      </p>
+      <p><b>Input:</b></p>
+      <ul>
+        <li>A file in <a href="fasta-format.html">FASTA format</a>.
+        If the filename is given as "-", then the program reads from
+        standard input.</li>
+      </ul>
+      <p><b>Output:</b></p>
+      <ul>
+        <li>Writes statistics about the sequences to <code>stdout</code>.</li>
+      </ul>
+      <p><b>Options:</b></p>
+      <ul>
+      <li><command-option program="getsize" name="codons"/></li>
+      <li><command-option program="getsize" name="dna"/></li>
+      <li><command-option program="getsize" name="f"/></li>
+      <li><command-option program="getsize" name="ft"/></li>
+      <li><command-option program="getsize" name="l"/></li>
+      <li><command-option program="getsize" name="nd"/></li>
+      <li><command-option program="getsize" name="prot"/></li>
+      <li><command-option program="getsize" name="x"/></li>
+      </ul>
+      <p><b>Bugs:</b> None known.</p>
+      <p><b>Author:</b> Tim Bailey</p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml-stylesheet type="text/xsl" href="fimo-to-html.xsl"?>
+<!-- Begin document body -->
+<cis-element-search
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://zlab.bu.edu/schema/cisml cisml.xsd"
+  xmlns="http://zlab.bu.edu/schema/cisml"
+  xmlns:mem="http://noble.gs.washington.edu/meme"
+>
+<program-name>fimo</program-name>
+<parameters>
+<pattern-file>crp0.meme.html</pattern-file>
+<sequence-file>crp0.fasta</sequence-file>
+<site-pvalue-cutoff>0.0001</site-pvalue-cutoff>
+<sequence-filtering on-off="off"/>
+</parameters>
+<pattern accession="1" name="1">
+<scanned-sequence accession="ce1cg" name="ce1cg" length="105">
+<matched-element start="64" stop="82" score="17.3612" pvalue="6.39e-07">
+<sequence>TTTGATCGTTTTCACAAAA</sequence>
+<mem:qvalue>0.000548</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="ara" name="ara" length="105">
+<matched-element start="58" stop="76" score="19.377" pvalue="8.8e-08">
+<sequence>TTTGCACGGCGTCACACTT</sequence>
+<mem:qvalue>0.000276</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="bglr1" name="bglr1" length="105">
+<matched-element start="79" stop="97" score="16.8813" pvalue="9.68e-07">
+<sequence>TGTGAGCATGGTCATATTT</sequence>
+<mem:qvalue>0.000548</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="crp" name="crp" length="105">
+<matched-element start="66" stop="84" score="16.0174" pvalue="1.95e-06">
+<sequence>TGCAAAGGACGTCACATTA</sequence>
+<mem:qvalue>0.000788</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="cya" name="cya" length="105">
+<matched-element start="68" stop="50" score="15.8254" pvalue="2.26e-06">
+<sequence>CGTGATCAATTTAACACCT</sequence>
+<mem:qvalue>0.000788</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="deop2" name="deop2" length="105">
+<matched-element start="10" stop="28" score="15.9214" pvalue="2.1e-06">
+<sequence>TTTGAACCAGATCGCATTA</sequence>
+<mem:qvalue>0.000788</mem:qvalue>
+</matched-element>
+<matched-element start="78" stop="60" score="14.7695" pvalue="4.9e-06">
+<sequence>TTCGATACACATCACAATT</sequence>
+<mem:qvalue>0.00118</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="gale" name="gale" length="105">
+<matched-element start="27" stop="45" score="10.738" pvalue="5.4e-05">
+<sequence>TGTAAACGATTCCACTAAT</sequence>
+<mem:qvalue>0.00845</mem:qvalue>
+</matched-element>
+<matched-element start="45" stop="63" score="17.2652" pvalue="6.95e-07">
+<sequence>TTTATTCCATGTCACACTT</sequence>
+<mem:qvalue>0.000548</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="ilv" name="ilv" length="105">
+<matched-element start="42" stop="60" score="12.1778" pvalue="2.5e-05">
+<sequence>CGTGATCAACCCCTCAATT</sequence>
+<mem:qvalue>0.00435</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="lac" name="lac" length="105">
+<matched-element start="12" stop="30" score="14.7695" pvalue="4.9e-06">
+<sequence>TGTGAGTTAGCTCACTCAT</sequence>
+<mem:qvalue>0.00118</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="male" name="male" length="105">
+<matched-element start="17" stop="35" score="15.3455" pvalue="3.24e-06">
+<sequence>TGTAACAGAGATCACACAA</sequence>
+<mem:qvalue>0.000924</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="malk" name="malk" length="105">
+<matched-element start="79" stop="61" score="11.3139" pvalue="4.01e-05">
+<sequence>TGCAAGCAACATCACGAAA</sequence>
+<mem:qvalue>0.00661</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="malt" name="malt" length="105">
+<matched-element start="59" stop="41" score="16.7853" pvalue="1.05e-06">
+<sequence>TTTGCACTGTGTCACAATT</sequence>
+<mem:qvalue>0.000548</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="ompa" name="ompa" length="105">
+<matched-element start="51" stop="69" score="17.1693" pvalue="7.56e-07">
+<sequence>CCTGACGGAGTTCACACTT</sequence>
+<mem:qvalue>0.000548</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="tnaa" name="tnaa" length="105">
+<matched-element start="74" stop="92" score="15.3455" pvalue="3.24e-06">
+<sequence>TGTGATTCGATTCACATTT</sequence>
+<mem:qvalue>0.000924</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="uxu1" name="uxu1" length="105">
+<matched-element start="20" stop="38" score="12.2738" pvalue="2.37e-05">
+<sequence>TGTGATGTGGTTAACCCAA</sequence>
+<mem:qvalue>0.00435</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="pbr322" name="pbr322" length="105">
+<matched-element start="71" stop="53" score="14.0976" pvalue="7.73e-06">
+<sequence>TGTGCGGTATTTCACACCG</sequence>
+<mem:qvalue>0.00173</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="trn9cat" name="trn9cat" length="105">
+<matched-element start="102" stop="84" score="12.2738" pvalue="2.37e-05">
+<sequence>GCCGATCAACGTCTCATTT</sequence>
+<mem:qvalue>0.00435</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="tdc" name="tdc" length="105">
+<matched-element start="79" stop="97" score="12.1778" pvalue="2.5e-05">
+<sequence>TTTGTGAGTGGTCGCACAA</sequence>
+<mem:qvalue>0.00435</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<mem:has-qvalues>yes</mem:has-qvalues>
+</pattern>
+<pattern accession="2" name="2">
+<scanned-sequence accession="ce1cg" name="ce1cg" length="105">
+</scanned-sequence>
+<scanned-sequence accession="ara" name="ara" length="105">
+</scanned-sequence>
+<scanned-sequence accession="bglr1" name="bglr1" length="105">
+</scanned-sequence>
+<scanned-sequence accession="crp" name="crp" length="105">
+</scanned-sequence>
+<scanned-sequence accession="cya" name="cya" length="105">
+</scanned-sequence>
+<scanned-sequence accession="deop2" name="deop2" length="105">
+</scanned-sequence>
+<scanned-sequence accession="gale" name="gale" length="105">
+</scanned-sequence>
+<scanned-sequence accession="ilv" name="ilv" length="105">
+<matched-element start="5" stop="12" score="15.7824" pvalue="6.67e-06">
+<sequence>CGGCGGGG</sequence>
+<mem:qvalue>0.0235</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="lac" name="lac" length="105">
+</scanned-sequence>
+<scanned-sequence accession="male" name="male" length="105">
+<matched-element start="41" stop="48" score="15.5214" pvalue="1.48e-05">
+<sequence>CGGTGGGG</sequence>
+<mem:qvalue>0.0261</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="malk" name="malk" length="105">
+</scanned-sequence>
+<scanned-sequence accession="malt" name="malt" length="105">
+</scanned-sequence>
+<scanned-sequence accession="ompa" name="ompa" length="105">
+</scanned-sequence>
+<scanned-sequence accession="tnaa" name="tnaa" length="105">
+</scanned-sequence>
+<scanned-sequence accession="uxu1" name="uxu1" length="105">
+</scanned-sequence>
+<scanned-sequence accession="pbr322" name="pbr322" length="105">
+</scanned-sequence>
+<scanned-sequence accession="trn9cat" name="trn9cat" length="105">
+</scanned-sequence>
+<scanned-sequence accession="tdc" name="tdc" length="105">
+</scanned-sequence>
+<mem:has-qvalues>yes</mem:has-qvalues>
+</pattern>
+<pattern accession="3" name="3">
+<scanned-sequence accession="ce1cg" name="ce1cg" length="105">
+<matched-element start="24" stop="33" score="19.4506" pvalue="5.03e-07">
+<sequence>GCATCGGGCG</sequence>
+<mem:qvalue>0.00174</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="ara" name="ara" length="105">
+</scanned-sequence>
+<scanned-sequence accession="bglr1" name="bglr1" length="105">
+</scanned-sequence>
+<scanned-sequence accession="crp" name="crp" length="105">
+</scanned-sequence>
+<scanned-sequence accession="cya" name="cya" length="105">
+</scanned-sequence>
+<scanned-sequence accession="deop2" name="deop2" length="105">
+</scanned-sequence>
+<scanned-sequence accession="gale" name="gale" length="105">
+</scanned-sequence>
+<scanned-sequence accession="ilv" name="ilv" length="105">
+</scanned-sequence>
+<scanned-sequence accession="lac" name="lac" length="105">
+</scanned-sequence>
+<scanned-sequence accession="male" name="male" length="105">
+</scanned-sequence>
+<scanned-sequence accession="malk" name="malk" length="105">
+</scanned-sequence>
+<scanned-sequence accession="malt" name="malt" length="105">
+</scanned-sequence>
+<scanned-sequence accession="ompa" name="ompa" length="105">
+</scanned-sequence>
+<scanned-sequence accession="tnaa" name="tnaa" length="105">
+</scanned-sequence>
+<scanned-sequence accession="uxu1" name="uxu1" length="105">
+</scanned-sequence>
+<scanned-sequence accession="pbr322" name="pbr322" length="105">
+<matched-element start="93" stop="102" score="19.1896" pvalue="1.12e-06">
+<sequence>GCATCAGGCG</sequence>
+<mem:qvalue>0.00193</mem:qvalue>
+</matched-element>
+</scanned-sequence>
+<scanned-sequence accession="trn9cat" name="trn9cat" length="105">
+</scanned-sequence>
+<scanned-sequence accession="tdc" name="tdc" length="105">
+</scanned-sequence>
+<mem:has-qvalues>yes</mem:has-qvalues>
+</pattern>
+</cis-element-search>

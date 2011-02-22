@@ -1,0 +1,50 @@
+/* 
+ * $Id: template-footer.js 2539 2008-04-04 18:22:39Z cegrant $
+ * 
+ * $Log$
+ * Revision 1.2  2006/03/07 23:30:20  nadya
+ * merge branches v3_5_1 and v3_5_2 back to the trunk
+ *
+ * Revision 1.1.2.1  2006/02/22 20:47:48  nadya
+ * initial revision. enabling styling with js and css
+ *
+ */
+/* 
+   Note: all relative links require "html_path+" to work in both
+   the html/ and cgi-bin/ directories.
+   The global html_path is defined in template-css.js, or by the user
+   prior to calling that script.
+*/
+document.write('\
+  <table style="text-align: center;" width="100%"> \
+    <tr> \
+      <td style="text-align: left;"><b>Version @VERSION@</b></td> \
+      <td style="text-align: center;"> \
+        <b>Please send comments and questions to: \
+        <a href="mailto:@CONTACT@">@CONTACT@</a></b> \
+      </td> \
+      <td style="text-align: right;"> \
+        <b>Powered by <a href="http://nbcr.net/software/opal/">Opal</a></b> \
+      </td> \
+    </tr> \
+   </table> \
+   <hr/> \
+   <table align="center"> \
+     <tr style="text-align: center;"> \
+       <td><a href="' + html_path + 'intro.html">Home</a></td> \
+       <td><a href="' + html_path + 'intro.html">Submit a Job</a></td> \
+       <td><a href="' + html_path + 'documentation.html">Documentation</a></td> \
+       <td><a href="' + html_path + 'downloads.html">Downloads</a></td> \
+       <td><a href="' + html_path + 'resources.html">User Support</a></td> \
+       <td><a href="' + html_path + 'alternates.html">Alternate Servers</a></td> \
+       <td><a href="' + html_path + 'doc/authors.html">Authors</a></td> \
+       <td><a href="' + html_path + 'doc/cite.html">Citing</a></td> \
+      </tr> \
+    </table> \
+');
+
+document.write("</div>");
+document.write("</td>");
+document.write("</tr>");
+document.write("</table>");
+document.write("</div>");

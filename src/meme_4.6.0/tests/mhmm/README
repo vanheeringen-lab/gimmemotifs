@@ -1,0 +1,46 @@
+# Bugs found 4/2/03
+
+The following command line yields a bug:
+
+  mhmm -verbose 1 -meme input/crp0.meme.html -noheader -noparams -type complete  
+
+In the resulting output, line 584 contains the reverse complement of
+the corresponding line (723) from the input file input/crp0.meme.html.
+This is apparently the only state in which this problem occurs.
+
+Here is a simpler command line that yields the same bug:
+
+  meme-io -verbose 1 -meme input/crp0.meme.html 
+
+Here, the problem is in line 77.
+
+I have compiled the code on different dates and narrowed down the date
+when it was introduced.  The bug does not appear on 2003/01/01, but it
+does appear on 2003/01/15.  Between those two dates, the following
+files changed:
+
+P cmdline.h
+P fitevd.c
+P fitevd.h
+P gendb.c
+P gendb.h
+P match.c
+P mhmms.c
+P mhmms.h
+P mhmmscan.c
+P motif.c
+P pssm.c
+P seq.c
+P seq.h
+
+cvs diff -r 1.22 -r 1.21 motif.c
+Index: motif.c
+===================================================================
+RCS file: /projects/science/cvs-repository/mhmm/base/src/motif.c,v
+retrieving revision 1.22
+retrieving revision 1.21
+diff -r1.22 -r1.21
+158c158
+<   for (i = 0; i < (int)((a_motif->length + 1) / 2); i++) {
+---
+>   for (i = 0; i < (int)(ceil(a_motif->length / 2)); i++) {

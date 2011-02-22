@@ -1,0 +1,128 @@
+#!@WHICHPERL@ -w
+#
+# $Id $
+# $Log $
+#
+# FILE: tamo2meme
+# AUTHOR: Timothy L. Bailey
+# CREATE DATE: 18/04/08
+# DESCRIPTION: Convert a file containing list of TFBS motif matrices from TAMO
+# to MEME output format.
+
+use warnings;
+use strict;
+
+use lib qw(@PERLLIBDIR@);
+
+use MotifUtils qw(seq_to_intern intern_to_meme read_background_file);
+
+use Fcntl qw(O_RDONLY);
+use Getopt::Long;
+use Pod::Usage;
+
+=head1 SYNOPSIS
+
+tamo2meme [options] <tamo file>
+
+ Options:
+  -skip <TAMO ID>               skip this ID (may be repeated)
+  -numbers                      use numbers instead of strings as motif names
+  -bg <background file>         file with background frequencies of letters;
+                                default: uniform background
+  -pseudo <total pseudocounts>  add <total pseudocounts> times letter
+                                background to each frequency; default: 0
+  -logodds                      print log-odds matrix, too;
+                                default: print frequency matrix only
+  -url <website>                website for the motif; The tamo ID is
+                                substituted for MOTIF_NAME; default: no url
+
+=cut
+
+# Set parameter defaults
+my %skips = ();
+my $use_numbers = 0;
+my $bg_file;
+my $pseudo_total = 0;
+my $print_logodds = 0;
+my $url_pattern = "";
+my $tamo_file;
+
+GetOptions("skip=s" => sub {$skips{$_[1]} = 1}, "numbers" => \$use_numbers,
+  "bg=s" => \$bg_file, "pseudo=f" => \$pseudo_total, "logodds" => \$print_logodds,
+  "url=s" => \$url_pattern) or pod2usage(2);
+#check tamo file
+pod2usage("A tamo file must be specified for the conversion.") unless @ARGV;
+$tamo_file = shift(@ARGV);
+pod2usage("Only one tamo file may be specified for the conversion.") if @ARGV;
+#check pseudo total
+pod2usage("Option -pseudo must have a positive value.") if ($pseudo_total < 0);
+
+# read the background file
+my %bg = &read_background_file(1, $bg_file);
+
+# Open the tamo file for reading.
+my $tamo_fp;
+sysopen($tamo_fp, $tamo_file, O_RDONLY) || die("Can't open $tamo_file.\n");
+
+# Read the input file.
+my $num_bad = 0;
+my $num_skipped = 0;
+my $line_number = 0;
+my $id;
+my $line;
+my %motifs;
+while ($line = <$tamo_fp>) {
+  chomp($line);
+  $line_number++;
+  next if ($line =~ /^#/ || $line =~ /^\s*$/);# skip comment, blank lines
+  if ($line =~ m/^Source:\s+(\S+)\b$/) {
+    $id = $1;
+  } elsif ($line =~ /^Motif\b/) {
+    # read the motif sites
+    my $sites = '';
+    while ($line = <$tamo_fp>) {
+      chomp($line);
+      $line_number++;
+      last if $line =~ m/^\*/;
+      if ($line =~ m/^(\S+)\s/) {
+        $sites .= $1 . "\n";
+      }
+    }
+    # check if the motif should be skipped
+    if ($skips{$id}) {
+      $num_skipped++;
+      next;
+    }
+    # make a url
+    my $url = $url_pattern;
+    $url =~ s/MOTIF_NAME/$id/g;
+    # convert the sites into a motif
+    my ($motif, $errors) = seq_to_intern(\%bg, $sites, 1, $pseudo_total, 
+      id => $id, url => $url);
+    # report errors
+    print(STDERR join("\n", @{$errors}), "\n") if @{$errors};
+    unless ($motif) {
+      $num_bad++;
+      next;
+    }
+    # add motif
+    $motifs{$id} = $motif;
+    $id = '';
+  }
+}
+
+my $num_motifs = 0;
+foreach my $name (sort keys %motifs) {
+  my $motif = $motifs{$name};
+  if ($use_numbers) {
+    $motif->{id} = $num_motifs + 1;
+    $motif->{alt} = $name;
+  }
+  print intern_to_meme($motif, $print_logodds, 1, !($num_motifs++));
+}
+
+print(STDERR "Converted $num_motifs motifs.\n");
+print(STDERR "Skipped $num_skipped motifs.\n");
+print(STDERR "$num_bad conversion errors.\n");
+
+close($tamo_fp);

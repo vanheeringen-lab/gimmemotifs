@@ -1,0 +1,30 @@
+<appConfig xmlns="http://nbcr.sdsc.edu/opal/types" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <metadata>
+    <usage><![CDATA[mcast [optional arguments] <mfile> <sequence file>]]></usage>
+    <info xsd:type="xsd:string">
+    <![CDATA[
+        mcast [options] <motif file> <sequence file>
+
+        Options:
+
+          [-p-thresh <value>]      p-value threshold for motif hits 
+                                   (default=0.0005).
+          [-max-gap <value>]       Maximum allowed distance between adjacent hits 
+                                   (default=200).
+          [-e-thresh <value>]      Print matches with E-values less than E 
+                                   (default=100).
+          [-bg-weight <b>]         Add b * background frequency to each count in query. 
+                                   (default: b = 4 )
+          [-bg-file <file>]        File containing n-order Markov background model.
+          [-lowcomp <threshold>]   Remove low complexity motifs from query 
+                                   (default = include all motifs in query).
+          [-synth]                 Use synthetic scores for distribution
+          [-text]                  Output plain text rather than HTML.
+          [-scratch <dir>]         Directory for temporary files (default=current).
+          [-transfac]              is in TRANSFAC format (default: MEME format)
+    ]]>
+    </info>
+  </metadata>
+  <binaryLocation>@BINARYLOCATION@</binaryLocation>
+  <parallel>false</parallel>
+</appConfig>

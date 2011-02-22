@@ -1,0 +1,1206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MEME Suite - Release Notes</title>
+    <link href="meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class='menubase'>
+          <div id='menu'>
+            <script src="../meme-suite-menu.js" type="text/javascript">></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="meme-suite-logo.js" type="text/javascript">></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+            <h2>MEME Suite System Release Notes </h2>
+            <hr>
+            <p>
+              <b>MEME version 4.6.0 -- December 24, 2010</b>
+            </p>
+            <ul>
+              <li><b>New Features and Enhancements</b>
+                <ul>
+                  <li>
+                    <code>MEME-ChIP</code> web service --<br />
+                    <ul>
+                      <li><b>Motif Analysis of Large DNA Datasets</b><br />
+                      The MEME-ChIP service allows submission of a FASTA file of DNA sequences
+                      of unlimited size and with minimal parameter settings (only the traditional
+                      MEME web form settings) and runs it through a variety of motif finding and
+                      analysis tools.
+                      </li>
+                      <li>
+                      <code>dreme</code> --<br />
+                      added <code>dreme</code> and integrated it into the MEME-ChIP into web service.
+                      </li>
+                      <li>
+                      <code>AME</code> --<br />
+                      added <code>ame</code> and integrated it into the MEME-ChIP into web service. This
+                      is a cut-down version of the <code>ame</code> previously described, only supporting one mode
+                      of motif enrichment analysis.
+                      </li>
+                      <li>
+                      <code>fasta-dinucleotide-shuffle</code> --<br />
+                      added <code>scripts/fasta-dinucleotide-shuffle</code> and integrated it into the MEME-ChIP into web service.
+                      Thanks to Peter Clote for allowing use of his dinucleotide shuffle code.
+                      </li>
+                      <li>
+                      <code>fasta-center</code> --<br />
+                      added <code>fasta-center</code> and integrated it into the MEME-ChIP into web service.
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <code>SpaMo</code> beta release --<br />
+                    The web interface and documentation is currently rather limited but in the interests of 
+                    getting this out for review this is a preview edition of the <b>Spaced Motif analysis tool</b>.
+                  </li>
+                  <li>
+                    <code>FIMO</code> -- <br />
+                      The <code>FIMO</code> HTML output now explicitly labels the strand,
+                      rather than indicating the reverse strand by having <cdoe>start</cdoe>
+                      &gt; than <code>stop</code>.
+                      The HTML output also now includes the matched sequence.
+                      The GFF output is now GFF 3.
+                      </li>
+                  </li>
+                  </ul>
+              </li>
+            </ul>
+            <p>
+              <b>MEME version 4.5.0 -- September 6, 2010</b>
+            </p>
+            <ul>
+              <li><b>New Features and Enhancements</b>
+              <ul>
+                <li>
+                <code>Tomtom</code> --<br />
+                <ul>
+                  <li><b>Search multiple databases</b><br />
+                  Tomtom can now search more than one motif database. 
+                  To keep the ability to have web links for each motif
+                  they were moved into the MEME motif format itself.
+                  See the <a href="tomtom.html">documentation</a>.
+                  </li>
+                  <li><b>Improvements in submission form</b><br />
+                  Tomtom's submission form has many new enhancements.
+                  Motifs can now be specified in 3 formats: IUPAC motifs,
+                  frequency matrices, and MEME format files.
+                  Go <a href="../cgi-bin/tomtom.cgi">try it</a>.
+                  </li>
+                  <li><b>Improvements in output format</b><br />
+                  Tomtom now outputs an XML file which it converts into
+                  the HTML output. The HTML output can dynamically
+                  draw the motif logos when the images aren't available
+                  on web browsers supporting HTML5. Additional improvements
+                  include a summary table at the top giving direct links to the
+                  top 20 matches for each motif. See the 
+                  <a href="examples/tomtom_example_output_files/tomtom.html">sample</a>.
+                  </li>
+                </ul>
+                </li>
+                <li><code>FIMO</code> --<br />
+                The output for FIMO now includes a 
+                <a href="https://cgwb.nci.nih.gov/goldenPath/help/wiggle.html">wiggle track format file</a>.
+                </li>
+                <li>MEME file format --<br />
+                The MEME file format now includes an optional URL for each motif. This is used
+                to create the links in the Tomtom output. All the XXXX2meme scripts have been
+                retrofitted to take this URL parameter.
+                </li>
+                <li>
+                <code>ama-qvalues</code> --<br />
+                New script. See the <a href="ama-qvalues.html">documentation</a>.
+                </li>
+                <li>
+                <code>fasta-subsample</code> --<br />
+                New script for extracting a random sampling of the sequences
+                in a FASTA file.  This is especially useful for ChIP-seq
+                peak datasets to be input to MEME.  Using this script, a
+                FASTA file containing a subset of the ChIP-seq peak sequences
+                (or any other FASTA file) can be created.  The total
+                number of sequences should be less than 1000 (preferably less
+                than 500), and the total sequence length should be less
+                than a few hundred thousand. MEME typically takes about 20 minutes
+                per motif with files of 100,000 characters (DNA, both strands, ZOOPS model), 
+                and scales quadratically in the total sequence length (so a file of
+                200,000 characters will take four times as long.)
+                This new script can also output the remaining sequences (in a seperate
+                file) for use in cross-validation. See the <a href="fasta-subsample.html">documentation</a>.
+                </li>
+                <li>
+                <code>meme2meme</code> --<br />
+                New script. See the <a href="meme2meme.html">documentation</a>.
+                </li>
+                <li>
+                <code>rna2meme</code> --<br />
+                New script. See the <a href="rna2meme.html">documentation</a>.
+                </li>
+              </ul>
+              </li>
+            </ul>
+            <hr>
+            <p>
+              <b>MEME version 4.4.0 -- April 23, 2010</b>
+            </p>
+            <ul>
+              <li><b> New Features and Enhancements </b>
+              <ul>
+                <li>
+                <code>MCAST</code> --<br />
+                  <a href="mcast-intro.html">MCAST</a> 
+                  now been integrated into the MEME Suite web applications.
+                  MCAST is a tool for searching for 
+                  statistically significant clusters of motifs in DNA sequences.
+                  MCAST was previously supported on a separate web site. 
+                </li>
+                <li>
+                <code>MEME</code><br />
+                  <ul>
+                  <li><b> Discriminative motif discovery </b> <br />
+                  The MEME web server now supports discriminative
+                  motif discovery. The user may now provide a set 
+                  of "negative sequences" in addition to the normal
+                  "positive sequences", and MEME will look for 
+                  motifs that are overrepresented in the positive sequences
+                  relative to the negative sequences.
+                  </li>
+                  <li><b> Improvements in output format </b> <br />
+                  MEME's html output (<a href="examples/meme_example_output_files/meme.html">sample</a>) has been reorganised to 
+                  make important information more accessible as well as to make it aesthetically pleasing. Some of the improvements 
+                  include:<br />
+                    <ul>
+                      <li>
+                        A preview of the motifs found, including their reverse complement for DNA, in miniature at the top of the page.
+                      </li>
+                      <li>
+                        Ability to view full sized reverse-complemented DNA logos.
+                      </li>
+                      <li>
+                        Highlighting of all output for a sequence with a single click.
+                      </li>
+                      <li>
+                        New block diagrams that graphically show the strength (and DNA strand) of motifs, 
+                        and that scale with the size of the browser window.
+                      </li>
+                      <li>
+                        Support for the new web standard HTML5. This allows the motif logos to be viewed without the images
+                        on supporting web browsers (Firefox, Chrome, Safari). Unfortunately Opera has inadequate text support for canvas 
+                        (the new HTML5 element required for this feat) and Internet Explorer currently doesn't support canvas at all. 
+                        It is anticipated that Internet Explorer 9 will support this feature.
+                      </li>  
+                    </ul>
+                  </li>
+                  </ul>
+                </li>
+                <li>
+                <code>MAST</code> --<br />
+                  <ul>
+                    <li><b> Improvements in output format </b> <br />
+                    </li>
+                    MAST's html output (<a href="examples/mast_example_output_files/mast.html">sample</a>) has been reorganised to 
+                    make important information more accessible as well as to make it aesthetically pleasing. Some of the improvements 
+                    include:<br />
+                    <ul>
+                      <li>
+                        Everything is now in one place - no longer do you have to search to find the associated annotated sequence for that
+                        high scoring sequence, as with one click the hidden information is displayed directly below. Additionally if DNA 
+                        strands are scored separately then the sequence only appears in the list once based on the better scoring strand.
+                      </li>
+                      <li>
+                        New block diagrams - incorporating all the improvements in the new MEME block diagrams such as graphical display of
+                        motif strength, scaling with the browser window and the DNA strand. As an added bonus separately scored strands 
+                        are visible on the same diagram.
+                      </li>
+                      <li>
+                        Interactive annotated sequence - a new range selector allows you to view the sequence around the motif hits of your 
+                        choice, directly relatable to the block diagram. For separate DNA strand scoring only one strand is visible at a time.
+                      </li>
+                      <li>
+                        Now in colour - the annotated sequence for motif hits now have letters colour coded using the same colour scheme 
+                        as MEME motifs.
+                      </li>
+                    </ul>
+                    <li> MAST now outputs xml in a similar fashion to MEME. This has resulted in differences to how you would invoke MAST
+                    from the <a href="mast.html">command line</a>. Additionally it no longer has the script wrapper.
+                    </li>
+                    <li>MAST now uses an xml style sheet to create its html output.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                <code>mast2txt</code> --<br />
+                  Created program <a href="mast2txt.html">mast2txt</a> for outputting the old text format for MAST. Note that there are some
+                  problems with backwards compatibility in separate scoring mode. The use of the text format is no longer recommended.
+                </li>
+                <li>
+                  <code>psp-gen</code> --<br />
+                  added <code>psp-gen</code> and integrated PSP generation into web service.
+                </li>
+                <li>
+                  <code>MHMM</code> --<br />
+                  Fixed bug in <code>--order</code> option.
+                  The option was handling motifs with strand identifiers incorrectly.
+                </li>
+                <li><code>TOMTOM</code> -- <br />
+                  Added <code>-no-ssc</code> switch to fix problem with
+                  motifs with few sites having empty logos; this switch is now
+                  the default for the TOMTOM website.</li>
+                <li><code>GOMO</code> --<br />
+                  Improved gomo html format.
+                  Added highlighting of the most specific GO terms in 
+                  the html output. This is activated by the switch --dag
+                  which expects a GO DAG file.</li>
+                <li><code>gomo_highlight</code> --<br />
+                  Added a program to post process gomo xml files to
+                  identify the go terms which are implied by other
+                  more specific go terms to allow the specific terms
+                  to be highlighted in the html output. This is used 
+                  by gomo when the --dag switch is specified.
+                </li>
+                <li>
+                  <code>obo2dag</code> --<br />
+                  Added a tool for generating a GO DAG file from a
+                  Gene Ontology OBO file.
+                </li>
+                <li>
+                  <code>GO DAG format</code> --<br />
+                  Documented the new GO DAG file format and improved GOMO 
+                  documentation as well as the command line overview.
+                </li>
+                <li>
+                  <code>GLAM2</code> -- <br />
+                  The output now prints a regular expression in addition to the logo
+                  for each motif found.
+                </li>
+                <li>
+                <code>MEME motif format</code> --<br />
+                  Fixed errors in motif format description 
+                  <code>doc/meme-format.html</code> and example files.
+                </li>
+                <li>
+                <code>meme-io</code> --<br />
+                  Updated meme-io to accept the new MEME html format.
+                </li>
+              </ul>
+            </ul>
+
+            <hr />
+            <p>
+              <b>MEME version 4.3.0 -- September 26, 2009</b>
+            </p>
+            <ul>
+              <li>GOMO -- 
+                <br />
+                Added comparative genomics to GOMO.  GOMO can now use
+                multiple, comparative genomes in making its predictions.
+                This substantially increases the sensitivity of predictions of roles
+                for DNA binding motifs.  The GOMO web-service now
+                uses GC-compensated AMA <i>p</i>-values.
+              <li>AMA -- 
+                <br />
+                <i>P</i>-values are no longer printed by default.  A switch
+                has been added to cause them to be printed.
+    <br />
+                AMA can now compute GC-content compensated <i>p</i>-values.
+                The GC-content of an individual sequence is used in estimating
+                the <i>p</i>-value of its AMA score.
+            </ul>
+
+            <hr />
+
+            <p>
+              <b>MEME version 4.2.0 -- June 22, 2009</b>
+            </p>
+            <ul>
+              <li> MEME -- 
+                <br />
+                MEME now can use position-specific priors (PSP) to improve
+                motif discovery.  The PSP is specified using the 
+                <code>-psp pspfile</code> switch to MEME.
+              <li>GOMO -- 
+                <br />
+                Added the ability to choose either maximum or average
+                binding affinity as the scoring function.  
+                <br />
+                Fixed a bug--was using
+                maximum affinity by default, contrary to the documentation.
+              <li>AMA -- 
+                <br />
+                AMA now computes <i>p</i>-value of each sequence based on
+                a 0-order background model for the dataset.
+                <br />
+                Improved speed and memory efficiency; was re-reading sequences
+                and storing them in memory.  
+                <br />
+                Fixed bug--was using max-odds by default
+                and the --scoring switch was being ignored.
+              <li>MAST -- website now supports protein databases even when
+                DNA database contains long sequences.
+              <li>Installation -- 
+                <br />
+                Now all programs in the MEME suite are built.
+                The --enable-both configure switch is now obsolete.  
+                <br />
+                Simplified the build process by removing support for separately building
+                the tools formerly included in Meta-MEME.
+                <br />
+                Update on-line documentation.
+                <br />
+                Simplified "quick install" instructions are provided in <code>INSTALL</code>
+                and in <code>doc/meme-install.html</code>.
+            </ul>
+
+            <hr />
+
+            <p>
+              <b>MEME version 4.1.1</b>
+            </p>
+            <ul>
+            <li>Improved documentation.</li>
+            <li>Increased default number of iterations for GLAM2.</li>
+            <li>Improved error handling for sequence data.</li>
+            <li>Added links to server activity summary.</li>
+            <li>Fixed bug in install process when <code>--enable-both</code> not used.</li>
+            </ul>
+
+            <hr />
+
+            <p>
+              <b>MEME version 4.1.0</b>
+            </p>
+
+            <ul>
+
+              <li>New tool: GOMO -- Finding Genome Ontology terms associated with
+                DNA binding motifs.
+              <li>Added FIMO and GOMO buttons to MEME output to make it
+                easy to use discovered motifs to search sequence databases
+                and to identify the role of DNA binding motifs.
+              <li>Fixed placement of sidebar menu in Internet Explorer for output of CGI scripts.</li>
+              <li>Fixed support for OpenMPI in MEME.</li>
+              <li>Improved the efficiency of FIMO.</li>
+              <li>
+              Made the <code>-text</code> option to FIMO produce results on-the-fly,
+              without sorting or q-values.  This mode allows very large databases to
+              be searched, without storing intermediate results.</li>
+
+              <li>
+              Modified the command line syntax for <code>gendb</code>, for
+              consistency with the rest of the suite.</li>
+
+            </ul>
+
+            <hr>
+            <p>
+              <b>MEME version 4.0.0 -- June 13, 2008</b>
+            </p>
+            <ul>
+              <li><b> New Features and Enhancements </b>
+                <ul>
+                  <li> MEME and Meta-MEME are now integrated as "The MEME Suite".</li>
+                  <li> New web-based tools:
+                    <ul> 
+                      <li> GLAM2 and GLAM2SCAN--discovery and scanning of <b>gapped</b> motifs</li>
+                      <li> Tomtom--comparing motifs</li>
+                      <li> FIMO--basic motif scanning (complements MAST)</li>
+                    </ul>
+                  </li>
+                  <li> Enhancements of existing tools:
+                    <ul>
+                      <li> Sequence LOGOS now enhance MEME output.</li>
+                      <li> Compare new motifs to databases of motifs
+                      via Tomtom by clicking an easy-to-use button on MEME and GLAM2
+                      output.</li>
+                      <li> Improved local search (branching search) in MEME 
+                      (command line version only).</li>
+                      <li> Hundreds of new genomic and upstream sequence databases
+                      are now supported for scanning by MAST, FIMO or GLAM2SCAN.</li>
+                      <li> Tomtom supports four motif databases: JASPAR, Transfac, SCPD
+                      and MacIsaac Yeast.</li>
+                    </ul>
+                  <li> The MEME Suite tools now have web servers powered by OPAL,
+                  and return their results via the web, rather than by email.</li>
+                  <li> A single <a href="search.html">web server</a> portal simplifies
+                  different types of motif scanning tasks</li>
+                </ul>
+              </li>
+            </ul>
+            <hr />
+            <p>
+            <b>MEME version 3.5.7 -- December 14, 2007</b>
+            </p>
+            <ul>
+              <li><b> New Features and Enhancements </b>
+                <ul>
+                  <li>Parallel MEME is compiled when no scheduler is found but MPICH is detected.</li>
+                  <li>Opal integration with meme.</li>
+                  <li>Added --enable-webservice=&lt;path_to_build-opal.xml&gt; configure flag.  
+                  Used to automate deployment of MEME inside an Opal installation as a web service.</li>
+                  <li>Added --enable-web=&lt;opal_url&gt; configure flag.  
+                  Used to enable building of the MEME web portal.  
+                  A URL for an Opal-exposed MEME web service must be entered.</li>
+                </ul>
+              </li>
+            </ul>
+            <hr/>
+            <p>
+            <b>MEME version 3.5.5 -- May 31, 2007</b>
+            </p>
+            <ul>
+              <li><b> New Features and Enhancements </b>
+                <ul>
+                  <li>MAST -hit_list can now handle very long sequences
+              and prints ALL hits regardless of the sequence E-value cutoff.
+              It splits them into "swaths".  The -hit_list switch now
+              overrides the -seqp switch, and hits are NOT sorted
+              by the E-value of the sequence.</li>
+                </ul></li>
+            </ul>
+
+            <hr/>
+            <p>
+            <b>MEME version 3.5.4 -- September 21, 2006 </b>
+            </p>
+            <ul>
+              <li><b> New Features and Enhancements </b>
+                <ul>
+                  <li>Changed the MAST -hit_list behavior to print ONLY a list
+                  of the non-overlapping significant motif matches in each
+                  sequence in a machine-readable format.  
+                  (More complete documentation is given in the MAST "usage"
+                  message.  Type "mast" on the UNIX command line to see the usage message.)
+                  An example of the (complete) output of MAST using the -hit_list switch is:
+                  <pre>
+              # All non-overlapping hits in all sequences.
+              # sequence_name motif hit_start hit_end score hit_p-value
+              ce1cg -2 8 22  1459.90 1.67e-06
+              ara +2 2 16  1661.18 5.04e-08
+              bglr1 +2 1 15  1274.97 1.42e-05
+              cya -2 19 33  1101.37 6.64e-05
+              gale +2 5 19  1076.21 8.11e-05
+              ilv -2 6 20  1098.85 6.78e-05
+              malk +2 37 51  1085.02 7.56e-05
+              ompa +2 5 19  1583.18 2.43e-07
+              # mast tests/meme.crp0.oops tests/crp0.s -stdout -hit_list -m 2
+                  </pre></li>
+                  <li>New "regular expression" section added to each MEME motif.</li>
+                </ul></li>
+              <li><b>Bug fixes </b>
+                <ul>
+                  <li>Fixed printing of command name in MAST results.</li>
+                  <li>Fixed the handling of the "View FASTA", "View RAW" and "View motif summary"
+                  buttons on the MEME form.</li>
+                  <li>Improved documentation of the "Motif Summary" section of MEME output.</li>
+                  <li>Fixed bug that prevented having multiple MEME and MAST servers running on a
+                  single host by different users.  Each server is distinguished by the socket number
+                  it listens on.</li>
+                </ul>
+              </li>
+             <li><b>Known Issues </b>
+               <ul>
+                 <li>The "MetaMEME" button on the top of MEME results page is still not functional.
+                 Users are advised to go to the MetaMEME web site and submit manually at this time.
+                 </li>
+                 <li>MAST: Uploaded file names containing quotation marks may cause the search to
+                 fail.</li>
+                 <li>MAST: Uploaded sequences in DOS/Windows format may cause the search to fail.</li>
+               </ul>
+             </li>
+            </ul>
+
+            <hr/>
+
+            <p>
+            <b>MEME version 3.5.3 -- April 20, 2006</b>
+            </p>
+            <ul>
+              <li><b> New Features and Enhancements </b>
+                <ul>
+                  <li>The capability to search three JASPAR databases of DNA motifs
+                      for matches to a MEME-discovered motif has been added to the MEME
+                      output form.  Pressing the 'COMPARE PSPM' button on the results
+                      form of a MEME search of DNA sequences will submit the selected
+                      motif PSPM to the JASPAR 'Compare' server.  This will allow you
+                      to determine if your motif is similar to any known motifs contained
+                      in one of the three JASPAR motif databases.</li>
+                </ul>
+              </li>
+
+              <li><b>Bug fixes </b>
+                <ul>
+                  <li>The "MAST" button on the top of MEME results page now automatically loads the
+                  motifs from the MEME results for MAST search. A user only needs to choose the database
+                  (uploaded or server side) to search against.</li>
+                </ul>
+              </li>
+
+            </ul>
+
+            <hr/>
+
+            <p>
+              <b>MEME version 3.5.2 -- March 1, 2006</b>
+            </p>
+            <ul>
+              <li><b> New Features and Enhancements </b>
+                <ul>
+                  <li>Newly designed web interface using javascript and css styling.</li>
+                  <li>Add support for Macos X server startup.</li>
+                  <li>Add meme-install.html with detailed explanation of installation
+                    procedures.</li>
+                </ul>
+              </li>
+
+              <li><b>Bug fixes </b> 
+                <ul>
+                  <li>In "configure" remove check dependency on parallel condition when 
+                    creating server executables.</li>
+                  <li>Path to images/ in cgi scripts.</li>
+                  <li>Description syntax in linux startup script meme.linux.</li>
+                  <li>Provide fix for a cygwin's new line representation when searching strings.</li>
+                  <li>Bug in e_step (oops.c)</li>
+                  <li>Bug caused by typo "MEME_BINbin"</li>
+                  <li>Remove use of min() in meme.pl</li>
+                  <li>Remove obsolete argument sample_prob from subseq7()</li>
+                  <li>Remove OS-dependent declarations of accept(), bind(), connect(), 
+                  socket(), listen(), htons(). They are defined in system header files.</li>
+                </ul>
+              </li>
+
+            </ul>
+
+            <hr/>
+            <p>
+              <b>MEME version 3.5.1 -- December 15, 2005 </b>
+            </p>
+            <ul>
+              <li>
+              <b>Bug fixes </b> 
+                <ul>
+                  <li>Revert binary and scripts names to what they used to be in version prior to 3.5.0.
+                      The binary executables have an extension ".bin", and the shell scripts have
+                      their extension ".csh" removed. This allows to keep compatibility with
+                      earlier versions.</li>
+                  <li>Change startup scripts to start servers as a user specified during configuration.
+                      If none were specified, then the uid of the user who runs configure will be
+                      used.</li>
+                  <li>Always install files in etc/. </li>
+                  <li>Always install Globals.pm in lib/perl/.</li>
+                  <li>Move meme-explanation.html from web/html/ to etc/. This allows to run scripts that do
+                      conversion to html when web site is not installed.</li>
+                </ul>
+              </li>
+              <li>
+                <b>Enhancements</b> 
+                <ul>
+                  <li> Added support for Macos X (serial version only, without server)</li>
+                  <li> Users can now compare DNA motifs to the motifs in the JASPAR database of transcription
+                  factor binding site motifs.  A button is provided in the PSPM section of each DNA motif
+                  on the MEME output form for this purpose.  Clicking on the "Compare PSPM x to known motifs
+                  in JASPAR database" sends the motif to the JASPAR website, which returns any similar motifs
+                  that are found.</li>
+                  <li>Add meme_config.csh file that is used automatically by csh scripts to set
+                      needed environment variables.</li>
+                  <li>Move job.out file (created when SGE scheduler is used) to LOGS/</li>
+                  <li>Add '--with-serial' option to 'configure.ac' for compiling only serial
+                  version</li>
+                  <li>Disable installation of web by default. To install use --with-web configure
+                  option.</li>
+                  <li>Lower prerequisite version for autoconf to 2.53, and add missing functions in m4/.
+                      Add check for autoconf version in bootstrap, and use m4 functions when
+                      needed.</li>
+                  <li>Change option '--with-mpi' to '--with-mpidir'</li>
+                </ul>
+              </li>
+
+            </ul>
+
+            <hr/>
+            <p>
+            <b>MEME version 3.5.0 -- September 15, 2005 </b>
+            </p>
+            <p>This is the <b>12th year of MEME development</b>. The current anniversary
+            maintenance release 
+               for MEME contains a number of improvements to the installation and configuration of MEME/MAST 
+               servers and clients. Thanks to Nadya Williams of SDSC/NBCR for this work.
+            </p>
+            <ul>
+              <li>
+                <b>Refactoring of installation and configuration</b> 
+                <ul>
+                  <li>Restructure source directory tree to ease configuration.</li>
+                  <li>Highly simplified and optimized installation and configuration for MEME and MAST servers 
+                      and clients using GNU autoconf/automake tools. </li>
+                  <li>Multiple configuration options available via arguments to "configure".</li>
+                  <li>Default installation of MEME, MAST server and clients, as well as the web
+                  site.</li>
+                  <li>Separate installation of server, client or web site if desired.</li>
+                  <li>Create a small test suite for 'make test'.</li>
+                  <li>Implement procedures for standard 'configure', 'make', 'make test', and 'make
+                  install'.</li>
+                  <li>Create scripts to run MEME/MAST servers as services, and automatically restarted them 
+                      when physical host server reboots. Currently, Linux and SunOS are supported.</li>
+                  <li>Simplified start of the servers with 'start-mast' and 'start-meme' scripts.</li>
+                  <li>Encapsulate site-specific variables in Globals.pm for perl scripts 
+                      and in meme_config for sh scripts.</li>
+                  <li>Add csh and sh configuration scripts to set working environment.</li>
+                  <li>Availability as a Rocks Roll for integration with 
+                      <a href="http://www.rocksclusters.org">Rocks based cluster system</a>.</li>
+                </ul>
+              </li>
+              <li>
+                <b>Enhancements</b> 
+                <ul>
+                  <li>Sent MEME/MAST search results via an email as attachments, rather than inlined in the 
+                      message body. This allows the MEME output to be saved properly for subsequent 
+                      use with MetaMEME. It also reduces the chance of the output being modified by email 
+                      filters.</li>
+                  <li>Check email addresses for entry accuracy using javascript. Thanks to Chris 
+                      Misleh of NBCR for this feature.</li>
+                  <li>Check email addresses for valid domain names.</li>
+                  <li>Create new 'runtests' script to run all test suites. Simplify parsing of the
+                  output.</li>
+                  <li>Update FAQ(s) for MEME and MAST.</li>
+                  <li>Separate web-related files by type (html, cgi or image) and create a dir structure 
+                      to support it. This simplifies web maintenance.</li>
+                  <li>Add examples of database and motif sequences files.</li> 
+                </ul>
+              </li>
+              <li>
+                <b>Known Issues</b> 
+                <ul>
+
+                  <li>The new meme and mast are binary executables, not shell scripts as they used to be. 
+                      When run with the appropriate arguments, they produce text (non-html) output. To get 
+                      the "old" behavior of meme and mast with the html output, use meme.csh and mast.csh 
+                      (without -text option). The following table gives new vs. old usage comparison. 
+            <pre>
+                           old                                      new
+                  meme myfile -dna -text &gt; meme.res       meme myfile -dna &gt; meme.res         # output will be a text file
+                  meme myfile -dna &gt; meme.res             meme.csh myfile -dna &gt; meme.res     # output will be an html file
+                  mast meme.res                           mast.csh meme.res                   # output will be an html file
+            </pre>
+                  </li>
+                </ul>
+              </li>
+
+              <li>
+                <b>Support Team Members</b>
+                Wilfred W. Li, Ph.D., Nadya Williams, M.S., Chris Misleh, and Timothy Bailey, Ph.D.
+              </li>
+            </ul>
+
+            <hr/>
+            <p>
+            <b>MEME version 3.0.14 -- July, 2005 </b>
+            </p>
+            <ul>
+              <li>
+                <b>Bug Fixes</b> 
+                <ul>
+                  <li>
+                    an array out of bound error when MEME is run in parallel mode using certain DNA 
+                     sequences with the "look for palindromes only" option enabled. Thanks to Tim Kaiser of 
+                     SDSC/NBCR for the bug fix.
+                   </li>
+                </ul>
+              </li>
+              <li>
+                <b>User Support</b> 
+                <ul>
+                  <li>all user questions are directed to our support team meme@nbcr.net.</li>
+                </ul>
+              </li>
+            </ul>
+
+            <hr/>
+            <p>
+            <b>MEME version 3.0 -- December, 2000 </b>
+            </p>
+
+            <ul>
+              <li> 
+                <b>MEME enhancements</b>
+                <ul>
+                  <li>
+                    <b>Hypertext output:</b> MEME now reports its output in hypertext (HTML)
+                    format with appropriate internal hot links among the results and the
+                    self-contained documentation on how to interpret them.  The
+                    alignments are color-coded by nucleic acid or amino acid category.
+                  </li>
+                  <li>
+                    <b>Direct MAST search:</b>  MEME motifs can now be used to search 
+                    sequence databases using MAST simply by clicking on a button on the
+                    MEME HTML output document in an HTML-capable email reader or browser.
+                  </li>
+                  <li>
+                    <b>Direct BLOCKS search:</b>  MEME motifs can now be submitted to the
+                    BLOCKS multiple alignment processor by clicking on a button on
+                    the MEME HTML output document in an HTML-capable email reader or 
+                    browser.  This allows MEME motifs to be converted to LOGOS or trees,
+                    and to be used to search other databases of motifs.
+                  </li>
+                  <li>
+                    <b>New objective function:</b>  MEME searches for motifs that optimize
+                    the statistical significance of the log likelihood ratio of the
+                    occurrences of the motif.
+                  </li>
+                  <li>
+                    <b>E-values:</b>  MEME computes and reports the statistical significance
+                    of motifs as the E-value of the log likelihood ratio.  This provides
+                    an objective measure of how likely the motif is to be biologically
+                    significant.
+                  </li>
+                  <li>
+                    <b>E-value stopping criterion:</b>  MEME will now stop when a motif
+                    whose E-value is above a user-given threshold is found.  This guarantees
+                    that only motifs with a given E-value or better will be present in the
+                    output.
+                  </li>
+                  <li>
+                    <b>Handling reverse complement DNA strands:</b>  MEME now handles
+                    reverse complement DNA strands correctly with all model types:
+                    OOPS, ZOOPS and TCM.
+                  </li>
+                  <li>
+                    <b>Handling of ambiguous characters:</b>  MEME now handles ambiguous
+                    DNA and protein letters by converting them to the character "X". 
+                    MEME treats the "X" character as "unknown", and correctly computes
+                    the probabilities of motif occurrences containing it.
+                  </li>
+                  <li>
+                    <b>Higher-order background models:</b> MEME now allows the user to
+                    specify a Markov model of arbitrary order via a file of tuple 
+                    frequencies.  This appears to improve the ability to discriminate 
+                    between biologically interesting DNA motifs and motifs that are 
+                    artifacts of the higher order statistics of DNA sequence.
+                  </li>
+                  <li>
+                    <b>Multiple-alignment-based motif trimming:</b>  
+                    MEME defines a motif as
+                    a set of subsequences that can be correctly aligned without gaps.
+                    MEME can now trim
+                    the edges of motifs based on a local multiple alignment with gaps.  MEME
+                    first determines the occurrences of the motif, then aligns each
+                    occurrence to the highest-scoring occurrence.  These are combined
+                    into a multiple alignment, and MEME looks for a set of columns with
+                    no gaps.  If a set of gapless columns at least &lt;minw&gt; wide is not
+                    found, MEME searches for a set with at most 1, 2, ... etc gaps until
+                    a set is found.
+                  </li>
+                  <li>
+                    <b>Prior distribution on the number of occurrences:</b>  MEME now
+                    places a prior on the number of occurrences that controls how
+                    strong the bias towards motifs with a given number of sites is.
+                    Using a prior improves the performance of MEME with DNA, where the
+                    megaprior heuristic (used by default with protein sequences),
+                    is not applicable.
+                  </li>
+                </ul>
+              </li>
+
+              <li>
+                <b>MAST enhancements</b>
+                <ul>
+                  <li>
+                    <b>Combining DNA strands:</b>  MAST now combines the score of a 
+                    site in a DNA sequence with the score of the corresponding site
+                    on the reverse complement strand.  (The final score for the site
+                    is the maximum of the two scores.)
+                  </li>
+                  <li>
+                    <b>Scoring DNA strands separately:</b>  MAST still allows each strand
+                    of a DNA sequence to be treated as a separate sequence at the
+                    user's request.</li>
+                  <li>
+                    <b>Ignoring reverse complement DNA:</b>  MAST also allows the user to
+                    score only the given DNA strand, not scoring the reverse complement
+                    strand at all.
+                  </li>
+                  <li>
+                    <b>Background model:</b>  MAST now allows the user to specify the
+                    background residue frequencies used for computing E-values of scores.
+                  </li>
+                  <li>
+                    <b>Composition-adjusted statistics:</b>  MAST can now use a different
+                    random model for each target sequence, based on the letter composition
+                    of that sequence.  This can greatly reduce erroneous matches due
+                    to biased sequence composition.
+                  </li>
+                  <li>
+                    <b>New databases:</b>
+                    The MAST website includes several new databases including "upstream"
+                    sequences for E. coli, B. subtilis and S. cerevesiae, and many complete
+                    genomes from GenBank.
+                  </li>
+                </ul>
+              </li>
+
+              <li>
+                <b>MEME and MAST enhancements</b>
+                <ul>
+                  <li>
+                    <b>MEME and MAST can be installed under the following operating systems:</b>
+                    <ul>
+                      <li> Mac OS X</li>
+                      <li> Linux (various manufacturers)</li>
+                      <li> SunSparc workstations (SunOS and Solaris operating systems)</li>
+                      <li> Decalpha workstations (OSF/1 operating system)</li>
+                      <li> Silicon Graphics workstations (IRIX version 5.3 operating system)</li>
+                      <li> Intel Paragon parallel computers</li>
+                      <li> Cray T3D parallel computers</li>
+                      <li> IBM SP (AIX operating system)</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+
+            <hr/> 
+            <p>
+            <b>MEME version 2.2 -- February 25, 1998 </b>
+            </p>
+            <ul>
+              <li>
+                <b>MEME enhancements</b>
+                <ul>
+                  <li>Sequence weights can be given in the input sequence file.</li>
+                  <li>
+                    The sites composing each motif are output in BLOCKS or FASTA format.
+                    BLOCKS format motifs can be converted to LOGOS, PSSMS and phylogeny trees
+                    using the <a href="http://blocks.fhcrc.org/blocks/process_blocks.html">
+                    Blocks Multiple Alignment Processor</a>.
+                  </li>
+                  <li>
+                    A "negative" dataset may be specified causing the motifs to be optimized 
+                    to discriminate between the training set family and the negative family.
+                    (This option is only available when you install MEME on your own computer.)
+                  </li>
+                  <li>
+                    An advanced version of the MEME data submission form allows 
+                    <ul>
+                      <li> discovering palindromic DNA motifs,</li>
+                      <li> discovering motifs occurring on both DNA strands, and</li>
+                      <li> discovering more than ten motifs.</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <b>MAST enhancements</b>
+                <ul>
+                  <li>
+                    DNA sequences (translated in six reading frames) can be searched
+                    using protein motifs.
+                  </li>
+                  <li>
+                    <a href="examples/mast_example_output_files/mast.html">Hypertext (HTML) output</a>
+                    including links to the ENTREZ database and
+                    improved motif diagrams are now output.
+                  </li>
+                  <li>Additional searchable databases added to the MAST website.</li>
+                  <li>
+                    The annotation section of output is smaller now since only
+                    regions in sequences where the motifs are present are printed.
+                  </li>
+                  <li>
+                    The ambiguous characters "*" and "-" are now permitted in motifs
+                    and sequence databases.  They are treated as a single, unknown
+                    character in databases, and replaced by a weighted average of
+                    scores in motifs.
+                  </li>
+                </ul>
+              </li>
+            </ul>
+
+            <hr/>
+            <p>
+              <b>MEME version 2.1 -- March 25, 1997 </b>
+            </p>
+
+            <ul>
+              <li>
+                <b>Enhancements</b>
+                <ul>
+                  <li>MAST output now includes measurements of similarities between
+                      all pairs of motifs in the query and a warning if any motifs
+                      are too similar.  (Too similar motifs in a query can cause
+                      some p-values and e-values to be underestimated.  These motifs
+                      can be removed from the query and MAST re-run to avoid the problem.)</li>
+                  <li>Cray T3E parallel computer now supported for MEME and MAST.</li>
+                </ul>
+              </li>
+            </ul>
+
+            <hr/> 
+            <p>
+            <b>MEME version 2.0 -- October 17, 1996 </b>
+            </p>
+            <ul>
+              <li>
+                <b>Enhancements</b>
+                <ul>
+                  <li> 
+                    The output format of MEME has been 
+                    improved to aid readability and user-friendliness.
+                  </li>
+                  <li> 
+                    MEME and MAST  have been compiled and tested on:
+                    <ul>
+                      <li> SunSparc workstations (SunOS and Solaris operating systems)</li>
+                      <li> Decalpha workstations (OSF/1 operating system)</li>
+                      <li> Silicon Graphics workstations (IRIX version 5.3 operating system)</li>
+                      <li> Intel Paragon parallel computers</li>
+                      <li> Cray T3D parallel computers </li>
+                    </ul>
+                  </li>
+
+                  <li>
+                    MAST has been completely rewritten to provide more accurate 
+                    p-values and to run significantly faster.
+                  </li>
+                  <li>A MAST server has been added to the MEME system website.</li>
+                  <li>
+                    The MAST server lets you use the motifs found by MEME in your sequences
+                    to search a wide variety of sequence databases including:
+                    <ul>
+                      <li> nr (non-redundant protein and nucleotide databases)</li>
+                      <li> month (new or revised sequences in the last 30 days)</li>
+                      <li> 
+                        swissprot (the last major release of the SWISS-PROT protein sequence 
+                        database)
+                      </li>
+                      <li> genpept (protein translations from the GenBank feature table)</li>
+                      <li> dbest (expressed sequence tag database)</li>
+                      <li> dbsts (sequence tag site database)</li>
+                    </ul>
+                  </li>
+
+                  <li> Several improvements have been made to the MEME website: 
+                    <ul>
+                      <li> 
+                        You can now give the name of a file containing your sequences 
+                        instead of having to cut-and-paste the sequences themselves.
+                      </li>
+                      <li> 
+                        You may ask MEME to favor wide motifs instead of the (default) narrow
+                        motifs;  this is especially useful with small sequence sets (fewer than
+                        10 sequences.)
+                      </li>
+                      <li> The on-line documentation of MEME has been expanded and improved.</li>
+                      <li> 
+                        MEME now determines the type of your sequences
+                        (PROTEIN or DNA) automatically.
+                      </li>
+                      <li>
+                        The MEME server now runs MAST on your sequences to make it easy for you 
+                        to see the ordering and spacing of the motifs MEME discovered.
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    NOTE and PROBER have been removed from the MEME system since their 
+                    functionality is now superseded by MAST.
+                  </li>
+                </ul>
+              </li>
+            </ul>
+
+            <hr/>
+            <p>
+              <b>MEME version 1.4 -- February 29, 1996 </b>
+            </p>
+            <ul>
+              <li>
+                Megaprior heuristic added to MEME.
+                <ul>
+                  <li>
+                    MEME now uses the megaprior heuristic with TCM models and the modified
+                    megaprior heuristic with ZOOPS models (by default).  This greatly improves
+                    the sensitivity and selectivity of motifs using these types of models.
+                  </li>
+                </ul>
+              </li>
+              <li>
+                P-value computation added to MAST.
+                <ul> 
+                  <li>
+                    MAST now computes p-values for sequences when searching large databases.
+                    This provides better discrimination between true and false positives than
+                    using z-scores.  MAST is still only available via ftp, not via the web server.
+                  </li>
+                </ul>
+              </li>
+              <li> Various bug fixes to MEME. </li>
+            </ul>
+
+            <hr/>
+            <p>
+            <b>MEME version 1.3 -- December 18, 1995 </b>
+            </p>
+            <ul>
+              <li>MEME web server introduced!</li>
+              <li> Various bug fixes to MEME.</li>
+            </ul>
+
+            <hr/>
+            <p>
+            <b>MEME version 1.2 -- November 27, 1995 </b>
+            </p>
+            <ul>
+              <li> MAST homology searcher introduced!
+                <ul>
+                  <li>
+                     MAST allows accurate homology searches of databases using motifs generated
+                     by MEME.  The scores from all motifs characterizing a family are combined,
+                     normalized for sequence length, and sorted by z-score.  The output of MAST
+                     is similar to that of BLAST, but, used in conjunction with MEME, MAST
+                     allows searching for sequences related to an entire family, not just a
+                     single sequence in the family.  This provides better sensitivity and
+                     selectivity than single-sequence homology searches.
+                     MAST is currently only available in the ftp-able code, not via the web server.
+                  </li>
+                </ul>
+              </li>
+              <li> Various bug fixes to MEME.</li>
+            </ul>
+
+            <hr/> 
+
+            <p>
+              <b>MEME version 1.1 -- June 30, 1995 </b>
+            </p>
+            <ul>
+              <li> Initial release of MEME, NOTE and PROBER.</li>
+            </ul>
+            <hr />
+            <h2>Meta-MEME Release Notes</h2>
+            <hr />
+            <b>Release 3.3</b>
+            <ul>
+              <li>
+                The program <code>motif-scan</code> has been renamed to
+                <a href="fimo.html"><code>fimo</code></a>
+              </li>
+            </ul>
+            <hr />
+            <b>Release 3.x, Release 3.3</b>, March 24, 2007</b>
+            <ul>
+              <li>
+                Added new tools:
+                <dl>
+                  <dt>
+                    <a href="motif-scan.html">motif-scan</a>
+                  </dt>
+                  <dd>
+                    Scans a database of sequences for the presence of motifs by 
+                    calculating the p-value of the match to the motif at each position 
+                    in the sequences.
+                  </dd>
+                  <dt>
+                    <a href="shadow.html">shadow</a>
+                  </dt>
+                  <dd>
+                    Calculates the log-odds of a multiple alignment for a given phylogentic
+                    tree and evolutionary model at each position in the alignment.
+                  </dd>
+                  <dt>
+                    <a href="motiph.html">motiph</a>
+                  </dt>
+                  <dd>
+                    Scans a multiple alignment for the presence of motifs by
+                    by calculating the p-values of motif-width windows in the alignment
+                    for a given phylogentic tree and evolutionary model.
+                  </dd>
+                  <dt>
+                    <a href="tomtom.html">tom-tom</a>
+                  </dt>
+                  <dd>
+                    Searches target motifs for elements similar to any in a set of query motifs.
+                  </dd>
+                </dl>
+              </li>
+              <li>
+                Added <code>--global</code> option to <code>mhmms</code>. 
+                This option causes <code>mhmms</code> to score sequences using the best 
+                match between the model and the entire sequence.
+                The default is to score using the best local match within a sequence.
+              </li>
+              <li>
+                Added <code>--maxhits</code> option to <code>mhmms</code>. 
+                This option sets an absolute limit to the number of hits 
+                returned by <code>mhmms</code>.
+                The default is to return all hits consistent with the
+                E-value and p-value thresholds.
+              </li>
+              <li>
+                Fixed error in <code>mhmms</code> that resulted in a sequence being considered 
+                a hit even if all positions were matched to a spacer state.
+              </li>
+              <li>
+                Fixed error causing segmentation a fault in <code>mhmms</code> when the 
+                <code>--motif-scoring</code> or <code>--pthresh</code> options were used.
+              </li>
+              <li>
+                Fixed error causing segmentation a fault in <code>mhmm</code> when the 
+                <code>--order</code> option was used.
+              </li>
+            </ul>
+            <hr />
+            <b>Release 3.21, August 3, 2005</b>
+            <ul>
+              <li>Modified meme-io.c to be able to parse the output from the latest versions of MEME.</li>
+              <li>
+                Modified the mcast script: removed the -allow-weak-motifs swich, and added the --keep-unused switch
+                to the call to mhmm from mcast.
+              </li>
+            </ul>
+            <hr />
+            <b>Release 3.2,  October 7. 2004</b>
+            <ul>
+              <li>Reorganized source directory structure and implemented build
+              system using autoconf and automake.</li>
+              <li>Updated program documentation.</li>
+            </ul>
+            <hr />
+            <b>Release 3.1, February 4, 2004</b>
+            <ul>
+              <li>Remove the auxiliary program <code>score-n-store</code>.</li>
+              <li>Change command-line processing to follow POSIX.2 standard.</li>
+            </ul>
+            <hr />
+            <b>Release 3.0.1, June 2, 2003</b>
+            <ul>
+              <li>Add documentation for MCAST.</li>
+            </ul>
+            <hr />
+            <b>Release 3.0, May 15, 2003</b>
+            <ul>
+              <li>Remove <code>mhmmt</code> (EM training program) and
+              <code>mhmma</code> (multiple alignment program).</li>
+              <li>Add <code>mhmmscan</code> and the <code>mcast</code> wrapper
+              program for searching DNA databases for regulatory modules.</li>
+              <li>Allow star topology in <code>mhmm</code>.</li>
+            </ul>
+            <hr />
+            <!--<script src="../template-footer.js" type="text/javascript"></script>-->
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

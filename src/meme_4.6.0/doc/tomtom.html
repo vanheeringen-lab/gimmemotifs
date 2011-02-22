@@ -1,0 +1,251 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>Tomtom</title>
+    <link href="./meme-suite.css" rel="styleSheet" type="text/css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <img src="images/tomtom_logo.png" alt="TOMTOM logo">
+      <p>
+      <b>Usage:</b> <code>tomtom [options] &lt;query&nbsp;motifs&gt;
+       &lt;target&nbsp;motif&nbsp;database&gt;+
+      </code></p>
+      <p><b>Description:</b></p>
+
+      <p>
+      The <code>Tomtom</code> program searches one or more query
+      motifs against one or more databases of target motifs 
+      (and their DNA reverse complements), and reports for each 
+      query a list of target motifs, ranked by <i>p</i>-value. 
+      The <i>E</i>-value and the <i>q</i>-value of each match 
+      is also reported.  The <i>q</i>-value is the minimal false 
+      discovery rate at which the observed similarity would be 
+      deemed significant.  The output contains results for each 
+      query, in the order that the queries appear in the input file.  
+
+      <p>
+      For a given pair of motifs, the program considers all offsets,
+      while requiring a minimum number of overlapping positions. For a
+      given offset, each overlapping position is scored using one of
+      seven column similarity functions defined below. In order to
+      compute the scores, <code>Tomtom</code> needs to know the
+      frequencies of the letters of the sequence alphabet in the
+      database being searched (the "background" letter
+      frequencies). By default, the background letter frequencies
+      included in the MEME input files are used. The scores of columns
+      that overlap for a given offset are summed. This summed score is
+      then converted to a <i>p</i>-value. The reported <i>p</i>-value 
+      is the minimal <i>p</i>-value over all possible offsets.  
+      To compensate for multiple testing, each reported <i>p</i>-value is 
+      converted to an <i>E</i>-value by multiplying it by twice the
+      number of target motifs.  As a second type of multiple-testing
+      correction, <i>q</i>-values for each match are computed 
+      from the set of <i>p</i>-values and reported.
+      </p>
+
+
+      </blockquote>
+
+      <p><b>Input:</b></p>
+      <ul>
+
+      <li>
+      &lt;query&nbsp;motifs&gt; - A file containing one or more motifs in <a
+      href="meme-format.html">MEME format</a>. Each of these motifs will be
+      searched against the target databases. If you only wish to search with
+      a subset of these motifs then look into the <code>-m</code> and <code>-mi</code>
+      options.
+      </li>
+
+      <li>
+      &lt;target&nbsp;motif&nbsp;databases&gt; - One or more files containing 
+      one or more motifs in <a href="meme-format.html">MEME format</a>.
+      </li>
+
+      </ul>
+
+      <p><b>Output:</b></p>
+
+      <blockquote>
+
+      <p><code>Tomtom</code> writes its output to files in a directory
+      named <tt>tomtom_out</tt>, which it creates if necessary.
+      (You can also cause the output to be written to a different directory;
+      see <tt>-o</tt> and <tt>-oc</tt>, below.)
+      The main output file is named <tt>tomtom.html</tt> and can be viewed
+      with an internet browser. The <tt>tomtom.html</tt> file is created
+      from the <tt>tomtom.xml</tt> file. An additional file, <tt>tomtom.txt</tt>, 
+      contains a simplified, text-only version of the output.  
+      (See <tt>-text</tt>, below, for the text output format.)
+      For each query-target match, two additional files containing 
+      LOGO alignments are also written--an encapsulated postscript file (<tt>.eps</tt>) 
+      and a PNG file (<tt>.png</tt>).
+      If the <tt>convert</tt> program is not available, 
+      no PNG files will be written.
+
+      </p>
+
+      <p>Only matches for which the significance is less than or equal
+	    to the threshold set by the <code>-thresh</code> switch (default of 0.5) will be shown.
+      By default, significance is measured by <i>q</i>-value of the match.
+      The <i>q</i>-value is the estimated false discovery rate if the occurrence 
+      is accepted as significant.
+      See Storey JD, Tibshirani R, "Statistical significance for genome-wide studies". 
+      <i>Proc. Natl Acad. Sci. USA (2003) 100:9440–9445</i>
+      </p>
+
+      </blockquote>
+
+      <p><b>Options:</b></p>
+      <ul>
+
+      <li>
+      <code>-o &lt;output dir&gt;</code> - 
+      Name of the output directory for all output files.  If the output
+      directory already exists, it will not be replaced and the program
+      will exit without doing anything.
+      </li>
+
+      <li>
+      <code>-oc &lt;output dir&gt;</code> - 
+      Name of the output directory for all output files.  If the output
+      directory already exists, it will be replaced ('clobbered').
+      </li>
+
+      <li>
+      <code>-bfile &lt;background file&gt;</code> -
+      Name of a file specifying the background frequencies. If this is
+      omitted then the background frequencies will be derived from the
+      first target database.
+      </li>
+
+      <li>
+      <code>-m &lt;id&gt;</code> -
+      The name of a motif in the query file that will be used. 
+      This option may be repeated multiple times. If both this option and
+      the related <code>-mi</code> is unused then all motifs in the
+      query file will be used.
+      </li>
+
+      <li>
+      <code>-mi &lt;index&gt;</code> -
+      The offset in the query file of a motif that will be used.
+      This option may be repeated multple times. If both this option and
+      the related <code>-m</code> is unused then all motifs in the query
+      file will be used.
+      </li>
+
+      <li>
+      <code>-thresh &lt;value&gt;</code> - 
+      Only report matches with significance values less than or equal to the
+      specified threshold (Default = 0.5). Unless the <code>-evalue</code>
+      option is specifed then this value must be smaller than or equal to 1.
+      </li>
+
+      <li>
+      <code>-evalue</code> - 
+      Use the <i>E</i>-value of the match as the
+      significance threshold (Default: use the <i>q</i>-value).
+      </li>
+
+      <li>
+      <code>-dist [allr|ed|kullback|pearson|sandelin]</code>
+      <dl>
+        <dt>allr</dt>
+        <dd>Average log-likelihood ratio</dd>
+        <dt>ed</dt>
+        <dd>Euclidian distance</dd>
+        <dt>kullback</dt>
+        <dd>Kullback-Leibler divergence</dd>
+        <dt>pearson</dt>
+        <dd>Pearson correlation coefficient</dd>
+        <dt>sandelin</dt>
+        <dd>Sandelin-Wasserman function</dd>
+      </dl>
+      Detailed descriptions of these functions can be found in the published description of
+      <a href="http://noble.gs.washington.edu/papers/gupta_quantifying.pdf"><code>Tomtom</code></a>.
+      </li>
+
+      <li>
+      <code>-internal</code> - 
+      This parameter forces the shorter motif to be
+      completely contained in the longer motif.
+      </li>
+
+      <li>
+      <code>-min-overlap &lt;value&gt;</code> - 
+      Only report motif matches
+      that overlap by this many positions or more. In case a query motif is
+      smaller than the value of <code>min-overlap</code>, then the corresponding
+      motif-width is used as the required <code>min-overlap</code> for that query.
+      The default value is 1.
+      </li>
+
+      <li>
+      <code>-query-pseudo &lt;float&gt;</code> - 
+      This option adds the specified pseudocount to each count in the each 
+      query matrix. The default value is 0.
+      </li>
+
+      <li>
+      <code>-target-pseudo &lt;float&gt;</code> - 
+      This option adds a pseudocount to each count in each target matrix.  
+      The default value is 0.
+      </li>
+
+      <li>
+      <code>-text</code> 
+      This option causes <tt>Tomtom</tt> to print just
+      a tab-delimited text file to standard output.
+      The output begins with a header, indicated by leading "#"
+      characters.  This is followed by a single title line, and then the
+      actual values.  The columns are:
+      <ul>
+        <li> Query motif name
+        <li> Target motif name
+        <li> Optimal offset: the offset between the query and the target motif
+        <li> <i>p</i>-value
+        <li> <i>E</i>-value
+        <li> <i>q</i>-value
+        <li> Overlap: the number of positions of overlap between the two motifs.
+        <li> Query consensus sequence.
+        <li> Target consensus sequence.
+        <li> Orientation: Orientation of target motif with respect to query motif.
+      </ul>
+      </li>
+
+      <li>
+      <code>-no-ssc</code> 
+      This option causes the LOGOs in the LOGO alignments output by <tt>Tomtom</tt>
+      not to be corrected for small-sample sizes.
+      By default, the height of letters in the LOGOs are reduced when the
+      number of samples on which a motif is based 
+      (<code>nsites</code> in the MEME motif) is small.
+      The default setting can cause motifs based on very few sites to 
+      have "empty" LOGOs, so this switch can be used if your query or target
+      motifs are based on few samples.
+      </li>
+
+      <li>
+      <code>-verbosity [1|2|3|4]</code> -
+      This option changes the level of detail of messages printed. 
+      At level 1 only critical errors are reported whereas at level 4
+      everything is printed. The default is 2.
+      </ul>
+
+      <p>
+      <b>Bugs:</b> none known.</p>
+      <p>Authors: 
+      Shobhit Gupta (shobhitg@u.washington.edu), 
+      Timothy Bailey (tbailey@imb.uq.edu.au),
+      Charles E. Grant (cegrant@gs.washington.edu) and
+      William Noble (noble@gs.washington.edu).
+      </p>
+    </div>
+  </body>
+</html>

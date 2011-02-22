@@ -1,0 +1,65 @@
+<!--
+FILE: iupac2meme.html
+AUTHOR: Timothy Bailey
+CREATE DATE: 12/07/2009
+PROJECT: MEME Suite
+-->
+<head>
+<title>iupac2meme</title>
+<link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+</head>
+<body>
+<div id="main">
+<script src="./meme-suite-logo.js" type="text/javascript">></script>
+<h1>iupac2meme</h1>
+<p><b>Usage:</b> <code>iupac2meme [options] [&lt;iupac_motif&gt;]+</code></p>
+<p><b>Description:</b></p>
+<p>
+Convert an IUPAC motif into a MEME version 4 formatted file
+suitable for use with MAST and other MEME Suite programs.
+</p>
+
+<p><b>Input:</b></p>
+<p>An IUPAC motif represents frequencies by using either an exact letter
+meaning that letter occurs in all sites, or ambiguous letters, representing
+an equal frequency of all the letters representing by that letter. This
+program additionally supports regular expression bracket expressions where
+multiple letters can be grouped in one with the use of square brackets.</p>
+
+<p>A background frequency file modifies the assumption of equal
+probability of all alternative letters.</p>
+
+<p>A probability matrix and optionally a log-odds matrix are output for each
+motif provided on the command line. The probability matrix is computed using
+pseudo-counts consisting of the background frequency (see -bg, below)
+multiplied by the total pseudocounts (see -pseudo, below). The log-odds
+matrix uses the background frequencies in the denominator and is log
+base 2.</p>
+
+<p><b>Options:</b></p>
+<dl>
+  <dt>-alpha DNA|PROTEIN</dt><dd>IUPAC alphabet; default: DNA</dd>
+  <dt>-numseqs &lt;numseqs&gt;</dt><dd>assume frequencies based on this many sequences; default: 20</dd>
+  <dt>-bg &lt;background file&gt;</dt><dd>file with background frequencies of letters; default: uniform background</dd>
+  <dt>-pseudo &lt;total pseudocounts&gt;</dt><dd>add &lt;total pseudocounts&gt; times letter background to each frequency; default: 0</dd>
+  <dt>-logodds</dt><dd>output the log-odds (PSSM) and frequency (PSPM) motifs; default: PSPM motif only</dd>
+  <dt>-url &lt;website&gt;</dt><dd>website for the motif; The motif name is substituted for MOTIF_NAME; default: no url</dd>
+</dl>
+<p><b>Output:</b></p>
+<p>
+Writes MEME format to standard output.
+</p>
+<p><b>Sample Input:</b>
+</p>
+<p>DNA IUPAC motif:</p>
+<pre>
+  ACGGWN[ACGT]YCGT
+</pre>
+<p>protein IUPAC motif:</p>
+<pre>
+  IKLVBZYXXHG
+</pre>
+</div>
+</body>
+</html>

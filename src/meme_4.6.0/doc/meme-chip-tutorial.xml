@@ -1,0 +1,311 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>MEME-ChIP Tutorial</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>MEME-ChIP Tutorial</h1>
+
+      <p>
+        <h2>Purpose</h2>
+      </p>
+
+      <p>
+	MEME-ChIP performs several motif analysis steps on a set of
+	DNA sequences that you provide.  It is especially appropriate
+	for analyzing the bound genomic regions identified in a transcription factor (TF) 
+	ChIP-seq experiment.
+	MEME-ChIP can 1) discover novel DNA-binding motifs, 2) analyze them
+	for similarity to known binding motifs, 3) visualize the arrangement
+	of the predicted motif sites in your input sequences, 4) detect
+	very subtly enriched known motifs in your sequences, and 5) provide
+	an estimate of the amount of binding of each novel motif to each
+	of your sequences.
+      </p>
+      <p>
+	You provide MEME-ChIP with a set of sequences in FASTA format.
+	Ideally the sequences are about 100 base-pairs long and
+	enriched for motifs.  The immediate regions around individual ChIP-seq
+	"peaks" from a transcription factor (TF) ChIP-seq experiment
+	are ideal.  <b>There is no limit on the number of sequences
+	you provide, and they may be longer (or shorter) than 100 base-pairs
+	if you desire.</b>  (The suggested 100 base-pair size is based on the typical
+	resolution of ChIP-seq peaks.)  We recommend that you 
+	"repeat mask" your sequences, replacing repeat regions to the "N" character.
+      </p>
+
+      <p>
+	The overall purpose of MEME-ChIP is to provide you with a
+	number of investigations of your sequences without having to
+	configure a number of tools separately. These investigations are:
+	<ol>
+	  <li><i>Ab initio</i> motif discovery &#x2013; for which
+	    we provide two different analyses, using MEME and DREME:
+	    <ul>
+	      <li>MEME is good for finding your ChIPed TF's motif,
+		and can find wide motifs corresponding to complexes
+	      </li>
+	      <li>DREME is good for finding shorter monomeric motifs
+		and cofactors
+	      </li>
+	    </ul>
+	  </li>
+	  <li>Comparison to known motifs &#x2013; TOMTOM compares motifs
+	    found in your sequences by one of our <i>ab initio</i>
+	    tools to known motifs in a database.
+	  </li>
+	  <li>Visualization of motifs in the input sequences &#x2013;
+	    MAST shows you where motifs found using an <i>ab initio</i>
+	    approach match the sequences
+	  </li>
+	  <li>Estimation of binding affinity of input sequences to
+	    each motif &#x2013; AMA measures how strongly a motif
+	    is associated with each sequence.
+	  </li>
+	  <li>Motif enrichment analysis &#x2013; AME discovers 
+	    subtly enriched <i>known</i> binding motifs in your
+	    input sequences
+	  </li>
+	</ol>
+      </p>
+
+      <p>
+      <h2>Biological questions you can address using MEME-ChIP</h2>
+	<ul>
+	  <li>What does a binding site for the ChIPed TF look like?
+	  MEME and DREME allow you to answer this question.</li>
+	  <li>Is binding a simple event or is there a complex involved in
+	  binding? If the latter, MEME will likely find significantly longer
+	  motifs than DREME.</li>
+	  <li>Does binding involve cofactors? If so, DREME will likely find
+	  more than one motif with a low <i>p-</i>value.</li>
+	  <li>Are there binding sites for TFs whose motifs are already
+	  known? AME answers this question by finding known motifs that
+	  are enriched in your sequences.</li>
+	  <li>Are any found motifs similar to known motifs? TOMTOM answers
+	  this question by comparing found motifs with a database
+	  of known motifs.</li>
+	</ul>
+      </p>
+
+      <h2>MEME-ChIP Examples</h2>
+      <p>
+	We supply data to allow you to run a complete example, based on
+	sequences from a ChIP-seq experiment (Klf1, mouse); you may also
+	wish to study the outputs from a different example which
+	<a href="examples/memechip_example_output_files/index.html">we provide</a>
+	(SCL, also known as Tal1), and compare those outputs
+	with those you obtain from the Klf1 example.
+      </p>
+      <p>
+	To see how the system works, try submitting the supplied Klf1
+	sample.  Below the button for submitting a file, locate the
+	link to &#8220;<b>Sample DNA Input Sequences</b>&#8221;. Click
+	on the link, copy the sequence data, use the web
+	browser's <b>back</b> button to go back to the data form, and
+	paste the sequences into the box provided below the text
+	&#8220;<b>the actual sequences here (Sample DNA Input
+	Sequences):</b>&#8221;. This example has 945 sequences, just
+	enough to get answers of reasonably high significance, and to
+	exercise all the features of the web service. Do no change any
+	of the settings, and click <b>Start search</b> at the bottom
+	of the form.  You should see confirmation that your job has
+	been submitted. If you click the link next to the words
+	&#8220;<b>You can view your job results at:</b>&#8221;, and
+	refresh the screen every now and then, you will see a summary
+	of your results in about an hour. If you have other things to
+	do, don't worry if you have to close your web browser and go
+	away: you will receive an email echoing the confirmation page,
+	that includes directing you to the results. The primary motif
+	should be a CACC motif, and GATA should feature as a secondary
+	motif. SCL (also called TAL1) may also be associated with this
+	data set, though harder to find.
+      </p>
+      <p>
+	Once outputs are available, here are some options open to you:
+      </p>
+	<ul>
+	  <li>
+	    Look at MEME's output report. The first motif is
+	    likely to be a reasonable representation of the binding
+	    site for the main TF of interest. Go back to the
+	    report summary page, and look at the outputs from MAST.
+	    You should see the MEME motifs represented in most
+	    sequences, sometimes more than once per sequence.
+	  </li>
+	  <li>
+	    Look at DREME's output report. You should find a longer
+	    list of motifs than MEME found. Even if MEME found longer
+	    motifs than DREME did, see if the DREME motifs, especially
+	    those with lowest <i>p</i>-values, look like truncated
+	    versions of any motifs MEME found.
+	  </li>
+	  <li>
+	    Look at TOMTOM's output, which contains known motifs that
+	    are most similar to the motifs DREME found. You will also
+	    find logos there representing DREME's found motifs. Are
+	    the motifs in known databases that are most similar (near
+	    the top of this list for each DREME motif submitted to
+	    TOMTOM) plausible? With our example, you should expect to
+	    find Klf4 near the top of the CACC motifs, and several
+	    GATA motifs. Do you see anything suggesting an SCL (TAL1)
+	    binding site? As an additional step, go back to the MEME
+	    output. Under each logo, at the start of the information
+	    for that motif, you should find a button to submit that
+	    motif to TOMTOM.  Try this as well.
+	  </li>
+	  <li>
+	    Look at AME's output. Compare the motifs with low <i>p</i>-values
+	    with those found by MEME and DREME. Do you find anything unexpected,
+	    or is anything you expect to find missing?
+	  </li>
+<!--
+	  <li>
+	    Finally, look at the outputs from SpaMo. Compare secondary
+	    motifs particularly with those found by DREME and AME. Do you
+	    find any evidence that any of these motifs are preferentially
+	    found with a fixed offset from the primary motif?
+	    <b>FIXME: not yet implemented</b>.
+	  </li>
+-->
+	</ul>
+	<p>
+	Once you have this information, you are in a position to start
+	reasoning about the motifs you have found. Here are some
+	examples of questions you may ask. Is the primary motif found
+	by MEME and DREME essentially the same? Is that primary motif
+	a known motif for the primary transcription factor, or similar
+	to such a known motif? Does AME find a known motif similar to
+	the primary motif with one of AME's lowest
+	<i>p</i>-values? Are any known motifs found by AME likely to be cofactors?
+	How do secondary motifs identified by MEME and DREME compare? How <!--  and SpaMo -->
+	low are the <i>p</i>-values of theses secondary motifs as found by these
+	tools? In the event that all the tools find consistent results, this increases
+	your confidence that you have found a motif or motifs consistent with your
+	input sequences. If the tools find inconsistent results, you need to
+	investigate further to understand the cause or causes of the inconsistency.
+      </p>
+
+	<p>
+	  Once you have worked through this example, study the description below
+	  of the tools we use here, and the outputs produced for more insight into
+	  how to construct your own examples. To get some idea of how time scales
+	  up, MEME takes about 4 times as long every time you double the size
+	  of the data (total number of bases in the sequences). Once you submit
+	  more than 600 sequences, time for the other tools increases linearly,
+	  so for very large examples, much larger than 600 sequences, you should
+	  expect run time to double if you double the size of your input. However,
+	  for runs of a few thousand sequences, most of the run time will be taken
+	  by MEME, even though we limit MEME to 600 sequences.
+	</p>
+
+      <h2>Tools used by MEME-ChIP</h2>
+
+      <ul>
+	<li>
+        <a href="../meme-intro.html"><b>MEME</b></a> finds motifs in DNA and
+	protein sequences (here, we only process DNA sequences). MEME
+	is able to find relatively long motifs, and hence does a good
+	job of finding motifs characteristic of multi-protein complexes.
+      </li>
+
+      <li>
+        <a href="../mast-intro.html"><b>MAST</b></a> identifies locations in a
+	set of sequences where a given set of motifs has a
+	statistically significant match to such locations, indicating
+	the site where each motif has such a match. We generally use
+	MAST as a follow-up step to running MEME to show where the
+	motifs MEME has found may have sites in the sequences.
+      </li>
+
+      <li>
+	<a href="ama.html"><b>AMA</b></a> scores a motif against each
+	DNA sequence
+      </li>
+
+<!--
+      <li>
+        <b>SpaMo</b> finds over-represented motifs at a fixed spacing from
+	a given motif. SpaMo is useful for finding cofactors. <b>FIXME: not
+	implemented yet.</b>
+      </li>
+-->
+
+      <li>
+        <a href="dreme.html"><b>DREME</b></a> finds motifs in DNA and protein sequences. DREME
+	finds relatively short motifs, and does a good job of finding
+	multiple motifs in short sequences, that may correspond to
+	cofactors. DREME is therefore more sensitive than MEME, at the
+	expense of failing to find longer motifs.
+      </li>
+
+      <li>
+	<a href="../tomtom-intro.html"><b>TOMTOM</b></a> compares a given motif
+	or motifs with one or more databases of known motifs, and
+	provides a list of motifs from the known motifs that most
+	closely match each of the given motifs.
+      </li>
+
+      <li>
+        <a href="ame.html"><b>AME</b></a> finds motifs
+	from databases of known motifs, which are over-represented in
+	DNA sequences. AME is more sensitive than MEME and DREME in
+	the sense of being able to identify motifs down to any given
+	threshold of probability but AME cannot find motifs that are
+	not already known. The version of AME we use here has fewer
+	options than
+	that <a href="http://acb.qfab.org/acb/ame/index.html">previously
+	described</a>.
+      </li>
+      </ul>
+
+      <h2>How MEME-ChIP pre-processes your input sequences</h2>
+
+      <p>
+        MEME-ChIP pre-processes your input DNA sequences before
+	running some of the above tools. For input to the motif discovery
+	and enrichment tools (MEME, DREME, AME), any sequences
+	that are longer than 100 base-pairs are trimmed evenly to that length.
+	All trimmed sequences are input to DREME and AME, but a maximum
+	of 600 (randomly chosen) sequences are input to MEME.
+      </p>
+
+      <p>
+	The output report, which you can see one all the tools have
+	completed, lists the commands you could run on the command line
+	to reproduce the outputs, and provides pointers to outputs of
+	all the above tools. 
+      </p>
+      <p>
+	In addition, the output report makes available the following files:
+      </p>
+      <ul>
+	<li><code>sequences</code> &#8210; your original sequences
+	</li>
+	<li><code>seqs-centered</code> &#8210; the trimmed versions of your sequences;
+	<b>note:</b>any trimmed sequences contain only <code>N</code>s
+	(usually due to repeat masking) are discarded by MEME-ChIP 
+	</li>
+	<li><code>seqs-shuffled</code> &#8210; dinucleotide-shuffled versions of the trimmed sequences,
+	  used as a background model for AME
+	</li>
+      </ul>
+
+      <p>
+	In the event that you submit more than 600 sequences, the following
+	files are also provided:
+      </p>
+      <ul>
+	<li><code>seqs-sampled</code> &#8210; a random sample of 600 of your input sequences</li>
+	<li><code>seqs-discarded</code> &#8210; the remainder of your sequences
+	  (not used by MEME-ChIP, but which you could use a a positive control set) </li>
+      </ul> 
+
+    </div>
+  </body>
+</html>

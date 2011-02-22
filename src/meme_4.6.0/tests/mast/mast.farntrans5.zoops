@@ -1,0 +1,181 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<!DOCTYPE mast[
+<!ELEMENT mast (model, alphabet, motifs, sequences, runtime)>
+<!ATTLIST mast version CDATA #REQUIRED release CDATA #REQUIRED>
+<!ELEMENT model (command_line, max_correlation, remove_correlated, strand_handling, translate_dna, max_seq_evalue,
+    adj_hit_pvalue, max_hit_pvalue, max_weak_pvalue, host, when)>
+<!ELEMENT command_line (#PCDATA)>
+<!ELEMENT max_correlation (#PCDATA)>
+<!ELEMENT remove_correlated EMPTY>
+<!ATTLIST remove_correlated value (y|n) #REQUIRED>
+<!ELEMENT strand_handling EMPTY>
+<!ATTLIST strand_handling value (combine|separate|norc|protein) #REQUIRED>
+<!ELEMENT translate_dna EMPTY>
+<!ATTLIST translate_dna value (y|n) #REQUIRED>
+<!ELEMENT max_seq_evalue (#PCDATA)>
+<!ELEMENT adj_hit_pvalue EMPTY>
+<!ATTLIST adj_hit_pvalue value (y|n) #REQUIRED>
+<!ELEMENT max_hit_pvalue (#PCDATA)>
+<!ELEMENT max_weak_pvalue (#PCDATA)>
+<!ELEMENT host (#PCDATA)>
+<!ELEMENT when (#PCDATA)>
+<!ELEMENT alphabet (letter+)>
+<!ATTLIST alphabet type (amino-acid|nucleotide) #REQUIRED bg_source (preset|file|sequence_composition) #REQUIRED bg_file CDATA #IMPLIED>
+<!ELEMENT letter EMPTY>
+<!ATTLIST letter symbol CDATA #REQUIRED ambig (y|n) "n" bg_value CDATA #IMPLIED>
+<!ELEMENT motifs (motif+,correlation*,nos*)>
+<!ATTLIST motifs source CDATA #REQUIRED name CDATA #REQUIRED last_mod_date CDATA #REQUIRED>
+<!ELEMENT motif EMPTY>
+<!-- num is simply the loading order of the motif, it's superfluous but makes things easier for XSLT -->
+<!ATTLIST motif id ID #REQUIRED num CDATA #REQUIRED name CDATA #REQUIRED width CDATA #REQUIRED
+   best_f CDATA #REQUIRED best_r CDATA #IMPLIED bad (y|n) "n">
+<!-- for n > 1 motifs there should be (n * (n - 1)) / 2 correlations, obviously there are none for only 1 motif -->
+<!ELEMENT correlation EMPTY>
+<!ATTLIST correlation motif_a IDREF #REQUIRED motif_b IDREF #REQUIRED value CDATA #REQUIRED>
+<!-- nos: Nominal Order and Spacing diagram, a rarely used feature where mast can adjust pvalues for an expected motif spacing -->
+<!ELEMENT nos (expect+)>
+<!-- length is in the same unit as the motifs, which is not always the same unit as the sequence -->
+<!ATTLIST nos length CDATA #REQUIRED>
+<!-- the expect tags are expected to be ordered by pos ascending -->
+<!ELEMENT expect EMPTY>
+<!ATTLIST expect pos CDATA #REQUIRED gap CDATA #REQUIRED motif IDREF #REQUIRED>
+<!ELEMENT sequences (database+, sequence*)>
+<!-- the database tags are expected to be ordered in file specification order -->
+<!ELEMENT database EMPTY>
+<!ATTLIST database id ID #REQUIRED num CDATA #REQUIRED source CDATA #REQUIRED name CDATA #REQUIRED last_mod_date CDATA #REQUIRED 
+    seq_count CDATA #REQUIRED residue_count CDATA #REQUIRED type (amino-acid|nucleotide) #REQUIRED link CDATA #IMPLIED>
+<!-- the sequence tags are expected to be ordered by best combined p-value (of contained score tags) ascending -->
+<!ELEMENT sequence (score+,seg*)>
+<!ATTLIST sequence id ID #REQUIRED db IDREF #REQUIRED num CDATA #REQUIRED name CDATA #REQUIRED comment CDATA "" length CDATA #REQUIRED>
+<!ELEMENT score EMPTY>
+<!-- frame is the starting offset for translation of dna sequences which gives the lowest pvalues for the provided protein motifs -->
+<!ATTLIST score strand (both|forward|reverse) #REQUIRED frame (a|b|c) #IMPLIED combined_pvalue CDATA #REQUIRED evalue CDATA #REQUIRED>
+<!-- within each sequence the seg tags are expected to be ordered by start ascending -->
+<!ELEMENT seg (data,hit+)>
+<!ATTLIST seg start CDATA #REQUIRED>
+<!ELEMENT data (#PCDATA)>
+<!-- within each seg the hit tags are expected to be ordered by pos ascending and then forward strand first -->
+<!ELEMENT hit EMPTY>
+<!-- gap, while superfluous, makes creating motif diagrams for the text version much easier when using XSLT -->
+<!ATTLIST hit pos CDATA #REQUIRED gap CDATA #REQUIRED motif IDREF #REQUIRED pvalue CDATA #REQUIRED strand (forward|reverse) "forward" 
+    match CDATA #REQUIRED translation CDATA #IMPLIED>
+<!ELEMENT runtime EMPTY>
+<!ATTLIST runtime cycles CDATA #REQUIRED seconds CDATA #REQUIRED>
+]>
+<mast version="4.3.2" release="Fri Apr 09 12:00:00 EST 2009">
+	<model>
+		<command_line>mast /home/james/memesvn/gomo2/scripts/../tests/meme/meme.farntrans5.zoops /home/james/memesvn/gomo2/scripts/../tests/common/farntrans5.s -oc /home/james/memesvn/gomo2/scripts/../tests/results/mast -nohtml -nostatus</command_line>
+		<max_correlation>0.60</max_correlation>
+		<remove_correlated value="n"/>
+		<strand_handling value="protein"/>
+		<translate_dna value="n"/>
+		<max_seq_evalue>10</max_seq_evalue>
+		<adj_hit_pvalue value="n"/>
+		<max_hit_pvalue>0.0001</max_hit_pvalue>
+		<max_weak_pvalue>0.0001</max_weak_pvalue>
+		<host>tlb-squirrel</host>
+		<when>Fri Apr  9 17:08:53 2010</when>
+	</model>
+	<alphabet type="amino-acid" bg_source="preset">
+		<letter symbol="A" bg_value="0.073"/>
+		<letter symbol="C" bg_value="0.018"/>
+		<letter symbol="D" bg_value="0.052"/>
+		<letter symbol="E" bg_value="0.062"/>
+		<letter symbol="F" bg_value="0.040"/>
+		<letter symbol="G" bg_value="0.069"/>
+		<letter symbol="H" bg_value="0.022"/>
+		<letter symbol="I" bg_value="0.056"/>
+		<letter symbol="K" bg_value="0.058"/>
+		<letter symbol="L" bg_value="0.092"/>
+		<letter symbol="M" bg_value="0.023"/>
+		<letter symbol="N" bg_value="0.046"/>
+		<letter symbol="P" bg_value="0.051"/>
+		<letter symbol="Q" bg_value="0.041"/>
+		<letter symbol="R" bg_value="0.052"/>
+		<letter symbol="S" bg_value="0.074"/>
+		<letter symbol="T" bg_value="0.059"/>
+		<letter symbol="V" bg_value="0.064"/>
+		<letter symbol="W" bg_value="0.013"/>
+		<letter symbol="Y" bg_value="0.033"/>
+	</alphabet>
+	<motifs source="/home/james/memesvn/gomo2/scripts/../tests/meme/meme.farntrans5.zoops" name="/home/james/memesvn/gomo2/scripts/../tests/meme/meme.farntrans5.zoops" last_mod_date="Mon Feb 15 12:10:16 2010">
+		<motif id="motif_1" num="1" name="1" width="32" best_f="QQPEGGFNGRPNKLPDVCYSWWVLGSLPIIGR"/>
+		<motif id="motif_2" num="2" name="2" width="50" best_f="GEVDTRFVYCALSVASLLNILTPELVEGAIEFVLRCQNFDGGFGCCPGAE"/>
+		<correlation motif_a="motif_1" motif_b="motif_2" value="0.30"/>
+	</motifs>
+	<sequences>
+		<database id="db_1" num="1" source="/home/james/memesvn/gomo2/scripts/../tests/common/farntrans5.s" name="/home/james/memesvn/gomo2/scripts/../tests/common/farntrans5.s" last_mod_date="Mon Feb 15 12:10:17 2010" seq_count="5" residue_count="1900" type="amino-acid"/>
+		<sequence id="seq_1_3" db="db_1" num="3" name="BET2_YEAST" comment="YPT1/SEC4 PROTEINS GERANYLGERANYLTRANSFERASE BETA SUBUNIT (EC 2." length="325">
+			<score strand="both" combined_pvalue="4.46e-71" evalue="2.2e-70"/>
+			<seg start="1">
+				<data>
+MSGSLTLLKEKHIRYIESLDTNKHNFEYWLTEHLRLNGIYWGLTALCVLDSPETFVKEEVISFVLSCWDDKYGAF
+APFPRHDAHLLTTLSAVQILATYDALDVLGKDRKVRLISFIRGNQLEDGSFQGDRFGEVDTRFVYTALSALSILG
+ELTSEVVDPAVDFVLKCYNFDGGFGLCPNAESHAAQAFTCLGALAIANKLDMLSDDQLEEIGWWLCERQLPEGGL
+NGRPSKLPDVCYSWWVLSSLAIIGRLDWINYEKLTEFILKCQDEKKGGISDRPENEVDVFHTVFGVAGLSLMGYD
+				</data>
+				<hit pos="32" gap="31" motif="motif_2" pvalue="2.3e-05" match="      +++  ++++  +      + + ++ +++++     +  +     "/>
+				<hit pos="132" gap="50" motif="motif_2" pvalue="9.3e-45" match="+++++++++ ++++++++++++++++ +++++++++++++++++++++++"/>
+				<hit pos="219" gap="37" motif="motif_1" pvalue="3.5e-34" match="++++++++++++++++++++++++++++++++"/>
+				<hit pos="268" gap="17" motif="motif_1" pvalue="1.0e-06" match="    ++   +++  +++  +    + + +++ "/>
+			</seg>
+		</sequence>
+		<sequence id="seq_1_4" db="db_1" num="4" name="RATRABGERB" comment="Rat rab geranylgeranyl transferase beta-subunit" length="331">
+			<score strand="both" combined_pvalue="3.29e-68" evalue="1.6e-67"/>
+			<seg start="1">
+				<data>
+MGTQQKDVTIKSDAPDTLLLEKHADYIASYGSKKDDYEYCMSEYLRMSGVYWGLTVMDLMGQLHRMNKEEILVFI
+KSCQHECGGVSASIGHDPHLLYTLSAVQILTLYDSIHVINVDKVVAYVQSLQKEDGSFAGDIWGEIDTRFSFCAV
+ATLALLGKLDAINVEKAIEFVLSCMNFDGGFGCRPGSESHAGQIYCCTGFLAITSQLHQVNSDLLGWWLCERQLP
+SGGLNGRPEKLPDVCYSWWVLASLKIIGRLHWIDREKLRSFILACQDEETGGFADRPGDMVDPFHTLFGIAGLSL
+LGEEQIKPVSPVFCMPEEVLQRVNVQPELVS
+				</data>
+				<hit pos="43" gap="42" motif="motif_2" pvalue="4.6e-09" match="      +++  +++  +++ +   + +  + ++++++   ++  +  +  "/>
+				<hit pos="139" gap="46" motif="motif_2" pvalue="3.2e-43" match="++++++++++++++++++++++++++++++++++++++++++++++++++"/>
+				<hit pos="223" gap="34" motif="motif_1" pvalue="7.6e-33" match="++++++++++++++++++++++++++++++++"/>
+				<hit pos="272" gap="17" motif="motif_1" pvalue="2.2e-07" match="  + +++  ++  +++   +    + + +++ "/>
+			</seg>
+		</sequence>
+		<sequence id="seq_1_2" db="db_1" num="2" name="PFTB_RAT" comment="PROTEIN FARNESYLTRANSFERASE BETA SUBUNIT (EC 2.5.1.-) (CAAX FARNES" length="437">
+			<score strand="both" combined_pvalue="1.88e-65" evalue="9.4e-65"/>
+			<seg start="76">
+				<data>
+EKHFHYLKRGLRQLTDAYECLDASRPWLCYWILHSLELLDEPIPQIVATDVCQFLELCQSPDGGFGGGPGQYPHL
+APTYAAVNALCIIGTEEAYNVINREKLLQYLYSLKQPDGSFLMHVGGEVDVRSAYCAASVASLTNIITPDLFEGT
+AEWIARCQNWEGGIGGVPGMEAHGGYTFCGLAALVILKKERSLNLKSLLQWVTSRQMRFEGGFQGRCNKLVDGCY
+SFWQAGLLPLLHRALHAQGDPALSMSHWMFHQQALQEYILMCCQCPAGGLLDKPGKSRDFYHTCYCLSGLSIAQH
+				</data>
+				<hit pos="134" gap="133" motif="motif_1" pvalue="5.5e-09" match="+++++++ + +   +    ++   + + +++ "/>
+				<hit pos="197" gap="31" motif="motif_2" pvalue="4.1e-44" match="++++++++++++++++++++++++++++++++++++++++++++++++++"/>
+				<hit pos="282" gap="35" motif="motif_1" pvalue="1.9e-29" match="+++++++++++++++++++++++++ ++++++"/>
+				<hit pos="344" gap="30" motif="motif_1" pvalue="6.6e-07" match="+ + +++   + +  +   +  +++ + +   "/>
+			</seg>
+		</sequence>
+		<sequence id="seq_1_1" db="db_1" num="1" name="RAM1_YEAST" comment="PROTEIN FARNESYLTRANSFERASE BETA SUBUNIT (EC 2.5.1.-) (CAAX FARN" length="431">
+			<score strand="both" combined_pvalue="1.89e-64" evalue="9.4e-64"/>
+			<seg start="151">
+				<data>
+PGQLSHLASTYAAINALSLCDNIDGCWDRIDRKGIYQWLISLKEPNGGFKTCLEVGEVDTRGIYCALSIATLLNI
+LTEELTEGVLNYLKNCQNYEGGFGSCPHVDEAHGGYTFCATASLAILRSMDQINVEKLLEWSSARQLQEERGFCG
+RSNKLVDGCYSFWVGGSAAILEAFGYGQCFNKHALRDYILYCCQEKEQPGLRDKPGAHSDFYHTNYCLLGLAVAE
+				</data>
+				<hit pos="206" gap="205" motif="motif_2" pvalue="3.2e-45" match="+++++++++++++++++++++++++++++++++++++++++++++++++ "/>
+				<hit pos="292" gap="36" motif="motif_1" pvalue="2.6e-27" match=" ++++++++++++++++++++++++++++++ "/>
+			</seg>
+		</sequence>
+		<sequence id="seq_1_5" db="db_1" num="5" name="CAL1_YEAST" comment="RAS PROTEINS GERANYLGERANYLTRANSFERASE (EC 2.5.1.-) (PROTEIN GER" length="376">
+			<score strand="both" combined_pvalue="1.41e-25" evalue="7e-25"/>
+			<seg start="151">
+				<data>
+DYKTNCGSSVDSDDLRFCYIAVAILYICGCRSKEDFDEYIDTEKLLGYIMSQQCYNGAFGAHNEPHSGYTSCALS
+TLALLSSLEKLSDKFKEDTITWLLHRQVSSHGCMKFESELNASYDQSDDGGFQGRENKFADTCYAFWCLNSLHLL
+TKDWKMLCQTELVTNYLLDRTQKTLTGGFSKNDEEDADLYHSCLGSAALALIEGKFNGELCIPQEIFNDFSKRCC
+				</data>
+				<hit pos="213" gap="212" motif="motif_2" pvalue="7.2e-06" match=" +       +++++++++  +         + +           ++   +"/>
+				<hit pos="271" gap="8" motif="motif_1" pvalue="2.8e-27" match="++++++++++++++++++++++++++++++++"/>
+				<hit pos="323" gap="20" motif="motif_1" pvalue="6.2e-05" match="    +++    +  ++   +    + +++++ "/>
+			</seg>
+		</sequence>
+	</sequences>
+	<runtime cycles="30000" seconds="0.030"/>
+</mast>

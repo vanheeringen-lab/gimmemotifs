@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MEME - Overview</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+	    <img src="doc/images/memechip_logo.png" alt="MEME-ChIP logo">
+            <h3>Overview</h3>
+            <h4>MEME-ChIP is an ensemble of tools for discovering <b>motifs</b> in a large set of
+            related DNA sequences.</h4>
+            <p>MEME-ChIP takes as input <a href="help_format.html">FASTA-formatted</a> DNA
+            sequences, of arbitrary size and number of sequences. It assumes that
+	    a technology has been used that results in sequences sufficiently
+	    close to centered on a likely TF binding location that it makes sense to focus
+	    on the central 100 bp portion of each sequence. ChIP-seq is an example of
+	    such a technology. The tools output the number of
+	    motifs as requested on the input form using MEME, and as many motifs as pass
+	    the threshold tests of the other tools.
+            </p>
+            <p>Your MEME-ChIP results consist of multiple outputs in the formats
+	      described in a <a href="doc/examples/memechip_example_output_files/index.html">top-level
+	      summary file</a>.</p>
+	    <p>MEME-ChIP uses a combination of motif discovery using MEME (good for wide
+	    motifs) and DREME (good for shorter motifs) and comparison of both found motifs
+	    and the sequence data against databases of known motifs.</p>
+	    <p>For more detail, see <a href="doc/meme-chip-tutorial.html">this tutorial</a>.</p>
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

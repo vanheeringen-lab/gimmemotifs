@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tomtom - Submission form</title>
+    <!-- provide relative path to html directory (parent of cgi-bin) -->
+    <script type="text/javascript">var html_path = "../";</script>
+    <script src="../tomtom.js" type="text/javascript"></script>
+    <script src="../motif_logo.js" type="text/javascript"></script>
+    <link href="../site.css" rel="stylesheet" type="text/css" />
+    <link href="../motif_input.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+    <link rel="shortcut icon" type="image/x-icon" href="../images/memesuite_icon.ico">
+  </head>
+  <body onload="setup_form()">
+    <table>
+      <tr>
+        <td class="menu_col">
+          <div id="menu">
+            <script src="../meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="content_col">
+          <noscript>
+            <h1>MEME Suite</h1>
+            <p>The MEME Suite web application requires the use of JavaScript<br />
+            Javascript doesn't seem to be available on your browser.</p>
+          </noscript>
+          <div class="header">
+            <div class="header_img">
+              <img src="../doc/images/tomtom_logo.png" alt="TOMTOM logo">
+              <div class="header_ver">Version <!-- TMPL_VAR NAME=version --></div>
+            </div>
+            <p class="header_blurb">
+            Use this form to submit one or more DNA motifs to <a href="../tomtom-intro.html">Tomtom</a>
+            for comparison against a database of known motifs (e.g., JASPAR or Transfac).
+            Tomtom will rank the motifs in the target database by the <I>E</I>-value of 
+            the similarity score and produce scoring details and a logo alignment 
+            for each significant match.
+            </p>
+          </div>
+          <div class="meme">
+          <form enctype="multipart/form-data" method="POST" action="tomtom.cgi" onsubmit="return check()">
+            <fieldset>
+              <legend>Data Submission Form</legend>
+              <p class="meme">Search one or more DNA motifs against a DNA motif database.</p> 
+              <!-- example and preview (floated right) -->
+              <div style="float:right">
+                <div style="width:100%;text-align:center;font-size:0.6em;">Example Output</div>
+                <img src="../images/logo_alignment.png" style="width:200px; border:1px solid black;">
+                <div id="preview_div" style="display:block;">
+                  <div style="margin-top:20px;width:100%;text-align:center;font-size:0.6em;">Preview</div>
+                  <div id="preview_log_div" style="display:block;">
+                    <textarea class="log" id="motif_log" wrap="off" readonly="readonly">Empty sequence</textarea>
+                  </div>
+                  <div id="preview_canvas_div" style="display:none;">
+                    <canvas id="motif_preview" width="200" height="100" class="preview" ></canvas>
+                  </div>
+                  <div class="tabs">
+                    <a class="tab" id="preview_canvas_tab" href="javascript:preview_tab(true)">Preview</a>
+                    <a class="tab active_tab" id="preview_log_tab" href="javascript:preview_tab(false)">Error Log</a>
+                  </div>
+                </div>
+              </div>
+              <!-- end float right -->
+              <!-- motif format -->
+              <h2 class="meme">Choose the type of motif</h2>
+              <!-- motif format options -->
+              <input type="radio" name="motif_src" id="type_s" value="consensus" 
+                  onclick="motif_format('consensus')" <!-- TMPL_UNLESS NAME=inline_motifs -->checked<!-- /TMPL_UNLESS -->>
+              <label for="type_s">IUPAC</label>
+              <input type="radio" name="motif_src" id="type_f" value="matrix" 
+                  onclick="motif_format('matrix')" >
+              <label for="type_f">Matrix</label>
+              <input type="radio" name="motif_src" id="type_m" value="meme" 
+                  onclick="motif_format('meme')" >
+              <label for="type_m">MEME</label>
+              <!-- TMPL_IF NAME=inline_motifs -->
+              <input type="radio" name="motif_src" id="type_i" value="inline" 
+                  onclick="motif_format('inline')" checked>
+              <label for="type_i">Submitted</label>
+              <!-- /TMPL_IF --><br>
+              <!-- motif input-->
+              <h2 class="meme">Input the motif</h2>
+              <!-- Consensus Sequence -->
+              <div id="consensus" class="subcontent" style="display:<!-- TMPL_IF NAME=inline_motifs -->none<!-- TMPL_ELSE -->block<!-- /TMPL_IF -->">
+                <h4 class="meme">Enter a <a href="../doc/alphabets.html">IUPAC</a> DNA motif. 
+                <a href="javascript:show_toggle('pop_motif_s')"><img src="../images/help.png"/></a></h4>
+                <!-- I would just use onkeypress but some browsers (google chrome) don't send those events for backspace 
+                also onchange only seems to happen on blur -->
+                <input type="text" name="consensus_sequence" id="motif_s" class="meme" size="40" onkeydown="delayed_preview()" 
+                    onkeyup="delayed_preview()" onkeypress="delayed_preview()" onchange="update_preview()"><br>
+                <span class="pop_reference">
+                  <div class="pop_content" style="display:none" id="pop_motif_s" >You may use both 
+                  <a href="../doc/alphabets.html">IUPAC</a> codes and regular expression bracket expressions. 
+                  For example "NTRGGTCAN" and "[ACGT]T[AG]GGTCA[ACGT]" are equivalent approximations of the example 
+                  query shown on the right. [<a href="javascript:show_toggle('pop_motif_s')">close</a>]</div>
+                </span>
+                <div id="consensus_adv_ctrl" style="display:block;">
+                  <h3 class="meme">
+                  <a href="javascript:show_hide('consensus_advanced','consensus_adv_ctrl')"><img src="../images/plus.png"/> Advanced Options</a>
+                  </h3>
+                </div>
+                <div id="consensus_advanced" style="display:none;">
+                  <h3 class="meme">
+                  <a href="javascript:show_hide('consensus_adv_ctrl','consensus_advanced')"><img src="../images/minus.png"/> Advanced Options</a>
+                  </h3>
+                  <h4 class="meme" style="padding-top:10px;">Enter a site count and pseudocount. 
+                  <a href="javascript:show_toggle('pop_s_pseudo')"><img src="../images/help.png"/></a></h4>
+                  <label for="s_sites">sites: </label>
+                  <input type="text" name="consensus_sites" id="s_sites" class="meme" size="2" value="20" onchange="update_preview()">
+                  &nbsp;&nbsp;
+                  <label for="s_pseudo">pseudocount: </label>
+                  <input type="text" name="consensus_pseudocount" id="s_pseudo" class="meme" size="2" value="1" onchange="update_preview()"><br>
+                  <span class="pop_reference">
+                  <div class="pop_content" style="display:none" id="pop_s_pseudo">A motif is generated from the specified IUPAC sequence fragment
+                  by distributing the site counts equally over each possible residue. The pseudocount is added to each residue in proportion to 
+                  the background. Thus the total count for a position is the site count plus the pseudocount. For example suppose one of the
+                  IUPAC codes entered is 'R'. The IUPAC code 'R' means that both Adenine and Guanine are possible, so with a site count of 10, 
+                  pseudocount of 1 and a uniform background; the probability of Adenine and Guanine would be:<br/> 
+                  <img src="../images/consensus-eq-1.png"/>
+                  while the probility of Cytosine and Thymine would be:<br/>
+                  <img src="../images/consensus-eq-2.png"/><br/>
+                  [<a href="javascript:show_toggle('pop_s_pseudo')">close</a>]</div>
+                  </span>
+                  <h4 class="meme" style="padding-top:10px;">Enter the background model. 
+                  <a href="javascript:show_toggle('pop_s_bg')"><img src="../images/help.png"/></a></h4>
+                  <label for="s_bg_A">A: </label>
+                  <input type="text" name="consensus_background_A" id="s_bg_A" class="meme" size="3" value="0.25" onchange="update_preview()">
+                  &nbsp;
+                  <label for="s_bg_C">C: </label>
+                  <input type="text" name="consensus_background_C" id="s_bg_C" class="meme" size="3" value="0.25" onchange="update_preview()">
+                  &nbsp;
+                  <label for="s_bg_G">G: </label>
+                  <input type="text" name="consensus_background_G" id="s_bg_G" class="meme" size="3" value="0.25" onchange="update_preview()">
+                  &nbsp;
+                  <label for="s_bg_T">T: </label>
+                  <input type="text" name="consensus_background_T" id="s_bg_T" class="meme" size="3" value="0.25" onchange="update_preview()"><br>
+                  <span class="pop_reference">
+                    <div class="pop_content" style="display:none" id="pop_s_bg">The background is used to determine how the pseudocount is distributed.
+                    While it is conventional to have the background sum to one these fields will be normalised so you don't have to be exact. 
+                    You may even use counts instead.
+                    [<a href="javascript:show_toggle('pop_s_bg')">close</a>]</div>
+                  </span>
+                </div>
+              </div>
+              <!-- old Tomtom motif format (Frequency Matrix) -->
+              <div id="matrix" class="subcontent" style="display:none">
+                <h4 class="meme">Enter a DNA count/probability matrix. 
+                <a href="javascript:show_toggle('pop_motif_f')"><img src="../images/help.png"/></a></h4>        
+                <!-- I would just use onkeypress but some browsers (google chrome) don't send those events for backspace 
+                also onchange only seems to happen on blur -->
+                <textarea class="meme" name="matrix_data" id="motif_f" rows="4" cols="50" style="font-family:monospace;" 
+                    onkeydown="delayed_preview()" onkeyup="delayed_preview()" onkeypress="delayed_preview()" onchange="update_preview()"></textarea><br>
+                <span class="pop_reference">
+                  <div class="pop_content" style="display:none; width:380px" id="pop_motif_f">A matrix is rectangular grid of numbers 
+                  which shows the relative frequency a nucleotide will occur at a specific position. Two orientations are possible. For example:
+                  <table>
+                  <tr><th style="padding-right:50px;">Row Matrix</th><th>Column Matrix</th><tr>
+                  <tr>
+                  <td rowspan="2" class="matrixcont" style="padding-right:50px;">
+                  <table class="examplematrix" onclick="example_row_matrix()">
+                    <tr><td></td><th>A</th><th>C</th><th>G</th><th>T</th></tr>
+                    <tr><th>1</th><td>3</td><td>8</td><td>14</td><td>3</td></tr>
+                    <tr><th>2</th><td>3</td><td>0</td><td>0</td><td>25</td></tr>
+                    <tr><th>3</th><td>19</td><td>0</td><td>9</td><td>0</td></tr>
+                    <tr><th>4</th><td>0</td><td>1</td><td>27</td><td>0</td></tr>
+                    <tr><th>5</th><td>1</td><td>0</td><td>26</td><td>1</td></tr>
+                    <tr><th>6</th><td>0</td><td>1</td><td>4</td><td>23</td></tr>
+                    <tr><th>7</th><td>2</td><td>23</td><td>3</td><td>0</td></tr>
+                    <tr><th>8</th><td>26</td><td>1</td><td>0</td><td>1</td></tr>
+                    <tr><th>9</th><td>5</td><td>15</td><td>4</td><td>4</td></tr>
+                  </table>
+                  </td>
+                  <td class="matrixcont">
+                  <table class="examplematrix" onclick="example_col_matrix()">
+                    <tr><td></td><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr>
+                    <tr><th>A</th><td>3</td><td>3</td><td>19</td><td>0</td><td>1</td><td>0</td><td>2</td><td>26</td><td>5</td></tr>
+                    <tr><th>C</th><td>8</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>23</td><td>1</td><td>15</td></tr>
+                    <tr><th>G</th><td>14</td><td>0</td><td>9</td><td>27</td><td>26</td><td>4</td><td>3</td><td>0</td><td>4</td></tr>
+                    <tr><th>T</th><td>3</td><td>25</td><td>0</td><td>0</td><td>1</td><td>23</td><td>0</td><td>1</td><td>4</td></tr>
+                  </table>
+                  </td>
+                  </tr>
+                  <tr>
+                  <td><p style="color:gray; border: 1px solid gray; padding:2px;">Click an example to use it as the input.</p></td>
+                  </tr>
+                  </table>
+                  Tomtom automatically detects the orientation but if for some reason the correct orientation 
+                  isn't being detected it can be specified in the advanced section. 
+                  [<a href="javascript:show_toggle('pop_motif_f')">close</a>]</div>
+                </span>
+                <div id="matrix_adv_ctrl" style="display:block;">
+                  <h3 class="meme">
+                  <a href="javascript:show_hide('matrix_advanced', 'matrix_adv_ctrl')"><img src="../images/plus.png"/>Advanced Options</a>
+                  </h3>
+                </div>
+                <div id="matrix_advanced" style="display:none">
+                  <h3 class="meme">
+                  <a href="javascript:show_hide('matrix_adv_ctrl','matrix_advanced')"><img src="../images/minus.png"/>Advanced Options</a>
+                  </h3>
+                  <h4 class="meme" style="padding-top:10px;">Select the orientation. 
+                  <a href="javascript:show_toggle('pop_f_orient')"><img src="../images/help.png"/></a></h4>
+                  <label for="f_orient">orientation: </label>
+                  <select name="matrix_orientation" id="f_orient" class="meme" onchange="update_preview()">
+                    <option value="auto">autodetect</option>
+                    <option value="row">row</option>
+                    <option value="col">column</option>
+                  </select><br>
+                  <span class="pop_reference">
+                    <div class="pop_content" style="display:none" id="pop_f_orient">A matrix is column oriented if it has 4 rows and any number of columns.
+                    The original Tomtom web format was column oriented. A matrix is row oriented if it has 4 columns and any number of rows.
+                    [<a href="javascript:show_toggle('pop_f_orient')">close</a>]</div>
+                  </span>
+                  <h4 class="meme" style="padding-top:10px;">Enter a site count and pseudocount. 
+                  <a href="javascript:show_toggle('pop_f_sites')"><img src="../images/help.png"/></a></h4>
+                  <label for="f_sites">sites: </label>
+                  <input type="text" name="matrix_sites" id="f_sites" class="meme" size="2" value="20" onchange="update_preview()">
+                  &nbsp;&nbsp;
+                  <label for="f_pseudo">pseudocount: </label>
+                  <input type="text" name="matrix_pseudocount" id="f_pseudo" class="meme" size="2" value="1" onchange="update_preview()"><br>
+                  <span class="pop_reference">
+                    <div class="pop_content" style="display:none" id="pop_f_sites">The site count is only used when a probability matrix is specified, 
+                    otherwise it is derived from the matrix.<br /> 
+                    The pseudocount is added to each residue in proportion to the background. Thus the total count for a position is 
+                    the site count plus the pseudocount. [<a href="javascript:show_toggle('pop_f_sites')">close</a>]</div>
+                  </span>
+                  <h4 class="meme" style="padding-top:10px;">Enter the background model. 
+                  <a href="javascript:show_toggle('pop_f_bg')"><img src="../images/help.png"/></a></h4>
+                  <label for="f_bg_A">A: </label>
+                  <input type="text" name="matrix_background_A" id="f_bg_A" class="meme" size="3" value="0.25" onchange="update_preview()">
+                  &nbsp;
+                  <label for="f_bg_C">C: </label>
+                  <input type="text" name="matrix_background_C" id="f_bg_C" class="meme" size="3" value="0.25" onchange="update_preview()">
+                  &nbsp;
+                  <label for="f_bg_G">G: </label>
+                  <input type="text" name="matrix_background_G" id="f_bg_G" class="meme" size="3" value="0.25" onchange="update_preview()">
+                  &nbsp;
+                  <label for="f_bg_T">T: </label>
+                  <input type="text" name="matrix_background_T" id="f_bg_T" class="meme" size="3" value="0.25" onchange="update_preview()">
+                  <div class="pop_content" style="display:none" id="pop_f_bg">The background is used to determine 
+                  how the pseudocount is distributed. While it is conventional to have the background sum to one 
+                  these fields will be normalised so you don't have to be exact. You may even use counts instead. 
+                  [<a href="javascript:show_toggle('pop_f_bg')">close</a>]</div>
+                </div>
+              </div>
+              <!-- MEME motif -->
+              <div id="meme" class="subcontent" style="display:none">
+                <h4 class="meme">Select a <a href="../doc/meme-format.html">MEME</a> DNA motif file. 
+                <a href="javascript:show_toggle('pop_motif_m')"><img src="../images/help.png"/></a></h4>
+                <input type="file" name="meme_file" id="motif_m" class="meme"><br>
+                <span class="pop_reference">
+                  <div class="pop_content" style="display:none" id="pop_motif_m">
+                  By default only the first motif is searched but this can be changed in the advanced section. 
+                  To search with more than one motif Tomtom must process your request as part of a queue and 
+                  hence a contact email will be required. See more information on the 
+                  <a href="../doc/meme-format.html">meme format</a> and the 
+                  <a href="../examples/sample-dna-motif.meme-io">sample</a> MEME DNA motifs.
+                  [<a href="javascript:show_toggle('pop_motif_m')">close</a>]</div>
+                </span>
+                <div id="meme_adv_ctrl" style="display:block;">
+                  <h3 class="meme">
+                  <a href="javascript:show_hide('meme_advanced', 'meme_adv_ctrl')"><img src="../images/plus.png"/>Advanced Options</a>
+                  </h3>
+                </div>
+                <div id="meme_advanced" style="display:none">
+                  <h3 class="meme">
+                  <a href="javascript:show_hide('meme_adv_ctrl','meme_advanced')"><img src="../images/minus.png"/>Advanced Options</a>
+                  </h3>
+                  <h4 class="meme" style="padding-top:10px;">
+                  Specify which motif(s) to search with. 
+                  <a href="javascript:show_toggle('pop_m_filter')"><img src="../images/help.png"/></a></h4>
+                  <input type="text" name="meme_filter" id="m_filter" class="meme" size="30" value="1" onchange="update_email_visibility()"
+                      onkeypress="update_email_visibility()" onkeydown="update_email_visibility()" onkeyup="update_email_visibility()"> or
+                  <input type="checkbox" name="meme_ignore_filter" id="m_all" value="1" 
+                      onclick="update_email_visibility()" onchange="update_email_visibility()"/>
+                  <label for="m_all"> all motifs.</label><br>
+                  <span class="pop_reference">
+                    <div class="pop_content" style="display:none" id="pop_m_filter">The filter supports selecting motifs 
+                    from the file by their name and/or their order in the file. Any numbers are assumed to refer to the position of the
+                    motif in the file. Any other entry is assumed to be a motif name (or ID). Motif names can not start with a dash
+                    and can only contain alphanumeric characters plus <b>:</b> <b>_</b> <b>.</b> and <b>-</b>. The motifs should be separated by spaces.
+                    [<a href="javascript:show_toggle('pop_m_filter')">close</a>]</div>
+                  </span>
+                </div>
+              </div>
+              <!-- TMPL_IF NAME=inline_motifs -->
+              <!-- inline motif -->
+              <div id="inline" class="subcontent" style="display:block">
+                <h4 class="meme">Tomtom will use the submitted motifs.</h4>
+                <!-- Note that this should be the pspm from the minimal meme format -->
+                <input type="hidden" name="inline_name" value="<!-- TMPL_VAR NAME=inline_name -->">
+                <input type="hidden" name="inline_motifs" id="motif_i" value="<!-- TMPL_VAR NAME=inline_motifs -->">
+                <input type="hidden" id="i_count" value="<!-- TMPL_VAR NAME=inline_count -->">
+                <!-- TODO render the motif with javascript -->
+              </div>
+              <!-- /TMPL_IF -->
+              <!-- motif database -->
+              <h2 class="meme">Choose the motif database to search</h2>
+              <div class="subcontent">
+                <select name="target_db" id="target_db" onchange="show_db_upload()">
+                  <!-- TMPL_LOOP NAME=dbs -->
+                  <option value="<!-- TMPL_VAR ESCAPE=HTML NAME=db_id -->" <!-- TMPL_IF NAME=checked -->checked<!-- /TMPL_IF -->><!-- TMPL_VAR NAME=db_name --></option>
+                  <!-- /TMPL_LOOP -->
+                  <option value="upload" style="font-style:italic;">Upload Your Own Database</option>
+                </select> <a href="javascript:show_toggle('pop_target_db')"><img src="../images/help.png"/></a><br>
+                <div class="pop_content" style="display:none" id="pop_target_db">
+                Tomtom can search databases installed on the server or search a user
+                uploaded database in <a href="../doc/meme-format.html">MEME</a> DNA motif format 
+                by selecting the "Upload Your Own Database" option.
+                Uploaded databases are searched in a queue and so require an
+                email address. For more information browse the 
+                <a href="get_db_list.cgi?db_names=motif_db.csv&mode=doc&is_motif_db=1">supported databases</a>.
+                [<a href="javascript:show_toggle('pop_target_db')">close</a>]</div>
+              </div>
+              <div id="db_upload_div" style="display:none">
+                <h2 class="meme">Input the database</h2>
+                <div class="subcontent">
+                  <h4 class="meme">Select a <a href="../doc/meme-format.html">MEME</a> motif database file.
+                      <a href="javascript:show_toggle('pop_db_file')"><img src="../images/help.png"/></a></h4>
+                  <input type="file" name="db_file" id="db_upload" class="meme"><br>
+                  <span class="pop_reference">
+                    <div class="pop_content" style="display:none" id="pop_db_file">
+                    An uploaded database is a normal <a href="../doc/meme-format.html">MEME</a> 
+                    DNA motif file with lots of motifs. The uploaded database must be smaller than 5MB.
+                    [<a href="javascript:show_toggle('pop_db_file')">close</a>]</div>
+                  </span>
+                </div>
+              </div>
+              <!-- Contact email - only active for multiple motifs and uploaded databases -->
+              <div id="queue_div" style="display:none">
+                <h2 class="meme">Input job queue details</h2>
+                <div class="subcontent">
+                  <h4 class="meme">Enter your <a href="../help_email.html">email address</a>.
+                      <a href="javascript:show_toggle('pop_email')"><img src="../images/help.png"/></a></h4>
+                  <input type="email" name="email" id="email" size="40" class="meme"/>
+                  <h4 class="meme">Re-enter your email address.</h4>
+                  <input type="email" name="email_confirm" id="email_confirm" size="40" class="meme"/><br>
+                  <span class="pop_reference">
+                    <div class="pop_content" style="display:none" id="pop_email">
+                    The email is used to notify you of your results but is not stored.
+                    [<a href="javascript:show_toggle('pop_email')">close</a>]</div>
+                  </span>
+                  <h4 class="meme" style="padding-top:10px;">Optionally enter a job description.
+                      <a href="javascript:show_toggle('pop_job_description')"><img src="../images/help.png"/></a></h4>
+                  <input type="text" name="job_description" size="40" class="meme"/>
+                  <span class="pop_reference">
+                    <div class="pop_content" style="display:none" id="pop_job_description">
+                    The job description will be included in the notification email you receive.
+                    [<a href="javascript:show_toggle('pop_job_description')">close</a>]</div>
+                  </span>
+                </div>
+              </div>
+              <div id="page_adv_ctrl" style="display:block;">
+                <h3 class="meme">
+                <a href="javascript:show_hide('page_advanced', 'page_adv_ctrl')"><img src="../images/plus.png"/>Advanced Options</a>
+                </h3>
+              </div>
+              <div id="page_advanced" style="display:none">
+                <h3 class="meme">
+                <a href="javascript:show_hide('page_adv_ctrl','page_advanced')"><img src="../images/minus.png"/>Advanced Options</a>
+                </h3>
+                <!-- motif comparison function -->
+                <h2 class="meme">Select the motif column comparison function</h2>
+                <div class="subcontent">
+                  <select name="comparison_function">
+                    <option selected value="pearson">Pearson correlation coefficient</option>
+                    <option value="ed">Euclidean distance</option>
+                    <option value="sandelin">Sandelin-Wasserman similarity</option>
+                    <!-- 
+                    <option value="allr">Average log-likelihood ratio</option>
+                    <option value="chi">Pearson chi square test</option>
+                    <option value="fish">Fisher-Irwin exact test</option>
+                    <option value="kullback">Kullback-Leibler divergence</option>
+                    -->
+                  </select> <a href="javascript:show_toggle('pop_comparison_function')"><img src="../images/help.png"/></a><br>
+                  <span class="pop_reference">
+                    <div class="pop_content" style="display:none" id="pop_comparison_function">
+                    Motifs are compared column by column. In the following equations <b><i>X</I></b> is the set of probabilities 
+                    from one column and <b><i>Y</i></b> the probabilities from the compared column. The subscript <b><i>a</i></b> 
+                    refers to the letter from the nucleotide alphabet <b><i>A</i></b>.
+                    <dl class="meanings">
+                      <dt>Pearson correlation coefficient</dt>
+                      <dd><img src="../images/pearson-eq.png" /></dd>
+                      <dt>Euclidean distance</dt>
+                      <dd><img src="../images/euclidean-eq.png" /></dd>
+                      <dt>Sandelin-Wasserman similarity</dt>
+                      <dd><img src="../images/sandelin-eq.png" /></dd>
+                    </dl>
+                    [<a href="javascript:show_toggle('pop_comparison_function')">close</a>]</div>
+                  </span>
+                </div>
+                <!-- Significance threshold -->
+                <h2 class="meme">Set the significance threshold</h2>
+                <div class="subcontent">
+                  <select name="thresh_type" id="thresh_type">
+                    <option selected value="evalue"><i>E</i>-value</option>
+                    <option value="qvalue"><i>q</i>-value</option>
+                  </select>
+                   &lt;
+                  <!-- without html 5 support this is just a text field -->
+                  <input type="number" name="thresh" id="thresh" class="meme" step="0.10" value="10" size="4"> 
+                  <a href="javascript:show_toggle('pop_thresh')"><img src="../images/help.png"/></a><br>
+                  <span class="pop_reference">
+                    <div class="pop_content" style="display:none" id="pop_thresh">
+                    There are two ways of specifying the threshold.
+                    <dl class="meanings">
+                      <dt><i>E-value</i></dt>
+                      <dd>The expected number of false positives. This may be any positive number.</dd>
+                      <dt><i>q-value</i></dt>
+                      <dd>Minimum <b>F</b>alse <b>D</b>iscovery <b>R</b>ate at which a result is declared significant.
+                      This is a number between zero and one non-inclusive.</dd>
+                    </dl>
+                    [<a href="javascript:show_toggle('pop_thresh')">close</a>]</div>
+                  </span>
+                </div>
+              </div>
+              <!-- Search and clear buttons -->
+              <div style="margin-left:auto; margin-right:auto; width:15em; clear:both;">
+                <input type="submit" name="search" value="Start search">
+                &nbsp;&nbsp;&nbsp;
+                <input type="reset" value="Clear Input" onclick="reset_form()"><br>
+              </div>
+            </fieldset>
+          </form>
+          <table style="width:100%;font-weight:bold;font-size:0.6em;">
+            <tr>
+              <td style="text-align:left;">Version <!-- TMPL_VAR NAME=version --></td>
+              <td style="text-align:center;">Please send comments and questions to: 
+              <a href="mailto:<!-- TMPL_VAR NAME=help_email -->"><!-- TMPL_VAR NAME=help_email --></a></td>
+              <td style="text-align:right;">Powered by <a href="http://nbcr.net/software/opal/">Opal</a></td>
+            </tr>
+          </table>
+          <hr>
+          <table style="margin-left:auto; margin-right:auto; font-size:0.7em;">
+           <tr style="text-align:center;">
+             <td style="padding:5px;"><a href="../intro.html">Home</a></td>
+             <td style="padding:5px;"><a href="../intro.html">Submit a Job</a></td>
+             <td style="padding:5px;"><a href="../documentation.html">Documentation</a></td>
+             <td style="padding:5px;"><a href="../downloads.html">Downloads</a></td>
+             <td style="padding:5px;"><a href="../resources.html">User Support</a></td>
+             <td style="padding:5px;"><a href="../alternates.html">Alternate Servers</a></td>
+             <td style="padding:5px;"><a href="../doc/authors.html">Authors</a></td>
+             <td style="padding:5px;"><a href="../doc/cite.html">Citing</a></td>
+            </tr>
+          </table>
+        </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

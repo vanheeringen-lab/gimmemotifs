@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+	<head>
+		<title>AME - a motif enrichment analysis tool</title>
+		<link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+	</head>
+	<body>
+		<div id="main">
+			<script src="./meme-suite-logo.js" type="text/javascript">></script>
+			<p><b>Usage:</b></p>
+      <p>
+			<code>ame [options] &lt;sequence file&gt; &lt;motif file&gt;+</code>
+    	</p>
+      <p>
+      <b>Description:</b>
+      </p>
+
+      <p>
+        <code>AME</code> (Analysis of Motif Enrichment)
+        scores a set of DNA sequences given a set of DNA-binding motifs,
+        treating each position in the sequence as a the starting point of a possible
+        binding event. AME counts the number of cases where the <i>p</i>-value of
+        the binding event for each motif is below a given threshold, and performs
+        a Fisher exact test versus the number of binding events in a background sequence
+	set to determine the <i>p</i>-value of the count for each motif. The background
+	set is appended to the main sequence set in the input file, and the offset within
+	the file where the background starts is specified on the command line.
+      </p>
+      <p>
+        A previously described version of AME has a range of options not implemented
+        in this version. 
+      </p>
+      <p><b>Input:</b></p> 
+      <ul> 
+      <li>
+      <code>&lt;sequence file&gt;</code> is a collection of sequences in
+      <a href="fasta-format.html">FASTA</a> format. 
+      </li>
+      <li>
+      <code>&lt;motif file&gt;</code> containing a list of motifs, in 
+      <a href="meme-format.html">MEME format</a>. More than one file
+      can be specified.
+      </li>
+      </ul>
+      
+    	<p><b>Output:</b></p>
+      <p>
+      <code>AME</code> writes to a directory, <code>ame_out</code>, unless a different
+      directory name is specified on the command line. The output directory contains outputs
+      in two formats: HTML and plain text, in files named respectively <code>ame.html</code> and
+      <code>ame.txt</code>.
+      </p>
+      <p>
+      <b>Options:</b> 
+      </p>
+      <ul>
+    		<li><command-option name="o"/></li>
+    		<li><command-option name="oc"/></li>
+    		<li><command-option name="bgformat"/></li>
+    		<li><command-option program="ame" name="bgfile"/></li>
+    		<li><command-option name="length-correction"/></li>
+    		<li><command-option name="pvalue-threshold"/></li>
+    		<li><command-option name="fix-partition"/></li>
+    		<li><command-option name="pvalue-report-threshold"/></li>
+    		<li><command-option name="verbose"/></li>
+    		<li><command-option name="help"/></li>
+   		</ul>
+   		<p>
+   		The default output directory is <code>ame_out</code>, and is
+   		not overwritten (i.e., the default is the same as <code>--o ame_out</code>).
+   		</p>
+
+   <h3>Notes</h3>
+   <p>
+     This version of AME does not implement a number of alternative scoring
+     modes previously described. In the version, only Fisher exact test and 
+     total hits modes are implemented, with a fixed partition between foreground
+     and background sequences. <code>fix-partition</code> in this version
+     is therefore required rather than optional.
+   </p>
+
+   <h3>Citing ame</h3>
+   <p>
+     If AME is of use to you in your research, please cite:
+   </p>
+   <blockquote>
+          Robert C. McLeay, Timothy L. Bailey (2009).<br />
+          "Motif Enrichment Analysis: a unified framework and an evaluation
+          on ChIP data."<br />
+          <i>BMC Bioinformatics</i> 2010, 11:165, doi:10.1186/1471-2105-11-165.
+   </blockquote>
+   <h3>Contact the authors</h3>
+   <p>
+     You can contact the authors via email:
+   </p>
+   <blockquote>
+         Robert McLeay <a href="mailto:r.mcleay@imb.uq.edu.au">r.mcleay@imb.uq.edu.au</a>, and
+         Timothy Bailey <a href="mailto:t.bailey@imb.uq.edu.au">t.bailey@imb.uq.edu.au</a>.
+   </blockquote>
+   <p>
+     Bug reports should be directed to Robert McLeay.
+   </p>
+		</div>
+  </body>
+</html>

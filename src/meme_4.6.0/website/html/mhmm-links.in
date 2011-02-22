@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st January 2004), see www.w3.org">
+<title>Meta-MEME v3.3</title>
+<link href="metameme.css" rel="styleSheet" type="text/css">
+</head>
+<body bgcolor="white">
+<blockquote>
+<h1><img height="81" width="444" src="images/meta-meme.gif"></h1>
+<h3>Related web sites</h3>
+<hr>
+<ul>
+<li><a href="http://meme.sdsc.edu">MEME</a> is the motif discovery
+tool that builds the motif models that serve as input to Meta-MEME.
+MEME can be used to find motifs in DNA or protein sequences.</li>
+<br>
+<li><a href="http:///meme.sdsc.edu">MAST</a> is a database search
+tool that uses multiple MEME motif models to search a protein or
+DNA database. MAST differs from Meta-MEME in that MAST treats each
+motif model independently, rather than combining the motif models
+into a single meta-model.</li>
+<br>
+<li><a href=
+"http://www.cse.ucsc.edu/research/compbio/sam.html">SAM</a> is a
+hidden Markov model toolkit, developed at the University of
+California, Santa Cruz. Unlike Meta-MEME, SAM models are not
+motif-based. However, SAM supports both DNA and protein
+models.</li>
+<br>
+<li><a href="http://hmmer.janelia.org/">HMMER</a> is another hidden
+Markov model toolkit. Developed by Sean Eddy at Washington
+University in St. Louis, the HMMER toolkit includes a number of
+homology detection programs for specific tasks. These can be used
+with Meta-MEME by converting linear Meta-MEME models into HMMER
+version 1.8 models.</li>
+<br>
+<li>The <a href="http://blocks.fhcrc.org">BLOCKS</a> database
+is a searchable collection of PROSITE motifs. The associated
+<a href=
+"http://blocks.fhcrc.org/blockmkr/make_blocks.html">BLOCKMAKER</a>
+software allows for the construction of new motif blocks.</li>
+<br>
+<li><a href="http://pfam.wustl.edu">Pfam</a> is a database of
+protein domain multiple alignments and HMMs.</li>
+</ul>
+<hr>
+<a href="metameme-intro.html">Return</a> to the Meta-MEME home page.
+<p><i>Please send comments and questions to:
+<a href=
+"mailto:@METAMEME_CONTACT@">@METAMEME_CONTACT@</a>.</i></p>
+</blockquote>
+</body>
+</html>

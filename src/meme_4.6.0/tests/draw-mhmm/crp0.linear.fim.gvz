@@ -1,0 +1,24 @@
+digraph G {
+  rankdir=LR;
+  node[fontsize=24,font=Helvetica];
+  edge[fontsize=24,font=Helvetica];
+  state0 [label="begin",shape=ellipse,color="black",size="0.100000,0.100000"];
+  state1 [label="",shape=circle,color="blue",size="0.100000,0.100000"];
+  state2 [label="+3 : GCATCAGGCG",shape=box,color="0.1 0.5 0.8",size="0.100000,0.100000"];
+  state12 [label="",shape=circle,color="blue",size="0.100000,0.100000"];
+  state13 [label="+1 : TGTGATCGAGGTCACACTT",shape=box,color="0.9 1 0.8",size="0.100000,0.100000"];
+  state32 [label="",shape=circle,color="blue",size="0.100000,0.100000"];
+  state33 [label="end",shape=ellipse,color="black",size="0.100000,0.100000"];
+   state0 -> state1 [weight=9.583330,label="0.96"];
+   state0 -> state2 [weight=0.416667,label="0.042"];
+   state1 -> state1 [weight=10.000000,label="1"];
+   state1 -> state2 [weight=10.000000,label="1"];
+   state2 -> state12 [weight=9.677420,label="0.97"];
+   state2 -> state13 [weight=0.322581,label="0.032"];
+   state12 -> state12 [weight=10.000000,label="1"];
+   state12 -> state13 [weight=10.000000,label="1"];
+   state13 -> state32 [weight=9.583330,label="0.96"];
+   state13 -> state33 [weight=0.416667,label="0.042"];
+   state32 -> state32 [weight=10.000000,label="1"];
+   state32 -> state33 [weight=10.000000,label="1"];
+}

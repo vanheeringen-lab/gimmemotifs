@@ -1,0 +1,109 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st January 2004), see www.w3.org">
+<title>Meta-MEME v3.3 - Data submission</title>
+<!--<base href="http://metameme.sdsc.edu" target="_self" />-->
+<link rel="stylesheet" type="text/css" href="metameme.css"><!--
+<script src="validate.js" type="text/javascript" language="JAVASCRIPT"></script>
+-->
+</head>
+<body bgcolor="white">
+<img align='left' src='images/meta-meme.gif' height='81' width='444'><br>
+<br>
+<br>
+<br>
+<br>
+<h3>Data submission Form</h3>
+Use this form to submit DNA or protein sequences to Meta-MEME. In
+addition to your sequences, Meta-MEME requires as input a <a href=
+"http://meme.sdsc.edu">MEME</a> motif analysis of your data in HTML format. Using
+the output from MEME, Meta-MEME will build a motif-based hidden
+Markov model of your sequences and will use the model to 
+<!--produce a multiple alignment of your sequences and to--> search
+a sequence database for homologous sequences.
+<p>
+<!--Your data will be processed at the <a href="http://www.sdsc.edu/">San Diego Supercomputer Center</a> 
+and -->You will be directed to a URL that contains the links to
+your results.</p>
+<hr>
+<h3>Inputs</h3>
+Please enter the following inputs:<br>
+<form method="post" action="./cgi-bin/submit-verify.cgi" enctype=
+"multipart/form-data" onsubmit="return validateForm()" name=
+"form1">
+<ol>
+<li>The name of a file containing a set of <a href=
+"http://meme.sdsc.edu">MEME motifs</a> from your sequences. This
+file will be used to build the initial hidden Markov model.<br>
+<input type="file" name="meme" size="40" maxlength="80"></li>
+<li><b>[Optional]</b>The name of a file containing a set of
+<input type="radio" name="seqtype" value="DNA"> DNA or <input type=
+"radio" name="seqtype" value="protein" checked> protein sequences
+in an acceptable <a href="metameme-help-format.html">format</a>. <!--This file
+will be used to train the hidden Markov model.--><br>
+<input type="file" name="seq" size="40" maxlength="80"><br></li>
+<li><b>[Optional]</b> Description of your sequences:<br>
+<input type="textfield" name="Description" value="" size=
+"40"><br></li>
+<li><b>[Optional]</b> The sequence database you want to search:<br>
+<select name="database">
+<option value="PDB pdb.aa pdb.na">Protein Databank</option>
+<!--<option  value="Non-redundant nr.aa nr.na">NCBI non-redundant database</option>-->
+<!--<option  value="Monthly month.aa month.na">New NCBI entries this month</option>-->
+<option value="Yeast yeast.aa yeast.na">Yeast (S. cerevisiae)
+genome</option>
+<option value="C_elegans c_elegans.aa c_elegans.na">C. elegans
+genome</option>
+<option value="Ecoli ecoli.aa ecoli.na">E. coli genome</option>
+<option value="SWISS-PROT swissprot none">SWISS-PROT (protein
+only)</option>
+<option value="Genpept genpept none">Genpept (protein
+only)</option>
+<!--<option  value="DBEST none est">NCBI non-redundant EST database (DNA only)</option>-->
+<option value="DBSTS none sts">NCBI non-redundant STS database (DNA
+only)</option>
+<option value="Vector none vector">Vector subset of Genbank (DNA
+only)</option>
+<option value="EPD none epd">Eukaryotic Promoter Database (DNA
+only)</option>
+</select></li>
+</ol>
+<br>
+<!--
+<input type="submit" name=".submit" value="Submit" />
+<input type="reset" value="Clear Input" />
+-->
+<input type="hidden" name=".cgifields" value="mult"> <input type=
+"hidden" name=".cgifields" value="seqtype"> <input type="hidden"
+name=".cgifields" value="occur"> <input type="hidden" name=
+".cgifields" value="search">
+<hr>
+<h3>Outputs</h3>
+Please select the desired output(s).<br>
+<ol>
+<li>A motif-based hidden Markov model.<br>
+<!--<LI><input type="checkbox" name="mult" value="on" onclick="changeValue(this)" />
+A multiple alignment of the motif regions of your sequences.<BR>--></li>
+<li><input type="checkbox" name="occur" value="on" onclick=
+"changeValue(this)"> An analysis of the motif occurrences in your
+sequences.<br></li>
+<li><input type="checkbox" name="search" value="on" onclick=
+"changeValue(this)"> A list of homologous sequences from the
+selected database.</li>
+</ol>
+<br>
+<hr>
+<input type="submit" name=".submit" value="Submit"> <input type=
+"reset" value="Clear Input"> <input type="hidden" name=".cgifields"
+value="mult"> <input type="hidden" name=".cgifields" value=
+"seqtype"> <input type="hidden" name=".cgifields" value="occur">
+<input type="hidden" name=".cgifields" value="search"></form>
+<hr>
+<a href="metameme-intro.html">Return</a> to the Meta-MEME home page.<br>
+<br>
+<i>Please send comments and questions to <a href=
+"mailto:@METAMEME_CONTACT@">@METAMEME_CONTACT@</a></i>
+</body>
+</html>

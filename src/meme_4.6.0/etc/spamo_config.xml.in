@@ -1,0 +1,84 @@
+<appConfig xmlns="http://nbcr.sdsc.edu/opal/types" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <metadata>
+    <usage><![CDATA[spamo]]></usage>
+    <info>
+    <![CDATA[
+    spamo_webservice [--uploaded <uploaded secondary motifs>] [--margin <size>] <sequences file> <primary motif file> <secondary motif databases>
+
+    Flags
+     
+    Tagged Parameters
+      uploaded <uploaded database>  - add the uploaded database to the list of secondary motif databases
+      margin <size> - size of the margin
+
+    Parameters
+
+      Sequences File
+        The sequences to be used to calculate spacings of the primary and secondary motifs. Paths not allowed and will be dropped.
+
+      Primary Motif File
+        Name of the primary motif file. Paths not allowed and will dropped.
+
+      Secondary Motif Databases
+        A pattern or a list of motif databases for which spacings will be calculated.
+    ]]>
+    </info>
+    <!-- information about command-line arguments -->
+    <types>
+      <taggedParams>
+        <separator> </separator>
+        <param>
+          <id>uploaded_secondary_motifs</id>
+          <tag>--uploaded</tag>
+          <paramType>FILE</paramType>
+          <ioType>INPUT</ioType>
+          <required>false</required>
+          <textDesc>Additional Secondary Motifs</textDesc>
+        </param>
+        <param>
+          <id>margin</id>
+          <tag>--margin</tag>
+          <paramType>INT</paramType>
+          <required>false</required>
+          <textDesc>Margin</textDesc>
+        </param>
+      </taggedParams>
+      <untaggedParams>
+        <param>
+          <id>sequences</id>
+          <paramType>FILE</paramType>
+          <ioType>INPUT</ioType>
+          <required>true</required>
+          <textDesc>Sequences</textDesc>
+        </param>
+        <param>
+          <id>primary_motif</id>
+          <paramType>FILE</paramType>
+          <ioType>INPUT</ioType>
+          <required>true</required>
+          <textDesc>Primary Motif</textDesc>
+        </param>
+        <param>
+          <id>secondary_motif_patterns</id>
+          <paramType>STRING</paramType>
+          <required>true</required>
+          <textDesc>Secondary Motif DB Names</textDesc>
+        </param>
+      </untaggedParams>
+      <groups>
+        <group>
+          <name>required_params</name>
+          <elements>sequences primary_motif secondary_motif_patterns</elements>
+          <textDesc>Required Parameters</textDesc>
+        </group>
+        <group>
+          <name>optional_params</name>
+          <elements>uploaded_secondary_motifs margin</elements>
+          <textDesc>Optional Parameters</textDesc>
+        </group>
+      </groups>
+    </types>
+  </metadata>
+  <binaryLocation>@SPAMO_SERVICE@</binaryLocation>
+  <parallel>false</parallel>
+</appConfig>

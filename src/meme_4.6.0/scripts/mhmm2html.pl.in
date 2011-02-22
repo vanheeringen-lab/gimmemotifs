@@ -1,0 +1,889 @@
+#!@WHICHPERL@ -w
+# AUTHOR: Haoyuan Zhu and William Stafford Noble and Timothy L. Bailey
+# CREATE DATE: 1/29/2002
+# PROJECT: MHMM
+# DESCRIPTION: Convert Meta-MEME files to HTML format. 
+use strict;
+
+# To do list:
+#  o Automatically determine alphabet.
+#  o Format header better.
+#  o Handling of mhmma files is untested.
+#  o Determine correct parameters for format_diagrams().
+#  o The block diagrams are too wide.
+#  o Update explanation.  (Done for mhmmscan.)
+
+### GLOBAL VARIABLES.
+
+# Usage message.
+my $usage = "USAGE: mhmm2html [options] <file>
+
+  Options: -alphabet dna|protein (default=dna)
+           -diagram-scale <value> (default=1)\n";
+
+
+# Use the FindBin module to locate the convert2html.pl source file.
+# convert2html.pl is a program written by Tim
+#require "$FindBin::Bin/convert2html";
+#use FindBin;
+#use File::Basename;
+use lib qw(@PERLMODDIR@);
+require "@PERLMODDIR@/convert2html.pl";
+
+# Get the documentation directory path by finding the
+my $docdir = "@DOCDIR@";
+
+# process_request.cgi is used to print plain text file
+#my $process_request = "http://metameme.sdsc.edu/cgi-bin/process_request.cgi";
+my $process_request = "../cgi-bin/mhmm_process_request.cgi";
+
+# Dimensions of motif occurrence diagrams.
+my $SCALE = 0.25;          # sequence_positions/pixel
+my $MAX_DIAGRAM = 100000;  # maximum number of pixels per diagram
+
+# Global list of motif widths
+my %WIDTHS;
+
+# Section header names.
+my @mhmm_sections = ("HMM STATES", "HMM TRANSITIONS", 
+		  "EXPLANATION OF THE METAMEME MODEL FILE",
+		  "PROGRAM PARAMETERS");
+my @mhmma_sections = ("MULTIPLE ALIGNMENT");
+my @mhmms_sections = ("DATABASE SEARCH RESULTS", "ALIGNMENTS", 
+		   "MOTIF DIAGRAMS", "EXPLANATION OF OUTPUT", 
+		   "PROGRAM PARAMETERS");
+my @colors = ("#DDDDFF", "#00FFFF", "#DDFFDD", "#FFFF00", "#DDAA00");
+
+# Define buttons for navigation within document
+my %buttons = (
+	       "top", 
+	       "<A HREF='\#top_buttons'><B>Go to top</B></A>!#DDDDFF!#000000"
+	       );
+
+
+my $text_diagram;
+my $num_seqs;
+
+
+##############################################################################
+# Parse the command line.
+if (scalar(@ARGV) < 1){
+  print (STDERR $usage);
+  exit(0);  
+}
+my $alphabet = "dna";
+my $diagram_scale = 1;
+my $mhmmscan;
+while (scalar(@ARGV) > 1) {
+  my $next_arg = shift(@ARGV);
+  if ($next_arg eq "-alphabet") {
+    $alphabet = shift(@ARGV);
+  } elsif ($next_arg eq "-diagram-scale") {
+    $diagram_scale = shift(@ARGV);
+  } elsif ($next_arg eq "-mhmmscan") {
+    $mhmmscan = 1;
+  } elsif ($next_arg eq "-test") {
+    # This is an undocumented flag used by mhmmscan to locate this script.
+    print("mhmm2html\n");
+    exit(0);
+  } else {
+    die("Illegal argument ($next_arg).\n$usage");
+  }
+}
+my($infile_name) = @ARGV;
+
+# Open the input file.
+open(INFILE, "<$infile_name") || die("Can't open $infile_name.");
+
+# Print the introductory section.
+my $input_type = &make_introduction(\*INFILE);
+
+#
+# Print the sections unique to each program. 
+#
+if ($input_type eq "mhmm") {
+  &make_mhmm(\*INFILE);
+}
+elsif ($input_type eq "mhmma") {
+  &make_mhmma($alphabet, \*INFILE);
+}
+elsif (($input_type eq "mhmms") ||
+       ($input_type eq "mhmmscan")) {
+  &make_mhmms($input_type, $alphabet, \*INFILE, $input_type);
+}
+else {
+  die("Unrecognized program ($input_type).\n");
+  exit(1);      
+}
+
+# Print the explanation of output section.
+&make_explanation($input_type);
+
+# Print the parameters section.
+&make_parameters(\*INFILE);
+
+# Print the whole file as a hidden field.
+&make_hidden_copy(\*INFILE);
+
+# Print the end of the HTML file.
+print(&make_end(\%buttons));
+
+close(\*INFILE);
+
+########################################################################
+# Print out some introductory information.
+# 
+# FIXME: This could be formatted better.
+########################################################################
+sub make_introduction {
+  my($infile, @sections) = @_;
+  my($program);
+
+  # Read the first line.
+  my $line = <$infile>;
+  chomp($line);
+  
+  # Remove the hash.
+  $line = substr($line, 2);
+
+  # Make sure it says what it should.
+  if ($line ne "The MEME Suite of motif-based sequence analysis tools.") {
+    die("Cannot HTML-ize a file without a header.\n$line\n");
+  }
+
+  # HTML-ize the first line.
+  my $header = &format_subtitle($line);  
+
+  # Read the rest of the header.
+  while ($line = <$infile>) {
+    chomp($line);
+
+    # Remove the hash.
+    $line = substr($line, 2);
+
+    # Get the program name.
+    my @words = split(' ', $line);
+    if (defined($words[0])) {
+      if ($words[0] eq "Program:") {
+	$program = $words[1];
+	$header .= "<PRE>";
+      } elsif ($words[0] eq "For") {
+	$header .= "</PRE>";
+      }
+    }
+
+    # We've reached the end of the header.
+    if ($line eq "*****************************************************************************") {
+      last;
+    }
+
+    if ($line eq "") {
+      $header .= "<BR><BR>\n";
+    } else {
+      $header .= "$line\n";
+    }
+  }
+  
+  # Print the HTML header.
+  print_header($program, "white");
+
+  # Get the appropriate list of section names.
+  if ($program eq "mhmm") {
+    @sections = @mhmm_sections;
+  } elsif ($program eq "mhmma") {
+    @sections = @mhmma_sections;
+  } elsif (($program eq "mhmms") || ($program eq "mhmmscan")) {
+    @sections = @mhmms_sections;
+  } else {
+    die("Unrecognized program ($program).\n");
+  }
+  
+  # Print the section cross-references.
+  print "<A NAME='top_buttons'></A><HR>\n";
+  print("<TABLE SUMMARY='' ALIGN=LEFT BORDER=0><TR>\n");
+  foreach my $section (@sections) {
+
+    # Replace spaces with underscores.
+    my $new_section = $section;
+    $new_section =~ s/ /_/g;
+
+    # Print the link.
+    my $color = shift(@colors);
+    print("<TD BGCOLOR=#$color>");
+    print("<A HREF=\"#$new_section\"><B>$section</B></A></TD>\n");
+  }
+  print("</TR></TABLE><BR CLEAR=LEFT>\n");
+
+  # Print the header.
+  print($header);
+
+  # Add a "View plain text" button.
+  #print("<FORM METHOD = POST ACTION = \"$process_request\">
+  #<INPUT TYPE = SUBMIT NAME = action VALUE = 'VIEW PLAIN TEXT'>\n");
+
+  return($program);
+} #sub make_introduction
+
+#########################################################################
+# Store the entire input file as a hidden field.
+#########################################################################
+sub make_hidden_copy {
+  my($infile) = @_;
+  
+  # Store the contents of the file as a single variable.
+  my $text = "";
+  while (my $line = <$infile>){
+    $text .= $line;
+  }
+  print(&format_hidden("plain text", $text));
+} # make_hidden_copy
+
+########################################################################
+# Print a subtitle to stdout, including a section reference.
+########################################################################
+sub print_subtitle {
+  my ($line) = @_;
+
+  my $new_line = $line;
+  $new_line =~ s/ /_/g;
+  print("<A NAME=$new_line></A>");
+  print(&format_subtitle($line));
+  "";				# so you can use it like format_subtitle
+} #print_subtitle
+
+
+########################################################################
+# Generate html output for mhmm.
+########################################################################
+sub make_mhmm {
+  my($infile) = @_;
+
+  # Print the state table header.
+  &print_subtitle("HMM STATES");
+
+  # Read and print the state information.
+  my $text = "";
+  my $line = <$infile>;
+  while (!($line =~ /Transition probability matrix/)){
+    $text .= $line;
+    $line = <$infile>;
+  }
+  print(&format_pre($text));
+
+  # Print the transition table header.
+  &print_subtitle("HMM TRANSITIONS");
+
+  # Add state indices to the transition table.
+  $text = "state";
+  my $num_transition = &num_transition($line);
+  for (my $i = 0; $i < $num_transition; $i++) {
+    $text .= " $i";
+  }
+  $text .= "\n";
+
+  # Add transitions to the transition table.
+  my $num_lines = 0;
+  $line = <$infile>;
+  while (!($line =~ /End of MHMM/)){
+    $text .= "$num_lines $line";
+    $num_lines++;
+    $line = <$infile>;
+  }
+  
+  # Print the transition table.
+  &format_table($text, 0);
+
+} # make_mhmm
+
+################################################################### 
+# num_transition
+# How many transition states in MHMM model file
+#
+# USAGE: $num = &num_transition($line)
+###################################################################
+sub num_transition{
+  my ($line) = @_;
+  my @temp1 = split("x",$line);
+  my @temp2 = split(":",$temp1[$#temp1]);
+  my $out = substr($temp2[0],0,length($temp2[0])-1);
+  return($out);
+} # num_transition
+
+#################################################################
+# make_mhmma
+# to generate html output page for mhmma
+#################################################################
+sub make_mhmma {
+  my($alphabet, $infile) = @_;
+
+  my $text = "";
+  my $i_line = 0;
+  my $num_space = 0;
+  my $label = 0;
+
+  while (my $line = <$infile>){
+    $i_line ++;
+    #skip the first line
+    if ($i_line == 1){
+    }
+    elsif (!($line =~ /\/\//)){
+      $text = $text.$line;
+    }
+    elsif ($line =~ /\/\//){
+      $text = "";
+      $i_line = 0;
+      $line = &format_subtitle("MULTIPLE ALIGNMENT");
+      print $line;
+      while (!($line =~ /Program parameters/)){
+	$line = <$infile>;
+	$i_line ++;
+	if (!($line =~ /Program parameters/)){
+	  # if meet "\n", the next line is label line
+	  # add these two lines to text
+	  if ($line eq "\n"){
+	    
+	    $text = $text.$line;
+	    $line = <$infile>;
+	    $i_line ++;
+	    if ($i_line == 2){
+	      $num_space = &cal_space($line);
+	    }
+	    if (!($line =~ /Program parameters/)){ 
+	      $text = $text.$line; 
+	    }
+	  }
+	  #
+	  # otherwise, add color the the upper case letter in sequence
+	  # 
+	  else{
+	    my $new_line = &add_color_uppercase($line, $alphabet);
+	    $text = $text.$new_line;
+	  }
+	  
+	}
+      }
+      $line = &format_pre($text);
+      print $line;
+      last;
+    }
+  }
+
+} #make_mhmma
+
+#############################################################################
+# Calculate how many white spaces before the first character of a line.
+# This function is called by make_mhmma.
+#
+# USAGE: $num_space = &cal_space($line);
+############################################################################
+sub cal_space{
+  my ($line) = @_;
+  my ($num_space) = 0;
+
+  for (my $i = 0; $i < length($line); $i++) {
+    if (substr($line,$i,1) eq " "){
+      $num_space++;
+    }
+    else{
+      last;
+    }
+  }
+  return ($num_space);
+} #cal_space
+
+############################################################################
+# Generate HTML output from mhmms and mhmmscan input.
+############################################################################
+sub make_mhmms {
+  my($program, $alphabet, $infile, $input_type) = @_;
+
+  # Print the section header.
+  &print_subtitle("DATABASE SEARCH RESULTS");
+
+  # Read, store and print the search results header line.
+  my $line = <$infile>;
+  chomp($line);
+  my @titles = split(' ', $line);
+  print("<TABLE SUMMARY='' BORDER=\"1\">\n");
+  print("<TR>\n");
+  print(&add_table_delimiters($line));
+  print("</TR>\n");
+  
+  # Skip the line of hyphens.
+  $line = <$infile>;
+
+  # Read the search results.
+  print(STDERR "Reading sequence scores.\n");
+  $line = <$infile>;
+  my $i_seq = 0;
+  my @ids;
+  while (!($line =~ /-------/)) {
+    chomp($line);
+
+    # Parse and print the line.
+    print("<TR>");
+    my $i_word = 0;
+    foreach my $word (split(' ', $line)) {
+      if ($i_word == 0) {
+	print("<TD>");
+	print(&add_entrez_link($word, $alphabet));
+	print("</TD>");
+	# Store the ID for use in parsing alignments later.
+	$ids[$i_seq] = $word;
+      } elsif ($i_word < scalar(@titles) - 1) {
+	print("<TD>$word</TD>");
+      } elsif ($i_word == scalar(@titles) - 1) {
+	print("<TD>$word");
+      } else {
+	print(" $word");
+      }
+      $i_word++;
+    }
+    print("</TD></TR>\n");
+
+    $line = <$infile>;
+    $i_seq++;
+  }
+  print("</TABLE><BR><BR>\n");
+  $num_seqs = $i_seq;
+  $ids[$num_seqs] = "";
+  print(STDERR "Read $num_seqs sequence scores.\n");
+
+  # skip blank lines
+  my $id_line = <$infile>;
+  while ($id_line =~ /^\s*$/) {$id_line = <$infile>};
+
+  if ($id_line =~ /^$ids[0]/) {	# alignments present?
+    &print_pairwise_alignments($program, $alphabet, $infile, $id_line);
+    &print_motif_diagrams($program, $alphabet, $infile, $id_line);
+  }
+
+} #make_mhmms
+
+############################################################################
+# Print pairwise alignments from mhmms and mhmmscan input.
+#
+# Assumes that the first id line has been read and is in $id_line.
+# Uses globals:
+#	@ids
+############################################################################
+sub print_pairwise_alignments {
+  my($program, $alphabet, $infile, $id_line) = @_;
+
+  my $got_scores = 0;
+
+  &print_subtitle("ALIGNMENTS");
+  print("<table summary='' border=\"1\">\n");
+  print("<tr>\n");
+  print("<td><CENTER>ID<BR>E-value<BR>Score<BR></CENTER></td>");
+  print("<td><center>Alignment</center></td>\n");
+  print("</tr>\n");
+
+  # Initialize the text diagram.
+  $text_diagram = "SEQUENCE NAME\tE-VALUE\tMOTIF DIAGRAM\n";
+  $text_diagram .= "-------------\t-------\t-------------\n";
+
+  # Read the alignment for each sequence.
+  print(STDERR "Reading alignments for $num_seqs sequences.\n");
+  for (my $id_seq = 0; $id_seq < $num_seqs; $id_seq++) {
+
+    # Store the sequence information.
+    my($id, $evalue, $score) = split(' ', $id_line);
+    printf("<TR><TD><CENTER>%s<BR>%s<BR>%s<BR></CENTER></TD>",
+	   &add_entrez_link($id, $alphabet),
+	   $evalue, $score);
+
+    # Read the entire alignment for this sequence.
+    my $raw_alignment = "";
+    my $this_alignment = "";
+    my $colored_alignment = "";
+    my $line;
+    $line = <$infile>;
+    while (!&is_id_line($line) && !&is_divider_line($line)) {
+      $raw_alignment .= $line;
+      $line = <$infile>;
+    }
+    my(@lines) = split("\n", $raw_alignment);
+    my($num_lines)= scalar(@lines);
+    my($lines_per_block)= 0;
+
+    # The number of lines in an alignment should be a multiple of 6 if
+    # a score is provided and a multiple of 5 if no score provided
+    if ($num_lines != 0 && $num_lines % 6 == 0) {
+      $got_scores = 1;
+      $lines_per_block = 6;
+    } elsif ($num_lines != 0 && $num_lines % 5 == 0) {
+      $got_scores = 0;
+      $lines_per_block = 5;
+    } else {
+      print(STDERR "The alignment for sequence $id had an unexpected number of lines.\n");
+      print(STDERR "$num_lines were found. Expected a multiple of 5 or 6\n");
+      exit(1);
+    }
+
+    # Parse each block in the raw alignment
+    for (my $i = 0; $i < $num_lines; $i += $lines_per_block) {
+      my $pvalue_sequence;
+      my $motif_sequence;
+      my $model_sequence;
+      my $match_sequence;
+      my $sequence;
+      if ($got_scores) {
+	$pvalue_sequence = $lines[$i + 1];
+	$motif_sequence = $lines[$i + 2];
+	$model_sequence = $lines[$i + 3];
+	$match_sequence = $lines[$i + 4];
+	$sequence = $lines[$i + 5];
+      } else {
+	$motif_sequence = $lines[$i + 1];
+	$model_sequence = $lines[$i + 2];
+	$match_sequence = $lines[$i + 3];
+	$sequence = $lines[$i + 4];
+      }
+      # Test for valid sequence as a sanity check
+      if (!($sequence =~ /^\s*\d+\s+[a-zA-Z]+\s+\d+\s*$/)) { 
+       	die("File is not in proper format at sequence $id.\n");
+      }
+
+      # Add color to the model sequence and the sequence.
+      my($colored_model_sequence, $colored_sequence) 
+	  = &add_color_in_parallel($model_sequence, $sequence, $alphabet);
+
+      # Store everything in this alignment, with and without color.
+      $this_alignment .= "\n";
+      if ($got_scores) {
+	$this_alignment .= $pvalue_sequence . "\n";
+      }
+      $this_alignment .= $motif_sequence . "\n";
+      $this_alignment .= $model_sequence . "\n";
+      $this_alignment .= $match_sequence . "\n";
+      $this_alignment .= $sequence . "\n";
+
+      $colored_alignment .= "\n";
+      if ($got_scores) {
+	$colored_alignment .= $pvalue_sequence . "\n";
+      }
+      $colored_alignment .= $motif_sequence . "\n";
+      $colored_alignment .= $colored_model_sequence . "\n";
+      $colored_alignment .= $match_sequence . "\n";
+      $colored_alignment .= $colored_sequence . "\n";
+    }
+
+    # Format and print this alignment.
+    printf("<td>%s</td>\n", &format_pre($colored_alignment));
+    print("</tr>\n");
+
+    # Store this alignment for later.
+    $text_diagram .= &format_text_diagram($this_alignment, $id, $evalue,
+					     $program);
+    if (&is_id_line($line)) {
+      $id_line = $line;
+    }
+  }
+  print("</TABLE>\n");
+} # print_pairwise_alignments
+
+############################################################################
+# Print motif diagrams from mhmms and mhmmscan input.
+############################################################################
+sub print_motif_diagrams {
+  my($program, $alphabet, $infile) = @_;
+
+  # Print the motif diagrams graphically.	
+  print(STDERR "Creating the motif occurrence diagram.\n");
+
+  #print(STDERR "text_diagram=$text_diagram\n");
+
+  &print_subtitle("MOTIF DIAGRAMS");
+  print(&format_diagrams($SCALE  / $diagram_scale, # sequence positions/pixel
+			 $MAX_DIAGRAM * $diagram_scale, # maximum number of pixels per diagram
+			 $text_diagram,
+			 $alphabet, # Database
+			 $alphabet eq "dna" ? "c" : "p", # stype
+			 0,  # xlate (not translating DNA to protein)
+			 0,  # no buttons on left
+			 "E-value",
+			 0, # leave gi names.
+			 '\t',	# field delimiter
+			 undef,	# skip list
+			 \%WIDTHS	# width list
+			 ));
+
+  print(&format_hidden("motif diagrams plain text", $text_diagram));
+} # print_motif_diagrams
+
+
+###############################################################
+# Add table delimiters to a white-space delimited line.
+###############################################################
+sub add_table_delimiters {
+  my ($line) = @_;
+  chomp ($line);
+  my @words = split(' ', $line);
+  $line = join("</TD><TD>", @words);
+  return("<TD>$line</TD>");
+}
+
+##############################################################
+# Add color to a letter.
+##############################################################
+sub colorize {
+  my($letter, $alphabet) = @_;
+  my($color);
+
+  $color = &get_color($alphabet, $letter);
+  if ($color eq "BLACK") {
+    return($letter);
+  } else {
+    return("<B CLASS=\"" . &get_color($alphabet, $letter)
+           . "\">$letter</B>");
+  }
+}
+
+##############################################################
+# Add color to uppercase letters in a text string.
+##############################################################
+sub add_color_uppercase {
+  my($text, $lowercase, $alphabet) = @_;
+  my($return_text, $num_letters, $i_letter, $this_char);
+
+  $return_text = "";
+  $num_letters = length($text);
+  for ($i_letter = 0; $i_letter < $num_letters; $i_letter++) {
+    $this_char = substr($text, $i_letter, 1);
+
+    if ($this_char =~ /[A-Z]/) {
+      $return_text .= &colorize($this_char, $alphabet);
+    } else {
+      $return_text .= $this_char;
+    }
+  }
+  return($return_text);
+}
+
+##############################################################
+# Add color to two strings of equal length.  Only add color in
+# positions where the first string has an alphabetic character.
+##############################################################
+sub add_color_in_parallel {
+  my($first_text, $second_text, $alphabet) = @_;
+
+  my $return_first_text = "";
+  my $return_second_text = "";
+  my $num_letters = length($first_text);
+  for (my $i_letter = 0; $i_letter < $num_letters; $i_letter++) {
+
+    # Get the corresponding characters from each string.
+    my $first_char = substr($first_text, $i_letter, 1);
+    my $second_char = substr($second_text, $i_letter, 1);
+
+    # Only add color to alphabetic characters.
+    if ($first_char =~ /[A-Z]/) {
+      $return_first_text .= &colorize($first_char, $alphabet);
+      $return_second_text .= &colorize($second_char, $alphabet);
+    } else {
+      $return_first_text .= $first_char;
+      $return_second_text .= $second_char;
+    }
+  }
+
+  return($return_first_text, $return_second_text);
+}
+
+#####################################################################
+# add hyperlink to the introduction part
+#####################################################################
+sub add_hyperlink{
+  my($line) = @_;
+  chomp($line);
+  my(@temp) = split(': ',$line);
+  if ($temp[0] =~ /HMM file/){
+    $line = $temp[0].": ";
+    $temp[1] = "<a href = \"$temp[1]\">$temp[1]</a>";
+    $line .= "$temp[1] ";
+    $line .= "This file will be stored online for three days";
+    return $line;
+  }
+  else{
+    return $line;
+  }
+}
+
+#############################################################################
+# make_explanation
+#
+# USAGE: &make_explanation($program)
+#############################################################################
+sub make_explanation(){
+  my ($program) = @_;
+
+  my $subtitle;
+  if ($program eq "mhmmscan" || $program eq "mhmms") {
+    $subtitle = "EXPLANATION OF OUTPUT";
+  } elsif($program eq "mhmma") {
+    $subtitle = "EXPLANATION OF MULTIPLE ALIGNMENT";
+  } elsif($program eq "mhmm") {
+    $subtitle = "EXPLANATION OF THE METAMEME MODEL FILE";
+  }
+
+  my $file = "$docdir/$program.html";
+
+  my $explanation = &print_subtitle($subtitle);
+
+  # copy the html file contents minus the header and tailer
+  $explanation .= &copy_html_file($file, "START OUTPUT", "END OUTPUT");
+
+  print($explanation);
+} #make_explanation
+
+#############################################################################
+# copy_html_file
+#
+# USAGE $text = &copy_html_file($infile, $start, $stop)
+#
+# Returns all lines between the $start and $stop markers in an HTML file.
+#
+#############################################################################
+sub copy_html_file(){
+  my ($infile_name, $start, $stop) = @_;
+  my($infile);
+
+  open($infile, "<$infile_name") || die("Can't open $infile_name.");
+  
+  my $out = "";
+  my $copying = 0;
+  while (<$infile>) {
+    last if (/$stop/);
+    if (!$copying) {$copying = /$start/; next;}
+    if ($copying) { $out .= $_; }
+  }
+  return($out);
+} #copy_html_file
+
+#######################################################################
+# Format Text Diagram
+#
+# Convert a Meta-MEME alignment into a motif occurrence diagram.
+# Each diagram looks like this: [1]_5_[4]_43_[3], where numbers 
+# in brackets are motif indices, and other numbers are spacer lengths.
+# 
+# N.B. This function assumes that the motif occurences are complete.
+#######################################################################
+sub format_text_diagram{
+  my($line, $id, $e_value, $program) = @_;
+
+  my($white_space) = 8;
+  my $new_line = "";
+
+  # Split the diagram into lines.
+  my @lines = split("\n", $line);
+
+  # If the number of lines is a multiple of 5 then there is no score line.
+  # If the number of lines is a multiple of 6 then there is a score line.
+  # If the number of lines is not a multiple of 5 or 6 something is wrong.
+  my $numlines = scalar(@lines);
+  my $numlines_per_group = 0;
+  my $motifline;
+  if ($numlines > 0 && (($numlines % 5) == 0)) {
+    $motifline = 1;
+    $numlines_per_group = 5;
+  } elsif ($numlines > 0 && (($numlines % 6) == 0)) {
+    $motifline = 2;
+    $numlines_per_group = 6;
+  } else {
+    print(STDERR "The number of lines in the alignment $id is $numlines, expected a multiple of 5 or 6\n");
+    exit(1);
+  }
+
+  # Get the starting position of the alignment.
+  my @words = split(' ', $lines[$numlines_per_group - 1]);
+  my($start_point);
+
+  if ($program eq "mhmmscan") {
+    $start_point = 0;
+  }
+  # Otherwise, begin at the start of the sequence.
+  else {
+    $start_point = $words[0];
+  }
+
+  # Read every fourth or fifth line of the alignment and remove
+  # whitespace on ends.  This concatenates the motif line from all the
+  # alignment blocks
+  my $label_line = "";
+  for (my $i_line = $motifline; $i_line < $numlines; 
+       $i_line += $numlines_per_group) {
+    my $substring = $lines[$i_line];
+    $substring =~ s/^\s+//;
+    $substring =~ s/\s+$//;
+    $label_line .= $substring;
+  }
+
+  # Store the ID and E-value.
+  $id = &add_entrez_link($id, $alphabet);
+  my $return_value = "$id\t$e_value\t";
+
+  # Find all motifs in the line. 
+  # Motifs are marked by strings of the form "*----6----*"
+  my $end_motif = 0;
+  while ($label_line =~ /\*_*([+-]?\d+)_*\*/g) {
+    my $start = index $label_line, $&, $end_motif;
+    my $w = length($&);
+    my $end = $start + $w;
+    my $space = $start - $end_motif;
+    my $name = $1;
+    # save the width of the motif in a global for use in making diagrams
+    $name =~ /[+-]?(\d+)/;
+    my $motif_id = $1;
+    $WIDTHS{$motif_id} = $w;
+    $return_value .= "_" . $space . "_[" . $name . "]";
+    $end_motif = $end;
+  }
+
+  # Special case: no motifs.
+  if ($end_motif == 0) {
+    $return_value .=  $start_point +  length($label_line);
+  } else {
+    $return_value .= "_";
+    $return_value .= length($label_line) - $end_motif;
+  }
+  $return_value .= "\n";
+
+  #print(STDERR "return_value=$return_value\n");
+  return($return_value);
+}
+
+sub make_parameters {
+  my($infile) = @_;
+
+  &print_subtitle("PROGRAM PARAMETERS");
+
+  while (my $line = <$infile>) {
+    print("$line<BR>\n");
+  }
+  #close($infile);
+}
+
+sub is_id_line() {
+  my($line)= @_;
+  my $result = 0;
+
+  # N.B. This line needs a comment!
+  if ($line =~ /^[\S]+.*$/) {
+    #print(STDERR "ID line: $line");
+    $result = 1;
+  }
+  return($result);
+}
+
+sub is_divider_line() {
+  my($line) = @_;
+  my $result = 0;
+
+  # N.B. This line needs a comment!
+  if ($line =~ /^ -+$/) {
+    #print(STDERR "Divider line: $line");
+    $result = 1;
+  }
+  return($result);
+}

@@ -1,0 +1,54 @@
+#!/usr/bin/perl
+# Author: Haoyuan Zhu
+# Description: Change metameme output to web version
+# We need to change the name of HMM file, Sequence file, Motif file
+
+#SDSC setting:
+$weboutputdir = "http://metameme.sdsc.edu";
+
+if ($#ARGV < 2){
+    print stderr "USAGE: changetoweb.pl <input file> <Sequence file name> <Motif file name>\n";
+    exit(0);
+}
+
+$infile = $ARGV[0];
+$motif_name = $ARGV[1];
+$seq_name = $ARGV[2];
+open ($infile,"<$infile") || die "Cannot open $infile\n";
+$mark = 0; # Have we reached parameters part?
+while ($line = <$infile>){
+    if ($line =~ /Program parameters/){
+	$mark = 1;
+    }
+    if ($mark != 1){
+	if (($line =~ /HMM file/) || ($line =~ /Database file/)){
+	    @temp1 = split(':',$line);
+	    @temp2 = split('website',$temp1[1]);
+	    chomp($temp3 = $temp2[1]);
+	    if ($line =~ /HMM file/){
+	    	print "$temp1[0]: $weboutputdir$temp3\n";
+	    }
+	    elsif ($temp3 eq ""){
+		print "$temp1[0]: $seq_name\n";
+	    }
+	    else{
+		print $line;
+	    }
+	}
+	elsif (($line =~ /Sequence file/) || ($line =~ /sequence_file/)){
+	    @temp = split(':',$line);
+	    print "$temp[0]: $seq_name\n";
+	}
+	elsif (($line =~ /Motif file/) || ($line =~ /motif_file/)){
+	    @temp = split(':',$line);
+	    print "$temp[0]: $motif_name\n";
+	}
+	else{
+	    print $line;
+	}
+    }
+    else{
+	print $line;
+    }
+}
+

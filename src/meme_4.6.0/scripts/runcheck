@@ -1,0 +1,233 @@
+#!/bin/sh
+
+# runcheck - for testing of meme and mast
+#
+# $Id: runcheck 4452 2010-04-14 03:45:52Z james_johnson $
+#
+# $Log$
+# Revision 1.7  2006/03/08 20:50:11  nadya
+# merge chamges from v3_5_2 branch
+#
+# Revision 1.6.4.2  2006/01/24 02:24:29  nadya
+# EXT is obsoleted by using printf()
+#
+# Revision 1.6.4.1  2006/01/24 02:04:55  nadya
+# source meme_config to set needed environment
+# make output table-like
+#
+# Revision 1.6  2005/10/07 02:54:28  nadya
+# clean debugging output, fix typo
+#
+# Revision 1.5  2005/10/04 20:03:23  nadya
+# changes to accommodate sh on solaris:
+# substitute array with awk parsing and  initialize err.
+#
+# Revision 1.4  2005/10/04 00:02:04  nadya
+# change to "-f", the option "-e" does not run solaris
+#
+# Revision 1.3  2005/10/02 05:09:39  nadya
+# add extension ".bin" to executables names for meme and mast
+#
+# Revision 1.2  2005/09/01 00:42:05  nadya
+# call executables from $topdir befiore they are installed
+# update sed regexpr
+#
+# Revision 1.1  2005/08/31 04:51:55  nadya
+# create script and target for "make check"
+#
+
+# set meme environment
+top=`pwd`/.. 
+MEME_DIRECTORY="$top"
+export MEME_DIRECTORY
+if [ ! $testdir ] ; then
+  testdir=$top/tests
+fi
+meme=$top/src/meme.bin
+mast=$top/src/mast
+
+if [ ! -x $meme ] ; then
+    echo "$meme does not exist or is not executable"
+    echo "Run 'make' before running 'make check'"
+    exit 1
+fi
+
+if [ ! -x $mast ] ; then
+    echo "$mast does not exist or is not executable"
+    echo "Run 'make' before running 'make check'"
+    exit 1
+fi
+
+
+####################################################################
+#                      define functions 
+####################################################################
+# run mast tests 
+func_run_mast () {
+    echo ""
+    echo  "              Mast test for "
+    echo  "    ---------------------------------"
+    echo  "      Dataset       Model     result " 
+    echo  "    ---------------------------------"
+
+    for mod in $models
+    do
+        memefile=meme/meme.$dset.$mod$suffix
+        mastfile=mast/mast.$dset.$mod$suffix
+        database="$dir/common/$dset.s"
+        params="$dir/$memefile $database -oc $dirout/mast -nohtml -nostatus"
+        $mast $params
+        mv $dirout/mast/mast.xml $dirout/$mastfile
+        func_diff $mastfile "mast"
+    done
+}
+
+# run meme tests 
+func_run_meme () {
+    echo ""
+    echo  "              Meme test for "
+    echo  "    ---------------------------------"
+    echo  "      Dataset       Model     result " 
+    echo  "    ---------------------------------"
+    for mod in $models
+    do
+        memefile=meme/meme.$dset.$mod$suffix
+        $meme $pargs $dir/common/$dset.s -text -mod $mod $params > $dirout/$memefile
+        func_diff $memefile 
+    done
+    # test psp
+    mod=zoops_psp
+    dset_save=$dset
+    dset=psp_test
+    memefile=meme/meme.psp_test.zoops$suffix
+    $meme $pargs $dir/common/$dset.s -psp $dir/common/$dset.psp -minsites 5 -dna -revcomp -minw 7 -maxw 12 -nostatus -text > $dirout/$memefile
+    func_diff $memefile "meme"
+    dset=$dset_save
+
+}
+
+# remove lines specified by regexpr from the file
+# takes a filename as an argument
+func_sed () {
+    e1="/Release date/d"
+    e2="/http:/d"
+    e3="/MOTIFS/d"
+    e4="/Time/d"
+    e5="/CPU:/d"
+    e6="/DATAFILE=/d"
+    e7="/DATABASE/d"
+    e8="/command: /d"
+    e9="/Background letter frequencies/d"
+    e10="/Last updated/d"
+    e11="/^mast /d"
+    sed -e "$e1" -e "$e2" -e "$e3" -e "$e4" -e "$e5" \
+        -e "$e6" -e "$e7" -e "$e8" -e "$e9" -e "$e10" -e "$e11" $1 > $1.sed
+}
+
+func_xml_sed() {
+  e1='s/<mast \s*version="[^"]*" \s*release="[^"]*"\s*>/<mast version="" release="">/'
+  e2='s|<command_line>[^<]*</command_line>|<command_line></command_line>|'
+  e3='s|<host>[^<]*</host>|<host></host>|'
+  e4='s|<when>[^<]*</when>|<when></when>|'
+  e5='s|<runtime \s*cycles="[^"]*" \s*seconds="[^"]*"\s*/>|<runtime cycles="" seconds=""/>|'
+  e6='s/last_mod_date="[^"]*"/last_mod_date=""/'
+  e7='s/source="[^"]*"/source=""/'
+  e8='s/<motifs \(.*\) name="[^"]*"/<motifs \1 name=""/'
+  e9='s/<database \(.*\) name="[^"]*"/<database \1 name=""/'
+  sed -e "$e1" -e "$e2" -e "$e3" -e "$e4" -e "$e5" -e "$e6" -e "$e7" -e "$e8" -e "$e9" < $1 > $1.sed
+}
+
+# checks two files for differences.  Arguments - a filename
+# and a string containing dataset and model info to print.
+func_diff () {
+    f1=$dir/$1      # first file
+    f2=$dirout/$1   # second file
+
+    # string to print
+	str=`echo $dset $mod | awk '{printf("    %-16s%-9s  ",$1,$2)}'`
+
+    if [ ! -f  $f1 ]; then
+        echo "File $f1 does not exist, can't compare output"
+        echo "$str" "SKIPPED"
+        return 
+    fi
+    if [ ! -f  $f2 ]; then
+        echo "File $f2 does not exist, can't compare output"
+        echo "$str" "SKIPPED"
+        return 
+    fi
+    if [ "$2" = "mast" ]; then
+      func_xml_sed $f1 
+      func_xml_sed $f2 
+    else
+      func_sed $f1 
+      func_sed $f2 
+    fi
+    num=`diff $f1.sed $f2.sed | wc -l`
+    status=$?
+    if [ $status -eq 0 -a  $num -eq 0 ]; then
+        echo "$str" "OK"
+    else
+        echo "$str" "FAIL"
+        err=1
+    fi
+    return 
+}
+
+# initializes tests parameters
+func_set () {
+    dset="crp0"
+    models="oops zoops tcm"
+    params="-dna -revcomp -nostatus -nmotifs 2 -minw 8"
+    dir=$top/tests
+    dirout=$top/tests/results
+    if [ ! -d $dirout/mast ]; then
+        cmd=`mkdir -p $dirout/mast`
+        status=$?
+        if [ $status -eq 1 ] ; then 
+            exit 1
+        fi
+    fi
+    if [ ! -d $dirout/meme ]; then
+        cmd=`mkdir -p $dirout/meme`
+        status=$?
+        if [ $status -eq 1 ] ; then 
+            exit 1
+        fi
+    fi
+    err=0
+}
+
+# removes temp output files
+func_clean () {
+    /bin/rm -rf $dir/*.sed #$dirout
+    if [ ! $err ] ; then
+        /bin/rm -rf $dirout
+    fi
+    echo 
+}
+
+
+####################################################################
+#             check command line arguments and run tests
+####################################################################
+# check arguments
+while test $# -gt 0; do
+    case "$1" in
+    -p)
+        shift
+        procs=$1
+        pargs="-p $1"
+        suffix=".$1"
+        ;;
+    esac
+    shift
+done
+
+# run tests
+func_set 
+func_run_meme
+func_run_mast
+func_clean
+
+exit $err

@@ -1,0 +1,39 @@
+#!/usr/bin/perl
+# FILE: mhmm_globals.pm
+# AUTHOR: William Stafford Noble, Phan Lu
+# PROJECT: MHMM
+# DESCRIPTION: Set up site-specific variables for Meta-MEME web server.
+
+# Name of the person to complain to if something goes wrong.
+$webmaster = '@METAMEME_SITE_CONTACT@';
+
+# Website root and output HTML results file.
+$webroot = '@METAMEME_WEB_DIR@';
+$metasite = '@METAMEME_SITE_URL@';
+
+# Directory where log files will be stored.
+$logdir = "$webroot/logs";
+
+# Directory where temporary files will be stored.
+$inputdir = "$webroot/user-files";
+
+# Directory where output files will be stored.
+$outputdir = "$webroot/output";
+
+# Web URL where output will be available
+$metasite_output = "$metasite/output";
+
+# Binaries directory.
+$bindir = "@BIN_DIR@";
+
+# MAST database directory.
+$datadir = "$bindir/mast_databases";
+
+# Location of dirichlet mixture priors file.
+$dirichlets = "$webroot/bin/prior30.plib";
+
+# The maximum number of training sequences.
+$maxdataset = 200000;
+
+# Log file for all jobs (only used by submit-verify.cgi).
+$global_log_filename = "$logdir/history.log";

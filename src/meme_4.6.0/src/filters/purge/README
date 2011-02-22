@@ -1,0 +1,126 @@
+We obtained the public domain purge program from
+ftp://ftp.ncbi.nlm.nih.gov/pub/neuwald/gibbs9_95/.  We modified purge
+to be ANSI standard C and improved the user interface (2007).  Here is
+the original README:
+
+/* =========================================================================
+*
+*                            PUBLIC DOMAIN NOTICE
+*               National Center for Biotechnology Information
+*
+*  This software/database is a "United States Government Work" under the
+*  terms of the United States Copyright Act.  It was written as part of
+*  the author's official duties as a United States Government employee and
+*  thus cannot be copyrighted.  This software is freely available to the 
+*  public for use. The National Library of Medicine and the U.S. Government 
+*  have not placed any restriction on its use or reproduction.
+*
+*  Although reasonable efforts have been taken to ensure the accuracy
+*  and reliability of the software and data, the NLM and the U.S.
+*  Government do not and cannot warrant the performance or results that
+*  may be obtained by using this software or data. The NLM and the U.S.
+*  Government disclaim all warranties, express or implied, including
+*  warranties of performance, merchantability or fitness for any particular
+*  purpose.
+*
+*  Please cite
+*
+*     Neuwald, Liu, & Lawrence (1995) "Gibbs motif sampling: 
+*     detection of bacterial outer membrane protein repeats" 
+*     Protein Science 4, 1618-1632. (for Gibbs site sampling, 
+*     Gibbs motif sampling, purge, and scan programs)
+*     
+*     and 
+*
+*     Lawrence, Altschul, Boguski, Liu, Neuwald & Wootton (1993) 
+*     "Detecting Subtle Sequence Signals: A Gibbs Sampling Strategy 
+*     for Multiple Alignment", Science 262:208-214.  (for Gibbs
+*     site sampling program)
+*
+*  in any work or product based on this material.
+*
+*       The data structures used in this program are part of a package 
+*	of C code for molecular biological applications being developed 
+*       by A. F. Neuwald.
+*
+* =========================================================================*/
+
+Uncompress gibbs9_95.tar.Z by typing "uncompress gibbs9_95.tar.Z"
+Then extract the files by typing "tar -xvf gibbs9_95.tar".
+This will create a directory "gibbs9_95".  Go into this directory.
+Compile by typing "./compile" on the command line.  (You may need to 
+reset the CC macro in code/makefile to correspond to your compiler; 
+the default is CC = cc).  This will create three executable files 
+in the current directory: purge, gibbs, and scan.  Type the program 
+names to see the input syntax.  Each of these programs requires 
+fasta formated input files.  
+
+The purge program removes closely related sequences from an input 
+file prior to running gibbs.  This is important in order to reduce 
+input sequence redundancy.  The command syntax for purge is:
+
+                purge <in_file> <score>
+
+where <score> determines the maximum blosum62 relatedness score 
+between any two sequences in the output file (the output file is 
+created with the name <in_file>.b<score>). A score less than about 
+150 to 200 is highly recommended.  
+
+The Gibbs motif sampler stochastically examines candidate alignments
+in an effort to find the best alignment as measured by the maximum 
+a posteriori (MAP) log-likelihood ratio.  Note that, because it is 
+a stochastic method, there will be variations between the best 
+alignments found with different random seeds - especially for subtle 
+motifs.  Consequently, it is often helpful to first run the sampler
+several times to see whether it usually converges on the same 
+alignment each time.  If it does not, as is typically the case for 
+very subtle motifs, it may be necessary to perform a large number 
+of independent searches in conjunction with a sufficient number 
+of "near-optimum" samples (specified by the -R<number> option).  
+For instance, the alignment of subtle porin repeats described in 
+Neuwald, Liu & Lawrence was obtained as the best found out of 1000 
+independent searches - 100 runs of the Gibbs program each performing 
+10 independent searches (the number of distinct searches is specified 
+using the gibbs -t<#runs> option).  To see an example of an alignment 
+of porin repeats obtained as the best run out of 100 runs (as well as 
+other examples) type "./demo" at the command line in the directory 
+gibbs9_95.  While picking the best result out of many independent runs 
+is no guarrantee of obtaining the optimum alignment, it will 
+substantially increase the chance of finding the optimum (or a nearly 
+optimum) alignment in such cases.  In any case it should be noted
+that most suboptimum alignments found by the sampler are often closely 
+related to the optimum alignment.
+
+The scan program scans a database for sequences that contain motifs 
+detected by gibbs.  The gibbs program will produce a "scan file" of 
+the locally aligned segment blocks by using the -f option. The 
+resulting scan file is given the name <in_file>.sn.
+
+In order to run the Wilcoxon test you will need a statistics package
+to analyze the output from the Gibbs sampler (it is NOT built 
+into the Gibbs program).  The Wilcoxon.test code is an Splus function
+that can be use for this purpose.  In order to run it you need 
+to scan in the *.wc file that the Gibbs program outputs with 
+the -w option.  Here's an example:
+
+   S-PLUS : Copyright (c) 1988, 1992 Statistical Sciences, Inc.
+   Version 3.1 Release 1 for Sun SPARC, SunOS 4.x : 1992 
+   > xxx_matrix(scan("4hb.b100.wc"),2,6)
+   > xxx
+         [,1]  [,2]  [,3]  [,4]  [,5]  [,6] 
+   [1,]  0.00  0.00  0.00  0.00  0.00 26.17
+   [2,] 28.92 30.29 27.53 27.72 28.11  0.00
+   > wilcox.test(xxx[1,],xxx[2,],alternative="less",paired=T) 
+
+            Exact Wilcoxon signed-rank test 
+
+   data:  xxx[1,  ] and xxx[2,  ] 
+   signed-rank statistic V = 1, n = 6, p-value = 0.0312 
+
+
+These programs have been successfully compiled under UNIX on both 
+an SGI and a Sun.  Since they were developed as research tools, 
+however, no promise is made that they can be compiled on any 
+particular system.
+
+

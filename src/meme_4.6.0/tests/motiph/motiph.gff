@@ -1,0 +1,21 @@
+#pattern name	sequence name	start	stop	score	p-value	q-value	matched sequence
++1	motiph/spiked.aln	121	133	1266	2.02e-17	1.53e-14	TTTCCTAAATGGG
++1	motiph/spiked.aln	2124	2136	1196	2.42e-08	9.17e-06	TAACCTCTTTGGG
++1	motiph/spiked.aln	1915	1927	1135	6.47e-06	0.00164	GAGCCCGTTTAGG
++1	motiph/spiked.aln	1977	1989	1122	1.63e-05	0.00309	CGACCGAATCAGG
++1	motiph/spiked.aln	2222	2234	1111	3.35e-05	0.00481	TTTGCCAATTTAG
++1	motiph/spiked.aln	122	134	1109	3.8e-05	0.00481	TTCCTAAATGGGT
++1	motiph/spiked.aln	2223	2235	1098	7.45e-05	0.00794	TTGCCAATTTAGC
++1	motiph/spiked.aln	2104	2116	1095	8.89e-05	0.00794	TTTGCTCTTAATG
++1	motiph/spiked.aln	1948	1960	1094	9.41e-05	0.00794	TAATCAAAAAAGG
+-1	motiph/spiked.aln	1930	1918	1259	2e-14	1.46e-11	CCCGTTTAGGAAA
+-1	motiph/spiked.aln	136	124	1240	3.54e-11	1.29e-08	CCTAAATGGGTAA
+-1	motiph/spiked.aln	2139	2127	1223	6.58e-10	1.6e-07	CCTCTTTGGGGAA
+-1	motiph/spiked.aln	2140	2128	1218	1.44e-09	2.62e-07	CTCTTTGGGGAAA
+-1	motiph/spiked.aln	1992	1980	1207	6.4e-09	9.36e-07	CCGAATCAGGAAA
+-1	motiph/spiked.aln	2120	2108	1144	3.29e-06	0.000401	CTCTTAATGGAAA
+-1	motiph/spiked.aln	2314	2302	1117	2.27e-05	0.00237	CCTCAAGAAGTAA
+-1	motiph/spiked.aln	2051	2039	1115	2.59e-05	0.00237	CCTCGAGGAAATA
+-1	motiph/spiked.aln	1887	1875	1107	4.31e-05	0.0035	CCAAATGCGGGTA
+-1	motiph/spiked.aln	137	125	1103	5.52e-05	0.00403	CTAAATGGGTAAA
+-1	motiph/spiked.aln	135	123	1100	6.62e-05	0.0044	TCCTAAATGGGTA

@@ -1,0 +1,100 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>Tomtom - Introduction</title>
+    <link href="doc/meme-suite.css" rel="styleSheet" type="text/css">
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+            <img src="doc/images/tomtom_logo.png" alt="TOMTOM logo">
+            <h3>Introduction</h3>
+            <h4>Tomtom is a tool for comparing a DNA motif to a database of known motifs.</h4>
+            <p/>
+            The Tomtom web application compares an input DNA motif to the elements of a 
+            database of known motifs (and their DNA reverse complements). 
+            A list of matching motifs is reported, ranked by q-value.  
+            The q-value is the minimal false discovery rate at which the observed
+            similarity would be deemed significant.  The output contains
+            results for each query, in the order that the queries appear in
+            the input file.  With respect to each query, targets are ranked
+            by q-value.
+            <p/>
+            For a given pair of motifs, the program considers all offsets,
+            while requiring a minimum number of overlapping positions. For a
+            given offset, each overlapping position is scored using one of
+            seven column similarity functions defined below. In order to
+            compute the scores, <code>Tomtom</code> needs to know the
+            frequencies of the letters of the sequence alphabet in the
+            database being searched (the "background" letter
+            frequencies). By default, the background letter frequencies
+            included in the MEME input files are used. The scores of columns
+            that overlap for a given offset are summed. This summed score is
+            then converted to a p-value. The reported p-value is the minimal
+            p-value over all possible offsets.  For each query motif, the
+            corresponding p-values are then converted to q-values.</p>
+            <h4>Required Tomtom Inputs</h4>
+            <p/>
+            Three inputs must be provided on the Tomtom web page:
+            <ol>
+              <li>
+              A single DNA motif, with each column showing the counts
+              of bases A, C, G, and T, in that position of the motif.
+              The motif is pasted into the text box labeled "Paste your DNA here".
+              </li>
+              <li>
+              The DNA motif database to search.
+              This is selected from the drop-down list labeled "Select the DNA Motif
+              Database to Search".
+              </li>
+              <li>
+              The function used to compare motifs.
+              This is selected from the drop-down list labeled "Select the Motif Column 
+              Comparison Function".
+              </li>
+            </ol>
+            <p/>
+            The contents of the required fields can be cleared by clicking 
+            on the "Clear Input" button.
+            <h4>Submitting a Tomtom job</h4>
+            <p/>
+            After filling in the required inputs on the Tomtom web page
+            the job can be submitted for processing by clicking on the "Start Search" button.
+            Alternatively, if you have no motif and would just like to see sample Tomtom output,
+            you can just select the DNA motif databse, the motif column comparison function
+            and then click on the "Search with Example Motif" button.
+            <h4>Totom output</h4>
+            <p/>
+            The result of submitting your job will be a page that displays the
+            status of your job on the Tomtom server, and contains a link to your Tomtom
+            results.  The output of Tomtom is a web page displaying a table of motifs
+            in the database similar to the motif you submitted (<a
+            href="doc/examples/tomtom_example_output_files/tomtom.html">sample Tomtom
+            output</a>). Each entry in the table 
+            includes the database identifier for matching motif, its description, the
+            p-value and q-value of the match, the overlap and offset between your motif
+            and the matching  motif,  the strand of the matching motif, and a logogram
+            of your motif and the matching motif.
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

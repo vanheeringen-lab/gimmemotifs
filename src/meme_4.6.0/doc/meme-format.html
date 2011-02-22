@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MEME Suite Motif File Formats</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>MEME Suite Motif File Formats</h1>
+      <h3>Output Formats</h3>
+      <p>MEME results are recorded in three file formats:
+      <a href="examples/meme_example_output_files/meme.txt">plain text</a>, 
+      <a href="examples/meme_example_output_files/meme.html">HTML</a>,
+      and <a href="examples/meme_example_output_files/meme.xml">XML</a>.
+      The MEME <b>XML</b> format is completely specified by the 
+	<a href="./meme.dtd">Document Type Definition (DTD)</a>
+      found at the start of the MEME XML output.
+      The MEME <b>plain text</b> and <b>HTML</b> formats contain much explanatory text and
+      are thus self-documenting.
+      The XML format was added for MEME 4.0.
+      The plain text and HTML formats have been supported in all versions of MEME.
+      <p>
+      GLAM2 provides 
+      <a href="examples/glam2_example_output_files/glam2.txt">plain text</a> 
+      and 
+      <a href ="examples/glam2_example_output_files/glam2.html">HTML</a>
+      output. 
+      The format is described in the
+      <a href="glam2_tut.html#output_format">Output format</a> section of
+      the <a href="./glam2_tut.html">GLAM2 Tutorial</a>.
+      GLAM2 also provides <a href="#min_format">MEME minimal motif format</a>.
+      </p>
+      <h3>Input Formats</h3>
+      <p>
+      MAST will accept the plain text, HTML, and XML forms of MEME output, and the
+	<a href="#min_format">MEME minimal motif format</a>.
+      <!-- <a href="./mast.html#motif_format">MAST documentation</a> Broken link-->. 
+      </p>
+      <p>
+      FIMO will accept the plain text, HTML, and XML forms of MEME output, and the
+	<a href="#min_format">MEME minimal motif format</a>.
+      </p>
+      <p>
+      GOMO will accept the plain text, HTML, and XML forms of MEME output, and the
+	<a href="#min_format">MEME minimal motif format</a>.
+      </p>
+      <p>
+      GLAM2SCAN will accept the plain text and HTML forms of GLAM2 output.
+      </p>
+
+      <a name="min_format"></a>
+      <h2>MEME Minimal Motif Format</h2>
+      <p>
+      Users may create motif files in a simplified
+      format for use by the MEME Suite programs.      
+      Examples are given in the sample files below.
+      <table border="1">
+        <tr><td></td>
+          <th>For All Programs Except MAST</th>
+          <th>For MAST</th>
+        </tr>
+        <tr><th>DNA</th>
+          <td><a href="../examples/sample-dna-motif.meme-io">sample</a></td>
+          <td><a href="../examples/sample-dna-motif.mast-io">sample</a></td>
+        </tr>
+        <tr><th>Protein</th>
+          <td><a href="../examples/sample-protein-motif.meme-io">sample</a></td>
+          <td><a href="../examples/sample-protein-motif.mast-io">sample</a></td>
+        </tr>
+      </table>
+      </p>
+
+      <p>
+      The meaning of the format is as follows:
+      </p>
+
+      <ol>
+	<li><b>The MEME version number line.</b>
+	      <pre>MEME version 4.5</pre>
+
+	<li>
+	  <b>The alphabet line.</b>
+	  <br/>
+	  For DNA motif files the line
+	    <pre>ALPHABET= ACGT</pre>
+	  or for protein motif files
+	    <pre>ALPHABET= ACDEFGHIKLMNPQRSTVWY</pre>
+	  must be present.
+
+	</li>
+
+	<br/>
+	<li>
+	  <b>Strand information line.</b>  (DNA motif files only.) 
+	  <br/>
+	  If both DNA strands are included in the motif:
+	  <pre>strands: + -</pre> 
+	  or if only one strand is included:
+	  <pre>strands: +</pre>
+	</li>
+
+	<li><b>The background distribution lines.</b>
+	  <br/>
+	  The background must start a new line with the string:
+	  <pre>Background letter frequencies (from</pre>
+	  This is followed, on the next line(s),
+	  by a list of characters and their associated frequencies,
+	  delimited by white space.
+	</li>
+
+	<br/>
+	<li><b>The motifs.</b>
+	  <br/>
+	  There may be one or more motifs.  
+	  Each motif starts with a "<b>MOTIF</b>" line, followed by a "<b>log-odds matrix</b>"
+	  and/or a "<b>letter-probability matrix</b>" section.
+	  MAST requires each motif to be represented as a "<b>log-odds matrix</b>".
+	  For all other programs that accept MEME minimal motif format, each motif must be represented as a 
+          "<b>letter-probability matrix</b>".
+	  You may include both formats for a given motif but only one will be used,
+	  depending on which program you are running.  If you include both formats
+	  for a motif, you should put the log-odds matrix format first.
+          Each of the sections has a header line followed by one line of letter 
+          score/frequencies for each position in the motif, as detailed below.
+    It is recommended, though not required, that you included a URL line listing
+    the webpage where more information can be found on the motif.
+	  <br/>
+	  <br/>
+	  <b>The motif format for MAST is:</b>
+	  <br/>
+	  <pre>
+MOTIF motif_name
+log-odds matrix: alength= 4 w= 22 E= 0
+  ...
+  ... lines of log-odds scores; each line is list of scores for each letter ... 
+  ...
+URL website
+	  </pre>
+	  <b>The motif format for all other programs that accept MEME minimal motif format is:</b>
+	  <pre>
+MOTIF motif_name 
+letter-probability matrix: alength= 4 w= 22 nsites= 49 E= 0
+  ...
+  ... lines of probabilities; each line is list of probabilities of each letter ... 
+  ...
+URL website
+	  </pre>
+	  The first line should be exactly as shown, except the word "<b>motif_name</b>"
+	  should be replaced with the name of the motif, which may be any word (without spaces).
+          <br/>
+	  <b>Note:</b> If you included log-odds and letter-probability formats for a given
+	  motif, only include the "<b>MOTIF name</b>" line once, just above the "<b>log-odds</b>" line.
+	  <br/>
+	  <br/>
+	  The "<b>log-odds matrix</b>" header has the values "<b>alength</b>" for the
+	  size of the alphabet (4 for DNA, 20 for protein), 
+          "<b>w</b>" for the number of positions in the motif, and "<b>E</b>" for the 
+          <i>E</i>-value of the motif (in most cases this can be set to zero).
+	  The "<b>letter-probability matrix</b>" header has the values "<b>alength</b>", 
+	  "<b>w</b>" and "<b>E</b>" as above, with the addition of "<b>nsites</b>", specifying
+          the number of sites that were used in creating the motif.
+          <br />
+          <br />
+	  The log-odds or probabilities for the motif are listed "rotated".  That is each line
+	  represents a "column" or "position" within the motif.  There should be "<b>w</b>"
+          lines.  Each line specifies "<b>alength</b>" log-odds scores or probabilities,
+	  one for each letter in the alphabet.
+	  Within a line, scores or probabilities are listed for each letter in the order of the
+    motif alphabet.
+    <br />
+    <br/>
+    The last line is optional, but if included should have the word "<b>website</b>" 
+    replaced with the web address of more information on the motif.
+        </li>
+      </ol>
+     
+<!--
+      <li> The motif occurrence section.  
+	<br\>
+      This section is optional and is preceded by the line
+      <br />
+      <code> &lt;INPUT TYPE = HIDDEN NAME = motif-summary VALUE = &quot;
+      </code>
+      <br />
+      Each subsequent line contains the motif occurrence information from
+      one sequence in the training set.  Each line begins with the sequence
+      id, sequence p-value, number n of motif occurrences, and the length of
+      sequence.  The four values are followed by n triples, each
+      corresponding to one motif occurrence.  Each triple consists of the
+      motif id, its occurrence position in the sequence, and the motif
+      occurrence p-value.  The motif occurrence section must end with a line
+      containing only a quotation mark followed by a greater-than
+      symbol:<br /> <code>&quot;&gt;</code>
+      </li>
+
+      <li><b>Note:</b></li>
+	  Older versions of MEME produce a matrix of probabilities rather than
+	  frequencies (i.e., the prior is applied to the frequencies).
+	  The old version is indicated by having <code>n=</code> 
+	  rather than <code>nsites=</code> in the
+	  header for the letter probability matrix.  
+	  If your MEME output file is from a previous version of MEME, 
+	  you will receive the following message:
+	  <pre>
+	    Warning: This is an old MEME file that contains
+	    posterior probabilities rather than frequencies.
+	    Meta-MEME will still work, but it would be better
+	    to run an updated version of MEME on your data.
+	  </pre>
+	  </li>
+-->
+
+    </div>
+  </body>
+</html>

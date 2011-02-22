@@ -1,0 +1,65 @@
+<!--
+FILE: select-star-species.html
+AUTHOR: William Stafford Noble, Timothy Bailey, Charles E. Grant
+CREATE DATE: 11/01/2007
+PROJECT: MEME Suite
+-->
+<head>
+<title>select-star-species</title>
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+</head>
+<body bgcolor=white>
+<blockquote>
+<h1><img height="81" width="444" src="meta-meme.gif"></h1>
+<center>
+<h1>select-star-species</h1>
+</center>
+<p><b>Usage:</B></p>
+<blockquote><code>select-star-species
+[--dist-matrix] &lt;subset size&gt; &lt;tree file&gt;</code></blockquote>
+<p><b>Description:</b></p>
+<blockquote>Given a phylogentic tree, this program attempts
+to find the subset of species whose subtree is "closest" to a star
+topology. By "closest" we mean that the pairwise distances between
+distinct species are nearly equal, but are also as near as possible to
+the average pairwise distance for the complete tree.</blockquote>
+<p><b>Algorithm:</b></p>
+<blockquote><i> Inputs:
+<blockquote>m: size of desired subset <br />
+T: phylogentic tree</blockquote>
+S &larr; List of species in T <br />
+n &larr; size(S) <br />
+<b>if</b> (n <b>choose</b> m) &gt; 1e5 <b>then exit</b> <br />
+M &larr; pairwise distance matrix for T <br />
+&mu;<sub>M</sub> &larr; mean pairwise distance for M <br />
+C &larr; List of all subsets of S of size m <br />
+best_score &larr; max_float <br />
+best_subset &larr; &oslash; <br />
+<b>for each</b> s <b>in</b> C
+<blockquote>score &larr; score(M, &mu;<sub>M</sub>, s) <br />
+<b>if</b> score &lt; best_score <b>then</b>
+<blockquote>best_score &larr; score <br />
+best_subset &larr; s</blockquote>
+</blockquote>
+<b>print</b> best_subset <br />
+<br />
+score(M, &mu;<sub>M</sub>, s) &larr; Var(s<sub>M</sub>) / &mu;<sub>M</sub>
+<br>
+Var(s<sub>M</sub>) &larr; &sum; <sub>a, b &isin; s, a &ne; b</sub> (M[a,
+b] - &mu;<sub>s</sub>)<sup>2</sup> <br />
+&mu;<sub>s</sub> &larr; &sum;<sub>a, b &isin; s, a &ne; b</sub>M[a,b] /
+((len(s)<sup>2</sup> - len(s)) / 2) </i></blockquote>
+<p><b>Input:</b></p>
+<blockquote>A file containing a phylogentic tree in <a
+	href='http://evolution.genetics.washington.edu/phylip/newicktree.html'>Newick
+format</a>.</blockquote>
+<p><b>Output:</b></p>
+<blockquote>The list of species in the subset, one species
+per line, is sent to the standard output.</blockquote>
+<p><b>Options:</b></p>
+<blockquote><code>--dist-matrix</code> - This option causes
+the matrix of interspecies distances for the full tree to be written to
+the standard output.</blockquote>
+</blockquote>
+</body>
+</html>

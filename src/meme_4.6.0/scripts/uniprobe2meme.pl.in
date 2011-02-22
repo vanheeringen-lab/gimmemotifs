@@ -1,0 +1,127 @@
+#!@WHICHPERL@ -w
+#
+# FILE: uniprobe2meme
+# AUTHOR: Timothy L. Bailey
+# CREATE DATE: 3/19/2009
+# DESCRIPTION: Convert a file containing list of TFBS motif matrices from 
+# UNIPROBE to MEME output format. 
+
+use warnings;
+use strict;
+
+use lib qw(@PERLLIBDIR@);
+
+use MotifUtils qw(matrix_to_intern intern_to_meme read_background_file);
+
+use Fcntl qw(O_RDONLY);
+use Getopt::Long;
+use Pod::Usage;
+
+=head1 SYNOPSIS
+
+uniprobe2meme [options]
+
+ Options: 
+  -skip <ID>                    skip this ID (may be repeated)
+  -numseqs <numseqs>            assume frequencies based on this many
+                                sequences; default: 20
+  -truncate_names               truncate motif names at first underscore
+  -numbers                      use numbers instead of strings as motif names
+  -bg <background file>         file with background frequencies of letters;
+                                default: uniform background
+  -pseudo <total pseudocounts>  add <total pseudocounts> times letter
+                                background to each frequency; default: 0
+  -logodds                      print log-odds matrix, too;
+                                default: print frequency matrix only
+  -url <website>                website for the motif; The untruncated ID is
+                                substituted for MOTIF_NAME; default: no url
+  -h                            print usage message
+
+  Read a UNIPROBE (concatenated) matrix file and convert to MEME format.
+
+  Reads standard input.
+  Writes standard output
+
+=cut
+
+# Set option defaults
+my %skips;
+my $num_seqs = 20;
+my $truncate_names = 0;
+my $use_numbers = 0;
+my $bg_file;
+my $pseudo_total = 0; # default total pseudocounts
+my $print_logodds = 0;
+my $url_pattern = '';
+my $help;
+
+GetOptions("skip=s" => sub {$skips{$_[1]} = 1}, "numseqs=i" => \$num_seqs,
+  "truncate_names" => \$truncate_names, "numbers" => \$use_numbers, 
+  "bg=s" => \$bg_file, "pseudo=f" => \$pseudo_total, "logodds" => \$print_logodds,
+  "url=s" => \$url_pattern, "h" => \$help) or pod2usage(2);
+#check num seqs
+pod2usage("Option -numseqs must have a positive value.") if ($num_seqs < 0);
+#check pseudo total
+pod2usage("Option -pseudo must have a positive value.") if ($pseudo_total < 0);
+
+# output help if requested
+pod2usage(1) if $help;
+
+# Get the background model.
+my %bg = &read_background_file(1, $bg_file); #DNA background file
+
+# Read the input file.
+my $num_skipped = 0;
+my $num_motifs = 0;
+my $num_bad = 0;
+my (%motifs, $motif_name, $motif_freqs);
+my %rows = ();
+my $id;
+while (my $line = <>) {
+  chomp($line);
+  next if ($line =~ /^\s*$/); # skip blank lines
+
+  # Split the line into identifier and everything else.
+  my ($first, $rest) = split('\t', $line, 2);
+  if ($first =~ /^\s*([ACGT]):$/i) { # frequency line
+    my $base = uc($1);
+    $rows{$base} = $rest;
+  } else { # found start of next motif
+    #check if there was a previous motif
+    conditional_motif_output();
+    #record information for new motif
+    chomp($first);
+    $id = $first;
+    %rows = ();
+  }
+}
+#check if there was a previous motif
+conditional_motif_output();
+
+
+print(STDERR "Converted $num_motifs motifs.\n");
+print(STDERR "Skipped $num_skipped motifs.\n");
+
+
+sub conditional_motif_output {
+  if (%rows) {
+    if ($skips{$id}) {
+      $num_skipped++;
+    } else {
+      my $url = $url_pattern;
+      $url =~ s/MOTIF_NAME/$id/g;
+      my $name = $id;
+      my $alt = '';
+      $name =~ s/^([^_]+)_.*$/$1/ if $truncate_names;
+      if ($use_numbers) {
+        $alt = $name;
+        $name = $num_motifs + 1;
+      }
+      my $matrix = $rows{A} . "\n" . $rows{C} . "\n" . $rows{G} . "\n" . $rows{T};
+      my ($motif, $errors) = matrix_to_intern(\%bg, $matrix, 'col', $num_seqs, $pseudo_total, id => $name, alt => $alt, url => $url);
+      print(STDERR join("\n", @{$errors}), "\n") if @{$errors};
+      $num_bad++ unless $motif;
+      print intern_to_meme($motif, $print_logodds, 1, !($num_motifs++)) if $motif;
+    }
+  }
+}

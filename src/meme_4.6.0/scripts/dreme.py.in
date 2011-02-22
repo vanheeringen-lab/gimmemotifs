@@ -1,0 +1,1418 @@
+#!@WHICHPYTHON@
+# AUTHOR: Timothy L. Bailey
+# CREATE DATE: 10/10/2010
+# PROJECT: MEME suite
+# COPYRIGHT: 2010, UQ
+#
+# DREME -- Discriminative Regular Expression Motif Elicitation
+#
+
+import sys, time, string, re, copy, commands, random
+from re import findall, compile, finditer
+from math import log, pow, floor, exp
+import sequence
+from hypergeometric import log_getFETprob
+shuffle = __import__('fasta-dinucleotide-shuffle')
+hamming = __import__('fasta-hamming-enrich')
+
+# 
+# turn on psyco to speed up by 3X
+#
+if __name__=='__main__':
+  try:
+    import psyco
+    psyco.full()
+    psyco_found = True
+  except ImportError:
+    psyco_found = False
+    print >> sys.stderr, "Psyco not found."
+    print >> sys.stderr, "Installing Psyco (http://sourceforge.net/projects/psyco/files/) will speed up DREME by 2-3 times."
+    pass
+  #if psyco_found:
+  #  print >> sys.stderr, "Using psyco..."
+
+# Format for printing very small numbers; used by sprint_logx
+_pv_format = "%3.1fe%+04.0f"
+_log10 = log(10)
+
+_dna_alphabet = 'ACGT'
+
+_ambig_to_dna = {
+	'A' : 'A',
+	'C' : 'C',
+	'G' : 'G',
+	'T' : 'T',
+	'R' : 'AG',
+	'Y' : 'CT',
+	'K' : 'GT',
+	'M' : 'AC',
+	'S' : 'CG',
+	'W' : 'AT',
+	'B' : 'CGT',
+	'D' : 'AGT',
+	'H' : 'ACT',
+	'V' : 'ACG',
+	'N' : 'ACGT'
+	}
+
+# lookup for basic alphabet
+_alph = {
+	"A" :  1,
+	"C" :  1,
+	"G" :  1,
+	"T" :  1,
+}
+
+# order for dynamic programming expansion to ambiguous character
+# doubles, triples, N
+_dna_ambigs = "RYKMSWBDHVN"
+
+# dynamic programming mappings for ambigs
+_dna_ambig_mappings = {
+	"R" : "AG",
+	"M" : "AC",
+	"W" : "AT",
+	"Y" : "CT",
+	"S" : "CG",
+	"K" : "GT",
+	"H" : "AY",	# ACT
+	"V" : "AS",	# ACG
+	"D" : "AK",	# AGT
+	"B" : "CK",	# CGT
+	"N" : "AB"	# ACGT
+}
+
+# verbosity levels
+INVALID_VERBOSE, QUIET_VERBOSE, NORMAL_VERBOSE, HIGH_VERBOSE, HIGHER_VERBOSE, DUMP_VERBOSE = range(6)
+
+_verbosity = NORMAL_VERBOSE     # progress output, not debug output
+
+# get array of int zeros (numpy is not standard)
+def int_zeros(size):
+	return [0] * size
+
+# print very large or small numbers
+def sprint_logx(logx, prec, format):
+        """ Print x with given format given logx.  Handles very large
+        and small numbers with prec digits after the decimal. 
+        Returns the string to print."""
+        log10x = logx/_log10
+        e = floor(log10x)
+        m = pow(10, (log10x - e))
+        if ( m + (.5*pow(10,-prec)) >= 10):
+                m = 1
+                e += 1
+        str = format % (m, e)
+        return str
+
+def get_strings_from_seqs(seqs):
+	""" Extract strings from FASTA sequence records.
+	    Convert U->T and DNA IUPAC-->N.
+	"""
+	strings = []
+        ms = string.maketrans("URYKMBVDHSW", "TNNNNNNNNNN")
+	for s in seqs:
+		str = s.getString()
+		# make upper case and replace all DNA IUPAC characters with N
+		# replace U with T
+		str = str.upper()
+	        str = str.translate(ms)
+		strings.append(str)
+	return strings
+
+
+def get_rc(re):
+	""" Return the reverse complement of a DNA RE.
+	"""
+	return re.translate(string.maketrans("ACGTURYKMBVDHSWN", "TGCAAYRMKVBHDSWN"))[::-1]
+
+
+def print_best_re(re_pvalues, pos_seqs, minw, maxw, ethresh, log_add_pthresh):
+	""" Print the best RE and the significant words that match it.
+	    Prints the PWM for the RE.  PWM is computed from the number
+	    of sequences containing each significant word composing the RE.
+	    Returns the best RE, rc, log_pvalue, log_evalue, unerased_log_evalue.
+	"""
+	# get the best RE (lowest p-value) within width range
+	candidates = [(re_pvalues[re][4], re) for re in re_pvalues if len(re)>=minw and len(re)<=maxw]
+	if len(candidates) == 0:
+		return("", "", 1e300, 1e300, 1e300)
+
+	best_re = min(candidates)[1]
+	best_rc_re = get_rc(best_re)
+        r = re_pvalues[best_re]
+	best_log_pvalue = r[4]
+	best_log_Evalue = best_log_pvalue + log(len(re_pvalues))
+	# get the E-value if there had been no erasing
+	unerased_log_pvalue = compute_exact_re_enrichment(best_re, unerased_pos_seqs, unerased_neg_seqs)
+	unerased_log_Evalue = unerased_log_pvalue[4] + log(len(re_pvalues))
+	unerased_ev_string = sprint_logx(unerased_log_Evalue, 1, _pv_format)
+	hamming_dist = -1
+	if len(r) == 6:
+		hamming_dist = r[5]
+
+	# print the motif if significant
+	if best_log_Evalue <= log(ethresh):
+		# print the best RE
+		pv_string = sprint_logx(best_log_pvalue, 1, _pv_format)
+		ev_string = sprint_logx(best_log_Evalue, 1, _pv_format)
+		dist_str = ""
+		if get_type(r) == "consensus": dist_str = "distance= " + str(r[5])
+		print >> sys.stdout, "BEST %s %s %6d %6d %6d %6d %s %s %s %s" % \
+			(best_re, best_rc_re, r[0], r[1], r[2], r[3], pv_string, ev_string, unerased_ev_string, dist_str)
+		if get_type(re_pvalues[best_re]) == 'RE':
+			print_matching_significant_words(best_re, re_pvalues, log_add_pthresh)
+		make_and_print_pwm(best_re, pos_seqs, ev_string, unerased_ev_string, hamming_dist)
+
+	return(best_re, best_rc_re, best_log_pvalue, best_log_Evalue, unerased_log_Evalue)
+
+
+def print_matching_significant_words(best_re, re_pvalues, log_add_pthresh):
+	""" Print the words matching RE with significant p-values in order
+	of significance.
+	"""
+
+
+	# print significant words that match the best RE
+	m_given = make_dna_re(best_re, True, True) 	# matches on given strand, full width
+	for re in re_pvalues:
+		match_re = ""
+		if m_given.search(re):
+			match_re = re
+		else:
+			rc_re = get_rc(re)
+			if m_given.search(rc_re):
+				match_re = rc_re
+		if match_re and re_pvalues[re][4] < log_add_pthresh:
+        		r = re_pvalues[re]
+			log_pvalue = r[4]
+			log_Evalue = log_pvalue + log(len(re_pvalues))
+			pv_string = sprint_logx(log_pvalue, 1, _pv_format)
+			ev_string = sprint_logx(log_Evalue, 1, _pv_format)
+			print >> sys.stdout, "\t%s %s %6d %6d %6d %6d %s %s" % \
+				(match_re, get_rc(match_re), r[0], r[1], r[2], r[3], pv_string, ev_string)
+
+
+def make_and_print_pwm(re, pos_seqs, ev_string, unerased_ev_string, hamming_dist=-1):
+	""" Create an alignment from all non-overlapping matches.
+	Convert to PWM and print the PWM.
+	"""
+	
+	# make the PWM with no pseudo-count added
+	(pwm, nsites) = make_pwm_from_re(re, pos_seqs, 0, hamming_dist)
+
+	# print PWM in MEME format
+	alen = len(_dna_alphabet)
+	w = len(re)
+	print "\nMOTIF %s %s\nletter-probability matrix: alength= %d w= %d nsites= %d E= %s" % \
+		(re, ev_string, alen, w, nsites, ev_string)
+        for row in pwm.pretty(): print row
+	print ""
+
+	# print PWM as log-odds matrix for MAST 
+	# make the PWM with no pseudo-count 1 added to each cell to avoid log(0)
+	(pwm, nsites) = make_pwm_from_re(re, pos_seqs, 1.0, hamming_dist)
+	print "log-odds matrix: alength= %d w= %d n= %d bayes= 0 E= %s" % \
+		(alen, w, nsites, ev_string)
+	bkg = [neg_freqs[a] for a in _dna_alphabet]
+        for row in pwm.logoddsPretty(bkg): print row
+	print ""
+
+
+def make_pwm_from_re(re, seqs, pseudo_count=0.0, hamming_dist=-1):
+	"""
+	Align all non-overlapping matches of the RE on
+	either strand of the given sequences.
+	Create a PWM from the alignment.
+	Returns the PWM and the alignment.
+	"""
+
+	# get the alignment
+	if hamming_dist == -1:
+		aln = get_alignment_from_re(re, seqs)
+	else:
+		aln = hamming.get_aln_from_word(re, 0, hamming_dist, seqs)
+
+	# make the PWM
+	pwm = sequence.PWM(sequence.getAlphabet('DNA'))
+	pwm.setFromAlignment(aln, pseudo_count)
+
+	return (pwm, len(aln))
+
+
+def get_alignment_from_re(re, seqs):
+	"""
+	Align all non-overlapping matches of the RE on
+	either strand of the given sequences.
+	Returns the alignment.
+	"""
+
+	# get the alignment and make into a PWM
+	aln = []				# save matching words for PWM
+	m_both = make_dna_re(re) 		# matches on both strands
+	m_given = make_dna_re(re, True) 	# matches on given strand
+	for str in seqs:
+		# scan with m_both to insure only non-overlapping matches found
+		matches = findall(m_both, str)
+		for m in matches:
+			# add the match on the correct strand to the alignment
+			if m_given.search(m):
+				aln.append(m)
+			else:
+				aln.append(get_rc(m))
+	return aln
+
+def get_best_offset(re, seqs):
+	""" Get the most common position of the RE in the sequences.
+	"""
+	# make RE
+	m_given = make_dna_re(re, True) 	# matches on given strand
+	counts = [] 
+	for s in seqs:
+		if len(counts) < len(s):
+			counts.extend(int_zeros(len(s)-len(counts)))
+		for m in finditer(m_given, s):
+			offset = m.start()
+			counts[offset] += 1
+	# get the maximum
+	best_offset = max( [ (counts[offset],offset) for offset in range(len(counts)) ] )[1]
+	return(best_offset)
+
+
+def print_words(word_pvalues):
+	""" Print out the significantly enriched words. 
+	    Input is a dictionary produced by apply_fisher_test.
+	"""
+	print >> sys.stdout, "\n# ORIGINAL VALUES\n# WORD\tRC_WORD\tp\tP\tn\tN\tp-value\tE-value"
+
+	sorted_keys = sorted_re_pvalue_keys(word_pvalues)
+	for word in sorted_keys:
+		r = word_pvalues[word]
+		# get reverse complement of word
+		rc_word = get_rc(word)
+		# make ambiguous characters lower case for ease of viewing
+		word = word.translate(string.maketrans("RYKMBVDHSWN", "rykmbvdhswn"))
+		rc_word = rc_word.translate(string.maketrans("RYKMBVDHSWN", "rykmbvdhswn"))
+		# print the values after erasing
+		log_pvalue = r[4]
+		log_Evalue = log_pvalue + log(len(word_pvalues))
+		pv_string = sprint_logx(log_pvalue, 1, _pv_format)
+		ev_string = sprint_logx(log_Evalue, 1, _pv_format)
+		dist_str = ""
+		if get_type(r) == "consensus": dist_str = "distance= " + str(r[5])
+		print >> sys.stdout, "%s %s %6d %6d %6d %6d %s %s %s" % \
+			(word, rc_word, r[0], r[1], r[2], r[3], pv_string, ev_string, dist_str)
+
+
+def apply_fisher_test(pos_sequence_counts, neg_sequence_counts, P, N):
+	""" Apply Fisher test to each word in the positive set
+	to test if the number of sequences containing it is
+	enriched relative to the negative set.
+	Assumes the first two arguments are the outputs of 
+	count_seqs_with_words.
+		P = number of positive sequences
+		N = number of negative sequences
+	Returns a dictionary indexed by word containing
+		[p, P, n, N, log_pvalue]
+	where:
+		p = number of positive sequences with word
+		P = number of positive sequences 
+		n = number of negative sequences with word
+		N = number of negative sequences 
+		pvalue = Pr(word in >= k positive sequences)
+	"""
+
+	results = {}
+
+	# loop over words in positive sequences
+	for word in pos_sequence_counts:
+		p = pos_sequence_counts[word][0]
+		if (neg_sequence_counts.has_key(word)):
+			n = neg_sequence_counts[word][0]
+		else:
+			n = 0
+		
+		# see if word is enriched in positive set
+		log_pvalue = getLogPvalue(p, P, n, N)
+	
+		# save result in dictionary
+		results[word] = [p, P, n, N, log_pvalue]
+
+	# return dictionary
+	return results	
+
+
+def getLogPvalue(p, P, n, N):
+	""" Return log of hypergeometric pvalue of #pos >= p
+		p = positive successes
+		P = positives
+		n = negative successes
+		N = negatives
+ 	"""
+	# check that p-value is less than 0.5
+	# if p/float(P) > n/float(N):
+	if (p * N > n * P):
+		# apply Fisher Exact test (hypergeometric p-value)
+		log_pvalue = log_getFETprob(N-n, n, P-p, p)[4];
+	else:
+		log_pvalue = 0		# pvalue = 1
+
+	return log_pvalue
+
+
+def count_seqs_with_words(seqs, minw, maxw, given_only=False):
+	""" 
+	Count the number of FASTA sequences that have each word
+	appearing at least once in some sequence.  The sequences are
+	passed in as *strings*.
+
+	Words with widths in the range [minw, maxw] are counted.
+
+	Unless given_only==True,
+	a sequence is counted as having a word if it contains either
+	the word or its reverse-complement, and the count is kept for 
+	the alphabetically smaller of the two.
+
+	Words containing an ambiguous character are skipped.
+
+	Returns a dictionary indexed by word:
+		[seq_count, last_seq]
+	where
+		seq_count = number of sequences with the word
+		last_seq = largest index in sequence array with the word
+	"""
+
+	seqs_with_words = {}	
+
+	# loop over all word widths
+	for w in range(minw, maxw+1):
+
+		# loop over all sequences
+		seq_no = 0
+		for s in seqs:
+			seq_no += 1				# index of current sequence
+			slen = len(s)
+
+			# loop over all words in current sequence
+			for i in range(0, slen-w+1):
+				# get the current word
+				word = s[i : i+w];
+				# skip word if it contains an ambiguous character
+				if (1 in [c in word for c in "nN"]):
+					continue
+				# FIXME don't need a list anymore
+				words = []
+				words.append(word)
+
+				# count the number of sequences containing each word in list
+				# FIXME: don't need a loop any more
+				for new_word in words:	
+					update_seqs_with_words(seqs_with_words, new_word, seq_no, given_only)
+
+	# return the dictionary of sequence counts
+	return seqs_with_words
+
+
+def update_seqs_with_words(seqs_with_words, word, seq_no, given_only):
+	""" Update the counts of sequences containing given word given
+	    that sequence number seq_no contains the word. 
+
+	    Changes the entry for the word in the list seqs_with_words.
+	"""
+
+	# get alphabetically first of word/rc_word
+	if not given_only:
+		word = min(word, get_rc(word))
+
+	# update count of sequences for this word
+	if (seqs_with_words.has_key(word)):
+		# old word
+		if (seqs_with_words[word][1] < seq_no):
+			# first time seen in this sequence
+			values = seqs_with_words[word]
+			# increment sequence count
+			seqs_with_words[word][0] = values[0] + 1
+			# set sequence number
+			seqs_with_words[word][1] = seq_no
+	else:
+		# brand new word
+		seqs_with_words[word] = [1, seq_no]
+
+
+def re_generalize(re, re_pvalues, alph, ambigs, ambig_mappings, new_re_pvalues, log_add_pthresh):
+	""" Expand an RE to all REs with one additional ambiguous character.
+	Uses entries in re_pvalues dictionary.
+	Add expansions to new_re_pvalues dictionary.
+	"""
+
+	# adjust p-values for multiple tests
+	log_adjust = log(len(re_pvalues))
+
+	# get numbers of positive and negative sequences
+	value = re_pvalues[re]
+	P = value[1]
+	N = value[3]
+
+	for i in range(0, len(re)):
+		# skip columns in RE that are already ambiguous characters
+		if not alph.has_key(re[i]): continue
+
+		# This array has a key of one letter for speed
+		c_counts = {}
+
+		# Get table of counts/p-value records for all identical 
+		# REs except for primary alphabet character in column "i"
+		for k in alph:
+			# use alphabetically smaller of RE and rc(RE) as key
+			new_re = re[:i] + k + re[i+1:]
+			index = min(new_re, get_rc(new_re))
+			# only add significant REs to current RE
+		        #if re_pvalues.has_key(index) and (re_pvalues[index][4] + log_adjust) < log_add_pthresh:
+			if re_pvalues.has_key(index) and re_pvalues[index][4] < log_add_pthresh:
+				c_counts[k] = (re_pvalues[index][0], re_pvalues[index][2])
+
+		# Build up the table of c_count records for # REs that are 
+		# identical except have an ambiguous character in column "i".  
+		# The order is important because we are doing dynamic programming here.
+		for ambig in ambigs:
+			pair = ambig_mappings[ambig]
+			if c_counts.has_key(pair[0]) and c_counts.has_key(pair[1]):
+				# combine sequence counts for two REs:
+				# size of union minus expected size of intersection
+				p1, n1 = c_counts[pair[0]]
+				p2, n2 = c_counts[pair[1]]
+				p = int(round((p1 + p2) - float(p1*p2)/P))
+				n = int(round((n1 + n2) - float(n1*n2)/N))
+				c_counts[ambig] = (p, n)
+			
+		# add the generalized REs to the positive and negative count arrays	
+		for k in c_counts:
+			# Only generalize to ambiguous characters.  Want to always have one
+			# more ambig after this function.
+			if not alph.has_key(k):
+				# get counts for RE with new ambig "k"
+				(p, n) = c_counts[k]
+				# compute p-value of counts
+				log_pvalue = getLogPvalue(p, P, n, N)
+				# create the RE with ambiguous character "k"
+				new_re = re[:i] + k + re[i+1:]
+				# don't allow N in first or last position
+				rc_new_re = get_rc(new_re)
+				if (new_re[0] == 'N') or (rc_new_re[0] == 'N'): continue
+				# save in new dictionary; key = min(RE, rc(RE))
+				index = min(new_re, rc_new_re)
+				new_re_pvalues[index] = [p, P, n, N, log_pvalue]
+				#print >> sys.stderr, index, [p, P, n, N, log_pvalue]
+
+
+def sorted_re_pvalue_keys(re_pvalues):
+	""" Return the keys of a p-value dictionary, sorted by increasing p-value """
+	if not re_pvalues: return []
+	keys = re_pvalues.keys()
+	keys.sort( lambda x, y: cmp(re_pvalues[x][4], re_pvalues[y][4]) or cmp(x,y) )
+	return keys
+
+
+def re_generalize_all(re_pvalues, ngen, log_add_pthresh, maxw, alph, ambigs, ambig_mappings, pos_seqs, neg_seqs):
+	#
+	# Generalize all significant REs (maximum ngen).
+	#
+
+	# save the input list
+	initial_re_pvalues = re_pvalues
+
+	# create the output list
+	final_re_pvalues = {}
+
+	old_re_pvalues = re_pvalues
+	for n_ambigs in range(1, maxw+1):
+		n_re = len(old_re_pvalues)
+		if n_re == 0: break 			# All done if RE dictionary is empty
+                if _verbosity >= NORMAL_VERBOSE:
+                  print >> sys.stderr, "Generalizing top %d of %d REs to %d ambiguous characters..." % \
+                      (min(ngen, n_re), n_re, n_ambigs)
+		new_re_pvalues = {}
+		sorted_keys = sorted_re_pvalue_keys(old_re_pvalues)
+		# generalize up to ngen REs
+		for re in sorted_keys[:ngen]:
+			if n_ambigs > len(re): continue		# RE too short
+			re_generalize(re, old_re_pvalues, alph, ambigs, ambig_mappings, new_re_pvalues, log_add_pthresh)
+
+		# add the new REs to the final list
+		for key in new_re_pvalues:
+			final_re_pvalues[key] = new_re_pvalues[key]
+
+		# use new RE list in next iteration
+		old_re_pvalues = new_re_pvalues
+
+	# Compute the pvalues for top ngen hits by counting the number of matches.
+	compute_top_res(final_re_pvalues, ngen, pos_seqs, neg_seqs)
+
+	# Add the pvalues records to the final list.
+	for key in initial_re_pvalues:
+		final_re_pvalues[key] = initial_re_pvalues[key]
+
+	# return the final list of pvalues
+	return final_re_pvalues
+
+
+def inverse_dna_ambig_mapping():
+	inverse_map = {}
+	alphabet = _dna_alphabet + _dna_ambigs
+	for c in alphabet:
+		inverse_map[_ambig_to_dna[c]] = c
+	return inverse_map
+
+
+def re_extend_cores(re_pvalues, ngen, mink, maxk, maxw, log_add_pthresh, nref, use_consensus, pos_seqs, neg_seqs):
+	"""
+	Pad best RE on each side to maximum width and get alignment.
+	Find enriched REs in each flank.
+	Combine best primary and secondary REs.
+	Refine combined RE.
+	New REs added to re_pvalues dictionary.
+	"""
+
+	# Get best core RE.
+	(prim_pvalue, prim_re) = min([ (re_pvalues[re][4], re) for re in re_pvalues] )
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Extending primary RE %s (p=%s) to width %d" % (prim_re, sprint_logx(prim_pvalue, 1, _pv_format), maxw)
+
+	w = len(prim_re)
+	pad = max(mink, maxw - w)
+	pad = maxw - w
+	# Expand by finding secondary RE in flanking regions if regions wide enough.
+	if pad >= mink:
+		re = find_best_secondary_re(prim_re, pad, mink, maxk, ngen, log_add_pthresh, use_consensus, pos_seqs, neg_seqs)
+	else:
+		re = prim_re
+
+	# Pad RE out to maxw evenly on both sides.
+	pad = maxw - len(re)
+	left_pad = pad/2
+	right_pad = pad - left_pad
+	re = (left_pad * 'N') + re + (right_pad * 'N')
+
+	# Do branching search to refine RE.
+	if use_consensus:
+		refine_from_consensus(re_pvalues, re, nref, pos_seqs, neg_seqs)
+	else:
+		refine_from_re(re_pvalues, re, nref, pos_seqs, neg_seqs)
+	#FIXME: trim Ns from ends?
+
+
+def find_best_secondary_re(prim_re, pad, mink, maxk, ngen, log_add_pthresh, use_consensus, pos_seqs, neg_seqs):
+
+	# Pad the RE with Ns on both sides.
+	w = len(prim_re)
+	prim_re_padded = (pad * 'N') + prim_re + (pad * 'N')
+
+	# Get the alignments of all non-overlapping regions matching the core.
+	pos_aln = get_alignment_from_re(prim_re_padded, pos_seqs)
+	neg_aln = get_alignment_from_re(prim_re_padded, neg_seqs)
+
+	# Find secondary REs in left and right flanks of aligned regions.
+	# Matches to new REs must all be on the same strand of aligned regions.
+	pos_left_flank = [s[:pad] for s in pos_aln]
+	pos_right_flank = [s[w+pad:] for s in pos_aln]
+	neg_left_flank = [s[:pad] for s in neg_aln]
+	neg_right_flank = [s[w+pad:] for s in neg_aln]
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Finding secondary RE in left flank..."
+	left_re_pvalues = re_find_cores(pos_left_flank, neg_left_flank, ngen, mink, maxk, log_add_pthresh, False)
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Finding secondary RE in right flank..."
+	right_re_pvalues = re_find_cores(pos_right_flank, neg_right_flank, ngen, mink, maxk, log_add_pthresh, False)
+
+	#
+	# Get best secondary RE and its best spacing from primary RE.
+	#
+	# Try left:
+	(left_pvalue, left_re) = min([ (left_re_pvalues[re][4],re) for re in left_re_pvalues] )
+	left_offset = get_best_offset(left_re, pos_left_flank)
+        left_pad = pad - len(left_re) - left_offset
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Best left p-value is %s (p=%s off=%d pad=%d)" % \
+              (sprint_logx(left_pvalue, 1, _pv_format), left_re, left_offset, left_pad)
+
+	# Try right:
+	(right_pvalue, right_re) = min([ (right_re_pvalues[re][4],re) for re in right_re_pvalues] )
+	right_offset = get_best_offset(right_re, pos_right_flank)
+        right_pad = right_offset
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Best right p-value is %s (p=%s off=%d pad=%d)" % \
+              (sprint_logx(right_pvalue, 1, _pv_format), right_re, right_offset, right_pad)
+
+	# Determine best secondary RE.
+	(scnd_re, scnd_pad, scnd_pvalue, flank_seqs, scnd_side) = (left_re, left_pad, left_pvalue, pos_left_flank, 'left')
+	if right_pvalue < left_pvalue:
+		(scnd_re, scnd_pad, scnd_pvalue, flank_seqs, scnd_side) = (right_re, right_pad, right_pvalue, pos_right_flank, 'right')
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Best secondary RE %s (p=%s side= %s space= %d)" % \
+              (scnd_re, sprint_logx(scnd_pvalue, 1, _pv_format), scnd_side, scnd_pad)
+
+	# Combine the primary with the best secondary RE
+	if (use_consensus):
+		# get the consensus from the RE
+		prim_re = get_consensus_from_re(prim_re, pos_seqs)
+		scnd_re = get_consensus_from_re(scnd_re, flank_seqs)
+	if (scnd_side == 'left'):
+		new_re = scnd_re + (scnd_pad * 'N') + prim_re
+	else:
+		new_re = prim_re + (scnd_pad * 'N') + scnd_re
+
+	return new_re
+
+
+def refine_from_consensus(re_pvalues, consensus, nref, pos_seqs, neg_seqs):
+	""" 
+	Use the heuristic for finding likely better Hamming-1 neighbors 
+	to refine the consensus formed from two REs.
+	"""
+
+        # get optimum Hamming distance from the consensus
+        (dist, log_pvalue, p, P, n, N, aln) = hamming.get_best_hamming_alignment(consensus, pos_seqs, neg_seqs)
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Best consensus %s distance %d (p=%s)" % \
+              (consensus, dist, sprint_logx(log_pvalue, 1, _pv_format))
+
+	# Do one step of "EM-like" alignment to get rid of Ns in consensus
+	# This step is IMPORTANT.  Without it, the refinement below may fail.
+	consensus = get_consensus_from_aln(aln)
+        (dist, log_pvalue, p, P, n, N, aln) = hamming.get_best_hamming_alignment(consensus, pos_seqs, neg_seqs)
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Best consensus after EM-like step %s distance %d (p=%s)" % \
+              (consensus, dist, sprint_logx(log_pvalue, 1, _pv_format))
+
+	# Refine the consensus using heuristically estimated Hamming-1 neighbors
+	candidate_pvalues = {}
+	candidate_pvalues[min(consensus, get_rc(consensus))] = [p, P, n, N, log_pvalue, dist]
+	re_refine_all(re_pvalues, candidate_pvalues, nref, "", pos_seqs, neg_seqs, dist)
+	(log_pvalue, consensus) = min([ (re_pvalues[cons][4], cons) for cons in re_pvalues] )
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Best refined %s %s (p=%s)" % \
+              (get_type(re_pvalues[consensus]), consensus, sprint_logx(log_pvalue, 1, _pv_format))
+
+
+def refine_from_re(re_pvalues, re, nref, pos_seqs, neg_seqs):
+
+	# The code below here works---its just very very slow.
+
+	#
+	# Try to specialize the RE by removing all letters that don't
+	# occur in any positive matches.
+	#
+	new_re = specialize_using_consensus(re, pos_seqs)
+	if new_re != re:
+		"Improved RE by removing letters not appearing in positive matches."
+	re = new_re
+
+	#
+	# Get p-value of new RE.
+	#
+	new_pvalue = compute_exact_re_enrichment(re, pos_seqs, neg_seqs)
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Extended RE is %s (p=%s)..." % (re,  sprint_logx(new_pvalue[4], 1, _pv_format))
+
+	# 
+	# Refine the new RE allowing all replacements.
+	#
+	candidate_pvalues = {}
+	index = min(re, get_rc(re))
+	candidate_pvalues[index] = re_pvalues[index] = new_pvalue
+	all_letters = _dna_alphabet + _dna_ambigs
+	new_re_pvalues = re_refine_all(re_pvalues, candidate_pvalues, nref, all_letters, pos_seqs, neg_seqs)
+	(new_pvalue, new_re) = min([ (new_re_pvalues[re][4],re) for re in new_re_pvalues] )
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Refined RE is %s (p=%s)..." % (new_re,  sprint_logx(new_pvalue, 1, _pv_format))
+
+
+def get_type(pvalue_record):
+	if len(pvalue_record) > 5 and pvalue_record[5] >= 0:
+		return "consensus"
+	else:
+		return "RE"
+	
+
+def get_consensus_from_re(re, seqs):
+	"""
+	Convert RE to consensus by computing the best alignment and
+	using best letter in each column.
+	"""
+
+	# Convert REs to consensus strings and create combined consensus string.
+	(pwm, nsites) = make_pwm_from_re(re, seqs)
+	return pwm.consensus_sequence()
+
+
+def get_consensus_from_aln(aln):
+	# make the PWM
+	pwm = sequence.PWM(sequence.getAlphabet('DNA'))
+	pwm.setFromAlignment(aln)
+	# convert to consensus
+	return pwm.consensus_sequence()
+
+
+def specialize_using_consensus(re, seqs):
+	"""
+	Get the consensus matches to an RE in a set of sequences
+	and return the most specific RE matching them all.
+	"""
+
+	new_re = ""
+	inverse_map = inverse_dna_ambig_mapping()
+	(pwm, nsites) = make_pwm_from_re(re, seqs)
+	consensus = pwm.consensus()
+	for matches in consensus:
+		matches.sort()
+		ambig = "".join(matches)
+		new_re += inverse_map[ambig]
+
+	return new_re
+
+
+def re_refine_all(re_pvalues, candidate_pvalues, nref, allowed_letters, pos_seqs, neg_seqs, hamming_dist=-1):
+	"""	
+	Refine all significant candidate REs (maximum nref).
+	Uses a greedy search.  Each possible letter
+	substitution is tested for each RE, and then
+	the best nref resulting REs are used in the next round.
+	"""
+
+	# New (partial) RE dictionary.
+	new_re_pvalues = {}
+
+	# Make inverse ambig mapping
+	inverse_map = inverse_dna_ambig_mapping()
+
+	# Previously specialized REs
+	done_re_list = {}
+
+	# Refine the top nref candidate_pvalues.
+	improved_re_pvalues = candidate_pvalues
+
+	# Specialize until top REs are previously specialized ones
+	step = 0
+	while True:
+		step += 1
+
+		if _verbosity >= NORMAL_VERBOSE:
+                  print >> sys.stderr, "%d: Sorting %d REs..." % (step, len(improved_re_pvalues))
+		sorted_keys = sorted_re_pvalue_keys(improved_re_pvalues)
+		best_re = sorted_keys[0]
+		best_pvalue = improved_re_pvalues[best_re][4]
+		if _verbosity >= NORMAL_VERBOSE:
+                  print >> sys.stderr, "Best candidate p-value is %s (%s)" % (sprint_logx(best_pvalue, 1, _pv_format), best_re)
+		# get the top nref REs
+		candidate_pvalues = {}
+		for re in sorted_keys[:nref]:
+			candidate_pvalues[re] = improved_re_pvalues[re]
+			new_re_pvalues[re] = improved_re_pvalues[re]
+
+		# Refine the top REs
+		if hamming_dist == -1:
+			improved_re_pvalues = re_refine(re_pvalues, candidate_pvalues, done_re_list, allowed_letters, pos_seqs, neg_seqs, hamming_dist)
+		else:
+			improved_re_pvalues = word_refine(re_pvalues, candidate_pvalues, done_re_list, pos_seqs, neg_seqs)
+		if _verbosity >= NORMAL_VERBOSE:
+                  print >> sys.stderr, "Improved %d REs..." % len(improved_re_pvalues)
+
+		# Add improved REs to list to return.
+		for re in improved_re_pvalues:
+			new_re_pvalues[re] = improved_re_pvalues[re]
+
+		# Done if no RE improved.
+		if len(improved_re_pvalues) == 0:
+			break
+
+	# Return the new REs
+	return new_re_pvalues
+
+
+def re_refine(re_pvalues, candidate_pvalues, done_re_list, allowed_letters, pos_seqs, neg_seqs, hamming_dist=-1):
+	"""
+	Refine each candidate RE by greedy search.
+	Only letters in the allowed_letters list are tried as substitutes.
+	Return REs that were better than their parent.
+	"""
+	
+	improved_re_pvalues = {}
+
+	n_re = len(candidate_pvalues)
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Refining %d REs..." % (n_re)
+
+	# Refine each RE in candidate list
+	for re in candidate_pvalues:
+
+		# skip if we've previously specialized this RE
+		if done_re_list.has_key(re):
+			if _verbosity >= NORMAL_VERBOSE:
+                          print >> sys.stderr, "Already refined", re
+			continue
+		else:
+			if _verbosity >= NORMAL_VERBOSE:
+                          print >> sys.stderr, "Refining RE", re
+			done_re_list[re] = 1
+
+		w = len(re)
+
+		# Try replacing each letter with all other letters.
+		for i in range(w):
+			old_letter = re[i]
+			# Try replacing this letter with each possible letter.
+			for new_letter in allowed_letters:
+				if new_letter == old_letter:
+					continue
+				new_re = re[:i] + new_letter + re[i+1:]
+				index = min(new_re, get_rc(new_re))
+				# if this is a new RE, compute its p-value
+				if not re_pvalues.has_key(index):
+					# compute the p-value
+					if hamming_dist == -1:
+						new_pvalue = compute_exact_re_enrichment(new_re, pos_seqs, neg_seqs)
+					else:
+						(dist, log_pvalue, p, P, n, N, aln) = hamming.get_best_hamming_alignment(new_re, pos_seqs, neg_seqs)
+						new_pvalue = [p, P, n, N, log_pvalue, dist]
+
+					# save the new p-value in improved list only if it is better
+					if new_pvalue[4] < re_pvalues[re][4]:
+						improved_re_pvalues[index] = new_pvalue
+					# save the p-value 
+					re_pvalues[index] = new_pvalue
+			
+	# return the list of REs that were better than their "parent"
+	return improved_re_pvalues
+
+
+def word_refine(re_pvalues, candidate_pvalues, done_list, pos_seqs, neg_seqs):
+	"""
+	Estimate the number of positive and negative sites after a single
+	character change to the word.
+	Returns a dictonary containing the new word.
+	Adds the new word to re_pvalues dictionary.
+	"""
+
+	improved_word_pvalues = {}
+
+	n_words = len(candidate_pvalues)
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Refining %d words..." % (n_words)
+
+	# Refine each WORD in candidate list
+	for word in candidate_pvalues:
+
+		# skip if we've previously specialized this word
+		if done_list.has_key(word):
+			if _verbosity >= NORMAL_VERBOSE:
+                          print >> sys.stderr, "Consensus", word, "already refined"
+			continue
+		else:
+			if _verbosity >= NORMAL_VERBOSE:
+                          print >> sys.stderr, "Refining consensus", word, "..."
+			done_list[word] = 1
+
+		# get estimated refinements of this word
+		(p, P, n, N, log_pvalue, dist) = candidate_pvalues[word]
+		(actual_record, estimated_records) = hamming.get_enrichment_and_neighbors(word, "ACGTN", pos_seqs, neg_seqs)
+
+		# save the exact record in the real p-values dictionary
+		re_pvalues[word] = actual_record
+		if _verbosity >= NORMAL_VERBOSE:
+                  print >> sys.stderr, "Actual p-value is %s (%s)" % (sprint_logx(actual_record[4], 1, _pv_format), word)
+
+		# add the records with estimated p-values better than current word's
+		for new_word in estimated_records:
+			record = estimated_records[new_word]
+			if record[4] < actual_record[4]: 
+				#FIXME : this may never end if estimated pvalues are very low
+				rc_new_word = get_rc(new_word)
+				index = min(new_word, rc_new_word)
+				improved_word_pvalues[index] = record
+
+	return improved_word_pvalues
+		
+
+def compute_top_res(re_pvalues, ncomp, pos_seqs, neg_seqs):
+	""" Compute the exact p-values for the top ncomp entries.
+	in the given table by counting hits in the sequences and
+	re-computing the p-values.
+	"""
+
+	if _verbosity >= NORMAL_VERBOSE:
+          print >>sys.stderr, "Computing exact p-values for %d REs..." % min(ncomp, len(re_pvalues))
+
+	# refine top final REs by actually scanning with the RE
+	sorted_keys = sorted_re_pvalue_keys(re_pvalues)
+	for re in sorted_keys[:ncomp]:
+		re_pvalues[re] = compute_exact_re_enrichment(re, pos_seqs, neg_seqs)
+
+
+def compute_exact_re_enrichment(re, pos_seqs, neg_seqs):
+	# get numbers of positive and negative sequences matching RE
+	(p, n) = count_seqs_matching_iupac_re(re, pos_seqs, neg_seqs)
+	# get numbers of positive and negative sequences
+	P = len(pos_seqs)
+	N = len(neg_seqs)
+	# compute hypergeometric the p-value
+	log_pvalue = getLogPvalue(p, P, n, N)
+	return(p, P, n, N, log_pvalue)
+
+
+def count_seqs_matching_iupac_re(re, pos_seqs, neg_seqs):
+	"""Count the number of positive and negative sequences matching
+	the given RE on either strand.
+	"""
+	ms = make_dna_re(re)
+	p = 0
+	for s in pos_seqs:
+		if ms.search(s): p += 1
+	n = 0
+	for s in neg_seqs:
+		if ms.search(s): n += 1
+	return(p, n)
+
+
+def make_dna_re(iupac_re, given_only=False, complete=False):
+	""" Create an RE program for matching a DNA IUPAC RE """
+	#
+	# Create a python RE matching on both strands from an IUPAC RE
+	#
+
+	# Replace ambiguous IUPAC characters with the character class they match
+	RE = ""
+	for c in iupac_re:
+		RE += '[' + _ambig_to_dna[c] + ']'
+
+	if not given_only:
+		# Get the reverse complement of RE and replace IUPAC characters
+		rc_iupac_re = get_rc(iupac_re)
+		rc_RE = ""
+		for c in rc_iupac_re:
+			rc_RE += '[' + _ambig_to_dna[c] + ']'
+		# RE matching both strands
+		RE = RE + "|" + rc_RE
+
+	if complete:
+		# must match the entire string
+		RE = "^(" + RE + ")$"
+
+	# return the python RE
+	return compile(RE)
+
+def find_print_erase(pos_seqs, neg_seqs, ngen, nref, minw, maxw, mink, maxk, log_add_pthresh, ethresh, use_consensus):
+	"""	
+	Find a motif, print it, erase it.
+	"""
+
+	#
+	# Find core REs.
+	#
+	re_pvalues = re_find_cores(pos_seqs, neg_seqs, ngen, mink, maxk, log_add_pthresh, False)
+
+	#
+	# Extend core REs to maximum width by finding new cores in flanking regions.
+	#
+	if (maxw > maxk):
+		re_extend_cores(re_pvalues, ngen, mink, maxk, maxw, log_add_pthresh, nref, use_consensus, pos_seqs, neg_seqs)
+
+	#
+	# Print the best word
+	#
+	(best_word, rc_best_word, best_pvalue, best_Evalue, unerased_log_Evalue) = \
+		print_best_re(re_pvalues, pos_seqs, minw, maxw, ethresh, log_add_pthresh)
+	pv_string = sprint_logx(best_pvalue, 1, _pv_format)
+	ev_string = sprint_logx(best_Evalue, 1, _pv_format)
+	unerased_ev_string = sprint_logx(unerased_log_Evalue, 1, _pv_format)
+	r = re_pvalues[best_word]
+	dist_str = ""
+	if get_type(r) == "consensus": dist_str = "distance= " + str(r[5])
+
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Best RE was %s %s p-value= %s E-value= %s Unerased_E-value= %s %s" % \
+              (best_word, rc_best_word, pv_string, ev_string, unerased_ev_string, dist_str)
+
+	#
+	# Erase best RE from all sequences if significant
+	#
+	if (best_Evalue <= log(ethresh)):
+		if _verbosity >= NORMAL_VERBOSE:
+                  print >> sys.stderr, "Erasing best word (%s %s)..." % (best_word, rc_best_word)
+		r = re_pvalues[best_word]
+		if get_type(r) == "consensus":
+			dist = r[5]
+			hamming.erase_word_distance(best_word, dist, pos_seqs)
+			hamming.erase_word_distance(best_word, dist, neg_seqs)
+		else:
+			erase_re(best_word, pos_seqs, neg_seqs)
+
+	return(best_pvalue, best_Evalue, re_pvalues)
+
+def erase_re(re, pos_seqs, neg_seqs):
+	ens = len(re) * 'N'
+	ms = make_dna_re(re)
+	for i in range(0, len(pos_seqs)):
+		pos_seqs[i] = ms.sub(ens, pos_seqs[i])
+	for i in range(0, len(neg_seqs)):
+		neg_seqs[i] = ms.sub(ens, neg_seqs[i])
+	
+
+
+def re_find_cores(pos_seqs, neg_seqs, ngen, minw, maxw, log_add_pthresh, given_only):
+	"""
+	Find enriched REs in a pair of sequence sets by
+		1) counting words
+		2) generalizing
+	Returns the p-value dictionary.
+	"""
+
+	re_pvalues = {}
+
+	# 
+	# Count the number of times each word of length [minw,...,maxw] occurs
+	# in each of the two input sets of sequences.
+	#
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Counting positive sequences with each word..."
+	pos_seq_counts = count_seqs_with_words(pos_seqs, minw, maxw, given_only)
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Counting negative sequences with each word..."
+	neg_seq_counts = count_seqs_with_words(neg_seqs, minw, maxw, given_only)
+
+	#
+	# Compute the p-value of the Fisher Exact Test to each word
+	# in the positive set, testing if the word is enriched.
+	#
+	nwords = len(pos_seq_counts)
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Applying Fisher Exact Test to %d words..." % nwords
+	word_pvalues = apply_fisher_test(pos_seq_counts, neg_seq_counts, len(pos_seqs), len(neg_seqs))
+
+	#
+	# Generalize REs
+	#
+        re_pvalues = re_generalize_all(word_pvalues, ngen, log_add_pthresh, maxw, \
+		_alph, _dna_ambigs, _dna_ambig_mappings, pos_seqs, neg_seqs)
+
+	#
+	# return the RE p-value dictionary
+	#
+	return re_pvalues
+
+
+def print_meme_header(alphabet, probs):
+	print >> sys.stdout, "\nMEME version 4.5\n\nALPHABET= %s\n\nstrands: + -\n\nBackground letter frequencies (from" % alphabet
+	for char in alphabet:
+		print >> sys.stdout, "%s %0.3f " % (char, probs[char]),
+	print >> sys.stdout, "\n\n# VALUES AFTER ERASING BEST WORD"
+	print >> sys.stdout, "# WORD RC_WORD 	p 	P 	n 	N   p-value   E-value"
+
+
+def get_probs(seqs, alphabet_string):
+	""" Get the observed probabilities of the letters in a set
+	of sequences.  Ambiguous characters are ignored.
+	Uses an "add-one" prior."""
+
+	freqs = {}
+	# initialize with add-one count
+	for char in alphabet_string:
+		freqs[char] = 1
+	# get the frequencies of DNA letters in the sequences
+	for seq in seqs:
+		for char in seq:
+			if freqs.has_key(char):
+				freqs[char] += 1
+			else:
+				freqs[char] = 0		# ambiguous letter
+	# get the total number of non-ambiguous letters
+	n = 0.0
+	for char in alphabet_string:
+		n += freqs[char]
+	# normalize the probabilities
+	probs = {}
+	for char in alphabet_string:
+		probs[char] = freqs[char]/n
+
+	return probs
+
+
+def main():
+
+	#
+	# defaults
+	#
+	use_consensus = False
+	minw = -1			# minumum motif width
+	maxw = -1			# maximum motif width
+	mink = 3			# minimum width of core
+	maxk = 8			# maximum width of core
+	ngen = 100			# beam width for generalization
+	nref = 1			# beam width for refinement
+	seed = 1			# random seed
+	add_pthresh = 0.01		# minimum p-value to add word to RE
+	ethresh = 0.05			# E-value stopping criterion
+	max_motifs = 0			# no nmotifs stopping criterion
+        pos_seq_file_name = None	# no positive sequence file specified
+        neg_seq_file_name = None	# no negative sequence file specified
+	print_all = False		# don't print long list
+        global _verbosity               # don't create a new local variable
+
+
+	#
+	# get command line arguments
+	#
+	usage = """USAGE: 
+	%s [options]
+
+        -p <filename>           positive sequence file name (required)
+        -n <filename>           negative sequence file name (optional);
+				default: the positive sequences are shuffled
+				to create the negative set if -n is not used
+	-e <ethresh>		stop if motif E-value > <ethresh>; 
+				default: %g
+	-m <m>			stop if <m> motifs have been output;
+				default: only stop at E-value threshold
+	-g <ngen>		number of REs to generalize; default: %d
+				Hint: Increasing <ngen> will make the motif
+				search more thoroughly at some cost in speed.
+	-s <seed>		seed for shuffling sequences; ignored
+				if -n <filename> given; default: %d
+	-v <verbosity>		1..5 for varying degrees of extra output
+				default: 2
+	-h                      print this usage message
+
+-----------------------Setting Core Motif Width---------------------------------
+                       Hint: The defaults are pretty good; making k larger
+                             than %s slows DREME down with little other effect.
+                             Use these if you just want motifs shorter than %s.
+--------------------------------------------------------------------------------
+        -mink <mink>		minimum width of core motif; default %d
+        -maxk <maxk>		maximum width of core motif; default %d
+	-k <k>			sets mink=maxk=<k>
+--------------------------------------------------------------------------------
+
+---------------------Experimental below here; enter at your own risk.-----------
+	-l 			print list of enrichment of all REs tested
+--------------------------------------------------------------------------------
+
+	DREME Finds discriminative regular expressions in two sets of DNA 
+	sequences.  It can also find motifs in a single set of DNA sequences,
+	in which case it uses a dinucleotide shuffled version of the first
+	set of sequences as the second set.
+
+	DNA IUPAC letters in sequences are converted to N, except U-->T.
+	""" % (sys.argv[0], ethresh, ngen, seed, maxk, maxk, mink, maxk)
+
+	# Hide these switches---not supported.
+	experimental = """
+-----------------------Setting Final Motif Width--------------------------------
+                       Hint: Making <w> (or <maxw>) larger than <maxk> really
+                             slows DREME down, but will allow it to find motifs
+                             wider than 7.
+--------------------------------------------------------------------------------
+	-minw <minw>		minimum word width; default: %d
+	-maxw <maxw>		maximum word width; default: %d
+	-w <w>			sets maxw=minw=<w>
+--------------------------------------------------------------------------------
+
+---------------------Experimental below here; enter at your own risk.-----------
+	-a <add_pthresh>	RE must have this p-value to be added to
+				RE during expansion; default: %g
+	-r <nref>		number of REs to refine; default: %d
+	-c			convert REs longer than <maxk> to consensus
+				sequence and refine; default: refine REs
+--------------------------------------------------------------------------------
+	"""
+	# % (sys.argv[0], ethresh, ngen, seed, mink, maxk, minw, maxw, add_pthresh, nref)
+
+        # no arguments: print usage
+	if len(sys.argv) == 1:
+		print >> sys.stderr, usage; sys.exit(1)
+
+        # parse command line
+        i = 1
+        while i < len(sys.argv):
+                arg = sys.argv[i]
+                if (arg == "-p"):
+                        i += 1
+                        try: pos_seq_file_name = sys.argv[i]
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-n"):
+                        i += 1
+                        try: neg_seq_file_name = sys.argv[i]
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-c"):
+			use_consensus = True
+                elif (arg == "-minw"):
+                        i += 1
+                        try: minw = string.atoi(sys.argv[i])
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-maxw"):
+                        i += 1
+                        try: maxw = string.atoi(sys.argv[i])
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-w"):
+                        i += 1
+                        try: minw = maxw = string.atoi(sys.argv[i])
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-mink"):
+                        i += 1
+                        try: mink = string.atoi(sys.argv[i])
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-maxk"):
+                        i += 1
+                        try: maxk = string.atoi(sys.argv[i])
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-k"):
+                        i += 1
+                        try: mink = maxk = string.atoi(sys.argv[i])
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-g"):
+                        i += 1
+                        try: ngen = string.atoi(sys.argv[i])
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-r"):
+                        i += 1
+                        try: nref = string.atoi(sys.argv[i])
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-e"):
+                        i += 1
+                        try: ethresh = string.atof(sys.argv[i])
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-s"):
+                        i += 1
+                        try: seed = string.atoi(sys.argv[i])
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-v"):
+                        i += 1
+                        try: _verbosity = string.atoi(sys.argv[i])
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                        try: _verbosity > 0 and _verbosity < 6
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-a"):
+                        i += 1
+                        try: add_pthresh = string.atof(sys.argv[i])
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-m"):
+                        i += 1
+                        try: max_motifs = string.atoi(sys.argv[i])
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-l"):
+                        try: print_all = True
+                        except: print >> sys.stderr, usage; sys.exit(1)
+                elif (arg == "-h"):
+                        print >> sys.stderr, usage; sys.exit(1)
+                else:
+                        print >> sys.stderr, "Unknown command line argument: " + arg
+                        sys.exit(1)
+                i += 1
+
+        # check that required arguments given
+        if (pos_seq_file_name == None):
+                print >> sys.stderr, usage; sys.exit(1)
+
+	# reset maxw to minw if maxw not given and minw is larger
+	if minw > maxw:
+		if maxw == -1:
+			maxw = minw
+		else:
+                	print >> sys.stderr, "minw (%d) must not be greater than maxw (%d)" % (minw, maxw); sys.exit(1)
+
+	# initialze width range
+	if minw == -1:
+		minw = mink
+	if maxw == -1:
+		maxw = maxk
+
+	if mink > maxk:
+                print >> sys.stderr, "mink (%d) must not be greater than maxk (%d)" % (mink, maxk); sys.exit(1)
+
+	# check that core size not larger than maxw
+	maxk = min(maxw, maxk)
+	mink = min(maxw, mink)
+
+        # keep track of time
+	start_time = time.time()
+
+	# print command line
+	extra = ""
+	#if use_consensus: extra += " -c"
+	#if max_motifs: extra += " -m " + str(max_motifs)
+	#print "# %s -p %s -n %s -minw %d -maxw %d -mink %d -maxk %d -e %g -g %d -a %g -r %d%s" % \
+		#(sys.argv[0], pos_seq_file_name, neg_seq_file_name, minw, maxw, mink, maxk,\
+		#	ethresh, ngen, add_pthresh, nref, extra)
+	print "# %s -p %s -n %s -mink %d -maxk %d -e %g -g %d" % \
+		(sys.argv[0], pos_seq_file_name, neg_seq_file_name, mink, maxk, ethresh, ngen)
+	print "# (", " ".join(sys.argv), ")"
+	
+	# print svn revision
+        if _verbosity >= NORMAL_VERBOSE:
+          print "# ", commands.getstatusoutput('svn info | grep Revision')[1]
+
+	#
+	# Read in the positive and negative sequence files, converting to upper case and returning
+	# a list of strings
+	#
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "Reading positive sequences", pos_seq_file_name, "..."
+	pos_seqs = get_strings_from_seqs(sequence.readFASTA(pos_seq_file_name))
+	if neg_seq_file_name:
+		if _verbosity >= NORMAL_VERBOSE:
+                  print >> sys.stderr, "Reading negative sequences", neg_seq_file_name, "..."
+		neg_seqs = get_strings_from_seqs(sequence.readFASTA(neg_seq_file_name,))
+	else:
+		# use dinucleotide-shuffled positive sequences
+		if _verbosity >= NORMAL_VERBOSE:
+                  print >> sys.stderr, "Shuffling positive sequences..."
+		random.seed(seed)		# so repeatable!
+		neg_seqs = [ shuffle.dinuclShuffle(s) for s in pos_seqs ]
+
+	# get background frequencies of *negative* sequences for use in MAST output
+	global neg_freqs
+	neg_freqs = get_probs(neg_seqs, _dna_alphabet)
+
+	# print meme header
+	print_meme_header(_dna_alphabet, neg_freqs)
+
+	#
+	# find, erase loop
+	#
+	unerased_word_pvalues = {}
+	global unerased_pos_seqs, unerased_neg_seqs
+	unerased_pos_seqs = copy.deepcopy(pos_seqs)
+	unerased_neg_seqs = copy.deepcopy(neg_seqs)
+	nmotifs = 0
+	while (True):
+		if _verbosity >= NORMAL_VERBOSE:
+                  print >> sys.stderr, "\nLooking for motif %d..." % (nmotifs+1)
+		(pvalue, Evalue, word_pvalues) = \
+			find_print_erase(pos_seqs, neg_seqs, ngen, nref, minw, maxw, mink, maxk, \
+			log(add_pthresh), ethresh, use_consensus)
+		# save unerased (original) pvalues for printing later
+		if nmotifs == 0:
+			unerased_word_pvalues = word_pvalues
+		if Evalue > log(ethresh): break
+		# stop if maximum number of motifs
+		nmotifs += 1
+		if nmotifs == max_motifs:	
+			break
+
+	if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "%d motifs with E-value < %g found." % (nmotifs, ethresh)
+	print "\n# %d motifs with E-value < %g found." % (nmotifs, ethresh)
+
+	#
+	# print the p-values for all words before any erasing
+	#
+	if print_all:
+  		print_words(unerased_word_pvalues)
+
+        end_time = time.time()
+        elapsed = end_time - start_time
+        if _verbosity >= NORMAL_VERBOSE:
+          print >> sys.stderr, "elapsed time: %.2f seconds" % elapsed
+          print >> sys.stdout, "#elapsed time: %.2f seconds" % elapsed
+
+	sys.exit(0)
+
+if __name__ == '__main__': main()

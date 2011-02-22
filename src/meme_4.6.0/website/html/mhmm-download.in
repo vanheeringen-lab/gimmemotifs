@@ -1,0 +1,60 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st January 2004), see www.w3.org">
+<title>Meta-MEME v3.3</title>
+<link href="metameme.css" rel="styleSheet" type="text/css">
+</head>
+<body bgcolor="white">
+<blockquote>
+<h1><img height="81" width="444" src="images/meta-meme.gif"></h1>
+<h3>Download</h3>
+<hr>
+<p>The Meta-MEME software is available for <a href=
+"http://metameme.sdsc.edu">interactive use</a> via the web.
+Alternatively, you can download the software for installation
+elsewhere. Each software distribution comes with the complete
+source code as well as program binaries for a particular hardware
+architecture:</p>
+<ul>
+<li><!--
+<LI>
+<A HREF="../distributions/metameme.2.1.i586.tar.gz">Linux Pentium
+(i586)</A>
+<LI>
+<A HREF="../distributions/metameme.2.1.i686.tar.gz">Linux Pentium
+Pro (i686)</A>
+<LI>
+<A HREF="../distributions/metameme.2.1.IP19.tar.gz">SGI IRIX 5.3
+(IP19)</A>
+<LI>
+<A HREF="../distributions/metameme.2.1.IP32.tar.gz">SGI IRIX
+6.3 (IP32)</A>
+--></li>
+</ul>
+<p>
+<a href="doc/release-notes.html">Release Notes</a>.
+</p>
+<p>
+<a href="doc/install.html">Installation Instructions</a>.
+</p>
+<p>Not sure which platform you have? Try typing 'uname -m' on your
+system and matching the resulting output to one of the
+parenthesized words in the links above.</p>
+<p>If you don't see your platform listed, you may download the source
+only distribution, but you will need to compile the program on your
+system. I would appreciate receiving copies of the program binaries
+for any platform not listed above, so that I can create a software
+distribution for that platform.</p>
+<!--<p>Also available is a <a href=
+"../distributions/metatest.2.1.tar.gz">test suite</a> for checking
+whether your Meta-MEME installation is working properly.</p>-->
+<hr>
+<a href="metameme-intro.html">Return</a> to the Meta-MEME home page.
+<p><i>Please send comments and questions to:
+<a href=
+"mailto:@METAMEME_CONTACT@">@METAMEME_CONTACT@</a>.</i></p>
+</blockquote>
+</body>
+</html>

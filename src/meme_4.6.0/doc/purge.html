@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang=en>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Purge Manual</title>
+<link type="text/css" rel="stylesheet" href="glam2.css">
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+</head>
+<body>
+
+<h1>Purge Manual</h1>
+
+<p>Purge removes redundant sequences from a FASTA file. This is
+recommended in order to prevent highly similar sequences distorting the
+search for motifs. Purge was written by Andy Neuwald and is described in
+more detail in Neuwald <i>et al.</i>, "Gibbs motif sampling: detection
+of bacterial outer membrane protein repeats", Protein Science, <b>4</b>:1618--1632,
+1995.</p>
+
+<p>Purge works with either DNA or protein sequences and creates an
+output file such that no two sequences have a (gapless) local alignment
+score greater than a threshold specified by the user. The alignment
+score is based on the BLOSUM62 matrix for proteins, and on a +5/-1
+scoring scheme for DNA. Purge can also be used to mask tandem repeats.
+It uses the XNU program for this purpose.</p>
+
+<h2>Using Purge</h2>
+
+<ul>
+
+	<li>For typical-length protein sequences, a reasonable purge
+	threshold is around 150. To purge a file of sequences named
+	"examples/lipocalin.s", do the following command. The purged sequences
+	will be put in file "examples/lipocalin.s.b150". You should experiment
+	with different purge thresholds depending on your particular needs.
+	Depending on the application values between 60 and 250 may be
+	appropriate. <pre>
+  purge examples/lipocalin.s 150
+</pre></li>
+
+	<li>For DNA sequences of about 100 bp, a reasonable purge
+	threshold is about 175. As the sequences become longer, higher
+	thresholds will be required to avoid removing too many sequences. To
+	purge a file of sequences named "examples/crp0.s", do the following
+	command. The purged sequences will be put in file
+	"examples/crp0.s.b175". <pre>
+  purge examples/crp0.s 175
+</pre></li>
+
+</ul>
+
+<h2>Purge Usage Message</h2>
+
+<ul>
+	<li>If you type "purge" at the command line, you will receive the
+	following usage message.</li>
+</ul>
+
+<pre>
+usage: purge file score <options>
+  options:
+     [-n]    - sequences are DNA (default: protein)
+     [-b]    - use blast heuristic method (default for protein)
+     [-e]    - use an exhaustive method (default for DNA)
+     [-q]    - keep first sequence in the set
+     [-x]    - use xnu to mask protein tandem repeats
+
+  Purge creates an output file from the input file such that
+  no two sequences have local alignment score greater than <score>.
+  The output file is named <file>.<score>.
+  Substitution matrices: BLOSUM62 (protein), +5/-1 (DNA).
+</pre>
+
+</body>
+</html>

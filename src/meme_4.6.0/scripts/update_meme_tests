@@ -1,0 +1,24 @@
+#!/bin/csh
+#
+# $Id: update_meme_tests 318 2005-10-05 06:18:35Z nadya $
+# $Log$
+# Revision 1.2  2005/10/05 06:18:35  nadya
+# use full path for "rm". Asssume everybody has /bin/rm.
+#
+# Revision 1.1.1.1  2005/07/29 00:02:45  nadya
+# Importing from meme-3.0.14, and adding configure/make
+#
+#
+
+foreach d (crp0 INO_up800 lipocalin farntrans5 adh)
+  foreach m (oops zoops tcm)
+    echo $d $m
+    mv -f meme.$d.$m.LOCAL.html meme.$d.$m.html
+    mv -f mast.$d.$m.LOCAL.html mast.$d.$m.html
+    if ($d == "adh") then
+      mv -f mast.$d.$m.mini-drosoph.s.LOCAL.html mast.$d.$m.mini-drosoph.s.html
+    endif
+    if (-e meme.$d.$m.LOCAL.html.diff) /bin/rm -f meme.$d.$m.LOCAL.html.diff
+    if (-e mast.$d.$m.LOCAL.html.diff) /bin/rm -f mast.$d.$m.LOCAL.html.diff
+  end
+end

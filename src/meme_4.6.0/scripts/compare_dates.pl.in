@@ -1,0 +1,131 @@
+#!@WHICHPERL@
+#
+# $Id: compare_dates.pl.in 5026 2010-10-20 07:00:35Z james_johnson $
+# $Log$
+# Revision 1.1  2005/07/28 23:52:45  nadya
+# Initial revision
+#
+#
+# AUTHOR: Timothy L. Bailey
+# CREATE DATE:
+
+$PGM = $0;			# name of program
+$PGM =~ s#.*/##;                # remove part up to last slash
+@args = @ARGV;			# arguments to program
+$| = 1;				# flush after all prints
+$SIG{'INT'} = 'cleanup';	# interrupt handler
+# Note: so that interrupts work, always use for system calls:
+# 	if ($status = system($command)) {&cleanup($status)}
+
+# requires
+push(@INC, split(":", $ENV{'PATH'}));	# look in entire path
+
+# defaults
+%months = (Jan, "00", Feb, "01", Mar, "02", Apr, "03", May, "04", Jun, "05", 
+  Jul, "06", Aug, "07", Sep, "08", Oct, "09", Nov, 10, Dec, 11);
+
+$usage = <<USAGE;		# usage message
+  USAGE:
+	$PGM <mon1> <day1> <time1> <mon2> <day2> <time2>
+
+	<mon>	Jan..Dec
+	<day>	day 1..31
+	<time>	time: hh:mm or year: yyyy
+
+	Compare two dates and exit with status 1 if the second dates is
+	larger (more recent) than the first, with status 0 otherwise.
+
+	Copyright 
+	(2001) Timothy L. Bailey 
+        All Rights Reserved.
+        Author: Timothy L. Bailey
+USAGE
+
+$nargs = 6;			# number of required args
+if ($#ARGV+1 < $nargs) { &print_usage("$usage", 2); }
+
+# get input arguments
+$i = 0;
+while ($#ARGV >= 0) {
+  $_ = shift;
+  if ($_ eq "-h") {				# help
+    &print_usage("$usage", 2);
+  } elsif ($i<6) {
+    $input[$i++] = $_;
+  } else {
+    &print_usage("$usage", 2);
+  }
+}
+
+#
+# get todays date
+#
+($sec, $min, $hour, $mday, $mon, $year, @rest) = localtime(time);
+$min = "0$min" if ($min < 10);
+$hour = "0$hour" if ($hour < 10);
+$mon = "0$mon" if ($mon < 10);
+$day = $mday;
+$year = 1900 + $year;
+$date = "$year $mon $day $hour $min";
+
+#
+# construct the two dates from the input
+#
+for ($i=0; $i<2; $i++) {		# construct date i
+  $_ = shift @input;			# get next word of inut
+  $mon[$i] = $months{$_};
+  $_ = shift @input;			# get next word of inut
+  $day[$i] = ($_ >= 10) ? $_ : "0$_";
+  $_ = shift @input;			# get next word of inut
+  if (s/:/ /) {				# no year given
+    $time[$i] = $_;
+    # last year or this year?
+    $year[$i] = ("$mon[$i] $day[$i]" gt "$mon $day") ? $year-1 : $year;
+  } else {				# year given
+    $time[$i] = "00 00";		# don't know the time
+    $year[$i] = $_;
+  }
+  $date[$i] = "$year[$i] $mon[$i] $day[$i] $time[$i]";
+} # construct date i
+
+if ($date[0] lt $date[1]) { exit(1) } else { exit(0) }
+
+# cleanup files
+&cleanup($status);
+ 
+################################################################################
+#                       Subroutines                                            #
+################################################################################
+ 
+################################################################################
+#
+#       print_usage
+#
+#	Print the usage message and exit.
+#
+################################################################################
+sub print_usage {
+  my($usage, $status) = @_;
+ 
+  if (-c STDOUT) {			# standard output is a terminal
+    open(C, "| more");
+    print C $usage;
+    close C;
+  } else {				# standard output not a terminal
+    print STDERR $usage;
+  }
+
+  exit $status;
+}
+ 
+################################################################################
+#       cleanup
+#
+#       cleanup stuff
+#
+################################################################################
+sub cleanup {
+  my($status, $msg) = @_;
+  if ($status && "$msg") {print STDERR "$msg: $status\n";}
+  exit($status);
+}

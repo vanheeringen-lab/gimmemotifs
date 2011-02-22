@@ -1,0 +1,178 @@
+recn                 nan   25.73          2         60         71        130                                                        
+cloacin-df13         nan   23.37          1         20         97        116                                                        
+umu-operon           nan   19.91          1         20         91        110                                                        
+lexA                 nan   19.22          3         82         14         95                                                        
+muc-operon           nan   18.13          1         20         49         68                                                        
+uvrb                 nan   15.64          1         20         71         90                                                        
+reca                 nan   14.41          1         20         71         90                                                        
+sula                 nan   13.00          1         20         85        104                                                        
+uvrd                 nan   12.74          1         20        102        121                                                        
+colicin-ib           nan   12.74          1         20         99        118                                                        
+colicin-ia           nan   12.74          1         20         99        118                                                        
+colicin-a            nan   12.49          1         20         34         53                                                        
+colicin-e1           nan   12.24          1         20         97        116                                                        
+uvra                 nan   12.00          1         20         60         79                                                        
+ -----------------------------------------------------------------------------------------------------------------------------------
+
+recn                 nan   25.73          2         60         71        130                                                        
+
+                                                                                 2.9e-09                                            
+                                                                                 *__________1_______*                               
+                                                                                 TACTGTATATATATACAGTA....................           
+                                                                                 TACTGTATATA A +CAGT+                               
+         1 TATTTCAACACACTTTAAGCACCAAGCTCGGCTGGTCAAAAAAATTATTCTAATTTTACGCCAGCCTCTTTACTGTATATAAAACCAGTTTATACTGTACACAATAACAG        110
+
+           7.1e-07                                                                                              
+           *__________1_______*                                                                                 
+           TACTGTATATATATACAGTA                                                                                 
+           TA TG+ T T  ATACAG A                                                                                 
+       111 TAATGGTTTTTCATACAGGAAACGACTATGTTGGCACAACTGACCATCAGCAACTTTGCTATCGTTCGTGAGCTTGAGATTGATTTTCAT                            200
+
+
+cloacin-df13         nan   23.37          1         20         97        116                                                        
+
+                                                                                                           4.6e-11                  
+                                                                                                           *__________1__           
+                                                                                                           TACTGTATATATAT           
+                                                                                                           TACTGT TATATAT           
+         1 TGCTTACAGGCGGCTCCGGGCGCTTTTTTGTGCCTGAAGATGAGAACTAATCTCATATATTGACACCTGAAAACTGGAGGAGTAAGGTAATAATCATACTGTGTATATAT        110
+
+                                                                                                                
+           _____*                                                                                               
+           ACAGTA                                                                                               
+           ACAGTA                                                                                               
+       111 ACAGTATTTTGGTTTTAATTTATTGTTTTAAATGTCAAAGAGGAAAACGATATGAGTGGTGGAGACGGTCGAGGTCCGGGTAATTCAGGT                            200
+
+
+umu-operon           nan   19.91          1         20         91        110                                                        
+
+                                                                                                     5.1e-10                        
+                                                                                                     *__________1_______*           
+                                                                                                     TACTGTATATATATACAGTA           
+                                                                                                     TACTGTATATA A ACAGTA           
+         1 GCACAAGATAAGAGAACGAAAAATCAGCAGCCTATGCAGCGACAAATATTGATAGCCTGAATCAGTATTGATCTGCTGGCAAGAACAGACTACTGTATATAAAAACAGTA        110
+
+
+lexA                 nan   19.22          3         82         14         95                                                        
+
+                        1.0e-04                                  8.4e-06              1.0e-07                                       
+                        *__________1_______*                     *__________1_______* *__________1_______*                          
+                        TACTGTATATATATACAGTA.....................TACTGTATATATATACAGTA.TACTGTATATATATACAGTA                          
+                          CTG+ T   T T CAGT+                     T CTGTATATA   ACAG A +ACTGTATATA A +CAG                            
+         1 GAATTCGATAAATCTCTGGTTTATTGTGCAGTTTATGGTTCCAAAATCGCCTTTTGCTGTATATACTCACAGCATAACTGTATATACACCCAGGGGGCGGAATGAAAGCG        110
+
+
+muc-operon           nan   18.13          1         20         49         68                                                        
+
+                                                           1.7e-09                                                                  
+                                                           *__________1_______*                                                     
+                                                           TACTGTATATATATACAGTA                                                     
+                                                           TACTGTATA ATA ACAGT+                                                     
+         1 CATATAGTAGAGAACCTGTAAAACTTGCCAACCTGACCATAACAGCGATACTGTATAAATAAACAGTTATTTGGAAGATCGCTATGAAGGTCGATATTTTTGAAAGCTCC        110
+
+
+uvrb                 nan   15.64          1         20         71         90                                                        
+
+                                                                                 9.8e-09                                            
+                                                                                 *__________1_______*                               
+                                                                                 TACTGTATATATATACAGTA                               
+                                                                                 +ACTGT T T TAT+CAGTA                               
+         1 TCGCCACAGAGTAAATTTTGCTCATGATTGACAGCGGAGTTTACGCTGTATCAGAAATATTATGGTGATGAACTGTTTTTTTATCCAGTATAATTTGTTGGCATAATTAA        110
+
+
+reca                 nan   14.41          1         20         71         90                                                        
+
+                                                                                 2.3e-08                                            
+                                                                                 *__________1_______*                               
+                                                                                 TACTGTATATATATACAGTA                               
+                                                                                 TACTGTAT    ATACAGTA                               
+         1 ATGCGGTGCGTCGTCAGGCTACTGCGTATGCTTGCAGACCTTGTGGCAACAATTTCTACAAAACACTTGATACTGTATGAGCATACAGTATAATTGCTTCAACAGAACAT        110
+
+
+sula                 nan   13.00          1         20         85        104                                                        
+
+                                                                                               6.1e-08                              
+                                                                                               *__________1_______*                 
+                                                                                               TACTGTATATATATACAGTA                 
+                                                                                               TACTGTA AT  ATACAGTA                 
+         1 ATTAATTTATGTTTTCCCGTCACCAACGACAAAATTTGCGAGGCTCTTTCCGAAAATAGGGTTGATCTTTGTTGTCACTGGATGTACTGTACATCCATACAGTAACTCAC        110
+
+
+uvrd                 nan   12.74          1         20        102        121                                                        
+
+                                                                                                                7.3e-08             
+                                                                                                                *________           
+                                                                                                                TACTGTATA           
+                                                                                                                + CTGTATA           
+         1 ACCGGAAAATGGCGATCTGATGCAAACCTGGGACAGCCGTTTACTGCCGCATCTGGAAATTTCCCGGTTGGCATCTCTGACCTCGCTGATATAATCAGCAAATCTGTATA        110
+
+                                                                                                                
+           __1_______*                                                                                          
+           TATATACAGTA                                                                                          
+           TATA +CAG +                                                                                          
+       111 TATACCCAGCTTTTTGGCGGAGGGCGTTGCGCTTCTCCGCCCAACCTATTTTTACGCGGCGGTGCCAATGGACGTTTCTTACCTGCTCGA                            200
+
+
+colicin-ib           nan   12.74          1         20         99        118                                                        
+
+                                                                                                             7.3e-08                
+                                                                                                             *__________1           
+                                                                                                             TACTGTATATAT           
+                                                                                                             TACTGTATAT T           
+         1 AGTGTCAGCAGGCTTTCTGAACGGTATAACACCACTTCATGTTAATGATAATTACTATCATTAAATCTTGACATGCCATTTTCTCCTTAATAAATTAGTACTGTATATGT        110
+
+                                                                                                                
+           _______*                                                                                             
+           ATACAGTA                                                                                             
+           AT+CA  +                                                                                             
+       111 ATCCATATACGTAAGCAGTTAATTCATTTGTTTTCCTCAGAGGATGAAGGAGATACCGAATGTCTGACCCTGTACGTATTACAAATCCCG                            200
+
+
+colicin-ia           nan   12.74          1         20         99        118                                                        
+
+                                                                                                             7.3e-08                
+                                                                                                             *__________1           
+                                                                                                             TACTGTATATAT           
+                                                                                                             TACTGTATAT T           
+         1 AGCGTCAGCAGGCTTTCTGAACGGTGTAACATCACTTCATGTTAATGATAATCACTATCATCAAATCTTGACATGCCATTTTCTCCTTAATAAATTAATACTGTATATGT        110
+
+                                                                                                                
+           _______*                                                                                             
+           ATACAGTA                                                                                             
+           AT+CA  +                                                                                             
+       111 ATCCATATGCGTAAGCAGTTAATTCATTTGTTTTCCTCAGAGGATGAAGGAGATACCGAATGTCTGACCCTGTACGTATTACAAATCCCG                            200
+
+
+colicin-a            nan   12.49          1         20         34         53                                                        
+
+                                            8.7e-08                                                                                 
+                                            *__________1_______*                                                                    
+                                            TACTGTATATATATACAGTA                                                                    
+                                            TACTGTATATA A ACA  +                                                                    
+         1 GACAGCATGGAACTGCCGGGCGTAGTATCATTTTACTGTATATAAACACATGTGAATATATACAGTTTTTGGTGTGGCAGAGCACTTATAACAGCGTGGCGGCAGGTAGC        110
+
+
+colicin-e1           nan   12.24          1         20         97        116                                                        
+
+                                                                                                           1.0e-07                  
+                                                                                                           *__________1__           
+                                                                                                           TACTGTATATATAT           
+                                                                                                           T CTGTATATA A            
+         1 GAATAGCGCGTGGTGTGAAAGACTGTTTTTTTGATCGTTTTCACAAAAATGGAAGTCCACAGTCTTGACAGGGAAAATGCAGCGGCGTAGCTTTTATGCTGTATATAAAA        110
+
+                                                                                                                
+           _____*                                                                                               
+           ACAGTA                                                                                               
+           +CAGT                                                                                                
+       111 CCAGTGGTTATATGTACAGTATTTATTTTTAACTTATTGTTTTAAAAGTCAAAGAGGATTTTATAATGGAAACCGCGGTAGCGTACTATA                            200
+
+
+uvra                 nan   12.00          1         20         60         79                                                        
+
+                                                                      1.2e-07                                                       
+                                                                      *__________1_______*                                          
+                                                                      TACTGTATATATATACAGTA                                          
+                                                                      TACTGTATAT  AT CAG +                                          
+         1 TTCCGCGAAACAAACCTGGCCAGACATTGTTACACAACACTCCGGGTAATGCATTCCAATACTGTATATTCATTCAGGTCAATTTGTGTCATAATTAACCGTTTGTGATC        110
+
+

@@ -1,0 +1,27 @@
+<html>
+<head><title><!-- TMPL_VAR NAME=program --> Job<!-- TMPL_IF NAME=status --> - <!-- TMPL_VAR NAME=status --><!-- /TMPL_IF --></title>
+<meta http-equiv="expires" content="Sun 1 Jan 1997 00:00:00 GMT">
+<!-- TMPL_IF NAME=refresh --><meta http-equiv="Refresh" content="<!-- TMPL_VAR NAME=refresh -->"><!-- /TMPL_IF -->
+</head>
+<body>
+<h2><!-- TMPL_VAR NAME=program --> Job<!-- TMPL_IF NAME=status --> - <!-- TMPL_VAR NAME=status --><!-- /TMPL_IF --></h2>
+<p><!-- TMPL_IF NAME=refresh -->This page will be updated every <!-- TMPL_VAR NAME=refresh --> seconds. <!-- /TMPL_IF -->You may bookmark this page and return to it later.</p>
+<!-- TMPL_IF NAME=files -->
+<h3>Results</h3>
+<ul>
+<!-- TMPL_LOOP NAME=files -->
+  <li><a href="<!-- TMPL_VAR NAME=file -->"><!-- TMPL_VAR NAME=desc --></a></li>
+<!-- /TMPL_LOOP -->
+</ul>
+<!-- /TMPL_IF -->
+<!-- TMPL_IF NAME=msgs -->
+<h3>Status Messages</h3>
+<ul>
+<!-- TMPL_LOOP NAME=msgs -->
+  <li><!-- TMPL_VAR NAME=msg --></li>
+<!-- /TMPL_LOOP -->
+</ul>
+<!-- /TMPL_IF -->
+</body>
+</html>
+

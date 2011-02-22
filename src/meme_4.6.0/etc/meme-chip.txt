@@ -1,0 +1,881 @@
+#!@WHICHPERL@
+# AUTHOR: Philip Machanick
+# CREATE DATE: 25 August 2010
+
+####################################################################
+# top-level script to clean up and centre sequences 
+# and subsample to run MEME, then run MAST with MEME outputs
+# against the whole set (excluding sequences in which the
+# central portion is all Ns, a consequence of repeat
+# additional tools include DREME, AMA and AME; more can be added
+# by adding to the %arguments data structure and by adding
+# them in to the CGI script that captures user inputs. See the
+# %arguments data structure for supported commands. Anything
+# passed through from the CGI script or directly to this script
+# that is not in the %arguments data structure is treated as
+# an error.
+#
+# we expect the sequences to be in a file called sequences
+# from the front end (CGI script).
+####################################################################
+
+####################################################################
+# Big picture strategy: the front end passes in command lines
+# labeled as
+#    <TAG>argument_1 .. argument_n
+# delimited by the next <TAG>, with <END> terminating commands
+# variables of the form
+#    |<name>|
+# are replaced based on values computed in this script. These
+# values are stored in a hash %variables, indexed on "|<name>|",
+# e.g. $variables{'|NSEQS|'} contains the number of sequences
+# in the user-supplied FASTA data.
+#
+# A command string may contain a <name> ending with ":", which
+# is replaced before further processing by |<name>| and all the
+# text up to either the next ":" variable or the next "<>" tag
+# is stored in a variable called |<name>|. The use for this
+# here is passing in one or more motif database names, which
+# are further processed to add a path in the command line.
+#
+# The data structure %arguments is a hash indexed on tag names
+# (without the enclosing "<>") that specifies the command line
+# including an initial value to which the front end command
+# line is added, and how the command output is reported in the
+# HTML output report.
+####################################################################
+
+use Cwd; # equivalent of pwd http://perldoc.perl.org/Cwd.html
+use File::Spec; # http://perldoc.perl.org/File/Spec.html
+#use File::Basename; #http://perldoc.perl.org/File/Basename.html
+
+use Data::Dumper;
+use Scalar::Util qw(looks_like_number);
+use POSIX qw(strftime);
+use File::Copy;
+use strict;
+
+use lib qw(@PERLLIBDIR@);
+use Globals;
+
+####################################################################
+# basic setup
+####################################################################
+
+die "can't make symbolic links on this system" unless eval { symlink("",""); 1 };
+my $bindir = "bin";
+symlink "@BINARYDIR@",$bindir;
+symlink "@MEMEDB@","databases";
+
+# FIXME in website/scripts/Globals.txt -- make small here for testing faster
+# $MAXMEMESEQS = 600;
+
+####################################################################
+# set up log
+####################################################################
+
+#remember start time for the log
+my $t_start = strftime ("%d/%m/%y %H:%M:%S", localtime());
+
+# set up the log file name
+my $logfile = "@MEMELOGS@/meme-chip-log";
+open LOGFILE, ">>$logfile" or die "Can't open `$logfile' to append $!";
+my $args_log = "";
+
+####################################################################
+# output directories
+####################################################################
+
+my $memedir = "meme_out";
+my $dremedir = "."; # FIXME: this could change if we do more outputs to dreme_out
+my $amedir = "ame_out";
+my $amadir = "ama_out";
+my $tomtommemedir = "meme_tomtom_out";
+my $tomtomdremedir = "dreme_tomtom_out";
+my $mememastdir = "meme_mast_out";
+my $drememastdir = "dreme_mast_out";
+my $spamodir = "spamo_out";
+
+my $dir = getcwd();
+my $DBDIR = "databases/motif_databases";
+my $jobid = (File::Spec->splitdir($dir))[-1]; # same effect as basename($dir)
+
+####################################################################
+# basic arguments for each program; the rest are from the front end
+####################################################################
+
+my $pspargs = ""; #FIXME: not used in this version
+my $amaargs = "--oc $amadir --verbosity 1";
+my $ameargs = "--oc $amedir --verbose 1";
+my $memeargs = "-oc $memedir -nostatus ";
+my $mastargs = " -nostatus"; # -oc directory varies for different MAST runs
+my $spamoargs = "-oc $spamodir -verbosity 1 "; # 
+my $tomtomargs = "-verbosity 1 -oc "; # TOMTOM output dir varies: 2 examples
+my $dremeargs = "-v 1 "; # suppress progress output
+
+# we can change our choice of which of the various pipeline stages gets
+# to be input to AME here
+my $ame_sequences = "seqs-centered";
+
+my %variables; # values that can be filled in in front end command string
+
+# variables to be patched in to command lines from front end
+# some may change depending on data so don't translate too early
+
+####################################################################
+# initial values for variables available to substitute into commands
+####################################################################
+
+# |MEMESEQUENCES| only known after we check if we need to subsample
+$variables{'|AMESEQUENCES|'} = 'seqs-centered_w_bg';
+$variables{'|DREMESEQUENCES|'} = 'seqs-centered';
+$variables{'|NSEQS|'} = &getsize('sequences');
+$variables{'|MEMEDIR|'} = $memedir;
+$variables{'|DREMEDIR|'} = $dremedir;
+
+####################################################################
+# set up potential command lines and corresponding output reports
+####################################################################
+
+# Actual commands run are defined by the command line to this script
+# (usually from a web  CGI or frontend script). Entries here are
+# ignored if not in the frontend-supplied command line.
+# Each entry in the hash for commands to be processed should contain
+#  an initial value for the command line arguements (string)
+#  the arguments to pass in to the HTML report function:
+#  - name of the program (string), also used to construct command line
+#  - reference to array of names of files in order html, text, xml
+#  - name of the output directory or emptry string if none
+#  - explanatory text (string)
+# the whole entry (dereferenced) becomes the argument to run_report_job FIXME ####
+# if we use more than one motif database, change MOTIFDB and MOTIFDBNAMES
+# to reflect this (including where we call set_db_names)
+# processing passed-in arguments
+my %arguments = (
+  "MEME" => [$memeargs,
+            "meme",
+            ["meme.html", "meme.txt", "meme.xml"],
+            $memedir,
+            "Motifs discovered in|SAMPLEDTEXT| trimmed (central $CMAX".
+            "bp) input sequences."],
+#  "PSP" =>  [$pspargs, "FIXME: not used in this version"],
+  "TOMTOMMEME" => [$tomtomargs.$tomtommemedir,
+            "tomtom", ["tomtom.html", "tomtom.txt", "tomtom.xml"],
+	    $tomtommemedir,
+            "Motifs from |MOTIFDBNAMES|"." that match motifs ".
+            "MEME discovers."],
+  "AMA" =>  [$amaargs,
+            "ama",
+            ["", "ama.txt", "ama.xml"],
+            $amadir,
+	    "Estimated binding affinity of each MEME motif to each input sequence."],
+  "AME" =>  [$ameargs,
+            "ame", ["ame.html", "ame.txt", ""],
+            $amedir,
+            '|MOTIFDBNAMES|'." motifs enriched in the trimmed (central $CMAX".
+	    "bp) input sequences."],
+#  "SPAMO" => [$spamoargs, "FIXME: not used in this version"],
+  "TOMTOMDREME" => [$tomtomargs.$tomtomdremedir,
+            "tomtom", ["tomtom.html", "tomtom.txt", "tomtom.xml"],
+	    $tomtomdremedir,
+            "Motifs from |MOTIFDBNAMES|"." that match motifs ".
+             "DREME discovers."],
+  "DREME" => [$dremeargs,
+           "dreme", ["", "dreme.txt", ""], $dremedir,
+	   "Motifs discovered in the trimmed (central $CMAX".
+	   "bp) input sequences.",
+           undef, "dreme.txt"],
+  "MEMEMAST"  => [$mastargs." -oc $mememastdir",
+           "mast", ["mast.html", "mast.txt", "mast.xml"], $mememastdir,
+           "Predicted locations of all MEME motifs (".
+           "<i>p</i> &lt; 0.0001) in the input sequences."],
+  "DREMEMAST"  => [$mastargs." -oc $drememastdir",
+           "mast", ["mast.html", "mast.txt", "mast.xml"], $drememastdir,
+           "Predicted locations of all DREME motifs (".
+           "<i>p</i> &lt; |DMASTTHRESH|) in the input sequences."]
+);
+
+# record in this array the order of the commands to run, as
+# ordered in the front end:
+my @commands = ();
+
+####################################################################
+# set up the HTML file and initialize the contents
+####################################################################
+
+my $htmlreport = "";
+my $htmlreportinputs = "";
+# change the next 2 lines for a different wrapper around commands
+my $htmlreportcommands = "<pre>\n";
+my $endcommandlist = "</pre>";
+my $htmlstartlist = "<ul>\n";
+my $htmlendlist = "</ul>\n";
+# start and end indented text
+my $htmlstartind = "<blockquote>\n";
+my $htmlendind = "</blockquote>\n";
+
+open HTMLFILE, '>', "index.html" or die "Can't create index.html: $!";
+
+# get the background
+my $bkg = "@MEMEDIR@/etc/bkg.jpg";
+copy ($bkg,"./") if -e $bkg;
+
+&create_HTML_header(\*HTMLFILE);
+# put reports of command lines in a list
+print HTMLFILE $htmlstartlist;
+
+####################################################################
+# process the command line (from the front end usually)
+####################################################################
+
+my $args = join(' ', @ARGV);
+# harvest any values defined in the command line in ":" variables
+# and store each as |<name>| to allow referencing in backend command lines
+# delete the part of the command line after <name>: in case we need to
+# process the named part further (and replace the name by |<name>|
+while ($args =~ /\s*?(\S+?):(.+?)(\s+<|\s*$)/) {
+    my $name = $1;
+    my $value = $2;
+    $args =~ s/$name:$value/\|$name\|/; # delete the value, replace by |name|
+    die "variable $name duplicated in `$args'" if exists ($variables{'$'.$name});
+    $variables{'|'.$name.'|'} = $value;
+}
+
+# if we have different combinations of motif DBs for different
+# tools, change this here (also checks if all DBs installed)
+($variables{"|MOTIFDB|"}, $variables{"|MOTIFDBNAMES|"}) =
+    & set_db_names ($DBDIR,  $variables{'|MOTIFDB|'});
+
+####################################################################
+# separate out command lines from the single front-end argument list
+####################################################################
+
+# split off arguments based on <name1> .... <name2>
+# delimiting arguments for <name1>, with <END> terminating
+# store everything between <name1> and <name2> as arguments
+# for program <name1>.
+my $argsleft = $args;
+$argsleft =~ s/\s+$//; # should be no white space at end but make sure
+&end_runs(\*HTMLFILE, $htmlstartind, $htmlreport, $htmlendind,$htmlreportinputs,
+		      $htmlreportcommands, 1)
+   unless $argsleft =~ /<END>$/; # must end with <END>
+while ($argsleft ne "<END>") {
+    my $name;
+    die "malformed argument string: `$args'"
+	unless ($argsleft =~ /^(\s*?)<(\S+?)>(.*?)</);
+    my $name = $2;
+    my $prefix = $1."<".$2.">";
+
+    if ($name eq '|UP|' || $name eq '|DOWN|') { # change the indentation level
+      push (@commands, $name);
+      # to be strict, we should check that $3 is only white space
+      $prefix .= $3;
+      $prefix = &cleanforregex($prefix);
+      $argsleft =~ s/$prefix//;
+      next;
+    }
+    die "arguments for $2 defined more than once"
+	if exists($variables{$name});
+    my $value = $3;
+    if (exists($arguments{$name})) {
+	$_ = ($arguments{$name});
+	my $oldarg = \$$_[0];
+	$$oldarg = $$oldarg.$value;
+	$args_log .= '<'.$name.'> '.$$_[0]." ";
+    } else {
+        print HTMLFILE "No predefined command line for `$name'<br>\n";
+        &end_runs (\*HTMLFILE, $htmlstartind, $htmlreport, $htmlendind,$htmlreportinputs,
+        $htmlreportcommands, 1);
+    }
+    $prefix .= $value;
+    my $firstvar = "";
+    $variables{$name} = $value;
+    $prefix = &cleanforregex($prefix);
+    $argsleft =~ s/$prefix//;
+    push (@commands, $name);
+}
+
+my $lowercase = 1; # signal do not change case of command part of report
+
+####################################################################
+# set up and record the inputs
+####################################################################
+
+$htmlreportinputs .=  &report_job ("input", ["sequences","",""], "",
+    "your original untrimmed sequences");
+
+$htmlreportcommands .= &command_list(&run_job ($bindir, "fasta-center -len $CMAX",
+    "sequences", "seqs-centered"));
+$htmlreportinputs .= &report_job ("fasta-center",
+    ["seqs-centered","",""], "", "your sequences centered and trimed to width $CMAX",
+    $lowercase);
+
+if (!-s "seqs-centered") {
+   print HTMLFILE "No data after centering sequences.<br>\n";
+   &end_runs (\*HTMLFILE, $htmlstartind, $htmlreport, $htmlendind,$htmlreportinputs,
+   $htmlreportcommands, 1);
+}
+
+my $Ncentered = $variables{'|NSEQSCENTERED|'} = &getsize ("seqs-centered");
+
+####################################################################
+# set up inputs for AME
+####################################################################
+
+$variables{'|AMESIZE|'} = &getsize ($ame_sequences);
+
+my $dinucargs = " -f $ame_sequences -t -dinuc";
+$htmlreportcommands .= &command_list(&run_job ($bindir, "fasta-dinucleotide-shuffle".$dinucargs,
+    undef, "seqs-shuffled"), $lowercase);
+$htmlreportinputs .= &report_job ("fasta-dinucleotide-shuffle", ["seqs-shuffled","",""], "",
+  "the centered sequences randomly shuffled maintaining their dinucleotide ".
+  "frequency, used as a background for AME", $lowercase);
+
+my $ame_input = $ame_sequences."_w_bg";
+$htmlreportcommands .= &command_list(&run_job (undef, "cat $ame_sequences seqs-shuffled",
+    undef, "$ame_input"));
+$htmlreportinputs .= &report_job ("AME input", ["$ame_input","",""], "",
+  "the centered sequences followed by the same ".
+  "sequences after dinucleotide shuffling");
+
+####################################################################
+# set up inputs for MEME
+####################################################################
+
+# subsample to maximum sequences we want for MEME if too many sequences
+my $final_seqs = "seqs-centered";
+if ($Ncentered > $MAXMEMESEQS) {
+    $variables{'|SAMPLEDTEXT|'} = " $MAXMEMESEQS (randomly chosen)";
+    $htmlreportcommands .= &command_list(&run_job ($bindir,
+        "fasta-subsample seqs-centered $MAXMEMESEQS ".
+        "-rest seqs-discarded", undef,
+        "seqs-sampled"));
+    $final_seqs = "seqs-sampled";
+    $htmlreportinputs .= &report_job (
+	"fasta-subsample (used)", ["seqs-sampled","",""], "",
+        "a random sample of $MAXMEMESEQS of the centered sequences, used by MEME", $lowercase);
+    $htmlreportinputs .= &report_job (
+	"fasta-subsample (discarded)", ["seqs-discarded","",""], "",
+        "the centered sequences omitted from the sample used by MEME", $lowercase);
+} else {
+    $variables{'|SAMPLEDTEXT|'} = "";
+}
+
+$variables{'|MEMESEQUENCES|'} = $final_seqs;
+
+####################################################################
+# we now know all the variables so substitute into the command lines
+# and HTML comments
+####################################################################
+
+my $indent = 0;
+
+foreach my $tag (@commands) {
+    # skip indentation requests when doing name substitution
+    next if ($tag eq '|UP|' || $tag eq '|DOWN|');
+    $_ = ($arguments{$tag});
+    my $oldarg = \$$_[0];
+    my $oldcomment = \$$_[4];
+    &substitute ($oldarg, \%variables);
+    &substitute ($oldcomment, \%variables);
+    next;
+    while ($$oldarg =~ /(\|\w+?\|)/) {
+	my $name = $1;
+	die "$name doesn't exist in `$$oldarg' or `$$oldcomment'" unless exists $variables{$name};
+	my $name_search = $name;
+	# change all "|" to escaped "\|" so as not to confuse regex search
+	$name_search =~ s/\|/\\\|/g;
+	$$oldarg =~ s/$name_search/$variables{$name}/;
+    }
+}
+
+####################################################################
+# perform each command line, reporting the outputs
+####################################################################
+
+foreach my $command (@commands) {
+     # each command should have a reference to an array now that
+     # has the right elements for a call to report_and_run
+     # we can unwrap it straight into the argument list
+#    print lc($command)." ".${$arguments{$command}}[0]."\n";
+     if ($command eq '|UP|') {
+       $indent++;
+       next;
+     } elsif ($command eq '|DOWN|') {
+       $indent--;
+       next;
+     }
+     $_ = [&report_and_run ($indent, $bindir, @{$arguments{$command}})];
+     $htmlreportcommands .= $$_[0];
+     $htmlreport .= $$_[1];
+}
+
+####################################################################
+# finish the report with how inputs are generated
+####################################################################
+print HTMLFILE $htmlendlist; # close the list used for command line reporting
+# log the run and finish the html
+&end_runs (\*HTMLFILE, $htmlstartind, $htmlreport, $htmlendind,$htmlreportinputs,
+	  $htmlreportcommands, 0);
+
+################################################################################
+#                       Subroutines                                            #
+################################################################################
+
+
+################################################################################
+#
+#       print_usage
+#
+#  Print the usage message and exit.
+#
+################################################################################
+sub print_usage {
+  my($usage, $status) = @_;
+ 
+  if (-c STDOUT) {      # standard output is a terminal
+    open(C, "| more");
+    print C $usage;
+    close C;
+  } else {        # standard output not a terminal
+    print STDERR $usage;
+  }
+
+  exit $status;
+}
+ 
+################################################################################
+#
+#       cleanup
+#
+#       cleanup stuff
+#
+################################################################################
+sub cleanup {
+  my($status, $msg) = @_;
+  if ($status && "$msg") {print STDERR "$msg: $status\n";}
+  exit($status);
+}
+
+################################################################################
+#
+#       getsize
+#
+#       return the size of a FASTA file (assumes getsize installed)
+#
+#       argument:
+#         name of file (string)
+#
+################################################################################
+
+sub getsize {
+  my ($filename) = @_;
+  $_ = (`bin/getsize $filename`)[0];
+
+  my $N = (split)[0];
+
+  unless (looks_like_number($N) && $N > 0 && int($N) == $N) {
+       print HTMLFILE "Bad size of $filename $N.<br>\n.";
+       &end_runs (\*HTMLFILE, $htmlstartind, $htmlreport,
+          $htmlendind,$htmlreportinputs, $htmlreportcommands, 1);
+  }
+  return $N;
+}
+
+
+
+################################################################################
+#
+#  cleanforregex
+#
+#  escape any | or $ before using a string in a regular expression
+#
+################################################################################
+sub cleanforregex {
+    my ($prefix) = @_;
+    $prefix =~ s/\|/\\|/g; # escape any | -- allowed in names, confuse regex
+    $prefix =~ s/\$/\\\$/g; # escape any $ -- allowed in names, confuse regex
+    return $prefix;
+}
+
+
+################################################################################
+#
+#  substitute
+#
+#  given a reference to a string and a reference to a hash of variables
+#  replace all instances of variables in the string by the associated value
+#
+################################################################################
+sub substitute {
+  my ($stringref, $variables) = @_;
+  while ($$stringref =~ /(\|\w+?\|)/) {
+    my $name = $1;
+    die "$name doesn't exist in `$$stringref'" unless exists $$variables{$name};
+    my $name_search = $name;
+    # change all "|" to escaped "\|" so as not to confuse regex search
+    $name_search =~ s/\|/\\\|/g;
+    $$stringref =~ s/$name_search/$$variables{$name}/;
+  }
+}
+
+
+################################################################################
+#
+#       set_db_names
+#
+#       for a given DB name and directory create and return in an
+#       array the name(s) to report, and the command line version
+#       with path names
+#
+#       arguments
+#           $path: path to DB files
+#           $databases: original names in a string separated by ", "
+#       returns
+#           (path-qualified-names, report-names)
+#           the first with , stripped, the second with
+#           text that reduces readbility stripped
+#       dies if any of the databases is not installed
+#
+################################################################################
+sub set_db_names {
+    my ($path, $databases) = @_;
+    my @db_no_paths = split (/, /, $databases);
+    my $dbs_with_paths = "";
+    for (my $i = 0; $i < @db_no_paths; $i++) {
+    	$dbs_with_paths .= $path."/".$db_no_paths[$i]." ";
+    }
+    chop ($dbs_with_paths); # cut trailing space
+    my $databasereport = $databases;
+    $databasereport =~ s/.meme|_matrix//g;
+    $databasereport =~ s/_/ /g;
+    $dbs_with_paths =~ s/,//; # remove commas
+    my $alldbs_OK = 1;
+    foreach my $db (@db_no_paths) {
+      unless (-s $path."/".$db) {
+         print STDERR "Motif database `$db' not installed; ".
+            "complain to your system administrator\n";
+         $alldbs_OK = 0;
+     }
+   }
+   end_runs(\*HTMLFILE, $htmlstartind, $htmlreport, $htmlendind,$htmlreportinputs,
+   $htmlreportcommands, 1)
+       unless $alldbs_OK;
+   return ($dbs_with_paths, $databasereport);
+}
+
+################################################################################
+#
+#       report_and_run
+#
+#       run a job as specified un an entry in %arguments and return the
+#	output and command line reports
+#    arguments (all string unless otherwise specified):
+#	 $level:      if defined, the number of indents for 1st table element
+#        $bindir:     directory containing executables
+#        $args:       command line arguments
+#        $program:    program name (executable's name)
+#        $outputs:    output file names for HTML report (reference to array)
+#        $outputdir:  destination for outputs
+#        $comment:    text to display next to outputs
+#        $newstdin:   if defined, redirect STDIN there
+#        $newstdout:  if defined redirect STDOUT to there
+#    returns
+#        (commandHTML, outputHTML)
+#
+################################################################################
+sub report_and_run {
+    my ($level, $bindir, $args, $program, $outputs, $outputdir, $comment, $newstdin,
+       $newstdout) = @_;
+
+     return (
+           	 &command_list (&run_job ($bindir, $program." ".$args, $newstdin, $newstdout),
+                 $program, $outputs, $outputdir, $comment),
+		 &report_job ($program, $outputs, $outputdir, $comment, undef,
+		   $level));
+}
+
+################################################################################
+#
+#       run_job
+#
+#       run a step as if on the command-line, with alternatives for
+#       STDIN and STDOUT; to be safe revert to previous STDIN and
+#       STDOUT before completion; if a path should be appeneded to
+#       the command or files, do that before calling run_job
+#    arguments:
+#	 $bindir: directory containing the binary; if empty or undef add no path
+#        $commandline: command to execute with arguments
+#        $stdin: alternative to standard input
+#        $stdout: alternative to standard output
+#    both $stdin, $stdout if empty string or undefined default to no
+#    change to standard input or output
+#    returns:
+#        the command line including if defined STDIN and STDOUT redirects
+#
+################################################################################
+sub run_job {
+  my($bindir, $commandline, $stdin, $stdout) = @_;
+  $_ = ($bindir?$bindir."/":"").$commandline;
+  my @run_options = split;
+  # hints from http://perldoc.perl.org/functions/open.html
+  # open STDIN and STDOUT with new names, or record as "-" for error
+  # messages if not defined
+  if ($stdin) {
+      open OLDIN, "<&STDIN"     or die "Can't dup STDIN: $!";
+      open STDIN, '<', $stdin or die "Can't redirect STDIN: $!";
+  }
+  if ($stdout) {
+      open OLDOUT, ">&STDOUT"     or die "Can't dup STDOUT: $!";
+      open STDOUT, '>', $stdout or die "Can't redirect STDOUT: $!";
+  }
+  # hints from http://perldoc.perl.org/functions/system.html and
+  # http://stackoverflow.com/questions/1348639/how-can-i-reinitialize-perls-stdin-stdout-stderr
+  system(@run_options) == 0 or die "running `$commandline' ".defined($stdin) ? "< $stdin":"".
+    defined($stdout)?" > $stdout":""."' failed: $!";
+  open STDIN, "<&OLDIN" or die "Can't redirect STDIN: $!" if ($stdin);
+  open STDOUT, ">&OLDOUT" or die "Can't dup \$oldout: $!" if ($stdout);
+  return $commandline . ($stdin ? " < $stdin" : "") . ($stdout ? " > $stdout" : "");
+}
+
+################################################################################
+#
+#       report_job
+#
+#    create HTML output representing a job; each line is a table row.
+#    Send the command line to the output file, and return the output
+#    files as a string of HTML. Each output file is named <program>.<format>
+#    so we can deduce the description of the output by uppercasing
+#    the <program> two parts of the name; if the format is "txt"
+#    we special-case that to "plain text".
+#    arguments:
+#        $command: use to identify output file(s)
+#            if undefined leave blank
+#	     if "input" replace "output" by "input" in file description
+#        $outputs: array of file names for outputs: report
+#            each only if the file exists
+#        -   if name is of form <file>.<format> report as
+#                <format> with a link to the file name; if
+#                <format> is txt, report as "plain text"
+#        -   if name has no "." report as <file>, still with
+#            a link to the file
+#        $outputdir: if defined, add to front of each output file
+#            assumes no path separator ends the given name
+#        $comment: if defined, add to end of output line
+#	 $lowercase: if defined, don't change case of $command
+#        $level: if defined and > 0, indent by 2 * nonbreaking spaces
+#    returns:
+#        string containing HTML to report output files
+#
+################################################################################
+sub report_job {
+      my(
+      $command,
+      $outputs,
+      $outputdir,
+      $comment,
+      $lowercase,
+      $level
+      ) = @_;
+    my $commandwidth = 225;
+    my $filewidth = 150;
+    my $indent = $level && $level > 0 ? '&nbsp;' x ($level*4) : "";
+    my $outputstring = "<tr>".
+    "<td width=\"$commandwidth\">".$indent.
+    (defined($command)?  # if command contains "input" don't call it output ##
+       ($command =~ /input/?
+              $command:
+              ($lowercase?$command:uc($command))." output"):"").":</td>";
+    if ($outputdir) {
+        $outputdir = $outputdir."/"; # add path separator
+    } else { # make sure it's empty string, not undefined
+        $outputdir = "";
+    }
+    my $emptyseen = 0;
+    foreach my $filespec (@$outputs) {
+        my $format = $filespec;
+        # only report nonempty outputs, but leave space for the empty ones
+        $outputstring .= "<td width=\"FIXWIDTH\">" unless $emptyseen;
+        # if $filespec is empty or undefined don't add the path
+	if ($filespec) {
+           $filespec = $outputdir."$filespec" ; # add the path if any
+           if (-s $filespec) {
+	      my $totalwidth = &fixwidth($emptyseen, $filewidth);
+	      if ($emptyseen) { # finish off the empty cells, start full one
+                 $outputstring .= "</td>\n<td width=\"$filewidth\">";
+	      }
+	      $outputstring =~ s/FIXWIDTH/$totalwidth/;
+	      $outputstring .= "";
+              if ($format =~ /^([\w-.]+)\.([\w-]+)$/) {
+                  $format = uc $2;
+                  $format = "plain text" if $format eq "TXT";
+              }
+              $outputstring .= "<a href=\'$filespec\'>$format</a>";
+              $outputstring .= "</td>";
+	      $emptyseen = 0;
+           } else { # although specified output doesn't exist: empty cell
+	     $emptyseen++;
+	   }
+	} else  { # no output specified: empty cell
+	     $emptyseen++;
+	}
+    }
+    
+    if ($emptyseen) {
+      # patch this in here because an empty string at the end of outputs can
+      # be missed by the foreach loop
+      $outputstring .= "<td width=\"FIXWIDTH\">" unless $outputstring =~ /FIXWIDTH/;
+      my $totalwidth = &fixwidth($emptyseen, $filewidth);
+      $outputstring =~ s/FIXWIDTH/$totalwidth/;
+      $outputstring .= "</td>";
+    }
+    $outputstring .= "<td>$comment</td>" if ($comment);
+    $outputstring .= "</tr>\n";
+    return $outputstring;
+}
+
+sub fixwidth {
+    my ($emptyseen, $width) = @_;
+    return $width if $emptyseen < 1;
+    # for each veritical line we lose, we lose its width + 1 px padding either side
+    return $width * $emptyseen + ($emptyseen - 1)*3;
+}
+
+
+################################################################################
+#
+#       create_HTML_header
+#
+#       create header in output file
+#    arguments:
+#        $htmlfile: file handle to opened output file
+#
+################################################################################
+sub create_HTML_header {
+    my($htmlfile) = @_;
+    print $htmlfile <<QUOTE
+<html>
+<head>
+<title>MEME ChIP Output</title>
+<style type="text/css">
+table {
+	border-width: 1px;
+	border-spacing: 2px;
+	border-style: outset;
+	border-color: gray;
+	border-collapse: collapse;
+}
+table th {
+	border-width: 1px;
+	padding: 1px;
+	border-style: inset;
+	border-color: gray;
+	-moz-border-radius: 0px 0px 0px 0px;
+}
+table td {
+	border-width: 1px;
+	padding: 1px;
+	border-style: inset;
+	border-color: gray;
+	-moz-border-radius: 0px 0px 0px 0px;
+}
+</style>
+</head>
+<body background="bkg.jpg">
+
+<hr>
+<h2>MEME ChIP Job $jobid</h2>
+We process your sequences through a series of steps to help
+you identify motifs in your DNA sequences.
+For more detail, see this <a href="@SITE_URL@/doc/meme-chip-tutorial.html">Tutorial</a>.
+You may find it helpful to open it in another window while examining your
+results.
+QUOTE
+}
+
+
+################################################################################
+#
+#       finish_html
+#
+#       complete the output file including pointers to any generated messages
+#    arguments:
+#        $htmlfile: file handle to opened output file
+#
+################################################################################
+sub finish_html {
+    my($htmlfile) = @_;
+      print $htmlfile "<hr>\n";
+      if (-s "stdout.txt" || -s "stderr.txt") {
+          print $htmlfile "<h2>Messages</h2><blockquote><ul>\n";
+          print $htmlfile "<li><a href='stdout.txt'>Processing Messages</a></li>\n" if (-s "stdout.txt");
+          print $htmlfile "<li><a href='stderr.txt'>Error Messages</a></li>\n" if (-s "stderr.txt");
+          print $htmlfile "</ul></blockquote><hr>\n";
+      }
+      # End section
+      print $htmlfile "</body></html>\n";
+}
+
+
+################################################################################
+#
+#       end_runs
+#
+#       complete the output HTML and log the run
+#    arguments:
+#        $htmlfile:         file handle reference for HTML output
+#        $htmlstartlist:    HTML to start a new list
+#        $htmlreport:       HTML as list elements for output report
+#        $htmlendlist:      HTML to end a list
+#        $htmlreportinputs: HTML reporting input files as list elements
+#        $htmlreportcommands: HTML reporting command lines
+#        $status:           return status for exit
+#
+################################################################################
+sub end_runs {
+    my ($htmlfile, $htmlstartlist, $htmlreport, $htmlendlist, $status) =  @_;
+    #remember end time for the log
+    my $t_end = strftime ("%d/%m/%y %H:%M:%S", localtime());
+
+    my $host = `hostname`;
+    my $submit = `cat submit_time_file`;
+    my $email = `cat address_file`;
+    chomp ($host); # get rid of line breaks in all these
+    chomp ($submit);
+    chomp($email);
+    print LOGFILE "$host $jobid submit: $submit start: $t_start end: $t_end $args_log$email\n";
+    close LOGFILE || die "failed to close log file $!";
+
+    print $htmlfile "<h2>Results</h2>".
+       $htmlstartlist ."\n<table>\n". $htmlreport . "</table>\n" . $htmlendlist .
+       "<h2>Data</h2>" .
+       $htmlstartlist ."\n<table>\n". $htmlreportinputs . "</table>\n" . $htmlendlist;
+
+    print $htmlfile "<h2>Commands</h2>\n".
+    	  $htmlstartlist."\n".
+          $htmlreportcommands.$endcommandlist."\n".$htmlendlist;
+
+    &finish_html (\*HTMLFILE);
+    exit ($status);
+}
+
+################################################################################
+#
+#       command_list
+#
+#       put a command line into a HTML  code format, with
+#	any redirects sanitised
+#    arguments:
+#       $command: string to turn into HTML
+#    returns:
+#       original string in code format (string), with < and > translated to HTML
+#
+################################################################################
+sub command_list {
+    my ($command) = @_;
+        # fix any redirects to make them HTML-safe
+    $command =~ s/</&lt;/g;;
+    $command =~ s/>/&gt;/g;
+    # assume here we want commands typeset in <pre> mode and so no line break etc. needed. 
+    $command = $command."\n";
+}

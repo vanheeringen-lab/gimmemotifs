@@ -1,0 +1,196 @@
+#!@WHICHPERL@
+# 
+# tomtom_webservice 
+# This script must be run in the directory you want your output.
+#
+# Parameters:
+#
+#        tomtom_webservice [--niced] [--uploaded <uploaded database>] [--m <name>] [--mi <index>] (pearson|ed|sandelin) (evalue|qvalue) <threshold> 
+#                           <query motif file> <target databases>
+#
+#        Flags
+#           niced     - run tomtom niced.
+#         
+#        Tagged Parameters
+#           uploaded <uploaded database>  - add the uploaded database to the list of target databases
+#           m <name> - filter query motifs by name (id); repeatable
+#           mi <index> - filter query motifs by file order; repeatable
+#
+#        Parameters
+#
+#          Distance Functions
+#            pearson - Pearson correlation coefficient
+#            ed - Euclidean distance
+#            sandelin - Sandelin-Wasserman similarity function
+#
+#          Threshold Type
+#            evalue - Threshold is a E-value
+#            qvalue - Threshold is a q-value
+#
+#          Threshold
+#            The threshold value. A q-value of larger than or equal to 1 will cause an error.
+#
+#          Query Motif File
+#            Name of the motif file. Paths not allowed and will dropped
+#
+#          Target Databases
+#            A pattern or a list of target databases to be searched.
+#
+
+use strict;
+use warnings;
+
+use lib qw(@PERLLIBDIR@);
+
+use Cwd qw(getcwd abs_path);
+use File::Basename qw(fileparse);
+use Getopt::Long;
+use Time::HiRes qw(gettimeofday tv_interval);
+
+use MemeWebUtils qw(add_status_msg update_status);
+
+# letters allowed in names
+my $SAFE_FILENAME = '^[a-zA-Z0-9:_\.][a-zA-Z0-9:_\.-]*$';
+my $SAFE_NAME = $SAFE_FILENAME;
+
+# paths
+my $tomtom = '@MEMEDIR@/bin/tomtom';
+my $db_dir = '@MEMEDIR@/db/motif_databases';
+my $work_dir = getcwd;
+
+# error files
+my $err = "stderr.txt";
+my $other = "stdout.txt";
+
+# get the parameters
+my $is_niced;
+my $uploaded_db;
+my @motif_names;
+my @motif_ordinals;
+GetOptions('niced' => \$is_niced, 'uploaded=s' => \$uploaded_db, 'm=s' => \@motif_names, 'mi=i' => \@motif_ordinals);
+my ($dist, $ttype, $thresh, $query, @target_patterns) = @ARGV;
+my $filter = '';
+my $targets = '';
+
+# check the parameters
+eval { 
+  foreach my $motif_ordinal (@motif_ordinals) {
+    $filter .= ' -mi ' . $motif_ordinal;
+  }
+  foreach my $motif_name (@motif_names) {
+    die("Motif name filter contains unaccepted characters.") unless ($motif_name =~ /$SAFE_NAME/);
+    $filter .= ' -m ' . $motif_name;
+  }
+
+  die("Distance Function must be passed.") unless defined $dist;
+  die("Distance Function must be pearson, ed or sandelin.") unless $dist =~ m/^(pearson|ed|sandelin)$/;
+
+  die("Threshold Type must be passed.") unless defined $ttype;
+  die("Threshold Type must be evalue or qvalue.") unless $ttype =~ m/^(evalue|qvalue)$/;
+
+  die("Threshold must be passed.") unless defined $thresh;
+  $thresh = 0 + $thresh; #evaluate as number
+  die("Threshold must be larger than zero.") unless $thresh > 0;
+  die("Threshold must be smaller than one when the Threshold Type is evalue.") unless $ttype eq 'evalue' || $thresh < 1;
+
+  die("Query motif file must be passed.") unless defined $query;
+  $query = fileparse($query);
+  die("Query motif filename contains unaccepted characters.") unless ($query =~ /$SAFE_FILENAME/);
+  die("Can't find query motif file \"$query\" specified.") unless -e $query;
+
+  if ($uploaded_db) {
+    # uploaded file so look in the current directory
+    $uploaded_db = fileparse($uploaded_db); 
+    die("Uploaded database filename contains unaccepted characters.") unless ($uploaded_db =~ /$SAFE_FILENAME/);
+    die("Can't find uploaded database file \"$uploaded_db\" specified.") unless -e $uploaded_db;
+    $targets = $uploaded_db;
+  }
+  if (@target_patterns) {
+    # look in the database directory
+    chdir($db_dir);
+    my @target_paths = glob(join(" ", @target_patterns));
+    for (my $i = 0; $i < scalar(@target_paths); $i++) {
+      my $file = fileparse($target_paths[$i]);
+      next unless (-e $file);
+      $targets .= " db/$file"; 
+    }
+  }
+  die("Target databases pattern does not match any databases.") unless $targets;
+
+}; # eval block
+my $param_error = $@; # store the error msg
+print STDERR $param_error if $param_error;
+
+# incase something went wrong then have a default value for query
+$query = "query.meme" unless $query;
+
+chdir($work_dir);
+
+#create a job status for the user
+my $file_list = [{file => 'tomtom.html', desc => 'Tomtom html output'},
+    {file => 'tomtom.xml', desc => 'Tomtom xml output'}, 
+    {file => 'tomtom.txt', desc => 'Tomtom txt output'},
+    {file => $query, desc => 'Query motif'},
+    {file => $uploaded_db, desc => 'Uploaded motif database'},
+    {file => $other, desc => 'Processing messages'},
+    {file => $err, desc => 'Error messages'}];
+my $msg_list = [];
+my $program = 'Tomtom';
+my $status = 'index.html';
+my $refresh = 10;
+
+if ($param_error) {
+  add_status_msg("Error reading parameters: $param_error", $msg_list);
+} else {
+  add_status_msg('Parameters ok', $msg_list);
+}
+
+update_status($status, $program, ($param_error ? 0 : $refresh), $file_list, $msg_list, ($param_error ? "Error" : "Starting"));
+
+# exit if there was an error reading the params
+exit(1) if ($param_error);
+
+# create a link to tomtom and the databases
+symlink($tomtom, "tomtom");
+symlink($db_dir, "db");
+
+# work out the exact command to run
+my $ethresh = ($ttype eq 'evalue' ? "-evalue" : "");
+my $cmd = "./tomtom -oc . -verbosity 1 -min-overlap 5 $filter -dist $dist $ethresh -thresh $thresh -no-ssc $query $targets 1>> $other 2>> $err";
+if ($is_niced) {
+  $cmd = "nice -n +19 " . $cmd;
+}
+
+# tell the user in case something goes wrong
+update_status($status, $program, $refresh, $file_list, add_status_msg("Running \"$cmd\"", $msg_list), "Running");
+
+# run the command
+my $before = [gettimeofday()];
+my $result = system($cmd);
+my $elapsed = int(tv_interval($before) * 100 + 0.5) / 100;
+
+# delete the links
+unlink "tomtom";
+unlink "db";
+
+# check the result for errors
+my $error_msg = '';
+if ($result != 0) {
+  if ($result == -1) {
+    $error_msg = "Tomtom failed to run";
+  } elsif ($result & 127) {
+    $error_msg = "Tomtom process died with signal ".($result & 127).", ".(($result & 128) ? 'with' : 'without')." coredump";
+  } else {
+    $error_msg = "Tomtom exited with error code ".($result >> 8);
+  }
+  print STDERR $error_msg;
+  add_status_msg($error_msg, $msg_list);
+} else {
+  add_status_msg("Tomtom ran successfully in $elapsed seconds", $msg_list);
+}
+update_status($status, $program, 0, $file_list, $msg_list, ($result ? "Error" : "Done"));
+
+# exit if there was an error running tomtom
+exit(1) if ($error_msg);
+
+1;

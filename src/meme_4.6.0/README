@@ -1,0 +1,83 @@
+
+                               README
+
+=============================================================================
+                           Introduction             
+=============================================================================
+The  MEME system provides online tools for discovering  and using protein and 
+DNA sequence motifs.  A motif is a pattern of nucleotides or amino acids that 
+appears repeatedly in a group of related  DNA or protein sequences.  The MEME 
+system represents motifs as position-dependent scoring matrices. 
+
+The MEME system consists of two programs which allow you to: 
+  meme - for discovery of motifs shared by a group of sequences and, 
+  mast - for search of databases for sequences containing these motifs. 
+
+You can download the ANSI C source code for MEME system from
+http://meme.nbcr.net/meme/meme-download.html
+
+You can also use the MEME system via its website at http://meme.nbcr.net
+
+If you use MEME in your research, please cite: 
+    Timothy  L. Bailey  and Charles Elkan,  "Fitting a mixture model
+    by expectation  maximization to discover  motifs in biopolymers",
+    Proceedings of the Second International Conference on Intelligent
+    Systems for Molecular Biology, (28-36), AAAI Press, 1994. 
+
+If you use MAST in your research, please cite: 
+    Timothy L. Bailey and Michael Gribskov, "Combining evidence using 
+    p-values: application to sequence homology searches", Bioinformatics, 
+    14(48-54), 1998.
+
+=============================================================================
+                          Installation         
+=============================================================================
+See INSTALL for operating system requirements, prerequisite software, 
+and installation instructions.
+
+=============================================================================
+                          Documentation 
+=============================================================================
+Documentation is available online at http://meme.nbcr.net/meme
+If you did installation with the --enable-web switch, the html documentation
+will be installed in your <install-path>/web/ directory. 
+
+=============================================================================
+                        Using MEME/MAST
+=============================================================================
+To find out how to use MEME or MAST execute:
+    meme
+or
+    mast
+
+The usage will be printed on stdout.
+
+=============================================================================
+                      Problems and comments 
+=============================================================================
+Please address any problems or comments to: 
+
+    meme@nbcr.net
+
+=============================================================================
+                          Release Notes 
+=============================================================================
+See file <install-path>/web/release_notes.html
+
+=============================================================================
+                          Developers Notes
+=============================================================================
+Detailed notes are given in the MEME wiki: 
+  https://nbcr.net/pub/wiki/index.php?title=MEME_Developers%27_Guide
+
+1. Check out from svn (you have to have read/write access to this svn):
+    svn checkout svn+ssh://meme@summit.ucsd.edu/meme/SVNROOT/trunk
+
+2. To create a distribution tar ball meme_VERSION.tar.gz.  (Note: the
+	version number is set in configure.ac using variable
+	AM_INIT_AUTOMAKE.)
+    cd trunk
+    ./bootstrap
+    ./configure
+    make dist
+

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Spamo - Submission form</title>
+    <!-- provide relative path to html directory (parent of cgi-bin) -->
+    <script type="text/javascript">var html_path = "../";</script>
+    <link href="../site.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+    <link rel="shortcut icon" type="image/x-icon" href="../images/memesuite_icon.ico">
+    <script src="../spamo.js" type="text/javascript"></script>
+  </head>
+  <body onload="on_page_show();" onpageshow="if (event.persisted) on_page_show();">
+    <table>
+      <tr>
+        <td class="menu_col">
+          <div id="menu">
+            <script src="../meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="content_col">
+          <noscript>
+            <h1>MEME Suite</h1>
+            <p>The MEME Suite web application requires the use of JavaScript<br />
+            Javascript doesn't seem to be available on your browser.</p>
+          </noscript>
+          <div class="header">
+            <div class="header_img">
+              <img src="../doc/images/spamo_logo.png" alt="SpaMo logo">
+              <div class="header_ver">Version <!-- TMPL_VAR NAME=version --></div>
+            </div>
+            <p class="header_blurb">
+            Use this form to submit a motif and sequence set for spacing analysis.
+            </p>
+          </div>
+          <div class="meme">
+          <form enctype="multipart/form-data" method="POST" action="spamo.cgi" onsubmit="return check()">
+            <fieldset>
+              <legend>Data Submission Form</legend>
+              <p class="meme">Search a set of sequences for enriched spacings between a 
+                 <b>primary motif</b> and each motif in database of <b>secondary motifs</b>.  
+                 Typically, the sequences will be centered on ChIP-seq peaks.</p> 
+              
+              <h2 class="meme">Input email address:</h2>
+              <input type="email" name="email" />
+              <h2 class="meme">Verify email address:</h2>
+              <input type="email" name="email_confirm" />
+              <h2 class="meme">Choose the sequences (<a href="../doc/examples/memechip_example_output_files/sequences">sample FASTA sequence file</a>):</h2>
+              <input type="file" name="sequences" />
+              <h2 class="meme">Choose the primary motif (<a href="../doc/examples/memechip_example_output_files/dreme.txt">sample motif file</a>):</h2>
+              <input type="file" name="primary_motif" />
+              <br \>(note: only the first motif in file will be used as the primary motif)
+              <h2 class="meme">Choose the secondary motifs:</h2>
+              <select name="secondary_db" id="target_db" onchange="show_db_upload()">
+                <!-- TMPL_LOOP NAME=dbs -->
+                <option value="<!-- TMPL_VAR ESCAPE=HTML NAME=db_id -->" <!-- TMPL_IF NAME=checked -->checked<!-- /TMPL_IF -->><!-- TMPL_VAR NAME=db_name --></option>
+                <!-- /TMPL_LOOP -->
+                <option value="upload" style="font-style:italic;">Upload Your Own Database</option>
+              </select>
+              <div style="display:none;" id="db_upload_div">
+              <h2 class="meme">Choose a set of secondaries to upload (<a href="../doc/meme-format.html">MEME DNA motif format</a>)</h2>
+              <input type="file" name="secondary_file" />
+              </div>
+              <!-- Search and clear buttons -->
+              <div style="margin-left:auto; margin-right:auto; width:15em; clear:both;">
+                <input type="submit" name="search" value="Start search">
+                &nbsp;&nbsp;&nbsp;
+                <input type="reset" value="Clear Input" onclick="reset_form()"><br>
+              </div>
+            </fieldset>
+          </form>
+          <table style="width:100%;font-weight:bold;font-size:0.6em;">
+            <tr>
+              <td style="text-align:left;">Version <!-- TMPL_VAR NAME=version --></td>
+              <td style="text-align:center;">Please send comments and questions to: 
+              <a href="mailto:<!-- TMPL_VAR NAME=help_email -->"><!-- TMPL_VAR NAME=help_email --></a></td>
+              <td style="text-align:right;">Powered by <a href="http://nbcr.net/software/opal/">Opal</a></td>
+            </tr>
+          </table>
+          <hr>
+          <table style="margin-left:auto; margin-right:auto; font-size:0.7em;">
+           <tr style="text-align:center;">
+             <td style="padding:5px;"><a href="../intro.html">Home</a></td>
+             <td style="padding:5px;"><a href="../intro.html">Submit a Job</a></td>
+             <td style="padding:5px;"><a href="../documentation.html">Documentation</a></td>
+             <td style="padding:5px;"><a href="../downloads.html">Downloads</a></td>
+             <td style="padding:5px;"><a href="../resources.html">User Support</a></td>
+             <td style="padding:5px;"><a href="../alternates.html">Alternate Servers</a></td>
+             <td style="padding:5px;"><a href="../doc/authors.html">Authors</a></td>
+             <td style="padding:5px;"><a href="../doc/cite.html">Citing</a></td>
+            </tr>
+          </table>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+

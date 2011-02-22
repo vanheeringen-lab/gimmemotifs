@@ -1,0 +1,185 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<!DOCTYPE mast[
+<!ELEMENT mast (model, alphabet, motifs, sequences, runtime)>
+<!ATTLIST mast version CDATA #REQUIRED release CDATA #REQUIRED>
+<!ELEMENT model (command_line, max_correlation, remove_correlated, strand_handling, translate_dna, max_seq_evalue,
+    adj_hit_pvalue, max_hit_pvalue, max_weak_pvalue, host, when)>
+<!ELEMENT command_line (#PCDATA)>
+<!ELEMENT max_correlation (#PCDATA)>
+<!ELEMENT remove_correlated EMPTY>
+<!ATTLIST remove_correlated value (y|n) #REQUIRED>
+<!ELEMENT strand_handling EMPTY>
+<!ATTLIST strand_handling value (combine|separate|norc|protein) #REQUIRED>
+<!ELEMENT translate_dna EMPTY>
+<!ATTLIST translate_dna value (y|n) #REQUIRED>
+<!ELEMENT max_seq_evalue (#PCDATA)>
+<!ELEMENT adj_hit_pvalue EMPTY>
+<!ATTLIST adj_hit_pvalue value (y|n) #REQUIRED>
+<!ELEMENT max_hit_pvalue (#PCDATA)>
+<!ELEMENT max_weak_pvalue (#PCDATA)>
+<!ELEMENT host (#PCDATA)>
+<!ELEMENT when (#PCDATA)>
+<!ELEMENT alphabet (letter+)>
+<!ATTLIST alphabet type (amino-acid|nucleotide) #REQUIRED bg_source (preset|file|sequence_composition) #REQUIRED bg_file CDATA #IMPLIED>
+<!ELEMENT letter EMPTY>
+<!ATTLIST letter symbol CDATA #REQUIRED ambig (y|n) "n" bg_value CDATA #IMPLIED>
+<!ELEMENT motifs (motif+,correlation*,nos*)>
+<!ATTLIST motifs source CDATA #REQUIRED name CDATA #REQUIRED last_mod_date CDATA #REQUIRED>
+<!ELEMENT motif EMPTY>
+<!-- num is simply the loading order of the motif, it's superfluous but makes things easier for XSLT -->
+<!ATTLIST motif id ID #REQUIRED num CDATA #REQUIRED name CDATA #REQUIRED width CDATA #REQUIRED
+   best_f CDATA #REQUIRED best_r CDATA #IMPLIED bad (y|n) "n">
+<!-- for n > 1 motifs there should be (n * (n - 1)) / 2 correlations, obviously there are none for only 1 motif -->
+<!ELEMENT correlation EMPTY>
+<!ATTLIST correlation motif_a IDREF #REQUIRED motif_b IDREF #REQUIRED value CDATA #REQUIRED>
+<!-- nos: Nominal Order and Spacing diagram, a rarely used feature where mast can adjust pvalues for an expected motif spacing -->
+<!ELEMENT nos (expect+)>
+<!-- length is in the same unit as the motifs, which is not always the same unit as the sequence -->
+<!ATTLIST nos length CDATA #REQUIRED>
+<!-- the expect tags are expected to be ordered by pos ascending -->
+<!ELEMENT expect EMPTY>
+<!ATTLIST expect pos CDATA #REQUIRED gap CDATA #REQUIRED motif IDREF #REQUIRED>
+<!ELEMENT sequences (database+, sequence*)>
+<!-- the database tags are expected to be ordered in file specification order -->
+<!ELEMENT database EMPTY>
+<!ATTLIST database id ID #REQUIRED num CDATA #REQUIRED source CDATA #REQUIRED name CDATA #REQUIRED last_mod_date CDATA #REQUIRED 
+    seq_count CDATA #REQUIRED residue_count CDATA #REQUIRED type (amino-acid|nucleotide) #REQUIRED link CDATA #IMPLIED>
+<!-- the sequence tags are expected to be ordered by best combined p-value (of contained score tags) ascending -->
+<!ELEMENT sequence (score+,seg*)>
+<!ATTLIST sequence id ID #REQUIRED db IDREF #REQUIRED num CDATA #REQUIRED name CDATA #REQUIRED comment CDATA "" length CDATA #REQUIRED>
+<!ELEMENT score EMPTY>
+<!-- frame is the starting offset for translation of dna sequences which gives the lowest pvalues for the provided protein motifs -->
+<!ATTLIST score strand (both|forward|reverse) #REQUIRED frame (a|b|c) #IMPLIED combined_pvalue CDATA #REQUIRED evalue CDATA #REQUIRED>
+<!-- within each sequence the seg tags are expected to be ordered by start ascending -->
+<!ELEMENT seg (data,hit+)>
+<!ATTLIST seg start CDATA #REQUIRED>
+<!ELEMENT data (#PCDATA)>
+<!-- within each seg the hit tags are expected to be ordered by pos ascending and then forward strand first -->
+<!ELEMENT hit EMPTY>
+<!-- gap, while superfluous, makes creating motif diagrams for the text version much easier when using XSLT -->
+<!ATTLIST hit pos CDATA #REQUIRED gap CDATA #REQUIRED motif IDREF #REQUIRED pvalue CDATA #REQUIRED strand (forward|reverse) "forward" 
+    match CDATA #REQUIRED translation CDATA #IMPLIED>
+<!ELEMENT runtime EMPTY>
+<!ATTLIST runtime cycles CDATA #REQUIRED seconds CDATA #REQUIRED>
+]>
+<mast version="4.3.2" release="Fri Apr 09 12:00:00 EST 2009">
+	<model>
+		<command_line>mast /home/james/memesvn/gomo2/scripts/../tests/meme/meme.lipocalin.zoops /home/james/memesvn/gomo2/scripts/../tests/common/lipocalin.s -oc /home/james/memesvn/gomo2/scripts/../tests/results/mast -nohtml -nostatus</command_line>
+		<max_correlation>0.60</max_correlation>
+		<remove_correlated value="n"/>
+		<strand_handling value="protein"/>
+		<translate_dna value="n"/>
+		<max_seq_evalue>10</max_seq_evalue>
+		<adj_hit_pvalue value="n"/>
+		<max_hit_pvalue>0.0001</max_hit_pvalue>
+		<max_weak_pvalue>0.0001</max_weak_pvalue>
+		<host>tlb-squirrel</host>
+		<when>Fri Apr  9 17:08:53 2010</when>
+	</model>
+	<alphabet type="amino-acid" bg_source="preset">
+		<letter symbol="A" bg_value="0.073"/>
+		<letter symbol="C" bg_value="0.018"/>
+		<letter symbol="D" bg_value="0.052"/>
+		<letter symbol="E" bg_value="0.062"/>
+		<letter symbol="F" bg_value="0.040"/>
+		<letter symbol="G" bg_value="0.069"/>
+		<letter symbol="H" bg_value="0.022"/>
+		<letter symbol="I" bg_value="0.056"/>
+		<letter symbol="K" bg_value="0.058"/>
+		<letter symbol="L" bg_value="0.092"/>
+		<letter symbol="M" bg_value="0.023"/>
+		<letter symbol="N" bg_value="0.046"/>
+		<letter symbol="P" bg_value="0.051"/>
+		<letter symbol="Q" bg_value="0.041"/>
+		<letter symbol="R" bg_value="0.052"/>
+		<letter symbol="S" bg_value="0.074"/>
+		<letter symbol="T" bg_value="0.059"/>
+		<letter symbol="V" bg_value="0.064"/>
+		<letter symbol="W" bg_value="0.013"/>
+		<letter symbol="Y" bg_value="0.033"/>
+	</alphabet>
+	<motifs source="/home/james/memesvn/gomo2/scripts/../tests/meme/meme.lipocalin.zoops" name="/home/james/memesvn/gomo2/scripts/../tests/meme/meme.lipocalin.zoops" last_mod_date="Mon Feb 15 12:10:16 2010">
+		<motif id="motif_1" num="1" name="1" width="26" best_f="GACPAVRPMRNFDIQKFAGTWHEIAK"/>
+		<motif id="motif_2" num="2" name="2" width="20" best_f="NNVFWILDTDYKNYLIQYMC"/>
+		<correlation motif_a="motif_1" motif_b="motif_2" value="0.25"/>
+	</motifs>
+	<sequences>
+		<database id="db_1" num="1" source="/home/james/memesvn/gomo2/scripts/../tests/common/lipocalin.s" name="/home/james/memesvn/gomo2/scripts/../tests/common/lipocalin.s" last_mod_date="Mon Feb 15 12:10:17 2010" seq_count="5" residue_count="903" type="amino-acid"/>
+		<sequence id="seq_1_1" db="db_1" num="1" name="ICYA_MANSE" comment="" length="189">
+			<score strand="both" combined_pvalue="3.19e-37" evalue="1.6e-36"/>
+			<seg start="1">
+				<data>
+GDIFYPGYCPDVKPVNDFDLSAFAGAWHEIAKLPLENENQGKCTIAEYKYDGKKASVYNSFVSNGVKEYMEGDLE
+				</data>
+				<hit pos="7" gap="6" motif="motif_1" pvalue="2.7e-24" match="++++++++++++++++++++++++++"/>
+			</seg>
+			<seg start="76">
+				<data>
+IAPDAKYTKQGKYVMTFKFGQRVVNLVPWVLATDYKNYAINYNCDYHPDKKAHSIHAWILSKSKVLEGNTKEVVD
+				</data>
+				<hit pos="100" gap="67" motif="motif_2" pvalue="4.7e-20" match="+ ++++++++++++++++++"/>
+			</seg>
+		</sequence>
+		<sequence id="seq_1_3" db="db_1" num="3" name="BBP_PIEBR" comment="" length="173">
+			<score strand="both" combined_pvalue="5.32e-37" evalue="2.7e-36"/>
+			<seg start="1">
+				<data>
+NVYHDGACPEVKPVDNFDWSNYHGKWWEVAKYPNSVEKYGKCGWAEYTPEGKSVKVSNYHVIHGKEYFIEGTAYP
+				</data>
+				<hit pos="6" gap="5" motif="motif_1" pvalue="2.1e-24" match="++++++++++++++++++++++++++"/>
+			</seg>
+			<seg start="76">
+				<data>
+VGDSKIGKIYHKLTYGGVTKENVFNVLSTDNKNYIIGYYCKYDEDKKGHQDFVWVLSRSKVLTGEAKTAVENYLI
+				</data>
+				<hit pos="96" gap="64" motif="motif_2" pvalue="1.2e-19" match="++++++++++++++++++++"/>
+			</seg>
+		</sequence>
+		<sequence id="seq_1_4" db="db_1" num="4" name="RETB_BOVIN" comment="" length="183">
+			<score strand="both" combined_pvalue="1.60e-29" evalue="8e-29"/>
+			<seg start="1">
+				<data>
+ERDCRVSSFRVKENFDKARFAGTWYAMAKKDPEGLFLQDNIVAEFSVDENGHMSATAKGRVRLLNNWDVCADMVG
+				</data>
+				<hit pos="4" gap="3" motif="motif_1" pvalue="2.3e-19" match="+++++++++++++ ++++++++++++"/>
+			</seg>
+			<seg start="76">
+				<data>
+TFTDTEDPAKFKMKYWGVASFLQKGNDDHWIIDTDYETFAVQYSCRLLNLDGTCADSYSFVFARDPSGFSPEVQK
+				</data>
+				<hit pos="101" gap="71" motif="motif_2" pvalue="3.7e-17" match="+ ++++++++++++++++++"/>
+			</seg>
+		</sequence>
+		<sequence id="seq_1_2" db="db_1" num="2" name="LACB_BOVIN" comment="" length="178">
+			<score strand="both" combined_pvalue="7.21e-25" evalue="3.6e-24"/>
+			<seg start="1">
+				<data>
+MKCLLLALALTCGAQALIVTQTMKGLDIQKVAGTWYSLAMAASDISLLDAQSAPLRVYVEELKPTPEGDLEILLQ
+				</data>
+				<hit pos="15" gap="14" motif="motif_1" pvalue="3.5e-18" match="+++++++++++ ++++++++++++++"/>
+			</seg>
+			<seg start="76">
+				<data>
+KWENGECAQKKIIAEKTKIPAVFKIDALNENKVLVLDTDYKKYLLFCMENSAEPEQSLACQCLVRTPEVDDEALE
+				</data>
+				<hit pos="105" gap="64" motif="motif_2" pvalue="1.4e-13" match="++++ +++++++ ++++++ "/>
+			</seg>
+		</sequence>
+		<sequence id="seq_1_5" db="db_1" num="5" name="MUP2_MOUSE" comment="" length="180">
+			<score strand="both" combined_pvalue="1.28e-24" evalue="6.4e-24"/>
+			<seg start="1">
+				<data>
+MKMLLLLCLGLTLVCVHAEEASSTGRNFNVEKINGEWHTIILASDKREKIEDNGNFRLFLEQIHVLEKSLVLKFH
+				</data>
+				<hit pos="17" gap="16" motif="motif_1" pvalue="7.8e-17" match="++++++++++++ +++++++++++++"/>
+			</seg>
+			<seg start="76">
+				<data>
+TVRDEECSELSMVADKTEKAGEYSVTYDGFNTFTIPKTDYDNFLMAHLINEKDGETFQLMGLYGREPDLSSDIKE
+				</data>
+				<hit pos="105" gap="62" motif="motif_2" pvalue="1.1e-14" match="+++++++++++++++++++ "/>
+			</seg>
+		</sequence>
+	</sequences>
+	<runtime cycles="0" seconds="0.000"/>
+</mast>

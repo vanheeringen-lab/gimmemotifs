@@ -1,0 +1,189 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<!-- Document definition -->
+<!-- http://zlab.bu.edu/~phaverty/SupplementalData/CisML/cisml.dtd -->
+<!DOCTYPE cis-element-search[
+<!ELEMENT cis-element-search (program-name, parameters, (pattern | multi-pattern-scan)*)>
+<!ELEMENT program-name (#PCDATA)>
+<!ELEMENT parameters (
+  pattern-file, 
+  sequence-file, 
+  background-seq-file?,
+  pattern-pvalue-cutoff?,
+  sequence-pvalue-cutoff?,
+  site-pvalue-cutoff?,
+  sequence-filtering,
+  ANY*
+ )>
+<!ELEMENT command-line (#PCDATA)>
+<!ELEMENT pattern-file (#PCDATA)>
+<!ELEMENT sequence-file (#PCDATA)>
+<!ELEMENT background-seq-file (#PCDATA)>
+<!ELEMENT pattern-pvalue-cutoff (#PCDATA)>
+<!ELEMENT sequence-pvalue-cutoff (#PCDATA)>
+<!ELEMENT site-pvalue-cutoff (#PCDATA)>
+<!ELEMENT sequence-filtering EMPTY>
+<!ELEMENT multi-pattern-scan (pattern+, ANY*)>
+<!ELEMENT pattern (scanned-sequence+, ANY*)>
+<!ELEMENT scanned-sequence (matched-element*, ANY*)>
+<!ELEMENT matched-element (sequence)>
+<!ELEMENT sequence (#PCDATA)>
+<!ATTLIST cis-element-search
+xmlns:xsi CDATA #IMPLIED
+xmlns:mem CDATA #IMPLIED
+xsi:schemaLocation CDATA #IMPLIED
+>
+<!ATTLIST sequence-filtering
+on-off CDATA #REQUIRED
+type CDATA #IMPLIED
+>
+<!ATTLIST multi-pattern-scan
+score CDATA #IMPLIED
+pvalue CDATA #IMPLIED
+>
+<!ATTLIST pattern
+accession CDATA #REQUIRED
+name CDATA #REQUIRED
+pvalue CDATA #IMPLIED
+score CDATA #IMPLIED
+db CDATA #IMPLIED
+lsid CDATA #IMPLIED
+>
+<!ATTLIST scanned-sequence
+accession CDATA #REQUIRED
+name CDATA #REQUIRED
+score CDATA #IMPLIED
+pvalue CDATA #IMPLIED
+length CDATA #IMPLIED
+db CDATA #IMPLIED
+lsid CDATA #IMPLIED
+>
+<!ATTLIST matched-element
+start CDATA #REQUIRED
+stop CDATA #REQUIRED
+score CDATA #IMPLIED
+pvalue CDATA #IMPLIED
+clusterid CDATA #IMPLIED
+>
+
+]>
+<cis-element-search
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://zlab.bu.edu/schema/cisml cisml.xsd"
+  xmlns:mem="http://noble.gs.washington.edu/meme"
+>
+<program-name>ama</program-name>
+<parameters>
+<pattern-file>gomo/motif.meme</pattern-file>
+<sequence-file>gomo/seqs.fasta</sequence-file>
+<background-seq-file>gomo/seqs.norc.bg</background-seq-file>
+<sequence-filtering on-off="off"/>
+</parameters>
+<pattern accession="HSF1" name="">
+<scanned-sequence accession="S000000001" name="S000000001" score="0.0101561" pvalue="0.567949" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000002" name="S000000002" score="0.0262792" pvalue="0.437237" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000003" name="S000000003" score="1614.23" pvalue="8.42581e-07" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000004" name="S000000004" score="1614.23" pvalue="8.42581e-07" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000005" name="S000000005" score="0.0457145" pvalue="0.36487" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000006" name="S000000006" score="107.228" pvalue="0.00104143" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000007" name="S000000007" score="0.0134425" pvalue="0.529499" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000008" name="S000000008" score="107.236" pvalue="0.00104143" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000009" name="S000000009" score="0.0437563" pvalue="0.372458" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000010" name="S000000010" score="3.18532" pvalue="0.0353369" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000011" name="S000000011" score="0.0432388" pvalue="0.372458" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000012" name="S000000012" score="1.58531" pvalue="0.0591606" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000013" name="S000000013" score="0.000118074" pvalue="0.985813" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000014" name="S000000014" score="0.0635083" pvalue="0.326531" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000015" name="S000000015" score="0.000152377" pvalue="0.979765" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000016" name="S000000016" score="0.0491155" pvalue="0.357291" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000017" name="S000000017" score="4.00235" pvalue="0.0298917" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000018" name="S000000018" score="0.749115" pvalue="0.0961292" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000019" name="S000000019" score="3.22885" pvalue="0.0353369" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000020" name="S000000020" score="0.000170572" pvalue="0.97605" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000021" name="S000000021" score="0.0853815" pvalue="0.289229" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000022" name="S000000022" score="0.469389" pvalue="0.127659" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000023" name="S000000023" score="0.0297488" pvalue="0.420744" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000024" name="S000000024" score="1.38065" pvalue="0.065656" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000025" name="S000000025" score="0.0919196" pvalue="0.282178" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000026" name="S000000026" score="0.459831" pvalue="0.127659" length="1000">
+</scanned-sequence>
+</pattern>
+<pattern accession="RPN4" name="">
+<scanned-sequence accession="S000000001" name="S000000001" score="0.00113484" pvalue="0.483249" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000002" name="S000000002" score="0.000391153" pvalue="0.643885" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000003" name="S000000003" score="20.6873" pvalue="0.00824489" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000004" name="S000000004" score="20.6855" pvalue="0.00824489" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000005" name="S000000005" score="0.00105639" pvalue="0.492974" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000006" name="S000000006" score="0.20568" pvalue="0.0970988" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000007" name="S000000007" score="2.3154" pvalue="0.0379972" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000008" name="S000000008" score="0.205241" pvalue="0.0970988" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000009" name="S000000009" score="0.0131602" pvalue="0.206747" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000010" name="S000000010" score="0.0284179" pvalue="0.157582" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000011" name="S000000011" score="11.0505" pvalue="0.014704" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000012" name="S000000012" score="0.0276131" pvalue="0.159146" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000013" name="S000000013" score="11.0505" pvalue="0.014704" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000014" name="S000000014" score="0.000124707" pvalue="0.801655" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000015" name="S000000015" score="0.00369618" pvalue="0.30903" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000016" name="S000000016" score="0.000304918" pvalue="0.683731" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000017" name="S000000017" score="0.0064562" pvalue="0.249269" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000018" name="S000000018" score="0.00627025" pvalue="0.251047" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000019" name="S000000019" score="0.00669375" pvalue="0.247614" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000020" name="S000000020" score="0.000506681" pvalue="0.607036" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000021" name="S000000021" score="0.0117164" pvalue="0.214368" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000022" name="S000000022" score="0.0113269" pvalue="0.21568" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000023" name="S000000023" score="0.00082997" pvalue="0.53314" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000024" name="S000000024" score="0.000885433" pvalue="0.524487" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000025" name="S000000025" score="0.0072884" pvalue="0.241228" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000026" name="S000000026" score="0.437907" pvalue="0.0776448" length="1000">
+</scanned-sequence>
+</pattern>
+</cis-element-search>

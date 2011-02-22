@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>transfac2meme</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>transfac2meme</h1>
+      <p><b>Usage:</b> <code>transfac2meme [options] &lt;matrix file&gt;</code></p>
+      <p><b>Description:</b></p>
+      <p>
+      Extract motifs from a TRANSFAC 'matrix.dat' file and print them in
+      MEME Version 4 format.
+      </p>
+      <p>
+      Counts are converted to frequencies using pseudo-counts determined by
+      the backgoround frequencies and the total pseudocounts (see -bg and 
+      -pseudo, below).  The log-odds matrix uses the background frequencies
+      in the denominator and is log base 2.
+      </p>
+      <p>
+      N.B. Dollar signs in TRANSFAC IDs are converted to underscores.
+      </p>
+      <p><b>Input:</b></p>
+      <p>
+      A file in <a href="transfac-format.html">TRANSFAC matrix format</a>
+      </p>
+      <p><b>Options:</b></p>
+      <dl>
+        <dt>-numbers</dt>
+        <dd>use numbers instead of strings as motif names</dd>
+        <dt>-use_acc</dt>
+        <dd>use accession names instead of IDs</dd>
+        <dt>-ids &lt;idfile&gt;</dt>
+        <dd>keep any motifs listed in the file</dd>
+        <dt>-species &lt;name&gt;</dt>
+        <dd>keep only motifs for this species</dd>
+        <dt>-skip &lt;ID&gt;</dt>
+        <dd>skip this ID (may be repeated)</dd>
+        <dt>-bg &lt;background file&gt;</dt>
+        <dd>file with background frequencies of letters;default: uniform background</dd>
+        <dt>-pseudo &lt;total pseudocounts&gt;</dt>
+        <dd>add &lt;total pseudocounts&gt; times letter background to each frequency; default: 0</dd>
+        <dt>-logodds</dt>
+        <dd>print log-odds matrix, too; default: print frequency matrix only</dd>
+        <dt>-url &lt;website&gt;</dt>
+        <dd>website for the motif; The ID (or accession) is substituted for MOTIF_NAME; default: no url</dd>
+      </dl>
+      <p><b>Output</b></p>
+      <p>
+      Writes MEME format to standard output.
+      </p>
+      <p><b>Sample Input</b></p>
+      <p>
+      <a href="transfac-format.html">TRANSFAC file format</a>
+      </p>
+    </div>
+  </body>
+</html>

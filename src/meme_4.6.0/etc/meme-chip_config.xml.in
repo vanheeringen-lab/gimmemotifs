@@ -1,0 +1,14 @@
+<appConfig xmlns="http://nbcr.sdsc.edu/opal/types" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <metadata appName="MEMECHIP">
+    <usage><![CDATA[memechip <dataset> [optional arguments ...]]]></usage>
+    <info xsd:type="xsd:string">
+    <![CDATA[
+       memechip    <dataset> [optional arguments]
+
+        docs go here
+    ]]>
+    </info>
+  </metadata>
+  <binaryLocation>@BINARYLOCATION@</binaryLocation>
+  <parallel>false</parallel>
+</appConfig>

@@ -1,0 +1,30 @@
+Data for PSP generation created as follows; a few extra examples are supplied
+over and above those run using make test.
+
+For make test:
+1. DNA: positive file one-peak-dna.fasta, negative file all-A.fasta
+   produce psp-gen/one-peak-dna-revcomp.psp
+2. protein: postitive file one-peak-protein.fasta, negative file all-A.fasta
+   produce one-peak-protein.psp
+See command lines below (as well as in scripts/metatest.pl).
+
+DNA fasta files edited by hand, representing a case where there is a
+single sequence of 10 Gs at the end of a single sequence preceded by
+90 As, and another sequence of 100 As: one-peak-dna.fasta
+
+The "negative" DNA set is all As (all-A.fasta).
+
+Test cases are generated from this data as follows:
+
+DNA:
+psp-gen -pos one-peak-dna.fasta -neg all-A.fasta -revcomp > one-peak-dna-revcomp.psp
+
+The DNA example tests:
+* a single strong peak in the positive set not in the negative set
+* scoring both strands
+
+protein:
+psp-gen -pos one-peak-protein.fasta -neg all-A.fasta -alpha prot -maxrange -triples > one-peak-protein.psp
+
+The protein example again should only have one peak. However using
+triples should widen it relative to the DNA example.

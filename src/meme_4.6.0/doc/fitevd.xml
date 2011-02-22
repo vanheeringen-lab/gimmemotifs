@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>fitevd</title>
+    <link href="./meme-suite.css" rel="styleSheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>fitevd</h1>
+      <p><b>Usage:</b> fitevd &lt;<i>q</i>&gt; [options]</p>
+      <p><b>Description:</b></p>
+      <p>
+      <code>fitevd</code> fits an extreme value distribution to a set of score-length paris
+      with a query length of <code>&lt;q&gt;</code>.
+      </p>
+      <p><b>Input:</b></p>
+      <ul>
+        <li>Reads white-space separated score-length pairs from <code>stdin</code></li>
+      </ul>
+      <p><b>Output:</b></p>
+      <ul>
+        <li>Writes the EVD parameters to <code>stdout</code>.</li>
+      </ul>
+      <p><b>Options:</b></p>
+      <ul>
+      <li><command-option program="fitevd" name="d"/></li>
+      <li><command-option program="fitevd" name="h"/></li>
+      <li><command-option program="fitevd" name="ilh"/></li>
+      <li><command-option program="fitevd" name="inr"/></li>
+      <li><command-option program="fitevd" name="lr"/></li>
+      <li><command-option program="fitevd" name="p"/></li>
+      <li><command-option program="fitevd" name="r"/></li>
+      <li><command-option program="fitevd" name="s"/></li>
+      <li><command-option program="fitevd" name="t"/></li>
+      </ul>
+      <p><b>Bugs:</b> None known.</p>
+      <p><b>Author:</b> Tim Bailey</p>
+    </div>
+  </body>
+</html>

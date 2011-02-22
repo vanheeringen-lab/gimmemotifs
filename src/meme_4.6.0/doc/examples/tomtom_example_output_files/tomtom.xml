@@ -1,0 +1,677 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<!DOCTYPE tomtom[
+<!ELEMENT tomtom (model, targets, queries, runtime)>
+<!ATTLIST tomtom version CDATA #REQUIRED release CDATA #REQUIRED>
+<!ELEMENT model (command_line, distance_measure, threshold, background, host, when)>
+<!ELEMENT command_line (#PCDATA)>
+<!ELEMENT distance_measure EMPTY>
+<!ATTLIST distance_measure value (allr|blic1|blic5|ed|kullback|llr1|llr5|pearson|sandelin) #REQUIRED>
+<!ELEMENT threshold (#PCDATA)>
+<!ATTLIST threshold type (evalue|qvalue) #REQUIRED>
+<!ELEMENT background EMPTY>
+<!ATTLIST background from (first_target|file) #REQUIRED A CDATA #REQUIRED C CDATA #REQUIRED G CDATA #REQUIRED T CDATA #REQUIRED file CDATA #IMPLIED>
+<!ELEMENT host (#PCDATA)>
+<!ELEMENT when (#PCDATA)>
+<!-- each target is listed in order that the target was specified to the command line
+     the motifs are not listed in any particular order -->
+<!ELEMENT targets (target_file+)>
+<!ELEMENT target_file (motif*)>
+<!ATTLIST target_file source CDATA #REQUIRED name CDATA #REQUIRED loaded CDATA #REQUIRED excluded CDATA #REQUIRED last_mod_date CDATA #REQUIRED>
+<!-- currently there can only be one query file (but users should not assume this will always be true)
+     the query motifs are specified in the order that they appear in the file
+     the matches are ordered from best to worst -->
+<!ELEMENT queries (query_file+)>
+<!ELEMENT query_file (query+)>
+<!ATTLIST query_file source CDATA #REQUIRED name CDATA #REQUIRED last_mod_date CDATA #REQUIRED>
+<!ELEMENT query (motif,match*)>
+<!ELEMENT match EMPTY>
+<!ATTLIST match target IDREF #REQUIRED orientation (forward|reverse) "forward" 
+  offset CDATA #REQUIRED pvalue CDATA #REQUIRED evalue CDATA #REQUIRED qvalue CDATA #REQUIRED>
+<!-- motif contains the probability of each of the nucleotide bases at each position;
+     i starts at 1; A, C, G and T are probabilities that sum to 1 -->
+<!ELEMENT motif (pos+)>
+<!ATTLIST motif id ID #REQUIRED name CDATA #REQUIRED alt CDATA #IMPLIED length CDATA #REQUIRED 
+  nsites CDATA #IMPLIED evalue CDATA #IMPLIED url CDATA #IMPLIED>
+<!ELEMENT pos EMPTY>
+<!ATTLIST pos i CDATA #REQUIRED A CDATA #REQUIRED C CDATA #REQUIRED G CDATA #REQUIRED T CDATA #REQUIRED>
+<!ELEMENT runtime EMPTY>
+<!ATTLIST runtime cycles CDATA #REQUIRED seconds CDATA #REQUIRED>
+]>
+<tomtom version="4.4.0" release="Tue Apr 27 10:09:30 EST 2010">
+	<model>
+		<command_line>tomtom -oc . -verbosity 1 -min-overlap 5 -mi 1 -dist pearson -evalue -thresh 10 -no-ssc STRGGTCAN.meme db/JASPAR_CORE_2009.meme db/transfac_matrix.meme db/uniprobe_mouse.meme</command_line>
+		<distance_measure value="pearson"/>
+		<threshold type="evalue">10</threshold>
+		<background from="first_target" A="0.25" C="0.25" G="0.25" T="0.25"/>
+		<host>meme.nbcr.net</host>
+		<when>Mon Aug 30 18:59:26 2010</when>
+	</model>
+	<targets>
+		<target_file source="db/JASPAR_CORE_2009.meme" name="JASPAR_CORE_2009.meme" loaded="476" excluded="0" last_mod_date="Thu Aug 26 22:39:52 2010">
+			<motif id="t_MA0065.2" name="MA0065.2" alt="PPARG::RXRA" length="15" nsites="862" evalue="0" url="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0065.2&amp;rm=present&amp;collection=CORE">
+				<pos i="1" A="0.109685" C="0.369895" G="0.373396" T="0.147025"/>
+				<pos i="2" A="0.117716" C="0.193473" G="0.148019" T="0.540793"/>
+				<pos i="3" A="0.453488" C="0.026744" G="0.427907" T="0.09186"/>
+				<pos i="4" A="0.116144" C="0.003484" G="0.779326" T="0.101045"/>
+				<pos i="5" A="0.161253" C="0.017401" G="0.781903" T="0.039443"/>
+				<pos i="6" A="0.168213" C="0.149652" G="0.458237" T="0.223898"/>
+				<pos i="7" A="0.082271" C="0.633835" G="0.207416" T="0.076477"/>
+				<pos i="8" A="0.949015" C="0.024334" G="0.017381" T="0.00927"/>
+				<pos i="9" A="0.604867" C="0.05562" G="0.312862" T="0.026651"/>
+				<pos i="10" A="0.825231" C="0.005787" G="0.158565" T="0.010417"/>
+				<pos i="11" A="0.095017" C="0.002317" G="0.88876" T="0.013905"/>
+				<pos i="12" A="0.047509" C="0.010429" G="0.803013" T="0.13905"/>
+				<pos i="13" A="0.025492" C="0.114716" G="0.304751" T="0.555041"/>
+				<pos i="14" A="0.062645" C="0.643852" G="0.167053" T="0.12645"/>
+				<pos i="15" A="0.784223" C="0.067285" G="0.054524" T="0.093968"/>
+			</motif>
+			<motif id="t_MA0066.1" name="MA0066.1" alt="PPARG" length="20" nsites="28" evalue="0" url="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0066.1&amp;rm=present&amp;collection=CORE">
+				<pos i="1" A="0.107143" C="0.285714" G="0.5" T="0.107143"/>
+				<pos i="2" A="0.107143" C="0" G="0" T="0.892857"/>
+				<pos i="3" A="0.678571" C="0" G="0.321429" T="0"/>
+				<pos i="4" A="0" C="0.035714" G="0.964286" T="0"/>
+				<pos i="5" A="0.035714" C="0" G="0.928571" T="0.035714"/>
+				<pos i="6" A="0" C="0.035714" G="0.142857" T="0.821429"/>
+				<pos i="7" A="0.071429" C="0.821429" G="0.107143" T="0"/>
+				<pos i="8" A="0.928571" C="0.035714" G="0" T="0.035714"/>
+				<pos i="9" A="0.178571" C="0.535714" G="0.142857" T="0.142857"/>
+				<pos i="10" A="0.178571" C="0.25" G="0.357143" T="0.214286"/>
+				<pos i="11" A="0.142857" C="0.071429" G="0.642857" T="0.142857"/>
+				<pos i="12" A="0.035714" C="0" G="0.071429" T="0.892857"/>
+				<pos i="13" A="0.071429" C="0.178571" G="0.714286" T="0.035714"/>
+				<pos i="14" A="0.785714" C="0.178571" G="0" T="0.035714"/>
+				<pos i="15" A="0.035714" C="0.964286" G="0" T="0"/>
+				<pos i="16" A="0" C="0.892857" G="0" T="0.107143"/>
+				<pos i="17" A="0.107143" C="0.428571" G="0" T="0.464286"/>
+				<pos i="18" A="0.785714" C="0.178571" G="0" T="0.035714"/>
+				<pos i="19" A="0.178571" C="0.428571" G="0.214286" T="0.178571"/>
+				<pos i="20" A="0.25" C="0" G="0.035714" T="0.714286"/>
+			</motif>
+			<motif id="t_MA0071.1" name="MA0071.1" alt="RORA_1" length="10" nsites="25" evalue="0" url="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0071.1&amp;rm=present&amp;collection=CORE">
+				<pos i="1" A="0.6" C="0.04" G="0.08" T="0.28"/>
+				<pos i="2" A="0.36" C="0.04" G="0" T="0.6"/>
+				<pos i="3" A="0.24" C="0.48" G="0.16" T="0.12"/>
+				<pos i="4" A="0.44" C="0.08" G="0.2" T="0.28"/>
+				<pos i="5" A="0.84" C="0" G="0.16" T="0"/>
+				<pos i="6" A="0" C="0" G="1" T="0"/>
+				<pos i="7" A="0" C="0" G="1" T="0"/>
+				<pos i="8" A="0" C="0" G="0" T="1"/>
+				<pos i="9" A="0" C="1" G="0" T="0"/>
+				<pos i="10" A="1" C="0" G="0" T="0"/>
+			</motif>
+			<motif id="t_MA0072.1" name="MA0072.1" alt="RORA_2" length="14" nsites="36" evalue="0" url="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0072.1&amp;rm=present&amp;collection=CORE">
+				<pos i="1" A="0.25" C="0.222222" G="0.222222" T="0.305556"/>
+				<pos i="2" A="0.472222" C="0.055556" G="0.194444" T="0.277778"/>
+				<pos i="3" A="0.416667" C="0" G="0.083333" T="0.5"/>
+				<pos i="4" A="0.972222" C="0.027778" G="0" T="0"/>
+				<pos i="5" A="0.638889" C="0" G="0" T="0.361111"/>
+				<pos i="6" A="0.055556" C="0.333333" G="0.361111" T="0.25"/>
+				<pos i="7" A="0" C="0" G="0" T="1"/>
+				<pos i="8" A="0.777778" C="0" G="0.222222" T="0"/>
+				<pos i="9" A="0" C="0" G="1" T="0"/>
+				<pos i="10" A="0" C="0" G="1" T="0"/>
+				<pos i="11" A="0" C="0" G="0" T="1"/>
+				<pos i="12" A="0" C="1" G="0" T="0"/>
+				<pos i="13" A="1" C="0" G="0" T="0"/>
+				<pos i="14" A="0.416667" C="0.166667" G="0.277778" T="0.138889"/>
+			</motif>
+			<motif id="t_MA0074.1" name="MA0074.1" alt="RXRA::VDR" length="15" nsites="10" evalue="0" url="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0074.1&amp;rm=present&amp;collection=CORE">
+				<pos i="1" A="0.3" C="0" G="0.7" T="0"/>
+				<pos i="2" A="0" C="0" G="1" T="0"/>
+				<pos i="3" A="0" C="0" G="0.9" T="0.1"/>
+				<pos i="4" A="0" C="0" G="0" T="1"/>
+				<pos i="5" A="0" C="0.9" G="0" T="0.1"/>
+				<pos i="6" A="0.9" C="0" G="0.1" T="0"/>
+				<pos i="7" A="0.4" C="0.2" G="0" T="0.4"/>
+				<pos i="8" A="0.2" C="0.4" G="0.2" T="0.2"/>
+				<pos i="9" A="0.2" C="0" G="0.8" T="0"/>
+				<pos i="10" A="0.5" C="0" G="0.5" T="0"/>
+				<pos i="11" A="0" C="0" G="1" T="0"/>
+				<pos i="12" A="0" C="0" G="0" T="1"/>
+				<pos i="13" A="0.1" C="0" G="0" T="0.9"/>
+				<pos i="14" A="0" C="0.9" G="0" T="0.1"/>
+				<pos i="15" A="0.7" C="0.1" G="0.2" T="0"/>
+			</motif>
+			<motif id="t_MA0112.1" name="MA0112.1" alt="ESR1" length="18" nsites="9" evalue="0" url="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0112.1&amp;rm=present&amp;collection=CORE">
+				<pos i="1" A="0.111111" C="0.555556" G="0.111111" T="0.222222"/>
+				<pos i="2" A="0.111111" C="0.555556" G="0.111111" T="0.222222"/>
+				<pos i="3" A="0.777778" C="0.111111" G="0.111111" T="0"/>
+				<pos i="4" A="0.222222" C="0" G="0.777778" T="0"/>
+				<pos i="5" A="0" C="0" G="1" T="0"/>
+				<pos i="6" A="0" C="0" G="0" T="1"/>
+				<pos i="7" A="0" C="0.777778" G="0.222222" T="0"/>
+				<pos i="8" A="0.666667" C="0" G="0.222222" T="0.111111"/>
+				<pos i="9" A="0.111111" C="0.777778" G="0.111111" T="0"/>
+				<pos i="10" A="0.222222" C="0.555556" G="0.111111" T="0.111111"/>
+				<pos i="11" A="0.333333" C="0.222222" G="0.444444" T="0"/>
+				<pos i="12" A="0.111111" C="0.111111" G="0.111111" T="0.666667"/>
+				<pos i="13" A="0.111111" C="0" G="0.888889" T="0"/>
+				<pos i="14" A="0.555556" C="0.111111" G="0.333333" T="0"/>
+				<pos i="15" A="0" C="0.888889" G="0" T="0.111111"/>
+				<pos i="16" A="0" C="1" G="0" T="0"/>
+				<pos i="17" A="0.222222" C="0.444444" G="0" T="0.333333"/>
+				<pos i="18" A="0.333333" C="0.444444" G="0.111111" T="0.111111"/>
+			</motif>
+			<motif id="t_MA0112.2" name="MA0112.2" alt="ESR1" length="20" nsites="473" evalue="0" url="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0112.2&amp;rm=present&amp;collection=CORE">
+				<pos i="1" A="0.261242" C="0.256959" G="0.329764" T="0.152034"/>
+				<pos i="2" A="0.228632" C="0.17094" G="0.350427" T="0.25"/>
+				<pos i="3" A="0.136752" C="0.369658" G="0.318376" T="0.175214"/>
+				<pos i="4" A="0.176596" C="0.487234" G="0.138298" T="0.197872"/>
+				<pos i="5" A="0.285106" C="0.493617" G="0.1" T="0.121277"/>
+				<pos i="6" A="0.651163" C="0.059197" G="0.188161" T="0.10148"/>
+				<pos i="7" A="0.075949" C="0.016878" G="0.816456" T="0.090717"/>
+				<pos i="8" A="0.04" C="0.037895" G="0.884211" T="0.037895"/>
+				<pos i="9" A="0.069474" C="0.086316" G="0.191579" T="0.652632"/>
+				<pos i="10" A="0.008421" C="0.829474" G="0.111579" T="0.050526"/>
+				<pos i="11" A="0.837895" C="0.027368" G="0.056842" T="0.077895"/>
+				<pos i="12" A="0.122105" C="0.526316" G="0.225263" T="0.126316"/>
+				<pos i="13" A="0.132632" C="0.581053" G="0.111579" T="0.174737"/>
+				<pos i="14" A="0.134737" C="0.543158" G="0.204211" T="0.117895"/>
+				<pos i="15" A="0.067368" C="0.04" G="0.016842" T="0.875789"/>
+				<pos i="16" A="0.044211" C="0.046316" G="0.896842" T="0.012632"/>
+				<pos i="17" A="0.642105" C="0.223158" G="0.065263" T="0.069474"/>
+				<pos i="18" A="0.021053" C="0.917895" G="0.025263" T="0.035789"/>
+				<pos i="19" A="0.124211" C="0.743158" G="0.004211" T="0.128421"/>
+				<pos i="20" A="0.054737" C="0.347368" G="0.046316" T="0.551579"/>
+			</motif>
+			<motif id="t_MA0159.1" name="MA0159.1" alt="RXR::RAR_DR5" length="17" nsites="23" evalue="0" url="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0159.1&amp;rm=present&amp;collection=CORE">
+				<pos i="1" A="0.521739" C="0" G="0.478261" T="0"/>
+				<pos i="2" A="0" C="0" G="1" T="0"/>
+				<pos i="3" A="0.043478" C="0" G="0.565217" T="0.391304"/>
+				<pos i="4" A="0" C="0" G="0.043478" T="0.956522"/>
+				<pos i="5" A="0" C="0.782609" G="0.130435" T="0.086957"/>
+				<pos i="6" A="0.956522" C="0" G="0.043478" T="0"/>
+				<pos i="7" A="0.173913" C="0.304348" G="0.217391" T="0.304348"/>
+				<pos i="8" A="0.217391" C="0.347826" G="0.391304" T="0.043478"/>
+				<pos i="9" A="0.217391" C="0.173913" G="0.478261" T="0.130435"/>
+				<pos i="10" A="0.565217" C="0.043478" G="0.304348" T="0.086957"/>
+				<pos i="11" A="0.217391" C="0.26087" G="0.521739" T="0"/>
+				<pos i="12" A="0.73913" C="0.130435" G="0.130435" T="0"/>
+				<pos i="13" A="0.043478" C="0.043478" G="0.869565" T="0.043478"/>
+				<pos i="14" A="0" C="0.043478" G="0.695652" T="0.26087"/>
+				<pos i="15" A="0.086957" C="0.043478" G="0.130435" T="0.73913"/>
+				<pos i="16" A="0.043478" C="0.73913" G="0.130435" T="0.086957"/>
+				<pos i="17" A="0.913043" C="0" G="0.043478" T="0.043478"/>
+			</motif>
+			<motif id="t_MA0160.1" name="MA0160.1" alt="NR4A2" length="8" nsites="14" evalue="0" url="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0160.1&amp;rm=present&amp;collection=CORE">
+				<pos i="1" A="0.615385" C="0.076923" G="0.230769" T="0.076923"/>
+				<pos i="2" A="0.928571" C="0" G="0.071429" T="0"/>
+				<pos i="3" A="0" C="0" G="0.928571" T="0.071429"/>
+				<pos i="4" A="0.214286" C="0" G="0.785714" T="0"/>
+				<pos i="5" A="0.142857" C="0.142857" G="0" T="0.714286"/>
+				<pos i="6" A="0" C="0.928571" G="0" T="0.071429"/>
+				<pos i="7" A="1" C="0" G="0" T="0"/>
+				<pos i="8" A="0.230769" C="0.615385" G="0.153846" T="0"/>
+			</motif>
+			<motif id="t_MA0258.1" name="MA0258.1" alt="ESR2" length="18" nsites="357" evalue="0" url="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0258.1&amp;rm=present&amp;collection=CORE">
+				<pos i="1" A="0.218487" C="0.45098" G="0.176471" T="0.154062"/>
+				<pos i="2" A="0.442577" C="0.142857" G="0.114846" T="0.29972"/>
+				<pos i="3" A="0.521008" C="0.042017" G="0.431373" T="0.005602"/>
+				<pos i="4" A="0.07563" C="0" G="0.770308" T="0.154062"/>
+				<pos i="5" A="0.05042" C="0.056022" G="0.893557" T="0"/>
+				<pos i="6" A="0.036415" C="0.053221" G="0.092437" T="0.817927"/>
+				<pos i="7" A="0" C="1" G="0" T="0"/>
+				<pos i="8" A="0.943978" C="0.002801" G="0" T="0.053221"/>
+				<pos i="9" A="0.137255" C="0.344538" G="0.316527" T="0.201681"/>
+				<pos i="10" A="0.179272" C="0.176471" G="0.417367" T="0.226891"/>
+				<pos i="11" A="0.145658" C="0.170868" G="0.411765" T="0.271709"/>
+				<pos i="12" A="0.058824" C="0.092437" G="0.067227" T="0.781513"/>
+				<pos i="13" A="0.176471" C="0.070028" G="0.742297" T="0.011204"/>
+				<pos i="14" A="0.498599" C="0.277311" G="0.053221" T="0.170868"/>
+				<pos i="15" A="0.095238" C="0.7507" G="0.005602" T="0.148459"/>
+				<pos i="16" A="0.128852" C="0.809524" G="0" T="0.061625"/>
+				<pos i="17" A="0.07563" C="0.252101" G="0" T="0.672269"/>
+				<pos i="18" A="0.168067" C="0.263305" G="0.380952" T="0.187675"/>
+			</motif>
+			<motif id="t_MA0451.1" name="MA0451.1" alt="kni" length="12" nsites="26" evalue="0" url="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0451.1&amp;rm=present&amp;collection=CORE">
+				<pos i="1" A="0.730769" C="0.038462" G="0.076923" T="0.153846"/>
+				<pos i="2" A="0.961538" C="0.038462" G="0" T="0"/>
+				<pos i="3" A="0.615385" C="0" G="0" T="0.384615"/>
+				<pos i="4" A="0.192308" C="0.346154" G="0.230769" T="0.230769"/>
+				<pos i="5" A="0" C="0.153846" G="0.038462" T="0.807692"/>
+				<pos i="6" A="0.807692" C="0" G="0.192308" T="0"/>
+				<pos i="7" A="0" C="0" G="1" T="0"/>
+				<pos i="8" A="0.653846" C="0" G="0.307692" T="0.038462"/>
+				<pos i="9" A="0.038462" C="0.115385" G="0.692308" T="0.153846"/>
+				<pos i="10" A="0" C="1" G="0" T="0"/>
+				<pos i="11" A="0.961538" C="0" G="0.038462" T="0"/>
+				<pos i="12" A="0.192308" C="0.461538" G="0.269231" T="0.076923"/>
+			</motif>
+		</target_file>
+		<target_file source="db/transfac_matrix.meme" name="transfac_matrix.meme" loaded="1226" excluded="0" last_mod_date="Thu Aug 26 22:52:33 2010">
+			<motif id="t_M00156" name="M00156" alt="RORalpha1" length="13" nsites="25" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00156">
+				<pos i="1" A="0.4" C="0.08" G="0.28" T="0.24"/>
+				<pos i="2" A="0.36" C="0.12" G="0.12" T="0.4"/>
+				<pos i="3" A="0.6" C="0.04" G="0.08" T="0.28"/>
+				<pos i="4" A="0.36" C="0.04" G="0" T="0.6"/>
+				<pos i="5" A="0.24" C="0.48" G="0.16" T="0.12"/>
+				<pos i="6" A="0.44" C="0.08" G="0.2" T="0.28"/>
+				<pos i="7" A="0.84" C="0" G="0.16" T="0"/>
+				<pos i="8" A="0" C="0" G="1" T="0"/>
+				<pos i="9" A="0" C="0" G="1" T="0"/>
+				<pos i="10" A="0" C="0" G="0" T="1"/>
+				<pos i="11" A="0" C="1" G="0" T="0"/>
+				<pos i="12" A="1" C="0" G="0" T="0"/>
+				<pos i="13" A="0.291667" C="0.208333" G="0.083333" T="0.416667"/>
+			</motif>
+			<motif id="t_M00157" name="M00157" alt="RORalpha2" length="13" nsites="36" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00157">
+				<pos i="1" A="0.472222" C="0.055556" G="0.194444" T="0.277778"/>
+				<pos i="2" A="0.416667" C="0" G="0.111111" T="0.472222"/>
+				<pos i="3" A="1" C="0" G="0" T="0"/>
+				<pos i="4" A="0.611111" C="0" G="0" T="0.388889"/>
+				<pos i="5" A="0.055556" C="0.333333" G="0.361111" T="0.25"/>
+				<pos i="6" A="0" C="0" G="0" T="1"/>
+				<pos i="7" A="0.777778" C="0" G="0.222222" T="0"/>
+				<pos i="8" A="0" C="0" G="1" T="0"/>
+				<pos i="9" A="0" C="0" G="1" T="0"/>
+				<pos i="10" A="0" C="0" G="0" T="1"/>
+				<pos i="11" A="0" C="1" G="0" T="0"/>
+				<pos i="12" A="1" C="0" G="0" T="0"/>
+				<pos i="13" A="0.388889" C="0.194444" G="0.277778" T="0.138889"/>
+			</motif>
+			<motif id="t_M00172" name="M00172" alt="AP-1" length="11" nsites="17" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00172">
+				<pos i="1" A="0.352941" C="0.117647" G="0.470588" T="0.058824"/>
+				<pos i="2" A="0.176471" C="0.294118" G="0.529412" T="0"/>
+				<pos i="3" A="0" C="0" G="0" T="1"/>
+				<pos i="4" A="0" C="0" G="1" T="0"/>
+				<pos i="5" A="1" C="0" G="0" T="0"/>
+				<pos i="6" A="0" C="0.941176" G="0" T="0.058824"/>
+				<pos i="7" A="0.176471" C="0.117647" G="0.176471" T="0.529412"/>
+				<pos i="8" A="0.235294" C="0.411765" G="0.117647" T="0.235294"/>
+				<pos i="9" A="0.529412" C="0.352941" G="0.058824" T="0.058824"/>
+				<pos i="10" A="0.235294" C="0.176471" G="0.411765" T="0.176471"/>
+				<pos i="11" A="0.352941" C="0.176471" G="0.058824" T="0.411765"/>
+			</motif>
+			<motif id="t_M00191" name="M00191" alt="ER" length="19" nsites="20" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00191">
+				<pos i="1" A="0.3" C="0.2" G="0.2" T="0.3"/>
+				<pos i="2" A="0.2" C="0.45" G="0.15" T="0.2"/>
+				<pos i="3" A="0.6" C="0.2" G="0.15" T="0.05"/>
+				<pos i="4" A="0.3" C="0.05" G="0.55" T="0.1"/>
+				<pos i="5" A="0.15" C="0.1" G="0.55" T="0.2"/>
+				<pos i="6" A="0.15" C="0.15" G="0.2" T="0.5"/>
+				<pos i="7" A="0.15" C="0.5" G="0.15" T="0.2"/>
+				<pos i="8" A="0.55" C="0.1" G="0.2" T="0.15"/>
+				<pos i="9" A="0.2" C="0.45" G="0.15" T="0.2"/>
+				<pos i="10" A="0.15" C="0.3" G="0.15" T="0.4"/>
+				<pos i="11" A="0.1" C="0.15" G="0.45" T="0.3"/>
+				<pos i="12" A="0" C="0.05" G="0" T="0.95"/>
+				<pos i="13" A="0.05" C="0" G="0.95" T="0"/>
+				<pos i="14" A="1" C="0" G="0" T="0"/>
+				<pos i="15" A="0" C="0.9" G="0.1" T="0"/>
+				<pos i="16" A="0.05" C="0.9" G="0.05" T="0"/>
+				<pos i="17" A="0.1" C="0.35" G="0.1" T="0.45"/>
+				<pos i="18" A="0.35" C="0.05" G="0.4" T="0.2"/>
+				<pos i="19" A="0.4" C="0.25" G="0.15" T="0.2"/>
+			</motif>
+			<motif id="t_M00202" name="M00202" alt="CRP" length="26" nsites="9" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00202">
+				<pos i="1" A="0.185106" C="0.268085" G="0.181915" T="0.364894"/>
+				<pos i="2" A="0.645058" C="0.272051" G="0.082891" T="0"/>
+				<pos i="3" A="0.804255" C="0.103191" G="0" T="0.092553"/>
+				<pos i="4" A="0.103191" C="0.271277" G="0" T="0.625532"/>
+				<pos i="5" A="0.471277" C="0" G="0.181915" T="0.346809"/>
+				<pos i="6" A="0.72234" C="0.095745" G="0.089362" T="0.092553"/>
+				<pos i="7" A="0.509281" C="0.194896" G="0" T="0.295824"/>
+				<pos i="8" A="0.096706" C="0.103082" G="0" T="0.800213"/>
+				<pos i="9" A="0" C="0" G="0.831031" T="0.168969"/>
+				<pos i="10" A="0" C="0.175532" G="0" T="0.824468"/>
+				<pos i="11" A="0.178723" C="0" G="0.821277" T="0"/>
+				<pos i="12" A="0.735106" C="0.082979" G="0" T="0.181915"/>
+				<pos i="13" A="0.175532" C="0.192553" G="0.171277" T="0.460638"/>
+				<pos i="14" A="0" C="0.354255" G="0.371277" T="0.274468"/>
+				<pos i="15" A="0.281615" C="0.175345" G="0.272051" T="0.270988"/>
+				<pos i="16" A="0.467021" C="0" G="0.354255" T="0.178723"/>
+				<pos i="17" A="0.281915" C="0.278723" G="0.260638" T="0.178723"/>
+				<pos i="18" A="0.189362" C="0.191489" G="0.440426" T="0.178723"/>
+				<pos i="19" A="0.095745" C="0.103191" G="0" T="0.801064"/>
+				<pos i="20" A="0.089362" C="0.814894" G="0" T="0.095745"/>
+				<pos i="21" A="0.708511" C="0.095745" G="0.092553" T="0.103191"/>
+				<pos i="22" A="0.18916" C="0.727949" G="0" T="0.082891"/>
+				<pos i="23" A="0.629118" C="0.18491" G="0.096706" T="0.089267"/>
+				<pos i="24" A="0.103082" C="0.34644" G="0.18916" T="0.361318"/>
+				<pos i="25" A="0.17766" C="0.096809" G="0" T="0.725532"/>
+				<pos i="26" A="0.277955" C="0.095847" G="0.092652" T="0.533546"/>
+			</motif>
+			<motif id="t_M00226" name="M00226" alt="P" length="9" nsites="36" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00226">
+				<pos i="1" A="0.694444" C="0.083333" G="0.111111" T="0.111111"/>
+				<pos i="2" A="0.055556" C="0.777778" G="0.083333" T="0.083333"/>
+				<pos i="3" A="0" C="0.861111" G="0" T="0.138889"/>
+				<pos i="4" A="0.472222" C="0" G="0" T="0.527778"/>
+				<pos i="5" A="1" C="0" G="0" T="0"/>
+				<pos i="6" A="0" C="1" G="0" T="0"/>
+				<pos i="7" A="0.027778" C="0.944444" G="0" T="0.027778"/>
+				<pos i="8" A="0.305556" C="0.361111" G="0.111111" T="0.222222"/>
+				<pos i="9" A="0.166667" C="0.222222" G="0.416667" T="0.194444"/>
+			</motif>
+			<motif id="t_M00242" name="M00242" alt="PPARalpha:RXRalpha" length="20" nsites="7" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00242">
+				<pos i="1" A="0.142857" C="0.714286" G="0.142857" T="0"/>
+				<pos i="2" A="0.571429" C="0.142857" G="0" T="0.285714"/>
+				<pos i="3" A="0.571429" C="0" G="0.428571" T="0"/>
+				<pos i="4" A="0.714286" C="0.142857" G="0.142857" T="0"/>
+				<pos i="5" A="0.571429" C="0" G="0.142857" T="0.285714"/>
+				<pos i="6" A="0.142857" C="0.714286" G="0.142857" T="0"/>
+				<pos i="7" A="0" C="0.285714" G="0" T="0.714286"/>
+				<pos i="8" A="0.857143" C="0" G="0.142857" T="0"/>
+				<pos i="9" A="0" C="0" G="1" T="0"/>
+				<pos i="10" A="0" C="0" G="1" T="0"/>
+				<pos i="11" A="0.142857" C="0.285714" G="0.142857" T="0.428571"/>
+				<pos i="12" A="0.142857" C="0.857143" G="0" T="0"/>
+				<pos i="13" A="1" C="0" G="0" T="0"/>
+				<pos i="14" A="0.714286" C="0" G="0" T="0.285714"/>
+				<pos i="15" A="1" C="0" G="0" T="0"/>
+				<pos i="16" A="0" C="0" G="1" T="0"/>
+				<pos i="17" A="0" C="0" G="0.714286" T="0.285714"/>
+				<pos i="18" A="0" C="0" G="0" T="1"/>
+				<pos i="19" A="0" C="0.857143" G="0.142857" T="0"/>
+				<pos i="20" A="0.857143" C="0" G="0" T="0.142857"/>
+			</motif>
+			<motif id="t_M00511" name="M00511" alt="ERR" length="14" nsites="25" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00511">
+				<pos i="1" A="0.36" C="0.16" G="0.16" T="0.32"/>
+				<pos i="2" A="0.16" C="0.24" G="0.32" T="0.28"/>
+				<pos i="3" A="0.32" C="0.28" G="0.2" T="0.2"/>
+				<pos i="4" A="0.2" C="0.08" G="0.12" T="0.6"/>
+				<pos i="5" A="0.32" C="0.4" G="0.24" T="0.04"/>
+				<pos i="6" A="0.64" C="0.04" G="0.24" T="0.08"/>
+				<pos i="7" A="0.92" C="0.04" G="0" T="0.04"/>
+				<pos i="8" A="0" C="0" G="1" T="0"/>
+				<pos i="9" A="0" C="0" G="1" T="0"/>
+				<pos i="10" A="0.12" C="0" G="0" T="0.88"/>
+				<pos i="11" A="0" C="0.92" G="0.08" T="0"/>
+				<pos i="12" A="0.92" C="0.04" G="0" T="0.04"/>
+				<pos i="13" A="0.2" C="0.24" G="0.2" T="0.36"/>
+				<pos i="14" A="0.44" C="0.16" G="0.16" T="0.24"/>
+			</motif>
+			<motif id="t_M00515" name="M00515" alt="PPARgamma:RXRalpha," length="23" nsites="27" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00515">
+				<pos i="1" A="0.782609" C="0.130435" G="0" T="0.086957"/>
+				<pos i="2" A="0.777778" C="0" G="0" T="0.222222"/>
+				<pos i="3" A="0.111111" C="0.259259" G="0.555556" T="0.074074"/>
+				<pos i="4" A="0.035714" C="0.035714" G="0" T="0.928571"/>
+				<pos i="5" A="0.75" C="0" G="0.25" T="0"/>
+				<pos i="6" A="0" C="0" G="1" T="0"/>
+				<pos i="7" A="0" C="0.035714" G="0.964286" T="0"/>
+				<pos i="8" A="0" C="0" G="0.107143" T="0.892857"/>
+				<pos i="9" A="0.035714" C="0.821429" G="0.142857" T="0"/>
+				<pos i="10" A="1" C="0" G="0" T="0"/>
+				<pos i="11" A="0.142857" C="0.607143" G="0.107143" T="0.142857"/>
+				<pos i="12" A="0.214286" C="0.25" G="0.321429" T="0.214286"/>
+				<pos i="13" A="0.107143" C="0.107143" G="0.678571" T="0.107143"/>
+				<pos i="14" A="0" C="0" G="0" T="1"/>
+				<pos i="15" A="0.071429" C="0.178571" G="0.714286" T="0.035714"/>
+				<pos i="16" A="0.857143" C="0.107143" G="0.035714" T="0"/>
+				<pos i="17" A="0" C="1" G="0" T="0"/>
+				<pos i="18" A="0" C="1" G="0" T="0"/>
+				<pos i="19" A="0" C="0.392857" G="0" T="0.607143"/>
+				<pos i="20" A="0.892857" C="0.035714" G="0" T="0.071429"/>
+				<pos i="21" A="0.148148" C="0.555556" G="0.222222" T="0.074074"/>
+				<pos i="22" A="0.259259" C="0" G="0.037037" T="0.703704"/>
+				<pos i="23" A="0.083333" C="0" G="0" T="0.916667"/>
+			</motif>
+			<motif id="t_M00528" name="M00528" alt="PPAR" length="17" nsites="19" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00528">
+				<pos i="1" A="0.526316" C="0.052632" G="0.105263" T="0.315789"/>
+				<pos i="2" A="0.578947" C="0.105263" G="0.105263" T="0.210526"/>
+				<pos i="3" A="0.052632" C="0.526316" G="0.263158" T="0.157895"/>
+				<pos i="4" A="0.210526" C="0.263158" G="0.052632" T="0.473684"/>
+				<pos i="5" A="0.526316" C="0.105263" G="0.263158" T="0.105263"/>
+				<pos i="6" A="0" C="0" G="1" T="0"/>
+				<pos i="7" A="0.052632" C="0" G="0.947368" T="0"/>
+				<pos i="8" A="0.157895" C="0.157895" G="0.368421" T="0.315789"/>
+				<pos i="9" A="0.105263" C="0.631579" G="0.052632" T="0.210526"/>
+				<pos i="10" A="0.947368" C="0" G="0.052632" T="0"/>
+				<pos i="11" A="0.736842" C="0.052632" G="0.052632" T="0.157895"/>
+				<pos i="12" A="0.842105" C="0.052632" G="0.052632" T="0.052632"/>
+				<pos i="13" A="0.052632" C="0" G="0.947368" T="0"/>
+				<pos i="14" A="0" C="0" G="0.736842" T="0.263158"/>
+				<pos i="15" A="0" C="0.052632" G="0.052632" T="0.894737"/>
+				<pos i="16" A="0" C="0.736842" G="0.210526" T="0.052632"/>
+				<pos i="17" A="0.842105" C="0" G="0.052632" T="0.105263"/>
+			</motif>
+			<motif id="t_M00762" name="M00762" alt="PPAR," length="13" nsites="31" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00762">
+				<pos i="1" A="0.366667" C="0.033333" G="0.4" T="0.2"/>
+				<pos i="2" A="0.129032" C="0" G="0.83871" T="0.032258"/>
+				<pos i="3" A="0.064516" C="0.129032" G="0.709677" T="0.096774"/>
+				<pos i="4" A="0.225806" C="0.193548" G="0.193548" T="0.387097"/>
+				<pos i="5" A="0.064516" C="0.741935" G="0.064516" T="0.129032"/>
+				<pos i="6" A="0.870968" C="0.064516" G="0" T="0.064516"/>
+				<pos i="7" A="0.677419" C="0.096774" G="0.129032" T="0.096774"/>
+				<pos i="8" A="0.677419" C="0.032258" G="0.258065" T="0.032258"/>
+				<pos i="9" A="0" C="0.064516" G="0.83871" T="0.096774"/>
+				<pos i="10" A="0.064516" C="0.064516" G="0.645161" T="0.225806"/>
+				<pos i="11" A="0.129032" C="0.129032" G="0.064516" T="0.677419"/>
+				<pos i="12" A="0.032258" C="0.806452" G="0.129032" T="0.032258"/>
+				<pos i="13" A="0.677419" C="0.129032" G="0" T="0.193548"/>
+			</motif>
+			<motif id="t_M00763" name="M00763" alt="PPAR" length="13" nsites="18" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00763">
+				<pos i="1" A="0.277778" C="0" G="0.111111" T="0.611111"/>
+				<pos i="2" A="0.055556" C="0.166667" G="0.777778" T="0"/>
+				<pos i="3" A="0.722222" C="0.166667" G="0" T="0.111111"/>
+				<pos i="4" A="0.277778" C="0.722222" G="0" T="0"/>
+				<pos i="5" A="0.055556" C="0.888889" G="0.055556" T="0"/>
+				<pos i="6" A="0.055556" C="0.166667" G="0" T="0.777778"/>
+				<pos i="7" A="0.111111" C="0.166667" G="0.111111" T="0.611111"/>
+				<pos i="8" A="0.055556" C="0" G="0.055556" T="0.888889"/>
+				<pos i="9" A="0.111111" C="0.111111" G="0.722222" T="0.055556"/>
+				<pos i="10" A="0.388889" C="0.222222" G="0.222222" T="0.166667"/>
+				<pos i="11" A="0.111111" C="0.777778" G="0" T="0.111111"/>
+				<pos i="12" A="0.111111" C="0.777778" G="0.055556" T="0.055556"/>
+				<pos i="13" A="0.166667" C="0.444444" G="0.055556" T="0.333333"/>
+			</motif>
+			<motif id="t_M00959" name="M00959" alt="ER" length="11" nsites="39" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00959">
+				<pos i="1" A="0.230769" C="0.410256" G="0.205128" T="0.153846"/>
+				<pos i="2" A="0.74359" C="0.076923" G="0.179487" T="0"/>
+				<pos i="3" A="0.025641" C="0" G="0.923077" T="0.051282"/>
+				<pos i="4" A="0" C="0" G="1" T="0"/>
+				<pos i="5" A="0.025641" C="0" G="0.076923" T="0.897436"/>
+				<pos i="6" A="0.025641" C="0.897436" G="0.076923" T="0"/>
+				<pos i="7" A="0.948718" C="0.025641" G="0" T="0.025641"/>
+				<pos i="8" A="0.153846" C="0.435897" G="0.205128" T="0.205128"/>
+				<pos i="9" A="0.179487" C="0.282051" G="0.410256" T="0.128205"/>
+				<pos i="10" A="0.179487" C="0.282051" G="0.435897" T="0.102564"/>
+				<pos i="11" A="0.102564" C="0.282051" G="0.076923" T="0.538462"/>
+			</motif>
+			<motif id="t_M00965" name="M00965" alt="LXR," length="17" nsites="19" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00965">
+				<pos i="1" A="0" C="0.263158" G="0.105263" T="0.631579"/>
+				<pos i="2" A="0.157895" C="0" G="0.789474" T="0.052632"/>
+				<pos i="3" A="0.578947" C="0.157895" G="0.105263" T="0.157895"/>
+				<pos i="4" A="0.315789" C="0.631579" G="0" T="0.052632"/>
+				<pos i="5" A="0.052632" C="0.894737" G="0" T="0.052632"/>
+				<pos i="6" A="0" C="0.052632" G="0.315789" T="0.631579"/>
+				<pos i="7" A="0.105263" C="0.368421" G="0.263158" T="0.263158"/>
+				<pos i="8" A="0.105263" C="0.315789" G="0.157895" T="0.421053"/>
+				<pos i="9" A="0.578947" C="0.210526" G="0.052632" T="0.157895"/>
+				<pos i="10" A="0.052632" C="0.421053" G="0.368421" T="0.157895"/>
+				<pos i="11" A="0.052632" C="0.052632" G="0.052632" T="0.842105"/>
+				<pos i="12" A="0.368421" C="0" G="0.578947" T="0.052632"/>
+				<pos i="13" A="0.789474" C="0.105263" G="0.052632" T="0.052632"/>
+				<pos i="14" A="0.157895" C="0.736842" G="0.105263" T="0"/>
+				<pos i="15" A="0.052632" C="0.842105" G="0.052632" T="0.052632"/>
+				<pos i="16" A="0.052632" C="0.578947" G="0.052632" T="0.315789"/>
+				<pos i="17" A="0.210526" C="0.473684" G="0.105263" T="0.210526"/>
+			</motif>
+			<motif id="t_M01032" name="M01032" alt="HNF4" length="6" nsites="58" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01032">
+				<pos i="1" A="0.844828" C="0" G="0.155172" T="0"/>
+				<pos i="2" A="0" C="0" G="1" T="0"/>
+				<pos i="3" A="0.051724" C="0.017241" G="0.448276" T="0.482759"/>
+				<pos i="4" A="0.051724" C="0.327586" G="0.12069" T="0.5"/>
+				<pos i="5" A="0.017241" C="0.810345" G="0.034483" T="0.137931"/>
+				<pos i="6" A="0.793103" C="0.034483" G="0.103448" T="0.068966"/>
+			</motif>
+			<motif id="t_M01033" name="M01033" alt="HNF4" length="6" nsites="58" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01033">
+				<pos i="1" A="0.327586" C="0.137931" G="0.362069" T="0.172414"/>
+				<pos i="2" A="0.086207" C="0.034483" G="0.793103" T="0.086207"/>
+				<pos i="3" A="0.189655" C="0.051724" G="0.517241" T="0.241379"/>
+				<pos i="4" A="0.086207" C="0.275862" G="0.344828" T="0.293103"/>
+				<pos i="5" A="0.034483" C="0.827586" G="0.034483" T="0.103448"/>
+				<pos i="6" A="0.896552" C="0.017241" G="0" T="0.086207"/>
+			</motif>
+			<motif id="t_M01138" name="M01138" alt="RORalpha" length="11" nsites="12" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01138">
+				<pos i="1" A="0.333333" C="0" G="0.083333" T="0.583333"/>
+				<pos i="2" A="0.583333" C="0.083333" G="0.083333" T="0.25"/>
+				<pos i="3" A="0.583333" C="0" G="0.25" T="0.166667"/>
+				<pos i="4" A="0.25" C="0.25" G="0.25" T="0.25"/>
+				<pos i="5" A="0.083333" C="0" G="0" T="0.916667"/>
+				<pos i="6" A="0.5" C="0" G="0.5" T="0"/>
+				<pos i="7" A="0" C="0" G="0.916667" T="0.083333"/>
+				<pos i="8" A="0" C="0" G="1" T="0"/>
+				<pos i="9" A="0" C="0" G="0" T="1"/>
+				<pos i="10" A="0" C="0.916667" G="0" T="0.083333"/>
+				<pos i="11" A="1" C="0" G="0" T="0"/>
+			</motif>
+			<motif id="t_M01198" name="M01198" alt="RXR:LXR-beta" length="13" nsites="25" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01198">
+				<pos i="1" A="0.8" C="0" G="0.2" T="0"/>
+				<pos i="2" A="0" C="0" G="1" T="0"/>
+				<pos i="3" A="0" C="0" G="0.96" T="0.04"/>
+				<pos i="4" A="0" C="0" G="0" T="1"/>
+				<pos i="5" A="0" C="0.96" G="0" T="0.04"/>
+				<pos i="6" A="1" C="0" G="0" T="0"/>
+				<pos i="7" A="0.96" C="0" G="0" T="0.04"/>
+				<pos i="8" A="1" C="0" G="0" T="0"/>
+				<pos i="9" A="0" C="0" G="1" T="0"/>
+				<pos i="10" A="0" C="0" G="0.96" T="0.04"/>
+				<pos i="11" A="0" C="0" G="0" T="1"/>
+				<pos i="12" A="0" C="1" G="0" T="0"/>
+				<pos i="13" A="1" C="0" G="0" T="0"/>
+			</motif>
+			<motif id="t_M01202" name="M01202" alt="VDR:RXR" length="15" nsites="10" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01202">
+				<pos i="1" A="0.3" C="0" G="0.7" T="0"/>
+				<pos i="2" A="0" C="0" G="1" T="0"/>
+				<pos i="3" A="0" C="0" G="0.9" T="0.1"/>
+				<pos i="4" A="0" C="0" G="0" T="1"/>
+				<pos i="5" A="0" C="0.9" G="0" T="0.1"/>
+				<pos i="6" A="0.9" C="0" G="0.1" T="0"/>
+				<pos i="7" A="0.4" C="0.2" G="0" T="0.4"/>
+				<pos i="8" A="0.2" C="0.4" G="0.2" T="0.2"/>
+				<pos i="9" A="0.2" C="0" G="0.8" T="0"/>
+				<pos i="10" A="0.5" C="0" G="0.5" T="0"/>
+				<pos i="11" A="0" C="0" G="1" T="0"/>
+				<pos i="12" A="0" C="0" G="0" T="1"/>
+				<pos i="13" A="0.1" C="0" G="0" T="0.9"/>
+				<pos i="14" A="0" C="0.9" G="0" T="0.1"/>
+				<pos i="15" A="0.7" C="0.1" G="0.2" T="0"/>
+			</motif>
+			<motif id="t_M01217" name="M01217" alt="NUR77" length="10" nsites="9" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01217">
+				<pos i="1" A="0.111111" C="0.333333" G="0.222222" T="0.333333"/>
+				<pos i="2" A="0" C="0" G="0" T="1"/>
+				<pos i="3" A="0.111111" C="0" G="0.888889" T="0"/>
+				<pos i="4" A="0.666667" C="0" G="0.222222" T="0.111111"/>
+				<pos i="5" A="0" C="1" G="0" T="0"/>
+				<pos i="6" A="0" C="1" G="0" T="0"/>
+				<pos i="7" A="0" C="0" G="0" T="1"/>
+				<pos i="8" A="0" C="0" G="0" T="1"/>
+				<pos i="9" A="0" C="0.333333" G="0.333333" T="0.333333"/>
+				<pos i="10" A="0.111111" C="0.333333" G="0.333333" T="0.222222"/>
+			</motif>
+			<motif id="t_M01227" name="M01227" alt="MAFB" length="6" nsites="20" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01227">
+				<pos i="1" A="0.111111" C="0.111111" G="0.722222" T="0.055556"/>
+				<pos i="2" A="0.15" C="0.45" G="0.3" T="0.1"/>
+				<pos i="3" A="0" C="0" G="0" T="1"/>
+				<pos i="4" A="0" C="0" G="0.952381" T="0.047619"/>
+				<pos i="5" A="0.75" C="0.2" G="0" T="0.05"/>
+				<pos i="6" A="0.05" C="0.65" G="0.15" T="0.15"/>
+			</motif>
+			<motif id="t_M01248" name="M01248" alt="Dax1" length="20" nsites="100" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01248">
+				<pos i="1" A="0.32" C="0.19" G="0.35" T="0.14"/>
+				<pos i="2" A="0.39" C="0.27" G="0.24" T="0.1"/>
+				<pos i="3" A="0.43" C="0.06" G="0.34" T="0.17"/>
+				<pos i="4" A="0.17" C="0.27" G="0.4" T="0.16"/>
+				<pos i="5" A="0.26" C="0.24" G="0.23" T="0.27"/>
+				<pos i="6" A="0.14" C="0.24" G="0.35" T="0.27"/>
+				<pos i="7" A="0.19" C="0.45" G="0.27" T="0.09"/>
+				<pos i="8" A="0.85" C="0" G="0.14" T="0.01"/>
+				<pos i="9" A="0.97" C="0" G="0.03" T="0"/>
+				<pos i="10" A="0.05" C="0" G="0.94" T="0.01"/>
+				<pos i="11" A="0" C="0" G="0.96" T="0.04"/>
+				<pos i="12" A="0.04" C="0.11" G="0.02" T="0.83"/>
+				<pos i="13" A="0" C="0.88" G="0.11" T="0.01"/>
+				<pos i="14" A="0.77" C="0.04" G="0.01" T="0.18"/>
+				<pos i="15" A="0.17" C="0.37" G="0.33" T="0.13"/>
+				<pos i="16" A="0.29" C="0.31" G="0.21" T="0.19"/>
+				<pos i="17" A="0.17" C="0.21" G="0.31" T="0.31"/>
+				<pos i="18" A="0.21" C="0.2" G="0.28" T="0.31"/>
+				<pos i="19" A="0.23" C="0.32" G="0.2" T="0.25"/>
+				<pos i="20" A="0.29" C="0.32" G="0.22" T="0.17"/>
+			</motif>
+			<motif id="t_M01268" name="M01268" alt="FXR" length="7" nsites="19" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01268">
+				<pos i="1" A="0.736842" C="0" G="0.263158" T="0"/>
+				<pos i="2" A="0" C="0" G="1" T="0"/>
+				<pos i="3" A="0" C="0" G="0.894737" T="0.105263"/>
+				<pos i="4" A="0.157895" C="0.052632" G="0.052632" T="0.736842"/>
+				<pos i="5" A="0" C="0.894737" G="0" T="0.105263"/>
+				<pos i="6" A="1" C="0" G="0" T="0"/>
+				<pos i="7" A="0.210526" C="0.263158" G="0.157895" T="0.368421"/>
+			</motif>
+			<motif id="t_M01270" name="M01270" alt="PPARG" length="7" nsites="15" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01270">
+				<pos i="1" A="0.733333" C="0.066667" G="0.2" T="0"/>
+				<pos i="2" A="0" C="0" G="1" T="0"/>
+				<pos i="3" A="0" C="0" G="1" T="0"/>
+				<pos i="4" A="0.066667" C="0" G="0.133333" T="0.8"/>
+				<pos i="5" A="0.133333" C="0.666667" G="0.133333" T="0.066667"/>
+				<pos i="6" A="0.933333" C="0.066667" G="0" T="0"/>
+				<pos i="7" A="0.2" C="0.2" G="0.4" T="0.2"/>
+			</motif>
+			<motif id="t_M01282" name="M01282" alt="PPARA" length="7" nsites="13" evalue="0" url="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01282">
+				<pos i="1" A="0" C="0.076923" G="0" T="0.923077"/>
+				<pos i="2" A="0" C="0" G="1" T="0"/>
+				<pos i="3" A="0.769231" C="0" G="0.153846" T="0.076923"/>
+				<pos i="4" A="0" C="0.846154" G="0.153846" T="0"/>
+				<pos i="5" A="0" C="1" G="0" T="0"/>
+				<pos i="6" A="0" C="0" G="0" T="1"/>
+				<pos i="7" A="0.076923" C="0.384615" G="0.076923" T="0.461538"/>
+			</motif>
+		</target_file>
+		<target_file source="db/uniprobe_mouse.meme" name="uniprobe_mouse.meme" loaded="386" excluded="0" last_mod_date="Thu Aug 26 22:40:00 2010">
+		</target_file>
+	</targets>
+	<queries>
+		<query_file source="STRGGTCAN.meme" name="STRGGTCAN.meme" last_mod_date="Mon Aug 30 18:59:25 2010">
+			<query>
+				<motif id="q_STRGGTCAN" name="STRGGTCAN" length="9" nsites="28" evalue="0" >
+					<pos i="1" A="0.112069" C="0.284483" G="0.491379" T="0.112069"/>
+					<pos i="2" A="0.112069" C="0.008621" G="0.008621" T="0.87069"/>
+					<pos i="3" A="0.663793" C="0.008621" G="0.318966" T="0.008621"/>
+					<pos i="4" A="0.008621" C="0.043103" G="0.939655" T="0.008621"/>
+					<pos i="5" A="0.0357145" C="0" G="0.928571" T="0.0357145"/>
+					<pos i="6" A="0" C="0.0357145" G="0.142857" T="0.821428"/>
+					<pos i="7" A="0.0714291" C="0.821428" G="0.107143" T="0"/>
+					<pos i="8" A="0.928571" C="0.0357145" G="0" T="0.0357145"/>
+					<pos i="9" A="0.178572" C="0.535714" G="0.142857" T="0.142857"/>
+				</motif>
+				<match target="t_MA0066.1" orientation="forward" offset="0" pvalue="1.54217e-16" evalue="3.22004e-13" qvalue="6.40581e-13"/>
+				<match target="t_M00515" orientation="forward" offset="2" pvalue="6.32802e-13" evalue="1.32129e-09" qvalue="1.31426e-09"/>
+				<match target="t_M00157" orientation="forward" offset="4" pvalue="1.87159e-06" evalue="0.00390789" qvalue="0.00155483"/>
+				<match target="t_M01138" orientation="forward" offset="3" pvalue="2.83024e-06" evalue="0.00590954" qvalue="0.00195936"/>
+				<match target="t_MA0072.1" orientation="forward" offset="5" pvalue="3.88856e-06" evalue="0.00811932" qvalue="0.00230746"/>
+				<match target="t_M01268" orientation="forward" offset="-2" pvalue="1.94915e-05" evalue="0.0406982" qvalue="0.0101204"/>
+				<match target="t_M01270" orientation="forward" offset="-2" pvalue="4.13904e-05" evalue="0.0864232" qvalue="0.0191029"/>
+				<match target="t_M00191" orientation="reverse" offset="0" pvalue="7.58152e-05" evalue="0.158302" qvalue="0.0314919"/>
+				<match target="t_MA0258.1" orientation="forward" offset="0" pvalue="8.94604e-05" evalue="0.186793" qvalue="0.0337816"/>
+				<match target="t_MA0159.1" orientation="forward" offset="-2" pvalue="0.000151894" evalue="0.317154" qvalue="0.0525776"/>
+				<match target="t_MA0071.1" orientation="forward" offset="2" pvalue="0.000210068" evalue="0.438622" qvalue="0.067121"/>
+				<match target="t_M00959" orientation="forward" offset="-1" pvalue="0.000266538" evalue="0.556532" qvalue="0.0790813"/>
+				<match target="t_M00156" orientation="forward" offset="4" pvalue="0.000306539" evalue="0.640053" qvalue="0.0848861"/>
+				<match target="t_MA0112.2" orientation="reverse" offset="-2" pvalue="0.000429448" evalue="0.896688" qvalue="0.111489"/>
+				<match target="t_MA0160.1" orientation="forward" offset="-1" pvalue="0.000740331" evalue="1.54581" qvalue="0.170842"/>
+				<match target="t_MA0112.1" orientation="reverse" offset="-1" pvalue="0.00101281" evalue="2.11476" qvalue="0.205449"/>
+				<match target="t_M01032" orientation="forward" offset="-2" pvalue="0.00112829" evalue="2.35586" qvalue="0.207355"/>
+				<match target="t_MA0074.1" orientation="forward" offset="-2" pvalue="0.00122279" evalue="2.55319" qvalue="0.207355"/>
+				<match target="t_M01202" orientation="forward" offset="-2" pvalue="0.00122279" evalue="2.55319" qvalue="0.207355"/>
+				<match target="t_MA0065.2" orientation="forward" offset="0" pvalue="0.00124799" evalue="2.6058" qvalue="0.207355"/>
+				<match target="t_M01248" orientation="forward" offset="6" pvalue="0.0015006" evalue="3.13326" qvalue="0.239737"/>
+				<match target="t_M00511" orientation="forward" offset="4" pvalue="0.00157765" evalue="3.29413" qvalue="0.242711"/>
+				<match target="t_M00528" orientation="forward" offset="2" pvalue="0.00164774" evalue="3.44048" qvalue="0.24444"/>
+				<match target="t_M01198" orientation="forward" offset="-2" pvalue="0.00193569" evalue="4.04172" qvalue="0.277255"/>
+				<match target="t_M01217" orientation="reverse" offset="1" pvalue="0.00221051" evalue="4.61555" qvalue="0.287249"/>
+				<match target="t_M00242" orientation="forward" offset="5" pvalue="0.00225302" evalue="4.70431" qvalue="0.287249"/>
+				<match target="t_M01033" orientation="forward" offset="-2" pvalue="0.0022814" evalue="4.76356" qvalue="0.287249"/>
+				<match target="t_MA0451.1" orientation="forward" offset="3" pvalue="0.00230486" evalue="4.81254" qvalue="0.287249"/>
+				<match target="t_M01227" orientation="reverse" offset="-4" pvalue="0.00235123" evalue="4.90936" qvalue="0.287249"/>
+				<match target="t_M00202" orientation="forward" offset="13" pvalue="0.00264918" evalue="5.53149" qvalue="0.308088"/>
+				<match target="t_M00226" orientation="reverse" offset="3" pvalue="0.0026768" evalue="5.58916" qvalue="0.308088"/>
+				<match target="t_M01282" orientation="reverse" offset="-1" pvalue="0.00274432" evalue="5.73013" qvalue="0.308088"/>
+				<match target="t_M00763" orientation="reverse" offset="-2" pvalue="0.00319369" evalue="6.66843" qvalue="0.349101"/>
+				<match target="t_M00172" orientation="reverse" offset="1" pvalue="0.00382363" evalue="7.98374" qvalue="0.396792"/>
+				<match target="t_M00965" orientation="reverse" offset="-1" pvalue="0.00391656" evalue="8.17777" qvalue="0.396792"/>
+				<match target="t_M00762" orientation="forward" offset="-2" pvalue="0.00437918" evalue="9.14373" qvalue="0.433098"/>
+			</query>
+		</query_file>
+	</queries>
+	<runtime cycles="1465778" seconds="1.466"/>
+</tomtom>

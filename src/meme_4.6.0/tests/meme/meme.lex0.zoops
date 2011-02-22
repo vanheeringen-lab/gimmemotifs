@@ -1,0 +1,267 @@
+********************************************************************************
+MEME - Motif discovery tool
+********************************************************************************
+MEME version 4.4.0 (Release date: Tue Apr 27 10:09:30 EST 2010)
+
+For further information on how to interpret these results or to get
+a copy of the MEME software please access http://meme.nbcr.net.
+
+This file may be used as input to the MAST algorithm for searching
+sequence databases for matches to groups of motifs.  MAST is available
+for interactive use and downloading at http://meme.nbcr.net.
+********************************************************************************
+
+
+********************************************************************************
+REFERENCE
+********************************************************************************
+If you use this program in your research, please cite:
+
+Timothy L. Bailey and Charles Elkan,
+"Fitting a mixture model by expectation maximization to discover
+motifs in biopolymers", Proceedings of the Second International
+Conference on Intelligent Systems for Molecular Biology, pp. 28-36,
+AAAI Press, Menlo Park, California, 1994.
+********************************************************************************
+
+
+********************************************************************************
+TRAINING SET
+********************************************************************************
+DATAFILE= ../tests/lex0.s
+ALPHABET= ACGT
+Sequence name            Weight Length  Sequence name            Weight Length  
+-------------            ------ ------  -------------            ------ ------  
+cloacin-df13             1.0000    200  colicin-e1               1.0000    200  
+colicin-ia               1.0000    200  colicin-ib               1.0000    200  
+reca                     1.0000    200  recn                     1.0000    200  
+sula                     1.0000    200  umu-operon               1.0000    200  
+uvra                     1.0000    200  uvrb                     1.0000    200  
+uvrd                     1.0000    200  colicin-a                1.0000    136  
+lexA                     1.0000    173  muc-operon               1.0000    158  
+hima                     1.0000    200  uvrc                     1.0000    200  
+********************************************************************************
+
+********************************************************************************
+COMMAND LINE SUMMARY
+********************************************************************************
+This information can also be useful in the event you wish to report a
+problem with the MEME software.
+
+command: meme ../tests/lex0.s -dna -pal 
+
+model:  mod=         zoops    nmotifs=         1    evt=           inf
+object function=  E-value of product of p-values
+width:  minw=            8    maxw=           50    minic=        0.00
+width:  wg=             11    ws=              1    endgaps=       yes
+nsites: minsites=        2    maxsites=       16    wnsites=       0.8
+theta:  prob=            1    spmap=         uni    spfuzz=        0.5
+global: substring=     yes    branching=      no    wbranch=        no
+em:     prior=   dirichlet    b=            0.01    maxiter=        50
+        distance=    1e-05
+data:   n=            3067    N=              16
+strands: +
+sample: seed=            0    seqfrac=         1
+Letter frequencies in dataset:
+A 0.296 C 0.207 G 0.213 T 0.283 
+Background letter frequencies (from dataset with add-one prior applied):
+A 0.296 C 0.207 G 0.213 T 0.283 
+********************************************************************************
+
+
+********************************************************************************
+MOTIF  1	width =   20   sites =  14   llr = 216   E-value = 1.9e-024
+********************************************************************************
+--------------------------------------------------------------------------------
+	Motif 1 Description
+--------------------------------------------------------------------------------
+Simplified        A  471:::7:6172a27:a:16
+pos.-specific     C  119::::::1:2:12a::1:
+probability       G  :1::a31:2:1::::::911
+matrix            T  61:a:72a2716:7:::174
+
+         bits    2.3     *          *    
+                 2.0     *          *    
+                 1.8   ***          **   
+                 1.6   ***  *    *  ***  
+Relative         1.4   ***  *    *  ***  
+Entropy          1.1   ***  *    *  ***  
+(22.2 bits)      0.9   **** *    * ****  
+                 0.7   ****** ********** 
+                 0.5 ********************
+                 0.2 ********************
+                 0.0 --------------------
+
+Multilevel           TACTGTATATATATACAGTA
+consensus            A    G        C    T
+sequence                                 
+                                         
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+	Motif 1 sites sorted by position p-value
+--------------------------------------------------------------------------------
+Sequence name             Start   P-value                    Site      
+-------------             ----- ---------            --------------------
+cloacin-df13                 97  5.39e-11 GTAATAATCA TACTGTGTATATATACAGTA TTTTGGTTTT
+umu-operon                   91  7.82e-10 AAGAACAGAC TACTGTATATAAAAACAGTA TAACTTCAGG
+muc-operon                   49  2.55e-09 ATAACAGCGA TACTGTATAAATAAACAGTT ATTTGGAAGA
+recn                         71  4.07e-09 CCAGCCTCTT TACTGTATATAAAACCAGTT TATACTGTAC
+reca                         71  1.95e-08 AAACACTTGA TACTGTATGAGCATACAGTA TAATTGCTTC
+uvrb                         71  2.36e-08 TATGGTGATG AACTGTTTTTTTATCCAGTA TAATTTGTTG
+sula                         85  7.93e-08 TCACTGGATG TACTGTACATCCATACAGTA ACTCACAGGG
+uvrd                        102  9.28e-08 TAATCAGCAA ATCTGTATATATACCCAGCT TTTTGGCGGA
+lexA                         76  1.00e-07 CTCACAGCAT AACTGTATATACACCCAGGG GGCGGAATGA
+colicin-a                    34  1.17e-07 AGTATCATTT TACTGTATATAAACACATGT GAATATATAC
+colicin-ib                   99  1.17e-07 AATAAATTAG TACTGTATATGTATCCATAT ACGTAAGCAG
+colicin-ia                   99  1.17e-07 AATAAATTAA TACTGTATATGTATCCATAT GCGTAAGCAG
+colicin-e1                   97  1.26e-07 GTAGCTTTTA TGCTGTATATAAAACCAGTG GTTATATGTA
+uvra                         60  1.82e-07 TGCATTCCAA TACTGTATATTCATTCAGGT CAATTTGTGT
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+	Motif 1 block diagrams
+--------------------------------------------------------------------------------
+SEQUENCE NAME            POSITION P-VALUE  MOTIF DIAGRAM
+-------------            ----------------  -------------
+cloacin-df13                      5.4e-11  96_[1]_84
+umu-operon                        7.8e-10  90_[1]_90
+muc-operon                        2.6e-09  48_[1]_90
+recn                              4.1e-09  70_[1]_110
+reca                              1.9e-08  70_[1]_110
+uvrb                              2.4e-08  70_[1]_110
+sula                              7.9e-08  84_[1]_96
+uvrd                              9.3e-08  101_[1]_79
+lexA                                1e-07  75_[1]_78
+colicin-a                         1.2e-07  33_[1]_83
+colicin-ib                        1.2e-07  98_[1]_82
+colicin-ia                        1.2e-07  98_[1]_82
+colicin-e1                        1.3e-07  96_[1]_84
+uvra                              1.8e-07  59_[1]_121
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+	Motif 1 in BLOCKS format
+--------------------------------------------------------------------------------
+BL   MOTIF 1 width=20 seqs=14
+cloacin-df13             (   97) TACTGTGTATATATACAGTA  1 
+umu-operon               (   91) TACTGTATATAAAAACAGTA  1 
+muc-operon               (   49) TACTGTATAAATAAACAGTT  1 
+recn                     (   71) TACTGTATATAAAACCAGTT  1 
+reca                     (   71) TACTGTATGAGCATACAGTA  1 
+uvrb                     (   71) AACTGTTTTTTTATCCAGTA  1 
+sula                     (   85) TACTGTACATCCATACAGTA  1 
+uvrd                     (  102) ATCTGTATATATACCCAGCT  1 
+lexA                     (   76) AACTGTATATACACCCAGGG  1 
+colicin-a                (   34) TACTGTATATAAACACATGT  1 
+colicin-ib               (   99) TACTGTATATGTATCCATAT  1 
+colicin-ia               (   99) TACTGTATATGTATCCATAT  1 
+colicin-e1               (   97) TGCTGTATATAAAACCAGTG  1 
+uvra                     (   60) TACTGTATATTCATTCAGGT  1 
+//
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+	Motif 1 position-specific scoring matrix
+--------------------------------------------------------------------------------
+log-odds matrix: alength= 4 w= 20 n= 2763 bayes= 8.84392 E= 1.9e-024 
+    27   -154  -1047    101 
+   127    -95   -157   -140 
+  -147    211  -1047  -1042 
+ -1048  -1043  -1047    182 
+ -1048  -1043    223  -1042 
+  -305  -1043     23    133 
+   119  -1043    -58    -67 
+ -1048   -253  -1047    177 
+   112  -1043    -25    -67 
+  -105    -95   -257    133 
+   127   -253    -99    -99 
+   -73    -22  -1048    118 
+   170  -1044   -257  -1043 
+   -73    -54  -1048    126 
+   127     27  -1048   -298 
+ -1049    227  -1048  -1043 
+   175  -1044  -1048  -1043 
+ -1049  -1044    207   -140 
+  -147   -154    -99    133 
+    95  -1044   -157     33 
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+	Motif 1 position-specific probability matrix
+--------------------------------------------------------------------------------
+letter-probability matrix: alength= 4 w= 20 nsites= 14 E= 1.9e-024 
+ 0.357143  0.071429  0.000000  0.571429 
+ 0.714286  0.107143  0.071429  0.107143 
+ 0.107143  0.892857  0.000000  0.000000 
+ 0.000000  0.000000  0.000000  1.000000 
+ 0.000000  0.000000  1.000000  0.000000 
+ 0.035714  0.000000  0.250000  0.714286 
+ 0.678571  0.000000  0.142857  0.178571 
+ 0.000000  0.035714  0.000000  0.964286 
+ 0.642857  0.000000  0.178571  0.178571 
+ 0.142856  0.107141  0.035713  0.714284 
+ 0.714285  0.035714  0.107142  0.142857 
+ 0.178570  0.178570  0.000000  0.642856 
+ 0.964285  0.000000  0.035713  0.000000 
+ 0.178570  0.142856  0.000000  0.678570 
+ 0.714285  0.249999  0.000000  0.035713 
+ 0.000000  0.999999  0.000000  0.000000 
+ 0.999999  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.892856  0.107142 
+ 0.107142  0.071428  0.107142  0.714285 
+ 0.571428  0.000000  0.071428  0.357142 
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+	Motif 1 regular expression
+--------------------------------------------------------------------------------
+[TA]ACTG[TG]ATATATAT[AC]CAGT[AT]
+--------------------------------------------------------------------------------
+
+
+
+
+Time  3.98 secs.
+
+********************************************************************************
+
+
+********************************************************************************
+SUMMARY OF MOTIFS
+********************************************************************************
+
+--------------------------------------------------------------------------------
+	Combined block diagrams: non-overlapping sites with p-value < 0.0001
+--------------------------------------------------------------------------------
+SEQUENCE NAME            COMBINED P-VALUE  MOTIF DIAGRAM
+-------------            ----------------  -------------
+cloacin-df13                     9.75e-09  96_[1(5.39e-11)]_84
+colicin-e1                       2.28e-05  96_[1(1.26e-07)]_84
+colicin-ia                       2.11e-05  98_[1(1.17e-07)]_82
+colicin-ib                       2.11e-05  98_[1(1.17e-07)]_82
+reca                             3.53e-06  70_[1(1.95e-08)]_110
+recn                             7.36e-07  70_[1(4.07e-09)]_20_[1(1.02e-06)]_70
+sula                             1.44e-05  84_[1(7.93e-08)]_96
+umu-operon                       1.42e-07  90_[1(7.82e-10)]_90
+uvra                             3.29e-05  59_[1(1.82e-07)]_121
+uvrb                             4.27e-06  70_[1(2.36e-08)]_110
+uvrd                             1.68e-05  101_[1(9.28e-08)]_79
+colicin-a                        1.37e-05  33_[1(1.17e-07)]_83
+lexA                             1.54e-05  54_[1(9.22e-06)]_1_[1(1.00e-07)]_78
+muc-operon                       3.55e-07  48_[1(2.55e-09)]_90
+hima                             9.65e-01  200
+uvrc                             9.02e-01  200
+--------------------------------------------------------------------------------
+
+********************************************************************************
+
+
+********************************************************************************
+Stopped because nmotifs = 1 reached.
+********************************************************************************
+
+CPU: tlb-kamikaze-lt.imb.uq.edu.au
+
+********************************************************************************

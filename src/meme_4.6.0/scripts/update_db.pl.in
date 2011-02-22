@@ -1,0 +1,572 @@
+#!@WHICHPERL@ -w
+
+use strict;
+use warnings;
+use File::Basename;
+use File::Find;
+use File::Temp qw/ tempfile /;
+use Net::FTP;
+use LWP::UserAgent;
+use HTTP::Request;
+use HTTP::Response;
+
+my $server = 'http://rsat.ulb.ac.be/rsat/web_services';
+my $rsat_lib_url = 'http://rsat.ulb.ac.be/rsat/web_services/RSATWS.wsdl';
+
+
+################################################################################
+#		Subroutines
+################################################################################
+
+# Print a usage message.
+sub print_usage {
+  my($usage, $status) = @_;
+  if (-c STDOUT) {                      # standard output is a terminal
+    open(C, "| more");
+    print C $usage;
+    close C;
+  } else {                              # standard output not a terminal
+    print STDERR $usage;
+  }
+  exit $status;
+}
+
+# This subroutine fetches the list of desired databases from the web server URL
+sub fetch_db_list {
+  my ($csv_file) = @_;
+
+  my $url = "@SITE_URL@/cgi-bin/get_db_list.cgi?db_names=$csv_file";
+  my $ua = LWP::UserAgent->new();
+  my $req = HTTP::Request->new(GET => $url);
+  my $response = $ua->request($req);
+  if ($response->is_error) {
+    printf "Couldn't get URL $url -- %s\n", $response->status_line;
+  } else {
+    return($response->content());
+  }
+} # fetch_db_list
+
+# This subroutine downloads a BlastDb database from NCBI using
+# update_blastdb.pl, converts it to a FASTA file using fastacmd,
+# and installs it in the db directory.
+sub download_blastdb ($$) {
+
+  my $db_root = shift @_;   # Root of db name
+  my $db_suffix = shift @_; # Suffix of db name: 
+                            #   aa = amino acid 
+                            #   na = nucleotide.
+
+  my $update_blastdb_path = file_in_path("update_blastdb.pl");
+  if ($update_blastdb_path eq "") {
+    die "FAILED to download $db_root, update_blastdb.pl could not be found\n";
+  }
+  my $fastacmd_path = file_in_path("fastacmd");
+  if ($fastacmd_path eq "") {
+    die "FAILED to convert $db_root to FASTA, fastacmd could not be found\n";
+  }
+
+  system "$update_blastdb_path $db_root";
+  # Expand tar balls
+  my @tarballs = glob "$db_root.*tar.gz";
+  foreach my $tarball (@tarballs) {
+    system "tar zxf $tarball";
+  }
+  #  Create FASTA file from BlastDb format files.
+  system "$fastacmd_path -D 1 -d $db_root -o $db_root.$db_suffix";
+
+}
+
+# This subroutine searches for the passed file name in the execution path.
+# Returns the first full path to the file, or an empty string if not found.
+sub file_in_path($) {
+  my $file = shift @_;
+  my @dirList = split /:/, $ENV{PATH};
+  my $found_path = "";
+  foreach my $dir (@dirList) {
+    if (-e "$dir/$file") {
+      $found_path = "$dir/$file";
+      last;
+    }
+  }
+  return $found_path;
+}
+
+# This subroutine uses regular expressions to break a string in the form of 
+# host/path/base_name.suffix into it's component parts.
+# It takes a single argument which is the input string,
+# and returns an array containing (host, path, base_name, suffix).
+sub parse_source($) {
+
+  my $source = shift @_;
+
+  (my $base_name, my $path, my $suffix) = fileparse($source, ("\.gz", "\.Z"));
+  # Split host and directory from full path.
+  my $host = $path;
+  $host =~ s?(^[^\/]*)(\/.*)?$1?;
+  $path =~ s?(^[^\/]*)(\/.*)?$2?;
+  
+  return ($host, $path, $base_name, $suffix);
+
+}
+
+# check that files exist and are non-empty: file, file.bfile & file.nseqs
+sub check_file ($) {
+  my($dest) = @_;
+
+  my $bfile = $dest . ".bfile";
+  my $nseqs = $dest . ".nseqs";
+
+  my $file;
+  foreach $file ($dest, $bfile, $nseqs) {
+    if (-z $file) {
+      print("File $file is empty.\n");
+    } elsif (! -e $file) {
+      print("File $file does not exist.\n");
+    }
+  }
+} # checkfile
+
+# create the bfile and nseqs file for a given fasta file
+sub create_bfile_and_nseqs ($$$) {
+  my ($dest, $type, $check) = @_;
+  my $file;
+
+  $file = $dest . ".nseqs";
+  if (!$check || (-z $file || (! -e $file))) {
+    print "Creating file $file.\n" if ($check);
+    `grep -c '^>' $dest > $file`;
+  }
+  $file = $dest . ".bfile";
+  if (!$check || (-z $file || (! -e $file))) {
+    print "Creating file $file.\n" if ($check);
+    if ($type eq "p") {
+      `@MEMEDIR@/bin/getsize -prot $dest > $file 2> /dev/null`;
+    } else {
+      `@MEMEDIR@/bin/getsize -dna $dest > $file 2> /dev/null`;
+    }
+  }
+} # create_bfile_and_nseqs
+
+
+# This subroutine updates a local file with a remote file from an FTP server.
+# If the local file already exists, and is writeable, it compares the 
+# modification timestamp of the local file with that of the remote file,
+# and only performs the update if the two timestamps are unequal. 
+# If the remote file is compressed it will be expanded when updating
+# the local file. If updated, the modification timestamp will be set
+# equal to that of the remote file.
+# The subroutine takes two arguments: the name of the remote source file,
+# the name of the local destination file and "p" or "n", the
+# type of file (protein or nucleotide). The name of the remote source
+# file is expected to be in the form: host/path/base_name.suffix, for example,
+# ftp.ncbi.nih.gov/genbank/rel153.fsa_aa.gz. It returns an array of two
+# values, ($error_status, $message). $error status should be 1 if an error
+# occurred and 0 otherwise. $message will be a string which may contain an
+# explanatory message. If the remote file was not downloaded because its 
+# modification timestamp matches that of the local destination file,
+# $error_status will be 0.
+sub update_file($$$$) {
+
+  my $source = shift @_;
+  my $dest = shift @_;
+  my $type = shift @_;
+  my $check_only = shift @_;
+
+  my $result;
+  my $message = "";
+  my $error_status = 0;
+  my $downloaded_update = 0;
+  my $mtime_for_remote_file = 0;
+  my $tmp_file_name = "update_db.$$.tmp";
+
+  # just check that the file exists and isn't empty
+  if ($check_only) {
+    check_file($dest);
+    #create_bfile_and_nseqs($dest, $type, 1);
+    return($error_status, $message);
+  }
+
+  # Break up the source string into its component pieces.
+  (my $host, my $path, my $base_name, my $suffix) = parse_source($source);
+
+  # Check if local file already exists. 
+  # If so, we require that it must be an ordinary file
+  # and writable in case we need to update it. 
+  # We also get its last modified time, so we can compare it 
+  # to that for the source file.
+  my $local_filename_exists = "";
+  my $mtime_for_local_file = 0;		# will be zero unless non-empty
+  my $mtime;
+  if (-e $dest) {
+    $local_filename_exists = "yes";
+    if (! -W $dest || ! -f $dest) {
+      $error_status = 1;
+      $message = "Unable to write to $dest.\n";
+    }
+    elsif (-s $dest) {		# non-zero size
+      # Get time stamp of local file
+      my @stat_params = stat $dest;
+      $mtime_for_local_file = $stat_params[9];
+    }
+  }
+ 
+  if (! $error_status) {
+
+    # Connnect to source FTP server
+    my $ftp = Net::FTP->new($host, Timeout=>6000, Debug=>0, Passive=>1);
+
+    if (! $ftp) {			# connect succeeded
+      $error_status = 1;
+      $message = "Unable to connect to $host.\n";
+    } else {				# connect failed
+      # Login to FTP server and set binary tranfer mode.
+      $result = $ftp->login('anonymous','cegrant@u.washington.edu');
+      if (! $result) {
+        $error_status = 1;
+        $message = "Unable to login as anonymous on $host.\n";
+      }
+      if (! $error_status) {
+        $result = $ftp->binary();
+        if (! $result) {
+          $error_status = 1;
+          $message = "Unable to set binary transfer mode on $host.\n";
+        }
+      }
+
+      # Move to the appropriate directory.
+      if (! $error_status) {
+        $result = $ftp->cwd($path);
+        if (! $result) {
+          $error_status = 1;
+          $message = "Unable to cd to $path on $host.\n";
+        }
+      }
+
+      # See if we are getting a single file or a bunch of files
+      # by checking if the base_name has wildcards * or ?.
+      # If a bunch, files will be concatenated together.
+      my $multi_file = ($base_name =~ /[\*\?]/) ? 1 : 0;
+      my (@file_list, $file);
+
+      # If the local destination file doesn't exist, or if it does exist
+      # but is older then the server source file, download the source file
+      # from the server.
+      if (! $error_status) {
+        # get the list of files to be concatenated together
+        @file_list = $multi_file ? $ftp->ls("$base_name$suffix") : "$base_name$suffix";
+        # get the latest time stamp for the remote files
+	$mtime_for_remote_file = 0;
+	foreach $file (@file_list) { 
+	  $mtime = $ftp->mdtm("$file");
+	  $mtime_for_remote_file = $mtime if ($mtime > $mtime_for_remote_file);
+	  my $size = $ftp->size("$file");
+	  print "$file mtime $mtime remote_size $size\n";
+	}
+	#print "local: $mtime_for_local_file remote: time $mtime_for_remote_file\n";
+        # download the file (or files) to a temporary file
+        if (! $local_filename_exists or ($mtime_for_remote_file != $mtime_for_local_file)) {
+          my $nfiles = @file_list;
+	  foreach $file (@file_list) { 
+	    my $app_file_name = $tmp_file_name . ".app";
+	    $result = $ftp->get($file, "$app_file_name");
+	    if ($result) {
+	      if ($suffix eq '.Z' or $suffix eq ".gz") {	# compressed
+		$result = system("zcat < $app_file_name >> $tmp_file_name");
+		if ($result) {
+		  $error_status = 1;
+		  $message = "Unable to expand compressed file $app_file_name into $tmp_file_name.\n";
+		  unlink "$app_file_name";	# remove partially uncompressed file
+		}
+	      } else {				# not compressed
+                if ($nfiles == 1) {		# only 1 file, link to save time
+                  link $app_file_name, $tmp_file_name;
+                } else {			# concatenate multiple files
+		  $result = system("cat $app_file_name >> $tmp_file_name");
+		  if ($result) {
+		    $error_status = 1;
+		    $message = "Unable to expand concatenate file $app_file_name onto $tmp_file_name.\n";
+		    unlink "$app_file_name";	# remove app file
+		  }
+                }
+	      }
+	      unlink $app_file_name;		# done with this temp file
+	    } else {
+	      $error_status = 1;
+	      $message = "Unable to get $file from $path on $host.\n";
+	      last;
+            } # ftp->get
+	  }
+          
+	  # succeeded with download if no errors
+          $downloaded_update = 1 unless $error_status;
+        } else {				# already up-to-date
+          $error_status = 0;
+          $message = "Skipped: Local file $dest is up-to-date.\n\n";
+        } # compare dates
+      } # error_status ?
+
+      $ftp->quit();
+    } # ftp connection?
+  } # error_status ?
+
+  # If we downloaded an update we may need to do some post processing.
+  if ($downloaded_update) {
+    # rename the temporary file to destination file
+    if ($error_status == 0) {
+      $result = rename "$tmp_file_name", $dest;
+      if ($result == 0) {
+	$error_status = 1;
+	$message = "Unable to rename temporary file: $!\n\n";
+      } else {
+	$error_status = 0;
+	$message = "Updated $dest from $source.\n";
+      }
+    }
+
+    # Mark the local file with the time stamp of the remote file;
+    # make it readable by all;
+    # create a background file
+    # create an "nseqs" file
+    if ($error_status == 0) {
+      utime time, $mtime_for_remote_file, $dest;
+      chmod 0644, $dest;
+      create_bfile_and_nseqs($dest, $type, 0);
+    } else {
+      # remove the temporary file if we failed
+      unlink "$tmp_file_name";
+    }
+
+    # create the auxiliary files if they are missing/empty
+    create_bfile_and_nseqs($dest, $type, 1);
+
+  }
+
+  return ($error_status, $message);
+}
+
+#
+# update_file_rsat
+#
+# Download an upstream database from RSAT.
+#
+sub update_file_rsat ($$$$$$) {
+  my ($organism, $from, $to, $outfile, $check_only, $aux_only) = @_;
+
+  my $error_status = 0;
+  my $message = "";
+
+  # just check that the file exists and isn't empty
+  if ($check_only) {
+    check_file($outfile);
+    return($error_status, $message);
+  }
+
+  # just create the auxiliary files if they are missing/empty
+  if ($aux_only) {
+    create_bfile_and_nseqs($outfile, "n", 1);
+    return($error_status, $message);
+  }
+
+  # Service call
+  require MyInterfaces::RSATWebServices::RSATWSPortType;
+  my $soap=MyInterfaces::RSATWebServices::RSATWSPortType->new();
+
+  my %args = (
+    'output' => 'client',
+    'organism' => $organism,
+    'all' => 1,
+    'noorf' => 1,
+    'from' => $from,
+    'to' => $to,
+    'feattype' => '',
+    'type' => 'upstream',
+    'format' => 'fasta',
+    'lw' => 50,
+    'label' => 'id,name',
+    'label_sep' => '',
+    'nocom' => 0,
+    'repeat' => 0,
+    'imp_pos' => 0
+  );
+
+  my $som = $soap->retrieve_seq({'request' => \%args});
+  unless ($som) {
+    $error_status = 1;
+    $message = "A fault (" . $som->get_faultcode() . ") occurred: " . \
+      $som->get_faultstring() . "\n";
+  } else {
+    my $results = $som->get_response();
+    my $command = $results -> get_command();
+    #print STDERR "Command used on the server: ".$command, "\n";
+    open OUT, ">$outfile";
+    print OUT $results -> get_client();
+    close OUT;
+    # make the file readable by all
+    chmod 0644, $outfile;
+    create_bfile_and_nseqs($outfile, "n", 0);
+  }
+
+ undef $soap;
+
+  return($error_status, $message);
+} # update_file_rsat
+
+################################################################################
+# 		Main program
+################################################################################
+
+# defaults
+my $PGM = $0;                   # name of program
+$PGM =~ s#.*/##;                # remove part up to last slash
+my $upstream = 0;
+my $noclobber = 0;
+my $check_only = 0;
+
+my $csv_file = 'fasta_db.csv';
+#my $csv_file = 'mast_db_names.csv';
+
+my $usage = <<USAGE;            # usage message
+  USAGE:
+        $PGM [options]
+
+	-upstream		get upstream databases; default: ignore 
+				DBs with names ending in "_upstream".
+        -noclobber              don't clobber existing upstream DBs;
+				affects "_upstream" DBs only.
+	-check-only		don't update files--just check that all 
+				local files that would be downloaded 
+				exist and are non-zero
+
+	Reads the MEME database configuration file fasta_db.csv
+	(over the web) and downloads the listed sequence databases into 
+	@MEMEDIR@/db.  
+        For each file, ".bfile" and ".nseqs" files using "grep"
+        and "fasta-get-markov" are created.
+
+	FTP is used for "normal" databases. 
+
+	If -upstream is given, upstream regions are downloaded from
+        RSAT ($server) 
+        using "retrieve-seq(begin, end)".
+	"Begin" and "end" positions (relative to the TSS) are taken from
+	the URL fields of the CSV record for the DB.
+
+
+        Authors: Charles Grant and Timothy L. Bailey
+USAGE
+
+# get input arguments
+while ($#ARGV >= 0) {
+  $_ = shift;
+  if ($_ eq "-h") {                             # help
+    print_usage("$usage", 0);
+  } elsif ($_ eq "-upstream") {
+    $upstream = 1;
+    my $rsat_lib = "@PERLLIBDIR@/RSATWS";
+    die("You must link '$rsat_lib' \
+to the RSATWS perl library to use -upstream.
+(Available at $rsat_lib_url).\n")
+      unless (-d $rsat_lib);
+    eval "use lib '$rsat_lib'";
+  } elsif ($_ eq "-noclobber") {
+    $noclobber = 1;
+  } elsif ($_ eq "-check-only") {
+    $check_only = 1;
+  } else {
+    print_usage("$usage", 1);
+  }
+}
+
+# Move to db directory; create it if it doesn't exist
+my $db_dir = "@MEMEDB@/fasta_databases";
+my $result = 1;
+$result = mkdir($db_dir, 0755) unless (-d $db_dir);
+if (! $result) {
+  die "Couldn't create directory $db_dir.\n";
+}
+$result = chdir $db_dir;
+if (! $result) {
+  die "Couldn't change directory to $db_dir.\n";
+}
+
+# Read each line from the fasta_db file.
+# Name of file listing files to download
+my @lines = split /^/m, fetch_db_list($csv_file);
+my $line_number = 0;
+foreach $_ (@lines) {
+  $line_number++;
+  if (/^#/ or /^\s/ or /^-/) {
+    next; 		# skip comments, lines with initial blanks
+  }
+  # Parse the line
+  chomp;
+  my @words = split /,/;
+  my $len = @words;
+  next if ($words[0] eq "");	# skip header lines
+  # check that number of fields is right; allow for last field to be blank or missing
+  if ($len > 8 || $len < 7) {
+    if ($len < 7) {
+      print STDERR "\nMissing fields in line $line_number of db names file ($len of 8 found)\n";
+    } else {
+      print STDERR "\nExtra fields in line $line_number of db names file ($len of 8 found)\n";
+    }
+    print STDERR "Line is: $_\n";
+    print STDERR "No action taken.\n";
+    next;
+  }
+  my  $db_root = $words[0];
+  my  $is_protein = $words[1];
+  my  $is_nucleotide = $words[2];
+  my  $has_short_seqs = $words[3];
+  my  $db_menu_name = $words[4];
+  my  $db_long_name = $words[5];
+  my  $protein_url = $words[6];
+  my  $nucleotide_url = $len == 8 ? $words[7] : "";
+
+  print STDERR "\nDB: $db_root\n" unless ($check_only);
+
+  # Download the file(s)
+  my $error_status;
+  my $message;
+
+  # protein
+  if (uc $is_protein eq "YES") {
+    my $outfile = "$db_root.aa";
+    ($error_status, $message) = update_file($protein_url, $outfile, "p", $check_only);
+    if ($error_status) {
+      print STDERR "FAILED to update $outfile. $message";
+    } else {
+      print STDERR "$message";
+    }
+  }
+
+  # nucleotide
+  if (uc $is_nucleotide eq "YES") {
+    my $outfile = "$db_root.na";
+    # upstream sequence database?
+    if ($db_root =~ /^\s*(\S+)_upstream\s*$/) {		
+      my $organism = $1;
+      # downloading upstream files as well?
+      if ($upstream) {
+        my $from = $protein_url;
+        my $to = $nucleotide_url;
+        # check and update only auxiliary files if sequence file exists and -noclobber
+	if ($noclobber && -e $outfile && -s $outfile) {
+	  ($error_status, $message) = update_file_rsat($organism, $from, $to, $outfile, $check_only, 1);
+	  $message = "Skipped: -noclobber given and non-empty '$outfile' exists.\n";
+	} else {
+	  ($error_status, $message) = update_file_rsat($organism, $from, $to, $outfile, $check_only, 0);
+        }
+      } else {
+        $message = "Skipped: -upstream not given.\n";
+      }
+    } else {					# normal database
+      ($error_status, $message) = update_file($nucleotide_url, "$outfile", "n", $check_only);
+    }
+    if ($error_status) {
+      print STDERR "FAILED to update $outfile. $message";
+    } else {
+      print STDERR "$message\n";
+    }
+  }
+}

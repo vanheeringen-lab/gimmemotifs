@@ -1,0 +1,359 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Motif Search</title>
+    <script src="selectdb.js" type="text/javascript"></script>
+    <script src="search.js" type="text/javascript"></script>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body class="body" onload="OnLoad('cgi-bin/get_db_list.cgi?db_names=fasta_db.csv');">
+    <table class="maintable">
+      <tr>
+        <td class='menubase'>
+          <div id='menu'>
+            <script src="meme-suite-menu.js" type="text/javascript">></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript" ></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+            <form id="search_form" enctype="multipart/form-data" method="post" action="" onsubmit="return false">
+              <fieldset>
+                <legend>
+                  Motif Search Form: 
+                </legend>
+                <table>
+                  <tr>
+                    <td>Progress:</td>
+                    <td id="progress_step1" style="color: red;">1</td>
+                    <td style="width: 1in;"><hr class="progress" id="progress_line1" /></td>
+                    <td id="progress_step2">2</td>
+                    <td style="width: 1in;"><hr class="progress" id="progress_line2" /></td>
+                    <td id="progress_step3">3</td>
+                    <td style="width: 1in;"><hr class="progress" id="progress_line3" /></td>
+                    <td id="progress_step4">4</td>
+                    <td style="width: 1in;"><hr class="progress" id="progress_line4" /></td>
+                    <td id="progress_step5">5</td>
+                  </tr>
+                </table>
+                <ol>
+                  <li style="display: list-item;" id="step1">
+                    <!-- Search method selection -->
+                    Select a search method: 
+                    <p style="text-indent: -2em;">
+                      <input type="radio" name="search_methods" value="FIMO" 
+                             onclick="ChooseSearchMethod();" 
+                      />
+                      <a href="fimo-intro.html">FIMO</a>
+                      -- find matches to <b>individual motifs</b>
+                    </p>
+                    <p style="text-indent: -2em;">
+                      <input type="radio" name="search_methods" id="mast_search_method" value="MAST" 
+                             onclick="ChooseSearchMethod();" />
+                      <a href="mast-intro.html">MAST</a> 
+                      -- find sequences that match a <b>set of motifs</b>
+                    </p>
+                    <p style="text-indent: -2em;">
+                      <input type="radio" name="search_methods" value="GLAM2SCAN" 
+                        onclick="ChooseSearchMethod();" 
+                      />
+                      <a href="glam2scan-intro.html">GLAM2SCAN</a> 
+                      -- find matches to a <b>gapped motif model</b>.
+                    </p>
+                  </li>
+                  <li style="display: None; list-style-type: decimal;" id="step2">
+                    <!-- Motif selection -->
+                    <span id="FIMO_motif" style="display: none;">
+                      Specify the name of your 
+                      <a href="doc/meme-format.html">motif</a> file 
+                      (MEME XML, HTML, text output or miminal motif format):
+                    </span>
+                    <span id="MAST_motif" style="display: none;">
+                      Specify the name of your 
+                      <a href="mast-input.html#motif-file">motif</a> file:
+                    </span>
+                    <span id="GLAM2SCAN_motif" style="display: none;">
+                      Specify the name of your GLAM2 output file (text or HTML):
+                      Your <a href="doc/glam2_ref.html">motif</a> file:
+                    </span>
+                    <input class="maininput" name="motifs" id="motifs" type="file" 
+                           onchange="ChangeMotifFile();" onblur="ChangeMotifFile();" 
+                    />
+                    <span id="FIMO_motif_sample" style="display: none;">
+                      <br >
+                      Sample <a href="examples/sample-dna-motif.meme-io">DNA</a> and
+                      <a href="examples/sample-protein-motif.meme-io">protein</a> 
+                      minimal motif format files.
+                    </span>
+                    <span id="MAST_motif_sample" style="display: none;">
+                      <br >
+                      <a href="examples/sample-dna-motif.mast-io">Sample</a> DNA motif (minimal MAST input format).
+                    </span>
+                    <span id="GLAM2SCAN_motif_sample" style="display: none;">
+                      <br >
+                      <a href="examples/sample-glam2-aln.protein">Sample</a> GLAM2 protein motif (minimal GLAM2 input format).
+                    </span>
+                  </li>
+                  <li style="display: None;" id="step3">
+                    <!-- Sequence database selection -->
+                    Select the sequence database to search:
+                    <p>
+                      <input type="radio" name="sequence_source" value="uploaded_database" 
+                             onclick="ChooseSequenceSource(this);" 
+                      />
+                      Upload your own <a href="doc/fasta-format.html">FASTA</a> sequence file:
+                      <span style="display: None;" id="uploaded_database">
+                        <input class="maininput" name="upload_db" id="upload_db" type="file" 
+                          onchange="ChangeSequenceDatabase();" onblur="ChangeSequenceDatabase();" 
+                        />
+                        <p style="text-indent: 2em;">
+                        (1000000 sequence characters maximum).
+                        <a href="examples/sample-kabat.seq">Sample</a> DNA database.
+                        </p>
+                      </span>
+                    </p>
+                    <p>
+                      <input type="radio" name="sequence_source" value="supported_database" 
+                             onclick="ChooseSequenceSource(this);" />
+                      Select a 
+                      <span id="MAST_db_doc" style="display: none;">
+                        <a href="@URL@/cgi-bin/get_db_list.cgi?db_names=fasta_db.csv&short_only=1&mode=doc">supported database</a>:
+                      </span>
+                      <span id="FIMO_db_doc" style="display: none;">
+                        <a href="@URL@/cgi-bin/get_db_list.cgi?db_names=fasta_db.csv&short_only=0&mode=doc">supported database</a>:
+                      </span>
+                      <span id="GLAM2SCAN_db_doc" style="display: none;">
+                        <a href="@URL@/cgi-bin/get_db_list.cgi?db_names=fasta_db.csv&short_only=0&mode=doc">supported database</a>:
+                      </span>
+                      <span style="display: None;" id="supported_database">
+                        <br />
+                        Category:
+                        <select name="category" id="category" onchange="do_dblist_update(this.value)">
+                          <option value="" selected="selected" ></option>
+                        </select>
+                        <br />
+                        Database:
+                        <select name="database" id="database" onblur="ChangeSequenceDatabase();" onchange="ChangeSequenceDatabase();">
+                        </select>
+                      </span>
+                    </p>
+                  </li>
+                  <!-- Search method specific parameters - only one visible at a time. -->
+                  <li style="display: None;" id="step4">
+                    Set search parameters:
+                    <!-- FIMO parameters -->
+                      <table style="display: none;" id="FIMO_parameters">
+                        <tr>
+                          <td align="left" valign="top">
+                            <!-- description -->
+                            <a href="help_email.html"><b>Description</b></a> of your motif:
+                          </td>
+                          <td align="left" valign="top">
+                            <input class="maininput" type="text" size="40" name="description" value="" /> 
+                            (optional)
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                          <b><i>p</i>-value threshold</b> for output:
+                          </td>
+                          <td>
+                            <input class="maininput" type="text" size="10" name="output_pthresh" value="1e-4" />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            Scan <b>given strand</b> only (DNA motifs only):
+                          </td>
+                          <td>
+                            <input class="mainbutton" type="checkbox" name="norc" value="--norc" />
+                          </td>
+                        </tr>
+                      </table>
+                    <!-- GLAM2SCAN parameters -->
+                      <table style="display: none;" id="GLAM2SCAN_parameters">
+                        <tr>
+                          <td valign="top" align="left" colspan="2">
+                            <!-- description -->
+                              <a href="help_email.html"><b>Description</b></a> of your motif:
+                              <input class="maininput" type="text" size="40" name="description" value="" />
+                              (optional)
+                          </td>
+                        </tr>
+                        <tr>
+                          <td align="left" valign="top">
+                            <p>
+                              <b>Number of alignments</b> to report (&lt; 200)
+                              <input class="maininput" type="text" size="3" name="-n" value="25" />
+                            </p>
+                          </td>
+                          <td style="padding-left: 4em;" valign="top">
+                            <p style="text-indent: -2em">
+                              <input class="mainbutton" type="checkbox" name="-2" value="1" checked="checked" />
+                              <b>Examine both strands (DNA only)</b> - 
+                              <br />
+                              forward and reverse complement
+                            </p>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            Specify the <b>alphabet</b> of your motif:
+                            <select name='alphabet'>
+                              <option value=','></option> 
+                              <option value='n,nucleotide'> nucleotide</option>
+                              <option value='p,protein'> protein</option>
+                            </select>
+                          </td>
+                        </tr>
+                      </table>
+                      <!-- MAST specific args -->
+                      <table style="display: none" id="MAST_parameters">
+                        <tr>
+                          <td valign="top">
+                            <!-- description -->
+                            <a href="help_email.html"><b>Description</b></a> of your motifs (optional):
+                            <br />
+                            <input class="maininput" type="text" size="40" name="description" value="" />
+                          </td>
+                          <td valign="top" align="right" style="padding-left: 2em">
+                            <table>
+                              <tr>
+                                <td align="left">
+                                  <p style="text-indent: -2em;">
+                                    <input class="mainbutton" type="checkbox" name="use_seq_p" value="-seqp -mt 0.01" />
+                                    <a href="mast-input.html#use_seq_p"><b>Scale motif display threshold</b></a> 
+                                    by sequence length
+                                  </p>
+                                  <p style="text-indent: -2em;">
+                                    <input class="mainbutton" type="checkbox" name="dna" value="-dna" />
+                                    <a href="mast-input.html#dna"><b>Search nucleotide</b></a>
+                                    database with protein motifs
+                                  </p>
+                                  <p style="text-indent: -2em;">
+                                    <input class="mainbutton" type="checkbox" name="use_seq_comp" value="-comp" />
+                                    Use individual <a href="mast-input.html#use_seq_comp"><b> sequence composition</b></a>
+                                    in <i>E</i>- and <i>p</i>-value calculation
+                                  </p>
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td align="left" valign="middle">
+                              <!-- ev select field -->
+                              <a href="mast-input.html#ev"><b>Display sequences</b></a> with <i>E</i>-value below:
+                              <select name="ev">
+                                <option value="0.01"> 0.01</option>
+                                <option value="0.1"> 0.1</option>
+                                <option value="1"> 1</option>
+                                <option selected="selected" value="10"> 10</option>
+                                <option value="20"> 20</option>
+                                <option value="50"> 50</option>
+                                <option value="100"> 100</option>
+                                <option value="200"> 200</option>
+                                <option value="500"> 500</option>
+                                <option value="1000"> 1000</option>
+                              </select>
+                          </td>
+                          <td align="left" valign="middle">
+                            <!-- mev select field -->
+                            <a href="mast-input.html#mev"><b>Ignore motifs</b></a> if <i>E</i>-value above:
+                            <select name="mev">
+                              <option selected="selected" value="use all motifs"> use all motifs</option>
+                              <option value="100"> 100</option>
+                              <option value="50"> 50</option>
+                              <option value="20"> 20</option>
+                              <option value="10"> 10</option>
+                              <option value="5"> 5</option>
+                              <option value="2"> 2</option>
+                              <option value="1"> 1</option>
+                              <option value="0.5"> 0.5</option>
+                              <option value="0.2"> 0.2</option>
+                              <option value="0.1"> 0.1</option>
+                              <option value="0.05"> 0.05</option>
+                              <option value="0.02"> 0.02</option>
+                              <option value="0.01"> 0.01</option>
+                              <option value="0.005"> 0.005</option>
+                              <option value="0.002"> 0.002</option>
+                              <option value="0.001"> 0.001</option>
+                              <option value="1e-5"> 1e-5</option>
+                              <option value="1e-10"> 1e-10</option>
+                              <option value="1e-50"> 1e-50</option>
+                              <option value="1e-100"> 1e-100</option>
+                            </select>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td colspan="2" valign="middle">
+                            <!-- strands select field -->
+                            Treatment of <a href="mast-input.html#strands"><b>reverse complement</b></a> 
+                            strands (DNA only):
+                            <select name="strands">
+                              <option selected="selected" value=",combine with given strand"> 
+                                combine with given strand
+                              </option>
+                              <option value="-sep,treat as separate sequence"> 
+                                treat as separate sequence
+                              </option>
+                              <option value="-norc,none">
+                                none
+                              </option>
+                            </select>
+                          </td>
+                        </tr>
+                      </table>
+                  </li>
+                  <li style="display: None;" id="step5">
+                    <!-- Address fields -->
+                    Enter your email adress:
+                    <table>
+                      <tr>
+                        <td style="font-size: 18;">
+                          Your <a href="help_email.html">e-mail address</a>:
+                        </td>
+                        <td>
+                          <input class="maininput" type="text" size="30" name="address" id="address" 
+                                 onkeypress="ChangeEmail();" onchange="ChangeEmail();" onblur="ChangeEmail();" 
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colspan="2">
+                           This is only used to notify you when the results of your submission are available.
+                        </td>
+                      </tr>
+                    </table>
+                  </li>
+
+                </ol>
+
+                <!-- submit and reset buttons -->
+                <p style="text-align: center;">
+                  <input type="hidden" name="target_action" id="target_action" value="" />
+                  <input type="button" name="submit_button" id="submit_button" 
+                         value="Start search" style="display: None;"
+                         onclick="if (check(this.form)) {this.form.submit()}"/>
+                  <input type="reset" name="reset_button" id="reset_button" 
+                         value="Clear Input" onclick="ResetForm();" />
+                </p>
+
+              </fieldset>
+            </form>
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

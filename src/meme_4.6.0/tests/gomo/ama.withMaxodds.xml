@@ -1,0 +1,189 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<!-- Document definition -->
+<!-- http://zlab.bu.edu/~phaverty/SupplementalData/CisML/cisml.dtd -->
+<!DOCTYPE cis-element-search[
+<!ELEMENT cis-element-search (program-name, parameters, (pattern | multi-pattern-scan)*)>
+<!ELEMENT program-name (#PCDATA)>
+<!ELEMENT parameters (
+  pattern-file, 
+  sequence-file, 
+  background-seq-file?,
+  pattern-pvalue-cutoff?,
+  sequence-pvalue-cutoff?,
+  site-pvalue-cutoff?,
+  sequence-filtering,
+  ANY*
+ )>
+<!ELEMENT command-line (#PCDATA)>
+<!ELEMENT pattern-file (#PCDATA)>
+<!ELEMENT sequence-file (#PCDATA)>
+<!ELEMENT background-seq-file (#PCDATA)>
+<!ELEMENT pattern-pvalue-cutoff (#PCDATA)>
+<!ELEMENT sequence-pvalue-cutoff (#PCDATA)>
+<!ELEMENT site-pvalue-cutoff (#PCDATA)>
+<!ELEMENT sequence-filtering EMPTY>
+<!ELEMENT multi-pattern-scan (pattern+, ANY*)>
+<!ELEMENT pattern (scanned-sequence+, ANY*)>
+<!ELEMENT scanned-sequence (matched-element*, ANY*)>
+<!ELEMENT matched-element (sequence)>
+<!ELEMENT sequence (#PCDATA)>
+<!ATTLIST cis-element-search
+xmlns:xsi CDATA #IMPLIED
+xmlns:mem CDATA #IMPLIED
+xsi:schemaLocation CDATA #IMPLIED
+>
+<!ATTLIST sequence-filtering
+on-off CDATA #REQUIRED
+type CDATA #IMPLIED
+>
+<!ATTLIST multi-pattern-scan
+score CDATA #IMPLIED
+pvalue CDATA #IMPLIED
+>
+<!ATTLIST pattern
+accession CDATA #REQUIRED
+name CDATA #REQUIRED
+pvalue CDATA #IMPLIED
+score CDATA #IMPLIED
+db CDATA #IMPLIED
+lsid CDATA #IMPLIED
+>
+<!ATTLIST scanned-sequence
+accession CDATA #REQUIRED
+name CDATA #REQUIRED
+score CDATA #IMPLIED
+pvalue CDATA #IMPLIED
+length CDATA #IMPLIED
+db CDATA #IMPLIED
+lsid CDATA #IMPLIED
+>
+<!ATTLIST matched-element
+start CDATA #REQUIRED
+stop CDATA #REQUIRED
+score CDATA #IMPLIED
+pvalue CDATA #IMPLIED
+clusterid CDATA #IMPLIED
+>
+
+]>
+<cis-element-search
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://zlab.bu.edu/schema/cisml cisml.xsd"
+  xmlns:mem="http://noble.gs.washington.edu/meme"
+>
+<program-name>ama</program-name>
+<parameters>
+<pattern-file>gomo/motif.meme</pattern-file>
+<sequence-file>gomo/seqs.fasta</sequence-file>
+<background-seq-file>gomo/seqs.bg</background-seq-file>
+<sequence-filtering on-off="off"/>
+</parameters>
+<pattern accession="HSF1" name="">
+<scanned-sequence accession="S000000001" name="S000000001" score="19.9139" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000002" name="S000000002" score="24.1213" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000003" name="S000000003" score="2.32365e+06" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000004" name="S000000004" score="2.32365e+06" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000005" name="S000000005" score="45.5042" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000006" name="S000000006" score="213786" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000007" name="S000000007" score="21.6929" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000008" name="S000000008" score="213786" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000009" name="S000000009" score="61.073" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000010" name="S000000010" score="2724.29" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000011" name="S000000011" score="92.173" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000012" name="S000000012" score="2724.29" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000013" name="S000000013" score="0.167619" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000014" name="S000000014" score="112.113" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000015" name="S000000015" score="0.245036" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000016" name="S000000016" score="95.8504" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000017" name="S000000017" score="6225.56" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000018" name="S000000018" score="1239.88" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000019" name="S000000019" score="6225.56" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000020" name="S000000020" score="0.143856" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000021" name="S000000021" score="171.805" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000022" name="S000000022" score="980.498" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000023" name="S000000023" score="50.9387" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000024" name="S000000024" score="2691.51" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000025" name="S000000025" score="187.046" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000026" name="S000000026" score="1038.17" length="1000">
+</scanned-sequence>
+</pattern>
+<pattern accession="RPN4" name="">
+<scanned-sequence accession="S000000001" name="S000000001" score="2.18048" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000002" name="S000000002" score="0.605917" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000003" name="S000000003" score="43686.3" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000004" name="S000000004" score="43686.3" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000005" name="S000000005" score="1.85785" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000006" name="S000000006" score="406.133" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000007" name="S000000007" score="4377.06" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000008" name="S000000008" score="406.133" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000009" name="S000000009" score="16.3223" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000010" name="S000000010" score="51.6489" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000011" name="S000000011" score="22037.1" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000012" name="S000000012" score="51.6489" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000013" name="S000000013" score="22037.1" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000014" name="S000000014" score="0.161002" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000015" name="S000000015" score="7.03208" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000016" name="S000000016" score="0.326014" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000017" name="S000000017" score="10.3812" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000018" name="S000000018" score="6.57004" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000019" name="S000000019" score="11.027" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000020" name="S000000020" score="0.876447" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000021" name="S000000021" score="16.3223" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000022" name="S000000022" score="15.5004" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000023" name="S000000023" score="1.28071" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000024" name="S000000024" score="1.28071" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000025" name="S000000025" score="12.1504" length="1000">
+</scanned-sequence>
+<scanned-sequence accession="S000000026" name="S000000026" score="883.589" length="1000">
+</scanned-sequence>
+</pattern>
+</cis-element-search>

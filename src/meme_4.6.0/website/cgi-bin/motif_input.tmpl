@@ -1,0 +1,265 @@
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+<!--               BEGIN motif_input.tmpl                                  -->
+<!--  Variables:
+      inline_motifs
+      inline_name
+      inline_count
+      example_image
+      allow_multiple_motifs
+-->
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+              <!-- example and preview (floated right) -->
+              <div style="float:right">
+                <!-- TMPL_IF NAME=example_image -->
+                <div style="width:100%;text-align:center;font-size:0.6em;">Example Output</div>
+                <img src="<!-- TMPL_VAR NAME=example_image -->" style="width:200px; border:1px solid black;">
+                <!-- /TMPL_IF -->
+                <div id="preview_div" style="display:block;">
+                  <div style="margin-top:20px;width:100%;text-align:center;font-size:0.6em;">Preview</div>
+                  <div id="preview_log_div" style="display:block;">
+                    <textarea class="log" id="motif_log" wrap="off" readonly="readonly">Empty sequence</textarea>
+                  </div>
+                  <div id="preview_canvas_div" style="display:none;">
+                    <canvas id="motif_preview" width="200" height="100" class="preview" ></canvas>
+                  </div>
+                  <div class="tabs">
+                    <a class="tab" id="preview_canvas_tab" href="javascript:select_motif_input_preview_tab(true)">Preview</a>
+                    <a class="tab active_tab" id="preview_log_tab" href="javascript:select_motif_input_preview_tab(false)">Error Log</a>
+                  </div>
+                </div>
+              </div>
+              <!-- end float right -->
+              <!-- motif format -->
+              <h2 class="meme">Choose the type of motif</h2>
+              <!-- motif format options -->
+              <input type="radio" name="motif_src" id="type_s" value="consensus" 
+                  onclick="motif_input_format('consensus')" <!-- TMPL_UNLESS NAME=inline_motifs -->checked<!-- /TMPL_UNLESS -->>
+              <label for="type_s">IUPAC</label>
+              <input type="radio" name="motif_src" id="type_f" value="matrix" 
+                  onclick="motif_input_format('matrix')" >
+              <label for="type_f">Matrix</label>
+              <input type="radio" name="motif_src" id="type_m" value="meme" 
+                  onclick="motif_input_format('meme')" >
+              <label for="type_m">MEME</label>
+              <!-- TMPL_IF NAME=inline_motifs -->
+              <input type="radio" name="motif_src" id="type_i" value="inline" 
+                  onclick="motif_input_format('inline')" checked>
+              <label for="type_i">Submitted</label>
+              <!-- /TMPL_IF --><br>
+              <!-- motif input-->
+              <h2 class="meme">Input the motif</h2>
+              <!-- Consensus Sequence -->
+              <div id="consensus" class="subcontent" style="display:<!-- TMPL_IF NAME=inline_motifs -->none<!-- TMPL_ELSE -->block<!-- /TMPL_IF -->">
+                <h4 class="meme">Enter a <a href="../doc/alphabets.html">IUPAC</a> DNA motif. 
+                <a href="javascript:show_toggle('pop_motif_s')"><img src="../images/help.png"/></a></h4>
+                <!-- I would just use onkeypress but some browsers (google chrome) don't send those events for backspace 
+                also onchange only seems to happen on blur -->
+                <input type="text" name="consensus_sequence" id="motif_s" class="meme" size="40" onkeydown="delayed_preview()" 
+                    onkeyup="delayed_preview()" onkeypress="delayed_preview()" onchange="update_preview()"><br>
+                <span class="pop_reference">
+                  <div class="pop_content" style="display:none" id="pop_motif_s" >You may use both 
+                  <a href="../doc/alphabets.html">IUPAC</a> codes and regular expression bracket expressions. 
+                  For example "NTRGGTCAN" and "[ACGT]T[AG]GGTCA[ACGT]" are equivalent approximations of the example 
+                  query shown on the right. [<a href="javascript:show_toggle('pop_motif_s')">close</a>]</div>
+                </span>
+                <div id="consensus_adv_ctrl" style="display:block;">
+                  <h3 class="meme">
+                  <a href="javascript:show_hide('consensus_advanced','consensus_adv_ctrl')"><img src="../images/plus.png"/> Advanced Options</a>
+                  </h3>
+                </div>
+                <div id="consensus_advanced" style="display:none;">
+                  <h3 class="meme">
+                  <a href="javascript:show_hide('consensus_adv_ctrl','consensus_advanced')"><img src="../images/minus.png"/> Advanced Options</a>
+                  </h3>
+                  <h4 class="meme" style="padding-top:10px;">Enter a site count and pseudocount. 
+                  <a href="javascript:show_toggle('pop_s_pseudo')"><img src="../images/help.png"/></a></h4>
+                  <label for="s_sites">sites: </label>
+                  <input type="text" name="consensus_sites" id="s_sites" class="meme" size="2" value="20" onchange="update_preview()">
+                  &nbsp;&nbsp;
+                  <label for="s_pseudo">pseudocount: </label>
+                  <input type="text" name="consensus_pseudocount" id="s_pseudo" class="meme" size="2" value="1" onchange="update_preview()"><br>
+                  <span class="pop_reference">
+                  <div class="pop_content" style="display:none" id="pop_s_pseudo">A motif is generated from the specified IUPAC sequence fragment
+                  by distributing the site counts equally over each possible residue. The pseudocount is added to each residue in proportion to 
+                  the background. Thus the total count for a position is the site count plus the pseudocount. For example suppose one of the
+                  IUPAC codes entered is 'R'. The IUPAC code 'R' means that both Adenine and Guanine are possible, so with a site count of 10, 
+                  pseudocount of 1 and a uniform background; the probability of Adenine and Guanine would be:<br/> 
+                  <img src="../images/consensus-eq-1.png"/>
+                  while the probility of Cytosine and Thymine would be:<br/>
+                  <img src="../images/consensus-eq-2.png"/><br/>
+                  [<a href="javascript:show_toggle('pop_s_pseudo')">close</a>]</div>
+                  </span>
+                  <h4 class="meme" style="padding-top:10px;">Enter the background model. 
+                  <a href="javascript:show_toggle('pop_s_bg')"><img src="../images/help.png"/></a></h4>
+                  <label for="s_bg_A">A: </label>
+                  <input type="text" name="consensus_background_A" id="s_bg_A" class="meme" size="3" value="0.25" onchange="update_preview()">
+                  &nbsp;
+                  <label for="s_bg_C">C: </label>
+                  <input type="text" name="consensus_background_C" id="s_bg_C" class="meme" size="3" value="0.25" onchange="update_preview()">
+                  &nbsp;
+                  <label for="s_bg_G">G: </label>
+                  <input type="text" name="consensus_background_G" id="s_bg_G" class="meme" size="3" value="0.25" onchange="update_preview()">
+                  &nbsp;
+                  <label for="s_bg_T">T: </label>
+                  <input type="text" name="consensus_background_T" id="s_bg_T" class="meme" size="3" value="0.25" onchange="update_preview()"><br>
+                  <span class="pop_reference">
+                    <div class="pop_content" style="display:none" id="pop_s_bg">The background is used to determine how the pseudocount is distributed.
+                    While it is conventional to have the background sum to one these fields will be normalised so you don't have to be exact. 
+                    You may even use counts instead.
+                    [<a href="javascript:show_toggle('pop_s_bg')">close</a>]</div>
+                  </span>
+                </div>
+              </div>
+              <!-- Frequency Matrix -->
+              <div id="matrix" class="subcontent" style="display:none">
+                <h4 class="meme">Enter a DNA count/probability matrix. 
+                <a href="javascript:show_toggle('pop_motif_f')"><img src="../images/help.png"/></a></h4>        
+                <!-- I would just use onkeypress but some browsers (google chrome) don't send those events for backspace 
+                also onchange only seems to happen on blur -->
+                <textarea class="meme" name="matrix_data" id="motif_f" rows="4" cols="50" style="font-family:monospace;" 
+                    onkeydown="delayed_preview()" onkeyup="delayed_preview()" onkeypress="delayed_preview()" onchange="update_preview()"></textarea><br>
+                <span class="pop_reference">
+                  <div class="pop_content" style="display:none; width:380px" id="pop_motif_f">A matrix is rectangular grid of numbers 
+                  which shows the relative frequency a nucleotide will occur at a specific position. Two orientations are possible. For example:
+                  <table>
+                  <tr><th style="padding-right:50px;">Row Matrix</th><th>Column Matrix</th><tr>
+                  <tr>
+                  <td rowspan="2" class="matrixcont" style="padding-right:50px;">
+                  <table class="examplematrix" onclick="example_row_matrix()">
+                    <tr><td></td><th>A</th><th>C</th><th>G</th><th>T</th></tr>
+                    <tr><th>1</th><td>3</td><td>8</td><td>14</td><td>3</td></tr>
+                    <tr><th>2</th><td>3</td><td>0</td><td>0</td><td>25</td></tr>
+                    <tr><th>3</th><td>19</td><td>0</td><td>9</td><td>0</td></tr>
+                    <tr><th>4</th><td>0</td><td>1</td><td>27</td><td>0</td></tr>
+                    <tr><th>5</th><td>1</td><td>0</td><td>26</td><td>1</td></tr>
+                    <tr><th>6</th><td>0</td><td>1</td><td>4</td><td>23</td></tr>
+                    <tr><th>7</th><td>2</td><td>23</td><td>3</td><td>0</td></tr>
+                    <tr><th>8</th><td>26</td><td>1</td><td>0</td><td>1</td></tr>
+                    <tr><th>9</th><td>5</td><td>15</td><td>4</td><td>4</td></tr>
+                  </table>
+                  </td>
+                  <td class="matrixcont">
+                  <table class="examplematrix" onclick="example_col_matrix()">
+                    <tr><td></td><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr>
+                    <tr><th>A</th><td>3</td><td>3</td><td>19</td><td>0</td><td>1</td><td>0</td><td>2</td><td>26</td><td>5</td></tr>
+                    <tr><th>C</th><td>8</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>23</td><td>1</td><td>15</td></tr>
+                    <tr><th>G</th><td>14</td><td>0</td><td>9</td><td>27</td><td>26</td><td>4</td><td>3</td><td>0</td><td>4</td></tr>
+                    <tr><th>T</th><td>3</td><td>25</td><td>0</td><td>0</td><td>1</td><td>23</td><td>0</td><td>1</td><td>4</td></tr>
+                  </table>
+                  </td>
+                  </tr>
+                  <tr>
+                  <td><p style="color:gray; border: 1px solid gray; padding:2px;">Click an example to use it as the input.</p></td>
+                  </tr>
+                  </table>
+                  The matrix orientation is automatically determined but if for some reason the correct orientation 
+                  isn't being detected it can be specified in the advanced section. 
+                  [<a href="javascript:show_toggle('pop_motif_f')">close</a>]</div>
+                </span>
+                <div id="matrix_adv_ctrl" style="display:block;">
+                  <h3 class="meme">
+                  <a href="javascript:show_hide('matrix_advanced', 'matrix_adv_ctrl')"><img src="../images/plus.png"/>Advanced Options</a>
+                  </h3>
+                </div>
+                <div id="matrix_advanced" style="display:none">
+                  <h3 class="meme">
+                  <a href="javascript:show_hide('matrix_adv_ctrl','matrix_advanced')"><img src="../images/minus.png"/>Advanced Options</a>
+                  </h3>
+                  <h4 class="meme" style="padding-top:10px;">Select the orientation. 
+                  <a href="javascript:show_toggle('pop_f_orient')"><img src="../images/help.png"/></a></h4>
+                  <label for="f_orient">orientation: </label>
+                  <select name="matrix_orientation" id="f_orient" class="meme" onchange="update_preview()">
+                    <option value="auto">autodetect</option>
+                    <option value="row">row</option>
+                    <option value="col">column</option>
+                  </select><br>
+                  <span class="pop_reference">
+                    <div class="pop_content" style="display:none" id="pop_f_orient">A matrix is column oriented if it has 4 rows and any number of columns.
+                    A matrix is row oriented if it has 4 columns and any number of rows.
+                    [<a href="javascript:show_toggle('pop_f_orient')">close</a>]</div>
+                  </span>
+                  <h4 class="meme" style="padding-top:10px;">Enter a site count and pseudocount. 
+                  <a href="javascript:show_toggle('pop_f_sites')"><img src="../images/help.png"/></a></h4>
+                  <label for="f_sites">sites: </label>
+                  <input type="text" name="matrix_sites" id="f_sites" class="meme" size="2" value="20" onchange="update_preview()">
+                  &nbsp;&nbsp;
+                  <label for="f_pseudo">pseudocount: </label>
+                  <input type="text" name="matrix_pseudocount" id="f_pseudo" class="meme" size="2" value="1" onchange="update_preview()"><br>
+                  <span class="pop_reference">
+                    <div class="pop_content" style="display:none" id="pop_f_sites">The site count is only used when a probability matrix is specified, 
+                    otherwise it is derived from the matrix.<br /> 
+                    The pseudocount is added to each residue in proportion to the background. Thus the total count for a position is 
+                    the site count plus the pseudocount. [<a href="javascript:show_toggle('pop_f_sites')">close</a>]</div>
+                  </span>
+                  <h4 class="meme" style="padding-top:10px;">Enter the background model. 
+                  <a href="javascript:show_toggle('pop_f_bg')"><img src="../images/help.png"/></a></h4>
+                  <label for="f_bg_A">A: </label>
+                  <input type="text" name="matrix_background_A" id="f_bg_A" class="meme" size="3" value="0.25" onchange="update_preview()">
+                  &nbsp;
+                  <label for="f_bg_C">C: </label>
+                  <input type="text" name="matrix_background_C" id="f_bg_C" class="meme" size="3" value="0.25" onchange="update_preview()">
+                  &nbsp;
+                  <label for="f_bg_G">G: </label>
+                  <input type="text" name="matrix_background_G" id="f_bg_G" class="meme" size="3" value="0.25" onchange="update_preview()">
+                  &nbsp;
+                  <label for="f_bg_T">T: </label>
+                  <input type="text" name="matrix_background_T" id="f_bg_T" class="meme" size="3" value="0.25" onchange="update_preview()">
+                  <div class="pop_content" style="display:none" id="pop_f_bg">The background is used to determine 
+                  how the pseudocount is distributed. While it is conventional to have the background sum to one 
+                  these fields will be normalised so you don't have to be exact. You may even use counts instead. 
+                  [<a href="javascript:show_toggle('pop_f_bg')">close</a>]</div>
+                </div>
+              </div>
+              <!-- MEME motif -->
+              <div id="meme" class="subcontent" style="display:none">
+                <h4 class="meme">Select a <a href="../doc/meme-format.html">MEME</a> DNA motif file. 
+                <a href="javascript:show_toggle('pop_motif_m')"><img src="../images/help.png"/></a></h4>
+                <input type="file" name="meme_file" id="motif_m" class="meme"><br>
+                <span class="pop_reference">
+                  <div class="pop_content" style="display:none" id="pop_motif_m">
+                  By default only the first motif is used but this can be changed in the advanced section. 
+                  See more information on the <a href="../doc/meme-format.html">meme format</a> and the 
+                  <a href="../examples/sample-dna-motif.meme-io">sample</a> MEME DNA motifs.
+                  [<a href="javascript:show_toggle('pop_motif_m')">close</a>]</div>
+                </span>
+                <div id="meme_adv_ctrl" style="display:block;">
+                  <h3 class="meme">
+                  <a href="javascript:show_hide('meme_advanced', 'meme_adv_ctrl')"><img src="../images/plus.png"/>Advanced Options</a>
+                  </h3>
+                </div>
+                <div id="meme_advanced" style="display:none">
+                  <h3 class="meme">
+                  <a href="javascript:show_hide('meme_adv_ctrl','meme_advanced')"><img src="../images/minus.png"/>Advanced Options</a>
+                  </h3>
+                  <h4 class="meme" style="padding-top:10px;">
+                  Specify which motif(s) to use. 
+                  <a href="javascript:show_toggle('pop_m_filter')"><img src="../images/help.png"/></a></h4>
+                  <input type="text" name="meme_filter" id="m_filter" class="meme" size="30" value="1" onchange="update_motif_count()"
+                      onkeypress="update_motif_count()" onkeydown="update_motif_count()" onkeyup="update_motif_count()"> or
+                  <input type="checkbox" name="meme_ignore_filter" id="m_all" value="1" 
+                      onclick="update_motif_count()" onchange="update_motif_count()"/>
+                  <label for="m_all"> all motifs.</label><br>
+                  <span class="pop_reference">
+                    <div class="pop_content" style="display:none" id="pop_m_filter">The filter supports selecting motifs 
+                    from the file by their name and/or their order in the file. Any numbers are assumed to refer to the position of the
+                    motif in the file. Any other entry is assumed to be a motif name (or ID). Motif names can not start with a dash
+                    and can only contain alphanumeric characters plus <b>:</b> <b>_</b> <b>.</b> and <b>-</b>. The motifs should be separated by spaces.
+                    [<a href="javascript:show_toggle('pop_m_filter')">close</a>]</div>
+                  </span>
+                </div>
+              </div>
+              <!-- TMPL_IF NAME=inline_motifs -->
+              <!-- inline motif -->
+              <div id="inline" class="subcontent" style="display:block">
+                <h4 class="meme">Use the submitted motifs.</h4>
+                <!-- Note that this should be the pspm from the minimal meme format -->
+                <input type="hidden" name="inline_name" value="<!-- TMPL_VAR NAME=inline_name -->">
+                <input type="hidden" name="inline_motifs" id="motif_i" value="<!-- TMPL_VAR NAME=inline_motifs -->">
+                <input type="hidden" id="i_count" value="<!-- TMPL_VAR NAME=inline_count -->">
+                <!-- TODO render the motif with javascript -->
+              </div>
+              <!-- /TMPL_IF -->
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+<!--                 END motif_input.tmpl                                  -->
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+

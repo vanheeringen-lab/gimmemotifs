@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MAST - Introduction</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+	    <img src="images/mast.png" alt="MAST logo">
+            <h3>Introduction</h3>
+            <h4>MAST is a tool for searching biological sequence databases for
+              sequences that contain one or more of a group of known motifs.</h4>
+
+            <p>A motif is a sequence pattern that occurs repeatedly in a group
+            of related protein or DNA sequences. Motifs are represented as
+            position-dependent scoring matrices that describe the score of each
+            possible letter at each position in the pattern. Individual motifs
+            may not contain gaps. Patterns with variable-length gaps must be
+            split into two or more separate motifs before being submitted as
+            input to MAST.</p>
+
+            <p>MAST takes as <a href="mast-input.html">input</a> a file
+            containing the descriptions of one or more motifs and searches a
+            sequence database that you select for sequences that match the
+            motifs. The motif file can be the output of the <a href=
+            "meme-intro.html">MEME</a> motif discovery tool or any file in the
+            appropriate format.</p>
+
+            <p>MAST outputs details on the <a 
+              href="mast-output.html#sequences_doc">top scoring sequences</a> 
+            ordered by score. The score is calculated as the strength of the 
+            <a href="mast-output.html#combined">combined match</a> of the 
+            sequence to all motifs. The basic details shown include the 
+            sequence name, <i>E</i>-value indicating the match strength and 
+            the strong motif occurrences shown in the form of a <a 
+              href="mast-output.html#diagrams">block diagram</a>. 
+            <a href="mast-output.html#expanded_results">Expanded details</a> 
+            available include the sequence comment, combined <i>p</i>-value and 
+            <a href="mast-output.html#annotation">annotated sequence</a>.</p>
+      
+            <p>MAST works by calculating <a href="mast-output.html#score">match
+            scores</a> for each sequence in the database compared with each of
+            the motifs in the group of motifs you provide.  For each sequence,
+            the match scores are converted into various types of <a href=
+            "mast-output.html#pvalues">p-values</a> and these are used to
+            determine the overall match of the sequence to the group of motifs
+            and the probable order and spacing of occurrences of the motifs in
+            the sequence.  
+            </p>
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

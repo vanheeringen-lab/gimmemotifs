@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MEME Suite - Introduction</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+    <style>
+      table.prog img {
+        border-style: none;
+        height: 50px;
+      }
+    </style>
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class='menubase'>
+          <div id='menu'>
+            <script src="meme-suite-menu.js" type="text/javascript">></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>            
+            <center>
+              <map name="webserver_schema_map">
+                <area shape="rect" coords="132,66,204,82" href="cgi-bin/meme.cgi" alt="MEME"/>
+                <area shape="rect" coords="132,82,204,99" href="cgi-bin/meme-chip.cgi" alt="MEMECHIP"/>
+                <area shape="rect" coords="132,99,204,115" href="cgi-bin/glam2.cgi" alt="GLAM2"/>
+                <area shape="rect" coords="370,51,442,82" href="cgi-bin/tomtom.cgi" alt="Tomtom"/>
+                <area shape="rect" coords="370,102,442,121" href="cgi-bin/fimo.cgi" alt="FIMO"/>
+                <area shape="rect" coords="370,121,442,135" href="cgi-bin/mast.cgi" alt="MAST"/>
+                <area shape="rect" coords="370,135,442,147" href="cgi-bin/mcast.cgi" alt="MCAST"/>
+                <area shape="rect" coords="370,147,442,172" href="cgi-bin/glam2scan.cgi" alt="GLAM2SCAN"/>
+                <area shape="rect" coords="370,194,442,224" href="cgi-bin/gomo.cgi" alt="GOMO"/>
+                <area shape="rect" coords="297,142,350,187" href="cgi-bin/get_db_list.cgi?db_names=fasta_db.csv&mode=doc" alt="Sequence Databases"/>
+                <area shape="rect" coords="297,6,351,52" href="cgi-bin/get_db_list.cgi?db_names=motif_db.csv&mode=doc&is_motif_db=1" alt="Motif Databases"/>
+                <area shape="rect" coords="297,225,351,271" href="http://www.geneontology.org/" alt="Gene Ontology Terms Database"/>
+              </map>
+              <img src="doc/images/webserver_schema.png" border="0" alt="[webserver schema]" usemap="#webserver_schema_map" />
+                  </center>
+            <h1 style="font-weight: normal;">The MEME Suite allows you to:</h1>
+            <ul>
+              <li>
+                discover motifs using
+                <a href="cgi-bin/meme.cgi">MEME</a> 
+                or 
+                <a href="cgi-bin/glam2.cgi">GLAM2</a> 
+                on groups of related DNA or protein sequences, 
+              </li>
+              <li>
+                <a href="search.html">search</a> sequence databases using motifs,
+              </li>
+              <li>
+                <a href="cgi-bin/tomtom.cgi">compare</a> a motif to
+                all motifs in a database of motifs, and
+              </li>
+              <li>
+                <a href="cgi-bin/gomo.cgi">associate</a> motifs with Gene
+                Ontology terms via their putative target genes.
+              </li>
+            </ul>
+            <h1 style="font-weight: normal;">
+            To submit a query, click on one of the logos below or select
+            "Submit A Job" from the menu at the left.
+            </h1>
+            <hr/>
+            <table class="prog">
+              <tr>
+                <td><a href="cgi-bin/meme.cgi"><img src="images/meme.png" alt="MEME Logo"/></a></td>
+                <td><a href="cgi-bin/mast.cgi"><img src="images/mast.png" alt="MAST Logo"/></a></td>
+                <td><a href="cgi-bin/tomtom.cgi"><img src="doc/images/tomtom_logo.png" alt="TOMTOM Logo"/></a></td>
+              </tr>
+              <tr>
+                <td><a href="cgi-bin/gomo.cgi"><img src="images/gomo.png" alt="GOMO Logo"/></a></td>
+                <td><a href="cgi-bin/glam2.cgi"><img src="doc/images/glam2_logo.png" alt="GLAM2 Logo"/></a></td>
+                <td><a href="cgi-bin/glam2scan.cgi"><img src="doc/images/glam2scan_logo.png" alt="GLAM2SCAN Logo"/></a></td>
+              </tr>
+              <tr>
+                <td><a href="cgi-bin/fimo.cgi"><img src="doc/images/fimo_logo.png" alt="FIMO Logo"/></a></td>
+                <td><a href="cgi-bin/mcast.cgi"><img src="doc/images/mcast-logo.png" alt="MCAST Logo"/></a></td>
+                <td><a href="cgi-bin/meme-chip.cgi"><img src="doc/images/memechip_logo.png" alt="MEMECHiP Logo"/></a></td>
+              </tr>
+              <tr>
+                <td><a href="cgi-bin/spamo.cgi"><img src="doc/images/spamo_logo.png" alt="SpaMo Logo"/></a></td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+              </tr>
+            </table>
+            <hr/>
+            <h3 style="font-weight: normal;">
+              Maintenance and development of the MEME Suite is funded by the 
+              National Center for Research Resources grant NIH/NCRR R01 RR021692.
+              The MEME Suite web server is funded by the 
+              <a href= "http://www.sdsc.edu/NBCR">National Biomedical Computation Resource</a>.
+            </h3>
+            <hr/>
+            <b><font>Developed and maintained by:</font></b>
+            <table align="center">
+              <tr>
+                <td>
+                  <a href="http://www.uq.edu.au">
+                    <img style="border-style: none;" 
+                         src="doc/images/uq_logo.png" alt="[UQ logo]" hspace="20"/>
+                  </a>
+                </td>
+                <td>
+                  <a href="http://www.washington.edu">
+                    <img style="border-style: none;" 
+                         src="doc/images/UWlogo150p.gif" alt="[UW logo]" hspace="20"/>
+                  </a>
+                </td>
+                <td>
+                  <a href="http://infopath.ucsd.edu">
+                    <img style="border-style: none;" 
+                         src="doc/images/ucsd_logo.png" alt="[UCSD logo]" hspace="20"/>
+                  </a>
+                </td>
+                <td>
+                  <a href="http://www.sdsc.edu">
+                    <img style="border-style: none;" 
+                         src="doc/images/sdsc_logo.png" alt="[SDSC logo]" hspace="20"/>
+                  </a>
+                </td>
+              </tr>
+            </table>
+            <table align="center">
+              <tr>
+                <td>
+                  <a href="http://nbcr.net">
+                    <img style="border-style: none;" 
+                         src="doc/images/nbcr_logo_trans.gif"  alt="[NBCR logo]" hspace="20"/>
+                  </a>
+                </td>
+                <td>
+                  <a href="http://www.cbrc.jp">
+                    <img style="border-style: none;" 
+                         src="doc/images/cbrc_logo.png" alt="[CBRC logo]" hspace="20"/>
+                  </a>
+                </td>
+                <td>
+                  <a href="http://www.ncrr.nih.gov">
+                    <img style="border-style: none;" 
+                         src="doc/images/ncrr_logo.gif" alt="[NCRR logo]" hspace="20"/>
+                  </a>
+                </td>
+              </tr>
+            </table>
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

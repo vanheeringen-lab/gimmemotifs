@@ -1,0 +1,239 @@
+#!@WHICHPERL@ -w
+
+# AUTHOR: Timothy L. Bailey
+# CREATE DATE: May 21, 2008
+## This script requires that the environment variable point to the RSATWS
+## perl library provided by http://rsat.ulb.ac.be/rsat/. 
+
+use strict;
+use File::Find;
+use File::Temp qw/ tempfile /;
+use Net::FTP;
+use File::Basename;
+use Net::FTP;
+use SOAP::WSDL;
+use lib $ENV{'RSATWS'};
+use MyInterfaces::RSATWebServices::RSATWSPortType;
+
+my $PGM = $0;			# name of program
+$PGM =~ s#.*/##;                # remove part up to last slash
+#@args = @ARGV;			# arguments to program
+$| = 1;				# flush after all prints
+$SIG{'INT'} = \&cleanup;	# interrupt handler
+# Note: so that interrupts work, always use for system calls:
+# 	if ($status = system("$command")) {&cleanup($status)}
+
+# requires
+#push(@INC, split(":", $ENV{'PATH'}));	# look in entire path
+
+# defaults
+my $header = "#<db_root>,<prot?>,<nuc?>,<short_seqs?>,<db_menu_name>,<db_long_name>,<protein_url>,<nuc_url>";
+my ($db, $class, $host, $path, $dna_template, $pep_template) = ("","","","","","");
+
+my $usage = <<USAGE;		# usage message
+  USAGE:
+	$PGM [options]
+
+	-class <class>		name of subdirectory to get
+	-db ENSEMBL|ENSEMBL_ABINITIO|GENBANK|UPSTREAM
+ 				set following options for this type of DB
+	-host <host>		address of ftp site (or RSAT web services for
+				UPSTREAM)
+	-path <path>		path to subdirectory
+	-pep <pep_template>	rest of path to protein files; ignored for UPSTREAM
+	-dna <dna_template>	rest of path to DNA files; ignored for UPSTREAM
+
+	Get a list of genomes using FTP (or RSAT web services).
+	Create a CSV file containing all of the genomes in subdirectories of:
+		ftp://<host>/<path>/<class>
+        The ftp url of protein files in the CSV file will be:
+		ftp://<host>/<path>/<class>/<organism>/<pep_template>
+        The ftp url of DNA files in the CSV file will be:
+		ftp://<host>/<path>/<class>/<organism>/<dna_template>
+
+	For UPSTREAM, all of the genomes at http://$host will be be listed
+	in the CSV file.
+
+	The CSV file can be used as (or concatenated with)
+        a "mast_db_names.csv" file.
+
+	Writes standard output.
+
+        Copyright
+        (2008) The University of Queensland
+        All Rights Reserved.
+        Author: Timothy L. Bailey
+USAGE
+
+my $nargs = 0;			# number of required args
+if ($#ARGV+1 < $nargs) { &print_usage("$usage", 1); }
+
+# get input arguments
+while ($#ARGV >= 0) {
+  $_ = shift;
+  if ($_ eq "-h") {				# help
+    &print_usage("$usage", 0);
+  } elsif ($_ eq "-class") {
+    $class = shift;
+  } elsif ($_ eq "-db") {
+    $db = shift;
+  } elsif ($_ eq "-host") {
+    $host = shift;
+  } elsif ($_ eq "-path") {
+    $path = shift;
+  } else {
+    &print_usage("$usage", 1);
+  }
+}
+
+my $suffix = "";
+my $title1 = "Genomes";
+my $title2 = "Sequences";
+my $extra = "";
+my $prot = "yes";
+my $nuc = "yes";
+my $short_only = "no";
+my $no_dna = 0;
+if ($db eq "ENSEMBL") {
+  $host = "ftp.ensembl.org" unless $host;
+  $path = "pub/current_fasta" unless $path;
+  ($dna_template, $pep_template) = ("dna/*.dna.toplevel.fa.gz", "pep/*.pep.all.fa.gz");
+} elsif ($db eq "ENSEMBL_ABINITIO") {
+  $host = "ftp.ensembl.org" unless $host;
+  $path = "pub/current_fasta" unless $path;
+  ($dna_template, $pep_template) = ("", "pep/*.pep.abinitio.fa.gz");
+  $suffix = "_abinitio";
+  $title1 = "Ab Initio Predicted Proteins";
+  $title2 = "Ab initio predicted protein sequences";
+  $extra = " (ab initio)";
+  $nuc = "no";
+  $short_only = "yes";
+  $db = "ENSEMBL";
+} elsif ($db eq "GENBANK") {
+  $host = "ftp.ncbi.nih.gov" unless $host;
+  $path = "genbank/genomes" unless $path;
+  ($dna_template, $pep_template) = ("*.fna", "*.faa");
+} elsif ($db eq "UPSTREAM") {
+  $prot = 'no';
+  $short_only = "yes";
+  $host = "rsat.scmbb.ulb.ac.be/rsat/web_services" unless $host;
+} elsif ($db ne "") {
+  die("Unknown database type given with -db: $db\n");
+}
+
+my ($message, $result);
+my $error_status = 0;
+
+if ($db ne "UPSTREAM") {		# use ftp
+  # Connnect to source FTP server
+  my $ftp = Net::FTP->new($host, Timeout=>6000, Debug=>0, Passive=>1);
+  if (! $ftp) {
+    $error_status = 1;
+    $message = "Unable to connect to $host.";
+  } else {
+    # Login to FTP server and set binary tranfer mode.
+    $result = $ftp->login('anonymous','cegrant@u.washington.edu');
+    if (! $result) {
+      $error_status = 1;
+      $message = "Unable to login as anonymous on $host.";
+    }
+    if (! $error_status) {
+      $result = $ftp->binary();
+      if (! $result) {
+	$error_status = 1;
+	$message = "Unable to set binary transfer mode on $host.";
+      }
+    }
+    # Move to the appropriate directory.
+    $path .= "/$class";
+    if (! $error_status) {
+      $result = $ftp->cwd($path);
+      if (! $result) {
+	$error_status = 1;
+	$message = "Unable to cd to $path on $host.";
+      }
+    }
+    my @name_list = $ftp->ls();
+    print "$header\n";
+    print ",$prot,$nuc,$short_only,-----$db $class $title1-----,,,,\n";
+    foreach $_ (sort @name_list) {
+      my $id = $_;
+      my $name = $id;
+      $name =~ s/_/ /g;
+      $id .= $suffix;
+      if ($nuc eq "no") {
+        # check that peptide file exists
+        my @result = $ftp->ls("$_/$pep_template");
+        my $found = @result;
+	if ($found) {
+          print "$id,$prot,$nuc,$short_only,$name$extra,$title2 from $db for <I>$name</I>.,$host/$path/$_/$pep_template,\n";
+	}
+      } else {
+        # check that nucleotide file exists
+        my @result = $ftp->ls("$_/$dna_template");
+        my $found = @result;
+	if ($found) {
+	  print "$id,$prot,$nuc,$short_only,$name$extra,$title2 from $db for <I>$name</I>.,$host/$path/$_/$pep_template,$host/$path/$_/$dna_template\n";
+        }
+      }
+    }
+  }
+} else {			# use RSAT web services
+  my $soap=MyInterfaces::RSATWebServices::RSATWSPortType->new();
+  my $server = "http://$host";
+  # get supported organisms
+  my %args = (
+    'format' => "",
+    'taxon' => ""
+  );
+  my $som = $soap->supported_organisms({'request' => \%args});
+  unless ($som) {
+    $error_status = 1;
+    $message = "A fault (" . $som->get_faultcode() . ") occured: " .
+      $som->get_faultstring() . "\n";
+  } else {
+    my $results = $som->get_response();
+    my $command = $results -> get_command();
+    $_ = $results -> get_client();
+    my @name_list = split;
+    print "$header\n";
+    print ",$prot,$nuc,$short_only,-----Upstream Sequences-----,,,,\n";
+    foreach $_ (sort @name_list) {
+      next if (/^#/ || /^\s*$/);		# skip comment, blank lines
+      my $base = $_ . "_upstream";
+      my $name = $_;
+      $name =~ s/_/ /g;
+      my $start = '-1000';
+      my $end = '+200';
+      print "$base,$prot,$nuc,$short_only,$name (upstream),Upstream sequences ($start to $end) for <I>$name</I>.,$start,$end\n";
+    }
+  }
+} 
+
+print STDERR "Error: $message\n" if ($error_status);
+exit($error_status);
+  
+################################################################################
+#                       Subroutines                                            #
+################################################################################
+ 
+################################################################################
+#
+#       print_usage
+#
+#	Print the usage message and exit.
+#
+################################################################################
+sub print_usage {
+  my($usage, $status) = @_;
+ 
+  if (-c STDOUT) {			# standard output is a terminal
+    open(C, "| more");
+    print C $usage;
+    close C;
+  } else {				# standard output not a terminal
+    print STDERR $usage;
+  }
+
+  exit $status;
+}

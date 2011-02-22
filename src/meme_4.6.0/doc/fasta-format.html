@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>FASTA Format</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>Sequence file format</h1>
+      <p>
+      Various MEME Suite programs require as input a file containing
+      protein or DNA sequences. These input files must be in FASTA
+      format. The format is very simple. Every entry consists of a
+      sequence identifier (ID), an optional comment (COMMENT), and a
+      sequence (SEQUENCE). The format looks like this:
+      </p>
+      <pre>
+        &gt;ID COMMENT
+        SEQUENCE
+      </pre>
+      <p>
+      The special character "&gt;" marks the beginning of a new sequence.
+      The "&gt;" character is followed immediately by the sequence
+      identifier. The rest of that line is occupied by the optional
+      comment. Subsequent lines contain the sequence itself.
+      </p>
+      <p>Some rules about representing sequences:</p>
+      <ul>
+      <li>Case doesn't matter. MEME Suite converts everything to
+      uppercase.</li>
+      <li>White space (spaces and newlines) within the sequence are
+      ignored.</li>
+      <li>Characters should be from a valid
+      <A href="./alphabets.html">alphabet</A>
+      </ul>
+      <p>Here is an example of three sequences in FASTA format:</p>
+      <pre>
+      &gt;ICYA_MANSE 
+      GDIFYPGYCPDVKPVNDFDLSAFAGAWHEIAKLPLENENQGKCTIAEYKY
+      DGKKASVYNSFVSNGVKEYMEGDLEIAPDAKYTKQGKYVMTFKFGQRVVN
+      LVPWVLATDYKNYAINYNCDYHPDKKAHSIHAWILSKSKVLEGNTKEVVD
+      NVLKTFSHLIDASKFISNDFSEAACQYSTTYSLTGPDRH
+
+      &gt;LACB_BOVIN 
+      MKCLLLALALTCGAQALIVTQTMKGLDIQKVAGTWYSLAMAASDISLLDA
+      QSAPLRVYVEELKPTPEGDLEILLQKWENGECAQKKIIAEKTKIPAVFKI
+      DALNENKVLVLDTDYKKYLLFCMENSAEPEQSLACQCLVRTPEVDDEALE
+      KFDKALKALPMHIRLSFNPTQLEEQCHI
+
+      &gt;BBP_PIEBR 
+      NVYHDGACPEVKPVDNFDWSNYHGKWWEVAKYPNSVEKYGKCGWAEYTPE
+      GKSVKVSNYHVIHGKEYFIEGTAYPVGDSKIGKIYHKLTYGGVTKENVFN
+      VLSTDNKNYIIGYYCKYDEDKKGHQDFVWVLSRSKVLTGEAKTAVENYLI
+      GSPVVDSQKLVYSDFSEAACKVN
+      </pre>
+    </div>
+  </body>
+</html>

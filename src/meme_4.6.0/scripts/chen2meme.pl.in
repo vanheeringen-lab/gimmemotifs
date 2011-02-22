@@ -1,0 +1,116 @@
+#!@WHICHPERL@ -w
+#
+# FILE: chen2meme
+# AUTHOR: Timothy L. Bailey
+# CREATE DATE: 18/12/2009
+# DESCRIPTION: Convert a file containing list of TFBS motif matrices from 
+# CHEN to MEME output format. 
+
+use warnings;
+use strict;
+
+use lib qw(@PERLLIBDIR@);
+
+use MotifUtils qw(matrix_to_intern intern_to_meme read_background_file);
+
+use Getopt::Long;
+use Pod::Usage;
+
+=head1 NAME
+
+chen2meme - Converts a CHEN (concatenated) matrix file into MEME motifs.
+
+=head1 SYNOPSIS
+
+chen2meme [options]
+
+ Options: 
+  -skip <ID>                    skip this ID (may be repeated)
+  -bg <background file>         file with background frequencies of letters; 
+                                default: uniform background
+  -pseudo <total pseudocounts>  add <total pseudocounts> times letter 
+                                background to each frequency; default: 0
+  -logodds                      print log-odds matrix, too; 
+                                default: print frequency matrix only
+  -url <website>                website for the motif; The motif name
+                                is substituted for MOTIF_NAME;
+  -h                            print usage message
+
+ Converts a CHEN (concatenated) matrix file into MEME motifs.
+
+ Reads standard input.
+ Writes standard output.
+
+=cut
+
+# constants
+my $sites = 10;
+my $is_dna = 1;
+
+# Set option defaults
+my %skips;
+my $bg_file;
+my $pseudo_total = 0;
+my $print_logodds = 0;
+my $url_pattern = "";
+my $help = 0;
+
+GetOptions("skip=s" => sub {$skips{$_[1]} = 1}, "bg=s" => \$bg_file, 
+  "pseudo=f" => \$pseudo_total, "logodds" => \$print_logodds, 
+  "url=s" => \$url_pattern, "h" => \$help) or pod2usage(2);
+#check pseudo total
+pod2usage("Option -pseudo must have a positive value.") if ($pseudo_total < 0);
+#output help if requested
+pod2usage(1) if $help;
+
+# Get the background model.
+my %bg = &read_background_file($is_dna, $bg_file);
+
+# Read the input file.
+my $num_skipped = 0;
+my $num_motifs = 0;
+my (%motifs, $motif_name, $motif_matrix);
+while (<>) {
+  chomp;
+  # skip blank lines
+  next if (/^\s*$/);
+
+  if (/^>(\S+)/) {
+    my $next_id = $1;
+    # create previous motif
+    conditional_motif_output();
+    # motif id line
+    $motif_name = $next_id;
+    $motif_matrix = "";
+  } else {
+    $motif_matrix .= $_ . "\n";
+  }
+
+}
+
+# create last motif
+conditional_motif_output();
+
+foreach my $name (sort keys %motifs) {
+  print intern_to_meme($motifs{$name}, $print_logodds, 1, !($num_motifs++));
+}
+
+print(STDERR "Converted $num_motifs motifs.\n");
+print(STDERR "Skipped $num_skipped motifs.\n");
+
+1;
+
+
+sub conditional_motif_output {
+  if ($motif_matrix) {
+    if ( defined($skips{$motif_name})) {
+      $num_skipped++;
+    } else {
+      my $url = $url_pattern;
+      $url =~ s/MOTIF_NAME/$motif_name/g;
+      my ($motif, $errors) = matrix_to_intern(\%bg, $motif_matrix, 'row', $sites, $pseudo_total, id => $motif_name, url => $url);
+      print(STDERR join("\n", @{$errors}), "\n") if @{$errors};
+      $motifs{$motif_name} = $motif if $motif;
+    }
+  }
+}

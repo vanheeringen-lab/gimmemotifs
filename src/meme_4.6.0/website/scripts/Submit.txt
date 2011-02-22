@@ -1,0 +1,218 @@
+# FILE: Submit.pm
+# AUTHOR: Timothy Bailey
+# CREATE DATE: 1/2002
+# PROJECT: MCAST
+# DESCRIPTION: queue-based webserver
+
+package Submit;
+require Exporter;
+@ISA = qw(Exporter);
+@EXPORT = qw(startJob cancelJob runProgram doCancel);
+
+use lib qw(@MODULE_DIR@);
+use MetaGlobals;
+use Process;
+use UID;
+use Log;
+use Queue;
+use CGI;
+use CGI::Carp qw(fatalsToBrowser);
+use CGIutil;
+use strict;
+no strict 'subs'; # let us use EAGAIN
+
+#####################################################################
+# startJob
+#####################################################################
+sub startJob {
+  my ($query, $settings, $log, $uid, $run_pgm_ref) = @_;
+
+  $log->debug("Starting the job $uid");
+  $log->log("Starting the job");
+
+  my $redirectto = "$SITE_URL/cgi-bin/nph-endpointtest.cgi";
+  my $runningModPerl = $ENV{MOD_PERL} ? 1 : 0;
+  my $forkOK = forkOK(); # check that system will let us fork.
+  setUpSpawn($forkOK); # register signal handlers, etc.
+
+  # Set up a signal file which is used to let us know when the analysis
+  # is ready.  move to process.pm
+  writeSemaphore($uid, "3 ", 1); # overwrite. (3=how many files are there.
+  #  todo: replace this with some more intelligent cue to how long the
+  # job will take)
+
+  # Important part.
+  my $pid;
+  if ($forkOK) {
+    $log->debug("Not running mod_perl.");
+  }
+
+ FORK: if ($forkOK && ($pid = fork)) { # parent.
+    $log->debug("In the parent process (redirecting to $redirectto?$UID_FIELD=$uid&PROCESS=$pid). Child is $pid");
+    writeSemaphore($uid, "$pid ", 0);
+    print $query->redirect(-location=>"$redirectto?$UID_FIELD=$uid&PROCESS=$pid", -nph=>1);
+    open (STDERR, ">/dev/null");
+    open (STDOUT, ">/dev/null");
+    wait(); # wait for the child to finish. not needed when    $SIG{CHLD} = 'IGNORE';
+  } elsif (  (defined $pid || !$forkOK) && !$runningModPerl ) {
+    my $parent = getppid();
+    if (!$forkOK) {
+      print $query->redirect(-location=>"$redirectto?$UID_FIELD=$uid&PROCESS=$$", -nph=>1);
+    } else {
+      $log->debug("In the child process (processing). Parent is $parent, I am $$");
+    }
+
+    open (STDERR, ">/dev/null");
+    open (STDOUT, ">/dev/null");
+
+    queueJob($query, $settings, $log, $uid, $run_pgm_ref);
+    if ( $forkOK ) {
+      $log->debug("Exiting child process");
+      exit(1);
+    }
+  } elsif ($runningModPerl) {
+    $log->debug("Running mod_perl section");
+
+    require Apache;
+    my $r = Apache->request;
+
+    $r->post_connection(sub {
+			  queueJob($query, $settings, $log, $uid, $run_pgm_ref);
+			});
+
+    writeSemaphore($uid, "$$ ", 0);
+    $log->debug("post_connection registered, redirecting to $redirectto?$UID_FIELD=$uid&PROCESS=$$");
+    print $query->redirect(-location=>"$redirectto?$UID_FIELD=$uid&PROCESS=$$", -nph=>1); # under modperl, runs under a httpd process.
+    $log->debug("Redirect done");
+  } elsif ($! == EAGAIN) { # should be recoverable.
+    sleep(5) ; redo FORK;
+  } else {
+    error ("Could not fork: $!", $query);
+  }
+} # sub startJob
+
+#####################################################################
+# queueJob
+#
+# Not exported.
+#####################################################################
+sub queueJob {
+  my ($query, $settings, $log, $uid, $run_pgm_ref) = @_;
+  my $i;
+  my $command;
+
+  # enter the job into the queue. Execution halts here until &enqueue
+  # returns, which could take up to $PATIENCE.
+  $log->debug("Queueing job $uid");
+  my $go = enqueue($uid, $log);
+  $log->debug("Job queued");
+  writeSemaphore($uid, "${go}|", 0);
+
+  # wait around until it is done.
+  if ($go =~ /ABORT/) {
+    dequeue($uid, $log);
+    error("Failed to enqueue: $go", $query, $log);
+  } elsif ($go =~ /RUN/) {
+
+    my $runlog = "$LOG_DIR/${uid}.runlog";
+
+  $log->debug("run job");
+    my $status = &$run_pgm_ref($settings, $uid, $runlog, $log); # all the action happens here.
+  $log->debug("job over $status");
+
+    if ($status != 0) {
+      dequeue($uid, $log);
+      writeSemaphore($uid, 'ABORT', 0);
+      error("run_pgm_ref returned an error ($status).", $query, $log);
+      return;
+    }
+  } else {
+    dequeue($uid, $log);
+    error("Failed to enqueue: INVALID RESPONSE: $go", $query, $log);
+    return;
+  }
+
+  # signal that we are done.
+  dequeue($uid, $log);
+  $log->debug("Processing is done for $uid");
+  writeSemaphore($uid, 'DONE', 0);
+} #queueJob
+
+
+###############################################################
+# runProgram: reasonably generic. Send a command to the system,
+# saving stdout in outfile and logging stderr.
+###############################################################
+sub runProgram {
+  my ($outfile, $errfile, $log, @args) = @_;
+
+  # Clobber zero-length output file, to allow existence check in next step.
+  if (-z $outfile) {
+    unlink($outfile);
+    $log->debug("Clobbered zero length file $outfile");
+  }
+
+  # If the file exists, don't bother.
+  if (-e $outfile) {
+    $log->log("$outfile already exists.");
+    return 1;
+  }
+
+  my $cmdstr = join(" ", @args);
+  $log->debug("Running $cmdstr");
+  $log->debug("Saving output to $outfile");
+  $log->debug("Errors to $errfile");
+
+  # store stderr in the runlog for the user. The monitor will
+  # periodically copy this into the regular log.
+  my @start = times();
+
+  # make sure we can write to the error file.
+  eval {
+    system("/bin/touch $errfile");
+    # FIXME: Use $TOUCH.
+  };
+
+  if ($@) {
+    $log->log("Could not write to the errlog $errfile");
+    return 1;
+  }
+ 
+  # The spawning process set the CHLD signal handler to 'IGNORE'
+  # Set it locally to 'DEFAULT'. Otherwise system always returns -1
+  local $SIG{CHLD} = 'DEFAULT';
+  my $status = system("$cmdstr 2>> $errfile 1> $outfile");
+
+  # log the outcome.
+  my @end = times();
+  my $elapsed = ($end[0] - $start[0]) + ($end[1] - $start[1]) +
+             ($end[2] - $start[2]) + ($end[3] - $start[3]);
+  my $CPUtime += $elapsed;
+  my $runstring = sprintf("Elapsed time = %.2f CPU seconds.", $elapsed);
+  $log->debug($runstring);
+
+  chmod(0664, $outfile);
+  return $status >> 8; # 16 bit status word; high byte is the exit status.
+} #runProgram
+
+#####################################################################
+# check to see if we are here because of a previous job that has been
+# cancelled, and make sure the job gets killed.  Redirect the user to
+# the form if need be.
+#####################################################################
+sub doCancel {
+  my ($query, $uid, $log, $redirectto) = @_;
+  my $cancel_me = validateParam($query, 'CANCEL', 0, $SITE_MANAGER);
+  if ($cancel_me) {
+    $log->log("Cancelling job for $uid ($cancel_me received).");
+    $log->debug("Cancelling job for $uid ($cancel_me received).");
+    my $killed = cancelJob($cancel_me, $uid);
+    dequeue($uid, $log);
+    $log->log("killed $killed");
+    $log->debug("killed $killed redirecting to $redirectto");
+    print $query->redirect(-location=>"$redirectto", -nph=>1);
+    $log->debug("Bye");
+    $log->log("Bye");
+    exit(1);
+  }
+} #doCancel

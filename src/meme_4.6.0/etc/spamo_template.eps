@@ -1,0 +1,721 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox:   0  0  350 260 % bottom-left-x, bottom-left-y, top-right-x, top-right-y
+
+% Utility Functions
+
+% string1 string2 append string
+% Function: Concatenates two strings together.
+/append {
+  2 copy length exch length add  % find the length of the new.
+  string dup     % string1 string2 string string
+  4 2 roll       % string string string1 string2
+  2 index 0 3 index
+  % string string string1 string2 string 0 string1
+  putinterval    % stuff the first string in.
+  % string string string1 string2
+  exch length exch putinterval
+} bind def
+
+/string-ascent-descent {
+  % stack: <orig string>
+  /ascent 0 def
+  /descent 0 def
+  dup dup % create 2 copies of the string
+  % stack: <orig string> <orig string> <orig string>
+  0 exch 1 exch length 1 sub %setup the counters for the for loop
+  % stack: <orig string> <orig string> <start> <incr> <last>
+  { % stack: <orig string> <orig string> <index>
+    1 getinterval % make substring
+    % stack: <orig string> <substring>
+    gsave
+      newpath
+      0 0 moveto
+      false charpath flattenpath pathbbox
+	  grestore
+    % stack: <orig string> <lower left x> <lower left y> <upper right x> <upper right y>
+    dup ascent gt
+    {/ascent exch def} {pop} ifelse
+    pop
+    % stack: <orig string> <lower left x> <lower left y>
+    dup descent lt
+    {/descent exch def} {pop} ifelse
+    pop
+    % stack: <orig string>
+    dup % create another copy of the string
+    % stack: <orig string> <orig string>
+  }
+  for
+  pop pop % remove the string
+  ascent descent
+  % stack: <ascent> <descent>
+} def
+
+/string-vcenter {
+  string-ascent-descent
+  2 copy sub 2 div % half height
+  exch pop % get rid of descent
+  sub neg
+} def
+
+% debug_origin
+% Function: draws a cross at the current origin
+/debug-origin {
+  gsave
+    0 0.5 0 setrgbcolor
+    newpath
+    -2 0 moveto 
+    2 0 lineto 
+    stroke
+    newpath
+    0 -2 moveto 
+    0 2 lineto 
+    stroke
+  grestore
+} def
+
+% Fixed variables
+/width 350 def
+/height 260 def
+/size_title 18 def
+/font_title /Times-Roman findfont size_title scalefont def
+/size_subtitle 14 def
+/font_subtitle /Times-Roman findfont size_subtitle scalefont def
+/size_axis 12 def
+/font_axis /Times-Roman findfont size_axis scalefont def
+/size_label 8 def
+/font_label /Times-Roman findfont size_label scalefont def
+/size_tic 2 def % length of the tic lines
+/spacer_tic 2 def % space between tics and the count labels
+/spacer_side 5 def % space between border and the y axis label or the graph if the right side
+/spacer_top 5 def % space between the top of the title and the border
+/spacer_bottom 5 def % space between the border and the x-axis label
+/spacer_title 0 def % space between the title and the subtitle
+/spacer_subtitle 5 def % space between the subtitle and the top of the graph
+/spacer_axis 0 def % spacer between the axis and the graph or count labels
+/spacer_base 3 def % space between the bar labels and the bars
+/spacer_mid_exp 10 def % space between the left and right side of the graph
+/spacer_border 5 def % space between the bounding box and the border
+/y_axis_label_start (# of Sequences with Spacing \(total = ) def
+/y_axis_label_end (\)) def
+/x_axis_label (Spacings from Primary to Secondary Motif \(Gap\)) def
+/same_strand_label (Same Strand) def
+/oppo_strand_label (Opposite Strand) def
+/upstream_label (Upstream) def
+/downstream_label (Downstream) def
+
+
+% Settable variables
+/graph_title () def
+/graph_margin 150 def
+/graph_mlength 10 def
+/graph_binsize 1 def
+/graph_binmax 50 def
+/graph_significant 0.05 def
+/graph_sequences 0 def
+% Flags
+% note: graph_has_title is calculated not set
+/graph_has_border false def
+/graph_has_subtitle false def
+/graph_has_y_axis_label true def
+/graph_has_x_axis_label true def
+/graph_has_stream_label false def
+/graph_has_strand_label false def
+
+
+%setter for graph_title
+/title {
+  /graph_title
+  exch
+  def
+} def
+
+%setter for graph_margin
+/margin {
+  /graph_margin
+  exch
+  def
+} def
+
+%setter for graph_mlen
+/motif-length {
+  /graph_mlength
+  exch
+  def
+} def
+
+%setter for graph_binsize
+/bin-size {
+  /graph_binsize
+  exch
+  def
+} def
+
+%setter for graph_binmax
+/bin-max {
+  /graph_binmax
+  exch
+  def
+} def
+
+/threshold {
+ /graph_significant
+ exch
+ def
+} def
+
+/sequences {
+  /graph_sequences
+  exch
+  def
+} def
+
+% Flag setters
+
+%setter for graph_has_border
+/show-border {
+  /graph_has_border true def
+} def
+
+%setter for graph_has_subtitle
+/show-subtitle {
+  /graph_has_subtitle true def
+} def
+
+%setter for graph_has_y_axis_label
+/hide-y-axis-label {
+  /graph_has_y_axis_label false def
+} def
+
+%setter for graph_has_x_axis_label
+/hide-x-axis-label {
+  /graph_has_x_axis_label false def
+} def
+
+/show-stream-labels {
+  /graph_has_stream_label true def
+} def
+
+/show-strand-labels {
+  /graph_has_strand_label true def
+} def
+
+%calculatable variables
+
+/calculate-variables {
+
+  %graph_has_title - if the title string is empty then it isn't shown
+  /graph_has_title
+    graph_title length 0 gt
+  def
+
+  %subtitle
+  /graph_subtitle 
+    (margin: ) 
+    graph_margin 4 string cvs 
+    append
+    (   bin-size: ) 
+    graph_binsize 4 string cvs 
+    append 
+    append
+  def
+
+  %y axis
+  /y_axis_label
+    y_axis_label_start
+    graph_sequences 5 string cvs
+    append
+    y_axis_label_end
+    append
+  def
+
+  /y_axis_max
+    graph_binmax cvi 5 idiv 1 add 5 mul
+  def
+
+  %count width - calculate the maximum width of a count label
+  /count_width
+    font_label setfont
+    0
+    0 5 y_axis_max {
+      4 string cvs stringwidth pop 2 copy gt {pop} {exch pop} ifelse
+    } for
+  def
+
+  %spacing_width - calucate the maximum width of a spacing label
+  /spacing_width
+    font_label setfont
+    0
+    0 1 graph_margin 1 sub {
+      6 string cvs stringwidth pop 2 copy gt {pop} {exch pop} ifelse
+    } for
+  def
+
+  %quad_height - the height of one of the quadrants, also the maximum size of a bar
+  /quad_height
+    height
+    graph_has_border {
+      spacer_border 2 mul sub
+    } if
+    spacer_top sub
+    graph_has_title {
+      size_title sub
+    } if % subtract title size only if the title is used
+    graph_has_title graph_has_subtitle and {
+      spacer_title sub
+    } if
+    graph_has_subtitle {
+      size_subtitle sub
+    } if
+    graph_has_title graph_has_subtitle or {
+      spacer_subtitle sub
+    } if
+    graph_has_stream_label {
+      size_axis sub
+    } if
+    spacer_base 2 mul sub
+    spacing_width sub
+    graph_has_x_axis_label {
+      spacer_axis sub
+      size_axis sub
+    } if
+    spacer_bottom sub
+    2 div
+  def
+
+  /quad_max_width
+    width
+    graph_has_border {
+      spacer_border 2 mul sub
+    } if
+    spacer_side 2 mul sub 
+    graph_has_y_axis_label {
+      size_axis sub 
+      spacer_axis sub 
+    } if
+    count_width sub 
+    spacer_tic sub 
+    size_tic sub
+    spacer_mid_exp sub
+    graph_has_strand_label {
+      size_axis sub
+      spacer_axis sub
+    } if
+    2 div
+  def
+
+  /unit_width
+    quad_max_width graph_margin div
+    dup 1 gt {floor} if
+  def
+
+  /quad_width
+    unit_width graph_margin mul
+  def
+
+  /spacer_mid
+    spacer_mid_exp
+    quad_max_width quad_width sub 2 mul 
+    add
+  def
+
+  /left_quad 0
+    graph_has_border {
+      spacer_border add
+    } if
+    spacer_side add 
+    graph_has_y_axis_label {
+      size_axis add 
+      spacer_axis add 
+    } if
+    count_width add 
+    spacer_tic add 
+    size_tic add
+    ceiling
+  def
+
+  /right_quad
+    left_quad
+    quad_width add
+    spacer_mid add
+  def
+
+  /bottom_quad
+    0
+    graph_has_border {
+      spacer_border add
+    } if
+    spacer_bottom add
+    graph_has_x_axis_label {
+      size_axis add
+      spacer_axis add
+    } if
+  def
+
+  /top_quad
+    bottom_quad
+    quad_height add
+    spacer_base 2 mul add
+    spacing_width add
+  def
+
+  % number of bins that each position in them is possible
+  /full_bin_count
+    graph_margin graph_mlength sub 1 add % calculate number of posible positions
+    graph_binsize idiv % calculate number of complete bins
+  def
+
+  /partial_bar_width
+    graph_margin graph_mlength sub 1 add % calculate number of possible positions
+    graph_binsize mod
+    unit_width mul
+  def
+
+  /full_bar_width
+    unit_width graph_binsize mul
+  def
+
+} def
+
+/bar-scale {
+  y_axis_max div
+  quad_height mul
+} def
+
+/draw-border {
+  /top height spacer_border sub def
+  /right width spacer_border sub  def
+  /left spacer_border def
+  /bottom spacer_border def
+  newpath
+    right top moveto
+    left top lineto
+    left bottom lineto
+    right bottom lineto
+    closepath
+  stroke
+} def
+
+/draw-title {
+  font_title setfont
+  /x width 2 div graph_title stringwidth pop 2 div sub def
+  /y height
+    graph_has_border {
+      spacer_border sub 
+    } if
+    spacer_top sub 
+    size_title sub 
+  def
+  x y moveto
+  graph_title
+  show
+} def
+
+/draw-subtitle {
+  font_subtitle setfont
+  /x width 2 div graph_subtitle stringwidth pop 2 div sub def
+  /y height 
+    graph_has_border {
+      spacer_border sub 
+    } if
+    spacer_top sub 
+    graph_has_title {
+      size_title sub 
+      spacer_title sub 
+    } if
+    size_subtitle sub 
+  def
+  x y moveto
+  graph_subtitle
+  show
+} def
+
+/draw-y-axis-label {
+  font_axis setfont
+  gsave
+    /x 0
+      graph_has_border {
+        spacer_border add
+      } if
+      spacer_side add 
+      size_axis add 
+    def
+    /y height 2 div y_axis_label stringwidth pop 2 div sub def
+    x y translate
+    90 rotate
+    0 0 moveto
+    y_axis_label
+    show
+  grestore
+} def
+
+/draw-y-axis-part {
+  gsave
+    x y translate
+    newpath
+      -0.5 0 moveto
+      -0.5 quad_height y_inc 0 lt {neg} if lineto
+    stroke
+    0 5 y_axis_max {
+      % draw count label
+      4 string cvs
+      dup
+      dup stringwidth pop size_tic add neg 
+      exch string-vcenter
+      moveto
+      show
+      % draw tic mark
+      newpath
+        0 0.5 moveto
+        size_tic neg 0.5 lineto
+      stroke
+      % move up the page
+      0 y_inc translate
+    } for
+  grestore
+} def
+
+/draw-y-axis {
+  /x left_quad def
+  /y top_quad def
+  /y_inc quad_height y_axis_max div 5 mul def
+  font_label setfont
+  draw-y-axis-part
+  /y y spacer_base 2 mul sub spacing_width sub def
+  /y_inc y_inc neg def
+  draw-y-axis-part
+} def
+
+/draw-strand-label {
+  font_axis setfont
+  /x right_quad quad_width add spacer_axis add size_axis add def
+  /y top_quad quad_height 2 div add same_strand_label stringwidth pop 2 div sub def
+  gsave
+    x y translate
+    90 rotate
+    0 0 moveto
+    same_strand_label
+    show
+  grestore
+  /y bottom_quad quad_height 2 div add oppo_strand_label stringwidth pop 2 div sub def
+  gsave
+    x y translate
+    90 rotate
+    0 0 moveto
+    oppo_strand_label
+    show
+  grestore
+} def
+
+/draw-x-axis-label {
+  font_axis setfont
+  /x width 2 div x_axis_label stringwidth pop 2 div sub def
+  /y 0
+    graph_has_border {
+      spacer_border add
+    } if
+    spacer_bottom add 
+  def
+  x y moveto
+  x_axis_label
+  show
+} def
+
+/draw-stream-label {
+  font_axis setfont
+  /x left_quad quad_width 2 div add upstream_label stringwidth pop 2 div sub def
+  /y top_quad quad_height add def
+  x y moveto
+  upstream_label
+  show
+  /x right_quad quad_width 2 div add upstream_label stringwidth pop 2 div sub def
+  x y moveto
+  downstream_label
+  show
+} def
+
+/draw-x-axis-num {
+  4 string cvs
+  gsave
+    90 rotate %rotate to paint string on side
+    dup
+    dup stringwidth % measure x & y displacement of origin string
+    pop % the change in y is useless as it's always zero
+    neg % setup translation for vertical centering
+    exch string-vcenter
+    moveto
+    show %display the string
+  grestore
+} def
+
+
+/draw-x-axis {
+  font_label setfont
+  /x left_quad quad_width add def
+  /y bottom_quad quad_height add spacer_base add spacing_width add def
+  /skip size_label unit_width div cvi def
+  skip 0 eq {/skip 1 def} if %avoid modulus of zero
+  %round up to nearest multiple of 10
+  skip 10 mod 0 gt
+  {
+    /skip skip skip 10 mod sub 10 add def
+  } if
+  
+  gsave
+    x unit_width 2 div sub y translate
+    0 1 graph_margin 1 sub {
+      dup skip mod 0 eq {
+        draw-x-axis-num
+      } 
+      {pop} 
+      ifelse
+      unit_width neg 0 translate
+    } for
+  grestore
+  /x right_quad def
+  gsave
+    x unit_width 2 div add y translate
+    0 1 graph_margin 1 sub {
+      dup skip mod 0 eq {
+        draw-x-axis-num
+      } 
+      {pop} 
+      ifelse
+      unit_width 0 translate
+    } for
+  grestore
+} def
+
+/draw-divider-part {
+  gsave 
+    [1 2] 0 setdash
+    x y translate
+    newpath
+     0.5 0 moveto
+     0.5 dy lineto
+    stroke
+    spacer_mid 0 translate
+    newpath
+     -0.5 0 moveto
+     -0.5 dy lineto
+    stroke
+  grestore
+} def
+
+/draw-divider {
+  /x left_quad quad_width add def
+  /y top_quad def
+  /dy quad_height def
+  draw-divider-part
+  /y bottom_quad quad_height add def
+  /dy quad_height neg def
+  draw-divider-part
+} def
+
+/draw-ender-part {
+  gsave
+    x y translate
+    newpath
+    0.5 0 moveto
+    0.5 quad_height lineto
+    stroke
+  grestore
+} def
+
+/draw-ender {
+  /x right_quad quad_width add def
+  /y top_quad def
+  draw-ender-part
+  /y bottom_quad def
+  draw-ender-part
+} def
+
+/draw-bar {
+  /bar_width exch def
+  /pvalue exch def
+  bar-scale /bar_height exch def
+  gsave
+    pvalue graph_significant gt
+    {0.8 setgray} % normal colour
+    {0.8 0 0 setrgbcolor} % significant colour
+    ifelse
+    bar_width setlinewidth
+    newpath
+      bar_width 2 div 0 moveto
+      bar_width 2 div bar_height lineto
+    stroke
+  grestore
+} def
+
+/draw-bars-part {
+  gsave
+    %skip over the impossible bin part
+    graph_mlength 1 sub unit_width mul 0 translate
+    %draw the divider for the latest possible motif loction
+    graph_mlength 0 gt {
+      gsave
+        1 setlinewidth
+        [1 2] 0 setdash
+        newpath
+          -0.5 0 moveto
+          -.05 quad_height lineto
+        stroke
+      grestore
+    } if
+    % for the partial bin if there is one
+    partial_bar_width 0 ne {
+      partial_bar_width
+      draw-bar
+      partial_bar_width 0 translate
+    } if
+    % for each full bin
+    full_bin_count {
+      full_bar_width
+      draw-bar
+      full_bar_width 0 translate
+    } repeat
+  grestore
+
+} def
+
+/draw-bars {
+  % bottom right
+  gsave
+    right_quad quad_width add bottom_quad quad_height add translate 
+    -1 -1 scale %mirror on x and y axis
+    draw-bars-part
+  grestore
+  % bottom left
+  gsave
+    left_quad bottom_quad quad_height add translate 
+    1 -1 scale %mirror on y axis
+    draw-bars-part
+  grestore
+  % top right
+  gsave
+    right_quad quad_width add top_quad translate 
+    -1 1 scale % mirror on x axis
+    draw-bars-part
+  grestore
+  %top left
+  gsave
+    left_quad top_quad translate 
+    draw-bars-part
+  grestore
+} def
+
+/graph {
+  calculate-variables
+  graph_has_border {draw-border} if
+  graph_has_title {draw-title} if
+  graph_has_subtitle {draw-subtitle} if
+  graph_has_y_axis_label {draw-y-axis-label} if
+  graph_has_strand_label {draw-strand-label} if
+  draw-y-axis
+  graph_has_x_axis_label {draw-x-axis-label} if
+  graph_has_stream_label {draw-stream-label} if
+  draw-x-axis
+  draw-divider
+  draw-ender
+  draw-bars
+} def
+

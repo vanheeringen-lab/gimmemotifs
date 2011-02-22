@@ -1,0 +1,145 @@
+#!@WHICHPERL@ -w
+# AUTHOR: Timothy L. Bailey
+# CREATE DATE: 24 Nov 2006
+#use strict;
+use File::Basename;
+
+$PGM = $0;			# name of program
+$PGM =~ s#.*/##;                # remove part up to last slash
+#@args = @ARGV;			# arguments to program
+$| = 1;				# flush after all prints
+$SIG{'INT'} = \&cleanup;	# interrupt handler
+# Note: so that interrupts work, always use for system calls:
+# 	if ($status = system("$command")) {&cleanup($status)}
+
+# requires
+push(@INC, split(":", $ENV{'PATH'}));	# look in entire path
+
+# defaults
+$get_all = 0;
+
+my $usage = <<USAGE;		# usage message
+  USAGE:
+	$PGM [options]
+
+	[-id <modif_id>]+	id of motif to extract from MEME .txt file
+	[-all]			get all motifs in the MEME .txt file
+	[-noll]			MEME file is missing log-odds matrices
+
+	Extract a motifs from a MEME-formated motif database
+	or from a MEME output file (.txt format).
+
+	Reads standard input.
+	Writes standard output.
+
+        Copyright
+        (2006) The University of Queensland
+        All Rights Reserved.
+        Author: Timothy L. Bailey
+USAGE
+
+$nargs = 1;			# number of required args
+if ($#ARGV+1 < $nargs) { &print_usage("$usage", 1); }
+
+# get input arguments
+%id_list = ();
+$n_needed = 0;
+while ($#ARGV >= 0) {
+  $_ = shift;
+  if ($_ eq "-h") {				# help
+    &print_usage("$usage", 0);
+  } elsif ($_ eq "-all") {
+    $get_all = 1;
+  } elsif ($_ eq "-noll") {
+    $no_ll = 1;
+  } elsif ($_ eq "-id") {
+    $_ = shift;
+    $id_list{$_} = 1; 
+    $n_needed++;
+  } else {
+    &print_usage("$usage", 1);
+  }
+}
+
+$header = "";
+$n_left = $n_needed;				# number of ids not found yet
+while (<STDIN>) {
+  next if (/^#/ || /^\s*$/);                    # skip comment, blank lines
+
+  # save header lines
+  $header .= "$_\n" if (/^MEME version/ || /^ALPHABET/ || /^strands/);
+  if (/^Background/) {
+      $header .= $_;
+      # keep lines lines starting with a letter then digit
+      while (<STDIN>) {
+          if (/^\s*[a-zA-Z]\s*\d/) {
+              $header .= $_;
+          } else {
+              last;
+          }
+      }
+  }
+
+  next if (/^#/ || /^\s*$/);                    # skip comment, blank lines
+  my @words = split;
+  if ($words[0] eq "MOTIF" && ($get_all || $id_list{$words[1]})) {	# found a target motif
+    print "$header\n" if ($n_needed == $n_left--);	# print header first time
+    print "\n$_\n";					# print motif line
+    my $n_reps = 0;
+    while (<STDIN>) {					# find matrix representations
+      print if (/^BL /);				# print block line
+      if (/^log-odds/ || /^letter-probability/) {	# motif matrix
+        print;
+        @words = split;
+        my $w = $words[5];				# motif width
+        for (my $i=0; $i<$w; $i++) {			# print the motif matrix
+          $_ = <STDIN>;
+          print;
+        }
+        last if ($no_ll || $n_reps++ >= 1);		# done after letter-probability printed
+      }
+    }
+    exit(1) if (!$get_all && $n_left<=0);			# all done
+  }
+
+};
+
+# cleanup files
+#&cleanup($status);
+ 
+################################################################################
+#                       Subroutines                                            #
+################################################################################
+ 
+################################################################################
+#
+#       print_usage
+#
+#	Print the usage message and exit.
+#
+################################################################################
+sub print_usage {
+  my($usage, $status) = @_;
+ 
+  if (-c STDOUT) {			# standard output is a terminal
+    open(C, "| more");
+    print C $usage;
+    close C;
+  } else {				# standard output not a terminal
+    print STDERR $usage;
+  }
+
+  exit $status;
+}
+ 
+################################################################################
+#       cleanup
+#
+#       cleanup stuff
+#
+################################################################################
+sub cleanup {
+  my($status, $msg) = @_;
+  if ($status && "$msg") {print STDERR "$msg: $status\n";}
+  exit($status);
+}

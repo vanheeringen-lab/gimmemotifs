@@ -1,0 +1,85 @@
+#!@WHICHPERL@
+#
+# $Id: cat_max.pl.in 5026 2010-10-20 07:00:35Z james_johnson $
+# $Log$
+# Revision 1.1  2005/07/28 23:51:55  nadya
+# Initial revision
+#
+#
+# AUTHOR: Timothy L. Bailey
+# CREATE DATE:
+
+$PGM = $0;			# name of program
+$PGM =~ s#.*/##;                # remove part up to last slash
+@args = @ARGV;			# arguments to program
+$| = 1;				# flush after all prints
+$SIG{'INT'} = 'cleanup';	# interrupt handler
+# Note: so that interrupts work, always use for system calls:
+# 	if ($status = system($command)) {&cleanup($status)}
+
+# requires
+push(@INC, split(":", $ENV{'PATH'}));	# look in entire path
+
+# defaults
+$bufsize = 65536;
+
+$usage = <<USAGE;		# usage message
+  USAGE:
+	$PGM <max>
+
+	Reads standard input.
+	Writes standard output.
+
+	Copies standard input to standard output and quits with $status 1
+	if more than <max> bytes are written.
+        Copyright
+        (2000) The Regents of the University of California.
+        All Rights Reserved.
+        Author: Timothy L. Bailey
+USAGE
+
+$nargs = 1;			# number of required args
+if ($#ARGV+1 < $nargs) { &print_usage("$usage", 1); }
+
+# get input arguments
+while ($#ARGV >= 0) {
+  $_ = shift;
+  if ($_ eq "-h") {				# help
+    &print_usage("$usage", 0);
+  } else {
+    $max = $_;
+  }
+}
+
+$tot = 0;
+while ($n = read(STDIN, $_, $bufsize)) {
+  $tot += $n;
+  exit(1) if ($tot > $max);
+  print STDOUT;
+}
+exit(0);
+
+################################################################################
+#                       Subroutines                                            #
+################################################################################
+ 
+################################################################################
+#
+#       print_usage
+#
+#	Print the usage message and exit.
+#
+################################################################################
+sub print_usage {
+  my($usage, $status) = @_;
+ 
+  if (-c STDOUT) {			# standard output is a terminal
+    open(C, "| more");
+    print C $usage;
+    close C;
+  } else {				# standard output not a terminal
+    print STDERR $usage;
+  }
+
+  exit $status;
+}

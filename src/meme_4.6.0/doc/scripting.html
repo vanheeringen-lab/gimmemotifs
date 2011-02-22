@@ -1,0 +1,98 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>Scripting MEME Web Applications</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>Scripting MEME Web Applications</h1>
+      <p/>
+      The MEME Suite web applications are exposed as SOAP Web services through the
+      <a href="http://www.nbcr.net/software/opal/">Opal toolkit</a>.
+      This means that you can access the MEME suite web applications from
+      Perl or Python scripts without having to install the MEME Suite locally.
+      <p/>
+      Four sample scripts that demonstrate how to submit jobs to the MEME Web services are provided:
+      <ul>
+        <li>
+        <a href="examples/sample_opal_scripts/MemeClient.pl">MemeClient.pl</a>
+        demonstrates calling the MEME web application from a Perl script.
+        </li>
+        <li>
+        <a href="examples/sample_opal_scripts/FimoClient.pl">FimoClient.pl</a>
+        demonstrates calling the FIMO web application from a Perl script.
+        </li>
+        <li>
+        <a href="examples/sample_opal_scripts/MemeClient.py">MemeClient.py</a> 
+        demonstrates calling the MEME web application from a Python script.
+        </li>
+        <li>
+        <a href="examples/sample_opal_scripts/FimoClient.py">FimoCient.py</a> 
+        demonstrates calling the FIMO web application from a Python script.
+        </li>
+      </ul>
+      <p/>
+      The scripts expect to find two data files in the working directory:
+      <ul>
+      <li>
+        <a href="examples/sample_opal_scripts/crp0.fasta">crp0.fasta</a>
+      </li>
+      <li>
+        <a href="examples/sample_opal_scripts/crp0.meme.xml">crp0.meme.xml</a>
+      </li>
+      </ul>
+      <p/>
+      The MEME client scripts will run MEME on 
+      <a href="examples/sample_opal_scripts/crp0.fasta">crp0.fasta</a>
+      and store the output in a local directory named <code>meme_out</code>.
+      The FIMO client scripts will run Fimo on 
+      <a href="examples/sample_opal_scripts/crp0.meme.xml">crp0.meme.xml</a>
+      and
+      <a href="examples/sample_opal_scripts/crp0.fasta">crp0.fasta</a>
+      and store the output in a local directory named <code>fimo_out</code>.
+      <p/>
+      You don't need to have a local copy of MEME Suite installed to
+      access the web applications from your script, but you do need to have
+      the appropriate version of the 
+      <a href="http://sourceforge.net/projects/opaltoolkit/files/">Opal client libraries</a>
+      installed.
+      To install the 
+      <a href="http://sourceforge.net/projects/opaltoolkit/files/">Opal client libraries</a>
+      refer to the 
+      <a href="http://www.nbcr.net/software/opal/docs/1.9/opal-perl-index.html">installation Instructions for Perl</a>
+      or
+      <a href="http://www.nbcr.net/software/opal/docs/2.X/opal-py-index.html">installation instructions for Python</a>.
+      <p/>
+      The Perl <a href="http://sourceforge.net/projects/opaltoolkit/files/">Opal client libraries</a>
+      require you to have Perl 5.0.8 or higher, and you must have installed 
+      <code>SOAP::Lite</code> 0.69 or higher.
+      You may need to adjust the <code>PERL5LIB</code> environment variable to
+      include the directory containing the Perl Opal client.
+      <p/>
+      The demonstration scripts use the
+      <a href="http://meme.nbcr.net">NBCR MEME Web Server</a>
+      but you can use a local MEME web server by changing the service URL.
+      This is specified in the variable <code>$location</code> in the Perl script,
+      and in the variable <code>serviceURL</code> in the Python script.
+      <p/>
+      An important advantage of submitting MEME Suite jobs by script is that you
+      are not limited to the handful of options provided on the HTML forms.
+      You can specify any of the options available for the command-line version
+      of the MEME Suite applications.
+      Note however that the required arguments must come before the optional arguments.
+      This is the reverse of the standard order when using the command-line directly.
+      Read the comments in the scripts for more details.
+      <h3><b>Important Note</b></h3>
+      <p/>
+      Scripting clients can easily submit enough jobs to overwhelm a MEME server,
+      even one with substantial hardware resources.
+      If you are sending jobs to a shared server, please submit only one job at a time.
+      <p/>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>readseq</title>
+    <link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>readseq</h1>
+
+      <p><b>Usage:</b> <code>readseq [options] &lt;in.seq&gt; &gt; &lt;out.seq&gt; </code>
+      </p>
+
+      <p><b>Description:</b></p>
+
+      <p>
+      Converts protein and DNA sequence data formats.
+      </p>
+
+      <p><b>Input:</b> </p>
+
+      <ul>
+
+      <li>
+      A DNA or protein sequence alignment in one of the supported formats.
+      </li>
+
+      </ul>
+
+
+      <p><b>Output:</b></p>
+
+      <ul>
+        <li>
+          The converted seqeuences are written to <code>stdout</code>.
+        </li>
+      </ul>
+
+      <p><b>Options:</b></p>
+
+      <ul>
+        <li>
+        <code>-a[ll]</code>
+        - Select all sequences.
+        </li>
+        <li>
+        <code>-c[aselower]</code>
+        - Change to lower case.
+        </li>
+        <li>
+        <code>-C[ASEUPPER]</code>
+        - Change to lower case.
+        </li>
+        <li>
+        <code>-degap</code>
+        - Remove gap symbols.
+        </li>
+        <li>
+        <code>-i[tem=2,3,4]</code>
+        - Select item number(s) from several.
+        </li>
+        <li>
+        <code>-o[output=]out.seq</code>
+        - Redirect output.
+        </li>
+        <li>
+        <code>-p[ipe]</code>
+        - Pipe (command line, &lt;stdin, &gt;stdout).
+        </li>
+        <li>
+        <code>-r[everse]</code>
+        - Change to reverse complement.
+        </li>
+        <li>
+        <code>-v[erbose]</code>
+        - Verbose progress.
+        </li>
+        <li>
+        <code>-f[ormat=]#</code>
+        - Format number for output, or 
+        </li>
+        <li>
+        <code>-f[ormat=]Name</code>
+        - Format name for output:
+        <table>
+          <tbody>
+            <tr>
+            <td>
+              <ol>
+                <li>
+                  IG/Stanford
+                </li>
+                <li>
+                  GenBank/GB
+                </li>
+                <li>
+                  NBRF
+                </li>
+                <li>
+                  EMBL
+                </li>
+                <li>
+                  GCG
+                </li>
+                <li>
+                  DNAStrider
+                </li>
+                <li>
+                  Fitch
+                </li>
+                <li>
+                  Pearson/Fasta
+                </li>
+                <li>
+                  Zuker (in-only)
+                </li>
+              </ol>
+            </td>
+            <td>
+              <ol>
+                <li>
+                  Olsen (in-only)
+                </li>
+                <li>
+                  Phylip3.2
+                </li>
+                <li>
+                  Phylip
+                </li>
+                <li>
+                  Plain/Raw
+                </li>
+                <li>
+                  PIR/CODATA
+                </li>
+                <li>
+                  MSF
+                </li>
+                <li>
+                  ASN.1 
+                </li>
+                <li>
+                  PAUP/NEXUS
+                </li>
+                <li>
+                  Pretty (out-only)
+                </li>
+              </ol>
+            </td>
+            </tr>
+          </tbody>
+        </table>
+        </li>
+        </ul>
+        <p>
+        Pretty format options:
+        </p>
+        <ul>
+        <li>
+        <code>-wid[th]=#</code>
+        - Sequence line width.
+        </li>
+        <li>
+        <code>-tab=#</code>
+        - Left indent.
+        </li>
+        <li>
+        <code>-col[space]=#</code>
+        - Column space within sequences line on output.
+        </li>
+        <li>
+        <code>-gap[count]</code>
+        - Count gap characters in sequence numbers.
+        </li>
+        <li>
+        <code>-nameleft, -nameright[=#]</code>
+        - Name on left/right side <code>[=max width]</code>.
+        </li>
+        <li>
+        <code>-nametop</code>
+        - Name at top/bottom.
+        </li>
+        <li>
+        <code>-numleft, -numright</code>
+        - Name on left/right side <code>[=max width]</code>.
+        </li>
+        <li>
+        <code>-numtop, -numbot[=#]</code>
+        - Index on top/bottom.
+        </li>
+        <li>
+        <code>-match[=.]</code>
+        - Use match base for 2 .. n species.
+        </li>
+        <li>
+        <code>-interline[=#]</code>
+        - Blank line(s) between sequence blocks.
+        </li>
+      </ul>
+
+      <p>
+      <b>Warning messages:</b>
+      </p>
+
+      <ul>
+        <li>
+          None
+        </li>
+      </ul>
+
+      <p><b>Bugs:</b>
+        None known.
+      </p>
+
+      <p><b>Author:</b>
+        readseq was written by  D. G. Gilbert
+      </p>
+    </div>
+  </body>
+</html>

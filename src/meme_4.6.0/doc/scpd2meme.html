@@ -1,0 +1,62 @@
+<!--
+FILE: scpd2meme.html
+AUTHOR: William Stafford Noble, Timothy Bailey, Charles E. Grant
+CREATE DATE: 10/30/2007
+PROJECT: MEME Suite
+-->
+<head>
+<title>scpd2meme</title>
+<link href="./meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" type="image/png" href="../images/memesuite_icon.png">
+</head>
+<body>
+<div id="main">
+<script src="./meme-suite-logo.js" type="text/javascript">></script>
+<h1>scpd2meme</h1>
+<p><b>Usage:</b> <code>scpd2meme [options] &lt;matrix file&gt;</code></p>
+<p><b>Description:</b></p>
+<p>
+Convert an SCPD matrix file into a MEME version 4 formatted file
+suitable for use with MAST and other MEME Suite programs.
+</p>
+<p><b>Input:</b></p>
+<p>An SCPD matrix file describes one ore more motifs in terms of letter
+frequencies.</p>
+<p>A probability matrix and optionally a log-odds matrix are output for each
+motif in the file. The probability matrix is computed using
+pseudo-counts consisting of the background frequency (see -bg, below)
+multiplied by the total pseudocounts (see -pseudo, below). The log-odds
+matrix uses the background frequencies in the denominator and is log
+base 2.</p>
+<p><b>Options:</b></p>
+<dl>
+  <dt>-skip &lt;scpd ID&gt;</dt><dd>skip this ID (may be repeated)</dd>
+  <dt>-numbers</dt><dd>use numbers instead of strings as motif names</dd>
+  <dt>-bg &lt;background file&gt;</dt><dd>file with background frequencies of letters; default: uniform background</dd>
+  <dt>-pseudo &lt;total pseudocounts&gt;</dt><dd>add &lt;total pseudocounts&gt; times letter background to each frequency; default: 0</dd>
+  <dt>-logodds</dt><dd>print log-odds matrix, too; default: print frequency matrix only</dd>
+  <dt>-url &lt;website&gt;</dt><dd>website for the motif; The scpd ID is substituted for MOTIF_NAME; default: no url</dd>
+</dl>
+<p><b>Output:</b></p>
+<p>
+Writes MEME format to standard output.
+</p>
+<p><b>Sample Input:</b></p>
+<p>
+<pre>
+&gt;RLM1   22      524     MCB 1997, 17:1848-1859
+A  10  14  11   0   0   0  42  16  22  23  32   0  42   0  27   4   7  10
+T   8  10  30  37   0  42   0  26  20  19  10  42   0   0   1  20  16   7
+G  10  16   1   5   0   0   0   0   0   0   0   0   0  42   0   2   3  10
+C  10   2   0   0  42   0   0   0   0   0   0   0   0   0  14  15  16  13
+&gt;SMP1   11      405     MCB 1997, 17:1848-1859
+A   8   8  11   0   0   8   0   0  30   6  13  14  21   0  30   2   8  27   9   6
+T   4  12   0   9  30  11   1  30   0  24  16  16   9  30   0   0   7   1   9   7
+G   5   4  19   0   0  11   0   0   0   0   0   0   0   0   0  28   0   0   7   4
+C   3   5   0  21   0   0  29   0   0   0   0   0   0   0   0   0  14   0   4   9
+</pre>
+</p>
+
+</div>
+</body>
+</html>

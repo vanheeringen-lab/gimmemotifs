@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st January 2004), see www.w3.org">
+<title>Meta-MEME v3.3</title>
+<link href="metameme.css" rel="styleSheet" type="text/css">
+</head>
+<body bgcolor="white">
+<blockquote>
+<h1><img height="81" width="444" src="images/meta-meme.gif"></h1>
+<h3>Frequently asked questions</h3>
+<hr>
+<ul>
+<li><b>Why can't the Meta-MEME program 'mhmm' read my MEME output
+file?</b>
+<p>Meta-MEME can only read the HTML version of MEME ouput.
+Also, Meta-MEME cannot read MEME files that contain both
+positive and negative motifs. If you don't know what this means,
+don't worry about it. Only advanced MEME users are likely to
+produce files containing positive and negative motifs. In the
+future, Meta-MEME will be capable of processing these motifs.</p>
+</li>
+<li><b>Why doesn't Meta-MEME include in the hidden Markov model all
+of the motifs that I requested?</b>
+<p>This is generally only a problem if you have downloaded the
+Meta-MEME source code and installed it locally.</p>
+<p>When building a linear HMM, Meta-MEME uses output from MEME to
+set the order and spacing of motifs within the model. Meta-MEME
+therefore requires that the MEME output provided to 'mhmm' contains
+at least one motif occurence diagram that contains exactly one
+occurence of each of the selected motifs. Occurences of motifs that
+were not requested are ignored.</p>
+<p>If, for example, you request that the model contain motifs 1, 2
+and 3, but the MEME output file contains only these diagrams</p>
+<pre>
+   30-[1]-23-[3]-1
+   28-[1]-32
+   40-[2]-2-[3]-1
+   2-[1]-[1]-4-[2]-[3]-3
+</pre>
+then 'mhmm' will be unable to find a representative diagram. The
+program will then throw out the last requested motif and re-search
+the diagrams, repeating this procedure until it finds a diagram
+that works. In this case, there is no diagram containing motifs 1
+and 2 either, so the final model would be based upon the first
+diagram and would contain only motif 1.
+</li>
+<li><b>All of the scores from my Meta-MEME search are below zero.
+What does this mean, and how do I fix it?</b>
+<p>Occasionally, Meta-MEME has a tendency to improperly scale the
+log-odds scores that it reports. This is a result of the mismatch
+between the topology of the foreground and background models. The
+problem is especially likely when Viterbi, rather than total
+probability, log-odds scores are computed. You can try computing
+total probability scores instead, or turn off the training portion
+of Meta-MEME to create a model that is less finely-tuned to your
+particular training set.</p>
+</li>
+</ul>
+<hr>
+<a href="metameme-intro.html">Return</a> to the Meta-MEME home page.
+<p><i>Please send comments and questions to:
+<a href=
+"mailto:@METAMEME_CONTACT@">@METAMEME_CONTACT@</a>.</i></p>
+</blockquote>
+</body>
+</html>

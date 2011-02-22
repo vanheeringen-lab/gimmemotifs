@@ -1,0 +1,632 @@
+#!@WHICHPERL@ -w
+#
+# FILE: meme2meme
+# AUTHOR: James Johnson
+# CREATE DATE: 20/8/2010
+# DESCRIPTION: Extract motifs out of a set of meme formatted files and compile them into a single motif database
+# 
+
+use warnings;
+use strict;
+
+use lib qw(@PERLLIBDIR@);
+
+use MotifUtils qw(intern_to_iupac intern_to_meme read_background_file parse_double round);
+
+use Data::Dumper;
+use Fcntl qw(O_RDONLY);
+use Getopt::Long;
+use HTML::PullParser;
+use Pod::Usage;
+use XML::Simple;
+
+=head1 NAME
+
+meme2meme - Takes meme motifs in many forms and makes a single database in minimal meme format.
+
+=head1 SYNOPSIS
+
+meme2meme [options] <meme file>+
+
+ Options:
+  -consensus                    numeric names are swapped for an IUPAC 
+                                consensus; default: use existing names
+  -numbers                      use numbers instead of strings for motif names;
+                                default: use existing ID
+  -bg <background file>         file with background frequencies of letters; 
+                                default: use first file background
+  -logodds                      print log-odds matrix as well as frequency matrix;
+                                default: frequency matrix only
+  -url <website>                website for the motif if it doesn't have one 
+                                already; The motif name is substituted for 
+                                MOTIF_NAME; default: use existing url
+  -forceurl                     Existing urls are ignored
+
+ Takes meme motifs in many forms and makes a single database in minimal meme format.
+ Note that this doesn't accept the old meme html format (prior to version 4.3.2).
+
+ Writes to standard output.
+
+=cut
+
+
+# Set option defaults
+my $use_consensus = 0;
+my $use_numbers = 0;
+my $bg_file = "";
+my $print_logodds = 0;
+my $url_pattern = "";
+my $force_url = 0;
+
+GetOptions("consensus" => \$use_consensus, "numbers" => \$use_numbers, 
+  "bg=s" => \$bg_file, "logodds" => \$print_logodds, "url=s" => \$url_pattern, 
+  "forceurl" => \$force_url) or pod2usage(2);
+pod2usage("A meme file must be specified for the conversion.") unless @ARGV;
+my @meme_files = @ARGV;
+
+# get the background model but only if a file was specified
+my %bg = ();
+
+my %motifs = ();
+foreach my $file (@meme_files) {
+  die("Can't open \"$file\"") unless (-e $file);
+  next if parse_meme_xml($file);
+  next if parse_meme_html($file);
+  next if parse_meme_text($file);
+  print STDERR "Failed to parse \"$file\" as a meme file.\n";
+}
+# resolve naming conflicts in one of two ways
+my $num_motifs = 0;
+if ($use_numbers) { #easy way: make up new names
+  foreach my $name (sort keys %motifs) {
+    my $same = $motifs{$name};
+    my $count = scalar(@{$same});
+    for (my $i = 0; $i < $count; $i++) {
+      my $motif = $same->[$i];
+      $motif->{alt} = $motif->{id};
+      $motif->{id} = $num_motifs + 1;
+      print intern_to_meme($motif, $print_logodds, 1, !($num_motifs++));
+    }
+  }
+} else {
+  foreach my $name (sort keys %motifs) {
+    my $same = $motifs{$name};
+    my $count = scalar(@{$same});
+    for (my $i = 0; $i < $count; $i++) {
+      my $motif = $same->[$i];
+      if ($count > 1) { # if names aren't unique then make them unique
+        my $newid = $motif->{id} . "." . ($i + 1);
+        while ($motifs{$newid}) {
+          $newid = $motif->{id} . "." . int(rand(1000000));
+        }
+        $motif->{id} = $newid;
+      }
+      print intern_to_meme($motif, $print_logodds, 1, !($num_motifs++));
+    }
+  }
+}
+
+
+#
+# parse_meme_xml
+#
+# warning, accesses global variables, only intended as an internal function
+#
+# Takes a meme xml file and adds any contained motifs to the global $motifs variable.
+#
+#
+sub parse_meme_xml {
+  my ($file) = @_;
+  # try to open the file as xml
+  my $doc;
+  my $alpha;
+  eval {
+    $doc = XMLin($file, KeepRoot => 1, ForceArray => 1, KeyAttr => []);
+    #grab the training set
+    $alpha = $doc->{MEME}->[0]->{training_set}->[0]->{alphabet}->[0];
+  };
+  # check for eval errors and that we can succesfully look up the alphabet
+  return 0 if ($@ || !$alpha);
+  my $is_dna = $alpha->{id} eq 'nucleotide';
+  # read in the mapping from id to residue
+  my %residue_map = ();
+  my $letters = $alpha->{letter};
+  foreach my $letter (@{$letters}) {
+    $residue_map{$letter->{id}} = $letter->{symbol};
+  }
+  # make a background (unless we already have one)
+  unless (%bg) {
+    if ($bg_file) {
+      %bg = &read_background_file($is_dna, $bg_file);
+    } else {
+      my $bg_data = $doc->{MEME}->[0]->{model}->[0]->{background_frequencies}->[0];
+      my $bg_array = $bg_data->{alphabet_array}->[0]->{value};
+      foreach my $bg_value (@{$bg_array}) {
+        $bg{$residue_map{$bg_value->{letter_id}}} = $bg_value->{content};
+      }
+      $bg{source} = $bg_data->{source};
+      $bg{dna} = $is_dna;
+    }
+  }
+  # read in the strand count
+  my $strand_data = $doc->{MEME}->[0]->{model}->[0]->{strands}->[0];
+  my $strands = ($strand_data eq 'both' ? 2 : 1);
+  # read all the motifs
+  my $motifs_data = $doc->{MEME}->[0]->{motifs}->[0]->{motif};
+  foreach my $motif_data (@{$motifs_data}) {
+    my $pspm = {};
+    my $pssm = {};
+    foreach my $residue (values %residue_map) {
+      $pspm->{$residue} = [];
+      $pssm->{$residue} = [];
+    }
+    # fill the score matrix
+    my $scores = $motif_data->{scores}->[0]->{alphabet_matrix}->[0]->{alphabet_array};
+    die("Mismatch\n") if (scalar(@{$scores}) != $motif_data->{width});
+    for (my $pos = 0; $pos < scalar(@{$scores}); $pos++) {
+      my $values = $scores->[$pos]->{value};
+      foreach my $value (@{$values}) {
+        $pssm->{$residue_map{$value->{letter_id}}}->[$pos] = $value->{content};
+      }
+    }
+    # fill the probability matrix
+    my $probs = $motif_data->{probabilities}->[0]->{alphabet_matrix}->[0]->{alphabet_array};
+    for (my $pos = 0; $pos < scalar(@{$probs}); $pos++) {
+      my $values = $probs->[$pos]->{value};
+      foreach my $value (@{$values}) {
+        $pspm->{$residue_map{$value->{letter_id}}}->[$pos] = $value->{content};
+      }
+    }
+    # get the name
+    my $name = $motif_data->{name};
+    # get the url
+    my $url = $motif_data->{url};
+    $url = '' if $force_url;
+    unless ($url) {
+      $url = $url_pattern;
+      $url =~ s/MOTIF_NAME/$name/g; #use the original id in the url
+    }
+    my $motif = {dna => $is_dna, bg => \%bg, strands => $strands, 
+      id => $name, alt => '', url => $url, 
+      width => $motif_data->{width}, sites => $motif_data->{sites}, 
+      pseudo => 0, evalue => $motif_data->{e_value}, pspm => $pspm, 
+      pssm => $pssm};
+    
+    # if the user wishes, we can transform a numerical id into a consensus
+    if ($use_consensus && $name =~ m/^\d+$/) {
+      $name = intern_to_iupac($motif);
+      $motif->{id} = $name;
+    }
+    # add the motif
+    my $list = $motifs{$name};
+    if ($list) {
+      push(@{$list}, $motif); 
+    } else {
+      $motifs{$name} = [$motif];
+    }
+  }
+  return 1;
+}
+
+#
+# parse_meme_html
+#
+# warning, accesses global variables, only intended as an internal function
+#
+# Takes a file and extracts <input type="hidden" name="" value=""/> fields.
+# A MEME html (after 4.3.2 release) file has the hidden fields:
+# version       - a version string like: "MEME version 4.3.2"
+# alphabet      - alphabet of motif, for example ACGT for DNA
+# strands       - only relevent to DNA "both" means 5` and 3` strands were used
+# bgfreq        - the background model
+# name          - input fasta file
+# combinedblock - information in the combined block diagram
+# nmotifs       - number of motifs
+# motifblockX   - motif X header line for blocks information
+# pssmX         - motif X PSSM information
+# pspmX         - motif X PSPM information
+# blocksX       - motif X actual blocks (with header)
+#
+# Parsed motifs are added to the global variable $motifs.
+#
+sub parse_meme_html {
+  my ($file) = @_;
+
+  # before attempting any html parsing, try to get the version string because old html is parsed as text
+  my $fp;
+  sysopen($fp, $file, O_RDONLY) || die("Failed to open file $file.");
+  my $line;
+  while ($line = <$fp>) {
+    if ($line =~ m/MEME\s+version\s+(\S+)/) {
+      my @nums = split(/\./, $1);
+      push(@nums, (0,0,0));
+      close($fp);
+      return 0 if $nums[0] < 4; #html too old, parse with text parser
+      if ($nums[0] == 4) {
+        return 0 if $nums[1] < 3; #html too old, parse with text parser
+        if ($nums[1] == 3) {
+          return 0 if $nums[2] < 2; #html too old, parse with text parser
+        }
+      }
+      last;
+    }
+  }
+
+  # attempt parsing as html
+  my $parser = HTML::PullParser->new(file => $file, start => 'attr', report_tags => qw(input));
+  die("Failed to open file \"$file\" for HTML parsing\n") if (not defined $parser);
+
+  my $is_dna;
+  my @alphabet;
+  my $strands = 2;
+  my $index = 0;
+  my @motif_list = ();
+
+  while (my $token = $parser->get_token) {
+    my %attrs = %{@{$token}[0]}; 
+    if (exists($attrs{"type"}) && $attrs{"type"} =~ m/^hidden$/i && exists($attrs{"name"}) && exists($attrs{"value"})) {
+      my $name = $attrs{"name"};
+      my $value = $attrs{"value"};
+      #now parse the tag
+      if ($name eq "version") { # version string
+        #skip
+      } elsif ($name eq "alphabet") { # alphabet
+        $is_dna = ($value eq "ACGT");
+        @alphabet = split(//, $value);
+        die("Alphabet type of \"$file\" does not match previous.\n") if (%bg && $bg{dna} != $is_dna);
+      } elsif ($name eq "strands") { # strands
+        if ($value eq "both") {
+          $strands = 2;
+        } else {
+          $strands = 1;
+        }
+      } elsif ($name eq "bgfreq") { # background frequency
+        unless (%bg) {
+          if ($bg_file) {
+            %bg = &read_background_file($is_dna, $bg_file);
+          } else {
+            my @freqs = split(/\s+/, $value);
+            for (my $i = 0; $i < scalar(@alphabet); $i++) {
+              die("Alphabet mismatch with background in \"$file\".\n") if (uc($freqs[$i*2]) ne $alphabet[$i]);
+              my $freq = parse_double($freqs[$i*2 + 1]);
+              $bg{$alphabet[$i]} = $freq;
+            }
+            $bg{source} = ""; #no easy way to get the source out of the html
+            $bg{dna} = $is_dna;
+          }
+        }
+      } elsif ($name eq "name") {
+        # name of source file, skip
+      } elsif ($name eq "combinedblock") {
+        # data for combined block diagram, skip
+      } elsif ($name eq "nmotifs") { # number of motifs
+        #setup motif data structures
+        my $motif_count = int($value);
+        die("Got motif count of zero in \"$file\".") unless $motif_count;
+        for (my $i = 0; $i < $motif_count; $i++) {
+          my %pssm = ();
+          my %pspm = ();
+          foreach my $letter (@alphabet) {
+            $pssm{$letter} = [];
+            $pspm{$letter} = [];
+          }
+          push(@motif_list, {bg => \%bg, strands => $strands, id => '', 
+              alt => '', url => '', width => 0, sites => 0, pseudo => 0, 
+              evalue => 0, pspm => \%pspm, pssm => \%pssm});
+        }
+      } elsif ($name =~ m/^url(\d+)$/) {
+        my $motif = $motif_list[$index = $1 - 1];
+        $motif->{url} = $value;
+      } elsif ($name =~ m/^motifblock(\d+)$/) {
+        my $motif = $motif_list[$index = $1 - 1];
+        #extract the name
+        if ($value =~ m/^\s*BL\s+MOTIF\s+(\S+)/) {
+          my $name = $1;
+          $motif->{id} = $name;
+          if ($force_url || not $motif->{url}) {
+            my $url = $url_pattern;
+            $url =~ s/MOTIF_NAME/$name/g; #use the original id in the url
+            $motif->{url} = $url;
+          }
+        } else {
+          die("Couldn't get motif name for motif $index in \"$file\".\n");
+        }
+      } elsif ($name =~ m/pssm(\d+)$/) { # position specific score matrix
+        my $motif = $motif_list[$index = $1 - 1];
+        my @lines = split(/\n/, $value);
+        my $first = 1;
+        my $row = 0;
+        foreach my $line (@lines) {
+          next if $line =~ m/^\s*$/; #skip empty lines
+          if ($first) {
+            if ($line =~ m/^\s*log-odds matrix:\s+(.*)$/) {
+              $line = $1;
+              $line =~ s/\s+$//; # trim right
+              my %hdrdata = split(/\s+/, $line);
+              # check alphabet length
+              die("Missing alphabet length on motif $index in $file.\n") unless defined($hdrdata{'alength='});
+              die("Alphabet length on motif $index in $file does not match alphabet.\n") unless (scalar(@alphabet) == $hdrdata{'alength='});
+              # check motif length
+              die("Missing motif length on motif $index in $file.\n") unless defined($hdrdata{'w='});
+              # set sites
+              $motif->{sites} = $hdrdata{'n='} if defined($hdrdata{'n='});
+              # set E-value
+              $motif->{evalue} = $hdrdata{'E='} if defined($hdrdata{'E='});
+            } else {
+              die("Bad PSSM header on motif $index in $file.\n");
+            }
+            $first = 0;
+          } else {
+            $line =~ s/^\s+//; # trim left
+            $line =~ s/\s+$//; # trim right
+            my @scores = split(/\s+/, $line);
+            die("Motif $index in $file has incorrect row $row in PSSM.\n") unless (scalar(@scores) == scalar(@alphabet));
+            for (my $i = 0; $i < scalar(@scores); $i++) {
+              $motif->{pssm}->{$alphabet[$i]}->[$row] = parse_double($scores[$i]);
+            }
+            $row++;
+          }
+        }
+        $motif->{width} = $row;
+      } elsif ($name =~ m/^pspm(\d+)$/) { # position specific probability matrix
+        my $motif = $motif_list[$index = $1 - 1];
+        my @lines = split(/\n/, $value);
+        my $first = 1;
+        my $row = 0;
+        foreach my $line (@lines) {
+          next if $line =~ m/^\s*$/; #skip empty lines
+          if ($first) {
+            if ($line =~ m/^\s*letter-probability matrix:\s+(.*)$/) {
+              my %hdrdata = split(/\s+/, $1);
+              # check alphabet length
+              die("Missing alphabet length on motif $index in $file.\n") unless defined($hdrdata{'alength='});
+              die("Alphabet length on motif $index in $file does not match alphabet.\n") unless (scalar(@alphabet) == $hdrdata{'alength='});
+              # check motif length
+              die("Missing motif length on motif $index in $file.\n") unless defined($hdrdata{'w='});
+              # set sites
+              $motif->{sites} = $hdrdata{'nsites='} if defined($hdrdata{'nsites='});
+              # set E-value
+              $motif->{evalue} = $hdrdata{'E='} if defined($hdrdata{'E='});
+            } else {
+              die("Bad PSPM header on motif $index in $file.\n");
+            }
+            $first = 0;
+          } else {
+            $line =~ s/^\s+//; # trim left
+            $line =~ s/\s+$//; # trim right
+            my @probs = split(/\s+/, $line);
+            die("Motif $index in $file has incorrect row $row in PSPM.\n") unless (scalar(@probs) == scalar(@alphabet));
+            for (my $i = 0; $i < scalar(@probs); $i++) {
+              $motif->{pspm}->{$alphabet[$i]}->[$row] = parse_double($probs[$i]);
+            }
+            $row++;
+          }
+        }
+        $motif->{width} = $row;
+      } elsif ($name =~ m/^BLOCKS(\d+)$/i) {
+        # sequences used, skip
+      }
+    }
+  }
+  # if found nothing then assume it's not a html file
+  return 0 unless (@motif_list);
+
+  #otherwise convert the motifs we found
+  for (my $i = 0; $i < scalar(@motif_list); $i++) {
+    my $motif = $motif_list[$i];
+    # if the user wishes, we can transform a numerical id into a consensus
+    if ($use_consensus && $motif->{id} =~ m/^\d+$/) {
+      $motif->{id} = intern_to_iupac($motif); #TODO should the primary id be exchanged for the secondary?
+    }
+    # add the motif
+    my $list = $motifs{$motif->{id}};
+    if ($list) {
+      push(@{$list}, $motif); 
+    } else {
+      $motifs{$motif->{id}} = [$motif];
+    }
+  }
+  return 1;
+}
+
+
+#
+# parse_meme_text
+#
+# warning, accesses global variables, only intended as an internal function
+#
+#
+sub parse_meme_text {
+  my ($file) = @_;
+
+  my $fp;
+  sysopen($fp, $file, O_RDONLY);
+
+  my $line;
+
+  # find the alphabet
+  my $alphabet_str;
+  while ($line = <$fp>) {
+    if ($line =~ m/ALPHABET=\s+(\S+)/) {
+      $alphabet_str = $1;
+      last;
+    }
+  }
+  return 0 unless $alphabet_str;
+
+  my @alphabet = split(//, $alphabet_str);
+
+  # determine if alphabet is DNA
+  my $is_dna = 0;
+  if ($alphabet_str eq "ACGT") {
+    $is_dna = 1;
+  }
+  die("Alphabet doesn't match previous files\n") if (%bg && $bg{dna} != $is_dna);
+
+  # read strands for DNA
+  my $strands;
+  if ($is_dna) {
+    while ($line = <$fp>) {
+      if ($line =~ m/strands:\s+(\+\s*-?)/) {
+        my $strand_str = $1;
+        if ($strand_str =~ m/\+\s*-/) {
+          $strands = 2;
+        } else {
+          $strands = 1;
+        }
+        last;
+      }
+    }
+    return 0 unless $strands;
+  } else {
+    $strands = 1;
+  }
+
+  # setup the background unless it has already been done
+  unless (%bg) {
+    if ($bg_file) {
+      %bg = &read_background_file($is_dna, $bg_file);
+    } else {
+      while ($line = <$fp>) {
+        if ($line =~ m/Background letter frequencies \(from(\s+[^\)]*)?/) {
+          my $source = $1;
+          $source =~ s/^\s*//; #trim left
+          # read the background frequencies
+          do {
+            $line = <$fp>;
+          } while (defined($line) && $line =~ m/^\s*$/);# skip empty lines
+          die("Expected background frequencies on line following landmark \"Background letter frequencies (\" but got EOF.") unless defined($line);
+          my @freqs = split(/\s+/, $line);
+          for (my $i = 0; $i < scalar(@alphabet); $i++) {
+            die("Failed parsing background from \"$line\" in \"$file\", letter " . uc($freqs[$i*2]). " doesn't match expected " . $alphabet[$i] . ".\n") 
+              if (uc($freqs[$i*2]) ne $alphabet[$i]);
+            my $freq = parse_double($freqs[$i*2 + 1]);
+            $bg{$alphabet[$i]} = $freq;
+          }
+          $bg{source} = $source;
+          $bg{dna} = $is_dna;
+          last;
+        }
+      }
+    }
+  }
+
+  #read the motifs
+  $line = <$fp>;
+  my @motif_list = ();
+  my $motif = {};
+  my $index = 0;
+  my $new_pssm_ref;
+  my $new_pspm_ref;
+  while ($line) {
+    
+    #look for the start of a motif
+    if ($line =~ m/^MOTIF\s+(.*)$/) {
+      my @words = split(/\s+/, $1);
+      die("Motif $index in $file missing motif name.\n") unless scalar(@words) > 0 && $words[0] ne "";
+      # if there was a previous motif then add it to the list
+      push(@motif_list, $motif) if $motif->{id};
+
+      my %pssm = ();
+      my %pspm = ();
+      foreach my $letter (@alphabet) {
+        $pssm{$letter} = [];
+        $pspm{$letter} = [];
+      }
+      $new_pssm_ref = \%pssm;
+      $new_pspm_ref = \%pspm;
+
+      my $id = $words[0];
+      my $alt = (scalar(@words) > 1 && $words[1] ne "width" ? $words[1] : "");
+
+      my $url = $url_pattern;
+      $url =~ s/MOTIF_NAME/$id/g; #use the original id in the url
+
+      $motif = {id => $id, alt => $alt, bg => \%bg, 
+        strands => $strands, url => $url, width => 0, sites => 0, pseudo => 0, evalue => 0};
+      
+      $index += 1;
+    } 
+    #look for the start of a log odds matrix
+    elsif ($line =~ m/log-odds matrix:\s+(.*)$/) {
+      $line = $1;
+      $line =~ s/\s+$//; #trim right
+      $motif->{pssm} = $new_pssm_ref;
+      my %motif_params = split(/\s+/, $line);
+      #check that we have the parameters we require
+      die("Motif $index in $file is missing required parameter(s) in log-odds matrix.\n") 
+          unless (defined($motif_params{'alength='}) && defined($motif_params{'w='}) &&  defined($motif_params{'E='}));
+      $motif->{width} = $motif_params{'w='}; 
+      $motif->{evalue} = $motif_params{'E='};
+      for (my $row = 0; $row < $motif->{width}; $row++) {
+        $line = <$fp>;
+        die("Expected line of scores\n") unless defined $line;
+        $line =~ s/^\s+//; # trim left
+        $line =~ s/\s+$//; # trim right
+        my @scores = split(/\s+/, $line);
+        die("Motif $index in $file has incorrect row $row in PSSM.\n") unless (scalar(@scores) == scalar(@alphabet));
+        for (my $i = 0; $i < scalar(@scores); $i++) {
+          $motif->{pssm}->{$alphabet[$i]}->[$row] = parse_double($scores[$i]);
+        }
+      }
+
+    }
+    #look for the start of a letter probability matrix
+    elsif ($line =~ m/^letter-probability matrix:\s+(.*)$/) {
+      $line = $1;
+      $line =~ s/\s+$//; #trim right
+      $motif->{pspm} = $new_pspm_ref;
+      my %motif_params = split(/\s+/, $line);
+      #check that we have the parameters we require
+      die("Motif $index in $file is missing required parameter(s) in letter-probability matrix.\n") 
+          unless (defined($motif_params{'alength='}) && defined($motif_params{'w='}) && 
+              defined($motif_params{'nsites='}) &&  defined($motif_params{'E='}));
+      $motif->{width} = $motif_params{'w='}; 
+      $motif->{sites} = $motif_params{'nsites='};
+      $motif->{evalue} = $motif_params{'E='};
+      die("What the!\n") unless defined($motif);
+      for (my $row = 0; $row < $motif->{width}; $row++) {
+        $line = <$fp>;
+        die("Expected line of scores\n") unless defined $line;
+        $line =~ s/^\s+//; # trim left
+        $line =~ s/\s+$//; # trim right
+        my @probs = split(/\s+/, $line);
+        die("Motif $index in $file has incorrect row $row in PSPM.\n") unless (scalar(@probs) == scalar(@alphabet));
+        for (my $i = 0; $i < scalar(@probs); $i++) {
+          $motif->{pspm}->{$alphabet[$i]}->[$row] = parse_double($probs[$i]);
+        }
+      }
+    }
+    #look for the URL
+    elsif ($line =~ m/^URL\s+(.*)$/) {
+      $motif->{url} = $1 unless $force_url;
+    }
+    $line = <$fp>;
+  }
+  close($fp);
+
+  # if there was a previous motif then add it to the list
+  push(@motif_list, $motif) if $motif->{id};
+
+  # if found nothing then assume it's not a text file
+  return 0 unless (@motif_list);
+
+  #otherwise convert the motifs we found
+  for (my $i = 0; $i < scalar(@motif_list); $i++) {
+    my $motif = $motif_list[$i];
+    # if the user wishes, we can transform a numerical id into a consensus
+    if ($use_consensus && $motif->{id} =~ m/^\d+$/) {
+      $motif->{id} = intern_to_iupac($motif);
+    }
+    # add the motif
+    my $list = $motifs{$motif->{id}};
+    if ($list) {
+      push(@{$list}, $motif); 
+    } else {
+      $motifs{$motif->{id}} = [$motif];
+    }
+  }
+  return 1;
+}
+
+1;

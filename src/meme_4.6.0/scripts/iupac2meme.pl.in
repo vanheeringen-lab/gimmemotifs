@@ -1,0 +1,95 @@
+#!@WHICHPERL@ -w
+#
+# $Id:$
+#
+# FILE: iupac2meme
+# AUTHOR: Timothy L. Bailey
+# CREATE DATE: 3/06/2010
+# DESCRIPTION: Convert a DNA IUPAC motif to MEME format 
+
+use warnings;
+use strict;
+
+
+use lib qw(@PERLLIBDIR@);
+
+use MotifUtils qw(seq_to_intern intern_to_meme read_background_file);
+
+use Getopt::Long;
+use Pod::Usage;
+
+=head1 NAME
+
+iupac2meme - Converts IUPAC motifs into MEME motifs.
+
+=head1 SYNOPSIS
+
+iupac2meme [options] <iupac motif>+
+
+ Options: 
+  -alpha DNA|PROTEIN            IUPAC alphabet; default: DNA
+  -numseqs <numseqs>            assume frequencies based on this many 
+                                sequences; default: 20
+  -bg <background file>         file with background frequencies of letters; 
+                                default: uniform background
+  -pseudo <total pseudocounts>  add <total pseudocounts> times letter 
+                                background to each frequency; default: 0
+  -logodds                      output the log-odds (PSSM) and frequency 
+                                (PSPM) motifs; default: PSPM motif only
+  -url <website>                website for the motif; The motif name is 
+                                substituted for MOTIF_NAME; default: no url
+  -nosort			don't sort the order of motifs
+ 
+ Converts IUPAC motifs into MEME motifs.
+ 
+ Example IUPAC DNA motif: ACGGWNNYCGT
+ Example IUPAC PROTEN motif: IKLVBZYXXHG
+
+ Writes standard output.
+
+=cut
+
+# Set option defaults
+my $alph_type = 'DNA';
+my $num_seqs = 20;
+my $bg_file;
+my $pseudo_total = 0;
+my $print_logodds = 0;
+my $url_pattern = "";
+my $no_sort = 0;
+my @motif_strings = ();
+
+GetOptions("alpha=s" => \$alph_type, "numseqs=i" => \$num_seqs, 
+  "bg=s" => \$bg_file, "pseudo=f" => \$pseudo_total, "logodds" => \$print_logodds,
+  "url=s" => \$url_pattern, "nosort" => \$no_sort) or pod2usage(2);
+@motif_strings = @ARGV;
+
+#check alpha type
+$alph_type = uc($alph_type);
+pod2usage("Option -alpha must be either DNA or PROTEIN.") if ($alph_type !~ m/(DNA|PROTEIN)/);
+#check num seqs
+pod2usage("Option -numseqs must have a positive value.") if ($num_seqs < 0);
+#check pseudo total
+pod2usage("Option -pseudo must have a positive value.") if ($pseudo_total < 0);
+#check IUPAC motifs
+pod2usage("At least one IUPAC motif must be specified.") if (!@motif_strings);
+
+#sort the motifs
+@motif_strings = sort(@motif_strings) unless $no_sort;
+
+# get the background model
+my %bg = &read_background_file($alph_type eq 'DNA', $bg_file);
+
+
+#
+# convert the IUPAC motifs to MEME format
+#
+my $num_motifs = 0;
+foreach  my $iupac_motif (@motif_strings) {
+  my $url = $url_pattern;
+  $url =~ s/MOTIF_NAME/$iupac_motif/g;
+  my ($motif, $errors) = seq_to_intern(\%bg, $iupac_motif, $num_seqs, $pseudo_total, url => $url);
+  print STDERR join("\n", @{$errors}), "\n" if @{$errors};
+  print intern_to_meme($motif, $print_logodds, 1, !($num_motifs++)) if $motif;
+} # convert motif to MEME format
+

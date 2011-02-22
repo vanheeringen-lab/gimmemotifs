@@ -1,0 +1,35 @@
+# <db_root>,<prot?>,<nuc?>,<short_seqs?>,<db_menu_name>,<db_long_name>,<protein_url>,<nuc_url>
+,,,yes,-----Non-redundant and Special Databases-----,,,
+
+alu,yes,yes,yes,ALU,Alu repeats from REPBASE; suitable for masking Alu repeats from query sequences.  It is available by anonymous FTP from ncbi.nih.gov (under the /pub/jmc/alu directory). See "Alu alert" by Claverie and Makalowski; Nature vol. 371 page 752 (1994).,ftp.ncbi.nih.gov/blast/db/FASTA/alu.a.gz,ftp.ncbi.nih.gov/blast/db/FASTA/alu.n.gz
+
+epd,no,yes,yes,Eukaryotic Promoter Database,<a href=http://www.genome.ad.jp/dbget-bin/www_bfind?epd>Eucaryotic Promoter Database</a>,,ftp.epd.unil.ch/pub/databases/epd/views/epd??.seq
+
+nr,yes,no,yes,NCBI non-redundant protein database,NR: non-redundant protein sequence database with entries from GenPept+Swissprot+PIR+PDF+PDB+NCBI+RefSeq;,ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz,
+
+#nr,no,yes,no,NCBI non-redundant nucleotide database,NT: non-redundant nucleotide entries from all traditional divisions of GenBank+EMBL+DDBJ excluding bulk divisions (gss+sts+pat+est+htg+wgs).,,ftp.ncbi.nih.gov/blast/db/FASTA/nt.gz
+
+pdb,yes,yes,yes,Protein Data Bank,PDB protein and nucleotide sequence databases.,ftp.ncbi.nih.gov/blast/db/FASTA/pdbaa.gz,ftp.ncbi.nih.gov/blast/db/FASTA/pdbnt.gz
+
+swissprot,yes,no,yes,Swissprot,<a href="http://ca.expasy.org/sprot/sprot_details.html">Swissprot</a> protein sequence database; last major update.,ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz,
+
+#kabat,yes,yes,yes,Kabat's Sequences of Proteins of Immunological Interest,<a href='ftp://ftp.ncbi.nih.gov/repository/kabat/Rel5.0/README'>Kabat's Sequences of Proteins of Immunological Interest</a>,ftp.ncbi.nih.gov/repository/kabat/fasta_format/KABAT_FASTA_AMINO.Z,
+#est,no,yes,yes,EST,EST  database from the EST division of GenBank+EMBL+DDBJ.,,ftp.ncbi.nih.gov/blast/db/FASTA/est.nal
+#est_human,no,yes,yes,EST Human,Human subset of the EST.,,ftp.ncbi.nih.gov/blast/db/FASTA/est_human.gz
+#est_mouse,no,yes,yes,EST Mouse,Mouse subset of the EST.,,ftp.ncbi.nih.gov/blast/db/FASTA/est_mouse.gz
+#est_others,no,yes,yes,EST Others,Non-human and non-mouse subset of the EST.,,ftp.ncbi.nih.gov/blast/db/FASTA/est_others.gz
+#gss,no,yes,no,GSS,GSS database from the GSS division of GenBank+EMBL+DDBJ.,,ftp.ncbi.nih.gov/blast/db/FASTA/gss.gz
+#htgs,no,yes,no,HTGS,HTGS database with entries from HTG division of GenBank+EMBL+DDBJ.,,ftp.ncbi.nih.gov/blast/db/FASTA/htgs.gz
+#human_genomic,no,yes,no,Human genomic,Human RefSeq (NC_######) chromosome records with gap adjusted concatenated NT_ contigs.,,ftp.ncbi.nih.gov/blast/db/FASTA/human_genomic.gz
+#month,no,yes,no,Month,Monthly updates of EST.,,ftp.ncbi.nih.gov/blast/db/FASTA/month.aa.gz
+#month_est_human,no,yes,no,Month EST Human,Monthly updates of EST Human.,,ftp.ncbi.nih.gov/blast/db/FASTA/month.est_human.gz
+#month_est_mouse,no,yes,no,Month EST Mouse,Monthly updates of EST Mouse.,,ftp.ncbi.nih.gov/blast/db/FASTA/month.est_mouse.gz
+#month_est_others,no,yes,no,Month EST Others,Monthly updates of EST Others.,,ftp.ncbi.nih.gov/blast/db/FASTA/month.est_others.gz
+#month_gss,no,yes,no,Month GSS,Monthly updates of GSS.,,ftp.ncbi.nih.gov/blast/db/FASTA/month.gss.gz
+#month_htgs,no,yes,no,Month HTGS,Monthly updates of HTGS.,,ftp.ncbi.nih.gov/blast/db/FASTA/month.htgs.gz
+#month_nt,no,yes,no,Month NT,Monthly updates of NT.,,ftp.ncbi.nih.gov/blast/db/FASTA/month.nt.gz
+#other_genomic,no,yes,no,Other Genomic,RefSeq chromosome records (NC_######) for organisms other than human.,,ftp.ncbi.nih.gov/blast/db/FASTA/other_genomic.gz
+#sts,no,yes,yes,STS,Sequences from the STS division of GenBank+EMBL+DDBJ.,,ftp.ncbi.nih.gov/blast/db/FASTA/sts.gz
+#vector,no,yes,yes,Vector,Vector sequence database;  for vector contamination screening use the UniVec database from: ftp://ftp.ncbi.nih.gov/pub/UniVec/,,ftp.ncbi.nih.gov/blast/db/FASTA/vector.gz
+#wgs,no,yes,no,WGS,Whole genome shotgun sequence assemblies.,,ftp.ncbi.nih.gov/blast/db/FASTA/wgs.gz
+#genpept,yes,no,yes,Genpept,,ftp.ncbi.nih.gov/genbank/rel153.fsa_aa.gz,

@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>gendb</title>
+    <link href="./meme-suite.css" rel="styleSheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+      <script src="./meme-suite-logo.js" type="text/javascript">></script>
+      <h1>gendb</h1>
+      <p><b>Usage:</b> gendb [options] &lt;numseqs&gt;</p>
+      <p><b>Description:</b></p>
+      <p>
+        <code>gendb</code> generates the specified number of sequences
+        using a Markov model.  The sequence lengths are selected
+        uniformly at random within the range specified
+        by <code>--minseq</code> and <code>--maxseq</code>.
+      </p>
+      <p><b>Input:</b></p>
+      <ul>
+        <li>None</li>
+      </ul>
+      <p><b>Output:</b></p>
+      <ul>
+        <li>Writes the sequences in FASTA format to <code>stdout</code>.</li>
+      </ul>
+      <p><b>Options:</b></p>
+      <ul>
+      <li><command-option program="gendb" name="bfile"/></li>
+      <li><command-option program="gendb" name="seed"/></li>
+      <li><command-option program="gendb" name="minseq"/></li>
+      <li><command-option program="gendb" name="maxseq"/></li>
+      <li><command-option program="gendb" name="order"/></li>
+      <li><command-option program="gendb" name="dummy"/></li>
+      <li><command-option program="gendb" name="type"/></li>
+      </ul>
+      <p><b>Bugs:</b> None known.</p>
+      <p><b>Author:</b> Tim Bailey</p>
+    </div>
+  </body>
+</html>

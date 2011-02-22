@@ -1,0 +1,138 @@
+<!--
+##
+## $Id: mast-input.html 2562 2008-04-17 21:39:56Z cegrant $
+##
+## $Log$
+##
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MAST - Input</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+            <h1>MAST -- Motif Alignment and Search Tool</h1>
+            <h2><i>Motif search tool</i></h2>
+            <hr />
+            <h3><b>The input to MAST contains the following fields.</b></h3>
+            <ul>
+            <li style="list-style: none">
+            <a name="motif-file"></a></li>
+            <li><b>motifs</b><br />
+            This is the name of a file on your computer that contains one
+            or more of motifs that characterize a group of related sequences.
+            This will normally be the name of a file that contains the results of a
+            <a href="meme-intro.html"><b>MEME</b></a> analysis. If you wish to
+            use motifs from another source it must be first converted to a 
+            compatble <a href="doc/meme-format.html" >format</a>. A "browse" button is
+            provided by MAST to help you locate the motif file you wish to use.
+            <li><a name="strands"></a><b>treatment of reverse complement strands</b><br />
+            MAST can automatically generate the reverse complement strand for
+            each <b>nucleotide</b> sequence in the database and treat it in
+            three different ways. ("Given strand" refers to the sequence as it
+            appears in the database MAST is searching.):
+            <ol>
+            <li><b>combine with given strand</b><br />
+            MAST searches for motif occurrences on either the given strand or
+            its reverse complement <b>together</b>, not allowing occurrences on
+            the two strands to overlap each other, and displays them together
+            as a single sequence. This allows motifs to occur on either strand
+            and still count toward the overall <i>E</i>-value of the
+            match. (The given strand is the sequence as it appears in the
+            database MAST is searching.)</li>
+            <li><b>treat as separate sequence</b><br />
+            MAST to search for motifs in both the given strand and its reverse
+            complement, treating them as two, independent sequences. As of version
+            4.3.2 the results are displayed together in the html though in previous
+            versions the results were displayed separately for the two strands, as though
+            both had occurred in the database.</li>
+            <li><b>none</b><br />
+            MAST searches only the given strand of each sequence in the
+            database.</li>
+            </ol>
+            <b>Note</b>: this field has no effect when the database contains
+            protein sequences. <a name="use_seq_comp"></a></li>
+            <li><b>use individual sequence composition in <i>E</i>-and
+            <i>p</i>-value</b> calculation<br />
+            This option can improve search selectivity when erroneous matches
+            are due to <b>biased sequence composition</b>. MAST normally
+            computes <i>E</i>-values and <i>p</i>-values using a random
+            sequence model based on the <b>overall</b> letter composition of
+            the <b>database</b> being searched. Selecting this option will
+            cause MAST to use a <b>different</b> random model for <b>each
+            target sequence</b>. The random model for each target sequence will
+            be based on its letter composition, not that of the entire
+            database. Using this option will tend to give more accurate
+            <i>E</i>-values and increase the <i>E</i>-values of compositionally
+            biased sequences. This option may <b>increase search times
+            substantially</b> if used in conjunction with <a href=
+            "#ev"><i>E</i>-value display thresholds</a> over 10, since MAST
+            must compute a new set of motif score distributions for each
+            high-scoring sequence. <a name="mev"></a></li>
+            <li><b>ignore motifs with high <i>E</i>-values</b><br />
+            MAST can ignore motifs in the query with <i>E</i>-values above a
+            threshold you select. This is desirable because motifs with high
+            <i>E</i>-values are unlikely to be biologically significant. The
+            default threshold will cause MAST to use <b>all</b> motifs in the
+            query, regardless of their <i>E</i>-values.<br />
+            <b>Note:</b> This option is only available for motifs generated by
+            MEME 3.0 and above. <a name="dna"></a></li>
+            <li><b>search nucleotide database with protein motifs</b><br />
+            Choosing this option will cause MAST to search the nucleotide
+            version of the selected sequence database, converting the
+            nucleotide sequences to protein sequences in all six reading
+            frames. By default, MAST searches the protein version of the
+            selected database when you give it a file of protein motifs.
+            <a name="use_seq_p"></a></li>
+            <li><b>scale motif display threshold by sequence length</b><br />
+            MAST displays motifs that score above a threshold for all
+            high-scoring sequences. By default, this threshold is based on the
+            probability of the motifs without regard to the length of the
+            sequence. The threshold was chosen with protein sequences of
+            average length in mind. Consequently, many positions in very long
+            sequences may match motifs with scores above this threshold by
+            chance, making the results difficult to interpret. Selecting this
+            option causes the motif display threshold to take sequence length
+            into account. This will reduce the number of weak motifs displayed
+            in long sequences and minimize the size of the output file.
+            <a name="ev"></a></li>
+            <li><b><i>E</i>-value display threshold</b><br />
+            MAST only displays sequences matching your query with
+            <i>E</i>-values below the given threshold you specify here. By
+            default, sequences in the database with matches with
+            <i>E</i>-values less than 10 are displayed. If your motifs are very
+            short or have low information content (are not very specific), it
+            may be impossible for any sequence to achieve a low <i>E</i>-value.
+            If your MAST search returns no hits, you may wish to increase the
+            <i>E</i>-value display threshold and repeat the search.</li>
+            </ul>
+            <a href="cgi-bin/mast.cgi"><b>Search using MAST</b></a><br />
+            <a href="mast-intro.html"><b>MAST introduction</b></a><br />
+            <a href="intro.html"><b>MEME SUITE introduction</b></a>
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

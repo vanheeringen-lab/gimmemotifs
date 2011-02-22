@@ -1,0 +1,115 @@
+# $Id: UID.txt,v 1.1.1.1 2004/10/07 19:44:13 cegrant Exp $
+# UID.pm
+# Paul Pavlidis, Dec 2002.
+# Functions used to select and validate a user id, and to make the directory the user's id will live in.
+# These functions are meant to be called before logging begins. Based on code from MiNK.
+package UID;
+require Exporter;
+@ISA = qw(Exporter);
+@EXPORT = qw( assignUID getUID validateUID );
+
+use lib qw(@MODULE_DIR@);
+use strict;
+use CGIutil;
+use MetaGlobals;
+use CGI::Carp qw(fatalsToBrowser);
+
+#-----------------------------------------------------------------
+# assignUID - We concatenate the requester's IP address with the PID
+# of the process the script is running under.
+#-----------------------------------------------------------------
+sub assignUID($) {
+  my ($query) = @_;
+  my $requester = $query->remote_addr();
+  if ($requester !~ m/([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})/) { # untaint
+    error("Invalid requester", $query);
+  } else {
+    $requester = $1;
+  }
+
+  my $salt = 0;
+  if ($ENV{MOD_PERL}) {
+    srand(time());
+    $salt = int rand(10000); # there are few unique processes we will be running under with mod_perl
+  } else {
+    $salt = $$;
+  }
+
+  my $uid = "${requester}__$salt";
+  if ( -e "$UPLOAD_DIR/$uid" ) { # if that dir with the pid already exist
+    my $i = 0;
+    while ( -e "$UPLOAD_DIR/$uid-$i" ) { # append a number to the pid
+      ++$i;
+    }
+    $uid .= "-$i";
+  }
+  $uid =~ s/(.+)/$1/; # untaint. At this point, the uid has been validated.
+
+  return "$uid";
+} # sub assignUID
+
+
+#-----------------------------------------------------------------
+# Not exported.
+# createDir($uid, $query, $backto)
+# create the directory for the user
+#-----------------------------------------------------------------
+sub createDir($$$) {
+  my ($uid, $query, $backto) = @_;
+  if (!mkdir("$UPLOAD_DIR/$uid", 0777) || !mkdir("$OUTPUT_DIR/$uid", 0755)) {
+    error("Internal error - failed to create dir $UPLOAD_DIR/$uid: $!", $query);
+  }
+  chmod(0777, "$UPLOAD_DIR/$uid");
+  return $uid;
+} # sub createDir($)
+
+
+#-----------------------------------------------------------------
+# obtain a uid from somewhere.
+#-----------------------------------------------------------------
+sub getUID($) {
+  my ($query) = @_;
+  my $uid;
+  my $method = $query->request_method();
+  if ( ( $query->param($RECALL_FIELD) &&
+	 $query->param($RECALL_FIELD) eq "TRUE" ) ||
+       ( $query->param('useprev') &&
+	 $query->param('useprev') eq "CHECKED" )) {
+    $uid = $query->cookie('uid');
+  } elsif ($method eq 'GET') {
+    $uid = validateParam($query, $UID_FIELD, 1, $SITE_MANAGER);
+  } else { # assume POST
+    # check to see if there is a uid in the query. If there is, try to use it.
+    # This lets us use this function anywhere we need the uid, not just upload.
+    if ($query->param($UID_FIELD)) {
+      $uid = validateParam($query, $UID_FIELD, 1, $SITE_MANAGER);
+    } else {
+      $uid = assignUID($query);
+      $uid = createDir($uid, $query, $query->self_url); # possibly have to change uid if it exists already.
+    }
+  }
+  validateUID($query, $uid, $SITE_MANAGER);
+  return $uid;
+} # sub getUID
+
+
+#-----------------------------------------------------------------
+# ValidateUID - assumes UID has format IPADDRESS__PROCESSID. This just
+# checks that the requester is valid
+# validateUID($query, $uid); # assumes uid has already been checked for overall legality with validateParam.
+#-----------------------------------------------------------------
+sub validateUID($$$) {
+  my ($query, $uid, $mailto) = @_;
+
+  if (!$uid) {
+    error("Missing userid", $query);
+  }
+
+#  my ($ip, $proc) = split /__/, $uid;
+#  my $requester = $query->remote_addr();
+#  if ($ip ne $requester) {
+#    error("You are not coming from the same IP address that the data was uploaded from.", $query);
+#  }
+} # sub validateUID
+
+1;

@@ -1,0 +1,6 @@
+Note that the make process will build the .cgi files from the .pl files,
+filtering them through sed scripts to add site specific configuation
+information.
+
+This means that you should edit only the .pl files NOT the .cgi files. You
+can then use 'make' and 'make install' to generate the .cgi files and copy them to the proper location.

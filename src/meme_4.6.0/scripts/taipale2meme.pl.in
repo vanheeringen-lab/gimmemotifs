@@ -1,0 +1,119 @@
+#!@WHICHPERL@ -w
+#
+# FILE: taipale2meme
+# AUTHOR: James Johnson
+# CREATE DATE: 19/10/2010
+# DESCRIPTION: Process tab separated files exported from spreadsheets (xls files).
+# 
+
+use warnings;
+use strict;
+
+use lib qw(@PERLLIBDIR@);
+
+use MotifUtils qw(matrix_to_intern intern_to_meme read_background_file);
+
+use Getopt::Long;
+use Pod::Usage;
+
+
+=head1 NAME
+
+taipale2meme - Process tab separated value files that have been exported from spreadsheets to meme motifs. 
+
+=head1 SYNOPSIS
+
+taipale2meme [options]
+
+ Options:
+  -postfix <append>       text to append to motif names.
+  -strands 1|2            print '+ -' or '+' on the MEME strand line;
+                          default: 2 (prints '+ -')
+  -bg <background file>   file with background frequencies of letters; 
+                          default: use first file background
+  -pseudo <A>             add <A> times background frequency to
+                          each count when computing letter frequencies
+                          default: 0
+  -logodds                print log-odds matrix as well as frequency matrix;
+                          default: frequency matrix only
+  -url <website>          website for the motif if it doesn't have one 
+                          already; The motif name is substituted for 
+                          MOTIF_NAME; default: use existing url
+  -h                      print usage message
+
+ Reads standard input.
+ Writes standard output.
+
+=cut
+
+# Constants
+my $is_dna = 1;
+my $sites = 20;
+
+# set option defaults
+my $postfix = "";
+my $strands = 2;
+my $bg_file;
+my $pseudo_total = 0;
+my $print_logodds = 0;
+my $url_pattern = "";
+my $help = 0;
+
+
+GetOptions("postfix=s" => \$postfix, "strands=i" => \$strands, "bg=s" => \$bg_file, 
+  "pseudo=f" => \$pseudo_total, "logodds" => \$print_logodds, 
+  "url=s" => \$url_pattern, "h" => \$help) or pod2usage(2);
+
+#check strands
+pod2usage("Option -strands must be either 1 or 2.") unless ($strands == 1 || $strands == 2);
+#check pseudo total
+pod2usage("Option -pseudo must have a positive value.") if ($pseudo_total < 0);
+
+pod2usage(1) if $help;
+
+my @l5l = ("", "", "", "", "");
+my $matchA = qr/^(["']?)[aA]\1\t/;
+my $matchC = qr/^(["']?)[cC]\1\t/;
+my $matchG = qr/^(["']?)[gG]\1\t/;
+my $matchT = qr/^(["']?)[tT]\1\t/;
+
+my $num_motifs = 0;
+
+# get the background model
+my %bg = &read_background_file($is_dna, $bg_file);
+
+while (<>) {
+  chomp;
+  # skip blank lines
+  next if (/^\s*$/);
+  #update the last 5 lines
+  push(@l5l, $_);
+  shift(@l5l);
+
+  #look for A, C G and T possibly wrapped with " or ' at the start of the last 4 lines
+  if ($l5l[1] =~ $matchA && $l5l[2] =~ $matchC && $l5l[3] =~ $matchG && $l5l[4] =~ $matchT) {
+    # try to extract the name
+    my $name;
+    foreach (split(/\t/,$l5l[0])) {
+      if ($_ =~ m/^(["']?)(.+)\1$/) {
+        $name = $2 . $postfix;
+        last;
+      }
+    }
+    die("Missing motif name!\n") unless defined($name);
+    my $url = $url_pattern;
+    $url =~ s/MOTIF_NAME/$name/g;
+    # extract the PSPM and convert it
+    my $matrix = "";
+    for (my $i = 1; $i < 5; $i++) {
+      my $line = $l5l[$i];
+      $line =~ s/^(["']?)[aAcCgGtT]\1\t//;
+      $matrix .= $line . "\n";
+    }
+    my ($motif, $errors) = matrix_to_intern(\%bg, $matrix, 'col', $sites, $pseudo_total, rescale => 1, id => $name, url => $url);
+    print STDERR join("\n", @{$errors}), "\n" if @{$errors};
+    print intern_to_meme($motif, $print_logodds, 1, !($num_motifs++)) if $motif;
+    #ensure no accidental reuse of data by clearing the cache
+    @l5l = ("", "", "", "", "");
+  }
+}

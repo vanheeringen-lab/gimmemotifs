@@ -1,0 +1,76 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MEME - FAQ</title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" type="images/x-icon" href="images/memesuite_icon.ico">
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+            <h1>Frequently Asked Questions</h1>
+            <!-- 
+            Developers: When you add a new question, 
+            1) Update next available tag section by adding 1.
+            2) Add the question first to the table of contents. 
+            3) Add the question and answer to the answers section.
+            -->
+            <!--
+            Next available tag: Q002
+            -->
+            <hr />
+            <!-- Table of Contents -->
+            <ul>
+            <li><a href="#Q001"><b>Q.</b> Why don't the motif occurrences in
+            the "Summary of Motifs" block diagrams match the occurrences shown
+            in the individual motif block diagrams?</a></li>
+            </ul>
+            <hr />
+            <!-- Answers -->
+            <ul>
+            <li style="list-style: none"><a name="Q001"></a></li>
+            <li><b>Q.</b> Why don't the motif occurrences in the "Summary of
+            Motifs" block diagrams match the occurrences shown in the
+            individual motif block diagrams?
+            <p><b>A.</b> This is a feature, not a bug. The motif occurrences
+            shown for a motif in its section of the output are the ones
+            discovered by the MEME algorithm. These occurrences are then used
+            to create a position specific scoring matrix (PSSM) for the motif.
+            The PSSMs for all of the motifs discovered by MEME are then used to
+            search for non-overlapping sets of occurrences of motifs with
+            p-values under 0.0001 using the MAST algorithm. These are displayed
+            in the "Summary of Motifs" block diagram. Individual motif
+            occurrences will sometimes be missing from the "Summary of Motifs"
+            block diagram because of the non-overlapping or minimum p-value
+            requirements. Conversely, there may be motif occurrences in the
+            summary diagram that were not discovered by the MEME algorithm.</p>
+            </li>
+            </ul>
+            <hr />
+            Click here for <a href="mast-intro.html"><b>more
+            information</b></a> on <b>MAST</b>.<br />
+            Return to <a href="intro.html"><b>MEME Suite introduction</b></a>.
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

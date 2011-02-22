@@ -1,0 +1,101 @@
+#!@WHICHPERL@
+#
+# $Id: fasta-shuffle-letters.pl.in 5026 2010-10-20 07:00:35Z james_johnson $
+# $Log$
+# Revision 1.1  2005/07/28 23:54:37  nadya
+# Initial revision
+#
+#
+# AUTHOR: Timothy L. Bailey
+# CREATE DATE: 12/4/98
+ 
+$pgm = $0;                      # name of program
+$pgm =~ s#.*/##;                # remove part up to last slash
+@args = @ARGV;                  # arguments to program
+$| = 1;                         # flush after all prints
+$SIG{'INT'} = 'cleanup';        # interrupt handler
+# Note: so that interrupts work, always use for system calls:
+#       if ($status = system($command)) {&cleanup($status)}
+ 
+# requires
+push(@INC, split(":", $ENV{'PATH'}));   # look in entire path
+ 
+# defaults
+ 
+$usage = <<USAGE;               # usage message
+  USAGE:
+        $pgm
+
+	-tod		use time of day as seed for the random number generator
+			default: 0
+
+	Shuffle each sequence in a file of fasta sequences.
+	(Does not shuffle the order of the sequences.)
+
+	Reads file from standard input.
+	Writes to standard output.
+USAGE
+
+$nargs = 0;                     # number of required args
+if ($#ARGV+1 < $nargs) { die($usage); }
+ 
+# get input arguments
+while ($#ARGV >= 0) {
+  $_ = shift;
+  if ($_ eq "-h") {
+    die($usage);
+  } elsif ($_ eq "-tod") {
+    $tod = 1;
+  } else {
+    die($usage);
+  }
+}
+
+#
+# intialize the random number generator if -tod 
+#
+if ($tod) {
+  srand(); 
+} else {
+  srand(0); 
+}
+
+while (<STDIN>) {
+  chop;				# remove newline
+  if (/^>/) {			# new sequence
+    if ($label) { print &shuffle($label, $seq); }
+    $label = $_;		# save label
+    $seq = "";			# initialize sequence
+  } else {			# sequence
+    $seq .= $_;			# save line of sequence
+  }
+}
+# shuffle and print last sequence
+print &shuffle($label, $seq);
+
+################################################################################
+#                       Subroutines                                            #
+################################################################################
+sub shuffle {
+  my($label, $seq) = @_;
+  my($out, @chars, $n, $i, %hash, @keys, $out, $x);
+
+  $out = $label;					# put label
+  @chars = split(//, $seq);				# split into characters
+  $n = @chars;
+
+  # Give each position in the sequence a random key and sort the keys
+  for ($i=0; $i<$n; $i++) {
+    do {$x = rand()/(1+rand());} while (defined $hash{"$x"});
+    $x = rand()/(1+rand());				# only 32768 values for rand!
+    $hash{"$x"} = $chars[$i];
+  }
+  @keys = sort {$a <=> $b} keys %hash;
+
+  for ($i=0; $i<$n; $i++) {				# shuffle sequence
+    $out .= "\n" if ($i%70 == 0);			# split at 70 columns
+    $out .= $hash{$keys[$i]};				# add to shuffled seq
+  }
+  undef %hash;
+  $out .= "\n";
+}

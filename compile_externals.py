@@ -84,7 +84,7 @@ def compile_all():
 	print_result(result)
 	
 	sys.stderr.write("compiling MEME")
-	result = compile_configmake("meme_4.4.0", "src/meme.bin")
+	result = compile_configmake("meme_4.6.0", "src/meme.bin")
 	print_result(result)
 	
 	sys.stderr.write("compiling GADEM")

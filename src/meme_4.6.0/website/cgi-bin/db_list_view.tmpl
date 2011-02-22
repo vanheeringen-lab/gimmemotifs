@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <title><!-- TMPL_VAR NAME=title --> - Documentation </title>
+  <!-- provide relative path to html directory (parent of cgi-bin) -->
+  <script language="javascript" type="text/javascript">var html_path = "../"</script>
+  <link href="../doc/meme-suite.css" rel="stylesheet" type="text/css" />
+  <link rel="icon" type="image/png" href="../images/memesuite_icon.png">  
+  <link rel="shortcut icon" type="image/x-icon" href="../images/memesuite_icon.ico">
+  <style>
+   h4 {
+    margin-bottom: 0;
+   }
+   h5 {
+    font-size: 14px;
+    font-family: Arial;
+    font-weight: bold;
+   }
+   .db {
+    margin-left: 1.5em;
+    margin-top: 0px;
+    margin-bottom: 0px;
+   }
+   #main ul {
+    margin-top: 0;
+    margin-bottom: 0;
+   }
+   #main li {
+    font-size: 12px;
+   }
+  </style>
+ </head>
+ <body class="body">
+  <table class="maintable">
+   <tr>
+    <td class="maintablewidth">
+     <div id="main">
+      <script src="../doc/meme-suite-logo.js" type="text/javascript"></script>
+      <noscript>
+       <h1>MEME Suite</h1>
+       The MEME Suite web application requires the use of JavaScript<br />
+       Javascript doesn't seem to be available on your browser.
+      </noscript>
+      <hr />
+      <h1 align="center"><!-- TMPL_VAR NAME=title --> available for search</h1>
+      <hr />
+
+      <h3>The databases that can be searched are grouped into <!-- TMPL_VAR NAME=cat_count --> categories:</h3>
+      <ul><!-- TMPL_LOOP NAME=cat_loop_links -->
+       <li><h3><a href="#cat<TMPL_VAR NAME="i">"><!-- TMPL_VAR NAME=name --></a></h3>
+       <!-- /TMPL_LOOP -->
+      </ul>
+      <!-- TMPL_LOOP NAME=cat_loop_main -->
+      <hr />
+      <a name="cat<TMPL_VAR NAME="i">"></a>
+      <h3><!-- TMPL_VAR NAME=name --></h3>
+      <hr />
+      <!-- TMPL_LOOP NAME=db_loop -->
+      <h4><!-- TMPL_VAR NAME=name --></h4>
+      <p class="db"><!-- TMPL_VAR NAME=desc --></p>
+      <!-- TMPL_IF NAME=append_types -->
+      <p class="db" ><!-- TMPL_IF NAME=is_nucl --><!-- TMPL_IF NAME=is_prot -->(protein and nucleotide)<!-- TMPL_ELSE -->(nucleotide only)<!-- /TMPL_IF --><!-- TMPL_ELSE --><!-- TMPL_IF NAME=is_prot -->(protein only)<!-- /TMPL_IF --><!-- /TMPL_IF --></p>
+      <!-- /TMPL_IF -->
+      <!-- TMPL_IF NAME=comp_dbs -->
+      <h5 class="db">Comparative database(s):</h5>
+      <ul><!-- TMPL_LOOP NAME=comp_dbs -->
+        <li><!-- TMPL_VAR NAME=name --></li><!-- /TMPL_LOOP -->
+      </ul>
+      <!-- /TMPL_IF -->
+      <!-- /TMPL_LOOP -->
+      <!-- /TMPL_LOOP -->
+      <hr />
+      <script src="../template-footer.js" type="text/javascript"></script>
+     </div>
+    </td>
+   </tr>
+  </table>
+ </body>
+</html>
+

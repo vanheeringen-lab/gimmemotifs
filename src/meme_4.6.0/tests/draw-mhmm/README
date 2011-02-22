@@ -1,0 +1,3 @@
+foreach file (*.gvz)
+  dot -Tps $file | convert - png:$file:r.png
+end

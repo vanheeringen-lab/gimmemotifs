@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html>
+  <head>
+    <title>compute-prior-dist</title>
+     <link href="./meme-suite.css" rel="styleSheet" type="text/css" />
+  </head>
+  <body>
+    <div id="main">
+<script src="./meme-suite-logo.js" type="text/javascript">></script>
+<h1>compute-prior-dist</h1>
+
+<p><b>Usage:</b> <code>compute-prior-dist &lt;numbins&gt; &lt;psp-filename&gt;</code></p>
+
+<p><b>Description:</b></p>
+<p>
+<code>compute-prior-dist</code> computes the distribution of priors from a file in
+<a href="meme.html#MEME-PSP">MEME PSP format</a>.
+The disbution is scaled and binned into the number of bins specified on the command line.
+</p>
+<p><b>Input:</b></p> 
+
+<p>
+The PSP file must be in <a href="meme.html#MEME-PSP">MEME PSP format</a>.  
+</p>
+
+<p><b>Output:</b></p>
+
+<p>
+The output is sent to <code>stdout</code>,
+and contains one <code>double</code> per line.
+The first two lines are the minimum and maximum priors.
+Each succeeding line contains the probability that a prior
+is in the bin.
+The prior is derived from the bin number using the formula
+<pre>
+prior = ((bin #) / (num bins) * (max prior - min prior)) + (min prior)
+</pre>
+</p>
+<p>
+<a href="examples/compute_prior_dist_example_output_files/prior.dist.txt">Sample output</a>
+</p>
+
+    </div>
+  </body>
+</html>

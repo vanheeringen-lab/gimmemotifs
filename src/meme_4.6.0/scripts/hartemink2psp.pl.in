@@ -1,0 +1,268 @@
+#!@WHICHPERL@ -w
+# AUTHOR: Philip Machanick
+# CREATE DATE: 20 July 2009
+
+# Convert a Hartemink PSP file into MEME PSP format
+
+# Hartemink format:
+# For each FASTA sequence s[1..L]: Hartemink prior file contains a name line based on
+# the name of the FASTA sequence followed by p[1..2L], where p[1..L] are positive strand
+# priors and p[L+1..Ln] are negative strand priors (complement of s[L..1] = reverse
+# complement of s[1..L]); in both directions last w-1 positions are 0 for priors
+# calculated with motif width w; the prior values are scores p[i,j] representing the
+# probability of a motif starting at location j in sequence i.
+
+# MEME format:
+# Assumes reverse-stranded case is symmetric so only contains priors for one direction.
+# For each FASTA sequence s[1..L]: MEME prior file contains p[1..L] for each sequence
+# in a FASTA-like format in which the name line also includes the width w and the epsilon
+# value used to scale score values > 0 and < 1. The values are a probability distribution
+# rather than scores, that sum to 1 for an oops model, and < 1 per sequence for a zoops
+# model.
+# FIXME: not yet implemented for TCM, for which the probabilities should sum to 1 over
+# all sequences. 
+
+# reads stdin
+# writes stdout
+
+use strict;
+use Scalar::Util qw(looks_like_number);
+
+my $PGM = $0;      # name of program
+$PGM =~ s#.*/##;                # remove part up to last slash
+#@args = @ARGV;      # arguments to program
+my @args = ("-width W");
+
+$| = 1;        # flush after all prints
+$SIG{'INT'} = \&cleanup;  # interrupt handler
+# Note: so that interrupts work, always use for system calls:
+#   if ($status = system("$command")) {&cleanup($status)}
+
+push(@INC, split(":", $ENV{'PATH'}));  # look in entire path
+
+my $MIN_EPSILON = 1E-200;
+my $MAX_EPSILON = 0.1;
+my $DEFAULT_MOD = 'zoops';
+
+my $usage = <<USAGE;    # usage message
+USAGE: $PGM @args [options]
+
+  Options:
+	   -mod oops|zoops|tcm   create MEME prior for given model
+			         default: zoops
+	   -epsilon fraction     use epsilon value to rescale scores
+			         from [0..1] to [epsilon..1-epsilon]
+			         before converting to MEME priors
+			         default: $MIN_EPSILON
+	   -revcomp              double-stranded Hartemink prior
+			         default: single-stranded
+  Compulsory:
+	   -width W              motif width used to construct prior
+                   
+  Convert Hartemink-format priors to MEME priors format. Hartemink priors
+  may be reverse complement (double-stranded) format in which case they
+  are converted to single-stranded for MEME, which assumes a symmetrical
+  prior for double-stranded DNA.
+
+  Reads standard input.
+  Writes standard output.
+USAGE
+
+my $nargs = @args;      # number of required args
+if ($#ARGV+1 < $nargs) { &print_usage("$usage", 1); }
+
+my ($width, $epsilon);
+my %models = ('zoops' => 'zoops', 'oops' => 'oops', 'tcm' => 'tcm');
+my $revcomp;
+my $model = 'zoops';
+
+# get input arguments
+while ($#ARGV >= 0) {
+  $_ = shift;
+  if ($_ eq "-h") {        # help
+    &print_usage("$usage", 0);
+  } elsif ($_ eq "-width") {  
+    $width = shift;
+    &print_usage("$usage", 1) unless (&check_numeric($width, "int", 2));
+  } elsif ($_ eq "-epsilon") {  
+    $epsilon = shift;
+    &print_usage("$usage", 1) unless (&check_numeric($epsilon, "float", $MIN_EPSILON, $MAX_EPSILON));
+  } elsif ($_ eq "-mod") {  
+    $model = shift;
+    &print_usage("$usage", 1) unless (exists $models{$model});
+    die "tcm not implemented" if ($model eq 'tcm');
+  } elsif ($_ eq "-revcomp") {  
+    $revcomp = 1;
+  } else {
+    &print_usage("$usage", 1);
+  }
+}
+
+# check if compulsory args are set, and set any missing optional args
+&print_usage("$usage", 1) unless (defined($width));
+$model = $DEFAULT_MOD unless (defined($model));
+$epsilon = $MIN_EPSILON unless (defined($epsilon));
+
+# read in the prior data
+my %raw_seqs = &read_prior_file(\*STDIN);
+
+# convert reverse-complemented scores to single-stranded scores
+# must keep the scores in range (0..1) for later calculations
+if (defined($revcomp)) {
+  # reduce the data to half the original size, making each element
+  # the mean of the original location + the same location in the reverse comp direction
+  foreach my $name (keys %raw_seqs) {
+    my $data = $raw_seqs{$name};
+    my $L = @$data;
+    # skip w-1 zeros at end though they are unchanged when averaged
+    for (my $i = 0; $i < $L/2-$width+1; $i++) {
+      # position in reverse strand takes into account w-1 zeros
+      $$data[$i] += $$data[$L-$i-$width];
+      $$data[$i] /= 2;
+    }
+    # reset the length of the array to half the previous length
+    $#$data = @$data/2-1;
+  }
+}
+
+# now adjust from [0..1] to [epsilon..1-epsilon]
+foreach my $name (keys %raw_seqs) {
+  my $data = $raw_seqs{$name};
+  for (my $i = 0; $i < @$data; $i++) {
+    die "in `$name' bad data at [$i]: $$data[$i]" unless ($$data[$i] >= 0 && $$data[$i] <= 1);
+    $$data[$i] = $epsilon + $$data[$i] * (1 - 2.0 * $epsilon);
+  }
+}
+
+# now convert the raw scores to priors
+foreach my $name (keys %raw_seqs) {
+  my $alpha = $model eq 'zoops' ? 1 : 0;
+  my @K = ();
+  print '>'.$name." $width epsilon = ";
+  printf "%lG\n", $epsilon;
+  my $nonzeros = @{$raw_seqs{$name}} - $width + 1;
+  for (my $j = 0; $j < $nonzeros; $j++) {
+    my $P_ij = ${$raw_seqs{$name}}[$j];
+    push(@K,$P_ij/(1-$P_ij));
+    $alpha += $K[-1];  # add on last K
+  }
+
+  foreach my $k_val (@K) {
+    printf "%20.19lG ", $k_val / $alpha;
+  }
+  
+  # now print terminating w-1 zeros
+  for (my $i = 0; $i < $width - 2; $i++) {
+    print "0 ";
+  }
+  print "0\n";
+}
+
+
+################################################################################
+#                       Subroutines                                            #
+################################################################################
+
+################################################################################
+#  read_prior_file
+#
+#  Read a PRIOR file and return the values in an associative array indexed
+#   by sequence name (based on read_fasta_file).
+#  Does NOT check validity of data to allow use for a range of prior types.
+#  Only assumes a FASTA-like name line starting with >name followed by a
+#  sequence of values that may contain spaces (unlike read_fasta_file, which
+#  edits out spaces).
+#
+#  $file    open file pointer
+#
+################################################################################
+sub read_prior_file {
+  my ($file) = @_;
+  my ($name, $seq) = ("","");
+  my %seqs;
+
+  # read the file
+  while (<$file>) {
+    if (/^>(\S+)\s/) {        # found start of sequence
+      if ($name) {        # save previous sequence in array
+      $_ = $seq;
+        $seqs{$name} = [split];
+      }
+      $name = $1;        # save sequence name
+      $seq = "";
+    } else {
+      $seq .= $_;
+    }
+  } # read file
+  if ($name && $seq) {        # save very last sequence in array
+    $_ = $seq;
+    $seqs{$name} = [split];
+  }
+
+  %seqs;          # return associative array of names and arrays of values
+} # read_prior_file
+
+################################################################################
+#
+#  check_numeric
+#
+#  check if value is  defined and numeric; type, max and min optional
+#  if supplied type "int" signals check if truncated == original; any
+#  other value for type means don't do this check
+#
+################################################################################
+
+sub check_numeric {
+  my ($data, $type, $min, $max) = @_;
+  if (defined($data)) {
+        if (!looks_like_number($data)) {
+          return 0;
+        }
+        if (defined($max) && $data > $max) {
+          return 0;
+        }
+        if (defined($min) && $data < $min) {
+          return 0;
+        }
+        if (defined($type) && $type eq "int") {
+          return int($data) == $data;
+        }
+        # passed all tests here:
+        return 1;
+  } else {
+    return 0;
+  }
+}
+ 
+################################################################################
+#
+#  print_usage
+#
+#  Print the usage message and exit.
+#
+################################################################################
+sub print_usage {
+  my($usage, $status) = @_;
+ 
+  if (-c STDOUT) {      # standard output is a terminal
+    open(C, "| more");
+    print C $usage;
+    close C;
+  } else {        # standard output not a terminal
+    print STDERR $usage;
+  }
+
+  exit $status;
+}
+ 
+################################################################################
+#  cleanup
+#
+#  cleanup stuff
+#
+################################################################################
+sub cleanup {
+  my($status, $msg) = @_;
+  if ($status && "$msg") {print STDERR "$msg: $status\n";}
+  exit($status);
+}

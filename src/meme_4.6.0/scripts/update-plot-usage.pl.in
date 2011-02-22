@@ -1,0 +1,269 @@
+#!@WHICHPERL@
+#
+# $Id: update-plot-usage.pl.in 5026 2010-10-20 07:00:35Z james_johnson $
+# $Log$
+# Revision 1.3  2006/03/08 20:50:11  nadya
+# merge chamges from v3_5_2 branch
+#
+# Revision 1.2.4.1  2006/01/24 20:45:42  nadya
+# update copyright
+#
+# Revision 1.2  2005/10/05 06:18:35  nadya
+# use full path for "rm". Asssume everybody has /bin/rm.
+#
+# Revision 1.1.1.1  2005/07/30 01:20:36  nadya
+# Importing from meme-3.0.14, and adding configure/make
+#
+#
+# AUTHOR: Timothy L. Bailey
+# CREATE DATE:
+
+$PGM = $0;			# name of program
+$PGM =~ s#.*/##;                # remove part up to last slash
+@args = @ARGV;			# arguments to program
+$| = 1;				# flush after all prints
+$SIG{'INT'} = 'cleanup';	# interrupt handler
+# Note: so that interrupts work, always use for system calls:
+# 	if ($status = system($command)) {&cleanup($status)}
+
+# requires
+push(@INC, split(":", $ENV{'PATH'}));	# look in entire path
+
+# defaults
+
+$usage = <<USAGE;		# usage message
+  USAGE:
+	$PGM <rep_dir> [<pgm> <log> <types>]+
+
+	<rep_dir>	directory for report
+	<pgm> 		program name
+        <log>           log file name ([host]:dir/name)
+			host may be omitted if log file is on this cpu
+	<types>		string containing one letter plot-usage types (rumc)
+
+	Move the log files to the current directory, appending
+	them to files named <pgm>-log.<year>.<month>.
+	Run plot-usage to create usage figures.
+	Create usage report combining all figures in file usage-report.ps
+	and copy it to report directory.
+
+        Uses cp and rm if host is omitted otherwise uses scp and ssh.
+
+        Copyright
+        (2000-2006) The Regents of the University of California.
+        All Rights Reserved.
+        Author: Timothy L. Bailey
+USAGE
+
+$nargs = 4;			# number of required args
+if ($#ARGV+1 < $nargs) { &print_usage("$usage", 1); }
+
+# get input arguments
+$rep_dir = shift;
+while ($#ARGV >= 0) {
+  $_ = shift;
+  if ($_ eq "-h") {                             # help
+    &print_usage("$usage", 0);
+  } else {
+    push(@pgms, $_);
+    push(@logs, shift);
+    push(@types, shift);
+  }
+}
+
+# make file extension using date
+($sec, $min, $hour, $mday, $mon, $year, @rest) = localtime(time);
+$date = sprintf "%4d.%02d", 1900+$year, $mon+1;
+
+# make the plot postscript files
+for ($i=0; $i<=$#pgms; $i++) {
+  make_plots($pgms[$i], $logs[$i], $types[$i], $date);
+}
+
+# make the final report 
+make_report($rep_dir, @pgms, @types);
+
+# cleanup files
+&cleanup($status);
+ 
+################################################################################
+#                       Subroutines                                            #
+################################################################################
+ 
+################################################################################
+#
+#       print_usage
+#
+#	Print the usage message and exit.
+#
+################################################################################
+sub print_usage {
+  local ($usage, $status) = @_;
+ 
+  if (-c STDOUT) {			# standard output is a terminal
+    open(C, "| more");
+    print C $usage;
+    close C;
+  } else {				# standard output not a terminal
+    print STDERR $usage;
+  }
+
+  exit $status;
+}
+
+################################################################################
+#
+#	make_plots
+#
+################################################################################
+sub make_plots {
+  my($pgm, $log, $types, $date) = @_;
+  my($log_saved, $tmpfile, $type, @files);
+
+  $tmpfile = "$PGM.$$.tmp";
+
+  # save log in new file with date appended
+  $log_saved = "$pgm-log.$date";
+
+  # move (or append) the log file to the saved log
+  print STDERR "Appending $log to $log_saved\n";
+  ($host, $file) = split(':', $log);
+  $status = system("scp $log $tmpfile");
+  #$status = system("cp $log $tmpfile");
+  #$status = 1;
+  unless ($status) {                            # copy succeded
+    system("ssh $host \"/bin/rm -f $file\"");  # remove log file
+    #system("rm -f $file");                      # remove log file
+    if (-e $log_saved) {			# append to saved file
+      system("cat $tmpfile >> $log_saved"); unlink($tmpfile);
+    } else {
+      rename($tmpfile, $log_saved) 
+    }
+  }
+
+  # get the log file names
+  $_ = `ls -1 $pgm-log.*`;
+  @files0 = split;
+  @files = @files0;
+  if (0) {
+    @files = ();
+    foreach $file (@files0) {
+      unless ($file =~ /2004\.(04|05)/) {
+	push @files, $file
+      }
+    }
+  }
+  print STDERR "$pgm log files: @files\n";
+
+  # make the requested types of plots
+  foreach $type (split(//, $types)) {
+    system("cat @files | plot-usage -name $pgm -$type");
+  }
+
+} # make_plots
+
+################################################################################
+#
+#	make_report
+#
+################################################################################
+sub make_report {
+  my($report_dir, @rest) = @_;
+  my($i, $report, $text, $npgms, $pgm, $types, $users, $runs, $max, $cpu);
+
+  $report = "usage-report";
+  open(REP, ">$report.tex") || die "Can't open file $report.tex for output: $!\n"; 
+  $text = << 'EOF'; 
+\documentclass[12pt]{article}
+\oddsidemargin -0.7in
+\topmargin -0.25in
+\textheight 9in
+\textwidth 7in
+\usepackage{graphicx}
+\newcommand{\widtha}{3in}          % rectangular figure
+
+\begin{document}
+
+EOF
+
+  $npgms = @rest/2;
+  for ($i=0; $i<$npgms; $i++) {
+    $pgm = $rest[$i];
+    $types = $rest[$i+$npgms];
+
+    # set up the types of figures available
+    $runs = ($types =~ /r/) ? "\\includegraphics[width=\\widtha]{plot-usage.runs.$pgm.ps}" : "";
+    $users = ($types =~ /u/) ? "\\includegraphics[width=\\widtha]{plot-usage.users.$pgm.ps}" : "";
+    $max = ($types =~ /m/) ? "\\includegraphics[width=\\widtha]{plot-usage.max.$pgm.ps}" : "";
+    $cpu = ($types =~ /c/) ? "\\includegraphics[width=\\widtha]{plot-usage.cpu.$pgm.ps}" : "";
+
+    $text .= << 'EOF';
+\begin{figure}
+\begin{center}
+\begin{tabular}{cc}
+  \multicolumn{2}{c}{\LARGE \sc
+EOF
+
+    $text .= "$pgm \} \\\\ \n";
+
+    $text .= << 'EOF';
+  {\em number of users} & {\em number of runs} \\
+EOF
+
+    $text .= "  $users \n    \& $runs \\\\ \n";
+
+    $text .= << 'EOF';
+  {\em cpu time} &
+    {\em maximum runs} \\
+EOF
+    $text .= "  $cpu \n    \& $max \\\\ \n";
+    $text .= << 'EOF';
+\end{tabular}
+\end{center}
+\caption{{\bf Usage of 
+EOF
+
+    $text .= "\{\\sc $pgm} ";
+
+    $text .= << 'EOF';
+as of \today.}
+The histograms show 
+the number of different users submitting runs, 
+the number of runs, 
+the total cpu time of all runs, 
+and 
+the maximum number of runs for a single user
+on a month-by-month basis.
+}
+\end{figure}
+EOF
+
+  } # pgm
+
+  $text .= << 'EOF';
+\end{document}
+EOF
+
+  #print STDERR $text;
+  print REP $text;
+  close(REP);
+
+  print "texit $report ;cp $rep_dir\n";
+  system("texit $report; cp $report.ps $rep_dir");
+  system("ps2pdf $report.ps; cp $report.pdf $rep_dir");
+  system("cp plot-usage.*.ps $rep_dir");
+} # make_report
+ 
+################################################################################
+#       cleanup
+#
+#       cleanup stuff
+#
+################################################################################
+sub cleanup {
+  local($status, $msg) = @_;
+  
+  #$status = system("/bin/rm plot-usage.*.ps");
+  if ($status && "$msg") {print STDERR "$msg: $status\n";}
+  exit($status);
+}

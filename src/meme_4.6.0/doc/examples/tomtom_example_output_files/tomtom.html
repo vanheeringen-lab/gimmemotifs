@@ -1,0 +1,4353 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>TOMTOM</title>
+<style type="text/css">
+        /* The following is the content of meme.css */
+        body { background-color:white; font-size: 12px; font-family: Verdana, Arial, Helvetica, sans-serif;}
+
+        div.help {
+          display: inline-block;
+          margin: 0px;
+          padding: 0px;
+          width: 12px;
+          height: 13px;
+          background-image: url("help.gif");
+          background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAANAQMAAACn5x0BAAAAAXNSR0IArs4c6QAAAAZQTFRFAAAAnp6eqp814gAAAAF0Uk5TAEDm2GYAAAABYktHRACIBR1IAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH2gMJBQgGYqhNZQAAACZJREFUCNdj+P+BoUGAoV+AYeYEEGoWYGgTYGgRAAm2gRGQ8f8DAOnhC2lYnqs6AAAAAElFTkSuQmCC");
+        }
+        
+        p.spaced { line-height: 1.8em;}
+        
+        p.pad { padding-left: 30px; padding-top: 5px; padding-bottom: 10px;}
+
+        td.jump { font-size: 13px; color: #ffffff; background-color: #00666a;
+          font-family: Georgia, "Times New Roman", Times, serif;}
+
+        a.jump { margin: 15px 0 0; font-style: normal; font-variant: small-caps;
+          font-weight: bolder; font-family: Georgia, "Times New Roman", Times, serif;}
+
+        h2.mainh {font-size: 1.5em; font-style: normal; margin: 15px 0 0;
+          font-variant: small-caps; font-family: Georgia, "Times New Roman", Times, serif;}
+
+        h2.line {border-bottom: 1px solid #CCCCCC; font-size: 1.5em; font-style: normal;
+          margin: 15px 0 0; padding-bottom: 3px; font-variant: small-caps;
+          font-family: Georgia, "Times New Roman", Times, serif;}
+
+        h4 {border-bottom: 1px solid #CCCCCC; font-size: 1.2em; font-style: normal;
+          margin: 10px 0 0; padding-bottom: 3px; font-family: Georgia, "Times New Roman", Times, serif;}
+
+        h5 {margin: 0px}
+
+        a.help { font-size: 9px; font-style: normal; text-transform: uppercase;
+          font-family: Georgia, "Times New Roman", Times, serif;}
+
+        div.pad { padding-left: 30px; padding-top: 5px; padding-bottom: 10px;}
+        
+        div.pad1 { margin: 10px 5px;}
+
+        div.pad2 { margin: 25px 5px 5px;}
+        h2.pad2 { padding: 25px 5px 5px;}
+
+        div.pad3 { padding: 5px 0px 10px 30px;}
+
+        div.box { border: 2px solid #CCCCCC; padding:10px;}
+
+        div.bar { border-left: 7px solid #00666a; padding:5px; margin-top:25px; }
+
+        div.subsection {margin:25px 0px;}
+
+        img {border:0px none;}
+
+        th.majorth {text-align:left;}
+        th.minorth {font-weight:normal; text-align:left; width:8em; padding: 3px 0px;}
+        th.actionth {font-weight:normal; text-align:left;}
+
+        .strand_name {text-align:left;}
+        .strand_side {padding:0px 10px;}
+        .strand_start {padding:0px 10px;}
+        .strand_pvalue {text-align:center; padding:0px 10px;}
+        .strand_lflank {text-align:right; padding-right:5px; font-weight:bold; font-size:large; font-family: 'Courier New', Courier, monospace; color:gray;}
+        .strand_seq {text-align:center; font-weight:bold; font-size:large; font-family: 'Courier New', Courier, monospace;}
+        .strand_rflank {text-align:left; padding-left:5px; font-weight:bold; font-size:large; font-family: 'Courier New', Courier, monospace; color:gray;}
+
+        .block_td {height:25px;}
+        .block_container {position:relative; width:99%; height:25px; padding:0px; margin:0px;}
+        .block_motif {position:absolute; z-index:3; height:12px; top:0px; text-align:center; vertical-align:middle; background-color:cyan;}
+        .block_rule {position:absolute; z-index:2; width:100%; height:1px; top:12px; left:0px; background-color:gray;}
+        .block_plus_sym {position:absolute; z-index:4; width:12px; height:12px; top:0px; left:0px; color:gray;}
+        .block_minus_sym {position:absolute; z-index:4; width:12px; height:12px; top:13px; left:0px; color:gray;}
+
+        .tic_major {position:absolute; border-left:2px solid blue; height:0.5em; top:0em;}
+        .tic_minor {position:absolute; border-left:1px solid blue; height:0.2em; top:0em;}
+        .tic_label {position:absolute; top:0.5em;  height: 1em; text-align:center; vertical-align:middle}
+
+        .explain h5 {font-size:1em; margin-left: 1em;}
+
+        div.doc {margin-left: 2em; margin-bottom: 3em;}
+        
+        div.tabArea {
+          font-size: 80%;
+          font-weight: bold;
+        }
+
+        a.tab {
+          background-color: #ddddff;
+          border: 1px solid #000000;
+          border-top-width: 0px;
+          padding: 2px 1em 2px 1em;
+          text-decoration: none;
+        }
+
+        a.tab, a.tab:visited {
+          color: #808080;
+        }
+
+        a.tab:hover {
+          background-color: #d0d0d0;
+          color: #606060;
+        }
+        a.tab.activeTab, a.tab.activeTab:hover, a.tab.activeTab:visited {
+          background-color: #f0f0f0;
+          color: #000000;
+        }
+        div.tabMain {
+          border: 1px solid #000000;
+          background-color: #ffffff;
+          padding: 5px;
+          margin-right: 5px;
+        }
+        th.trainingset {
+          border-bottom: thin dashed black; 
+          font-weight:normal; 
+          padding:0px 10px;
+        }
+
+  
+      span.A {font-size:20px; color:red}
+      span.C {font-size:20px; color:blue}
+      span.G {font-size:20px; color:orange}
+      span.T {font-size:20px; color:green}
+      .pt {padding: 0 10px}
+      .ac {text-align: center;}
+      .downloadTd {padding-left:20px;}
+      div.logo_container {position:relative; width:99%; height:285px; padding:0px; margin:0px;}
+      img.logo {position:absolute; z-index:2; max-width:100%;}
+      tr.tspace th, tr.tspace td {padding-top: 20px;}
+    </style>
+<script type="text/javascript">
+      var show_opts_link;
+      var task_queue = new Array();
+      var task_delay = 100;
+      var my_alphabet;
+      var query_pspm;
+      
+    //======================================================================
+    // start Alphabet object
+    //======================================================================
+    function Alphabet(alphabet, bg) {
+      //variable prototype
+      this.freqs = new Array();
+      this.alphabet = new Array();
+      this.letter_count = 0;
+      //method prototype
+      this.get_ic = Alphabet_get_ic;
+      this.get_size = Alphabet_get_size;
+      this.get_index = Alphabet_get_index;
+      this.get_letter = Alphabet_get_letter;
+      this.get_colour = Alphabet_get_colour;
+      this.get_bg_freq = Alphabet_get_bg_freq;
+      this.is_nucleotide = Alphabet_is_nucleotide;
+      this.is_ambig = Alphabet_is_ambig;
+      this.toString = Alphabet_to_string;
+      //construct
+      var is_letter = /^\w$/;
+      var is_prob = /^((1(\.0+)?)|(0(\.\d+)?))$/;
+      for (var pos = 0; pos < alphabet.length; pos++) {
+        var letter = alphabet.charAt(pos);
+        if (is_letter.test(letter)) {
+          this.alphabet[this.letter_count] = letter.toUpperCase();
+          this.freqs[this.letter_count] = -1;
+          this.letter_count++;
+        }
+      }
+      if (!(bg === undefined)) {
+        var parts = bg.split(/\s+/);
+        for (var i = 0, pos = 0; (i + 1) < parts.length; i += 2) {
+          var letter = parts[i];
+          var freq = parts[i+1];
+          if (is_letter.test(letter) && is_prob.test(freq)) {
+            letter = letter.toUpperCase();          //find the letter it matches
+            for (;pos < this.letter_count; pos++) {
+              if (this.alphabet[pos] == letter) break;
+            }
+            if (pos >= this.letter_count) throw "NOT_IN_ALPHABET";
+            this.freqs[pos] = (+freq);
+          }
+        }
+      }
+    }
+
+
+    function Alphabet_get_ic() {
+      if (this.is_nucleotide()) {
+        return 2;
+      } else {
+        return Math.log(20) / Math.LN2;
+      }
+    }
+
+    function Alphabet_get_size() {
+      return this.letter_count;
+    }
+
+    function Alphabet_get_letter(alph_index) {
+      if (alph_index < 0 || alph_index >= this.letter_count) {
+        throw "BAD_ALPHABET_INDEX";
+      }
+      return this.alphabet[alph_index];
+    }
+
+    function Alphabet_get_bg_freq(alph_index) {
+      if (alph_index < 0 || alph_index >= this.letter_count) {
+        throw "BAD_ALPHABET_INDEX";
+      }
+      if (this.freqs[alph_index] == -1) throw "BG_FREQ_NOT_SET";
+      return this.freqs[alph_index];
+    }
+
+    function Alphabet_get_colour(alph_index) {
+      var red = "rgb(204,0,0)";
+      var blue = "rgb(0,0,204)";
+      var orange = "rgb(255,179,0)";
+      var green = "rgb(0,128,0)";
+      var yellow = "rgb(255,255,0)";
+      var purple = "rgb(204,0,204)";
+      var magenta = "rgb(255,0,255)";
+      var pink = "rgb(255,204,204)";
+      var turquoise = "rgb(51,230,204)";
+      if (alph_index < 0 || alph_index >= this.letter_count) {
+        throw "BAD_ALPHABET_INDEX";
+      }
+      if (this.is_nucleotide()) {
+        switch (this.alphabet[alph_index]) {
+          case "A":
+            return red;
+          case "C":
+            return blue;
+          case "G":
+            return orange;
+          case "T":
+            return green;
+        }
+      } else {
+        switch (this.alphabet[alph_index]) {
+          case "A":
+          case "C":
+          case "F":
+          case "I":
+          case "L":
+          case "V":
+          case "W":
+          case "M":
+            return blue;
+          case "N":
+          case "Q":
+          case "S":
+          case "T":
+            return green;
+          case "D":
+          case "E":
+            return magenta;
+          case "K":
+          case "R":
+            return red;
+          case "H":
+            return pink;
+          case "G":
+            return orange;
+          case "P":
+            return yellow;
+          case "Y":
+            return turquoise;
+        }
+      }
+      return "black";
+    }
+
+    function Alphabet_is_ambig(alph_index) {
+      if (alph_index < 0 || alph_index >= this.letter_count) {
+        throw "BAD_ALPHABET_INDEX";
+      }
+      if (this.is_nucleotide()) {
+        return ("ACGT".indexOf(this.alphabet[alph_index]) == -1);
+      } else {
+        return ("ACDEFGHIKLMNPQRSTVWY".indexOf(this.alphabet[alph_index]) == -1);
+      }
+    }
+
+    function Alphabet_get_index(letter) {
+      for (i = 0; i < this.letter_count; i++) {
+        if (this.alphabet[i] == letter.toUpperCase()) return i;
+      }
+      throw "UNKNOWN_LETTER";
+    }
+
+    function Alphabet_is_nucleotide() {
+      //TODO basic method, make better
+      if (this.letter_count < 20) return true;
+      return false;
+    }
+
+    function Alphabet_to_string() {
+      return (this.is_nucleotide() ? "Nucleotide" : "Protein") + " Alphabet " + (this.alphabet.join(""));
+    }
+
+    //======================================================================
+    // end Alphabet object
+    //======================================================================
+
+    //======================================================================
+    // start Symbol object
+    //======================================================================
+    function Symbol(alph_index, scale, alphabet) {
+      //variable prototype
+      this.symbol = alphabet.get_letter(alph_index);
+      this.scale = scale;
+      this.colour = alphabet.get_colour(alph_index);
+      //function prototype
+      this.get_symbol = Symbol_get_symbol;
+      this.get_scale = Symbol_get_scale;
+      this.get_colour = Symbol_get_colour;
+      this.toString = Symbol_to_string;
+    }
+
+    function Symbol_get_symbol() {
+      return this.symbol;
+    }
+
+    function Symbol_get_scale() {
+      return this.scale;
+    }
+
+    function Symbol_get_colour() {
+      return this.colour;
+    }
+
+    function Symbol_to_string() {
+      return this.symbol + " " + (Math.round(this.scale*1000)/10) + "%";
+    }
+
+    function compare_symbol(sym1, sym2) {
+      if (sym1.get_scale() < sym2.get_scale()) {
+        return -1;
+      } else if (sym1.get_scale() > sym2.get_scale()) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+    //======================================================================
+    // end Symbol object
+    //======================================================================
+
+    //======================================================================
+    // start Pspm object
+    //======================================================================
+    function Pspm(pssm, name) {
+      //variable prototype
+      this.alph_length = 0;
+      this.motif_length = 0;
+      this.pspm = new Array();
+      this.name = (typeof name == "string" ? name : "");
+      this.nsites = 0;
+      this.evalue = 0;
+      //function prototype
+      this.copy = Pspm_copy;
+      this.reverse_complement = Pspm_reverse_complement;
+      this.get_stack = Pspm_get_stack;
+      this.get_stack_ic = Pspm_get_stack_ic;
+      this.get_motif_length = Pspm_get_motif_length;
+      this.get_alph_length = Pspm_get_alph_length;
+      this.toString = Pspm_to_string;
+      //construct
+      var pspm_header = /letter-probability matrix:\s+alength=\s+(\d+)\s+w=\s+(\d+)(\s+nsites=\s+(\S+))?(\s+E=\s+(\S+))?\s*/;
+      var is_prob = /^((1(\.0+)?)|(0(\.\d+)?))$/;
+      var is_empty = /^\s*$/;
+      var lines = pssm.split(/\s*\n\s*/);
+      var read_pssm = false;
+      var line_num = 0;
+      var col_num = 0;
+      for (line_index in lines) {
+        //exclude inherited properties and undefined properties
+        if (!lines.hasOwnProperty(line_index) || lines[line_index] === undefined) continue;
+
+        var line = lines[line_index];
+        if (is_empty.test(line)) {
+          continue;
+        }
+        if (!read_pssm) {
+          var header_match = pspm_header.exec(line);
+          if (header_match != null) {
+            read_pssm = true;
+            this.alph_length = (+header_match[1]);
+            this.motif_length = (+header_match[2]);
+            if (header_match[4]) this.nsites = parseFloat(header_match[4]);//not always an integer
+            if (header_match[6]) this.evalue = parseFloat(header_match[6]);
+            this.pspm = new Array(this.motif_length);
+          }
+          continue;
+        }
+        if (line_num >= this.motif_length) {
+          throw "TOO_MANY_ROWS";
+        }
+        this.pspm[line_num] = new Array(this.alph_length);
+        col_num = 0;
+        var parts = line.split(/\s+/);
+        for (part_index in parts) {
+          //exclude inherited properties and undefined properties
+          if (!parts.hasOwnProperty(part_index) || parts[part_index] === undefined) continue;
+          
+          var prob = parts[part_index];
+          if (!is_prob.test(prob)) continue;
+          if (col_num >= this.alph_length) {
+            throw "TOO_MANY_COLS";
+          }
+          this.pspm[line_num][col_num] = (+prob);
+          col_num++;
+        }
+        if (col_num != this.alph_length) {
+          throw "TOO_FEW_COLS";
+        }
+      line_num++;
+      }
+      if (line_num != this.motif_length) {
+        throw "TOO_FEW_ROWS";
+      }
+    }
+
+    function Clone() {}
+
+    function Pspm_copy() {
+      Clone.prototype = this;
+      var clone = new Clone();
+      //so far only a shallow copy, need to copy everything
+      clone.alph_length = (0+this.alph_length);
+      clone.motif_length = (0+this.motif_length);
+      clone.pspm = new Array(this.motif_length);
+      for (row = 0; row < this.motif_length; row++) {
+        clone.pspm[row] = new Array(this.alph_length);
+        for (col = 0; col < this.alph_length; col++) {
+          clone.pspm[row][col] = (0+this.pspm[row][col]);
+        }
+      }
+      return clone;
+    }
+
+    function Pspm_reverse_complement(alphabet) {
+      if (this.alph_length != alphabet.get_size()) {
+        throw "ALPHABET_MISMATCH";
+      }
+      if (!alphabet.is_nucleotide()) {
+        throw "NO_PROTEIN_RC";
+      }
+      //reverse
+      var x = 0;
+      var y = this.motif_length-1;
+      while (x < y) {
+        var temp = this.pspm[x];
+        this.pspm[x] = this.pspm[y];
+        this.pspm[y] = temp;
+        x++;
+        y--;
+      }
+      //complement
+      var a_index = alphabet.get_index("A");
+      var c_index = alphabet.get_index("C");
+      var g_index = alphabet.get_index("G");
+      var t_index = alphabet.get_index("T");
+      for (i = 0; i < this.motif_length; i++) {
+        var row = this.pspm[i];
+        //swap A and T
+        var temp = row[a_index];
+        row[a_index] = row[t_index];
+        row[t_index] = temp;
+        //swap C and G
+        temp = row[c_index];
+        row[c_index] = row[g_index];
+        row[g_index] = temp;
+      }
+      //note that ambigs are ignored because they don't effect motifs
+      return this; //allow function chaining...
+    }
+
+    function Pspm_get_stack(position, alphabet) {
+      if (this.alph_length != alphabet.get_size()) {
+        throw "ALPHABET_MISMATCH";
+      }
+      var row = this.pspm[position];
+      var stack_ic = this.get_stack_ic(position, alphabet);
+      var alphabet_ic = alphabet.get_ic();
+      var stack = new Array();
+      for (i = 0; i < this.alph_length; i++) {
+        if (alphabet.is_ambig(i)) continue;
+        var sym = new Symbol(i, row[i]*stack_ic/alphabet_ic, alphabet);
+        if (sym.get_scale() <= 0) continue;
+        stack.push(sym);
+      }
+      stack.sort(compare_symbol);
+      return stack;
+    }
+
+    function Pspm_get_stack_ic(position, alphabet) {
+      if (this.alph_length != alphabet.get_size()) {
+        throw "ALPHABET_MISMATCH";
+      }
+      var row = this.pspm[position];
+      var H = 0;
+      for (var i = 0; i < this.alph_length; i++) {
+        if (alphabet.is_ambig(i)) continue;
+        if (row[i] == 0) continue;
+        H -= (row[i] * (Math.log(row[i]) / Math.LN2));
+      }
+      return alphabet.get_ic() - H;
+    }
+
+    function Pspm_get_error(alphabet) {
+      var asize;
+      if (this.nsites == 0) return 0;
+      if (alphabet.is_nucleotide()) {
+        asize = 4;
+      } else {
+        asize = 20;
+      }
+      return (asize-1) / (2 * Math.log(2)*this.nsites);
+    }
+
+    function Pspm_get_motif_length() {
+      return this.motif_length;
+    }
+
+    function Pspm_get_alph_length() {
+      return this.alph_length;
+    }
+
+    function Pspm_to_string() {
+      var str = "";
+      for (row_index in this.pspm) {
+        //exclude inherited properties and undefined properties
+        if (!this.pspm.hasOwnProperty(row_index) || this.pspm[row_index] === undefined) continue;
+        
+        var row = this.pspm[row_index];
+        str += row.join("\t") + "\n";
+      }
+      return str;
+    }
+    //======================================================================
+    // end Pspm object
+    //======================================================================
+    
+    //======================================================================
+    // start Logo object
+    //======================================================================
+    function Logo(alphabet, fine_text) {
+      this.alphabet = alphabet;
+      this.fine_text = fine_text;
+      this.pspm_list = [];
+      this.pspm_column = [];
+      this.rows = 0;
+      this.columns = 0;
+
+      //functions
+      this.add_pspm = Logo_add_pspm;
+      this.get_columns = Logo_get_columns;
+      this.get_rows = Logo_get_rows;
+      this.get_pspm = Logo_get_pspm;
+      this.get_offset = Logo_get_offset;
+    }
+
+    function Logo_add_pspm(pspm, column) {
+      if (column === undefined) column = 0;
+      else if (column < 0) throw "COLUMN_OUT_OF_BOUNDS";
+      this.pspm_list[this.rows] = pspm;
+      this.pspm_column[this.rows] = column;
+      this.rows++;
+      var col = column + pspm.get_motif_length();
+      if (col > this.columns) this.columns = col;
+    }
+
+    function Logo_get_columns() {
+      return this.columns;
+    }
+
+    function Logo_get_rows() {
+      return this.rows;
+    }
+
+    function Logo_get_pspm(row_index) {
+      if (row_index < 0 || row_index >= this.rows) throw "INDEX_OUT_OF_BOUNDS";
+      return this.pspm_list[row_index];
+    }
+
+    function Logo_get_offset(row_index) {
+      if (row_index < 0 || row_index >= this.rows) throw "INDEX_OUT_OF_BOUNDS";
+      return this.pspm_column[row_index];
+    }
+
+    //======================================================================
+    // end Logo object
+    //======================================================================
+
+    //======================================================================
+    // start RasterizedAlphabet
+    //======================================================================
+
+    // Rasterize Alphabet
+    // 1) Measure width of text at default font for all symbols in alphabet
+    // 2) sort in width ascending
+    // 3) Drop the top and bottom 10% (designed to ignore outliers like 'W' and 'I')
+    // 4) Calculate the average as the maximum scaling factor (designed to stop I becoming a rectangular blob).
+    // 5) Assume scale of zero would result in width of zero, interpolate scale required to make perfect width font
+    // 6) Draw text onto temp canvas at calculated scale
+    // 7) Find bounds of drawn text
+    // 8) Paint on to another canvas at the desired height (but only scaling width to fit if larger).
+    function RasterizedAlphabet(alphabet, font, target_width) {
+      //variable prototypes
+      this.lookup = []; //a map of letter to index
+      this.rasters = []; //a list of rasters
+      this.dimensions = []; //a list of dimensions
+
+      //function prototypes
+      this.draw = RasterizedAlphabet_draw;
+
+      //construct
+      var default_size = 60; // size of square to assume as the default width
+      var safety_pad = 20; // pixels to pad around so we don't miss the edges
+      // create a canvas to do our rasterizing on
+      var canvas = document.createElement("canvas");
+      // assume the default font would fit in a canvas of 100 by 100
+      canvas.width = default_size + 2 * safety_pad;
+      canvas.height = default_size + 2 * safety_pad;
+      // check for canvas support before attempting anything
+      if (!canvas.getContext) throw "NO_CANVAS_SUPPORT";
+      var ctx = canvas.getContext('2d');
+      // check for html5 text drawing support
+      if (!supports_text(ctx)) throw "NO_CANVAS_TEXT_SUPPORT";
+      // calculate the middle
+      var middle = Math.round(canvas.width / 2);
+      // calculate the baseline
+      var baseline = Math.round(canvas.height - safety_pad);
+      // list of widths
+      var widths = [];
+      var count = 0;
+      var letters = [];
+      //now measure each letter in the alphabet
+      for (var i = 0; i < alphabet.get_size(); ++i) {
+        if (alphabet.is_ambig(i)) continue; //skip ambigs as they're never rendered
+        var letter = alphabet.get_letter(i);
+        letters.push(letter);
+        var pos = count++;
+        this.lookup[letter] = pos;
+        //clear the canvas
+        canvas.width = canvas.width;
+        // get the context and prepare to draw our width test
+        var ctx = canvas.getContext('2d');
+        ctx.font = font;
+        ctx.fillStyle = alphabet.get_colour(i);
+        ctx.textAlign = "center";
+        ctx.translate(middle, baseline);
+        // draw the test text
+        ctx.fillText(letter, 0, 0);
+        //measure
+        var size = RasterizedAlphabet_measure(ctx, canvas.width, canvas.height);
+        if (size.width == 0) throw "INVISIBLE_LETTER"; //maybe the fill was white on white?
+        widths.push(size.width);
+        this.dimensions[pos] = size;
+      }
+      //sort the widths
+      widths.sort(function(a,b) {return a - b;});
+      //drop 10% of the items off each end
+      var tenpercent = Math.floor(widths.length / 10);
+      for (var i = 0; i < tenpercent; ++i) {
+        widths.pop();
+        widths.shift();
+      }
+      //calculate average width
+      var avg_width = 0;
+      for (var i = 0; i < widths.length; ++i) avg_width += widths[i];
+      avg_width /= widths.length;
+      // calculate scales
+      for (var i = 0; i < this.dimensions.length; ++i) {
+        var size = this.dimensions[i];
+        // calculate scale
+        var scale = target_width / Math.max(avg_width, size.width);
+        // estimate scaled height
+        var target_height = size.height * scale;
+        // create an approprately sized canvas
+        var raster = document.createElement("canvas");
+        raster.width = target_width; // if it goes over the edge too bad...
+        raster.height = target_height + safety_pad * 2;
+        // calculate the middle
+        middle = Math.round(raster.width / 2);
+        // calculate the baseline
+        baseline = Math.round(raster.height - safety_pad);
+        // get the context and prepare to draw the rasterized text
+        ctx = raster.getContext('2d');
+        ctx.font = font;
+        ctx.fillStyle = alphabet.get_colour(i);
+        ctx.textAlign = "center";
+        ctx.translate(middle, baseline);
+        ctx.save();
+        ctx.scale(scale, scale);
+        // draw the rasterized text
+        ctx.fillText(letters[i], 0, 0);
+        ctx.restore();
+        this.rasters[i] = raster;
+        this.dimensions[i] = RasterizedAlphabet_measure(ctx, raster.width, raster.height);
+      }
+    }
+
+    function RasterizedAlphabet_measure(ctx, cwidth, cheight) {
+      var data = ctx.getImageData(0, 0, cwidth, cheight).data;
+      var r = 0, c = 0;// r: row, c: column
+      var top_line = -1, bottom_line = -1, left_line = -1, right_line = -1;
+      var txt_width = 0, txt_height = 0;
+      // Find the top-most line with a non-white pixel
+      for (r = 0; r < cheight; r++) {
+        for (c = 0; c < cwidth; c++) {
+          if (data[r * cwidth * 4 + c * 4 + 3]) {
+            top_line = r;
+            break;
+          }
+        }
+        if (top_line != -1) break;
+      }
+      
+      //find the last line with a non-white pixel
+      if (top_line != -1) {
+        for (r = cheight-1; r >= top_line; r--) {
+          for(c = 0; c < cwidth; c++) {
+            if(data[r * cwidth * 4 + c * 4 + 3]) {
+              bottom_line = r;
+              break;
+            }
+          }
+          if (bottom_line != -1) break;
+        }
+        txt_height = bottom_line - top_line + 1;
+      }
+
+      // Find the left-most line with a non-white pixel
+      for (c = 0; c < cwidth; c++) {
+        for (r = 0; r < cheight; r++) {
+          if (data[r * cwidth * 4 + c * 4 + 3]) {
+            left_line = c;
+            break;
+          }
+        }
+        if (left_line != -1) break;
+      }
+
+      //find the right most line with a non-white pixel
+      if (left_line != -1) {
+        for (c = cwidth-1; c >= left_line; c--) {
+          for(r = 0; r < cheight; r++) {
+            if(data[r * cwidth * 4 + c * 4 + 3]) {
+              right_line = c;
+              break;
+            }
+          }
+          if (right_line != -1) break;
+        }
+        txt_width = right_line - left_line + 1;
+      }
+
+      //return the bounds
+      return {bound_top: top_line, bound_bottom: bottom_line, bound_left: left_line, bound_right: right_line, width: txt_width, height: txt_height};
+    }
+
+    function RasterizedAlphabet_draw(ctx, letter, dx, dy, dWidth, dHeight) {
+      var index = this.lookup[letter];
+      var raster = this.rasters[index];
+      var size = this.dimensions[index];
+      ctx.drawImage(raster, 0, size.bound_top -1, raster.width, size.height+1, dx, dy, dWidth, dHeight);
+    }
+
+    //======================================================================
+    // end RasterizedAlphabet
+    //======================================================================
+
+    //======================================================================
+    // start LogoMetrics object
+    //======================================================================
+
+    function LogoMetrics(ctx, canvas_width, canvas_height, logo_columns, logo_rows, allow_space_for_names) {
+      if (allow_space_for_names === undefined) allow_space_for_names = false;
+      //variable prototypes
+      this.canvas_width = canvas_width;
+      this.canvas_height = canvas_height;
+      this.scale_x = 1;
+      this.scale_y = 1;
+      this.pad_top = 5;
+      this.pad_left = 10;
+      this.pad_right = 5;
+      this.pad_bottom = 0;
+      this.pad_middle = 20;
+      this.name_height = 14;
+      this.name_font = "bold " + this.name_height + "px Times, sans-serif";
+      this.name_spacer = 0;
+      this.y_label = "bits"
+      this.y_label_height = 12;
+      this.y_label_font = "bold " + this.y_label_height + "px Helvetica, sans-serif";
+      this.y_label_spacer = 3;
+      this.y_num_height = 12;
+      this.y_num_width = 0;
+      this.y_num_font = "bold " + this.y_num_height + "px Helvetica, sans-serif";
+      this.y_tic_width = 5;
+      this.stack_pad_left = 0;
+      this.stack_font = "bold 25px Helvetica, sans-serif";
+      this.stack_height = 90;
+      this.stack_width = 26;
+      this.stacks_pad_right = 5;
+      this.x_num_above = 2;
+      this.x_num_height = 12;
+      this.x_num_width = 0;
+      this.x_num_font = "bold " + this.x_num_height + "px Helvetica, sans-serif";
+      this.fine_txt_height = 6;
+      this.fine_txt_above = 2;
+      this.fine_txt_font = "normal " + this.fine_txt_height + "px Helvetica, sans-serif";
+      this.letter_metrics = new Array();
+      this.summed_width = 0;
+      this.summed_height = 0;
+      //function prototypes
+      //none
+      //calculate the width of the y axis numbers
+      ctx.font = this.y_num_font;
+      for (var i = 0; i <= 2; i++) {
+        this.y_num_width = Math.max(this.y_num_width, ctx.measureText("" + i).width);
+      }
+      //calculate the width of the x axis numbers (but they are rotated so it becomes height)
+      ctx.font = this.x_num_font;
+      for (var i = 1; i <= logo_columns; i++) {
+        this.x_num_width = Math.max(this.x_num_width, ctx.measureText("" + i).width);
+      }
+      
+      //calculate how much vertical space we want to draw this
+      //first we add the padding at the top and bottom since that's always there
+      this.summed_height += this.pad_top + this.pad_bottom;
+      //all except the last row have the same amount of space allocated to them
+      if (logo_rows > 1) {
+        var row_height = this.stack_height + this.pad_middle;
+        if (allow_space_for_names) {
+          row_height += this.name_height;
+          //the label is allowed to overlap into the spacer
+          row_height += Math.max(this.y_num_height/2, this.name_spacer); 
+          //the label is allowed to overlap the space used by the other label
+          row_height += Math.max(this.y_num_height/2, this.x_num_height + this.x_num_above); 
+        } else {
+          row_height += this.y_num_height/2; 
+          //the label is allowed to overlap the space used by the other label
+          row_height += Math.max(this.y_num_height/2, this.x_num_height + this.x_num_above); 
+        }
+        this.summed_height += row_height * (logo_rows - 1);
+      }
+      //the last row has the name and fine text below it but no padding
+      this.summed_height += this.stack_height + this.y_num_height/2;
+      if (allow_space_for_names) {
+        this.summed_height += this.fine_txt_height + this.fine_txt_above + this.name_height;
+        this.summed_height += Math.max(this.y_num_height/2, this.x_num_height + this.x_num_above + this.name_spacer);
+      } else {
+        this.summed_height += Math.max(this.y_num_height/2, this.x_num_height + this.x_num_above + this.fine_txt_height + this.fine_txt_above);
+      }
+
+      //calculate how much horizontal space we want to draw this
+      //first add the padding at the left and right since that's always there
+      this.summed_width += this.pad_left + this.pad_right;
+      //add on the space for the y-axis label
+      this.summed_width += this.y_label_height + this.y_label_spacer;
+      //add on the space for the y-axis
+      this.summed_width += this.y_num_width + this.y_tic_width;
+      //add on the space for the stacks
+      this.summed_width += (this.stack_pad_left + this.stack_width) * logo_columns;
+      //add on the padding after the stacks (an offset from the fine text)
+      this.summed_width += this.stacks_pad_right;
+
+      //calculate scaling factors
+      this.scale_y = this.canvas_height / this.summed_height;
+      this.scale_x = this.canvas_width / this.summed_width;
+
+      //maintain aspect ratio
+      if (this.scale_y > this.scale_x) {
+        this.scale_y = this.scale_x;
+      } else {
+        this.scale_x = this.scale_y;
+      }
+
+
+    }
+
+    //======================================================================
+    // end LogoMetrics object
+    //======================================================================
+
+
+    //found this trick at http://talideon.com/weblog/2005/02/detecting-broken-images-js.cfm
+    function image_ok(img) {
+      // During the onload event, IE correctly identifies any images that
+      // weren't downloaded as not complete. Others should too. Gecko-based
+      // browsers act like NS4 in that they report this incorrectly.
+      if (!img.complete) {
+        return false;
+      }
+      // However, they do have two very useful properties: naturalWidth and
+      // naturalHeight. These give the true size of the image. If it failed
+      // to load, either of these should be zero.
+      if (typeof img.naturalWidth != "undefined" && img.naturalWidth == 0) {
+        return false;
+      }
+      // No other way of checking: assume it's ok.
+      return true;
+    }
+      
+    function supports_text(ctx) {
+      if (!ctx.fillText) return false;
+      if (!ctx.measureText) return false;
+      return true;
+    }
+
+    //draws the scale, returns the width
+    function draw_scale(ctx, metrics, alphabet_ic) {
+      var tic_height = metrics.stack_height / alphabet_ic;
+      ctx.save();
+      ctx.lineWidth = 1.5;
+      ctx.translate(metrics.y_label_height, metrics.y_num_height/2);
+      //draw the axis label
+      ctx.save();
+      ctx.font = metrics.y_label_font;
+      ctx.translate(0, metrics.stack_height/2);
+      ctx.save();
+      ctx.rotate(-(Math.PI / 2));
+      ctx.textAlign = "center";
+      ctx.fillText("bits", 0, 0);
+      ctx.restore();
+      ctx.restore();
+
+      ctx.translate(metrics.y_label_spacer + metrics.y_num_width, 0);
+
+      //draw the axis tics
+      ctx.save();
+      ctx.translate(0, metrics.stack_height);
+      ctx.font = metrics.y_num_font;
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      for (var i = 0; i <= alphabet_ic; i++) {
+        //draw the number
+        ctx.fillText("" + i, 0, 0);
+        //draw the tic
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(metrics.y_tic_width, 0);
+        ctx.stroke();
+        //prepare for next tic
+        ctx.translate(0, -tic_height);
+      }
+      ctx.restore();
+
+      ctx.translate(metrics.y_tic_width, 0);
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, metrics.stack_height);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function draw_stack_num(ctx, metrics, row_index) {
+      ctx.save();
+      ctx.font = metrics.x_num_font;
+      ctx.translate(metrics.stack_width / 2, metrics.stack_height + metrics.x_num_above);
+      ctx.save();
+      ctx.rotate(-(Math.PI / 2));
+      ctx.textBaseline = "middle"
+      ctx.textAlign = "right"
+      ctx.fillText("" + (row_index + 1), 0, 0);
+      ctx.restore();
+      ctx.restore();
+    }
+
+    function draw_stack(ctx, metrics, symbols, raster) {
+      var preferred_pad = 0;
+      var sym_min = 5;
+
+      ctx.save();//1
+      ctx.translate(0, metrics.stack_height);
+      for (var i in symbols) {
+        //exclude inherited properties and undefined properties
+        if (!symbols.hasOwnProperty(i) || symbols[i] === undefined) continue;
+        
+        var sym = symbols[i];
+        var sym_height = metrics.stack_height * sym.get_scale();
+        
+        var pad = preferred_pad;
+        if (sym_height - pad < sym_min) {
+          pad = Math.min(pad, Math.max(0, sym_height - sym_min));
+        }
+        sym_height -= pad;
+
+        //translate to the correct position
+        ctx.translate(0, -(pad/2 + sym_height));
+        //draw
+        raster.draw(ctx, sym.get_symbol(), 0, 0, metrics.stack_width, sym_height);
+        //translate past the padding
+        ctx.translate(0, -(pad/2));
+      }
+      ctx.restore();//1
+    }
+
+    //draws a stack of symbols
+    function draw_stack_old(ctx, metrics, symbols) {
+      var lpad = 2;
+      var sym_min = 5;
+      var pos = metrics.stack_height;
+      for (var i in symbols) {
+        //exclude inherited properties and undefined properties
+        if (!symbols.hasOwnProperty(i) || symbols[i] === undefined) continue;
+        
+        var sym = symbols[i];
+        var sym_height = metrics.stack_height*sym.get_scale();
+        var letter = metrics.get_letter_metrics(sym.get_symbol());
+        //attempting to draw something smaller than a pixel causes display corruption
+        if (sym_height >= 1) {
+          //it's better to see the letter than to pad it
+          var pad = lpad;
+          if (sym_height - pad < sym_min) {
+            pad = Math.min(pad, Math.max(0, sym_height - sym_min));
+          }
+          //move to the correct drawing position
+          ctx.save();//s1
+          ctx.translate(0, pos);
+          //create a clipping rectangle to ensure the letter doesn't overlap when it's distorted
+          ctx.save();//s2
+          //ctx.beginPath(); //disabled clipping because after the improvements in the text metrics it looks better without
+          //ctx.moveTo(-metrics.stack_width/2,0);
+          //ctx.lineTo(metrics.stack_width/2, 0);
+          //ctx.lineTo(metrics.stack_width/2, -sym_height);
+          //ctx.lineTo(-metrics.stack_width/2, -sym_height);
+          //ctx.lineTo(-metrics.stack_width/2,0);
+          //ctx.clip();
+          //now draw
+          ctx.translate(0, -(pad/2));
+          ctx.translate(0, -letter.get_descent(sym_height - pad));
+          ctx.fillStyle = sym.get_colour();
+          ctx.textAlign = "center";
+          ctx.save();//s3
+          ctx.scale(letter.wscale, letter.get_hscale(sym_height - pad));
+          ctx.fillText(sym.get_symbol(), 0, 0);
+          ctx.restore();//s3
+
+          ctx.restore();//s2
+          ctx.restore();//s1
+        }
+
+        pos = pos - sym_height;
+      }
+    }
+
+    function draw_logo_on_canvas(logo, canvas, show_names, scale) {
+      var draw_name = (typeof show_names == "boolean" ? show_names : (logo.get_rows() > 1));
+      var cwidth = canvas.width;
+      var cheight = canvas.height;
+      //need a minimum 46 x 120 canvas to draw the font size checks on
+      if (canvas.width < 46) canvas.width = 46;
+      if (canvas.height < 120) canvas.height = 120;
+      var ctx = canvas.getContext('2d');
+      //assume that the user wants the canvas scaled equally so calculate what the best width for this image should be
+      var metrics = new LogoMetrics(ctx, canvas.width, canvas.height, logo.get_columns(), logo.get_rows(), draw_name);
+      ctx.save();//s1
+      if (typeof scale == "number") {
+        //resize the canvas to fit the scaled logo
+        cwidth = metrics.summed_width * scale;
+        cheight = metrics.summed_height * scale;
+      } else {
+        if (cwidth == 0 || cheight == 0 || scale == 0) {
+          throw "CANVAS_MUST_HAVE_DIMENSIONS";
+        }
+        scale = Math.min(cwidth / metrics.summed_width, cheight / metrics.summed_height);
+      }
+      var raster = new RasterizedAlphabet(logo.alphabet, metrics.stack_font, metrics.stack_width * scale * 2);
+      if (cwidth != canvas.width || cheight != canvas.height) {
+        canvas.width = cwidth;
+        canvas.height = cheight;
+        //as the canvas has been resized the context is now out of date
+        ctx = canvas.getContext('2d');
+      }
+      ctx.scale(scale, scale);
+      ctx.save();//s2
+      ctx.save();//s7
+      //create margin
+      ctx.translate(metrics.pad_left, metrics.pad_top);
+      for (var pspm_i = 0; pspm_i < logo.get_rows(); ++pspm_i) {
+        var pspm = logo.get_pspm(pspm_i);
+        var offset = logo.get_offset(pspm_i);
+        //optionally draw name if this isn't the last row or is the only row 
+        if (draw_name && (logo.get_rows() == 1 || pspm_i != (logo.get_rows()-1))) {
+          ctx.save();//s4
+          ctx.translate(metrics.summed_width/2, metrics.name_height);
+          ctx.font = metrics.name_font;
+          ctx.textAlign = "center";
+          ctx.fillText(pspm.name, 0, 0);
+          ctx.restore();//s4
+          ctx.translate(0, metrics.name_height + Math.min(0, metrics.name_spacer - metrics.y_num_height/2));
+        }
+        //draw scale
+        draw_scale(ctx, metrics, logo.alphabet.get_ic());
+        ctx.save();//s5
+        //translate across past the scale
+        ctx.translate(metrics.y_label_height + metrics.y_label_spacer + 
+            metrics.y_num_width + metrics.y_tic_width, 0);
+        //draw letters
+        ctx.translate(0, metrics.y_num_height / 2);
+        for (var col_index = 0; col_index < logo.get_columns(); col_index++) {
+          ctx.translate(metrics.stack_pad_left,0);
+          if (col_index >= offset && col_index < (offset + pspm.get_motif_length())) {
+            var motif_position = col_index - offset;
+            draw_stack_num(ctx, metrics, motif_position);
+            draw_stack(ctx, metrics, pspm.get_stack(motif_position, logo.alphabet), raster);
+          }
+          ctx.translate(metrics.stack_width, 0);
+        }
+        ctx.restore();//s5
+        ////optionally draw name if this is the last row but isn't the only row 
+        if (draw_name && (logo.get_rows() != 1 && pspm_i == (logo.get_rows()-1))) {
+          //translate vertically past the stack and axis's        
+          ctx.translate(0, metrics.y_num_height/2 + metrics.stack_height + 
+              Math.max(metrics.y_num_height/2, metrics.x_num_above + metrics.x_num_width + metrics.name_spacer));
+
+          ctx.save();//s6
+          ctx.translate(metrics.summed_width/2, metrics.name_height);
+          ctx.font = metrics.name_font;
+          ctx.textAlign = "center";
+          ctx.fillText(pspm.name, 0, 0);
+          ctx.restore();//s6
+          ctx.translate(0, metrics.name_height);
+        } else {
+          //translate vertically past the stack and axis's        
+          ctx.translate(0, metrics.y_num_height/2 + metrics.stack_height + Math.max(metrics.y_num_height/2, metrics.x_num_above + metrics.x_num_width));
+        }
+        //if not the last row then add middle padding
+        if (pspm_i != (logo.get_rows() -1)) {
+          ctx.translate(0, metrics.pad_middle);
+        }
+      }
+      ctx.restore();//s7
+      ctx.translate(metrics.summed_width - metrics.pad_right, metrics.summed_height - metrics.pad_bottom);
+      ctx.font = metrics.fine_txt_font;
+      ctx.textAlign = "right";
+      ctx.fillText(logo.fine_text, 0,0);
+      ctx.restore();//s2
+      ctx.restore();//s1
+    }
+
+    function create_canvas(c_width, c_height, c_id, c_title, c_display) {
+      var canvas = document.createElement("canvas");
+      //check for canvas support before attempting anything
+      if (!canvas.getContext) return null;
+      var ctx = canvas.getContext('2d');
+      //check for html5 text drawing support
+      if (!supports_text(ctx)) return null;
+      //size the canvas
+      canvas.width = c_width;
+      canvas.height = c_height;
+      canvas.id = c_id;
+      canvas.title = c_title;
+      canvas.style.display = c_display;
+      return canvas;
+    }
+
+    function logo_1(alphabet, fine_text, pspm) {
+      var logo = new Logo(alphabet, fine_text);
+      logo.add_pspm(pspm);
+      return logo;
+    }
+    
+    function logo_2(alphabet, fine_text, target, query, query_offset) {
+      var logo = new Logo(alphabet, fine_text);
+      if (query_offset < 0) {
+        logo.add_pspm(target, -query_offset);
+        logo.add_pspm(query);
+      } else {
+        logo.add_pspm(target);
+        logo.add_pspm(query, query_offset);
+      }      
+      return logo;
+    }
+
+    /*
+     * Specifies an alternate source for an image.
+     * If the image with the image_id specified has
+     * not loaded then a generated logo will be used 
+     * to replace it.
+     *
+     * Note that the image must either have dimensions
+     * or a scale must be set.
+     */
+    function alternate_logo(logo, image_id, scale) {
+      var image = document.getElementById(image_id);
+      if (!image) {
+        alert("Can't find specified image id (" +  image_id + ")");
+        return;
+      }
+      //if the image has loaded then there is no reason to use the canvas
+      if (image_ok(image)) return;
+      //the image has failed to load so replace it with a canvas if we can.
+      var canvas = create_canvas(image.width, image.height, image_id, image.title, image.style.display);
+      if (canvas == null) return;
+      //draw the logo on the canvas
+      draw_logo_on_canvas(logo, canvas, undefined, scale);
+      //replace the image with the canvas
+      image.parentNode.replaceChild(canvas, image);
+    }
+
+    /*
+     * Specifes that the element with the specified id
+     * should be replaced with a generated logo.
+     */
+    function replace_logo(logo, replace_id, scale, title_txt, display_style) {
+      var element = document.getElementById(replace_id);
+      if (!replace_id) {
+        alert("Can't find specified id (" + replace_id + ")");
+        return;
+      }
+      //found the element!
+      var canvas = create_canvas(50, 120, replace_id, title_txt, display_style);
+      if (canvas == null) return;
+      //draw the logo on the canvas
+      draw_logo_on_canvas(logo, canvas, undefined, scale);
+      //replace the element with the canvas
+      element.parentNode.replaceChild(canvas, element);
+    }
+
+    //example code for creating a logo
+    //function do_load() {
+    //  var alphabet = new Alphabet(document.getElementById("alphabet").value, document.getElementById("bgfreq").value);
+    //  var pspm = new Pspm(document.getElementById("pspm1").value);
+    //  var pspm_rc = pspm.copy().reverse_complement(alphabet);
+    //  draw_logo(pspm, alphabet, "Motif 1", "logo1");
+    //  draw_logo(pspm_rc, alphabet, "Motif 1 Reverse Complement", "logo_rc1");
+    //}
+
+  
+      function LoadQueryTask(target_id, query_name) {
+        this.target_id = target_id;
+        this.query_name = query_name;
+        this.run = LoadQueryTask_run;
+      }
+      function LoadQueryTask_run() {
+        var alpha = new Alphabet("ACGT");
+        var query_pspm = new Pspm(document.getElementById('q_' + this.query_name).value, this.query_name);
+        replace_logo(logo_1(alpha, "Tomtom", query_pspm), this.target_id, 0.5, "Preview of " + this.query_name, "block");
+      }
+      function FixLogoTask(image_id, query_name, target_name, target_rc, target_offset) {
+        this.image_id = image_id;
+        this.query_name = query_name;
+        this.target_name = target_name;
+        this.target_rc = target_rc;
+        this.target_offset = target_offset;
+        this.run = FixLogoTask_run;
+      }
+      function FixLogoTask_run() {
+        var image = document.getElementById(this.image_id);
+        var canvas = create_canvas(image.width, image.height, image.id, image.title, image.style.display);
+        if (canvas == null) return;
+        var alpha = new Alphabet("ACGT");
+        var query_pspm = new Pspm(document.getElementById('q_' + this.query_name).value, this.query_name);
+        var target_pspm = new Pspm(document.getElementById('t_' + this.target_name).value, this.target_name);
+        if (this.target_rc) target_pspm.reverse_complement(alpha);
+        var logo = logo_2(alpha, "Tomtom", target_pspm, query_pspm, this.target_offset);
+        draw_logo_on_canvas(logo, canvas, true, 1);
+        image.parentNode.replaceChild(canvas, image);
+      }
+      function push_task(task) {
+        task_queue.push(task);
+        if (task_queue.length == 1) {
+          window.setTimeout("process_tasks()", task_delay);
+        }
+      }
+      function process_tasks() {
+        if (task_queue.length == 0) return; //no more tasks
+        //get next task
+        var task = task_queue.shift();
+        task.run();
+        //allow UI updates between tasks
+        window.setTimeout("process_tasks()", task_delay);
+      }
+      function showHidden(prefix) {
+        document.getElementById(prefix + '_activator').style.display = 'none';
+        document.getElementById(prefix + '_deactivator').style.display = 'block';
+        document.getElementById(prefix + '_data').style.display = 'block';
+      }
+      function hideShown(prefix) {
+        document.getElementById(prefix + '_activator').style.display = 'block';
+        document.getElementById(prefix + '_deactivator').style.display = 'none';
+        document.getElementById(prefix + '_data').style.display = 'none';
+      }
+      function show_more(query_index, match_index, query_id, target_id, offset, rc) {
+        var link = document.getElementById("show_" + query_index + "_" + match_index);
+        var match_table = document.getElementById("table_" + query_index);
+        var match_row = document.getElementById("tr_" + query_index + "_" + match_index);
+        var query_pspm = document.getElementById(query_id).value;
+        var query_length = (new Pspm(query_pspm)).get_motif_length();
+        var target_pspm = document.getElementById(target_id).value;
+        var target_length = (new Pspm(target_pspm)).get_motif_length();
+        var total_length = (offset < 0 ? Math.max(query_length, target_length - offset) : Math.max(query_length + offset, target_length));
+        var download_row = document.getElementById("tr_download");
+        if (download_row) {
+          //remove existing
+          match_table.deleteRow(download_row.rowIndex);
+          show_opts_link.style.visibility = "visible";
+        }
+        show_opts_link = link;
+        show_opts_link.style.visibility = "hidden";
+        download_row = match_table.insertRow(match_row.rowIndex + 1);
+        download_row.id = "tr_download";
+        var cell = download_row.insertCell(0);
+        cell.colSpan = 2;
+        cell.style.verticalAlign = "top";
+        //create the download options
+        var box = document.createElement("div");
+        box.appendChild(create_title("Create custom LOGO", "#download_logo_doc"));
+        var form = create_form("http://meme.nbcr.net:8080/meme/cgi-bin/tomtom_request.cgi", "post");
+        add_hfield(form, "mode", "logo");
+        add_hfield(form, "version", "4.4.0");
+        add_hfield(form, "background", "0.25 0.25 0.25 0.25");
+        add_hfield(form, "target_id", target_id);
+        add_hfield(form, "target_length", target_length);
+        add_hfield(form, "target_pspm", target_pspm);
+        add_hfield(form, "target_rc", rc);
+        add_hfield(form, "query_id", query_id);
+        add_hfield(form, "query_length", query_length);
+        add_hfield(form, "query_pspm", query_pspm);
+        add_hfield(form, "query_offset", offset);
+        var tbl = document.createElement("table");
+        var row = tbl.insertRow(tbl.rows.length);
+        add_label(row.insertCell(-1),"Image Type");
+        add_label(row.insertCell(-1), "Error bars");
+        add_label(row.insertCell(-1), "SSC");
+        add_label(row.insertCell(-1), "Flip");
+        add_label(row.insertCell(-1), "Width");
+        add_label(row.insertCell(-1), "Height");
+        row.insertCell(-1).appendChild(document.createTextNode(" "));
+        row = tbl.insertRow(tbl.rows.length);
+        add_combo(row.insertCell(-1), "image_type", {"png" : "PNG (for web)", "eps" : "EPS (for publication)"}, "png");
+        add_combo(row.insertCell(-1), "error_bars", {"1" : "yes", "0" : "no"}, "1");
+        add_combo(row.insertCell(-1), "small_sample_correction", {"0" : "no", "1" : "yes"}, "0");
+        add_combo(row.insertCell(-1), "flip", {"0" : "no", "1" : "yes"}, "0");
+        add_tfield(row.insertCell(-1), "image_width", total_length, 2);
+        add_tfield(row.insertCell(-1), "image_height", 10, 2);
+        add_submit(row.insertCell(-1), "Download");
+        form.appendChild(tbl);
+        box.appendChild(form);
+        cell.appendChild(box);
+      }
+      function create_title(title, help_link) {
+        var title_ele = document.createElement("h4");
+        var words = document.createTextNode(title + " ");
+        title_ele.appendChild(words);
+        if (help_link) {
+          var link = document.createElement("a");
+          link.className = "help"
+          link.href = help_link;
+          var helpdiv = document.createElement("div");
+          helpdiv.className = "help";
+          link.appendChild(helpdiv);
+          title_ele.appendChild(link);
+        }
+        return title_ele;
+      }
+      function add_hfield(form, name, value) {
+        var hidden = document.createElement("input");
+        hidden.type = "hidden";
+        hidden.name = name;
+        hidden.value = value;
+        form.appendChild(hidden);
+      }
+      function add_label(ele,label) {
+        ele.className = "downloadTd";
+        var label_b = document.createElement("b");
+        label_b.appendChild(document.createTextNode(label));
+        ele.appendChild(label_b);
+      }
+      function add_tfield(ele, name, value, size) {
+        ele.className = "downloadTd";
+        var field = document.createElement("input");
+        field.type = "text";
+        field.style.marginLeft = "5px";
+        field.name = name;
+        field.value = value;
+        field.size = size;
+        ele.appendChild(field);
+      }
+      function add_combo(ele, name, options, selected) {
+        ele.className = "downloadTd";
+        var combo = document.createElement("select");
+        combo.name = name;
+        for (var value in options) {
+          combo.style.marginLeft = "5px";
+          //exclude inherited properties and undefined properties
+          if (!options.hasOwnProperty(value) || options[value] === undefined) continue;
+          var display = options[value];
+          var option = document.createElement("option");
+          option.value = value;
+          if (value == selected) option.selected = true;
+          option.appendChild(document.createTextNode(display));
+          combo.appendChild(option);
+        }
+        ele.appendChild(combo);
+      }
+      function add_submit(ele, value) {
+        ele.className = "downloadTd";
+        var submit = document.createElement("input");
+        submit.type = "submit";
+        submit.value = value;
+        ele.appendChild(submit);
+      }
+      function create_form(path,method) {
+        method = method || "post";
+
+        var form = document.createElement("form");
+        form.method = method;
+        form.action = path;
+        return form;
+      }
+    </script>
+</head>
+<body>
+<form>
+<input type="hidden" id="q_STRGGTCAN" value="
+letter-probability matrix: alength= 4 w= 9 nsites= 28 E= 0 
+0.112069 0.284483 0.491379 0.112069
+0.112069 0.008621 0.008621 0.87069
+0.663793 0.008621 0.318966 0.008621
+0.008621 0.043103 0.939655 0.008621
+0.0357145 0 0.928571 0.0357145
+0 0.0357145 0.142857 0.821428
+0.0714291 0.821428 0.107143 0
+0.928571 0.0357145 0 0.0357145
+0.178572 0.535714 0.142857 0.142857
+">
+<input type="hidden" id="t_MA0065.2" value="
+letter-probability matrix: alength= 4 w= 15 nsites= 862 E= 0 
+0.109685 0.369895 0.373396 0.147025
+0.117716 0.193473 0.148019 0.540793
+0.453488 0.026744 0.427907 0.09186
+0.116144 0.003484 0.779326 0.101045
+0.161253 0.017401 0.781903 0.039443
+0.168213 0.149652 0.458237 0.223898
+0.082271 0.633835 0.207416 0.076477
+0.949015 0.024334 0.017381 0.00927
+0.604867 0.05562 0.312862 0.026651
+0.825231 0.005787 0.158565 0.010417
+0.095017 0.002317 0.88876 0.013905
+0.047509 0.010429 0.803013 0.13905
+0.025492 0.114716 0.304751 0.555041
+0.062645 0.643852 0.167053 0.12645
+0.784223 0.067285 0.054524 0.093968
+">
+<input type="hidden" id="t_MA0066.1" value="
+letter-probability matrix: alength= 4 w= 20 nsites= 28 E= 0 
+0.107143 0.285714 0.5 0.107143
+0.107143 0 0 0.892857
+0.678571 0 0.321429 0
+0 0.035714 0.964286 0
+0.035714 0 0.928571 0.035714
+0 0.035714 0.142857 0.821429
+0.071429 0.821429 0.107143 0
+0.928571 0.035714 0 0.035714
+0.178571 0.535714 0.142857 0.142857
+0.178571 0.25 0.357143 0.214286
+0.142857 0.071429 0.642857 0.142857
+0.035714 0 0.071429 0.892857
+0.071429 0.178571 0.714286 0.035714
+0.785714 0.178571 0 0.035714
+0.035714 0.964286 0 0
+0 0.892857 0 0.107143
+0.107143 0.428571 0 0.464286
+0.785714 0.178571 0 0.035714
+0.178571 0.428571 0.214286 0.178571
+0.25 0 0.035714 0.714286
+">
+<input type="hidden" id="t_MA0071.1" value="
+letter-probability matrix: alength= 4 w= 10 nsites= 25 E= 0 
+0.6 0.04 0.08 0.28
+0.36 0.04 0 0.6
+0.24 0.48 0.16 0.12
+0.44 0.08 0.2 0.28
+0.84 0 0.16 0
+0 0 1 0
+0 0 1 0
+0 0 0 1
+0 1 0 0
+1 0 0 0
+">
+<input type="hidden" id="t_MA0072.1" value="
+letter-probability matrix: alength= 4 w= 14 nsites= 36 E= 0 
+0.25 0.222222 0.222222 0.305556
+0.472222 0.055556 0.194444 0.277778
+0.416667 0 0.083333 0.5
+0.972222 0.027778 0 0
+0.638889 0 0 0.361111
+0.055556 0.333333 0.361111 0.25
+0 0 0 1
+0.777778 0 0.222222 0
+0 0 1 0
+0 0 1 0
+0 0 0 1
+0 1 0 0
+1 0 0 0
+0.416667 0.166667 0.277778 0.138889
+">
+<input type="hidden" id="t_MA0074.1" value="
+letter-probability matrix: alength= 4 w= 15 nsites= 10 E= 0 
+0.3 0 0.7 0
+0 0 1 0
+0 0 0.9 0.1
+0 0 0 1
+0 0.9 0 0.1
+0.9 0 0.1 0
+0.4 0.2 0 0.4
+0.2 0.4 0.2 0.2
+0.2 0 0.8 0
+0.5 0 0.5 0
+0 0 1 0
+0 0 0 1
+0.1 0 0 0.9
+0 0.9 0 0.1
+0.7 0.1 0.2 0
+">
+<input type="hidden" id="t_MA0112.1" value="
+letter-probability matrix: alength= 4 w= 18 nsites= 9 E= 0 
+0.111111 0.555556 0.111111 0.222222
+0.111111 0.555556 0.111111 0.222222
+0.777778 0.111111 0.111111 0
+0.222222 0 0.777778 0
+0 0 1 0
+0 0 0 1
+0 0.777778 0.222222 0
+0.666667 0 0.222222 0.111111
+0.111111 0.777778 0.111111 0
+0.222222 0.555556 0.111111 0.111111
+0.333333 0.222222 0.444444 0
+0.111111 0.111111 0.111111 0.666667
+0.111111 0 0.888889 0
+0.555556 0.111111 0.333333 0
+0 0.888889 0 0.111111
+0 1 0 0
+0.222222 0.444444 0 0.333333
+0.333333 0.444444 0.111111 0.111111
+">
+<input type="hidden" id="t_MA0112.2" value="
+letter-probability matrix: alength= 4 w= 20 nsites= 473 E= 0 
+0.261242 0.256959 0.329764 0.152034
+0.228632 0.17094 0.350427 0.25
+0.136752 0.369658 0.318376 0.175214
+0.176596 0.487234 0.138298 0.197872
+0.285106 0.493617 0.1 0.121277
+0.651163 0.059197 0.188161 0.10148
+0.075949 0.016878 0.816456 0.090717
+0.04 0.037895 0.884211 0.037895
+0.069474 0.086316 0.191579 0.652632
+0.008421 0.829474 0.111579 0.050526
+0.837895 0.027368 0.056842 0.077895
+0.122105 0.526316 0.225263 0.126316
+0.132632 0.581053 0.111579 0.174737
+0.134737 0.543158 0.204211 0.117895
+0.067368 0.04 0.016842 0.875789
+0.044211 0.046316 0.896842 0.012632
+0.642105 0.223158 0.065263 0.069474
+0.021053 0.917895 0.025263 0.035789
+0.124211 0.743158 0.004211 0.128421
+0.054737 0.347368 0.046316 0.551579
+">
+<input type="hidden" id="t_MA0159.1" value="
+letter-probability matrix: alength= 4 w= 17 nsites= 23 E= 0 
+0.521739 0 0.478261 0
+0 0 1 0
+0.043478 0 0.565217 0.391304
+0 0 0.043478 0.956522
+0 0.782609 0.130435 0.086957
+0.956522 0 0.043478 0
+0.173913 0.304348 0.217391 0.304348
+0.217391 0.347826 0.391304 0.043478
+0.217391 0.173913 0.478261 0.130435
+0.565217 0.043478 0.304348 0.086957
+0.217391 0.26087 0.521739 0
+0.73913 0.130435 0.130435 0
+0.043478 0.043478 0.869565 0.043478
+0 0.043478 0.695652 0.26087
+0.086957 0.043478 0.130435 0.73913
+0.043478 0.73913 0.130435 0.086957
+0.913043 0 0.043478 0.043478
+">
+<input type="hidden" id="t_MA0160.1" value="
+letter-probability matrix: alength= 4 w= 8 nsites= 14 E= 0 
+0.615385 0.076923 0.230769 0.076923
+0.928571 0 0.071429 0
+0 0 0.928571 0.071429
+0.214286 0 0.785714 0
+0.142857 0.142857 0 0.714286
+0 0.928571 0 0.071429
+1 0 0 0
+0.230769 0.615385 0.153846 0
+">
+<input type="hidden" id="t_MA0258.1" value="
+letter-probability matrix: alength= 4 w= 18 nsites= 357 E= 0 
+0.218487 0.45098 0.176471 0.154062
+0.442577 0.142857 0.114846 0.29972
+0.521008 0.042017 0.431373 0.005602
+0.07563 0 0.770308 0.154062
+0.05042 0.056022 0.893557 0
+0.036415 0.053221 0.092437 0.817927
+0 1 0 0
+0.943978 0.002801 0 0.053221
+0.137255 0.344538 0.316527 0.201681
+0.179272 0.176471 0.417367 0.226891
+0.145658 0.170868 0.411765 0.271709
+0.058824 0.092437 0.067227 0.781513
+0.176471 0.070028 0.742297 0.011204
+0.498599 0.277311 0.053221 0.170868
+0.095238 0.7507 0.005602 0.148459
+0.128852 0.809524 0 0.061625
+0.07563 0.252101 0 0.672269
+0.168067 0.263305 0.380952 0.187675
+">
+<input type="hidden" id="t_MA0451.1" value="
+letter-probability matrix: alength= 4 w= 12 nsites= 26 E= 0 
+0.730769 0.038462 0.076923 0.153846
+0.961538 0.038462 0 0
+0.615385 0 0 0.384615
+0.192308 0.346154 0.230769 0.230769
+0 0.153846 0.038462 0.807692
+0.807692 0 0.192308 0
+0 0 1 0
+0.653846 0 0.307692 0.038462
+0.038462 0.115385 0.692308 0.153846
+0 1 0 0
+0.961538 0 0.038462 0
+0.192308 0.461538 0.269231 0.076923
+">
+<input type="hidden" id="t_M00156" value="
+letter-probability matrix: alength= 4 w= 13 nsites= 25 E= 0 
+0.4 0.08 0.28 0.24
+0.36 0.12 0.12 0.4
+0.6 0.04 0.08 0.28
+0.36 0.04 0 0.6
+0.24 0.48 0.16 0.12
+0.44 0.08 0.2 0.28
+0.84 0 0.16 0
+0 0 1 0
+0 0 1 0
+0 0 0 1
+0 1 0 0
+1 0 0 0
+0.291667 0.208333 0.083333 0.416667
+">
+<input type="hidden" id="t_M00157" value="
+letter-probability matrix: alength= 4 w= 13 nsites= 36 E= 0 
+0.472222 0.055556 0.194444 0.277778
+0.416667 0 0.111111 0.472222
+1 0 0 0
+0.611111 0 0 0.388889
+0.055556 0.333333 0.361111 0.25
+0 0 0 1
+0.777778 0 0.222222 0
+0 0 1 0
+0 0 1 0
+0 0 0 1
+0 1 0 0
+1 0 0 0
+0.388889 0.194444 0.277778 0.138889
+">
+<input type="hidden" id="t_M00172" value="
+letter-probability matrix: alength= 4 w= 11 nsites= 17 E= 0 
+0.352941 0.117647 0.470588 0.058824
+0.176471 0.294118 0.529412 0
+0 0 0 1
+0 0 1 0
+1 0 0 0
+0 0.941176 0 0.058824
+0.176471 0.117647 0.176471 0.529412
+0.235294 0.411765 0.117647 0.235294
+0.529412 0.352941 0.058824 0.058824
+0.235294 0.176471 0.411765 0.176471
+0.352941 0.176471 0.058824 0.411765
+">
+<input type="hidden" id="t_M00191" value="
+letter-probability matrix: alength= 4 w= 19 nsites= 20 E= 0 
+0.3 0.2 0.2 0.3
+0.2 0.45 0.15 0.2
+0.6 0.2 0.15 0.05
+0.3 0.05 0.55 0.1
+0.15 0.1 0.55 0.2
+0.15 0.15 0.2 0.5
+0.15 0.5 0.15 0.2
+0.55 0.1 0.2 0.15
+0.2 0.45 0.15 0.2
+0.15 0.3 0.15 0.4
+0.1 0.15 0.45 0.3
+0 0.05 0 0.95
+0.05 0 0.95 0
+1 0 0 0
+0 0.9 0.1 0
+0.05 0.9 0.05 0
+0.1 0.35 0.1 0.45
+0.35 0.05 0.4 0.2
+0.4 0.25 0.15 0.2
+">
+<input type="hidden" id="t_M00202" value="
+letter-probability matrix: alength= 4 w= 26 nsites= 9 E= 0 
+0.185106 0.268085 0.181915 0.364894
+0.645058 0.272051 0.082891 0
+0.804255 0.103191 0 0.092553
+0.103191 0.271277 0 0.625532
+0.471277 0 0.181915 0.346809
+0.72234 0.095745 0.089362 0.092553
+0.509281 0.194896 0 0.295824
+0.096706 0.103082 0 0.800213
+0 0 0.831031 0.168969
+0 0.175532 0 0.824468
+0.178723 0 0.821277 0
+0.735106 0.082979 0 0.181915
+0.175532 0.192553 0.171277 0.460638
+0 0.354255 0.371277 0.274468
+0.281615 0.175345 0.272051 0.270988
+0.467021 0 0.354255 0.178723
+0.281915 0.278723 0.260638 0.178723
+0.189362 0.191489 0.440426 0.178723
+0.095745 0.103191 0 0.801064
+0.089362 0.814894 0 0.095745
+0.708511 0.095745 0.092553 0.103191
+0.18916 0.727949 0 0.082891
+0.629118 0.18491 0.096706 0.089267
+0.103082 0.34644 0.18916 0.361318
+0.17766 0.096809 0 0.725532
+0.277955 0.095847 0.092652 0.533546
+">
+<input type="hidden" id="t_M00226" value="
+letter-probability matrix: alength= 4 w= 9 nsites= 36 E= 0 
+0.694444 0.083333 0.111111 0.111111
+0.055556 0.777778 0.083333 0.083333
+0 0.861111 0 0.138889
+0.472222 0 0 0.527778
+1 0 0 0
+0 1 0 0
+0.027778 0.944444 0 0.027778
+0.305556 0.361111 0.111111 0.222222
+0.166667 0.222222 0.416667 0.194444
+">
+<input type="hidden" id="t_M00242" value="
+letter-probability matrix: alength= 4 w= 20 nsites= 7 E= 0 
+0.142857 0.714286 0.142857 0
+0.571429 0.142857 0 0.285714
+0.571429 0 0.428571 0
+0.714286 0.142857 0.142857 0
+0.571429 0 0.142857 0.285714
+0.142857 0.714286 0.142857 0
+0 0.285714 0 0.714286
+0.857143 0 0.142857 0
+0 0 1 0
+0 0 1 0
+0.142857 0.285714 0.142857 0.428571
+0.142857 0.857143 0 0
+1 0 0 0
+0.714286 0 0 0.285714
+1 0 0 0
+0 0 1 0
+0 0 0.714286 0.285714
+0 0 0 1
+0 0.857143 0.142857 0
+0.857143 0 0 0.142857
+">
+<input type="hidden" id="t_M00511" value="
+letter-probability matrix: alength= 4 w= 14 nsites= 25 E= 0 
+0.36 0.16 0.16 0.32
+0.16 0.24 0.32 0.28
+0.32 0.28 0.2 0.2
+0.2 0.08 0.12 0.6
+0.32 0.4 0.24 0.04
+0.64 0.04 0.24 0.08
+0.92 0.04 0 0.04
+0 0 1 0
+0 0 1 0
+0.12 0 0 0.88
+0 0.92 0.08 0
+0.92 0.04 0 0.04
+0.2 0.24 0.2 0.36
+0.44 0.16 0.16 0.24
+">
+<input type="hidden" id="t_M00515" value="
+letter-probability matrix: alength= 4 w= 23 nsites= 27 E= 0 
+0.782609 0.130435 0 0.086957
+0.777778 0 0 0.222222
+0.111111 0.259259 0.555556 0.074074
+0.035714 0.035714 0 0.928571
+0.75 0 0.25 0
+0 0 1 0
+0 0.035714 0.964286 0
+0 0 0.107143 0.892857
+0.035714 0.821429 0.142857 0
+1 0 0 0
+0.142857 0.607143 0.107143 0.142857
+0.214286 0.25 0.321429 0.214286
+0.107143 0.107143 0.678571 0.107143
+0 0 0 1
+0.071429 0.178571 0.714286 0.035714
+0.857143 0.107143 0.035714 0
+0 1 0 0
+0 1 0 0
+0 0.392857 0 0.607143
+0.892857 0.035714 0 0.071429
+0.148148 0.555556 0.222222 0.074074
+0.259259 0 0.037037 0.703704
+0.083333 0 0 0.916667
+">
+<input type="hidden" id="t_M00528" value="
+letter-probability matrix: alength= 4 w= 17 nsites= 19 E= 0 
+0.526316 0.052632 0.105263 0.315789
+0.578947 0.105263 0.105263 0.210526
+0.052632 0.526316 0.263158 0.157895
+0.210526 0.263158 0.052632 0.473684
+0.526316 0.105263 0.263158 0.105263
+0 0 1 0
+0.052632 0 0.947368 0
+0.157895 0.157895 0.368421 0.315789
+0.105263 0.631579 0.052632 0.210526
+0.947368 0 0.052632 0
+0.736842 0.052632 0.052632 0.157895
+0.842105 0.052632 0.052632 0.052632
+0.052632 0 0.947368 0
+0 0 0.736842 0.263158
+0 0.052632 0.052632 0.894737
+0 0.736842 0.210526 0.052632
+0.842105 0 0.052632 0.105263
+">
+<input type="hidden" id="t_M00762" value="
+letter-probability matrix: alength= 4 w= 13 nsites= 31 E= 0 
+0.366667 0.033333 0.4 0.2
+0.129032 0 0.83871 0.032258
+0.064516 0.129032 0.709677 0.096774
+0.225806 0.193548 0.193548 0.387097
+0.064516 0.741935 0.064516 0.129032
+0.870968 0.064516 0 0.064516
+0.677419 0.096774 0.129032 0.096774
+0.677419 0.032258 0.258065 0.032258
+0 0.064516 0.83871 0.096774
+0.064516 0.064516 0.645161 0.225806
+0.129032 0.129032 0.064516 0.677419
+0.032258 0.806452 0.129032 0.032258
+0.677419 0.129032 0 0.193548
+">
+<input type="hidden" id="t_M00763" value="
+letter-probability matrix: alength= 4 w= 13 nsites= 18 E= 0 
+0.277778 0 0.111111 0.611111
+0.055556 0.166667 0.777778 0
+0.722222 0.166667 0 0.111111
+0.277778 0.722222 0 0
+0.055556 0.888889 0.055556 0
+0.055556 0.166667 0 0.777778
+0.111111 0.166667 0.111111 0.611111
+0.055556 0 0.055556 0.888889
+0.111111 0.111111 0.722222 0.055556
+0.388889 0.222222 0.222222 0.166667
+0.111111 0.777778 0 0.111111
+0.111111 0.777778 0.055556 0.055556
+0.166667 0.444444 0.055556 0.333333
+">
+<input type="hidden" id="t_M00959" value="
+letter-probability matrix: alength= 4 w= 11 nsites= 39 E= 0 
+0.230769 0.410256 0.205128 0.153846
+0.74359 0.076923 0.179487 0
+0.025641 0 0.923077 0.051282
+0 0 1 0
+0.025641 0 0.076923 0.897436
+0.025641 0.897436 0.076923 0
+0.948718 0.025641 0 0.025641
+0.153846 0.435897 0.205128 0.205128
+0.179487 0.282051 0.410256 0.128205
+0.179487 0.282051 0.435897 0.102564
+0.102564 0.282051 0.076923 0.538462
+">
+<input type="hidden" id="t_M00965" value="
+letter-probability matrix: alength= 4 w= 17 nsites= 19 E= 0 
+0 0.263158 0.105263 0.631579
+0.157895 0 0.789474 0.052632
+0.578947 0.157895 0.105263 0.157895
+0.315789 0.631579 0 0.052632
+0.052632 0.894737 0 0.052632
+0 0.052632 0.315789 0.631579
+0.105263 0.368421 0.263158 0.263158
+0.105263 0.315789 0.157895 0.421053
+0.578947 0.210526 0.052632 0.157895
+0.052632 0.421053 0.368421 0.157895
+0.052632 0.052632 0.052632 0.842105
+0.368421 0 0.578947 0.052632
+0.789474 0.105263 0.052632 0.052632
+0.157895 0.736842 0.105263 0
+0.052632 0.842105 0.052632 0.052632
+0.052632 0.578947 0.052632 0.315789
+0.210526 0.473684 0.105263 0.210526
+">
+<input type="hidden" id="t_M01032" value="
+letter-probability matrix: alength= 4 w= 6 nsites= 58 E= 0 
+0.844828 0 0.155172 0
+0 0 1 0
+0.051724 0.017241 0.448276 0.482759
+0.051724 0.327586 0.12069 0.5
+0.017241 0.810345 0.034483 0.137931
+0.793103 0.034483 0.103448 0.068966
+">
+<input type="hidden" id="t_M01033" value="
+letter-probability matrix: alength= 4 w= 6 nsites= 58 E= 0 
+0.327586 0.137931 0.362069 0.172414
+0.086207 0.034483 0.793103 0.086207
+0.189655 0.051724 0.517241 0.241379
+0.086207 0.275862 0.344828 0.293103
+0.034483 0.827586 0.034483 0.103448
+0.896552 0.017241 0 0.086207
+">
+<input type="hidden" id="t_M01138" value="
+letter-probability matrix: alength= 4 w= 11 nsites= 12 E= 0 
+0.333333 0 0.083333 0.583333
+0.583333 0.083333 0.083333 0.25
+0.583333 0 0.25 0.166667
+0.25 0.25 0.25 0.25
+0.083333 0 0 0.916667
+0.5 0 0.5 0
+0 0 0.916667 0.083333
+0 0 1 0
+0 0 0 1
+0 0.916667 0 0.083333
+1 0 0 0
+">
+<input type="hidden" id="t_M01198" value="
+letter-probability matrix: alength= 4 w= 13 nsites= 25 E= 0 
+0.8 0 0.2 0
+0 0 1 0
+0 0 0.96 0.04
+0 0 0 1
+0 0.96 0 0.04
+1 0 0 0
+0.96 0 0 0.04
+1 0 0 0
+0 0 1 0
+0 0 0.96 0.04
+0 0 0 1
+0 1 0 0
+1 0 0 0
+">
+<input type="hidden" id="t_M01202" value="
+letter-probability matrix: alength= 4 w= 15 nsites= 10 E= 0 
+0.3 0 0.7 0
+0 0 1 0
+0 0 0.9 0.1
+0 0 0 1
+0 0.9 0 0.1
+0.9 0 0.1 0
+0.4 0.2 0 0.4
+0.2 0.4 0.2 0.2
+0.2 0 0.8 0
+0.5 0 0.5 0
+0 0 1 0
+0 0 0 1
+0.1 0 0 0.9
+0 0.9 0 0.1
+0.7 0.1 0.2 0
+">
+<input type="hidden" id="t_M01217" value="
+letter-probability matrix: alength= 4 w= 10 nsites= 9 E= 0 
+0.111111 0.333333 0.222222 0.333333
+0 0 0 1
+0.111111 0 0.888889 0
+0.666667 0 0.222222 0.111111
+0 1 0 0
+0 1 0 0
+0 0 0 1
+0 0 0 1
+0 0.333333 0.333333 0.333333
+0.111111 0.333333 0.333333 0.222222
+">
+<input type="hidden" id="t_M01227" value="
+letter-probability matrix: alength= 4 w= 6 nsites= 20 E= 0 
+0.111111 0.111111 0.722222 0.055556
+0.15 0.45 0.3 0.1
+0 0 0 1
+0 0 0.952381 0.047619
+0.75 0.2 0 0.05
+0.05 0.65 0.15 0.15
+">
+<input type="hidden" id="t_M01248" value="
+letter-probability matrix: alength= 4 w= 20 nsites= 100 E= 0 
+0.32 0.19 0.35 0.14
+0.39 0.27 0.24 0.1
+0.43 0.06 0.34 0.17
+0.17 0.27 0.4 0.16
+0.26 0.24 0.23 0.27
+0.14 0.24 0.35 0.27
+0.19 0.45 0.27 0.09
+0.85 0 0.14 0.01
+0.97 0 0.03 0
+0.05 0 0.94 0.01
+0 0 0.96 0.04
+0.04 0.11 0.02 0.83
+0 0.88 0.11 0.01
+0.77 0.04 0.01 0.18
+0.17 0.37 0.33 0.13
+0.29 0.31 0.21 0.19
+0.17 0.21 0.31 0.31
+0.21 0.2 0.28 0.31
+0.23 0.32 0.2 0.25
+0.29 0.32 0.22 0.17
+">
+<input type="hidden" id="t_M01268" value="
+letter-probability matrix: alength= 4 w= 7 nsites= 19 E= 0 
+0.736842 0 0.263158 0
+0 0 1 0
+0 0 0.894737 0.105263
+0.157895 0.052632 0.052632 0.736842
+0 0.894737 0 0.105263
+1 0 0 0
+0.210526 0.263158 0.157895 0.368421
+">
+<input type="hidden" id="t_M01270" value="
+letter-probability matrix: alength= 4 w= 7 nsites= 15 E= 0 
+0.733333 0.066667 0.2 0
+0 0 1 0
+0 0 1 0
+0.066667 0 0.133333 0.8
+0.133333 0.666667 0.133333 0.066667
+0.933333 0.066667 0 0
+0.2 0.2 0.4 0.2
+">
+<input type="hidden" id="t_M01282" value="
+letter-probability matrix: alength= 4 w= 7 nsites= 13 E= 0 
+0 0.076923 0 0.923077
+0 0 1 0
+0.769231 0 0.153846 0.076923
+0 0.846154 0.153846 0
+0 1 0 0
+0 0 0 1
+0.076923 0.384615 0.076923 0.461538
+">
+</form>
+<a name="top"></a><div class="pad1">
+<h1><img src="http://meme.nbcr.net/meme/doc/images/tomtom_logo.png" alt="TOol for Motif TO Motif comparison (TOMTOM)"></h1>
+<p class="spaced">
+        For further information on how to interpret these results or to get a 
+        copy of the MEME software please access 
+        <a href="http://meme.nbcr.net/">http://meme.nbcr.net</a>. 
+      </p>
+</div>
+<div class="pad2">
+<a class="jump" href="#query_motifs">Query Motifs</a>  |  <a class="jump" href="#target_dbs">Target Databases</a>  |  <a class="jump" href="#query_q_STRGGTCAN">Matches</a>  |  <a class="jump" href="#program">Program information</a>  |  <a class="jump" href="#doc">Explanation</a>
+</div>
+<a name="query_motifs"></a><table width="100%" border="0" cellspacing="1" cellpadding="4" bgcolor="#FFFFFF"><tr>
+<td><h2 class="mainh">Query Motifs</h2></td>
+<td align="right" valign="bottom">
+<a href="#target_dbs">Next</a> <a href="#top">Top</a>
+</td>
+</tr></table>
+<div class="box"><table>
+<thead><tr>
+<td class="pt" style="min-width:5em;"><h4>Name <a href="#qm_name_doc" class="help"><div class="help"></div></a>
+</h4></td>
+<td class="pt" style="min-width:9em;"><h4>Preview <a href="#qm_preview_doc" class="help"><div class="help"></div></a>
+</h4></td>
+<td class="pt" style="min-width:9em;"><h4>Matches <a href="#qm_matches_doc" class="help"><div class="help"></div></a>
+</h4></td>
+<td class="pt" style="min-width:6em;"><h4>List <a href="#qm_list_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr></thead>
+<tbody><tr>
+<td class="pt"><a href="#query_q_STRGGTCAN">STRGGTCAN</a></td>
+<td class="pt"><a href="#query_q_STRGGTCAN" style="color: inherit; text-decoration:none;"><span><div id="preview_1">
+<script type="text/javascript">push_task(new LoadQueryTask("preview_" + 1, "STRGGTCAN"));</script><span class="G">G</span><span class="T">T</span><span class="A">A</span><span class="G">G</span><span class="G">G</span><span class="T">T</span><span class="C">C</span><span class="A">A</span><span class="C">C</span>
+</div></span></a></td>
+<td class="pt ac"><a href="#query_q_STRGGTCAN">36</a></td>
+<td class="pt">
+<a href="#match_q_STRGGTCAN_t_MA0066.1">MA0066.1</a>, <a href="#match_q_STRGGTCAN_t_M00515">M00515</a>, <a href="#match_q_STRGGTCAN_t_M00157">M00157</a>, <a href="#match_q_STRGGTCAN_t_M01138">M01138</a>, <a href="#match_q_STRGGTCAN_t_MA0072.1">MA0072.1</a>, <a href="#match_q_STRGGTCAN_t_M01268">M01268</a>, <a href="#match_q_STRGGTCAN_t_M01270">M01270</a>, <a href="#match_q_STRGGTCAN_t_M00191">M00191</a>, <a href="#match_q_STRGGTCAN_t_MA0258.1">MA0258.1</a>, <a href="#match_q_STRGGTCAN_t_MA0159.1">MA0159.1</a>, <a href="#match_q_STRGGTCAN_t_MA0071.1">MA0071.1</a>, <a href="#match_q_STRGGTCAN_t_M00959">M00959</a>, <a href="#match_q_STRGGTCAN_t_M00156">M00156</a>, <a href="#match_q_STRGGTCAN_t_MA0112.2">MA0112.2</a>, <a href="#match_q_STRGGTCAN_t_MA0160.1">MA0160.1</a>, <a href="#match_q_STRGGTCAN_t_MA0112.1">MA0112.1</a>, <a href="#match_q_STRGGTCAN_t_M01032">M01032</a>, <a href="#match_q_STRGGTCAN_t_MA0074.1">MA0074.1</a>, <a href="#match_q_STRGGTCAN_t_M01202">M01202</a>, <a href="#match_q_STRGGTCAN_t_MA0065.2">MA0065.2</a>
+</td>
+</tr></tbody>
+</table></div>
+<a name="target_dbs"></a><table width="100%" border="0" cellspacing="1" cellpadding="4" bgcolor="#FFFFFF"><tr>
+<td><h2 class="mainh">Target Databases</h2></td>
+<td align="right" valign="bottom">
+<a href="#query_motifs">Previous</a> <a href="#query_q_STRGGTCAN">Next</a> <a href="#top">Top</a>
+</td>
+</tr></table>
+<div class="box"><table>
+<thead><tr>
+<td class="pt" style="min-width:8em;"><h4>Database <a href="#tdb_database_doc" class="help"><div class="help"></div></a>
+</h4></td>
+<td class="pt" style="min-width:8em;"><h4>Number of Motifs <a href="#tdb_contains_doc" class="help"><div class="help"></div></a>
+</h4></td>
+<td class="pt" style="min-width:8em;"><h4>Motifs Matched <a href="#tdb_matched_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr></thead>
+<tbody>
+<tr>
+<td class="pt">JASPAR_CORE_2009.meme</td>
+<td class="pt ac">476</td>
+<td class="pt ac">11</td>
+</tr>
+<tr>
+<td class="pt">transfac_matrix.meme</td>
+<td class="pt ac">1226</td>
+<td class="pt ac">25</td>
+</tr>
+<tr>
+<td class="pt">uniprobe_mouse.meme</td>
+<td class="pt ac">386</td>
+<td class="pt ac">0</td>
+</tr>
+</tbody>
+</table></div>
+<a name="query_q_STRGGTCAN"></a><table width="100%" border="0" cellspacing="1" cellpadding="4" bgcolor="#FFFFFF"><tr>
+<td><h2 class="mainh">Matches to Query: STRGGTCAN</h2></td>
+<td align="right" valign="bottom">
+<a href="#target_dbs">Previous</a> <a href="#program">Next</a> <a href="#top">Top</a>
+</td>
+</tr></table>
+<div class="box"><table id="table_1" style="width:100%">
+<col style="width:20%;">
+<col>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_MA0066.1"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_1">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0066.1&amp;rm=present&amp;collection=CORE">MA0066.1</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>PPARG</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>JASPAR_CORE_2009.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>1.54217e-16</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>3.22004e-13</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>6.40581e-13</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>0</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_1" src="logo_STRGGTCAN_+MA0066.1.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "MA0066.1", false, 0));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_1" href="javascript:show_more(1,%201,%20'q_STRGGTCAN',%20't_MA0066.1',%200,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right"> [<a href="#match_q_STRGGTCAN_t_M00515">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M00515"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_2">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00515">M00515</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>PPARgamma:RXRalpha,</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>6.32802e-13</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>1.32129e-09</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>1.31426e-09</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>2</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_2" src="logo_STRGGTCAN_+M00515.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M00515", false, 2));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_2" href="javascript:show_more(1,%202,%20'q_STRGGTCAN',%20't_M00515',%202,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_MA0066.1">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M00157">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M00157"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_3">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00157">M00157</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>RORalpha2</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>1.87159e-06</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>0.00390789</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.00155483</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>4</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_3" src="logo_STRGGTCAN_+M00157.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M00157", false, 4));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_3" href="javascript:show_more(1,%203,%20'q_STRGGTCAN',%20't_M00157',%204,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M00515">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M01138">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M01138"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_4">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01138">M01138</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>RORalpha</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>2.83024e-06</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>0.00590954</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.00195936</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>8</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>3</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_4" src="logo_STRGGTCAN_+M01138.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M01138", false, 3));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_4" href="javascript:show_more(1,%204,%20'q_STRGGTCAN',%20't_M01138',%203,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M00157">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_MA0072.1">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_MA0072.1"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_5">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0072.1&amp;rm=present&amp;collection=CORE">MA0072.1</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>RORA_2</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>JASPAR_CORE_2009.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>3.88856e-06</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>0.00811932</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.00230746</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>5</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_5" src="logo_STRGGTCAN_+MA0072.1.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "MA0072.1", false, 5));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_5" href="javascript:show_more(1,%205,%20'q_STRGGTCAN',%20't_MA0072.1',%205,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M01138">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M01268">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M01268"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_6">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01268">M01268</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>FXR</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>1.94915e-05</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>0.0406982</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.0101204</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>7</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-2</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_6" src="logo_STRGGTCAN_+M01268.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M01268", false, -2));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_6" href="javascript:show_more(1,%206,%20'q_STRGGTCAN',%20't_M01268',%20-2,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_MA0072.1">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M01270">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M01270"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_7">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01270">M01270</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>PPARG</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>4.13904e-05</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>0.0864232</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.0191029</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>7</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-2</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_7" src="logo_STRGGTCAN_+M01270.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M01270", false, -2));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_7" href="javascript:show_more(1,%207,%20'q_STRGGTCAN',%20't_M01270',%20-2,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M01268">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M00191">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M00191"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_8">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00191">M00191</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>ER</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>7.58152e-05</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>0.158302</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.0314919</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>0</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Reverse Complement</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_8" src="logo_STRGGTCAN_-M00191.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M00191", true, 0));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_8" href="javascript:show_more(1,%208,%20'q_STRGGTCAN',%20't_M00191',%200,%201)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M01270">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_MA0258.1">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_MA0258.1"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_9">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0258.1&amp;rm=present&amp;collection=CORE">MA0258.1</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>ESR2</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>JASPAR_CORE_2009.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>8.94604e-05</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>0.186793</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.0337816</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>0</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_9" src="logo_STRGGTCAN_+MA0258.1.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "MA0258.1", false, 0));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_9" href="javascript:show_more(1,%209,%20'q_STRGGTCAN',%20't_MA0258.1',%200,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M00191">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_MA0159.1">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_MA0159.1"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_10">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0159.1&amp;rm=present&amp;collection=CORE">MA0159.1</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>RXR::RAR_DR5</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>JASPAR_CORE_2009.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.000151894</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>0.317154</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.0525776</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>7</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-2</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_10" src="logo_STRGGTCAN_+MA0159.1.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "MA0159.1", false, -2));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_10" href="javascript:show_more(1,%2010,%20'q_STRGGTCAN',%20't_MA0159.1',%20-2,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_MA0258.1">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_MA0071.1">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_MA0071.1"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_11">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0071.1&amp;rm=present&amp;collection=CORE">MA0071.1</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>RORA_1</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>JASPAR_CORE_2009.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.000210068</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>0.438622</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.067121</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>8</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>2</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_11" src="logo_STRGGTCAN_+MA0071.1.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "MA0071.1", false, 2));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_11" href="javascript:show_more(1,%2011,%20'q_STRGGTCAN',%20't_MA0071.1',%202,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_MA0159.1">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M00959">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M00959"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_12">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00959">M00959</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>ER</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.000266538</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>0.556532</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.0790813</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>8</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-1</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_12" src="logo_STRGGTCAN_+M00959.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M00959", false, -1));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_12" href="javascript:show_more(1,%2012,%20'q_STRGGTCAN',%20't_M00959',%20-1,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_MA0071.1">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M00156">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M00156"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_13">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00156">M00156</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>RORalpha1</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.000306539</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>0.640053</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.0848861</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>4</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_13" src="logo_STRGGTCAN_+M00156.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M00156", false, 4));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_13" href="javascript:show_more(1,%2013,%20'q_STRGGTCAN',%20't_M00156',%204,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M00959">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_MA0112.2">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_MA0112.2"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_14">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0112.2&amp;rm=present&amp;collection=CORE">MA0112.2</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>ESR1</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>JASPAR_CORE_2009.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.000429448</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>0.896688</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.111489</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>7</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-2</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Reverse Complement</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_14" src="logo_STRGGTCAN_-MA0112.2.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "MA0112.2", true, -2));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_14" href="javascript:show_more(1,%2014,%20'q_STRGGTCAN',%20't_MA0112.2',%20-2,%201)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M00156">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_MA0160.1">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_MA0160.1"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_15">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0160.1&amp;rm=present&amp;collection=CORE">MA0160.1</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>NR4A2</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>JASPAR_CORE_2009.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.000740331</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>1.54581</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.170842</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>8</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-1</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_15" src="logo_STRGGTCAN_+MA0160.1.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "MA0160.1", false, -1));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_15" href="javascript:show_more(1,%2015,%20'q_STRGGTCAN',%20't_MA0160.1',%20-1,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_MA0112.2">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_MA0112.1">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_MA0112.1"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_16">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0112.1&amp;rm=present&amp;collection=CORE">MA0112.1</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>ESR1</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>JASPAR_CORE_2009.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00101281</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>2.11476</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.205449</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>8</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-1</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Reverse Complement</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_16" src="logo_STRGGTCAN_-MA0112.1.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "MA0112.1", true, -1));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_16" href="javascript:show_more(1,%2016,%20'q_STRGGTCAN',%20't_MA0112.1',%20-1,%201)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_MA0160.1">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M01032">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M01032"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_17">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01032">M01032</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>HNF4</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00112829</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>2.35586</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.207355</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>6</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-2</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_17" src="logo_STRGGTCAN_+M01032.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M01032", false, -2));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_17" href="javascript:show_more(1,%2017,%20'q_STRGGTCAN',%20't_M01032',%20-2,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_MA0112.1">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_MA0074.1">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_MA0074.1"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_18">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0074.1&amp;rm=present&amp;collection=CORE">MA0074.1</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>RXRA::VDR</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>JASPAR_CORE_2009.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00122279</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>2.55319</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.207355</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>7</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-2</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_18" src="logo_STRGGTCAN_+MA0074.1.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "MA0074.1", false, -2));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_18" href="javascript:show_more(1,%2018,%20'q_STRGGTCAN',%20't_MA0074.1',%20-2,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M01032">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M01202">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M01202"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_19">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01202">M01202</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>VDR:RXR</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00122279</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>2.55319</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.207355</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>7</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-2</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_19" src="logo_STRGGTCAN_+M01202.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M01202", false, -2));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_19" href="javascript:show_more(1,%2019,%20'q_STRGGTCAN',%20't_M01202',%20-2,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_MA0074.1">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_MA0065.2">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_MA0065.2"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_20">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0065.2&amp;rm=present&amp;collection=CORE">MA0065.2</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>PPARG::RXRA</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>JASPAR_CORE_2009.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00124799</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>2.6058</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.207355</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>0</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_20" src="logo_STRGGTCAN_+MA0065.2.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "MA0065.2", false, 0));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_20" href="javascript:show_more(1,%2020,%20'q_STRGGTCAN',%20't_MA0065.2',%200,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M01202">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M01248">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M01248"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_21">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01248">M01248</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>Dax1</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.0015006</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>3.13326</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.239737</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>6</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_21" src="logo_STRGGTCAN_+M01248.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M01248", false, 6));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_21" href="javascript:show_more(1,%2021,%20'q_STRGGTCAN',%20't_M01248',%206,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_MA0065.2">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M00511">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M00511"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_22">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00511">M00511</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>ERR</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00157765</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>3.29413</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.242711</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>4</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_22" src="logo_STRGGTCAN_+M00511.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M00511", false, 4));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_22" href="javascript:show_more(1,%2022,%20'q_STRGGTCAN',%20't_M00511',%204,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M01248">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M00528">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M00528"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_23">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00528">M00528</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>PPAR</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00164774</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>3.44048</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.24444</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>2</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_23" src="logo_STRGGTCAN_+M00528.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M00528", false, 2));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_23" href="javascript:show_more(1,%2023,%20'q_STRGGTCAN',%20't_M00528',%202,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M00511">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M01198">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M01198"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_24">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01198">M01198</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>RXR:LXR-beta</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00193569</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>4.04172</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.277255</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>7</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-2</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_24" src="logo_STRGGTCAN_+M01198.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M01198", false, -2));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_24" href="javascript:show_more(1,%2024,%20'q_STRGGTCAN',%20't_M01198',%20-2,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M00528">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M01217">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M01217"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_25">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01217">M01217</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>NUR77</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00221051</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>4.61555</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.287249</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>1</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Reverse Complement</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_25" src="logo_STRGGTCAN_-M01217.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M01217", true, 1));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_25" href="javascript:show_more(1,%2025,%20'q_STRGGTCAN',%20't_M01217',%201,%201)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M01198">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M00242">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M00242"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_26">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00242">M00242</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>PPARalpha:RXRalpha</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00225302</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>4.70431</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.287249</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>5</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_26" src="logo_STRGGTCAN_+M00242.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M00242", false, 5));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_26" href="javascript:show_more(1,%2026,%20'q_STRGGTCAN',%20't_M00242',%205,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M01217">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M01033">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M01033"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_27">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01033">M01033</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>HNF4</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.0022814</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>4.76356</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.287249</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>6</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-2</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_27" src="logo_STRGGTCAN_+M01033.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M01033", false, -2));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_27" href="javascript:show_more(1,%2027,%20'q_STRGGTCAN',%20't_M01033',%20-2,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M00242">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_MA0451.1">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_MA0451.1"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_28">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="http://jaspar.genereg.net/cgi-bin/jaspar_db.pl?ID=MA0451.1&amp;rm=present&amp;collection=CORE">MA0451.1</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>kni</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>JASPAR_CORE_2009.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00230486</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>4.81254</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.287249</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>3</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_28" src="logo_STRGGTCAN_+MA0451.1.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "MA0451.1", false, 3));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_28" href="javascript:show_more(1,%2028,%20'q_STRGGTCAN',%20't_MA0451.1',%203,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M01033">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M01227">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M01227"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_29">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01227">M01227</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>MAFB</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00235123</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>4.90936</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.287249</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>5</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-4</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Reverse Complement</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_29" src="logo_STRGGTCAN_-M01227.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M01227", true, -4));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_29" href="javascript:show_more(1,%2029,%20'q_STRGGTCAN',%20't_M01227',%20-4,%201)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_MA0451.1">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M00202">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M00202"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_30">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00202">M00202</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>CRP</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00264918</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>5.53149</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.308088</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>13</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_30" src="logo_STRGGTCAN_+M00202.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M00202", false, 13));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_30" href="javascript:show_more(1,%2030,%20'q_STRGGTCAN',%20't_M00202',%2013,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M01227">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M00226">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M00226"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_31">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00226">M00226</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>P</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.0026768</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>5.58916</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.308088</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>6</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>3</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Reverse Complement</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_31" src="logo_STRGGTCAN_-M00226.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M00226", true, 3));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_31" href="javascript:show_more(1,%2031,%20'q_STRGGTCAN',%20't_M00226',%203,%201)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M00202">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M01282">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M01282"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_32">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M01282">M01282</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>PPARA</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00274432</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>5.73013</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.308088</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>7</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-1</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Reverse Complement</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_32" src="logo_STRGGTCAN_-M01282.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M01282", true, -1));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_32" href="javascript:show_more(1,%2032,%20'q_STRGGTCAN',%20't_M01282',%20-1,%201)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M00226">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M00763">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M00763"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_33">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00763">M00763</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>PPAR</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00319369</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>6.66843</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.349101</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>7</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-2</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Reverse Complement</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_33" src="logo_STRGGTCAN_-M00763.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M00763", true, -2));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_33" href="javascript:show_more(1,%2033,%20'q_STRGGTCAN',%20't_M00763',%20-2,%201)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M01282">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M00172">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M00172"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_34">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00172">M00172</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>AP-1</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00382363</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>7.98374</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.396792</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>9</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>1</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Reverse Complement</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_34" src="logo_STRGGTCAN_-M00172.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M00172", true, 1));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_34" href="javascript:show_more(1,%2034,%20'q_STRGGTCAN',%20't_M00172',%201,%201)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M00763">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M00965">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M00965"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_35">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00965">M00965</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>LXR,</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00391656</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>8.17777</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.396792</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>8</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-1</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Reverse Complement</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_35" src="logo_STRGGTCAN_-M00965.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M00965", true, -1));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_35" href="javascript:show_more(1,%2035,%20'q_STRGGTCAN',%20't_M00965',%20-1,%201)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M00172">Previous Match</a>] [<a href="#match_q_STRGGTCAN_t_M00762">Next Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+<tr>
+<td style="min-width:9em;">
+<a name="match_q_STRGGTCAN_t_M00762"></a><h4>Summary <a href="#summary_doc" class="help"><div class="help"></div></a>
+</h4>
+</td>
+<td style="min-width:11em;"><h4>Alignment <a href="#alignment_doc" class="help"><div class="help"></div></a>
+</h4></td>
+</tr>
+<tr id="tr_1_36">
+<td style="vertical-align:top"><table style="width:100%">
+<colgroup></colgroup>
+<colgroup align="left"></colgroup>
+<tr>
+<th>Name</th>
+<td><a href="https://portal.biobase-international.com/cgi-bin/build_t/idb/1.0/pageview.cgi?view=MatrixReport&amp;matrix_acc=M00762">M00762</a></td>
+</tr>
+<tr>
+<th>Alt. Name</th>
+<td>PPAR,</td>
+</tr>
+<tr>
+<th>Database</th>
+<td>transfac_matrix.meme</td>
+</tr>
+<tr class="tspace">
+<th>
+<i>p</i>-value</th>
+<td>0.00437918</td>
+</tr>
+<tr>
+<th>
+<i>E</i>-value</th>
+<td>9.14373</td>
+</tr>
+<tr>
+<th>
+<i>q</i>-value</th>
+<td>0.433098</td>
+</tr>
+<tr class="tspace">
+<th>Overlap</th>
+<td>7</td>
+</tr>
+<tr>
+<th>Offset</th>
+<td>-2</td>
+</tr>
+<tr>
+<th>Orientation</th>
+<td>Normal</td>
+</tr>
+</table></td>
+<td><div class="logo_container"><img id="m_1_36" src="logo_STRGGTCAN_+M00762.png" class="logo" onerror='push_task(new FixLogoTask(this.id, "STRGGTCAN", "M00762", false, -2));'></div></td>
+</tr>
+<tr>
+<td style="text-align:center;"><a id="show_1_36" href="javascript:show_more(1,%2036,%20'q_STRGGTCAN',%20't_M00762',%20-2,%200)">Create custom LOGO ↧</a></td>
+<td style="text-align:right">[<a href="#match_q_STRGGTCAN_t_M00965">Previous Match</a>] [<a href="#query_q_STRGGTCAN">Query Top</a>]</td>
+</tr>
+</table></div>
+<a name="program"></a><div class="bar">
+<div style="text-align:right;">
+<a href="#query_q_STRGGTCAN">Previous</a> <a href="#doc">Next</a> <a href="#top">Top</a>
+</div>
+<div class="subsection">
+<a name="version"></a><h5>TOMTOM version</h5>4.4.0 (Release date: Tue Apr 27 10:09:30 EST 2010)
+      </div>
+<div class="subsection">
+<a name="reference"></a><h5>Reference</h5>
+        Shobhit Gupta, John A. Stamatoyannopoulos, Timothy L. Bailey and William Stafford Noble, "Quantifying similarity between motifs", <br>
+        Genome Biology, 8:R24, 2007
+      </div>
+<div class="subsection">
+<a name="command"></a><h5>Command line summary</h5>
+<textarea rows="1" style="width:100%;" readonly>tomtom -oc . -verbosity 1 -min-overlap 5 -mi 1 -dist pearson -evalue -thresh 10 -no-ssc STRGGTCAN.meme db/JASPAR_CORE_2009.meme db/transfac_matrix.meme db/uniprobe_mouse.meme</textarea><br>Background letter frequencies (from first motif database):<br><div style="margin-left:25px;">A: 0.250   C: 0.250   G: 0.250   T: 0.250</div>
+<br>Result calculation took 1.466 seconds<br>
+</div>
+<a href="javascript:showHidden('model')" id="model_activator">show model parameters...</a><div class="subsection" id="model_data" style="display:none;">
+<h5>Model parameters</h5>
+<textarea style="width:100%;" rows="5" readonly>
+distance_measure      = value: "pearson"
+threshold             = type: "evalue"
+background            = from: "first_target", A: "0.25", C: "0.25", G: "0.25", T: "0.25"
+host                  = meme.nbcr.net
+when                  = Mon Aug 30 18:59:26 2010
+</textarea>
+</div>
+<a href="javascript:hideShown('model')" style="display:none;" id="model_deactivator">hide model parameters...</a>
+</div>
+<span class="explain"><a name="doc"></a><table width="100%" border="0" cellspacing="1" cellpadding="4" bgcolor="#FFFFFF"><tr>
+<td><h2 class="mainh">Explanation of TOMTOM Results</h2></td>
+<td align="right" valign="bottom">
+<a href="#program">Previous</a> <a href="#top">Top</a>
+</td>
+</tr></table>
+<div class="box">
+<h4>The TOMTOM results consist of</h4>
+<ul>
+<li>The <a href="#query_doc">query motifs</a> with links to further information on matches. [<a href="#query_motifs">View</a>]</li>
+<li>The <a href="#target_doc">target databases</a> with information on the number of matches. [<a href="#target_dbs">View</a>]</li>
+<li>The <b>matches</b> between query motifs and target motifs.  [<a href="#query_q_STRGGTCAN">View</a>]
+            <ul>
+<li>The <a href="#summary_doc">summary</a> of match information.</li>
+<li>An <a href="#alignment_doc">alignment</a> of the two motifs.</li>
+</ul>
+</li>
+<li>The <b>program</b> details including:
+            <ol>
+<li>The <b>version</b> of TOMTOM and the date it was released. [<a href="#version">View</a>]</li>
+<li>The <b>reference</b> to cite if you use TOMTOM in your research. [<a href="#reference">View</a>]</li>
+<li>The <b>command line summary</b> detailing the parameters with which you ran TOMTOM. [<a href="#command">View</a>]</li>
+</ol>
+</li>
+<li>This <b>explanation</b> of how to interpret TOMTOM results.</li>
+</ul>
+<h4>Inputs</h4>
+<p>The important inputs to TOMTOM.</p>
+<a name="query_doc"></a><h5>Query Motifs</h5>
+<div class="doc">
+<p>The query motifs section lists the motifs that were searched for in the target databases as well as links to matches found.</p>
+<dl>
+<a name="qm_name_doc"></a><dt>Name</dt>
+<dd>The motif name.</dd>
+<a name="qm_alt_doc"></a><dt>Alt. Name</dt>
+<dd>The alternative motif name. This column may be hidden if no query motifs have an alternate name.</dd>
+<a name="qm_web_doc"></a><dt>Website</dt>
+<dd>A link to a website which has more information on the motif. This column may be hidden if no query motifs have website information.</dd>
+<a name="qm_preview_doc"></a><dt>Preview</dt>
+<dd>The motif preview. On supporting browsers this will display as a motif logo, otherwise the consensus sequence will be displayed.</dd>
+<a name="qm_matches_doc"></a><dt>Matches</dt>
+<dd>The number of significant matches.</dd>
+<a name="qm_list_doc"></a><dt>List</dt>
+<dd>Links to the first 20 matches</dd>
+</dl>
+</div>
+<a name="target_doc"></a><h5>Target Databases</h5>
+<div class="doc">
+<p>The target motifs section lists details on the motif databases that were specifed to search.</p>
+<dl>
+<a name="tdb_database_doc"></a><dt>Database</dt>
+<dd>The database name.</dd>
+<a name="tdb_contains_doc"></a><dt>Number of Motifs</dt>
+<dd>The number of motifs read from the motif database minus the number that had to be discarded due to conflicting ids.</dd>
+<a name="tdb_matched_doc"></a><dt>Motifs Matched</dt>
+<dd>The number of motifs that had a match with at least one of the query motifs.</dd>
+</dl>
+</div>
+<h4>Matches</h4>
+<p>The matches section list the group of motifs that match each query motif. For each query-target match the following information is given:</p>
+<a name="summary_doc"></a><h5>Summary Table</h5>
+<div class="doc">
+<p>The summary gives the important statistics about the motif match.</p>
+<dl>
+<dt>Name</dt>
+<dd>The name of the matched motif.</dd>
+<dt>Alt. Name</dt>
+<dd>The alternative name of the matched motif.</dd>
+<dt>
+<i>p</i>-value</dt>
+<dd>The probability that the match occurred by random chance according to the null model.</dd>
+<dt>
+<i>E</i>-value</dt>
+<dd>The expected number of false positives in the matches up to this point.</dd>
+<dt>
+<i>q</i>-value</dt>
+<dd>The minimum <b>F</b>alse <b>D</b>iscovery <b>R</b>ate required to include the match.</dd>
+<dt>Overlap</dt>
+<dd>The number of letters that overlaped in the optimal alignment.</dd>
+<dt>Offset</dt>
+<dd>The offset of the query motif to the matched motif in the optimal alignment.</dd>
+<dt>Orientation</dt>
+<dd>The orientation of the matched motif that gave the optimal alignment.
+              A value of "normal" means that the matched motif is as it appears in 
+              the database otherwise the matched motif has been reverse complemented.</dd>
+</dl>
+</div>
+<a name="alignment_doc"></a><h5>Alignment</h5>
+<div class="doc"><p>The image shows the alignment of the two motifs. The matched motif is shown on the top and the query motif is shown on the bottom.</p></div>
+<a name="download_logo_doc"></a><h5>Create custom LOGO</h5>
+<div class="doc">
+<p>By clicking the link "Create custom LOGO ↧" a form to make custom logos 
+            will be displayed. The download button can then be clicked to generate a motif
+            matching the selected specifications.</p>
+<dl>
+<dt>Image Type</dt>
+<dd>Two image formats, png and eps, are avaliable. The pixel based portable network graphic (png) format is commonly used on the Internet 
+              and the Encapsulated PostScript (eps) format is more suitable for publications that might require scaling.</dd>
+<dt>Error bars</dt>
+<dd>Toggle error bars indicating the confidence of a motif based on the number of sites used in its creation.</dd>
+<dt>SSC</dt>
+<dd>Toggle adding pseudocounts for <b>S</b>mall <b>S</b>ample <b>C</b>orrection.</dd>
+<dt>Flip</dt>
+<dd>Toggle a full reverse complement the alignment.</dd>
+<dt>Width</dt>
+<dd>Specify the width of the generated motif.</dd>
+<dt>Height</dt>
+<dd>Specify the height of the generated motif.</dd>
+</dl>
+</div>
+</div></span><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+</body>
+</html>

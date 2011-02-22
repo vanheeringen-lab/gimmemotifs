@@ -1,0 +1,255 @@
+********************************************************************************
+MEME - Motif discovery tool
+********************************************************************************
+MEME version 4.0.0 (Release date: 2008-07-12 05:23:09 +1000 (Sat, 12 Jul 2008))
+
+For further information on how to interpret these results or to get
+a copy of the MEME software please access http://meme.nbcr.net.
+
+This file may be used as input to the MAST algorithm for searching
+sequence databases for matches to groups of motifs.  MAST is available
+for interactive use and downloading at http://meme.nbcr.net.
+********************************************************************************
+
+
+********************************************************************************
+REFERENCE
+********************************************************************************
+If you use this program in your research, please cite:
+
+Timothy L. Bailey and Charles Elkan,
+"Fitting a mixture model by expectation maximization to discover
+motifs in biopolymers", Proceedings of the Second International
+Conference on Intelligent Systems for Molecular Biology, pp. 28-36,
+AAAI Press, Menlo Park, California, 1994.
+********************************************************************************
+
+
+********************************************************************************
+TRAINING SET
+********************************************************************************
+DATAFILE= psp_test.s
+ALPHABET= ACGT
+Sequence name            Weight Length  Sequence name            Weight Length  
+-------------            ------ ------  -------------            ------ ------  
+iYBL030C-1               1.0000   1083  iYBR008C                 1.0000   1180  
+iYBR076W                 1.0000    401  iYBR208C                 1.0000    396  
+iYCR021C                 1.0000    325  iYDL037C-0               1.0000    954  
+iYDL037C-1               1.0000    922  iYDR300C                 1.0000    586  
+iYDR338C                 1.0000    463  iYDR441C                 1.0000    570  
+iYDR505C                 1.0000    508  iYEL012W                 1.0000    584  
+iYER028C                 1.0000    676  iYER045C-0               1.0000    835  
+iYER072W                 1.0000    844  iYFL005W                 1.0000    854  
+iYGR035C                 1.0000    734  
+********************************************************************************
+
+********************************************************************************
+COMMAND LINE SUMMARY
+********************************************************************************
+This information can also be useful in the event you wish to report a
+problem with the MEME software.
+
+command: meme psp_test.s -psp psp_test.psp -minsites 5 -dna -revcomp -minw 7 -maxw 12 -text 
+
+model:  mod=         zoops    nmotifs=         1    evt=           inf
+object function=  E-value of product of p-values
+width:  minw=            7    maxw=           12    minic=        0.00
+width:  wg=             11    ws=              1    endgaps=       yes
+nsites: minsites=        5    maxsites=       17    wnsites=       0.8
+theta:  prob=            1    spmap=         uni    spfuzz=        0.5
+global: substring=     yes    branching=      no    wbranch=        no
+em:     prior=   dirichlet    b=            0.01    maxiter=        50
+        distance=    1e-05
+data:   n=           11915    N=              17
+strands: + -
+sample: seed=            0    seqfrac=         1
+Letter frequencies in dataset:
+A 0.317 C 0.183 G 0.183 T 0.317 
+Background letter frequencies (from dataset with add-one prior applied):
+A 0.317 C 0.183 G 0.183 T 0.317 
+********************************************************************************
+
+
+********************************************************************************
+MOTIF  1	width =   10   sites =  16   llr = 146   E-value = 2.8e+006
+********************************************************************************
+--------------------------------------------------------------------------------
+	Motif 1 Description
+--------------------------------------------------------------------------------
+Simplified        A  ::::911:8a
+pos.-specific     C  :8:::21:1:
+probability       G  a1:1:283::
+matrix            T  :1a916181:
+
+         bits    2.5 *         
+                 2.2 *         
+                 2.0 *         
+                 1.7 * *      *
+Relative         1.5 ***      *
+Entropy          1.2 ***** *  *
+(13.2 bits)      1.0 ***** ****
+                 0.7 ***** ****
+                 0.5 ***** ****
+                 0.2 **********
+                 0.0 ----------
+
+Multilevel           GCTTATGTAA
+consensus                   G  
+sequence                       
+                               
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+	Motif 1 sites sorted by position p-value
+--------------------------------------------------------------------------------
+Sequence name            Strand  Start   P-value               Site 
+-------------            ------  ----- ---------            ----------
+iYFL005W                     +    480  1.97e-06 AACTACTTGC GCTTATGTAA GGTTCCTGTA
+iYDR338C                     +    104  1.97e-06 AAATATGCTT GCTTATGTAA AAATACAATC
+iYBR076W                     +    270  1.97e-06 GCGTAATCAA GCTTATGTAA ATGGCGTGTC
+iYBR008C                     -    238  5.39e-06 AAGGATATTT GCTTAGGTAA GGAGCAATAA
+iYDR300C                     +    144  8.98e-06 GCATTAGTTC GCTGATGTAA TTTTTCATTT
+iYDL037C-1                   -    152  8.98e-06 TTTAAACTTT GCTTATGTCA AATTTAAATT
+iYER072W                     -    674  1.83e-05 TTTACATGGG GCTTATATAA TCGTGTTTTG
+iYDR505C                     -    423  2.32e-05 AACCCGCAAA GCTGACGGAA AAAGTATCGG
+iYDR441C                     -    294  2.91e-05 CTCCGTATAA GGTTATGTAA TCGGAAGTCG
+iYGR035C                     -    259  3.29e-05 TTGTGAAAAA GCTTAAGGAA AGCCGCGGAT
+iYER028C                     +    580  4.47e-05 TTAAAATTAT GTTTAGGTAA TGAAAAAATA
+iYBR208C                     +    180  5.16e-05 GAAAAAAAAA GCTTAGCTAA GAGAGCCTGA
+iYBL030C-1                   -    278  5.84e-05 TTGTATGTGG GCTTATGGTA TGCCTGCAGG
+iYDL037C-0                   -    338  6.52e-05 CCGATTCTAT GCTTACAGAA TAACCGATAC
+iYER045C-0                   +    634  1.77e-04 GCCTTGTTCT GCTTACTTCA TGCAGAGGTA
+iYCR021C                     +     72  2.00e-04 TTGTTGTTTT GTTTTTGTAA TTATAAATAA
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+	Motif 1 block diagrams
+--------------------------------------------------------------------------------
+SEQUENCE NAME            POSITION P-VALUE  MOTIF DIAGRAM
+-------------            ----------------  -------------
+iYFL005W                            2e-06  479_[+1]_365
+iYDR338C                            2e-06  103_[+1]_350
+iYBR076W                            2e-06  269_[+1]_122
+iYBR008C                          5.4e-06  237_[-1]_933
+iYDR300C                            9e-06  143_[+1]_433
+iYDL037C-1                          9e-06  151_[-1]_761
+iYER072W                          1.8e-05  673_[-1]_161
+iYDR505C                          2.3e-05  422_[-1]_76
+iYDR441C                          2.9e-05  293_[-1]_267
+iYGR035C                          3.3e-05  258_[-1]_466
+iYER028C                          4.5e-05  579_[+1]_87
+iYBR208C                          5.2e-05  179_[+1]_207
+iYBL030C-1                        5.8e-05  277_[-1]_796
+iYDL037C-0                        6.5e-05  337_[-1]_607
+iYER045C-0                        0.00018  633_[+1]_192
+iYCR021C                           0.0002  71_[+1]_244
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+	Motif 1 in BLOCKS format
+--------------------------------------------------------------------------------
+BL   MOTIF 1 width=10 seqs=16
+iYFL005W                 (  480) GCTTATGTAA  1 
+iYDR338C                 (  104) GCTTATGTAA  1 
+iYBR076W                 (  270) GCTTATGTAA  1 
+iYBR008C                 (  238) GCTTAGGTAA  1 
+iYDR300C                 (  144) GCTGATGTAA  1 
+iYDL037C-1               (  152) GCTTATGTCA  1 
+iYER072W                 (  674) GCTTATATAA  1 
+iYDR505C                 (  423) GCTGACGGAA  1 
+iYDR441C                 (  294) GGTTATGTAA  1 
+iYGR035C                 (  259) GCTTAAGGAA  1 
+iYER028C                 (  580) GTTTAGGTAA  1 
+iYBR208C                 (  180) GCTTAGCTAA  1 
+iYBL030C-1               (  278) GCTTATGGTA  1 
+iYDL037C-0               (  338) GCTTACAGAA  1 
+iYER045C-0               (  634) GCTTACTTCA  1 
+iYCR021C                 (   72) GTTTTTGTAA  1 
+//
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+	Motif 1 position-specific scoring matrix
+--------------------------------------------------------------------------------
+log-odds matrix: alength= 4 w= 10 n= 11762 bayes= 10.035 E= 2.8e+006 
+ -1064  -1064    245  -1064 
+ -1064    215   -155   -134 
+ -1064  -1064  -1064    166 
+ -1064  -1064    -55    146 
+   156  -1064  -1064   -234 
+  -234      4      4     83 
+  -134   -155    204   -234 
+ -1064  -1064     45    124 
+   136    -55  -1064   -234 
+   166  -1064  -1064  -1064 
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+	Motif 1 position-specific probability matrix
+--------------------------------------------------------------------------------
+letter-probability matrix: alength= 4 w= 10 nsites= 16 E= 2.8e+006 
+ 0.000000  0.000000  1.000000  0.000000 
+ 0.000000  0.812500  0.062500  0.125000 
+ 0.000000  0.000000  0.000000  1.000000 
+ 0.000000  0.000000  0.125000  0.875000 
+ 0.937500  0.000000  0.000000  0.062500 
+ 0.062500  0.187500  0.187500  0.562500 
+ 0.125000  0.062500  0.750000  0.062500 
+ 0.000000  0.000000  0.250000  0.750000 
+ 0.812500  0.125000  0.000000  0.062500 
+ 1.000000  0.000000  0.000000  0.000000 
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+	Motif 1 regular expression
+--------------------------------------------------------------------------------
+GCTTATG[TG]AA
+--------------------------------------------------------------------------------
+
+
+
+
+Time 11.14 secs.
+
+********************************************************************************
+
+
+********************************************************************************
+SUMMARY OF MOTIFS
+********************************************************************************
+
+--------------------------------------------------------------------------------
+	Combined block diagrams: non-overlapping sites with p-value < 0.0001
+--------------------------------------------------------------------------------
+SEQUENCE NAME            COMBINED P-VALUE  MOTIF DIAGRAM
+-------------            ----------------  -------------
+iYBL030C-1                       1.18e-01  277_[-1(5.84e-05)]_796
+iYBR008C                         1.25e-02  237_[-1(5.39e-06)]_933
+iYBR076W                         1.54e-03  269_[+1(1.97e-06)]_122
+iYBR208C                         3.91e-02  179_[+1(5.16e-05)]_207
+iYCR021C                         1.19e-01  325
+iYDL037C-0                       1.16e-01  337_[-1(6.52e-05)]_607
+iYDL037C-1                       1.63e-02  151_[-1(8.98e-06)]_761
+iYDR300C                         1.03e-02  143_[+1(8.98e-06)]_433
+iYDR338C                         1.79e-03  103_[+1(1.97e-06)]_350
+iYDR441C                         3.22e-02  293_[-1(2.91e-05)]_267
+iYDR505C                         2.29e-02  422_[-1(2.32e-05)]_76
+iYEL012W                         8.65e-01  584
+iYER028C                         5.79e-02  579_[+1(4.47e-05)]_87
+iYER045C-0                       2.54e-01  835
+iYER072W                         3.01e-02  673_[-1(1.83e-05)]_161
+iYFL005W                         3.33e-03  479_[+1(1.97e-06)]_365
+iYGR035C                         4.66e-02  215_[+1(6.30e-05)]_33_[-1(3.29e-05)]_466
+--------------------------------------------------------------------------------
+
+********************************************************************************
+
+
+********************************************************************************
+Stopped because nmotifs = 1 reached.
+********************************************************************************
+
+CPU: tlb-kamikaze-lt.imb.uq.edu.au
+
+********************************************************************************

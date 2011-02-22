@@ -1,0 +1,222 @@
+#!/bin/csh 
+#
+# $Id: sd 3886 2009-07-17 08:55:39Z tbailey $
+# $Log$
+# Revision 1.2  2005/10/05 06:18:35  nadya
+# use full path for "rm". Asssume everybody has /bin/rm.
+#
+# Revision 1.1.1.1  2005/07/29 00:12:16  nadya
+# Importing from meme-3.0.14, and adding configure/make
+#
+#
+
+if ($#argv < 0 || "$1" == "?") then
+  usage:
+  cat << USAGE
+  USAGE:
+	sd [-n][-m][-s <sig>][-l][-multi][-sum]
+
+		[-n]	don't print newline after output.
+		[-m]	don't print sd, just mean
+		[-t]	assume columns are differences and print t-statistic
+		[-s <sig>]	number of digits of significance to print after
+				decimal point; default = 2 
+		[-l]	print ampersands between values for latex
+		[-multi]	latex double-column format (used with -t -l)
+		[-sum]	just print the sum
+
+	Compute mean and sd of columns of numbers.
+	Reads one or more columns from standard input.
+
+	Output:
+		<mean> [<standard dev>]
+	or
+		<t-statistic>
+USAGE
+  exit 1
+endif
+
+onintr cleanup
+set pgm = $0; set pgm = $pgm:t
+
+# get input arguments
+set nonewline = 0; set pr_sd = 1; set pr_sum = 0;
+set t=0; set sig = 2; set l = 0; set multi = 0;
+
+while ("$1" != "")
+  switch ($1)
+  case -h:
+    goto usage
+  case -n:
+    set nonewline = 1; breaksw
+  case -m:
+    set pr_sd = 0; breaksw
+  case -t:
+    set t = 1; breaksw
+  case -l:
+    set l = 1; breaksw
+  case -s:
+    shift; set sig = $1; breaksw;
+  case -multi:
+    set multi = 1; breaksw;
+  case -sum:
+    set pr_sum = 1; set pr_sd = 0; breaksw;
+  endsw
+  shift
+end
+
+# create a gawk script
+set gawk = $pgm.gawk.$$.tmp
+cat << "END" > $gawk
+BEGIN {n=0;}
+	{	if (substr($1,1,1) != "#") {
+		  nf = NF;	# save number of columns
+		  for (i=1; i <= nf; i++) {
+		    val[n,i] = $i;	# save each value
+		  }
+		  n++;
+		}
+	}
+END { 
+		# format 
+		if (l == 1) amp = " & "; else amp = "  ";
+
+		# compute the sums and means
+		for (i=1; i <= nf; i++) { 
+			sum[i] = 0; 
+			for (j=0; j < n; j++) {
+				sum[i] += val[j,i];	
+			}
+			mean[i] = sum[i]/n;
+		}
+
+		# compute the standard deviations 
+		for (i=1; i <= nf; i++) { 
+			var[i] = 0;
+			for (j=0; j < n; j++) {
+				var[i] += (mean[i] - val[j,i])^2;	
+			}
+			var[i] /= n-1;
+			sd[i] = sqrt(var[i]);
+		}
+
+		# print the means and standard deviations
+		if (l==1 && t==1) printf("{\\em mean difference} & ");
+		for (i=1; i <= nf; i++) {
+		  if (pr_sum == 1) {
+		    format = "%5." sig "f ";
+                    if (multi>0) format = "\\multicolumn{2}{c|}{" format "}";
+                    if (i>1) format = amp format
+                    printf(format, sum[i]);
+		  } else if (pr_sd == 1) {
+		    format = "%5." sig "f" amp "%5." sig "f    ";
+		    if (i>1) format = amp format
+		    printf(format, mean[i], sd[i]);
+		  } else {
+		    format = "%5." sig "f ";
+		    if (multi>0) format = "\\multicolumn{2}{c|}{" format "}";
+		    if (i>1) format = amp format
+		    printf(format, mean[i]);
+		  }
+		}
+	        if (nonewline == 0) {
+		  if (l==1) printf(" \\\\ \n"); else printf("\n");
+		}
+
+		# print t-statistic
+		if (t == 1) {
+		  df = n-1;
+		  if (l==1) printf("{\\em t-test, df=%d} & ", df);
+		  for (i=1; i <= nf; i++) {
+		    format = "%5." sig "f ";
+		    if (multi>0) format = "\\multicolumn{2}{c|}{" format "}";
+		    if (i>1) format = amp format
+		    if (sd[i] > 0) {
+		      tt[i] = mean[i]*sqrt(n)/sd[i];
+		      printf(format, tt[i]);
+		    } else {
+		      format = " Inf";
+		      if (multi>0) format = "\\multicolumn{2}{c|}{" format "}";
+		      if (i>1) format = amp format
+		      printf(format);
+		    }
+		  }
+		  if (nonewline == 0) {
+		    if (l==1) printf(" \\\\ \n"); else printf("\n");
+		  }
+		  if (l==1) {
+		    # table of students t-distr, alpha = .01
+		    tmp =     "31.8 7.0 4.5 3.7 3.4 3.1 3.0 2.9 2.8 2.8";
+        	    tmp = tmp " 2.7 2.7 2.7 2.6 2.6 2.6 2.6 2.6 2.5 2.5";
+        	    tmp = tmp " 2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5";
+        	    tmp = tmp " 2.5 2.5 2.5 2.5 2.5 2.5 2.4 2.4 2.4 2.4";
+		    tmp = tmp " 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4";
+		    tmp = tmp " 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4";
+		    tmp = tmp " 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4";
+		    tmp = tmp " 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4";
+		    tmp = tmp " 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4";
+		    tmp = tmp " 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4";
+		    tmp = tmp " 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4";
+		    tmp = tmp " 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4";
+		    tmp = tmp " 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4";
+		    tmp = tmp " 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4";
+		    tmp = tmp " 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4 2.4";
+		    nval = split(tmp, st01);
+                    # table of students t-distr, alpha = .05
+                    tmp =     " 6.3 2.9 2.4 2.1 2.0 1.9 1.9 1.9 1.8 1.8";
+                    tmp = tmp " 1.8 1.8 1.8 1.8 1.8 1.7 1.7 1.7 1.7 1.7"; 
+                    tmp = tmp " 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7";
+                    tmp = tmp " 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7";
+                    tmp = tmp " 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7";
+                    tmp = tmp " 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7";
+                    tmp = tmp " 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7";
+                    tmp = tmp " 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7";
+                    tmp = tmp " 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7";
+                    tmp = tmp " 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7";
+                    tmp = tmp " 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7";
+                    tmp = tmp " 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7";
+                    tmp = tmp " 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7";
+                    tmp = tmp " 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7";
+                    tmp = tmp " 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7";
+                    nval = split(tmp, st05);
+		    # print significant or not at .01, .05 levels; 
+		    for (j=1; j<=2; j++) {
+		      if (j==1) {
+		        level = .05;
+		        ST = st05[df]; 
+		      } else {
+		        level = .01;
+		        ST = st01[df];
+		      }
+		      printf("{\\em significant? $t_{%s,%d}=%4.1f$} & ", 
+		       level, df, ST);
+		      for (i=1; i <= nf; i++) {
+			format = "%4s";
+		        if (multi>0) format= "\\multicolumn{2}{c|}{" format "}";
+			if (i>1) format = amp format
+			if ((tt[i] > 0 && tt[i] > ST) ||
+			  (tt[i] < 0 && tt[i] < -ST)) {
+			  printf(format, "YES")
+			} else {
+			  printf(format, "NO");
+			}
+		      }
+		      if (nonewline == 0) {
+			if (l==1) printf(" \\\\ \n"); else printf("\n");
+		      }
+		    }
+	          }
+		}
+}
+"END"
+
+# run the gawk script
+gawk -v nonewline=$nonewline -v pr_sd=$pr_sd -v pr_sum=$pr_sum \
+  -v sig=$sig -v t=$t -v l=$l -v multi=$multi -f $gawk
+
+cleanup:
+/bin/rm $pgm.*.$$.tmp
+
+exit 0
+
+$Header$ 

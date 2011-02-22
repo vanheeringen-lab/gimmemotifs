@@ -1,0 +1,132 @@
+#!@WHICHPERL@
+
+# FILE: mcast 
+# CREATE DATE: 13-1-2003
+# AUTHOR: Timothy L. Bailey
+# PROJECT: MHMM
+# COPYRIGHT: 2002, University of Queensland
+# DESCRIPTION: Motif Cluster Alignment Search Tool 
+#
+
+# requires
+push(@INC, split(":", $ENV{'PATH'}));   # look in entire path
+
+# defaults
+$pthresh = 0.0005;
+$maxgap = 200;
+$egcost = 1;
+$b = 4;
+$ethresh = 100;
+#$mhmmscan_args = "--fancy --pseudo-weight 0 --allow-weak-motifs";
+$mhmmscan_args = "--fancy --allow-weak-motifs";
+$transfac2meme_args = "";
+$scratch_dir = ".";
+$qformat = "meme";
+
+$usage = "
+  USAGE: mcast [options] <query> <database>
+
+    [-p-thresh <value>]      p-value threshold for motif hits 
+                             (default=$pthresh).
+    [-max-gap <value>]       Maximum allowed distance between adjacent hits 
+                             (default=$maxgap).
+    [-e-thresh <value>]      Print matches with E-values less than E 
+                             (default=$ethresh).
+    [-bg-weight <b>]         Add b * background frequency to each count in query. 
+                             (default: b = $b )
+    [-bg-file <file>]        File containing n-order Markov background model.
+    [-synth]                 Use synthetic scores for distribution
+    [-text]                  Output plain text rather than HTML.
+    [-scratch <dir>]         Directory for temporary files (default=current).
+    [-transfac]              is in TRANSFAC format (default: MEME format)
+";
+
+if (scalar(@ARGV) < 2) { 
+  print(STDERR $usage);
+  exit(1);
+}
+
+# get input arguments
+while (scalar(@ARGV) > 2) {
+  $next_arg = shift(@ARGV);
+  if ($next_arg eq "-p-thresh") {
+    $pthresh = shift(@ARGV);
+  } elsif ($next_arg eq "-max-gap") {
+    $maxgap = shift(@ARGV);
+  } elsif ($next_arg eq "-e-thresh") {
+    $ethresh = shift(@ARGV);
+  } elsif ($next_arg eq "-bg-weight") {
+    $b = shift(@ARGV);
+  } elsif ($next_arg eq "-bg-file") {
+    $bg = shift(@ARGV);
+    $mhmmscan_args .= " --bg-file $bg";
+    $transfac2meme_args .= " -bg $bg";
+  } elsif ($next_arg eq "-scratch") {
+    $scratch_dir = shift(@ARGV);
+  } elsif ($next_arg eq "-transfac") {
+    $qformat = "transfac";
+  } elsif (($next_arg eq "-text") ||
+   ($next_arg eq "-synth")) {
+    $mhmmscan_args .= " -$next_arg";
+  } else {
+    print("Invalid option ($next_arg).\n\n");
+    exit(1);
+  }
+}
+($query, $database) = @ARGV;
+
+#
+# convert motifs to MEME format
+#
+print (STDERR "qformat $qformat\n");
+if ($qformat eq "meme") {
+  $memefile = "$query";
+} else {
+  $memefile = "$scratch_dir/mcast.$$.meme.tmp";
+  print(STDERR "Converting query to MEME format...\n");
+  $command = "@BINDIR@/transfac2meme $transfac2meme_args -pseudo 0 $query > $memefile";
+  &run_command($command);
+}
+
+#
+# convert MEME file to star mhmm
+#
+print(STDERR "Converting query to MHMM format...\n");
+$mhmmfile = "$scratch_dir/mcast.$$.mhmm.tmp";
+$command = "@BINDIR@/mhmm --type star --keep-unused $memefile > $mhmmfile";
+&run_command($command);
+
+#
+# run mhmmscan
+#
+print(STDERR "Running mhmmscan...\n");
+$command = "@BINDIR@/mhmmscan --p-thresh $pthresh --max-gap $maxgap --e-thresh $ethresh";
+$command .= " --eg-cost $egcost --pseudo-weight $b $mhmmscan_args $mhmmfile $database";
+&run_command($command);
+
+#
+# clean up temporary files
+#
+clean_up();
+
+exit(0);
+
+##############################################################################
+# Clean up temporary files
+sub clean_up {
+unlink($memefile) if ($qformat eq "transfac"); 
+unlink($mhmmfile);
+}
+
+##############################################################################
+# Run a system command with error checking.
+sub run_command {
+  my($command) = @_;
+  my($error);
+
+  $error = system($command);
+  if ($error) {
+    clean_up();
+    die("mcast: Error $error from $command.");
+  }
+}

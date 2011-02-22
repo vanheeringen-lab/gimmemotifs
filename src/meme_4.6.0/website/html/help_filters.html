@@ -1,0 +1,106 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MEME Suite - Sequence Filters </title>
+    <link href="doc/meme-suite.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body class="body">
+    <table class="maintable">
+      <tr>
+        <td class="menubase">
+          <div id="menu">
+            <script src="meme-suite-menu.js" type="text/javascript"></script>
+          </div>
+        </td>
+        <td class="maintablewidth">
+          <div id="main">
+            <script src="doc/meme-suite-logo.js" type="text/javascript"></script>
+            <noscript>
+              <h1>MEME Suite</h1>
+              The MEME Suite web application requires the use of JavaScript
+              <br />
+              Javascript doesn't seem to be available on your browser.
+            </noscript>
+	    <ul>
+<!-- FIXME: future features, hence not visible to the user.
+              <li style="list-style: none"><a name= "dust"></a></li>
+              <li><font style="background-color: yellow"><b>DUST</b> <i>Not implemented yet</i></font><br/>
+              DUST is a program that analyzes DNA sequences for low
+	      information content, and replaces those subsequences by
+	      <i>N</i>s. Use DUST if you are producing motifs containing
+	      repetitions that you suspect are not biologically
+	      significant.
+	      DUST is not applicable to protein sequences
+	      and any settings in the web interface for DUST are
+	      ignored for protein sequences. Input is a cutoff score
+	      for ignoring subsequences. All subsequences <I>a</I> of
+	      window size <i>W</i>=64 are scored for the number
+	      repeated triplets (sequences of length three) they
+	      contain. Allowed values: 1 to 50, default 20. Smaller
+	      values ignore more subsequences.<BR>
+	      <i>More detail</i>:<UL>
+	      <A HREF="http://www.ncbi.nlm.nih.gov/pubmed/16796549">Morgulis <i>et
+	      al</i>. A Fast and Symmetric DUST 
+	      Implementation to Mask Low-Complexity DNA
+	      Sequences, <i>J. Comp. Biol.</i> 13(5) 2006 pp
+	      1028-1040</A>.
+	      </UL>
+	      <b>Note</b><br/><UL>
+	      DUST is the same program as is used in the BLAST tool
+	      chain. Similar functionality, implemented a different
+	      way, in RSA-tools is
+	      called <A HREF="http://liv.bmc.uu.se/rsa-tools/help.purge-sequence.html">purge</A>,
+	      not to be confused with the PURGE program used here.
+	      </UL>
+              <li style="list-style: none"><a name="purge"></a></li>
+              <li><font style="background-color: yellow"><b>PURGE</b> <i>Not implemented yet</i></font><br/>
+	      PURGE removes redundant sequences from a FASTA file.  This is recommended
+	      in order to prevent highly similar sequences distorting the search
+	      for motifs. It can be run on DNA or protein
+              sequences. The cutoff score (that you supply as input)
+              used to remove similar sequences is based on the
+              blosum62 relatedness score. Scores of up to 150 to 200
+              are useful. Allowed values: 1 to 250, default
+              100. Smaller values remove more sequences.<BR>
+	      <i>More detail</i>:<UL>
+	      <A HREF="http://www.ncbi.nlm.nih.gov/pubmed/8520488">Neuwald
+	      <i>et al</i>. Gibbs motif sampling: detection of
+	      bacterial outer membrane protein repeats, <i>Protein
+	      Sci.</i> 1995 Aug;4(8) pp 1618-32</A>.
+	      </UL>
+              </li>
+-->
+              <li style="list-style: none"><a name="shuffle"></a></li>
+              <li><b>shuffle sequence letters</b><br />
+              You can ask for the letters in each of your input sequences to be
+              shuffled. This can be useful for determining if the motifs found
+              using your (unshuffled) sequences are not statistically
+              significant. To determine this, compare the <i>E</i>-value (or score) for
+              the best motif/alignment from your original sequences with that
+              using the "Shuffle sequence letters" option. (Keep all
+              other parameter settings the same so that the comparison will be
+              valid.) Compare the best <i>E</i>-value (or score) for the first motif in
+              the original run to the best E-value (or score) for the first motif
+              in the shuffled run. If they are similar (or the <i>E</i>-value (score) in
+              the shuffled run tends to be better), then the motif is probably
+              not significant. <br/>
+              Repeat this process for each motif bearing in mind
+              that the earlier motifs are most likely to be significant.
+              Concluding that a motif is significant is more problematic. For
+              MEME, low <i>p</i>-value occurrences of the motif in many sequences and in
+              a conserved position relative to other motifs (or the ends of the
+              sequence) is evidence that it is statistically significant. You can
+              use the shuffle option to help determine what "low" is for the
+              particular set of sequences and parameters you are using.
+              </li>
+            </ul>
+            <script src="template-footer.js" type="text/javascript"></script>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
