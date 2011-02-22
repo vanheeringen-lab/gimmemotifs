@@ -668,7 +668,7 @@ static PyMethodDef CoreMethods[] = {
 	{"score", c_metrics_score, METH_VARARGS,"Test"},
 	{"c_max_subtotal", c_metrics_max_subtotal, METH_VARARGS,"Test"},
 	{"pwmscan", c_metrics_pwmscan, METH_VARARGS,"Test"},
-	//{NULL, NULL, NULL, 0, NULL}
+	{NULL, NULL, NULL, 0, NULL}
 };
 
 PyMODINIT_FUNC

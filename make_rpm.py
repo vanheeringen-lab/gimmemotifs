@@ -1,4 +1,12 @@
 # This script creates a RPM package of gimmemotifs for distribution
+##### Fedora setup to build GimmeMotif (for my own memory ;)) #####
+### Setup the rpm build environment ###
+# $ yum groupinstall "Development Tools"
+# $ yum install rpmdevtools
+# $ rpmdev-setuptree
+### GimmeMotifs prerequisites ###
+# $ yum install python-py scipy python-pp python-kid python-matplotlib gsl-devel gcc compat-gcc-34 perl-ExtUtils-MakeMaker
+# $ mkdir ~/git
 from subprocess import Popen,PIPE
 from shutil import copyfile
 import os
