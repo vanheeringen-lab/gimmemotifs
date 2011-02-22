@@ -260,7 +260,7 @@ JASPAR match
 <h2>Reference</h2>
 <p>Please cite:
 <br/>
-<a href="http://www.pubmed.org/">van Heeringen S.J, Manuscript in preparation.</a></p>
+<a href="http://bioinformatics.oxfordjournals.org/content/27/2/270.long">van Heeringen, SJ and Veenstra, GJC, Bioinformatics.</a></p>
 </div>
 
 <div style="clear: both;"> </div>
