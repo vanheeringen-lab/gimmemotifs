@@ -8,7 +8,7 @@ from optparse import OptionParser
 from gimmemotifs.core import *
 from gimmemotifs.config import *
 
-VERSION = "0.62"
+VERSION = "0.63"
 config = MotifConfig()
 params = config.get_default_params()
 
