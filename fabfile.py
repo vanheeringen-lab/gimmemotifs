@@ -15,12 +15,12 @@ import os
 DEFAULT_PORT = 22
 
 HOST_DATA = {
-	'192.168.56.10': ["Fedora 13 32-bit", 
+	'192.168.56.10': ["Fedora 14 32-bit", 
 										"autobuild",
 										"python make_rpm.py 2>&1",
 										"rpmbuild/RPMS/i686/gimmemotifs-%s-1.i686.rpm",
 										"gimmemotifs-%s-1.i686.rpm"],
-	'192.168.56.11': ["Fedora 13 64-bit", 
+	'192.168.56.11': ["Fedora 14 64-bit", 
 										"autobuild",
 										"python make_rpm.py 2>&1",
 										"rpmbuild/RPMS/x86_64/gimmemotifs-%s-1.x86_64.rpm",
@@ -29,7 +29,7 @@ HOST_DATA = {
 										"autobuild",
 										"python make_deb.py 2>&1",
 										"git/gimmemotifs/build/debian/gimmemotifs_%s-1_i386.deb",
-										"gimmemotifs_%s-1_i386.debian.deb"]
+										"gimmemotifs_%s-1_i386.debian.deb"],
 	'192.168.56.13': ["Debian 64-bit", 
 										"autobuild",
 										"python make_deb.py 2>&1",
@@ -146,6 +146,27 @@ def _build_general(machine, snapshot, server, port, build_cmd, build_file, local
 	
 	# And we're done with this virtual machine
 	_vbox_stop(machine)
+
+def _test_ubuntu(machine, snapshot, server, port):
+	""" Test GimmeMotifs installation on Ubuntu """
+	
+	# Load snapshot
+	_vbox_load_snapshot(machine, snapshot)
+	# Start machine
+	_vbox_start(machine, server=server, port=port)
+	# Wait to make sure networking is up and running
+	time.sleep(5)
+	
+	# Checkout latest version and compile
+	#with cd('Downloads/'):
+	#	run('git clone git://github.com/simonvh/gimmemotifs.git')
+	#with cd('git/gimmemotifs'):
+	#	run(build_cmd)
+	
+	# And we're done with this virtual machine
+	_vbox_stop(machine)
+
+
 
 def build_packages():
 	""" Build packages for all specified distributions"""
