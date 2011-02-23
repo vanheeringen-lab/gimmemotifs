@@ -1,0 +1,17 @@
+2010-02-23 Version 0.63
+
+* Features
+- It is now possible to specify a higher-order Markov model for the randomly generated background.
+
+* Updates
+- Meme is updated from version 4.4.0 to 4.6.0.
+- Added some clarifications and updates to the manual.
+- Added the link to the publication in the GimmeMotifs output report.
+- Packages for Fedora are built for Fedora 14.
+
+* Bugfixes
+- Fixed error message that reported the value of e, instead of the actual error.
+- Removed hard-coded check for genome_index from genome_index.py and track2fasta.py.
+- Some tests in run_tests.py were architecture dependent, fixed now.
+- The 'multiply' argument for generate_sequences.py was ignored, it can be specified now.
+- Added the MoAn Makefile. It was accidentally omitted, therefore MoAn would be skipped for compiling.
