@@ -10,6 +10,7 @@ examples/*
 !examples/*.fa
 *.pyc
 src/meme_4.6.0
+src/meme_4.6.0/src/dir.h
 src/BioProspector/BioProspector
 src/MDmodule/MDmodule
 src/Algorithm-Cluster-1.49/
