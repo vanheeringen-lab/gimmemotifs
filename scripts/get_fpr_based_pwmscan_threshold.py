@@ -26,6 +26,10 @@ if not options.pwmfile or not options.inputfile or not options.fpr:
 	parser.print_help()
 	exit()
 
+if options.fpr < 0 or options.fpr > 1:
+	print "Please specify a FPR between 0 and 1"
+	sys.exit()
+
 f = Fasta(options.inputfile)
 motifs = pwmfile_to_motifs(options.pwmfile)
 
