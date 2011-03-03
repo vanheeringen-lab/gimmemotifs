@@ -8,11 +8,10 @@ from optparse import OptionParser
 from gimmemotifs.core import *
 from gimmemotifs.config import *
 
-VERSION = "0.63"
 config = MotifConfig()
 params = config.get_default_params()
 
-parser = OptionParser(version="%prog " + VERSION)
+parser = OptionParser(version="%prog " + str(GM_VERSION))
 parser.add_option("-i", "--inputfile", dest="inputfile", help="Inputfile in BED or FASTA format", metavar="FILE")
 parser.add_option("-k", "--keepintermediate", dest="keep_intermediate", help="Don't delete intermediate files", default=False, action="store_true")
 parser.add_option("-n", "--name", dest="name", help="Give your analysis a name", metavar="NAME")

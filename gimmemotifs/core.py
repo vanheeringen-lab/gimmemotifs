@@ -117,7 +117,6 @@ def get_roc_values(motif, fg_file, bg_file):
 
 class GimmeMotifs:
 	NAME = "gimme_motifs"
-	VERSION = "0.63"
 	SCAN_THRESHOLD = "0.9"
 
 	def __init__(self, name=None):
@@ -133,7 +132,7 @@ class GimmeMotifs:
 		
 		# setup logging
 		self._setup_logging()	
-		self.logger.info("%s version %s" % (self.NAME, self.VERSION))
+		self.logger.info("%s version %s" % (self.NAME, GM_VERSION))
 		self.logger.info("Created output directory %s (all output files will be stored here)" % self.outdir)
 
 		# setup the names of the intermediate and output files

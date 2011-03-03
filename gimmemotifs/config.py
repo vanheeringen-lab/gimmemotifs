@@ -8,6 +8,9 @@
 import ConfigParser
 import os
 
+### CONSTANTS ###
+GM_VERSION = "0.64"
+
 class MotifConfig:
 	__shared_state = {}
 	configs = ['cfg/gimmemotifs.cfg.example', '/usr/share/gimmemotifs/gimmemotifs.cfg', os.path.expanduser('~/.gimmemotifs.cfg')]

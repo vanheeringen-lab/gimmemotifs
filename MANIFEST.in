@@ -28,7 +28,7 @@ include bg/*.bg
 include scripts/add_organism.py
 include scripts/closest_motif_match.py
 include scripts/create_genome_index.py
-include scripts/generate_sequences.py
+include scripts/generate_background_sequences.py
 include scripts/gimme_motifs.py
 include scripts/motif_cluster.py
 include scripts/motif_localization_plots.py
