@@ -171,7 +171,6 @@ class MatchedGenomicFasta(Fasta):
 		os.remove(tmpbed)
 		os.remove(tmpfasta)
 
-
 	def _create_bedfile(self, out, bedfile, genefile, length, m):
 		strand_map = {"+":True, "-":False, 1:True, -1:False, "1":True, "-1":False}
 		data = {}
@@ -332,3 +331,4 @@ class MatchedGenomicFasta(Fasta):
 		for chr, start, end in sorted(features, key=lambda x: x[0]):
 			tmp.write("%s\t%s\t%s\n" % (chr, start, end))
 		tmp.flush()
+

@@ -210,54 +210,42 @@ class GimmeMotifs:
 		self.validation_bed = os.path.join(self.tmpdir, "%s_validation.bed" % self.name)
 		self.validation_fa = os.path.join(self.tmpdir, "%s_validation.fa" % self.name)
 		self.validation_gff = os.path.join(self.tmpdir, "%s_validation.gff" % self.name)
-
-		self.bg_genomic_bed = os.path.join(self.tmpdir, "%s_bg_genomic.bed" % self.name) 
-		self.bg_genomic_fa = os.path.join(self.tmpdir, "%s_bg_genomic.fa" % self.name)
-		self.bg_genomic_gff = os.path.join(self.tmpdir, "%s_bg_genomic.gff" % self.name)
-		self.bg_genomic_enrichment = os.path.join(self.tmpdir, "%s_bg_genomic_enrichment.txt" % self.name)
-
-		self.bg_genomic_matched_bed = os.path.join(self.tmpdir, "%s_bg_genomic_matched.bed" % self.name)
-		self.bg_genomic_matched_fa = os.path.join(self.tmpdir, "%s_bg_genomic_matched.fa" % self.name)
-		self.bg_genomic_matched_gff = os.path.join(self.tmpdir, "%s_bg_genomic_matched.gff" % self.name)
-		self.bg_genomic_matched_enrichment = os.path.join(self.tmpdir, "%s_bg_genomic_matched_enrichment.txt" % self.name)
-
-		self.bg_random_bed = os.path.join(self.tmpdir, "%s_bg_random.bed" % self.name)
-		self.bg_random_fa = os.path.join(self.tmpdir, "%s_bg_random.fa" % self.name)
-		self.bg_random_gff = os.path.join(self.tmpdir, "%s_bg_random.gff" % self.name)
-		self.bg_random_enrichment = os.path.join(self.tmpdir, "%s_bg_random_enrichment.txt" % self.name)
-
+		
 		self.predicted_pfm = os.path.join(self.tmpdir, "%s_all_motifs.pfm" % self.name)
 		self.predicted_pwm = os.path.join(self.tmpdir, "%s_all_motifs.pwm" % self.name)
 
 		self.significant_pfm = os.path.join(self.tmpdir, "%s_significant_motifs.pfm" % self.name)
 		self.significant_pwm = os.path.join(self.tmpdir, "%s_significant_motifs.pwm" % self.name)
-		self.significant_bg_genomic_roc_metrics = os.path.join(self.tmpdir, "%s_significant_motifs_bg_genomic_roc_metrics.txt" % self.name)
-		self.significant_bg_genomic_matched_roc_metrics = os.path.join(self.tmpdir, "%s_significant_motifs_bg_genomic_matched_roc_metrics.txt" % self.name)
-		self.significant_bg_random_roc_metrics = os.path.join(self.tmpdir, "%s_significant_motifs_bg_random_roc_metrics.txt" % self.name)
-
+		
 		self.location_fa = os.path.join(self.tmpdir, "%s_validation_500.fa" % self.name)
 		self.location_pfile = os.path.join(self.tmpdir, "%s_localization_pvalue.txt" % self.name)
 
 		#self.cluster_dir = os.path.join(self.outdir, "cluster_report")
+		self.validation_cluster_gff = os.path.join(self.tmpdir, "%s_validation_clustered.gff" % self.name)
 		self.cluster_pwm = os.path.join(self.tmpdir, "%s_clustered_motifs.pwm" % self.name)
 		self.final_pwm = os.path.join(self.outdir, "%s_motifs.pwm" % self.name)
 		self.cluster_report = os.path.join(self.outdir, "%s_cluster_report.html" % self.name)
 		self.motif_report = os.path.join(self.outdir, "%s_motif_report.html" % self.name)
 		self.text_report = os.path.join(self.outdir, "%s_motif_report.tsv" % self.name)
 		self.params_file = os.path.join(self.outdir, "%s_params.txt" % self.name)
+
+		# Data structures to hold the background file locations
+		ftypes = {
+			"bed": ".bed",
+			"fa": ".fa",
+			"gff": ".gff",
+			"enrichment": "_enrichment.txt",
+			"roc": "_significant_motifs_roc_metrics.txt",
+			"cluster_gff": "_clustered.gff",
+			"cluster_enrichment": "_enrichment_clustered.txt",
+			"cluster_roc": "_roc_metrics_clustered.txt"
+		}
 		
-		self.validation_cluster_gff = os.path.join(self.tmpdir, "%s_validation_clustered.gff" % self.name)
-		self.bg_genomic_cluster_gff = os.path.join(self.tmpdir, "%s_bg_genomic_clustered.gff" % self.name)
-		self.bg_genomic_cluster_enrichment = os.path.join(self.tmpdir, "%s_bg_genomic_enrichment_clustered.txt" % self.name)
-		self.cluster_bg_genomic_roc_metrics = os.path.join(self.tmpdir, "%s_bg_genomic_roc_metrics_clustered.txt" % self.name)
+		self.bg_file = dict([(t,{}) for t in ftypes.keys()])
 		
-		self.bg_genomic_matched_cluster_gff = os.path.join(self.tmpdir, "%s_bg_genomic_matched_clustered.gff" % self.name)
-		self.bg_genomic_matched_cluster_enrichment = os.path.join(self.tmpdir, "%s_bg_genomic_matched_enrichment_clustered.txt" % self.name)
-		self.cluster_bg_genomic_matched_roc_metrics = os.path.join(self.tmpdir, "%s_bg_genomic_matched_roc_metrics_clustered.txt" % self.name)
-		
-		self.bg_random_cluster_gff = os.path.join(self.tmpdir, "%s_bg_random_clustered.gff" % self.name)
-		self.bg_random_cluster_enrichment = os.path.join(self.tmpdir, "%s_bg_random_enrichment_clustered.txt" % self.name)
-		self.cluster_bg_random_roc_metrics = os.path.join(self.tmpdir, "%s_bg_random_roc_metrics_clustered.txt" % self.name)
+		for bg in VALID_BGS:
+			for ftype, extension in ftypes.items():
+				self.bg_file[ftype][bg] =  os.path.join(self.tmpdir, "%s_bg_%s%s" % (self.name, bg, extension))
 
 	def _is_parallel_enabled(self):
 		try:
@@ -360,30 +348,30 @@ class GimmeMotifs:
 		self.logger.info("Predicted %s motifs, written to %s" % (len(motifs), self.predicted_pwm))
 		return len(motifs)
 
-	def _create_random_background(self, fastafile, random_fasta):
-		if int(self.markov_model) >= 6:
-			self.logger.warn("Are you sure about the Markov model? It seems too high!")
-		else:
-			order = {"1":"1st","2":"2nd", "3":"3rd", "4":"4th", "5":"5th"}[str(self.markov_model)]
-			self.logger.info("Creating random background (%s order Markov)" % order)
+	def _create_background(self, bg_type, bedfile, fafile, outfile, organism="hg18", width=200, nr_times=10):
+		if bg_type == "random":
+			if int(self.markov_model) >= 6:
+				self.logger.warn("Are you sure about the Markov model? It seems too high!")
+			else:
+				order = {"1":"1st","2":"2nd", "3":"3rd", "4":"4th", "5":"5th"}[str(self.markov_model)]
+				self.logger.info("Creating random background (%s order Markov)" % order)
 		
-		f = Fasta(fastafile)
-		m = MarkovFasta(f,k=int(self.markov_model))
-		m.writefasta(random_fasta)
-		self.logger.debug("Random background: %s" % (random_fasta))
-		# return the number of random sequences created
-		return len(m)
-
-	def _create_genomic_matched_background(self, bed_file, fasta, organism="hg18", width=200, nr_times=10):
-		gene_file = os.path.join(self.config.get_gene_dir(), "%s.bed" % organism)
-		index_dir = os.path.join(self.config.get_index_dir(), organism)
-		self.logger.info("Creating matched genomic background (%s, using genes in %s)" % (organism, gene_file))
+			f = Fasta(fafile)
+			m = MarkovFasta(f, k=int(self.markov_model))
+			m.writefasta(outfile)
+			self.logger.debug("Random background: %s" % (outfile))
+			# return the number of random sequences created
+			return len(m)
+		elif bg_type == "genomic_matched":	
+			gene_file = os.path.join(self.config.get_gene_dir(), "%s.bed" % organism)
+			index_dir = os.path.join(self.config.get_index_dir(), organism)
+			self.logger.info("Creating matched genomic background (%s, using genes in %s)" % (organism, gene_file))
 		
-		f = MatchedGenomicFasta(bed_file, gene_file, index_dir, width, nr_times)
-		f.writefasta(fasta)
-		self.logger.debug("Matched genomic background: %s" % (fasta))
-		return len(f)
-
+			f = MatchedGenomicFasta(bedfile, gene_file, index_dir, width, nr_times)
+			f.writefasta(outfile)
+			self.logger.debug("Matched genomic background: %s" % (outfile))
+			return len(f)
+	
 	def filter_motifs(self, motif_ids, enrichmentfile, e_cutoff, p_cutoff):
 		filt_motifs = []
 		for line in open(enrichmentfile).readlines():
@@ -433,40 +421,32 @@ class GimmeMotifs:
 		
 		# Create background for motif prediction
 		if "genomic_matched" in background:
-			
-			self._create_genomic_matched_background(self.validation_bed, self.prediction_bg, organism, width)
+			self._create_background("genomic_matched", self.validation_bed, None, self.prediction_bg, organism=organism, width=width)
 		# This is not ideal, but for genomes where matched_genomic cannot be used...
 		else:
-			self._create_random_background(self.validation_fa, self.prediction_bg)
+			self._create_background("random", None, self.validation_fa, self.prediction_bg)
 
 		# Get background fasta files
-		if "random" in background:
-			nr_sequences["random"] = self._create_random_background(self.validation_fa, self.bg_random_fa)
-		if "genomic_matched" in background:
-			nr_sequences["genomic_matched"] = self._create_genomic_matched_background(self.validation_bed, self.bg_genomic_matched_fa, organism, width)
-		if "genomic" in background:
-			self.logger.info("Normal random genomic background not yet implemented!")
-	
+		for bg in background:
+			nr_sequences[bg] = self._create_background(bg, self.validation_bed, self.validation_fa, self.bg_file["fa"][bg], organism=organism, width=width)
 
 	def determine_significant_motifs(self, background=["random"], organism="hg18", width=200, pvalue_cutoff=0.001, enrichment_cutoff=1.5):
 
 		fg = [self.validation_fa, self.validation_gff]
 		bg = []
 		if "genomic_matched" in background:
-			bg.append([self.bg_genomic_matched_fa, self.bg_genomic_matched_gff, self.bg_genomic_matched_enrichment])
+			bg.append([self.bg_file["fa"]["genomic_matched"], self.bg_file["gff"]["genomic_matched"],self.bg_file["enrichment"]["genomic_matched"]])
 		if "random" in background:
-			bg.append([self.bg_random_fa, self.bg_random_gff, self.bg_random_enrichment])
+			bg.append([self.bg_file["fa"]["random"], self.bg_file["gff"]["random"],self.bg_file["enrichment"]["random"]])
 		self.calculate_enrichment(self.predicted_pwm, fg, bg)
 		
 		self.logger.info("Determining significant motifs")
 		self.logger.info("Thresholds: enrichment >= %s; p-value <= %s"% (enrichment_cutoff, pvalue_cutoff))
 		all_motifs = pwmfile_to_motifs(self.predicted_pwm)
 		filt_ids = [x.id for x in all_motifs]
-		if "genomic_matched" in background:
-			filt_ids = self.filter_motifs(filt_ids, self.bg_genomic_matched_enrichment, enrichment_cutoff, pvalue_cutoff)
-		if "random" in background:
-			filt_ids = self.filter_motifs(filt_ids, self.bg_random_enrichment, enrichment_cutoff, pvalue_cutoff)
-
+		for bg_id in background:
+			filt_ids = self.filter_motifs(filt_ids, self.bg_file["enrichment"][bg_id], enrichment_cutoff, pvalue_cutoff)
+		
 		f = open(self.significant_pwm, "w")
 		fp = open(self.significant_pfm, "w")
 		for motif in pwmfile_to_motifs(self.predicted_pfm):
@@ -519,7 +499,7 @@ class GimmeMotifs:
 		
 		kid.enable_import()
 		template_file = os.path.join(self.config.get_template_dir(), "cluster_template_v2.kid")
-		template = kid.Template(file=template_file, expname=self.name, motifs=ids, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=self.VERSION)
+		template = kid.Template(file=template_file, expname=self.name, motifs=ids, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
 		f = open(self.cluster_report, "w")
 		f.write(template.serialize())
 		f.close()
@@ -569,14 +549,9 @@ class GimmeMotifs:
 
 	def calculate_cluster_enrichment(self, pwm, background):
 		fg = [self.validation_fa, self.validation_cluster_gff]
-		bg = []
-		if "genomic_matched" in background:
-			bg.append([self.bg_genomic_matched_fa, self.bg_genomic_matched_cluster_gff, self.bg_genomic_matched_cluster_enrichment])
-		if "random" in background:
-			bg.append([self.bg_random_fa, self.bg_random_cluster_gff, self.bg_random_cluster_enrichment])
+		bg = [[self.bg_file["fa"][bg_id], self.bg_file["gff"][bg_id], self.bg_file["cluster_enrichment"][bg_id]] for bg_id in background]
 		self.calculate_enrichment(pwm, fg, bg)
 		pass
-
 
 	def create_location_plots(self, motif_file, params):
 		self.logger.info("Creating localization plots")
@@ -631,11 +606,7 @@ class GimmeMotifs:
 		self.p = dict([(b,{}) for b in background])
 		self.e = dict([(b,{}) for b in background])
 
-		e_files = {
-			"random": self.bg_random_cluster_enrichment,
-			"genomic": self.bg_genomic_cluster_enrichment, 
-			"genomic_matched": self.bg_genomic_matched_cluster_enrichment
-		}
+		e_files = dict([(bg, self.bg_file["cluster_enrichment"][bg]) for bg in background])
 
 		for bg in self.p.keys():
 			for line in open(e_files[bg]).readlines():
@@ -646,12 +617,10 @@ class GimmeMotifs:
 			
 		self.auc = dict([(b,{}) for b in background])
 		self.mncp = dict([(b,{}) for b in background])
-		rocs = {
-			"random": [self.bg_random_fa, self.cluster_bg_random_roc_metrics],
-			"genomic": [self.bg_genomic_fa, self.cluster_bg_genomic_roc_metrics],
-			"genomic_matched": [self.bg_genomic_matched_fa, self.cluster_bg_genomic_matched_roc_metrics],
-		}
-
+		
+		
+		rocs = dict([(bg, [self.bg_file["fa"][bg], self.bg_file["roc"][bg]]) for bg in background])
+		
 		for bg in self.auc.keys():
 			bg_fasta_file, roc_file = rocs[bg]
 			self.auc[bg], self.mncp[bg] = self._roc_metrics(pwm, self.validation_fa, bg_fasta_file, roc_file)
@@ -737,7 +706,7 @@ class GimmeMotifs:
 		total_report = self.motif_report 
 		kid.enable_import()
 		template_file = os.path.join(self.config.get_template_dir(), "report_template_v2.kid") 
-		template = kid.Template(file=template_file, expname=self.name, motifs=report_motifs, random=random, genomic=genomic, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=self.VERSION)
+		template = kid.Template(file=template_file, expname=self.name, motifs=report_motifs, random=random, genomic=genomic, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
 		f = open(total_report, "w")
 		f.write(template.serialize())
 		f.close()
@@ -883,29 +852,24 @@ class GimmeMotifs:
 			sys.exit()
 
 		# ROC metrics of significant motifs
-		if "random" in background:
-			self._roc_metrics(self.significant_pwm, self.validation_fa, self.bg_random_fa, self.significant_bg_random_roc_metrics)
-		if "genomic_matched" in background:
-			self._roc_metrics(self.significant_pwm, self.validation_fa, self.bg_genomic_matched_fa, self.significant_bg_genomic_matched_roc_metrics)
-
+		for bg in background:
+			self._roc_metrics(self.significant_pwm, self.validation_fa, self.bg_file["fa"][bg], self.bg_file["roc"][bg])
+		
 		# Cluster significant motifs
 		clusters = self._cluster_motifs(self.significant_pfm, self.cluster_pwm, self.outdir, params["cluster_threshold"])
 		
 		# Determine best motif in cluster
 		if "genomic_matched" in background:
-			self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, self.bg_genomic_matched_fa, self.imgdir)
+			self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, self.bg_file["fa"]["genomic_matched"], self.imgdir)
 		elif "random" in background:
-			self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, self.bg_random_fa, self.imgdir)
+			self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, self.bg_file["fa"]["random"], self.imgdir)
 		else:
 			log.error("Unknown background")
 			sys.exit()
 		
 		# ROC plots
-		if "random" in background:
-			self.create_roc_plots(self.final_pwm, self.validation_fa, self.bg_random_fa, "random")
-		if "genomic_matched" in background:
-			self.create_roc_plots(self.final_pwm, self.validation_fa, self.bg_genomic_matched_fa, "genomic_matched")
-		
+		for bg in background:
+			self.create_roc_plots(self.final_pwm, self.validation_fa, self.bg_file["fa"][bg], bg)
 		
 		# Location plots
 		self.create_location_plots(self.final_pwm, params)
