@@ -7,6 +7,7 @@ from subprocess import Popen
 from platform import machine
 from gimmemotifs.utils import which
 from gimmemotifs.tools import *
+from gimmemotifs.config import *
 from glob import glob
 import os
 import sys
@@ -391,7 +392,7 @@ setup (name = 'gimmemotifs',
 							"install_tools":install_tools,
 							"install_config":install_config,
 							},
-		version = '0.63',
+		version = GM_VERSION,
 		description = DESCRIPTION,
 		author='Simon van Heeringen',
 		author_email='s.vanheeringen@ncmls.ru.nl',
@@ -401,7 +402,7 @@ setup (name = 'gimmemotifs',
 		ext_modules = [module1],
 		scripts=[
 			'scripts/add_organism.py',
-			'scripts/generate_sequences.py',
+			'scripts/generate_background_sequences.py',
 			'scripts/closest_motif_match.py',
 			'scripts/motif_cluster.py',
 			'scripts/create_genome_index.py',
