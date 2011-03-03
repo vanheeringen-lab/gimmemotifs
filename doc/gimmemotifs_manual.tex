@@ -385,8 +385,9 @@ Taking an input file with motifs, find the best matching file in another file of
 \subsection*{create\_genome\_index.py}
 Creates an index to use with GimmeMotifs. See section \ref{sec:configuration} for details.
 
-\subsection*{generate\_sequences.py}
-Generate random sequences with the same dinucleotide distribution as the input sequences according to a 1st order Markov model trained on the input sequences. The \texttt{-n} options is set to 10 by default. The length distribution of the sequences in the outputfile will be similar as the inputfile.
+\subsection*{generate\_background\_sequences.py}
+Generate random sequences according to one of two methods: random or matched\_genomic. With the argument \texttt{type} set to \texttt{random}, and an input file in FASTA format, this script will generate sequences with the same dinucleotide distribution as the input sequences according to a 1st order Markov model trained on the input sequences. The \texttt{-n} options is set to 10 by default. The length distribution of the sequences in the output file will be similar as the inputfile. The Markov model can be changed with option \texttt{-m}.
+If the \texttt{type} is specified as \texttt{matched\_genomic} the inputfile needs to be in BED format, and the script will select genomic regions with a similar distribution relative to the transcription start of genes as the input file. Make sure to select the correct genome. The length of the sequences in the output file will be set to the median of the features in the input file.
 
 \subsection*{motif\_cluster.py}
 Cluster a set of motifs with the WIC metric.

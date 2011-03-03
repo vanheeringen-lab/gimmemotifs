@@ -152,6 +152,7 @@ class MatchedGenomicFasta(Fasta):
 	"""
 	def __init__(self, bedfile, genefile, index="/usr/share/gimmemotifs/genome_index/hg18", length=None, multiply=10, match_chromosome=True):
 		self.match_chromosome = match_chromosome
+		length = int(length)
 
 		# Create temporary files
 		tmpbed = NamedTemporaryFile().name

@@ -20,7 +20,7 @@
 
 <h3 align="center">Simon van Heeringen </h3>
 
-<h3 align="center">Feb 22, 2011
+<h3 align="center">Mar  3, 2011
 </h3>
 
 <div class="p"><!----></div>
@@ -708,8 +708,9 @@ Creates an index to use with GimmeMotifs. See section <a href="#sec:configuratio
 
 <div class="p"><!----></div>
 
-<h3>generate_sequences.py</h3>
-Generate random sequences with the same dinucleotide distribution as the input sequences according to a 1st order Markov model trained on the input sequences. The <tt>-n</tt> options is set to 10 by default. The length distribution of the sequences in the outputfile will be similar as the inputfile.
+<h3>generate_background_sequences.py</h3>
+Generate random sequences according to one of two methods: random or matched_genomic. With the argument <tt>type</tt> set to <tt>random</tt>, and an input file in FASTA format, this script will generate sequences with the same dinucleotide distribution as the input sequences according to a 1st order Markov model trained on the input sequences. The <tt>-n</tt> options is set to 10 by default. The length distribution of the sequences in the output file will be similar as the inputfile. The Markov model can be changed with option <tt>-m</tt>.
+If the <tt>type</tt> is specified as <tt>matched_genomic</tt> the inputfile needs to be in BED format, and the script will select genomic regions with a similar distribution relative to the transcription start of genes as the input file. Make sure to select the correct genome. The length of the sequences in the output file will be set to the median of the features in the input file.
 
 <div class="p"><!----></div>
 
@@ -914,5 +915,5 @@ Brooke Rhead, Donna Karolchik, Robert&nbsp;M. Kuhn, Angie&nbsp;S. Hinrichs, Ann&
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.77.<br />On 22 Feb 2011, 15:01.</small>
+version 3.77.<br />On  3 Mar 2011, 11:00.</small>
 </html>

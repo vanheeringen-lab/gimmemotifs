@@ -418,7 +418,7 @@ def is_valid_bedfile(bedfile, columns=6):
 			try:
 				int(vals[1]), int(vals[2])
 			except ValueError:
-				sys.stderr.write("Error in line %s: coordinates need to be integers!\n" % (i))
+				sys.stderr.write("Error in line %s: coordinates in column 2 and 3 need to be integers!\n" % (i))
 				return False
 	
 			if columns >= 6:
@@ -427,7 +427,23 @@ def is_valid_bedfile(bedfile, columns=6):
 					sys.stderr.write("Error in line %s: column 6 (strand information) needs to be + or -" % (i))
 					return False
 	
+	f.close()
 	return True
+
+def median_bed_len(bedfile):
+	f = open(bedfile)
+	l = []
+	for i, line in enumerate(f.readlines()):
+		if not (line.startswith("browser") or line.startswith("track")):
+			vals = line.split("\t")
+			try:
+				l.append(int(vals[2]) - int(vals[1]))
+			except:
+				sys.stderr.write("Error in line %s: coordinates in column 2 and 3 need to be integers!\n" % (i))
+				sys.exit(1)
+	f.close()
+	return numpy.median(l)
+
 
 def locate_tool(tool, verbose=True):
 	tool = re.sub(r'[^a-zA-Z]','',tool)
