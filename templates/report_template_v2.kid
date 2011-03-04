@@ -197,37 +197,33 @@ JASPAR match
 
 <br/>
 <h3>Significance and enrichment</h3>
-<table>
-<tr>
-<td py:if="genomic">
-<a py:attrs="motif.genomic_roc_img_link"><img width="380" py:attrs="motif.genomic_roc_img"/></a>
-</td>
-<td py:if="random">
-<a py:attrs="motif.random_roc_img_link"><img width="380" py:attrs="motif.random_roc_img"/></a>
-</td>
-</tr>
 
-<tr>
-<td align="center" py:if="genomic">
+<?python
+	bg_types = motif.bg.keys()
+?>
 <table>
-<tr><th colspan="2" align="left">Genomic</th></tr>
-<tr><td>enrichment</td><td py:content="motif.genomic_e"></td></tr>
-<tr><td>p-value</td><td py:content="motif.genomic_p"></td></tr>
-<tr><td>ROC_AUC</td><td py:content="motif.genomic_auc"></td></tr>
-<tr><td>MNCP</td><td py:content="motif.genomic_mncp"></td></tr>
-</table>
-</td>
-<td align="center" py:if="random">
-<table>
-<tr><th colspan="2" align="left">Random</th></tr>
-<tr><td>enrichment</td><td py:content="motif.random_e"></td></tr>
-<tr><td>p-value</td><td py:content="motif.random_p"></td></tr>
-<tr><td>ROC_AUC</td><td py:content="motif.random_auc"></td></tr>
-<tr><td>MNCP</td><td py:content="motif.random_mncp"></td></tr>
-</table>
-</td>
-</tr>
-
+	<tr py:for="i in range(0, len(bg_types), 2)">
+		<td>
+			<table>
+				<tr>
+					<td py:for="j in range(2)">
+						<a py:if="i + j &lt; len(bg_types)" py:attrs="motif.bg[bg_types[i + j]]['roc_img_link']"><img width="380" py:if="i + j &lt; len(bg_types)" py:attrs="motif.bg[bg_types[i+j]]['roc_img']"/></a>
+					</td>
+				</tr>
+				<tr>
+					<td align="center" py:for="j in range(2)">
+						<table py:if="i + j &lt; len(bg_types)">
+							<tr><th colspan="2" align="left" py:content="bg_types[i + j]"></th></tr>
+							<tr><td>enrichment</td><td py:content="motif.bg[bg_types[i + j]]['e']"></td></tr>
+							<tr><td>p-value</td><td py:content="motif.bg[bg_types[i + j]]['p']"></td></tr>
+							<tr><td>ROC_AUC</td><td py:content="motif.bg[bg_types[i + j]]['auc']"></td></tr>
+							<tr><td>MNCP</td><td py:content="motif.bg[bg_types[i + j]]['mncp']"></td></tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
 </table>
 
 <br/>

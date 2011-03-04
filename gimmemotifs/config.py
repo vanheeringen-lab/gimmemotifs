@@ -10,7 +10,7 @@ import os
 
 ### CONSTANTS ###
 GM_VERSION = "0.64"
-VALID_BGS = ["genomic_matched", "random"]
+VALID_BGS = ["genomic_matched", "random", "promoter"]
 
 class MotifConfig:
 	__shared_state = {}

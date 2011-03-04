@@ -41,7 +41,7 @@ if not os.path.exists(options.inputfile):
 
 background = [x.strip() for x in options.background.split(",")]
 for bg in background:
-	if not bg in ["genomic", "random", "genomic_matched"]:
+	if not bg in VALID_BGS:
 		print "Invalid value for background argument"
 		sys.exit()
 

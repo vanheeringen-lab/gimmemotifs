@@ -332,3 +332,67 @@ class MatchedGenomicFasta(Fasta):
 			tmp.write("%s\t%s\t%s\n" % (chr, start, end))
 		tmp.flush()
 
+class PromoterFasta(Fasta):
+	""" 
+	Generates a new Fasta object containing randomly selected promoters.
+	A BED file of gene coordinates is used to extract sequences of a specified
+	length upstream of the the TSS.
+	
+	Required arg 'genefile' is a file containing genes BED format (at least 6 
+	columns including the strand information). 
+	Required arg 'length' specifies the length 
+	Required arg 'in' specifies the number of sequences to generate.
+
+	Returns a Fasta object
+	
+	"""
+	def __init__(self, genefile, index="/usr/share/gimmemotifs/genome_index/hg18", length=None, n=None):
+		length = int(length)
+
+		# Create temporary files
+		tmpbed = NamedTemporaryFile().name
+		tmpfasta = NamedTemporaryFile().name
+		
+		# Create bed-file with coordinates of random sequences
+		self._create_promoter_bedfile(tmpbed, genefile, length, n)
+		
+		# Convert track to fasta
+		track2fasta(index, tmpbed, tmpfasta, use_strand=True)
+
+		# Initialize super Fasta object
+		Fasta.__init__(self, tmpfasta)
+
+		# Delete the temporary files
+		os.remove(tmpbed)
+		os.remove(tmpfasta)
+
+	def _create_promoter_bedfile(self, out, genefile, length, n):
+		strand_map = {"+":True, "-":False, 1:True, -1:False, "1":True, "-1":False}
+		data = {}
+
+		features = []
+		
+		for line in open(genefile):
+			if not line.startswith("track"):
+				(chr, start, end, name, score, strand) = line[:-1].split("\t")[:6]
+				start, end = int(start), int(end)
+				strand= strand_map[strand]
+				if strand:
+					if start - length >= 0:
+						features.append([chr, start - length, start, strand])
+				else:
+					features.append([chr, end, end + length, strand])
+
+		
+		if n < len(features):
+			features = random.sample(features, n)
+		else:
+			sys.stdout.write("Too few promoters to generate %s random promoters! Just using all of them." % n)
+
+
+		# Write result to temporary bedfile
+		tmp = open(out, "w")
+		for chr, start, end, strand in sorted(features, key=lambda x: x[0]):
+			tmp.write("%s\t%s\t%s\t0\t0\t%s\n" % (chr, start, end, {True:"+",False:"-"}[strand]))
+		tmp.flush()
+
