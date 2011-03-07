@@ -12,6 +12,7 @@ import shutil
 import logging
 import logging.handlers
 from datetime import datetime
+from numpy import median
 # External imports
 import kid
 # GimmeMotifs imports
@@ -178,6 +179,7 @@ class GimmeMotifs:
 	def _setup_logging(self):
 		self.logger = logging.getLogger('motif_analysis')
 		self.logger.setLevel(logging.DEBUG)
+		self.logger.propagate = 0
 
 		# nice format
 		file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -191,7 +193,7 @@ class GimmeMotifs:
 		self.logger.addHandler(fh)
 
 		# Log to screen
-		sh = logging.StreamHandler()
+		sh = logging.StreamHandler(sys.stdout)
 		sh.setLevel(logging.INFO)
 		sh.setFormatter(screen_formatter)
 		self.logger.addHandler(sh)
@@ -243,7 +245,7 @@ class GimmeMotifs:
 		
 		self.bg_file = dict([(t,{}) for t in ftypes.keys()])
 		
-		for bg in VALID_BGS:
+		for bg in (FA_VALID_BGS + BED_VALID_BGS):
 			for ftype, extension in ftypes.items():
 				self.bg_file[ftype][bg] =  os.path.join(self.tmpdir, "%s_bg_%s%s" % (self.name, bg, extension))
 
@@ -381,7 +383,18 @@ class GimmeMotifs:
 			f.writefasta(outfile)
 			self.logger.debug("Random promoter background: %s" % (outfile))
 			return len(f)
-
+		elif bg_type == "user":
+			bg_file = self.params["user_background"]
+			if not os.path.exists(bg_file):
+				self.logger.error("User-specified background file %s does not exist!" % bg_file)
+				sys.exit(1)
+			else:
+				fa = Fasta(bg_file)
+				l = median([len(seq) for seq in fa.seqs])
+				if l < width * 0.95 or l > width * 1.05:
+					self.logger.warn("The user-specified background file %s contains sequences with a median length of %s, while GimmeMotifs predicts motifs in sequences of length %s. This will influence the statistics! It is recommended to use background sequences of the same length." % (bg_file, l, width))
+				fa.writefasta(outfile)
+				return len(fa)
 
 	def filter_motifs(self, motif_ids, enrichmentfile, e_cutoff, p_cutoff):
 		filt_motifs = []
@@ -434,11 +447,12 @@ class GimmeMotifs:
 		if "genomic_matched" in background:
 			self._create_background("genomic_matched", self.validation_bed, None, self.prediction_bg, organism=organism, width=width)
 		# This is not ideal, but for genomes where matched_genomic cannot be used...
-		else:
-			self._create_background(background[0], self.validation_bed, self.validation_fa, self.prediction_bg, organism=organism, width=width)
+		#else:
+		#	self._create_background(background[0], self.validation_bed, self.validation_fa, self.prediction_bg, organism=organism, width=width)
 
 		# Get background fasta files
 		for bg in background:
+			print "HOEI: %s" % bg
 			nr_sequences[bg] = self._create_background(bg, self.validation_bed, self.validation_fa, self.bg_file["fa"][bg], organism=organism, width=width)
 
 	def determine_significant_motifs(self, background=["random"], organism="hg18", width=200, pvalue_cutoff=0.001, enrichment_cutoff=1.5):
@@ -455,7 +469,6 @@ class GimmeMotifs:
 		filt_ids = [x.id for x in all_motifs]
 			
 		for bg_id in background:
-			print "HOEI", self.bg_file["enrichment"][bg_id]
 			filt_ids = self.filter_motifs(filt_ids, self.bg_file["enrichment"][bg_id], enrichment_cutoff, pvalue_cutoff)
 		
 		f = open(self.significant_pwm, "w")
@@ -715,8 +728,6 @@ class GimmeMotifs:
 		f.write(template.serialize())
 		f.close()
 
-
-
 	def determine_closest_match(self, motifs):
 		self.logger.info("Determining closest matching motifs in database (JASPAR)")
 		jaspar = os.path.join(self.config.get_motif_dir(), [x for x in os.listdir(self.config.get_motif_dir()) if x.startswith("jaspar")][0])
@@ -760,8 +771,6 @@ class GimmeMotifs:
 			tmp2.close()
 		out.close()
 
-
-
 	def run_full_analysis(self, inputfile, user_params={}):
 		""" Full analysis: from bed-file to motifs (including clustering, ROC-curves, location plots and html report) """
 		self.logger.info("Starting full motif analysis")
@@ -790,11 +799,12 @@ class GimmeMotifs:
 			pass
 
 		if self.input_type == "FASTA":
-			if len(background) > 1 or "random" not in background:
-				self.logger.info("Input type is FASTA, so only possible background is 'random'")
-				background = ["random"]
+			for bg in background:
+				if not bg in FA_VALID_BGS:
+					self.logger.info("Input type is FASTA, can't use background type '%s'" % bg)
+			background = [bg for bg in background if bg in FA_VALID_BGS]
 			
-		if self.input_type == "BED":
+		elif self.input_type == "BED":
 			# Does the index_dir exist?  #bed-specific
 			index_dir = os.path.join(self.config.get_index_dir(), params["genome"])
 			if not os.path.exists(index_dir):
@@ -803,6 +813,16 @@ class GimmeMotifs:
 
 			# is it a valid bed-file etc.
 			self._check_input(inputfile)	# bed-specific
+
+			# Check for valid background
+			for bg in background:
+				if not bg in BED_VALID_BGS:
+					self.logger.info("Input type is BED, can't use background type '%s'" % bg)
+			background = [bg for bg in background if bg in BED_VALID_BGS]
+	
+		if len(background) == 0:
+			self.logger.error("No valid backgrounds specified!")
+			sys.exit(1)
 
 		self.max_time = None
 		max_time = None
