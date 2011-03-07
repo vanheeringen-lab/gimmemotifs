@@ -389,6 +389,7 @@ class GimmeMotifs:
 				self.logger.error("User-specified background file %s does not exist!" % bg_file)
 				sys.exit(1)
 			else:
+				self.logger.info("Copying user-specified background file %s to %s." % (bg_file, outfile))
 				fa = Fasta(bg_file)
 				l = median([len(seq) for seq in fa.seqs])
 				if l < width * 0.95 or l > width * 1.05:
@@ -447,12 +448,11 @@ class GimmeMotifs:
 		if "genomic_matched" in background:
 			self._create_background("genomic_matched", self.validation_bed, None, self.prediction_bg, organism=organism, width=width)
 		# This is not ideal, but for genomes where matched_genomic cannot be used...
-		#else:
-		#	self._create_background(background[0], self.validation_bed, self.validation_fa, self.prediction_bg, organism=organism, width=width)
+		else:
+			self._create_background(background[0], self.validation_bed, self.validation_fa, self.prediction_bg, organism=organism, width=width)
 
 		# Get background fasta files
 		for bg in background:
-			print "HOEI: %s" % bg
 			nr_sequences[bg] = self._create_background(bg, self.validation_bed, self.validation_fa, self.bg_file["fa"][bg], organism=organism, width=width)
 
 	def determine_significant_motifs(self, background=["random"], organism="hg18", width=200, pvalue_cutoff=0.001, enrichment_cutoff=1.5):
