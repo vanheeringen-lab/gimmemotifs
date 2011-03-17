@@ -127,6 +127,8 @@ def make_gff_histogram(gfffile, outfile, l, title, breaks=21):
 def ks_pvalue(values, l):
 	from scipy.stats import kstest
 	from numpy import array
+	if len(values) == 0:
+		return 1.0
 	a = array(values, dtype="float") / l
 	return kstest(a, "uniform")[1]
 
