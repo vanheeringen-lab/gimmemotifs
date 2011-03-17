@@ -14,7 +14,7 @@ from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("-p", "--pwmfile", dest="pwmfile", help="File with pwms", metavar="FILE")
 parser.add_option("-f", "--fastafile", dest="fastafile", help="Fasta formatted file", metavar="FILE")
-parser.add_option("-w", "--width", dest="width", help="Set width to W (default: determined from fastafile)", metavar="W")
+parser.add_option("-w", "--width", dest="width", help="Set width to W (default: determined from fastafile)", metavar="W", type="int")
 parser.add_option("-i", "--ids", dest="ids", help="Comma-seperated list of motif ids to plot in ROC (default is all ids)", metavar="IDS")
 parser.add_option("-c", "--cutoff", dest="cutoff", help="Cutoff to use (default 0.95)", type="float", default=0.95)
 
