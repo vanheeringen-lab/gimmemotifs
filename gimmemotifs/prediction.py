@@ -71,13 +71,26 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 	jobs = {}
 	
 	# Some program specific code
-	weeder_organism = {
+	weeder_organims = ""
+	weeder_organisms = {
 		"hg18":"HS", 
 		"hg19":"HS", 
 		"mm9":"MM", 
+		"rn4":"RN",
+		"dm3":"DM",
+		"fr2": "FR",
+		"danRer7": "DR",
+		"galGal3": "GG",
+		"ce3": "CE",
+		"anoGam1": "AG",
 		"yeast":"SC",
 		"sacCer2":"SC",
-		"xenTro2":"XT"}[organism]
+		"xenTro2":"XT"}
+	if weeder_organisms.has_key(organism):
+		weeder_organism = weeder_organisms[organism]
+	else:
+		logger.info("Weeder not supported for this organism; skipping Weeder")
+		del tools["Weeder"]	
 	
 	ms_background = os.path.join(config.get_bg_dir(), "%s.%s.bg" % (organism, "MotifSampler"))
 	
