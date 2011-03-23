@@ -71,7 +71,7 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 	jobs = {}
 	
 	# Some program specific code
-	weeder_organims = ""
+	weeder_organism = ""
 	weeder_organisms = {
 		"hg18":"HS", 
 		"hg19":"HS", 
