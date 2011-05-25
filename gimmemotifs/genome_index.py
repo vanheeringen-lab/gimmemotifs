@@ -8,6 +8,8 @@
 from struct import pack,unpack
 from string import maketrans
 from glob import glob
+import random
+import bisect
 import sys
 import os
 
@@ -370,6 +372,34 @@ def track2fasta(index_dir, bedfile, fastafile, extend_up=0, extend_down=0, use_s
 			out.write(">%s:%s-%s\n%s\n" % (chr, ext_start, ext_end, seq))
 	out.close()
 
+def _weighted_selection(l, n):
+	"""
+		Selects  n random elements from a list of (weight, item) tuples.
+		Based on code snippet by Nick Johnson
+	"""
+	cuml = []
+	items = []
+	total_weight = 0.0
+	for weight, item in l:
+		total_weight += weight
+		cuml.append(total_weight)
+		items.append(item)
+	
+	return [items[bisect.bisect(cuml, random.random()*total_weight)] for x in range(n)]
+
+def get_random_sequences(index_dir, n=10, length=200, chroms=None):
+	g = GenomeIndex(index_dir)
+	if not chroms:
+		chroms = g.get_chromosomes()
+
+	sizes = dict([(x, g.get_size(x)) for x in g.get_chromosomes()])
+
+
+	l = [(sizes[x], x) for x in g.get_chromosomes() if sizes[x] > length and x in chroms]
+	
+	chroms = _weighted_selection(l, n)
+	coords = [(x, int(random.random() * (sizes[x] - length))) for x in chroms]
+	return [(x[0], x[1], x[1] + length) for x in coords]
 
 if __name__ == "__main__":
 	# If run directly this script will index a directory of fasta-files
