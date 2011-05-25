@@ -22,7 +22,208 @@ from tempfile import NamedTemporaryFile
 from numpy import array,sum
 # GimmeMotifs imports
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.genome_index import track2fasta
+from gimmemotifs.genome_index import track2fasta,get_random_sequences
+
+def create_matched_genomic_bedfile(out, bedfile, genefile, length, m):
+	strand_map = {"+":True, "-":False, 1:True, -1:False, "1":True, "-1":False}
+	data = {}
+
+	features = []
+	
+	for line in open(genefile):
+		if not line.startswith("track"):
+			(chr, start, end, name, score, strand) = line[:-1].split("\t")[:6]
+			start, end = int(start), int(end)
+			strand= strand_map[strand]
+			data.setdefault(chr,{})[name] = {"chr":chr,"start":start, "end":end, "strand":strand,"up":0, "down":0}
+
+
+	for chr in data.keys():
+		prev_gene = None
+		for gene,stuff in sorted(data[chr].items(),key=lambda x: data[chr][x[0]]["start"]):
+			if prev_gene:
+				if stuff["start"] < data[chr][prev_gene]["end"]:
+					if stuff["end"] > data[chr][prev_gene]["end"]:
+						if stuff["strand"]:	
+							data[chr][gene]["up"] = None 
+						else:
+							data[chr][gene]["down"] = None
+						if data[chr][prev_gene]["strand"]:
+							data[chr][prev_gene]["down"] = None
+						else:
+							data[chr][prev_gene]["up"] = None
+						prev_gene = gene
+					else: 
+						data[chr][gene]["up"] = None 
+						data[chr][gene]["down"] = None 
+				else:
+					dist = stuff["start"] - data[chr][prev_gene]["end"]
+					if dist < 0:
+						print "ERROHR"
+						sys.exit(1)
+					if stuff["strand"]:	
+						data[chr][gene]["up"] = dist 
+					else:
+						data[chr][gene]["down"] = dist
+					if data[chr][prev_gene]["strand"]:
+						data[chr][prev_gene]["down"] = dist
+					else:
+						data[chr][prev_gene]["up"] = dist 
+					
+					prev_gene = gene
+			else:
+				prev_gene = gene
+	targets = {}
+	target_length = {}
+	for line in open(bedfile):
+		if not line.startswith("track"):
+			vals = line.strip().split("\t")
+			(chr, start, end) = vals[:3]
+			if not targets.has_key(chr):
+				targets[chr] = []
+				target_length[chr] = []
+			targets[chr].append((int(end) + int(start))/2)
+			if length:
+				target_length[chr].append(length)
+			else:
+				target_length[chr].append(int(end) - int(start))
+			
+	result = []
+	data_all = []
+	for chr in data.keys():
+		for gene in data[chr].keys():
+			data_all.append(data[chr][gene])
+	
+	for chr in targets.keys():
+		if data.has_key(chr):
+			vals = data[chr].values()
+			locs = sorted([(x["start"], x["end"], x["strand"]) for x in data[chr].values()],key=lambda x: x[0])
+			closest = [[None, None] for x in targets[chr]]
+			j = 0
+			for i,pos in enumerate(targets[chr]):
+				while j >= len(locs) or (j > 0 and locs[j][1] > pos):
+					j -= 1
+				while j < len(locs) and locs[j][1] < pos:
+					j += 1
+				if j > 0:
+					j -= 1
+					if locs[j][2]:
+						if not closest[i][1] or pos - locs[j][1] < closest[i][1]:
+							closest[i][1] = pos - locs[j][1]
+					else:
+						if not closest[i][0] or pos - locs[j][1] < closest[i][0]:
+							closest[i][0] = pos - locs[j][1]
+					j += 1
+				if j < len(locs):
+					if locs[j][0] <= pos and locs[j][1] >= pos:
+						closest[i] = [0,0]
+					else:
+						if locs[j][2]:
+							if not closest[i][0] or locs[j][0] - pos < closest[i][0]:
+								closest[i][0] = locs[j][0] - pos
+						else:
+							if not closest[i][1] or locs[j][0] - pos < closest[i][0]:
+								closest[i][1] = locs[j][0] - pos
+				else: 
+					pass
+			
+			for i,c in enumerate(closest):
+				genes = []
+				if c[0] == 0 and c[1] == 0:
+					
+					genes = []
+					if self.match_chromosome:
+						genes = data[chr].values()
+					if len(genes) < m:
+						genes = data_all[:]
+
+					for x in range(m):
+						gene = random.choice(genes)
+						pos = random.randint(gene["start"], gene["end"])
+						features.append((chr, pos - target_length[chr][i]/2, pos + target_length[chr][i]/2))
+				else:
+					if not c[1] or (c[0] and c[0] <= c[1]):
+						genes = []
+						if self.match_chromosome:
+							genes = [x for x in data[chr].values() if x["up"] > 2 * c[0]]
+						if len(genes) < m:
+							genes = [x for x in data_all if x["up"] and  x["up"] > 2 * c[0]]
+						if len(genes) >= m:
+							for x in range(m):
+								gene = random.choice(genes)
+								if gene["strand"]:
+									pos = gene["start"] - c[0]
+								else:
+									pos = gene["end"] + c[0]
+								
+								pos = random.randint(pos - int(0.1 * c[0]), pos + int(0.1 * c[0]))
+								features.append((gene["chr"], pos - target_length[chr][i]/2, pos + target_length[chr][i]/2))
+						else:
+							pass
+								
+					elif not c[0] or (c[1] and c[1] <= c[0]):
+						genes = []
+						if self.match_chromosome:
+							genes = [x for x in data[chr].values() if x["down"] > 2 * c[1]]
+						if len(genes) < m:
+							genes = [x for x in data_all if x["down"] and (x["down"] > 2 * c[1])]
+						if len(genes) >= m:
+							for x in range(m):
+								gene = random.choice(genes)
+								if gene["strand"]:
+									pos = gene["end"] + c[1]
+								else:
+									pos = gene["start"] - c[1]
+								pos = random.randint(pos - int(0.1 * c[1]), pos + int(0.1 * c[1]))
+								features.append((gene["chr"], pos - target_length[chr][i]/2, pos + target_length[chr][i]/2))
+						else:
+							pass
+	
+	# Write result to temporary bedfile
+	tmp = open(out, "w")
+	for chr, start, end in sorted(features, key=lambda x: x[0]):
+		tmp.write("%s\t%s\t%s\n" % (chr, start, end))
+	tmp.flush()
+
+def create_random_genomic_bedfile(out, index_dir, length, n):
+	features = get_random_sequences(index_dir, n, length)
+
+	# Write result to bedfile
+	tmp = open(out, "w")
+	for chrom,start,end in features:
+		tmp.write("%s\t%s\t%s\n" % (chrom, start, end))
+	tmp.flush()	
+
+def create_promoter_bedfile(out, genefile, length, n):
+	strand_map = {"+":True, "-":False, 1:True, -1:False, "1":True, "-1":False}
+	data = {}
+
+	features = []
+	
+	for line in open(genefile):
+		if not line.startswith("track"):
+			(chr, start, end, name, score, strand) = line[:-1].split("\t")[:6]
+			start, end = int(start), int(end)
+			strand= strand_map[strand]
+			if strand:
+				if start - length >= 0:
+					features.append([chr, start - length, start, strand])
+			else:
+				features.append([chr, end, end + length, strand])
+
+	
+	if n < len(features):
+		features = random.sample(features, n)
+	else:
+		sys.stdout.write("Too few promoters to generate %s random promoters! Just using all of them." % n)
+
+
+	# Write result to temporary bedfile
+	tmp = open(out, "w")
+	for chr, start, end, strand in sorted(features, key=lambda x: x[0]):
+		tmp.write("%s\t%s\t%s\t0\t0\t%s\n" % (chr, start, end, {True:"+",False:"-"}[strand]))
+	tmp.flush()
+
 
 class MarkovFasta(Fasta):
 	""" 
@@ -159,7 +360,7 @@ class MatchedGenomicFasta(Fasta):
 		tmpfasta = NamedTemporaryFile().name
 		
 		# Create bed-file with coordinates of random sequences
-		self._create_bedfile(tmpbed, bedfile, genefile, length, multiply)
+		create_matched_genomic_bedfile(tmpbed, bedfile, genefile, length, multiply)
 		
 		# Convert track to fasta
 		track2fasta(index, tmpbed, tmpfasta)
@@ -171,166 +372,6 @@ class MatchedGenomicFasta(Fasta):
 		os.remove(tmpbed)
 		os.remove(tmpfasta)
 
-	def _create_bedfile(self, out, bedfile, genefile, length, m):
-		strand_map = {"+":True, "-":False, 1:True, -1:False, "1":True, "-1":False}
-		data = {}
-
-		features = []
-		
-		for line in open(genefile):
-			if not line.startswith("track"):
-				(chr, start, end, name, score, strand) = line[:-1].split("\t")[:6]
-				start, end = int(start), int(end)
-				strand= strand_map[strand]
-				data.setdefault(chr,{})[name] = {"chr":chr,"start":start, "end":end, "strand":strand,"up":0, "down":0}
-	
-	
-		for chr in data.keys():
-			prev_gene = None
-			for gene,stuff in sorted(data[chr].items(),key=lambda x: data[chr][x[0]]["start"]):
-				if prev_gene:
-					if stuff["start"] < data[chr][prev_gene]["end"]:
-						if stuff["end"] > data[chr][prev_gene]["end"]:
-							if stuff["strand"]:	
-								data[chr][gene]["up"] = None 
-							else:
-								data[chr][gene]["down"] = None
-							if data[chr][prev_gene]["strand"]:
-								data[chr][prev_gene]["down"] = None
-							else:
-								data[chr][prev_gene]["up"] = None
-							prev_gene = gene
-						else: 
-							data[chr][gene]["up"] = None 
-							data[chr][gene]["down"] = None 
-					else:
-						dist = stuff["start"] - data[chr][prev_gene]["end"]
-						if dist < 0:
-							print "ERROHR"
-							sys.exit(1)
-						if stuff["strand"]:	
-							data[chr][gene]["up"] = dist 
-						else:
-							data[chr][gene]["down"] = dist
-						if data[chr][prev_gene]["strand"]:
-							data[chr][prev_gene]["down"] = dist
-						else:
-							data[chr][prev_gene]["up"] = dist 
-						
-						prev_gene = gene
-				else:
-					prev_gene = gene
-		targets = {}
-		target_length = {}
-		for line in open(bedfile):
-			if not line.startswith("track"):
-				vals = line.strip().split("\t")
-				(chr, start, end) = vals[:3]
-				if not targets.has_key(chr):
-					targets[chr] = []
-					target_length[chr] = []
-				targets[chr].append((int(end) + int(start))/2)
-				if length:
-					target_length[chr].append(length)
-				else:
-					target_length[chr].append(int(end) - int(start))
-				
-		result = []
-		data_all = []
-		for chr in data.keys():
-			for gene in data[chr].keys():
-				data_all.append(data[chr][gene])
-		
-		for chr in targets.keys():
-			if data.has_key(chr):
-				vals = data[chr].values()
-				locs = sorted([(x["start"], x["end"], x["strand"]) for x in data[chr].values()],key=lambda x: x[0])
-				closest = [[None, None] for x in targets[chr]]
-				j = 0
-				for i,pos in enumerate(targets[chr]):
-					while j >= len(locs) or (j > 0 and locs[j][1] > pos):
-						j -= 1
-					while j < len(locs) and locs[j][1] < pos:
-						j += 1
-					if j > 0:
-						j -= 1
-						if locs[j][2]:
-							if not closest[i][1] or pos - locs[j][1] < closest[i][1]:
-								closest[i][1] = pos - locs[j][1]
-						else:
-							if not closest[i][0] or pos - locs[j][1] < closest[i][0]:
-								closest[i][0] = pos - locs[j][1]
-						j += 1
-					if j < len(locs):
-						if locs[j][0] <= pos and locs[j][1] >= pos:
-							closest[i] = [0,0]
-						else:
-							if locs[j][2]:
-								if not closest[i][0] or locs[j][0] - pos < closest[i][0]:
-									closest[i][0] = locs[j][0] - pos
-							else:
-								if not closest[i][1] or locs[j][0] - pos < closest[i][0]:
-									closest[i][1] = locs[j][0] - pos
-					else: 
-						pass
-				
-				for i,c in enumerate(closest):
-					genes = []
-					if c[0] == 0 and c[1] == 0:
-						
-						genes = []
-						if self.match_chromosome:
-							genes = data[chr].values()
-						if len(genes) < m:
-							genes = data_all[:]
-
-						for x in range(m):
-							gene = random.choice(genes)
-							pos = random.randint(gene["start"], gene["end"])
-							features.append((chr, pos - target_length[chr][i]/2, pos + target_length[chr][i]/2))
-					else:
-						if not c[1] or (c[0] and c[0] <= c[1]):
-							genes = []
-							if self.match_chromosome:
-								genes = [x for x in data[chr].values() if x["up"] > 2 * c[0]]
-							if len(genes) < m:
-								genes = [x for x in data_all if x["up"] and  x["up"] > 2 * c[0]]
-							if len(genes) >= m:
-								for x in range(m):
-									gene = random.choice(genes)
-									if gene["strand"]:
-										pos = gene["start"] - c[0]
-									else:
-										pos = gene["end"] + c[0]
-									
-									pos = random.randint(pos - int(0.1 * c[0]), pos + int(0.1 * c[0]))
-									features.append((gene["chr"], pos - target_length[chr][i]/2, pos + target_length[chr][i]/2))
-							else:
-								pass
-									
-						elif not c[0] or (c[1] and c[1] <= c[0]):
-							genes = []
-							if self.match_chromosome:
-								genes = [x for x in data[chr].values() if x["down"] > 2 * c[1]]
-							if len(genes) < m:
-								genes = [x for x in data_all if x["down"] and (x["down"] > 2 * c[1])]
-							if len(genes) >= m:
-								for x in range(m):
-									gene = random.choice(genes)
-									if gene["strand"]:
-										pos = gene["end"] + c[1]
-									else:
-										pos = gene["start"] - c[1]
-									pos = random.randint(pos - int(0.1 * c[1]), pos + int(0.1 * c[1]))
-									features.append((gene["chr"], pos - target_length[chr][i]/2, pos + target_length[chr][i]/2))
-							else:
-								pass
-		
-		# Write result to temporary bedfile
-		tmp = open(out, "w")
-		for chr, start, end in sorted(features, key=lambda x: x[0]):
-			tmp.write("%s\t%s\t%s\n" % (chr, start, end))
-		tmp.flush()
 
 class PromoterFasta(Fasta):
 	""" 
@@ -354,7 +395,7 @@ class PromoterFasta(Fasta):
 		tmpfasta = NamedTemporaryFile().name
 		
 		# Create bed-file with coordinates of random sequences
-		self._create_promoter_bedfile(tmpbed, genefile, length, n)
+		create_promoter_bedfile(tmpbed, genefile, length, n)
 		
 		# Convert track to fasta
 		track2fasta(index, tmpbed, tmpfasta, use_strand=True)
@@ -366,33 +407,35 @@ class PromoterFasta(Fasta):
 		os.remove(tmpbed)
 		os.remove(tmpfasta)
 
-	def _create_promoter_bedfile(self, out, genefile, length, n):
-		strand_map = {"+":True, "-":False, 1:True, -1:False, "1":True, "-1":False}
-		data = {}
+class RandomGenomicFasta(Fasta):
+	""" 
+	Generates a new Fasta object containing randomly selected genomic regions.
+	
+	columns including the strand information). 
+	Required arg 'length' specifies the length 
+	Required arg 'in' specifies the number of sequences to generate.
 
-		features = []
+	Returns a Fasta object
+	
+	"""
+	def __init__(self, index="/usr/share/gimmemotifs/genome_index/hg18", length=None, n=None):
+		length = int(length)
+
+		# Create temporary files
+		tmpbed = NamedTemporaryFile().name
+		tmpfasta = NamedTemporaryFile().name
 		
-		for line in open(genefile):
-			if not line.startswith("track"):
-				(chr, start, end, name, score, strand) = line[:-1].split("\t")[:6]
-				start, end = int(start), int(end)
-				strand= strand_map[strand]
-				if strand:
-					if start - length >= 0:
-						features.append([chr, start - length, start, strand])
-				else:
-					features.append([chr, end, end + length, strand])
-
+		# Create bed-file with coordinates of random sequences
+		create_random_genomic_bedfile(tmpbed, index, length, n)
 		
-		if n < len(features):
-			features = random.sample(features, n)
-		else:
-			sys.stdout.write("Too few promoters to generate %s random promoters! Just using all of them." % n)
+		# Convert track to fasta
+		track2fasta(index, tmpbed, tmpfasta, use_strand=True)
 
+		# Initialize super Fasta object
+		Fasta.__init__(self, tmpfasta)
 
-		# Write result to temporary bedfile
-		tmp = open(out, "w")
-		for chr, start, end, strand in sorted(features, key=lambda x: x[0]):
-			tmp.write("%s\t%s\t%s\t0\t0\t%s\n" % (chr, start, end, {True:"+",False:"-"}[strand]))
-		tmp.flush()
+		# Delete the temporary files
+		os.remove(tmpbed)
+		os.remove(tmpfasta)
+
 
