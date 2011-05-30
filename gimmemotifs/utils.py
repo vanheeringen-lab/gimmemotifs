@@ -269,6 +269,19 @@ def parse_gff(gff_file, lowmem=False):
 		total += len(lines)
 	return mr
 
+def scan_fasta_file_with_motifs(fastafile, motiffile, threshold, gfffile, scan_rc=True, nreport=1):
+	error = None
+	try:
+		from gimmemotifs.fasta import Fasta
+		from gimmemotifs.motif import pwmfile_to_motifs
+		motifs = pwmfile_to_motifs(motiffile)
+		fa = Fasta(fastafile)
+		for motif in motifs:
+			motif.pwm_scan_to_gff(fa, gfffile, nreport=nreport, cutoff=float(threshold), scan_rc=scan_rc, append=True)
+	except Exception,e :
+		error = e
+	return error
+
 def calc_motif_enrichment(sample, background, mtc=None, len_sample=None, len_back=None):
 	"""Calculate enrichment based on hypergeometric distribution"""
 	
