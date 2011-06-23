@@ -231,7 +231,7 @@ class GenomeIndex:
 		seqs = []
 		for start,end in coords: 
 			if start > total_size:
-				raise ValueError, "Invalid start, greater than sequence length!"
+				raise ValueError, "%s: %s, invalid start, greater than sequence length!" % (chr,start)
 		
 			if start < 0:
 				raise ValueError, "Invalid start, < 0!"

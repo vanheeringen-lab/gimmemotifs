@@ -24,7 +24,7 @@ from numpy import array,sum
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.genome_index import track2fasta,get_random_sequences
 
-def create_matched_genomic_bedfile(out, bedfile, genefile, length, m):
+def create_matched_genomic_bedfile(out, bedfile, genefile, length, m, match_chromosome):
 	strand_map = {"+":True, "-":False, 1:True, -1:False, "1":True, "-1":False}
 	data = {}
 
@@ -132,7 +132,7 @@ def create_matched_genomic_bedfile(out, bedfile, genefile, length, m):
 				if c[0] == 0 and c[1] == 0:
 					
 					genes = []
-					if self.match_chromosome:
+					if match_chromosome:
 						genes = data[chr].values()
 					if len(genes) < m:
 						genes = data_all[:]
@@ -144,7 +144,7 @@ def create_matched_genomic_bedfile(out, bedfile, genefile, length, m):
 				else:
 					if not c[1] or (c[0] and c[0] <= c[1]):
 						genes = []
-						if self.match_chromosome:
+						if match_chromosome:
 							genes = [x for x in data[chr].values() if x["up"] > 2 * c[0]]
 						if len(genes) < m:
 							genes = [x for x in data_all if x["up"] and  x["up"] > 2 * c[0]]
@@ -163,7 +163,7 @@ def create_matched_genomic_bedfile(out, bedfile, genefile, length, m):
 								
 					elif not c[0] or (c[1] and c[1] <= c[0]):
 						genes = []
-						if self.match_chromosome:
+						if match_chromosome:
 							genes = [x for x in data[chr].values() if x["down"] > 2 * c[1]]
 						if len(genes) < m:
 							genes = [x for x in data_all if x["down"] and (x["down"] > 2 * c[1])]
@@ -360,7 +360,7 @@ class MatchedGenomicFasta(Fasta):
 		tmpfasta = NamedTemporaryFile().name
 		
 		# Create bed-file with coordinates of random sequences
-		create_matched_genomic_bedfile(tmpbed, bedfile, genefile, length, multiply)
+		create_matched_genomic_bedfile(tmpbed, bedfile, genefile, length, multiply, self.match_chromosome)
 		
 		# Convert track to fasta
 		track2fasta(index, tmpbed, tmpfasta)
