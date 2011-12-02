@@ -4,9 +4,12 @@ import sys
 from subprocess import Popen, PIPE
 from glob import glob
 import shutil
+from datetime import datetime
 
 build_dir = "build/debian"
+author = "Simon van Heeringen"
 email = "s.vanheeringen@ncmls.ru.nl"
+timestamp = datetime.now().strftime("%a, %d %b %Y %H:%M:%S +0100")
 
 # Get package name
 name = Popen(["python","setup.py","--name"], stdout=PIPE).communicate()[0].strip()
@@ -37,7 +40,13 @@ for file in files:
 for file in ["rules"]:
 	shutil.copyfile(file, ("%s/%s/debian/" % (build_dir, package)) + file)
 
-if Popen(["python","--version"], stderr=PIPE).communicate()[1].find("2.6") != -1:
+if Popen(["python","--version"], stderr=PIPE).communicate()[1].find("2.7") != -1:
+	shutil.copyfile("control2.7", "%s/%s/debian/control" % (build_dir, package))
+	f = open("%s/%s/debian/pyversions" % (build_dir, package),"w")
+	f.write("2.7-")
+	f.close()
+
+elif Popen(["python","--version"], stderr=PIPE).communicate()[1].find("2.6") != -1:
 	shutil.copyfile("control2.6", "%s/%s/debian/control" % (build_dir, package))
 	f = open("%s/%s/debian/pyversions" % (build_dir, package),"w")
 	f.write("2.6-")
@@ -48,5 +57,10 @@ else:
 	f.write("2.5-")
 	f.close()
 
+f = open("%s/%s/debian/changelog" % (build_dir, package), "w")
+f.write("gimmemotifs (%s) unstable; urgency=low\n" % version)
+f.write("\n  * new version\n\n")
+f.write(" -- %s <%s>  %s" % (author, email, timestamp)) 
+f.close()
 
 Popen(["debuild -us -uc"], cwd="%s/%s" % (build_dir, package), shell=True).communicate("")
