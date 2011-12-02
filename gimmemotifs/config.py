@@ -9,7 +9,7 @@ import ConfigParser
 import os
 
 ### CONSTANTS ###
-GM_VERSION = "0.64"
+GM_VERSION = "0.65"
 FA_VALID_BGS = ["random", "promoter", "user"]
 BED_VALID_BGS = ["genomic_matched", "random", "promoter", "user"]
 
