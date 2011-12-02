@@ -79,13 +79,15 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 		"rn4":"RN",
 		"dm3":"DM",
 		"fr2": "FR",
+		"danRer6": "DR",
 		"danRer7": "DR",
 		"galGal3": "GG",
 		"ce3": "CE",
 		"anoGam1": "AG",
 		"yeast":"SC",
 		"sacCer2":"SC",
-		"xenTro2":"XT"}
+		"xenTro2":"XT",
+		"xenTro3":"XT"}
 	if weeder_organisms.has_key(organism):
 		weeder_organism = weeder_organisms[organism]
 	else:
