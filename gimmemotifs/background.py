@@ -191,7 +191,7 @@ def create_random_genomic_bedfile(out, index_dir, length, n):
 	# Write result to bedfile
 	tmp = open(out, "w")
 	for chrom,start,end in features:
-		tmp.write("%s\t%s\t%s\n" % (chrom, start, end))
+		tmp.write("%s\t%d\t%d\n" % (chrom, start, end))
 	tmp.flush()	
 
 def create_promoter_bedfile(out, genefile, length, n):
