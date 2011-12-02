@@ -401,6 +401,7 @@ setup (name = 'gimmemotifs',
 		packages=['gimmemotifs'],
 		ext_modules = [module1],
 		scripts=[
+			'scripts/get_fpr_based_pwmscan_threshold.py',
 			'scripts/add_organism.py',
 			'scripts/generate_background_sequences.py',
 			'scripts/closest_motif_match.py',
