@@ -22,7 +22,10 @@ Popen(["python","setup.py","sdist"]).communicate()
 copyfile("dist/%s.tar.gz" % (package), os.path.expanduser("~/rpmbuild/SOURCES/%s.tar.gz" % package))
 
 SPECFILE="dist/gimmemotifs.spec"
-Popen(["python","setup.py","bdist_rpm","--spec-only"]).communicate()
+out,err = Popen(["python","setup.py","bdist_rpm","--spec-only"], stdout=PIPE,stderr=PIPE).communicate()
+print out
+print err
+
 lines = [line for line in open(SPECFILE)]
 f = open(SPECFILE, "w")
 f.write("%define debug_package %{nil}\n")
