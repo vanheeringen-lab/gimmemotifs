@@ -37,3 +37,4 @@ include scripts/motif_roc_metrics.py
 include scripts/pwm2logo.py
 include scripts/pwmscan.py
 include scripts/track2fasta.py
+include scripts/get_fpr_based_pwmscan_threshold.py
