@@ -92,7 +92,6 @@ def divide_fa_file(file, sample, rest, fraction, abs_max):
 
 def plot_histogram(values, outfile, xrange=None, breaks=10, title=None, xlabel=None, color=10):
 	import matplotlib.pyplot as plt
-	matplotlib.use('Agg')
 	import matplotlib.cm as cm
 	colors = [cm.Paired(256 / 11 * i) for i in range(11)]
 	

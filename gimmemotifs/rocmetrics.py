@@ -10,7 +10,6 @@
 # External imports
 from scipy.stats import stats
 from numpy import *
-from pylab import *
 
 def MNCP(fg_vals, bg_vals):
 	from scipy.stats import stats
