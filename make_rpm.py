@@ -34,4 +34,4 @@ for line in lines:
 	f.write(line)
 f.close()
 
-Popen(["rpmbuild","-ba", "dist/gimmemotifs.spec"])
+Popen(["rpmbuild","-ba", "dist/gimmemotifs.spec"]).communicate()
