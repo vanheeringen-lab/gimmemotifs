@@ -1,3 +1,130 @@
+2011-12-07  Simon van Heeringen <simon.vanheeringen@gmail.com>
+
+  * gimmemotifs/rocmetrics.py, gimmemotifs/utils.py: Fixed 'Error in thread:
+  could not open display' bug
+
+  * gimmemotifs/utils.py: gimmemotifs/utils.py
+
+  * make_rpm.py: Still trying to fix the rpmbuild issue
+
+2011-12-06  Simon van Heeringen <simon.vanheeringen@gmail.com>
+
+  * fabfile.py: Still trying to get make_rpm.py to work
+
+  * make_rpm.py: Trying to get make_rpm.py to work from fab again
+
+  * MANIFEST.in: Added get_fpr_based_pwmscan_threshold.py to MANIFEST
+
+2011-12-02  Simon van Heeringen <simon.vanheeringen@gmail.com>
+
+  * compile_externals.py: The -lm flag for gcc should be at the end of the
+  argument list :/
+
+  * gimmemotifs/config.py: Version 0.65
+
+  * control2.7, make_deb.py: Preparing for new build
+
+  * gimmemotifs/background.py: Small change
+
+  * gimmemotifs/prediction.py: Added Weeder organism, fixed bug that caused a
+  crash when specifying an unsupported organism for Weeder
+
+  * setup.py: Added script get_fpr_based_pwmscan_threshold.py to determine a
+  pwmscan threshold based on scanning a set op background sequences
+
+2011-06-23  Simon van Heeringen <simon.vanheeringen@gmail.com>
+
+  * gimmemotifs/background.py, gimmemotifs/genome_index.py: Fixed bugs
+
+2011-05-30  Simon van Heeringen <simon.vanheeringen@gmail.com>
+
+  * gimmemotifs/core.py, gimmemotifs/utils.py: Some internal changes
+
+2011-05-25  Simon van Heeringen <simon.vanheeringen@gmail.com>
+
+  * gimmemotifs/background.py, scripts/generate_background_sequences.py: Adding
+  random_promoter and random_genomic options to
+  generate_background_sequences.py. Not finished yet, as I'm not happy with the
+  overload of different options.
+
+  * gimmemotifs/genome_index.py: Added method to retrieve random genomic
+  sequences
+
+2011-03-23  Simon <simon.vanheeringen@gmail.com>
+
+  * gimmemotifs/prediction.py: Fixed typo
+
+  * gimmemotifs/prediction.py: Updated hard-coded Weeder organism check
+
+2011-03-17  Simon van Heeringen <simon.vanheeringen@gmail.com>
+
+  * gimmemotifs/utils.py: KS p-value won't crash on an empty array
+
+  * scripts/motif_localization_plots.py: scripts/motif_localization_plots.py
+
+2011-03-07  Simon van Heeringen <simon.vanheeringen@gmail.com>
+
+  * gimmemotifs/core.py: Added the option to use a user-specified background
+  file
+
+  * gimmemotifs/config.py, gimmemotifs/core.py, scripts/gimme_motifs.py: Added
+  the option to use a user-specified background file
+
+2011-03-04  Simon van Heeringen <simon.vanheeringen@gmail.com>
+
+  * gimmemotifs/background.py, gimmemotifs/config.py, gimmemotifs/core.py,
+  scripts/gimme_motifs.py, templates/report_template_v2.kid: Support for
+  multiple different backgrounds, added option to select 'promoter' as
+  background, which selects random promoters
+
+2011-03-03  Simon van Heeringen <simon.vanheeringen@gmail.com>
+
+  * gimmemotifs/background.py, gimmemotifs/config.py, gimmemotifs/core.py:
+  Rewrote the background file stuff to make the addition of other background
+  options easier
+
+  * setup.py: generate_sequences.py => generate_background_sequences.py
+
+  * MANIFEST.in, gimmemotifs/config.py, gimmemotifs/core.py,
+  scripts/gimme_motifs.py: Only one place to define GimmeMotifs version
+
+  * doc/gimmemotifs_manual.html, doc/gimmemotifs_manual.pdf,
+  doc/gimmemotifs_manual.tex, gimmemotifs/background.py, gimmemotifs/utils.py,
+  scripts/generate_background_sequences.py, scripts/generate_sequences.py:
+  Updated the script generate_sequences.py to be able to generate random
+  sequences based on the matched_genomic method. Changed the name to better
+  reflect the puprose of the script.
+
+2011-03-02  Simon van Heeringen <simon.vanheeringen@gmail.com>
+
+  * scripts/get_fpr_based_pwmscan_threshold.py: Warning if fpr option is
+  specified incorrectly
+
+  * scripts/get_fpr_based_pwmscan_threshold.py: Script to calculate optimal
+  pwmscan.py threshold based on a specified FPR
+
+2011-02-24  Simon van Heeringen <simon.vanheeringen@gmail.com>
+
+  * dist/gimmemotifs-0.63.tar.gz: .. and adding a new version
+
+  * dist/gimmemotifs-0.63.tar.gz: Deleting....
+
+  * dist/gimmemotifs-0.63.tar.gz: Source of version 0.63
+
+  * MANIFEST, MANIFEST.in: Slightly updated MANIFEST
+
+  * dist/gimmemotifs-0.63-1.i686.rpm, dist/gimmemotifs-0.63-1.x86_64.rpm,
+  dist/gimmemotifs_0.63-1_amd64.debian.deb,
+  dist/gimmemotifs_0.63-1_amd64.ubuntu.deb,
+  dist/gimmemotifs_0.63-1_i386.debian.deb,
+  dist/gimmemotifs_0.63-1_i386.ubuntu.deb: Packages of release 0.63
+
+  * .gitignore: Modified .gitignore
+
+2011-02-23  Simon van Heeringen <simon.vanheeringen@gmail.com>
+
+  * ChangeLog, NEWS: Documentation to describe changes
+
 2011-02-22  Simon van Heeringen <simon.vanheeringen@gmail.com>
 
   * templates/cluster_template_v2.kid, templates/report_template_v2.kid: Added
