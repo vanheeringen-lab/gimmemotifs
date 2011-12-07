@@ -20,7 +20,7 @@
 
 <h3 align="center">Simon van Heeringen </h3>
 
-<h3 align="center">Mar  3, 2011
+<h3 align="center">Dec  7, 2011
 </h3>
 
 <div class="p"><!----></div>
@@ -149,7 +149,7 @@ GimmeMotifs is dependent upon the great work of others: motif prediction algorit
 <div class="p"><!----></div>
 </li>
 </ul>
-All these tools are installed automatically with GimmeMotifs. To use these programs <em>no additional steps have to be taken</em> (except for MotifSampler see <a href="#sec:MotifSampler">3.3.6</a>). <b>Please note: all these programs include their own license and most are free for academic or non-commercial use only! For commercial use of any of these programs, please consult the respective author!</b>
+All these tools are installed automatically with GimmeMotifs. Due to an issue with MoAn and the Ubuntu gcc version, I was not able to compile MoAn for the Ubuntu package, which means MoAn is not included. To use these programs <em>no additional steps have to be taken</em> (except for MotifSampler see <a href="#sec:MotifSampler">3.3.6</a>). <b>Please note: all these programs include their own license and most are free for academic or non-commercial use only! For commercial use of any of these programs, please consult the respective author!</b>
 
 <div class="p"><!----></div>
  <h2><a name="tth_sEc3">
@@ -163,7 +163,7 @@ GimmeMotifs runs on Linux. Definitely not on Windows, sorry. Mac OS X should wor
       <h4><a name="tth_sEc3.1.1">
 3.1.1</a>&nbsp;&nbsp;Installation on Ubuntu or Debian</h4>
 Download the latest GimmeMotifs .deb package for your distribution  from <a href="http://www.ncmls.nl/bioinfo/gimmemotifs/"><tt>http://www.ncmls.nl/bioinfo/gimmemotifs/</tt></a> (available for 32-bit and 64-bit systems). Please note: due to a different Python version, the Debian and Ubuntu .deb packages are different! Please use the correct one for your distribution.
-These packages have been tested on up-to-date versions of Karmic Koala (9.10), Lucid Lynx (10.04) and Debian Lenny (5.05). 
+These packages have been tested on up-to-date versions of Ubuntu Oneiric Ocelot (11.10) and Debian sqeeze (6.04). 
 Open a terminal and install GimmeMotifs as follows. Go to the directory where you downloaded GimmeMotifs, for example:
 
 <pre>
@@ -173,7 +173,7 @@ cd&nbsp;~/Downloads
 Start the install (substitute the package name for the .deb package you downloaded):
 
 <pre>
-sudo&nbsp;dpkg&nbsp;-i&nbsp;gimmemotifs_0.63-1_i386.deb&nbsp;
+sudo&nbsp;dpkg&nbsp;-i&nbsp;gimmemotifs_0.65_amd64.deb&nbsp;
 
 </pre>
 Likely, dpkg will complain about some missing dependencies. Install all dependencies with:
@@ -185,7 +185,7 @@ sudo&nbsp;apt-get&nbsp;-f&nbsp;install
 Complete the GimmeMotifs installation with:
 
 <pre>
-sudo&nbsp;dpkg&nbsp;-i&nbsp;gimmemotifs_0.63-1_i386.deb&nbsp;
+sudo&nbsp;dpkg&nbsp;-i&nbsp;gimmemotifs_0.65_amd64.deb&nbsp;
 
 </pre>
 Currently, there is a bug with the versions of the Parallel Python (python-pp) and Numpy (python-numpy) in the Ubuntu and Debian repositories. Therefore the package python-pp is not installed as a dependency. This can be fixed by installing the latest version of Parallel Python from the Python Package Index:
@@ -199,10 +199,10 @@ Now you should have a working version of GimmeMotifs! The next steps are to inst
 <div class="p"><!----></div>
       <h4><a name="tth_sEc3.1.2">
 3.1.2</a>&nbsp;&nbsp;Installation on Fedora</h4>
-Download the latest GimmeMotifs .rpm package from <a href="http://www.ncmls.nl/bioinfo/gimmemotifs/"><tt>http://www.ncmls.nl/bioinfo/gimmemotifs/</tt></a> (available for 32-bit and 64-bit systems). This package has been tested on an up-to-date version of Fedora 13. Install GimmeMotifs as follows (substitute the package name for the .rpm package you downloaded):
+Download the latest GimmeMotifs .rpm package from <a href="http://www.ncmls.nl/bioinfo/gimmemotifs/"><tt>http://www.ncmls.nl/bioinfo/gimmemotifs/</tt></a> (available for 32-bit and 64-bit systems). This package has been tested on an up-to-date version of Fedora 16. Install GimmeMotifs as follows (substitute the package name for the .rpm package you downloaded):
 
 <pre>
-sudo&nbsp;yum&nbsp;install&nbsp;--nogpgcheck&nbsp;gimmemotifs_0.63-1_i386.rpm&nbsp;
+sudo&nbsp;yum&nbsp;install&nbsp;--nogpgcheck&nbsp;gimmemotifs-0.65-1.x86_64.rpm&nbsp;
 
 </pre>
 GimmeMotifs doesn't play nice with SELinux enabled on Fedora, sorry. To turn it off:
@@ -915,5 +915,5 @@ Brooke Rhead, Donna Karolchik, Robert&nbsp;M. Kuhn, Angie&nbsp;S. Hinrichs, Ann&
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.77.<br />On  3 Mar 2011, 11:00.</small>
+version 3.77.<br />On  7 Dec 2011, 13:36.</small>
 </html>
