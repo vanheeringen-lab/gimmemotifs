@@ -76,6 +76,11 @@ f = open(os.path.join(outdir, "cluster_report.html"), "w")
 f.write(template.serialize())
 f.close()
 
+f = open(os.path.join(outdir, "cluster_key.txt"), "w")
+for id in ids:
+	f.write("%s\t%s\n" % (id[0], ",".join([x["alt"] for x in id[2]])))
+f.close()
+
 f = open(os.path.join(outdir, "clustered_motifs.pwm"), "w")
 if len(clusters) == 1 and len(clusters[0][1]) == 1:
 	f.write("%s\n" % clusters[0][0].to_pwm())
