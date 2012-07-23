@@ -82,7 +82,7 @@ elif bg_type == "matched_genomic":
 		m = MatchedGenomicFasta(inputfile, gene_file, index_dir, length=l, multiply=options.number)
 		m.writefasta(out)
 	else:
-		create_matched_genomic_bedfile(out, inputfile, gene_file, l, options.number)
+		create_matched_genomic_bedfile(out, inputfile, gene_file, l, options.number, True)
 elif bg_type == "random_promoter":
 	if outformat == "fasta":
 		m = PromoterFasta(gene_file, index_dir, length=l, multiply=options.number)

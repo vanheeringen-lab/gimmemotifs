@@ -252,20 +252,23 @@ def parse_gff(gff_file, lowmem=False):
 		if not lines:
 			break
 		for line in lines:
-			(seq, program, feature, start, end, score, strand, bla, extra) = line[:-1].split("\t")
+			vals = line.strip().split("\t")
+			if len(vals) == 9:
+				(seq, program, feature, start, end, score, strand, bla, extra) = vals
 		
-			(motif_name, motif_instance) = map(strip, extra.split(";"))
-			motif_name = motif_name.split(" ")[1][1:-1]
-			motif_instance = motif_instance.split(" ")[1][1:-1]
+				(motif_name, motif_instance) = map(strip, extra.split(";"))
+				motif_name = motif_name.split(" ")[1][1:-1]
+				motif_instance = motif_instance.split(" ")[1][1:-1]
 
-			mr.sequences[seq] = 1
+				mr.sequences[seq] = 1
 
-			if not(mr.motifs.has_key(motif_name)):
-				mr.motifs[motif_name] = {}
-			if not(mr.motifs[motif_name].has_key(seq)):
-				mr.motifs[motif_name][seq] = 0
-			mr.motifs[motif_name][seq] += 1
-				
+				if not(mr.motifs.has_key(motif_name)):
+					mr.motifs[motif_name] = {}
+				if not(mr.motifs[motif_name].has_key(seq)):
+					mr.motifs[motif_name][seq] = 0
+				mr.motifs[motif_name][seq] += 1
+			else:
+				sys.stderr.write("Error parsing line in %s\n%s\n" % (gff_file, line))
 		total += len(lines)
 	return mr
 

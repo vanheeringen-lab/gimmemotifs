@@ -37,7 +37,7 @@ DEFAULT_PARAMS = {
 	"markov_model": 1
 }
 
-MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector"]
+MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector", "Posmo"]
 LONG_RUNNING = ["MoAn", "GADEM"]
 
 
@@ -47,7 +47,8 @@ MOTIF_BINS = {
 	"MDmodule": "src/MDmodule/MDmodule",
 	"BioProspector": "src/BioProspector/BioProspector",
 	"MoAn": "src/MoAn/moan",
-	"GADEM": "src/GADEM_v1.3/src/gadem"
+	"GADEM": "src/GADEM_v1.3/src/gadem",
+	"Posmo": "posmo"
 }
 
 data_files=[
@@ -414,6 +415,7 @@ setup (name = 'gimmemotifs',
 			'scripts/pwm2logo.py',
 			'scripts/track2fasta.py',
 			'scripts/pwmscan.py',
+			'scripts/gimme_max.py',
 			],
 		data_files=data_files
 )

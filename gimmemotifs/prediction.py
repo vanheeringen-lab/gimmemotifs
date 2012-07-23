@@ -188,6 +188,14 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 			jobs[job_name] = job_server.submit(prospector.run, (fastafile, ".",{'width':i, "background":background, "single":single},), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
 	else:
 		logger.debug("Skipping BioProspector")
+	
+	if tools.has_key("Posmo") and tools["Posmo"]:	
+		posmo = Posmo()
+		job_name = "Posmo"
+		logger.debug("Starting Posmo job")
+		jobs[job_name] = job_server.submit(posmo.run, (fastafile, ".",{"background":background, "single":single},), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
+	else:
+		logger.debug("Skipping Posmo")
 #
 #	if tools.has_key("WannaMotif") and tools["WannaMotif"]:
 #		logger.debug("Starting WannaMotif job")

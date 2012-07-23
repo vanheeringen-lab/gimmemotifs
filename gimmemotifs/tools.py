@@ -687,6 +687,70 @@ class MDmodule(MotifProgram):
 
 		return motifs
 
+class Posmo(MotifProgram):
+	def __init__(self):
+		self.name = "Posmo"
+		self.cmd = "posmo"
+
+	def _run_program(self, bin, fastafile, savedir, params={}):
+		from subprocess import Popen, PIPE
+		import os, tempfile, shutil
+		
+		default_params = {}
+		default_params.update(params)
+		
+		fastafile = os.path.abspath(fastafile)
+		savedir = os.path.abspath(savedir)
+	
+		basename = "posmo_in.fa"
+
+		tmpdir = tempfile.mkdtemp()
+		new_file = os.path.join(tmpdir, basename)
+		shutil.copy(fastafile, new_file)
+		
+		fastafile = new_file
+		pwmfile = fastafile + ".pwm"
+		outfile = fastafile + ".out"
+	
+		current_path = os.getcwd()
+		os.chdir(tmpdir)	
+		cmd = "%s 5000 11111111 %s 1.6 2.5 20 200" % (bin, fastafile)
+		p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+		stdout, stderr = p.communicate()
+	
+		context_file = fastafile.replace(basename, "context.%s.11111111.txt" % basename)
+		cmd = "%s %s %s simi.txt 0.88 10 2 10" % (bin.replace("posmo","clusterwd"), context_file, outfile)
+		p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+		out, err = p.communicate()
+		stdout += out
+		stderr += err
+		
+		motifs = []
+		if os.path.exists(outfile):
+			motifs = self.parse(open(outfile))
+		
+		os.chdir(current_path)
+		# remove temporary files
+		shutil.rmtree(tmpdir)
+		
+		return motifs, stdout, stderr
+
+	def parse(self, fo):
+		motifs = []
+		nucs = {"A":0,"C":1,"G":2,"T":3}
+
+		lines = [fo.readline() for x in range(6)]
+		while lines[0]:
+			matrix = [[float(x) for x in line.strip().split("\t")] for line in lines[2:]]
+			matrix = [[matrix[x][y] for x in range(4)] for y in range(len(matrix[0]))]
+			m = Motif(matrix)
+			m.id = lines[0].strip().split(" ")[-1]
+			motifs.append(m)
+			lines = [fo.readline() for x in range(6)]
+
+		return motifs
+
+
 class Gadem(MotifProgram):
 	def __init__(self):
 		self.name = "GADEM"
