@@ -57,6 +57,8 @@ for id in ids:
 		print "Wrong id: %s" % id
 		sys.exit()
 
+print "Motif\t# matches\tMax. enrichment\tScore\tCutoff"
+
 for id in ids:
 	pos = array(fg_jobs[id]())
 	neg = array(bg_jobs[id]())
