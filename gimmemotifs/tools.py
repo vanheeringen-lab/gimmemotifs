@@ -828,6 +828,16 @@ class Gadem(MotifProgram):
 
 		return motifs
 
+class Jaspar(MotifProgram):
+	def __init__(self):
+		self.name = "JASPAR"
+		self.cmd = "/bin/false"	
+	
+	def _run_program(self, bin, fastafile, savedir, params={}):
+		from gimmemotifs.motif import pwmfile_to_motifs
+		import os
+		fname = os.path.join(self.config.get_motif_dir(), "jaspar.pfm")
+		return pwmfile_to_motifs(fname), "bla", "floep"
 
 class Meme(MotifProgram):
 	def __init__(self):

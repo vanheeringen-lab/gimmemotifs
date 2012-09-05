@@ -37,7 +37,7 @@ DEFAULT_PARAMS = {
 	"markov_model": 1
 }
 
-MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector", "Posmo"]
+MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector", "Posmo", "Jaspar"]
 LONG_RUNNING = ["MoAn", "GADEM"]
 
 
@@ -48,7 +48,7 @@ MOTIF_BINS = {
 	"BioProspector": "src/BioProspector/BioProspector",
 	"MoAn": "src/MoAn/moan",
 	"GADEM": "src/GADEM_v1.3/src/gadem",
-	"Posmo": "posmo"
+	"Posmo": "src/posmo/posmo"
 }
 
 data_files=[
@@ -120,6 +120,10 @@ class build_tools(Command):
 				for file in glob(p):
 					shutil.copy(file, self.build_tools_dir)
 
+		# Copy posmo deps
+		if os.path.exists("src/posmo"):
+			shutil.copy("src/posmo/clusterwd", self.build_tools_dir)
+		
 		# Copy trawler
 		if os.path.exists("src/trawler_standalone-1.2"):
 			dlog.info("building trawler")
@@ -178,7 +182,10 @@ class build_config(Command):
 				cmd = "trawler/bin/trawler.pl"
 
 			bin = ""
-			if os.path.exists(os.path.join(self.build_tools_dir, cmd)):
+			if cmd == "/bin/false":
+				# motif db
+				bin = "/bin/false"	
+			elif os.path.exists(os.path.join(self.build_tools_dir, cmd)):
 				bin = os.path.join(self.build_tools_dir, cmd)
 				dlog.info("using included version of %s: %s" % (program, bin))
 			else:

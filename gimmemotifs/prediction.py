@@ -98,6 +98,14 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 	
 	result = PredictionResult(logger=logger)
 	
+	if tools.has_key("JASPAR") and tools["JASPAR"]:
+		jaspar = Jaspar()
+		job_name = "JASPAR"
+		logger.debug("Starting JASPAR job")
+		jobs[job_name] = job_server.submit(jaspar.run, (fastafile, ".",{"analysis": analysis, "background":background}), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
+	else:
+		logger.debug("Skipping JASPAR")
+
 	# Start with longer running jobs
 	if tools.has_key("MoAn") and tools["MoAn"]:
 		logger.info("WARNING: MoAn can take a very long time!")
