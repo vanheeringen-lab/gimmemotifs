@@ -37,7 +37,7 @@ DEFAULT_PARAMS = {
 	"markov_model": 1
 }
 
-MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector", "Posmo", "Jaspar"]
+MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector", "Posmo", "ChIPMunk", "Jaspar"]
 LONG_RUNNING = ["MoAn", "GADEM"]
 
 
@@ -124,6 +124,12 @@ class build_tools(Command):
 		if os.path.exists("src/posmo"):
 			shutil.copy("src/posmo/clusterwd", self.build_tools_dir)
 		
+		# Copy ChIPMunk
+		if os.path.exists("src/ChIPMunk"):
+			if os.path.exists(os.path.join(self.build_tools_dir, "ChIPMunk")):
+				shutil.rmtree(os.path.join(self.build_tools_dir, "ChIPMunk"))
+			shutil.copytree("src/ChIPMunk", os.path.join(self.build_tools_dir, "ChIPMunk"))
+		
 		# Copy trawler
 		if os.path.exists("src/trawler_standalone-1.2"):
 			dlog.info("building trawler")
@@ -180,6 +186,9 @@ class build_config(Command):
 			### ugly, fixme :)
 			if cmd == "trawler.pl":
 				cmd = "trawler/bin/trawler.pl"
+			if cmd == "ChIPMunk.sh":
+				cmd = "ChIPMunk/ChIPMunk.sh"
+
 
 			bin = ""
 			if cmd == "/bin/false":
@@ -192,6 +201,9 @@ class build_config(Command):
 				### ugly, fixme :)
 				if cmd == "trawler/bin/trawler.pl":
 					cmd = "trawler.pl"
+				if 	cmd == "ChIPMunk/ChIPMunk.sh":
+					cmd = "ChIPMunk.sh"
+
 				if program in MOTIF_BINS.keys():
 					dlog.info("could not find compiled version of %s" % program)
 				bin = which(cmd)
@@ -209,6 +221,8 @@ class build_config(Command):
 					dir = bin.replace("bin/meme.bin", "").replace("meme.bin", "")
 				elif program == "Trawler":
 					dir = bin.replace("bin/trawler.pl", "")
+				elif program == "ChIPMunk":
+					dir = bin.replace("ChIPMunk.sh", "")
 
 				available.append(m.name)
 				cfg.set_program(m.name, {"bin":bin, "dir":dir})

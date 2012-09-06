@@ -153,6 +153,15 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 	else:
 		logger.debug("Skipping MEME")
 	
+	if  tools.has_key("ChIPMunk") and tools["ChIPMunk"]:	
+		munk = ChIPMunk()
+		for i in range(wmin, wmax + 1, step):
+	 		logger.debug("Starting ChIPMunk job, width %s" % (i))
+			job_name = "ChIPMunk_width_%s" % i
+			jobs[job_name] = job_server.submit(munk.run, (fastafile, ".",{'width':i},), (MotifProgram,),("gimmemotifs.config",),  result.add_motifs, (job_name,))
+	else:
+		logger.debug("Skipping ChIPMunk")
+
 	
 	if  tools.has_key("MotifSampler") and tools["MotifSampler"]:	
 		motifsampler = MotifSampler()
