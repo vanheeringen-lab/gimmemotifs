@@ -13,10 +13,13 @@ import os
 import subprocess 
 import thread
 from time import time
+import inspect
+
 # External imports
 import pp
+
 # GimmeMotifs imports
-from gimmemotifs.tools import *
+from gimmemotifs import tools as tool_classes
 from gimmemotifs.comparison import *
 from gimmemotifs.nmer_predict import *
 from gimmemotifs.config import *
@@ -70,154 +73,27 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 	
 	jobs = {}
 	
-	# Some program specific code
-	weeder_organism = ""
-	weeder_organisms = {
-		"hg18":"HS", 
-		"hg19":"HS", 
-		"mm9":"MM", 
-		"rn4":"RN",
-		"dm3":"DM",
-		"fr2": "FR",
-		"danRer6": "DR",
-		"danRer7": "DR",
-		"galGal3": "GG",
-		"ce3": "CE",
-		"anoGam1": "AG",
-		"yeast":"SC",
-		"sacCer2":"SC",
-		"xenTro2":"XT",
-		"xenTro3":"XT"}
-	if weeder_organisms.has_key(organism):
-		weeder_organism = weeder_organisms[organism]
-	else:
-		logger.info("Weeder not supported for this organism; skipping Weeder")
-		del tools["Weeder"]	
-	
-	ms_background = os.path.join(config.get_bg_dir(), "%s.%s.bg" % (organism, "MotifSampler"))
-	
 	result = PredictionResult(logger=logger)
 	
-	if tools.has_key("JASPAR") and tools["JASPAR"]:
-		jaspar = Jaspar()
-		job_name = "JASPAR"
-		logger.debug("Starting JASPAR job")
-		jobs[job_name] = job_server.submit(jaspar.run, (fastafile, ".",{"analysis": analysis, "background":background}), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
-	else:
-		logger.debug("Skipping JASPAR")
-
-	# Start with longer running jobs
-	if tools.has_key("MoAn") and tools["MoAn"]:
-		logger.info("WARNING: MoAn can take a very long time!")
-		moan = MoAn()
-		job_name = "MoAn"
-		logger.debug("Starting MoAn job")
-		jobs[job_name] = job_server.submit(moan.run, (fastafile, ".",{"analysis": analysis, "background":background}), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
-	else:
-		logger.debug("Skipping MoAn")
-
+	# Dynamically load all tools
+	toolio = [x[1]() for x in inspect.getmembers(tool_classes, lambda x: inspect.isclass(x) and issubclass(x, tool_classes.MotifProgram)) if x[0] != 'MotifProgram']
 	
-	if tools.has_key("GADEM") and tools["GADEM"]:
-		logger.info("WARNING: GADEM  can take a very long time!")
-		gadem = Gadem()
-		logger.debug("Starting gadem job")
-		job_name = "GADEM"
-		jobs[job_name] = job_server.submit(gadem.run, (fastafile, ".",{}), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
-	else:
-		logger.debug("Skipping gadem")
-
+	# TODO:
+	# Add warnings for running time: Weeder, MoAn, GADEM
+	for t in toolio:
+		if tools.has_key(t.name) and tools[t.name]:
+			if t.use_width:
+				for i in range(wmin, wmax + 1, step):
+	 				logger.debug("Starting %s job, width %s" % (t.name, i))
+					job_name = "%s_width_%s" % (t.name, i)
+					jobs[job_name] = job_server.submit(t.run, (fastafile, ".",{'width':i, 'background':background, "single":single, "organism":organism},), (tool_classes.MotifProgram,),("gimmemotifs.config",),  result.add_motifs, (job_name,))
+			else:
+				logger.debug("Starting %s job" % t.name)
+				job_name = t.name
+				jobs[job_name] = job_server.submit(t.run, (fastafile, ".",{"analysis": analysis, "background":background, "organism":organism}), (tool_classes.MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
+		else:
+			logger.debug("Skipping %s" % t.name)
 	
-	if tools.has_key("Weeder") and tools["Weeder"]:
-		if analysis == "xl":	
-			logger.info("WARNING: Weeder with analysis 'xl' can take a very long time!")
-		weeder = Weeder()
-		logger.debug("Starting Weeder job, analysis %s" % analysis)
-		job_name = "Weeder"
-		jobs[job_name] = job_server.submit(weeder.run, (fastafile, ".",{"analysis":analysis, "single":single}), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
-	else:
-		logger.debug("Skipping Weeder")
-
-	if tools.has_key("MEME") and tools["MEME"]:
-		meme = Meme()
-
-		# This check is necessary because meme errors and pp don't play nice together
-		#p = subprocess.Popen(meme.bin(),stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-		#stdout,stderr = p.communicate()
-		#if not stderr:
-		for i in range(wmin, wmax + 1, step):
-			job_name = "MEME_width_%s" % i
-			logger.debug("Starting Meme job, width %s" % i)
-			jobs[job_name] = job_server.submit(meme.run, (fastafile, ".",{"width":i, "single":single}), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
-		#else:
-		#	print "Error running meme: %s" % stderr
-	else:
-		logger.debug("Skipping MEME")
-	
-	if  tools.has_key("ChIPMunk") and tools["ChIPMunk"]:	
-		munk = ChIPMunk()
-		for i in range(wmin, wmax + 1, step):
-	 		logger.debug("Starting ChIPMunk job, width %s" % (i))
-			job_name = "ChIPMunk_width_%s" % i
-			jobs[job_name] = job_server.submit(munk.run, (fastafile, ".",{'width':i},), (MotifProgram,),("gimmemotifs.config",),  result.add_motifs, (job_name,))
-	else:
-		logger.debug("Skipping ChIPMunk")
-
-	
-	if  tools.has_key("MotifSampler") and tools["MotifSampler"]:	
-		motifsampler = MotifSampler()
-		for i in range(wmin, wmax + 1, step):
-	 		logger.debug("Starting MotifSampler job, width %s" % (i))
-			job_name = "MotifSampler_width_%s" % i
-			jobs[job_name] = job_server.submit(motifsampler.run, (fastafile, ".",{'width':i, 'background':ms_background, "single":single},), (MotifProgram,),("gimmemotifs.config",),  result.add_motifs, (job_name,))
-	else:
-		logger.debug("Skipping MotifSampler")
-
-	if tools.has_key("trawler") and tools["trawler"]:
-		trawler = Trawler()
-		logger.debug("Starting trawler job, analysis %s" % analysis)
-		job_name = "trawler"
-		jobs[job_name] = job_server.submit(trawler.run, (fastafile, ".",{"analysis":analysis, "background":background, "single":single}), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
-	else:
-		logger.debug("Skipping trawler")
-
-	if tools.has_key("Improbizer") and tools["Improbizer"]:
-		improbizer = Improbizer()
-		logger.debug("Starting improbizer job")
-		job_name = "Improbizer"
-		jobs[job_name] = job_server.submit(improbizer.run, (fastafile, ".",{"analysis":analysis, "background":background}), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
-	else:
-		logger.debug("Skipping Improbizer")
-
-	if tools.has_key("MDmodule") and tools["MDmodule"]:	
-		mdmodule = MDmodule()
-		for i in range(wmin, wmax + 1, step):
-			job_name = "MDmodule_width_%s" % i
-			logger.debug("Starting MDmodule job, width %s" % (i))
-			jobs[job_name] = job_server.submit(mdmodule.run, (fastafile, ".",{'width':i},), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
-	else:
-		logger.debug("Skipping MDmodule")
-	
-	if tools.has_key("BioProspector") and tools["BioProspector"]:	
-		prospector = BioProspector()
-		for i in range(wmin, wmax + 1, step):
-			job_name = "BioProspector_width_%s" % i
-			logger.debug("Starting BioProspector job, width %s" % (i))
-			jobs[job_name] = job_server.submit(prospector.run, (fastafile, ".",{'width':i, "background":background, "single":single},), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
-	else:
-		logger.debug("Skipping BioProspector")
-	
-	if tools.has_key("Posmo") and tools["Posmo"]:	
-		posmo = Posmo()
-		job_name = "Posmo"
-		logger.debug("Starting Posmo job")
-		jobs[job_name] = job_server.submit(posmo.run, (fastafile, ".",{"background":background, "single":single},), (MotifProgram,),("gimmemotifs.config",), result.add_motifs, (job_name,))
-	else:
-		logger.debug("Skipping Posmo")
-#
-#	if tools.has_key("WannaMotif") and tools["WannaMotif"]:
-#		logger.debug("Starting WannaMotif job")
-#		jobs.append(job_server.submit(nmer_predict, (fastafile,),(),()))
-
 	start_time = time()	
 	try:
 		# Run until all jobs are finished
@@ -231,6 +107,4 @@ def pp_predict_motifs(fastafile, analysis="small", organism="hg18", single=False
 		logger.info("Caught interrupt, destroying all running jobs")
 		job_server.destroy()
 
-	
 	return result.motifs
-	

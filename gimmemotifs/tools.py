@@ -51,11 +51,14 @@ class MotifProgram:
 			return self._run_program(self.bin(), fastafile, savedir, params)
 		except KeyboardInterrupt:
 			return ([], "Killed", "Killed")
+	
+
 
 class BioProspector(MotifProgram):
 	def __init__(self):
 		self.name = "BioProspector"
 		self.cmd = "BioProspector"
+		self.use_width = True
 
 	def _run_program(self, bin, fastafile, savedir="", params={}):
 		import os, tempfile, shutil
@@ -142,7 +145,8 @@ class MoAn(MotifProgram):
 	def __init__(self):
 		self.name = "MoAn"
 		self.cmd = "moan"
-
+		self.use_width = False
+	
 	def _run_program(self, bin, fastafile, savedir="", params={}):
 		import os, tempfile, shutil
 		from subprocess import Popen, PIPE
@@ -215,6 +219,7 @@ class Improbizer(MotifProgram):
 	def __init__(self):
 		self.name = "Improbizer"
 		self.cmd = "ameme"
+		self.use_width = False 
 
 	def _run_program(self, bin, fastafile, savedir="", params={}):
 		import os, tempfile, shutil
@@ -285,6 +290,7 @@ class Trawler(MotifProgram):
 	def __init__(self):
 		self.name = "trawler"
 		self.cmd = "trawler.pl"
+		self.use_width = False
 
 	def _run_program(self, bin, fastafile, savedir="", params={}):
 		import os, tempfile, shutil
@@ -347,14 +353,38 @@ class Weeder(MotifProgram):
 	def __init__(self):
 		self.name = "Weeder"
 		self.cmd = "weederTFBS.out"
+		self.use_width = False
 
 	def _run_program(self, bin,fastafile, savedir="", params={}):
 		import os, tempfile, shutil
 		from subprocess import Popen, PIPE
 		
-		default_params = {"analysis":"small", "organism":"HS", "single":False, "parallel":True}
+		default_params = {"analysis":"small", "organism":"hg18", "single":False, "parallel":True}
 		default_params.update(params)
 		
+		organism = default_params["organism"]
+		weeder_organism = ""
+		weeder_organisms = {
+			"hg18":"HS",
+			"hg19":"HS",
+			"mm9":"MM",
+			"rn4":"RN",
+			"dm3":"DM",
+			"fr2": "FR",
+			"danRer6": "DR",
+			"danRer7": "DR",
+			"galGal3": "GG",
+			"ce3": "CE",
+			"anoGam1": "AG",
+			"yeast":"SC",
+			"sacCer2":"SC",
+			"xenTro2":"XT",
+			"xenTro3":"XT"}
+		if weeder_organisms.has_key(organism):
+			weeder_organism = weeder_organisms[organism]
+		else:
+			return []	
+
 		weeder = bin
 		adviser = weeder.replace("weederTFBS", "adviser")
 	
@@ -394,7 +424,6 @@ class Weeder(MotifProgram):
 			 coms = ((10,3),(8,2),(6,1))
 		
 		# TODO: test organism
-		organism = default_params["organism"]
 		stdout = ""
 		stderr = ""
 		
@@ -409,7 +438,7 @@ class Weeder(MotifProgram):
 			job_server = pp.Server(secret="pumpkinrisotto")
 			jobs = []
 			for (w,e) in coms:
-				jobs.append(job_server.submit(run_weeder_subset, (weeder, fastafile, w, e, organism, strand,), (), ()))
+				jobs.append(job_server.submit(run_weeder_subset, (weeder, fastafile, w, e, weeder_organism, strand,), (), ()))
 			for job in jobs:
 				out,err = job()
 				stdout += out
@@ -417,7 +446,7 @@ class Weeder(MotifProgram):
 		else:
 
 			for (w,e) in coms:
-				out,err = run_weeder_subset(weeder, fastafile, w, e, organism, strand)
+				out,err = run_weeder_subset(weeder, fastafile, w, e, weeder_organism, strand)
 				stdout += out
 				stderr += err
 	
@@ -483,10 +512,11 @@ class Weeder(MotifProgram):
 					
 		return motifs
 
-class 	MotifSampler(MotifProgram):
+class MotifSampler(MotifProgram):
 	def __init__(self):
 		self.name = "MotifSampler"
 		self.cmd = "MotifSampler"
+		self.use_width = True
 
 	def _run_program(self, bin, fastafile, savedir,params={}):
 		import os, tempfile
@@ -499,6 +529,8 @@ class 	MotifSampler(MotifProgram):
 		width = default_params['width']
 		number = default_params['number']
 
+		org = default_params["organism"]
+		background = os.path.join(self.config.get_bg_dir(), "%s.%s.bg" % (org, "MotifSampler"))
 		if not background:
 			raise Error, "No background specified for %s" % self.name
 
@@ -600,7 +632,8 @@ class MDmodule(MotifProgram):
 	def __init__(self):
 		self.name = "MDmodule"
 		self.cmd = "MDmodule"
-
+		self.use_width = True
+		
 	def _run_program(self, bin, fastafile, savedir, params={}):
 		from subprocess import Popen, PIPE
 		import os, tempfile, shutil
@@ -691,6 +724,7 @@ class ChIPMunk(MotifProgram):
 	def __init__(self):
 		self.name = "ChIPMunk"
 		self.cmd = "ChIPMunk.sh"
+		self.use_width = True
 
 	def _run_program(self, bin, fastafile, savedir, params={}):
 		from subprocess import Popen, PIPE
@@ -758,6 +792,7 @@ class Posmo(MotifProgram):
 	def __init__(self):
 		self.name = "Posmo"
 		self.cmd = "posmo"
+		self.use_width = False
 
 	def _run_program(self, bin, fastafile, savedir, params={}):
 		from subprocess import Popen, PIPE
@@ -822,6 +857,7 @@ class Gadem(MotifProgram):
 	def __init__(self):
 		self.name = "GADEM"
 		self.cmd = "gadem"
+		self.use_width = False
 
 	def _run_program(self, bin, fastafile, savedir, params={}):
 		from subprocess import Popen, PIPE
@@ -899,7 +935,8 @@ class Jaspar(MotifProgram):
 	def __init__(self):
 		self.name = "JASPAR"
 		self.cmd = "/bin/false"	
-	
+		self.use_width = False
+
 	def _run_program(self, bin, fastafile, savedir, params={}):
 		from gimmemotifs.motif import pwmfile_to_motifs
 		import os
@@ -910,6 +947,7 @@ class Meme(MotifProgram):
 	def __init__(self):
 		self.name = "MEME"
 		self.cmd = "meme.bin"
+		self.use_width = True
 
 	def _run_program(self, bin, fastafile, savedir, params={}):
 		from subprocess import Popen, PIPE, STDOUT, call
