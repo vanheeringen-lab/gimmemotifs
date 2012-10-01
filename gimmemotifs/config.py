@@ -12,6 +12,7 @@ import os
 GM_VERSION = "0.65"
 FA_VALID_BGS = ["random", "promoter", "user"]
 BED_VALID_BGS = ["genomic_matched", "random", "promoter", "user"]
+BG_RANK = {"user":1, "promoter":2, "genomic_matched":3, "random":4}
 
 class MotifConfig:
 	__shared_state = {}

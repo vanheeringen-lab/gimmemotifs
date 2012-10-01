@@ -11,15 +11,42 @@
 from scipy.stats import stats
 from numpy import *
 
+def fraction_fdr(fg_vals, bg_vals, fdr=5):
+	from scipy.stats import scoreatpercentile
+	fg_vals = array(fg_vals)
+	s = scoreatpercentile(bg_vals, 100 - fdr)
+	return len(fg_vals[fg_vals >= s]) / float(len(fg_vals))
+
+def score_at_fdr(fg_vals, bg_vals, fdr=5):
+	from scipy.stats import scoreatpercentile
+	bg_vals = array(bg_vals)
+	return scoreatpercentile(bg_vals, 100 - fdr)
+
+def max_enrichment(fg_vals, bg_vals):
+	from numpy import array,hstack
+	pos = array(fg_vals)
+	neg = array(bg_vals)
+
+	factor = len(neg) / float(len(pos))
+	scores = array([s for s in hstack((pos, neg)) if sum(neg >= s) > 2])
+	enr = array([(sum(pos >= x) / float(sum(neg >= x))) * factor for x in scores])
+	return max(enr), scores[enr.argmax()]
+
+
 def MNCP(fg_vals, bg_vals):
 	from scipy.stats import stats
-	from numpy import mean
+	from numpy import mean,array,hstack
 	#from pylab import *
 	fg_len = len(fg_vals)
 	total_len = len(fg_vals) + len(bg_vals)
 
+	if type(fg_vals) != type(array([])):
+		fg_vals = array(fg_vals)
+	if type(bg_vals) != type(array([])):
+		bg_vals = array(bg_vals)
+	
 	fg_rank = stats.rankdata(fg_vals)
-	total_rank = stats.rankdata(fg_vals + bg_vals)
+	total_rank = stats.rankdata(hstack((fg_vals, bg_vals)))
 
 	slopes = []
 	for i in range(len(fg_vals)):
@@ -28,6 +55,8 @@ def MNCP(fg_vals, bg_vals):
 	return mean(slopes)
 
 def ROC_AUC(fg_vals, bg_vals):
+	from scipy.stats import stats
+	from numpy import mean,array,hstack
 	#if len(fg_vals) != len(bg_vals):
 	#	return None
 	
@@ -36,9 +65,14 @@ def ROC_AUC(fg_vals, bg_vals):
 	
 	fg_len = len(fg_vals)
 	total_len = len(fg_vals) + len(bg_vals)
+	
+	if type(fg_vals) != type(array([])):
+		fg_vals = array(fg_vals)
+	if type(bg_vals) != type(array([])):
+		bg_vals = array(bg_vals)
 
 	fg_rank = stats.rankdata(fg_vals) 
-	total_rank = stats.rankdata(fg_vals + bg_vals) 
+	total_rank = stats.rankdata(hstack((fg_vals, bg_vals)))
 	
 	return (sum(total_rank[:fg_len]) - sum(fg_rank))/ (fg_len * (total_len - fg_len))
 

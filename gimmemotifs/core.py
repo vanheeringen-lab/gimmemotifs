@@ -201,10 +201,8 @@ class GimmeMotifs:
 		self.validation_gff = os.path.join(self.tmpdir, "%s_validation.gff" % self.name)
 		
 		self.predicted_pfm = os.path.join(self.tmpdir, "%s_all_motifs.pfm" % self.name)
-		self.predicted_pwm = os.path.join(self.tmpdir, "%s_all_motifs.pwm" % self.name)
 
 		self.significant_pfm = os.path.join(self.tmpdir, "%s_significant_motifs.pfm" % self.name)
-		self.significant_pwm = os.path.join(self.tmpdir, "%s_significant_motifs.pwm" % self.name)
 		
 		self.location_fa = os.path.join(self.tmpdir, "%s_validation_500.fa" % self.name)
 		self.location_pfile = os.path.join(self.tmpdir, "%s_localization_pvalue.txt" % self.name)
@@ -321,21 +319,6 @@ class GimmeMotifs:
 			
 		self.prediction_num, self.validation_num = divide_fa_file(self.inputfile, self.prediction_fa, self.validation_fa, fraction, abs_max)
 
-	def predict_motifs(self, fastafile, analysis="medium", organism="hg18", use_strand=False, tools={}, job_server=None):
-		""" Predict motifs, input is a FASTA-file"""
-		self.logger.info("Starting motif prediction (%s) using %s" % (analysis, ", ".join([x for x in tools.keys() if tools[x]])))
-
-		motifs = pp_predict_motifs(fastafile, analysis, organism, use_strand, self.prediction_bg, tools, job_server, logger=self.logger, max_time=self.max_time)
-
-		f = open(self.predicted_pwm, "w")
-		fw = open(self.predicted_pfm, "w")
-		for motif in motifs:
-			f.write("%s\n" % (motif.to_pwm()))
-			fw.write("%s\n" % (motif.to_pfm()))
-		f.close()
-		fw.close()
-		self.logger.info("Predicted %s motifs, written to %s" % (len(motifs), self.predicted_pwm))
-		return len(motifs)
 
 	def _create_background(self, bg_type, bedfile, fafile, outfile, organism="hg18", width=200, nr_times=10):
 		if bg_type == "random":
@@ -441,33 +424,6 @@ class GimmeMotifs:
 		# Get background fasta files
 		for bg in background:
 			nr_sequences[bg] = self._create_background(bg, self.validation_bed, self.validation_fa, self.bg_file["fa"][bg], organism=organism, width=width)
-
-	def determine_significant_motifs(self, background=["random"], organism="hg18", width=200, pvalue_cutoff=0.001, enrichment_cutoff=1.5):
-
-		fg = [self.validation_fa, self.validation_gff]
-		bg = []
-		for bg_type in background:
-			bg.append([self.bg_file["fa"][bg_type], self.bg_file["gff"][bg_type],self.bg_file["enrichment"][bg_type]])
-		self.calculate_enrichment(self.predicted_pwm, fg, bg)
-		
-		self.logger.info("Determining significant motifs")
-		self.logger.info("Thresholds: enrichment >= %s; p-value <= %s"% (enrichment_cutoff, pvalue_cutoff))
-		all_motifs = pwmfile_to_motifs(self.predicted_pwm)
-		filt_ids = [x.id for x in all_motifs]
-			
-		for bg_id in background:
-			filt_ids = self.filter_motifs(filt_ids, self.bg_file["enrichment"][bg_id], enrichment_cutoff, pvalue_cutoff)
-		
-		f = open(self.significant_pwm, "w")
-		fp = open(self.significant_pfm, "w")
-		for motif in pwmfile_to_motifs(self.predicted_pfm):
-			if motif.id in filt_ids:
-				f.write("%s\n" % motif.to_pwm())
-				fp.write("%s\n" % motif.to_pfm())
-		f.close()
-		fp.close()
-		self.logger.info("%s motifs are significant, written to %s" % (len(filt_ids), self.significant_pwm))
-		return len(filt_ids)
 
 	def _cluster_motifs(self, pfm_file, cluster_pwm, dir, threshold):
 		self.logger.info("Clustering significant motifs.")
@@ -692,8 +648,8 @@ class GimmeMotifs:
 			rm.bg = {}
 			for bg in background:
 				rm.bg[bg] = {}
-				rm.bg[bg]["e"] = "%0.2f" % self.e[bg][motif.id]
-				rm.bg[bg]["p"] = "%0.2f" % self.p[bg][motif.id]
+				rm.bg[bg]["e"] = "%0.2f" % self.e[bg].setdefault(motif.id, 0.0)
+				rm.bg[bg]["p"] = "%0.2f" % self.p[bg].setdefault(motif.id, 1.0)
 				rm.bg[bg]["auc"] = "%0.3f" % self.auc[bg][motif.id]
 				rm.bg[bg]["mncp"] = "%0.3f" % self.mncp[bg][motif.id]
 				rm.bg[bg]["roc_img"] = {"src": "images/" + os.path.basename(roc_img_file % (motif.id, bg)) + ".png"}
@@ -849,22 +805,42 @@ class GimmeMotifs:
 		self.create_background(background, params["genome"], params["width"])
 
 		# Predict the motifs
+		analysis = params["analysis"]
 		if self.parallel:
-			num_motifs = self.predict_motifs(self.prediction_fa, params["analysis"], params["genome"], params["use_strand"], tools, self.job_server()  )
+			""" Predict motifs, input is a FASTA-file"""
+			self.logger.info("Starting motif prediction (%s) using %s" % 
+				(analysis, ", ".join([x for x in tools.keys() if tools[x]])))
 
-		if num_motifs == 0:
+			bg_file = self.bg_file["fa"][sorted(background, lambda x,y: cmp(BG_RANK[x], BG_RANK[y]))[0]]
+			self.logger.info("Using bg_file %s for significance" % bg_file)
+			result = pp_predict_motifs(self.prediction_fa, self.predicted_pfm, analysis, params["genome"], params["use_strand"], self.prediction_bg, tools, self.job_server(), logger=self.logger, max_time=self.max_time, fg_file=self.validation_fa, bg_file=bg_file)
+	
+			motifs = result.motifs
+			self.logger.info("Predicted %s motifs, written to %s" % (len(motifs), self.predicted_pfm))
+
+		
+		if len(motifs) == 0:
 			self.logger.info("No motifs found. Done.")
 			sys.exit()
 		
 		# Determine significant motifs
-		num_sig_motifs = self.determine_significant_motifs(background, params["genome"], params["width"])
-		if num_sig_motifs == 0:
+		nsig = 0 
+		f = open(self.significant_pfm, "w")
+		for motif in motifs:
+			stats = result.stats["%s_%s" % (motif.id, motif.to_consensus())]
+			if stats["maxenr"] >= 3 or stats["roc_auc"] >= 0.7:
+				f.write("%s\n" % motif.to_pfm())
+				nsig += 1
+		f.close()		
+		self.logger.info("%s motifs are significant, written to %s" % (nsig, self.significant_pfm))
+		
+		if nsig == 0:
 			self.logger.info("No significant motifs found. Done.")
 			sys.exit()
 
 		# ROC metrics of significant motifs
 		for bg in background:
-			self._roc_metrics(self.significant_pwm, self.validation_fa, self.bg_file["fa"][bg], self.bg_file["roc"][bg])
+			self._roc_metrics(self.significant_pfm, self.validation_fa, self.bg_file["fa"][bg], self.bg_file["roc"][bg])
 		
 		# Cluster significant motifs
 		clusters = self._cluster_motifs(self.significant_pfm, self.cluster_pwm, self.outdir, params["cluster_threshold"])
