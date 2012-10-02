@@ -32,15 +32,10 @@ matplotlib.use('Agg')
 def job_server_ok():
 	return True
 
-def run_command(cmd):
-	#print args
-	from subprocess import Popen
-	p = Popen(cmd, shell=True)
-	p.communicate()
-
 def motif_localization(fastafile, motif, width, outfile, cutoff=0.9):
 	NR_HIST_MATCHES = 100
-	from gimmemotifs.utils import plot_histogram, ks_pvalue
+	from gimmemotifs.plot import plot_histogram
+	from gimmemotifs.utils import ks_pvalue
 	from gimmemotifs.fasta import Fasta
 	from numpy import array
 	
@@ -365,19 +360,17 @@ class GimmeMotifs:
 				fa.writefasta(outfile)
 				return len(fa)
 
-	def filter_motifs(self, motif_ids, enrichmentfile, e_cutoff, p_cutoff):
-		filt_motifs = []
-		for line in open(enrichmentfile).readlines():
-			if not line.startswith("#"):
-				vals = line.strip().split("\t")
-				if vals[0] in motif_ids:
-					p,e = float(vals[2]), float(vals[5])
-					if p <= p_cutoff and e >= e_cutoff:
-						filt_motifs.append(vals[0])
-		return filt_motifs
+#	def filter_motifs(self, motif_ids, enrichmentfile, e_cutoff, p_cutoff):
+#		filt_motifs = []
+#		for line in open(enrichmentfile).readlines():
+#			if not line.startswith("#"):
+#				vals = line.strip().split("\t")
+#				if vals[0] in motif_ids:
+#					p,e = float(vals[2]), float(vals[5])
+#					if p <= p_cutoff and e >= e_cutoff:
+#						filt_motifs.append(vals[0])
+#		return filt_motifs
 
-	def scan_sequences(self, motif_file, fasta_gffs):
-		""" motif_file: file with motifs, fasta_gffs: dictionary of fasta:gff-file key-value pairs"""
 
 	def calculate_enrichment(self, motif_file, fg, bg):
 		""" fg: [sample_fa, sample_gff] bg: [[bg1_fa, bg1_gff, bg1_enrichment], [bg2_fa, bg2_gff, bg2_enrichment], .. etc] """
@@ -828,24 +821,20 @@ class GimmeMotifs:
 		# Determine best motif in cluster
 		self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, bg_file, self.imgdir)
 		
+		### Enable parallel and modular evaluation of results
+		# Scan (multiple) files with motifs
+		# Define callback functions once scanning is finished:
+		#	- ROC plot
+		# 	- Statistics
+		#	- Location plots (histogram)
+		# 	-
+		
 		# Stars
 		tmp = NamedTemporaryFile().name
 		p = PredictionResult(tmp, logger=self.logger, job_server=self.server, fg_file = self.validation_fa, bg_file = bg_file) 
 		p.add_motifs("Clustering",  (pwmfile_to_motifs(self.final_pwm), "",""))
 		while len(p.stats.keys()) < len(p.motifs):
 			sleep(5)
-
-		def star(stat, categories):
-			if len(categories) != 3:
-				raise "bla"
-
-			stars = 0
-			for c in sorted(categories):
-				if stat >= c:
-					stars += 1
-				else:
-					return stars
-			return stars
 
 		all_stats = {
 			"mncp": [4, 6, 8],
@@ -856,6 +845,7 @@ class GimmeMotifs:
 			"ks_sig": [4, 7, 10]
 		}
 
+		
 		# ROC plots
 		for bg in background:
 			self.create_roc_plots(self.final_pwm, self.validation_fa, self.bg_file["fa"][bg], bg)

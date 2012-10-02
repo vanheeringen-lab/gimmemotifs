@@ -23,6 +23,12 @@ from gimmemotifs.fasta import *
 
 lgam = special.gammaln
 
+def run_command(cmd):
+	#print args
+	from subprocess import Popen
+	p = Popen(cmd, shell=True)
+	p.communicate()
+
 def star(stat, categories):
 	stars = 0
 	for c in sorted(categories):
