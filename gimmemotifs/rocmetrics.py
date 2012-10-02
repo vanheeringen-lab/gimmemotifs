@@ -22,6 +22,13 @@ def score_at_fdr(fg_vals, bg_vals, fdr=5):
 	bg_vals = array(bg_vals)
 	return scoreatpercentile(bg_vals, 100 - fdr)
 
+def enr_at_fdr(fg_vals, bg_vals, fdr=5):
+	from scipy.stats import scoreatpercentile
+	pos = array(fg_vals)
+	neg = array(bg_vals)
+	s = scoreatpercentile(neg, 100 - fdr)
+	return len(pos[pos >= s]) / float(len(neg[neg >= s])) * len(neg) / float(len(pos))
+
 def max_enrichment(fg_vals, bg_vals):
 	from numpy import array,hstack
 	pos = array(fg_vals)

@@ -605,10 +605,11 @@ class Motif:
 		#	os.unlink(f.name)
 
 	def stats(self, fg_fa, bg_fa):
-		from gimmemotifs.rocmetrics import MNCP, ROC_AUC, max_enrichment, fraction_fdr, score_at_fdr
+		from gimmemotifs.rocmetrics import MNCP, ROC_AUC, max_enrichment, fraction_fdr, score_at_fdr, enr_at_fdr
 		from gimmemotifs.fasta import Fasta
 		from gimmemotifs.utils import ks_pvalue
 		from numpy import array,std
+		from math import log
 
 		stats = {}
 		fg_result = self.pwm_scan_all(fg_fa, cutoff=0.0, nreport=1, scan_rc=True)
@@ -624,11 +625,13 @@ class Motif:
 		stats["scoreatmaxenr"] = y
 		stats["fraction"] = fraction_fdr(pos, neg)
 		stats["score_fdr"] = score_at_fdr(pos, neg)
+		stats["enr_fdr"] = enr_at_fdr(pos, neg)
 		stats["cutoff_fdr"] = (stats["score_fdr"] - self.pwm_min_score()) / (self.pwm_max_score() - self.pwm_min_score())
 
 		pos = [x[0][0] for x in fg_result.values()]
 		p = ks_pvalue(pos, max(pos))
 		stats["ks"] = p
+		stats["ks_sig"] = -log(p)/log(10)
 		
 		return stats
 
