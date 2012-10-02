@@ -23,5 +23,30 @@ def roc_plot(outfile, x, y):
 	plt.axis([0,1,0,1])
 	plt.xlabel("1 - Specificity")
 	plt.ylabel("Sensitivity")
-	plt.savefig(roc_img_file % (id,name), format="png")
+	plt.savefig(outfile, format="png")
+
+def plot_histogram(values, outfile, xrange=None, breaks=10, title=None, xlabel=None, color=10):
+	import matplotlib.pyplot as plt
+	import matplotlib.cm as cm
+	
+	colors = [cm.Paired(256 / 11 * i) for i in range(11)]
+
+	plt.clf()
+	try:
+		# matplotlib >= 0.99
+		plt.hist(values, range=xrange, bins=breaks, color=colors[color], edgecolor="black")
+	except:
+		plt.hist(values, range=xrange, bins=breaks)
+	plt.xlim(xrange)
+
+	if title:
+		plt.title(title)
+
+	plt.ylabel("Frequency")
+	if xlabel:
+		plt.xlabel(xlabel)
+	if not outfile.endswith(".svg"):
+		outfile += ".svg"
+	plt.savefig(outfile, format="svg")
+
 
