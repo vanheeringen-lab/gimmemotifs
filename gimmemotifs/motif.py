@@ -631,8 +631,12 @@ class Motif:
 		pos = [x[0][0] for x in fg_result.values()]
 		p = ks_pvalue(pos, max(pos))
 		stats["ks"] = p
-		stats["ks_sig"] = -log(p)/log(10)
+		if p > 0:
+			stats["ks_sig"] = -log(p)/log(10)
+		else:
+			stats["ks_sig"] = "Inf"
 		
+
 		return stats
 
 
