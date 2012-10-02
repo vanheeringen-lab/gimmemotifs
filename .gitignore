@@ -18,6 +18,7 @@ src/MoAn/moan
 src/MoAn/obj/
 src/GADEM_v1.3/src/*.o
 src/GADEM_v1.3/src/.deps/
+src/GADEM_v1.3/src/gadem
 src/GADEM_v1.3/config.log
 src/GADEM_v1.3/config.status
 src/GADEM_v1.3/src/Makefile
