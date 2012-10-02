@@ -941,7 +941,10 @@ class Jaspar(MotifProgram):
 		from gimmemotifs.motif import pwmfile_to_motifs
 		import os
 		fname = os.path.join(self.config.get_motif_dir(), "jaspar.pfm")
-		return pwmfile_to_motifs(fname), "bla", "floep"
+		motifs =  pwmfile_to_motifs(fname)
+		for motif in motifs:
+			motif.id = "JASPAR_%s" % motif.id
+		return motifs, "", ""
 
 class Meme(MotifProgram):
 	def __init__(self):
