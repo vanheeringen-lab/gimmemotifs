@@ -837,8 +837,8 @@ class GimmeMotifs:
 			sleep(5)
 
 		all_stats = {
-			"mncp": [4, 6, 8],
-			"roc_auc": [0.7, 0.8, 0.9],
+			"mncp": [2, 5, 8],
+			"roc_auc": [0.6, 0.75, 0.9],
 			"maxenr": [10, 20, 30], 
 			"enr_fdr": [5, 10, 15], 
 			"fraction": [0.4, 0.6, 0.8],
