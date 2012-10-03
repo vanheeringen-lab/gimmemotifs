@@ -22,6 +22,13 @@ def score_at_fdr(fg_vals, bg_vals, fdr=5):
 	bg_vals = array(bg_vals)
 	return scoreatpercentile(bg_vals, 100 - fdr)
 
+def enr_at_fdr(fg_vals, bg_vals, fdr=5):
+	from scipy.stats import scoreatpercentile
+	pos = array(fg_vals)
+	neg = array(bg_vals)
+	s = scoreatpercentile(neg, 100 - fdr)
+	return len(pos[pos >= s]) / float(len(neg[neg >= s])) * len(neg) / float(len(pos))
+
 def max_enrichment(fg_vals, bg_vals):
 	from numpy import array,hstack
 	pos = array(fg_vals)
@@ -31,7 +38,6 @@ def max_enrichment(fg_vals, bg_vals):
 	scores = array([s for s in hstack((pos, neg)) if sum(neg >= s) > 2])
 	enr = array([(sum(pos >= x) / float(sum(neg >= x))) * factor for x in scores])
 	return max(enr), scores[enr.argmax()]
-
 
 def MNCP(fg_vals, bg_vals):
 	from scipy.stats import stats
@@ -203,14 +209,12 @@ def max_fmeasure(x,y):
 	x = array(x[:])
 	y = array(y[:])
 	p = y / (y + x)
+	filt = logical_and((p * y) > 0, (p + y) > 0)
+	p = p[filt]
+	y = y[filt]
+	
 	f = (2 * p * y) / (p + y)
 	if len(f) > 0:
 		return nanmax(f), nanmax(y[f == nanmax(f)])
 	else:
 		return None,None
-
-
-#print ROC_AUC([0,0,0,1,2,3,3,3,3,3],[2,2,2,2,2])
-#print ROC_AUC_xlim([0,0,0,1,2,3,3,3,3,3],[2,2,2,2,2], 1.0)
-
-

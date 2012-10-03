@@ -23,6 +23,21 @@ from gimmemotifs.fasta import *
 
 lgam = special.gammaln
 
+def run_command(cmd):
+	#print args
+	from subprocess import Popen
+	p = Popen(cmd, shell=True)
+	p.communicate()
+
+def star(stat, categories):
+	stars = 0
+	for c in sorted(categories):
+		if stat >= c:
+			stars += 1
+		else:
+			return stars
+	return stars
+
 def phyper_single(k, good, bad, N):
 
 	return numpy.exp(lgam(good+1) - lgam(good-k+1) - lgam(k+1) + lgam(bad+1) - lgam(bad-N+k+1) - lgam(N-k+1) - lgam(bad+good+1) + lgam(bad+good-N+1) + lgam(N+1))
@@ -89,29 +104,6 @@ def divide_fa_file(file, sample, rest, fraction, abs_max):
 	f_rest.close()
 	
 	return x, len(ids[x:])	
-
-def plot_histogram(values, outfile, xrange=None, breaks=10, title=None, xlabel=None, color=10):
-	import matplotlib.pyplot as plt
-	import matplotlib.cm as cm
-	colors = [cm.Paired(256 / 11 * i) for i in range(11)]
-	
-	plt.clf()
-	try:
-		# matplotlib >= 0.99
-		plt.hist(values, range=xrange, bins=breaks, color=colors[color], edgecolor="black")
-	except:	
-		plt.hist(values, range=xrange, bins=breaks)
-	plt.xlim(xrange)
-
-	if title:
-		plt.title(title)
-	
-	plt.ylabel("Frequency")
-	if xlabel:
-		plt.xlabel(xlabel)
-	if not outfile.endswith(".svg"):
-		outfile += ".svg"
-	plt.savefig(outfile, format="svg")
 
 def make_gff_histogram(gfffile, outfile, l, title, breaks=21):
 	import matplotlib.pyplot as plt

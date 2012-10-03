@@ -24,29 +24,22 @@ from gimmemotifs.background import *
 from gimmemotifs.comparison import *
 from gimmemotifs import genome_index
 from gimmemotifs.cluster import *
+from gimmemotifs.plot import *
 
 import matplotlib
 matplotlib.use('Agg')
 
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-
 def job_server_ok():
 	return True
 
-def run_command(cmd):
-	#print args
-	from subprocess import Popen
-	p = Popen(cmd, shell=True)
-	p.communicate()
-
-def motif_localization(fastafile, motif, width, outfile):
+def motif_localization(fastafile, motif, width, outfile, cutoff=0.9):
 	NR_HIST_MATCHES = 100
-	from gimmemotifs.utils import plot_histogram, ks_pvalue
+	from gimmemotifs.plot import plot_histogram
+	from gimmemotifs.utils import ks_pvalue
 	from gimmemotifs.fasta import Fasta
 	from numpy import array
 	
-	matches = motif.pwm_scan(Fasta(fastafile), cutoff=0.9, nreport=NR_HIST_MATCHES)
+	matches = motif.pwm_scan(Fasta(fastafile), cutoff=cutoff, nreport=NR_HIST_MATCHES)
 	if len(matches) > 0:
 		ar = []
 		for a in matches.values():
@@ -367,19 +360,17 @@ class GimmeMotifs:
 				fa.writefasta(outfile)
 				return len(fa)
 
-	def filter_motifs(self, motif_ids, enrichmentfile, e_cutoff, p_cutoff):
-		filt_motifs = []
-		for line in open(enrichmentfile).readlines():
-			if not line.startswith("#"):
-				vals = line.strip().split("\t")
-				if vals[0] in motif_ids:
-					p,e = float(vals[2]), float(vals[5])
-					if p <= p_cutoff and e >= e_cutoff:
-						filt_motifs.append(vals[0])
-		return filt_motifs
+#	def filter_motifs(self, motif_ids, enrichmentfile, e_cutoff, p_cutoff):
+#		filt_motifs = []
+#		for line in open(enrichmentfile).readlines():
+#			if not line.startswith("#"):
+#				vals = line.strip().split("\t")
+#				if vals[0] in motif_ids:
+#					p,e = float(vals[2]), float(vals[5])
+#					if p <= p_cutoff and e >= e_cutoff:
+#						filt_motifs.append(vals[0])
+#		return filt_motifs
 
-	def scan_sequences(self, motif_file, fasta_gffs):
-		""" motif_file: file with motifs, fasta_gffs: dictionary of fasta:gff-file key-value pairs"""
 
 	def calculate_enrichment(self, motif_file, fg, bg):
 		""" fg: [sample_fa, sample_gff] bg: [[bg1_fa, bg1_gff, bg1_enrichment], [bg2_fa, bg2_gff, bg2_enrichment], .. etc] """
@@ -497,22 +488,7 @@ class GimmeMotifs:
 				self.logger.error("Error in thread: %s" % error)
 				sys.exit(1)
 
-			fig = plt.figure()
-			try:
-				# matplotlib >= 0.99
-				rect = fig.patch # a rectangle instance
-			except:
-				# matplotlib 0.98
-				rect = fig.figurePatch # a rectangle instance
-				
-			plt.xlim(0,0.2)
-			plt.ylim(0,1.0)
-			colors = [cm.Paired(256 / 11 * i) for i in range(11)]
-			plt.plot(x, y, color=colors[(0 * 2) % 10 + 1])
-			plt.axis([0,1,0,1])
-			plt.xlabel("1 - Specificity")
-			plt.ylabel("Sensitivity")
-			plt.savefig(roc_img_file % (id,name), format="png")
+			roc_plot(roc_img_file % (id,name), x, y)
 
 	def calculate_cluster_enrichment(self, pwm, background):
 		fg = [self.validation_fa, self.validation_cluster_gff]
@@ -520,29 +496,6 @@ class GimmeMotifs:
 		self.calculate_enrichment(pwm, fg, bg)
 		pass
 
-	def create_location_plots(self, motif_file, params):
-		self.logger.info("Creating localization plots")
-		if self.input_type == "BED":
-		
-			index_dir = os.path.join(self.config.get_index_dir(), params["genome"])
-			lwidth = int(params["lwidth"])
-			width = int(params["width"])
-			extend = (lwidth - width) / 2
-		
-			genome_index.track2fasta(index_dir, self.validation_bed, self.location_fa, extend_up=extend, extend_down=extend, use_strand=params["use_strand"])
-		else:
-			self.location_fa = self.validation_fa
-			fa = Fasta(self.location_fa)
-			seqs = fa.seqs
-			lwidth = len(seqs[0]) 
-			all_same_width = not(False in [len(seq) == lwidth for seq in seqs])
-			if not all_same_width:
-				self.logger.warn("PLEASE NOTE: FASTA file contains sequences of different lengths. Positional preference plots will be incorrect!")
-		
-		motifs = pwmfile_to_motifs(motif_file)
-		for motif in motifs:
-			outfile = os.path.join(self.imgdir, "%s_histogram.svg" % motif.id)
-			motif_localization(self.location_fa, motif, lwidth, outfile)
 
 	def _roc_metrics(self, pwm, sample_fa, bg_fa, roc_file):
 		motifs = dict([(m.id, m) for m in pwmfile_to_motifs(pwm)])
@@ -794,8 +747,27 @@ class GimmeMotifs:
 		# Create the necessary files for motif prediction and validation
 		if self.input_type == "BED":
 			self.prepare_input_bed(inputfile, params["genome"], params["width"], params["fraction"], params["abs_max"], params["use_strand"])
+		
+		
+		 	# Create file for location plots
+			index_dir = os.path.join(self.config.get_index_dir(), params["genome"])
+			lwidth = int(params["lwidth"])
+			width = int(params["width"])
+			extend = (lwidth - width) / 2
+			genome_index.track2fasta(index_dir, self.validation_bed, self.location_fa, extend_up=extend, extend_down=extend, use_strand=params["use_strand"])
+		
 		elif self.input_type == "FASTA":
 			self.prepare_input_fa(inputfile, params["width"], params["fraction"], params["abs_max"])
+		
+			# File for location plots
+			self.location_fa = self.validation_fa
+			fa = Fasta(self.location_fa)
+			seqs = fa.seqs
+			lwidth = len(seqs[0]) 
+			all_same_width = not(False in [len(seq) == lwidth for seq in seqs])
+			if not all_same_width:
+				self.logger.warn("PLEASE NOTE: FASTA file contains sequences of different lengths. Positional preference plots will be incorrect!")
+		
 		else:
 			self.logger.error("Unknown input type, shouldn't happen")
 			sys.exit(1)
@@ -828,7 +800,7 @@ class GimmeMotifs:
 		f = open(self.significant_pfm, "w")
 		for motif in motifs:
 			stats = result.stats["%s_%s" % (motif.id, motif.to_consensus())]
-			if stats["maxenr"] >= 3 or stats["roc_auc"] >= 0.7:
+			if stats["maxenr"] >= 3 and stats["roc_auc"] >= 0.55 and stats['enr_fdr'] >= 2:
 				f.write("%s\n" % motif.to_pfm())
 				nsig += 1
 		f.close()		
@@ -838,6 +810,7 @@ class GimmeMotifs:
 			self.logger.info("No significant motifs found. Done.")
 			sys.exit()
 
+		
 		# ROC metrics of significant motifs
 		for bg in background:
 			self._roc_metrics(self.significant_pfm, self.validation_fa, self.bg_file["fa"][bg], self.bg_file["roc"][bg])
@@ -846,17 +819,47 @@ class GimmeMotifs:
 		clusters = self._cluster_motifs(self.significant_pfm, self.cluster_pwm, self.outdir, params["cluster_threshold"])
 		
 		# Determine best motif in cluster
-		if "genomic_matched" in background:
-			self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, self.bg_file["fa"]["genomic_matched"], self.imgdir)
-		else:
-			self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, self.bg_file["fa"][background[0]], self.imgdir)
+		self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, bg_file, self.imgdir)
+		
+		### Enable parallel and modular evaluation of results
+		# Scan (multiple) files with motifs
+		# Define callback functions once scanning is finished:
+		#	- ROC plot
+		# 	- Statistics
+		#	- Location plots (histogram)
+		# 	-
+		
+		# Stars
+		tmp = NamedTemporaryFile().name
+		p = PredictionResult(tmp, logger=self.logger, job_server=self.server, fg_file = self.validation_fa, bg_file = bg_file) 
+		p.add_motifs("Clustering",  (pwmfile_to_motifs(self.final_pwm), "",""))
+		while len(p.stats.keys()) < len(p.motifs):
+			sleep(5)
+
+		all_stats = {
+			"mncp": [2, 5, 8],
+			"roc_auc": [0.6, 0.75, 0.9],
+			"maxenr": [10, 20, 30], 
+			"enr_fdr": [5, 10, 15], 
+			"fraction": [0.4, 0.6, 0.8],
+			"ks_sig": [4, 7, 10]
+		}
+
 		
 		# ROC plots
 		for bg in background:
 			self.create_roc_plots(self.final_pwm, self.validation_fa, self.bg_file["fa"][bg], bg)
 		
 		# Location plots
-		self.create_location_plots(self.final_pwm, params)
+		self.logger.info("Creating localization plots")
+		motifs = pwmfile_to_motifs(self.final_pwm)
+		for motif in motifs:
+			m = "%s_%s" % (motif.id, motif.to_consensus())
+			s = p.stats[m]
+			outfile = os.path.join(self.imgdir, "%s_histogram.svg" % motif.id)
+			motif_localization(self.location_fa, motif, lwidth, outfile, cutoff=s["cutoff_fdr"])
+	
+			self.logger.info("Motif %s: %s stars" % (m, mean([star(s[x], all_stats[x]) for x in all_stats.keys()])))
 
 		# Calculate enrichment of final, clustered motifs
 		self.calculate_cluster_enrichment(self.final_pwm, background)
