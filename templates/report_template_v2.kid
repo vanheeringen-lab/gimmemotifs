@@ -250,7 +250,9 @@ JASPAR match
 
 <h2>Identified Motifs</h2>
 <ul>
-<li py:for="motif in motifs"><a py:attrs="motif.id_href" py:content="motif.id">Motif.5.2</a></li> 
+<li py:for="motif in motifs"><a py:attrs="motif.id_href" py:content="motif.id">Motif.5.2</a>
+<img py:for="i in range(int(motif.stars))" src="images/star.png" width="15" height="15"></img>
+</li> 
 </ul>
 
 <h2>Reference</h2>

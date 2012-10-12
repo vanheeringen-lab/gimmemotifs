@@ -155,6 +155,8 @@ class GimmeMotifs:
 			os.mkdir(self.imgdir)
 		except:
 			pass
+		star = os.path.join(self.config.get_template_dir(), "star.png")
+		shutil.copyfile(star, os.path.join(self.imgdir, "star.png"))	
 
 	def _setup_logging(self):
 		self.logger = logging.getLogger('motif_analysis')
@@ -574,7 +576,7 @@ class GimmeMotifs:
 			f.write("%s\t%s\n" % (param, value))
 		f.close()
 
-	def _create_report(self, pwm, background):
+	def _create_report(self, pwm, background, stats={}):
 		self.logger.info("Creating graphical report")
 		class ReportMotif:
 			pass
@@ -595,9 +597,10 @@ class GimmeMotifs:
 			rm.id_href = {"href": "#%s" % motif.id}
 			rm.id_name = {"name": motif.id}
 			rm.img = {"src":  os.path.join("images", "%s.png" % motif.id)}
-			
+				
 			rm.consensus = motif.to_consensus()
-			
+			rm.stars = stats["%s_%s" % (motif.id, motif.to_consensus())]["stars"]
+
 			rm.bg = {}
 			for bg in background:
 				rm.bg[bg] = {}
@@ -866,7 +869,8 @@ class GimmeMotifs:
 			outfile = os.path.join(self.imgdir, "%s_histogram.svg" % motif.id)
 			motif_localization(self.location_fa, motif, lwidth, outfile, cutoff=s["cutoff_fdr"])
 	
-			self.logger.info("Motif %s: %s stars" % (m, mean([star(s[x], all_stats[x]) for x in all_stats.keys()])))
+			s["stars"] = int(mean([star(s[x], all_stats[x]) for x in all_stats.keys()]) + 0.5)
+			self.logger.info("Motif %s: %s stars" % (m, s["stars"]))
 
 		# Calculate enrichment of final, clustered motifs
 		self.calculate_cluster_enrichment(self.final_pwm, background)
@@ -874,7 +878,7 @@ class GimmeMotifs:
 		# Create report	
 		self.print_params()
 		self._calc_report_values(self.final_pwm, background)
-		self._create_report(self.final_pwm, background)
+		self._create_report(self.final_pwm, background, stats=p.stats)
 		self._create_text_report(self.final_pwm, background)
 		self.logger.info("Open %s in your browser to see your results." % (self.motif_report))
 		
