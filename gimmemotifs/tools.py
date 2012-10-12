@@ -136,7 +136,7 @@ class BioProspector(MotifProgram):
 
 		if pwm:
 			m = Motif(pwm)
-			m.id = "BioProspector_w%s_%s" % (len(m), id)
+			m.id = "%s_w%s_%s" % (self.name, len(m), id)
 			motifs.append(m)
 		return motifs
 
@@ -211,7 +211,8 @@ class MoAn(MotifProgram):
 
 		if align:
 			motifs = [motif_from_align(align)]
-			motifs[0].id = "MoAn"	
+			for i, motif in enumerate(motifs):
+				motif.id = "%s_%s" (self.name, i + 1)
 		return motifs
 
 
@@ -281,7 +282,7 @@ class Improbizer(MotifProgram):
 				for i in range(len(pwm_data["A"])):
 					pwm.append([float(pwm_data[x][i]) for x in ["A","C","G","T"]])
 				motifs.append(Motif(pwm))
-				motifs[-1].id = ">Improbizer_%s" % m.group(1)
+				motifs[-1].id = "%s_%s" % (self.name, m.group(1))
 			line = fo.readline()
 		
 		return motifs
@@ -337,6 +338,9 @@ class Trawler(MotifProgram):
 		if os.path.exists(out_file):
 			motifs = pwmfile_to_motifs(os.path.join(tmpdir, out_name, "result", "%s.pwm" % out_name))
 		
+		for motif in motifs:
+			motif.id = "%s_%s" % (self.name, motif.id)
+
 		# remove temporary files
 		if os.path.exists(tmp.name):
 			os.unlink(tmp.name)
@@ -353,7 +357,7 @@ class Weeder(MotifProgram):
 	def __init__(self):
 		self.name = "Weeder"
 		self.cmd = "weederTFBS.out"
-		self.use_width = False
+		self.use_width =%s_%s" % (self.name, motif.id)e
 
 	def _run_program(self, bin,fastafile, savedir="", params={}):
 		import os, tempfile, shutil
@@ -493,7 +497,7 @@ class Weeder(MotifProgram):
 				motifs.append(Motif())
 				#total = float(pwm[0][0] + pwm[0][1] + pwm[0][2] + pwm[0][3])
 				#motifs[-1].pwm = [[x / total for x in row] for row in pwm]
-				motifs[-1].id = "Weeder_%s" % c
+				motifs[-1].id = "%s_%s" % (self.name, c)
 				motifs[-1].align= align[:]
 				
 				width = len(align[0])
@@ -624,7 +628,7 @@ class MotifSampler(MotifProgram):
 			m.align = align[:]
 			m.pwm = pwm[:]
 			m.pfm = pfm[:]
-			m.id = id
+			m.id = "%s_%s" % (self.name, id)
 			motifs.append(m)	
 		return motifs
 
@@ -668,6 +672,9 @@ class MDmodule(MotifProgram):
 		if os.path.exists(pwmfile):
 			motifs = self.parse(open(pwmfile))
 		
+		for motif in motifs:
+			motif.id = "%s_%s" % (self.name, motif.id)
+
 		os.chdir(current_path)
 		
 		# remove temporary files
@@ -784,7 +791,7 @@ class ChIPMunk(MotifProgram):
 		matrix = [[matrix[x][y] for x in range(4)] for y in range(len(matrix[0]))]
 		#print matrix
 		m = Motif(matrix)
-		m.id = "ChIPMunk_w%s" % len(m)
+		m.id = "%s_w%s" % (self.name, len(m))
 		return [m]
 
 
@@ -846,8 +853,8 @@ class Posmo(MotifProgram):
 			matrix = [[float(x) for x in line.strip().split("\t")] for line in lines[2:]]
 			matrix = [[matrix[x][y] for x in range(4)] for y in range(len(matrix[0]))]
 			m = Motif(matrix)
-			m.id = lines[0].strip().split(" ")[-1]
 			motifs.append(m)
+			motifs[-1].id = "%s_%s" % (self.name, len(motifs))
 			lines = [fo.readline() for x in range(6)]
 
 		return motifs
@@ -922,7 +929,7 @@ class Gadem(MotifProgram):
 
 
 			motifs.append(Motif(pwm))
-			motifs[-1].id = id
+			motifs[-1].id = "%s_%s" % (self.name, id)
 			#motifs[-1].pwm = pwm
 			if align:
 				pass
@@ -941,7 +948,11 @@ class Jaspar(MotifProgram):
 		from gimmemotifs.motif import pwmfile_to_motifs
 		import os
 		fname = os.path.join(self.config.get_motif_dir(), "jaspar.pfm")
-		return pwmfile_to_motifs(fname), "bla", "floep"
+		motifs = pwmfile_to_motifs(fname)
+		for motif in motifs:
+			motif.id = "%s_%s" % (self.name, motif.id)
+
+		return motifs, "", ""
 
 class Meme(MotifProgram):
 	def __init__(self):
@@ -994,7 +1005,7 @@ class Meme(MotifProgram):
 			align = []
 			pfm = []	
 			if m:
-				id = "Meme_%s_w%s" % (m.group(1), m.group(2))
+				id = "%s_%s_w%s" % (self.name, m.group(1), m.group(2))
 				while not line.startswith("//"):
 					ma = pa.search(line)
 					if ma:
