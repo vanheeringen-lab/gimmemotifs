@@ -357,7 +357,7 @@ class Weeder(MotifProgram):
 	def __init__(self):
 		self.name = "Weeder"
 		self.cmd = "weederTFBS.out"
-		self.use_width =%s_%s" % (self.name, motif.id)e
+		self.use_width = True
 
 	def _run_program(self, bin,fastafile, savedir="", params={}):
 		import os, tempfile, shutil
