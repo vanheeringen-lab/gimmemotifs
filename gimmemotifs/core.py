@@ -644,6 +644,7 @@ class GimmeMotifs:
 		return closest_match
 
 	def _determine_best_motif_in_cluster(self, clusters, pwm, sample_fa, bg_fa, imgdir=None):
+		num_cluster = {}
 		out = open(pwm, "w")
 		for i, (clus, singles) in enumerate(clusters):
 			motifs = [clus] + singles
@@ -660,12 +661,14 @@ class GimmeMotifs:
 			self.logger.debug("end list")
 			best_motif = sorted(motifs, cmp=lambda x,y: cmp(mncp[x.id], mncp[y.id]))[-1]
 			best_motif.id = "GimmeMotifs_%d" % (i + 1)
+			num_cluster[best_motif.id] = len(singles)
 			if imgdir:
 				best_motif.to_img(os.path.join(imgdir, best_motif.id), format="PNG")
 			out.write("%s\n" % best_motif.to_pwm())
 			tmp.close()
 			tmp2.close()
 		out.close()
+		return num_cluster
 
 	def run_full_analysis(self, inputfile, user_params={}):
 		""" Full analysis: from bed-file to motifs (including clustering, ROC-curves, location plots and html report) """
@@ -819,7 +822,7 @@ class GimmeMotifs:
 		clusters = self._cluster_motifs(self.significant_pfm, self.cluster_pwm, self.outdir, params["cluster_threshold"])
 		
 		# Determine best motif in cluster
-		self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, bg_file, self.imgdir)
+		num_cluster = self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, bg_file, self.imgdir)
 		
 		### Enable parallel and modular evaluation of results
 		# Scan (multiple) files with motifs
@@ -836,13 +839,17 @@ class GimmeMotifs:
 		while len(p.stats.keys()) < len(p.motifs):
 			sleep(5)
 
+		for mid, num in num_cluster.items():
+			p.stats[mid]["numcluster"] = num
+
 		all_stats = {
-			"mncp": [2, 5, 8],
-			"roc_auc": [0.6, 0.75, 0.9],
-			"maxenr": [10, 20, 30], 
-			"enr_fdr": [5, 10, 15], 
-			"fraction": [0.4, 0.6, 0.8],
-			"ks_sig": [4, 7, 10]
+			"mncp": [2, 5, 8],				
+			"roc_auc": [0.6, 0.75, 0.9],	
+			"maxenr": [10, 20, 30], 		
+			"enr_fdr": [4, 8, 12], 		
+			"fraction": [0.4, 0.6, 0.8],	
+			"ks_sig": [4, 7, 10],
+			"numcluster": [3, 6, 9],
 		}
 
 		
