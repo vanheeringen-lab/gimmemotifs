@@ -52,7 +52,7 @@ MOTIF_BINS = {
 }
 
 data_files=[
-	('gimmemotifs/templates', ['templates/cluster_template.kid', 'templates/report_template.kid', 'templates/report_template_v2.kid', 'templates/cluster_template_v2.kid']),
+	('gimmemotifs/templates', ['templates/cluster_template.kid', 'templates/report_template.kid', 'templates/report_template_v2.kid', 'templates/cluster_template_v2.kid', 'templates/star.png']),
 	('gimmemotifs/score_dists', ['score_dists/total_wic_mean_score_dist.txt']),
 	('gimmemotifs/genes', ['genes/hg18.bed', 'genes/mm9.bed', 'genes/xenTro2.bed']),
 	('gimmemotifs/bg', ['bg/hg18.MotifSampler.bg', 'bg/mm9.MotifSampler.bg', 'bg/xenTro2.MotifSampler.bg']),
