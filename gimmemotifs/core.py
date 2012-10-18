@@ -870,7 +870,7 @@ class GimmeMotifs:
 			motif_localization(self.location_fa, motif, lwidth, outfile, cutoff=s["cutoff_fdr"])
 	
 			s["stars"] = int(mean([star(s[x], all_stats[x]) for x in all_stats.keys()]) + 0.5)
-			self.logger.info("Motif %s: %s stars" % (m, s["stars"]))
+			self.logger.debug("Motif %s: %s stars" % (m, s["stars"]))
 
 		# Calculate enrichment of final, clustered motifs
 		self.calculate_cluster_enrichment(self.final_pwm, background)
