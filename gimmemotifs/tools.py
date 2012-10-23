@@ -737,8 +737,7 @@ class ChIPMunk(MotifProgram):
 		basename = "munk_in.fa"
 
 		tmpdir = tempfile.mkdtemp()
-		
-		new_file = "/tmp/test.fa" #os.path.join(tmpdir, basename)
+		new_file = os.path.join(tmpdir, basename)
 		out = open(new_file, "w")
 		f = Fasta(fastafile)
 		for name,seq in f.items():
