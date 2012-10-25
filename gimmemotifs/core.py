@@ -282,22 +282,22 @@ class GimmeMotifs:
 		# Set all peaks to specific width
 		self.logger.debug("Creating inputfile %s, width %s" % (self.input_bed, width))
 		
-		if not self.weird:
-			write_equalwidth_bedfile(inputfile, width, self.input_bed)
+	#	if not self.weird:
+		write_equalwidth_bedfile(inputfile, width, self.input_bed)
 		
 		# Split input_bed in prediction and validation set 
 		self.logger.debug("Splitting %s into prediction set (%s) and validation set (%s)" % (self.input_bed, self.prediction_bed, self.validation_bed))
-		if not self.weird:
-			self.prediction_num, self.validation_num = divide_file(self.input_bed, self.prediction_bed, self.validation_bed, fraction, abs_max)
+		#if not self.weird:
+		self.prediction_num, self.validation_num = divide_file(self.input_bed, self.prediction_bed, self.validation_bed, fraction, abs_max)
 		
 		
-			# Make fasta files	
-			index_dir = os.path.join(self.config.get_index_dir(), organism)
-			self.logger.debug("Creating %s" % (self.prediction_fa))
-			
-			genome_index.track2fasta(index_dir, self.prediction_bed, self.prediction_fa, use_strand=use_strand)
-			self.logger.debug("Creating %s" % (self.validation_fa))
-			genome_index.track2fasta(index_dir, self.validation_bed, self.validation_fa, use_strand=use_strand)
+		# Make fasta files	
+		index_dir = os.path.join(self.config.get_index_dir(), organism)
+		self.logger.debug("Creating %s" % (self.prediction_fa))
+		
+		genome_index.track2fasta(index_dir, self.prediction_bed, self.prediction_fa, use_strand=use_strand)
+		self.logger.debug("Creating %s" % (self.validation_fa))
+		genome_index.track2fasta(index_dir, self.validation_bed, self.validation_fa, use_strand=use_strand)
 
 	def prepare_input_fa(self, inputfile, width=200, fraction=0.2, abs_max=1000):
 		""" Create all the bed- and fasta-files necessary for motif prediction and validation """	
@@ -681,7 +681,7 @@ class GimmeMotifs:
 		params.update(user_params)
 
 		self.params = params
-		self.weird = params["weird_option"]
+		#self.weird = params["weird_option"]
 
 		background = [x.strip() for x in params["background"].split(",")]
 		
