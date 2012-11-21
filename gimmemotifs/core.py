@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2010 Simon van Heeringen <s.vanheeringen@ncmls.ru.nl>
+# Copyright (c) 2009-2012 Simon van Heeringen <s.vanheeringen@ncmls.ru.nl>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -13,8 +13,13 @@ import logging
 import logging.handlers
 from datetime import datetime
 from numpy import median
+
 # External imports
 import kid
+import matplotlib
+matplotlib.use('Agg')
+from scipy.stats.mstats import rankdata
+
 # GimmeMotifs imports
 from gimmemotifs.config import *
 from gimmemotifs.fasta import *
@@ -26,8 +31,6 @@ from gimmemotifs import genome_index
 from gimmemotifs.cluster import *
 from gimmemotifs.plot import *
 
-import matplotlib
-matplotlib.use('Agg')
 
 def job_server_ok():
 	return True
@@ -201,6 +204,8 @@ class GimmeMotifs:
 		
 		self.location_fa = os.path.join(self.tmpdir, "%s_validation_500.fa" % self.name)
 		self.location_pfile = os.path.join(self.tmpdir, "%s_localization_pvalue.txt" % self.name)
+		self.stats_file = os.path.join(self.tmpdir, "%s_stats.txt" % self.name)
+		self.ranks_file = os.path.join(self.tmpdir, "%s_ranks.txt" % self.name)
 
 		#self.cluster_dir = os.path.join(self.outdir, "cluster_report")
 		self.validation_cluster_gff = os.path.join(self.tmpdir, "%s_validation_clustered.gff" % self.name)
@@ -801,6 +806,40 @@ class GimmeMotifs:
 			self.logger.info("No motifs found. Done.")
 			sys.exit()
 		
+		# Write stats output to file
+		f = open(self.stats_file, "w")
+		stat_keys = result.stats.values()[0].keys()
+		f.write("%s\t%s\n" % ("Motif", "\t".join(stat_keys)))
+		for motif in motifs:
+			stats = result.stats["%s_%s" % (motif.id, motif.to_consensus())]
+			f.write("%s\t%s\n" % (motif.id, "\t".join([str(stats[k]) for k in stat_keys])))
+		f.close()
+	
+		f = open(self.ranks_file, "w")
+		tools = dict((m.id.split("_")[0],1) for m in motifs).keys()
+		f.write("Metric\tType\t%s\n" % ("\t".join(tools)))
+		for stat in ["mncp", "roc_auc", "maxenr"]:
+			best_motif = {}
+			for motif in motifs:
+				val = result.stats["%s_%s" % (motif.id, motif.to_consensus())][stat]
+				name = motif.id.split("_")[0]
+				if val > best_motif.setdefault(name, 0):
+					best_motif[name] = val
+			names = best_motif.keys()
+			vals = [best_motif[name] for name in names]
+			rank = rankdata(vals)
+			ind = [names.index(x) for x in tools]
+			
+			f.write("%s\t%s\t%s\n" % (stat, "value", "\t".join([str(vals[i]) for i in ind])))
+			f.write("%s\t%s\t%s\n" % (stat, "rank", "\t".join([str(rank[i]) for i in ind])))
+		f.close()
+			
+			
+			#self.logger.debug("RANK: %s" % stat)
+			#self.logger.debug("\t".join([str(x) for x in names]))
+			#self.logger.debug("\t".join([str(x) for x in vals]))
+			#self.logger.debug("\t".join([str(x) for x in rank]))
+
 		# Determine significant motifs
 		nsig = 0 
 		f = open(self.significant_pfm, "w")
