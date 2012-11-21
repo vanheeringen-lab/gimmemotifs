@@ -31,13 +31,13 @@ DEFAULT_PARAMS = {
 	"background": "genomic_matched,random",
 	"genome": "hg18",
 	"tools": "MDmodule,Weeder,MotifSampler",
-	"available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,trawler,WannaMotif,Improbizer,MoAn,BioProspector",
+	"available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,trawler,WannaMotif,Improbizer,MoAn,BioProspector,AMD",
 	"cluster_threshold": "0.95",
 	"use_strand": False,
 	"markov_model": 1
 }
 
-MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector", "Posmo", "ChIPMunk", "Jaspar"]
+MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd"]
 LONG_RUNNING = ["MoAn", "GADEM"]
 
 
@@ -48,7 +48,8 @@ MOTIF_BINS = {
 	"BioProspector": "src/BioProspector/BioProspector",
 	"MoAn": "src/MoAn/moan",
 	"GADEM": "src/GADEM_v1.3/src/gadem",
-	"Posmo": "src/posmo/posmo"
+	"Posmo": "src/posmo/posmo",
+	"AMD": "src/AMD/AMD.bin"
 }
 
 data_files=[
