@@ -19,10 +19,14 @@ lwidth = 500
 genome = hg18
 background = genomic_matched,random
 cluster_threshold = 0.95
-available_tools = MDmodule,MEME,Weeder,GADEM,MotifSampler,trawler,Improbizer,MoAn,BioProspector,Posmo,ChIPMunk,Jaspar
-tools = MDmodule,MEME,Weeder,MotifSampler,trawler,Improbizer,BioProspector,Posmo,ChIPMunk,Jaspar
+available_tools = MDmodule,MEME,Weeder,GADEM,MotifSampler,trawler,Improbizer,MoAn,BioProspector,Posmo,ChIPMunk,AMD,Jaspar
+tools = MDmodule,MEME,Weeder,MotifSampler,trawler,Improbizer,BioProspector,Posmo,ChIPMunkAMD,Jaspar
 pvalue = 0.001
 max_time = None
+
+[AMD]
+bin = /usr/share/gimmemotifs/tools/AMD.bin
+dir = /usr/share/gimmemotifs/tools/
 
 [MEME]
 bin = /usr/share/gimmemotifs/tools/meme.bin
