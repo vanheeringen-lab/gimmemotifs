@@ -51,8 +51,8 @@ class MotifProgram:
 			return self._run_program(self.bin(), fastafile, savedir, params)
 		except KeyboardInterrupt:
 			return ([], "Killed", "Killed")
-	
-
+		except Exception as e:
+			return ([], "", e.strerror)
 
 class BioProspector(MotifProgram):
 	def __init__(self):
@@ -140,6 +140,79 @@ class BioProspector(MotifProgram):
 			motifs.append(m)
 		return motifs
 
+class Amd(MotifProgram):
+	def __init__(self):
+		self.name = "AMD"
+		self.cmd = "AMD.bin"
+		self.use_width = False
+	
+	def _run_program(self, bin, fastafile, savedir="", params={}):
+		import os, tempfile, shutil
+		from subprocess import Popen, PIPE
+		
+		default_params = {"background":None}
+		default_params.update(params)
+		
+		amd = bin
+		
+		fastafile = os.path.abspath(fastafile)
+		
+		# Background file is essential!
+		if not default_params["background"]:
+			print "Background file needed!"
+			sys.exit(1)
+		
+		bgfile = os.path.abspath(default_params["background"])
+		tmpdir = tempfile.mkdtemp()
+		fgfile = os.path.join(tmpdir, "AMD.in.fa")
+		outfile = fgfile + ".Matrix"	
+	
+		shutil.copy(fastafile, fgfile)
+		print fgfile
+		current_path = os.getcwd()
+		os.chdir(tmpdir)
+		
+		stdout = ""
+		stderr = ""
+	
+		cmd = "%s -F %s -B %s" % (amd, fgfile, bgfile)
+		p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+		out,err = p.communicate()
+		stdout += out
+		stderr += err
+		
+		os.chdir(current_path)
+		motifs = []
+		if os.path.exists(outfile):
+			f = open(outfile)
+			motifs = self.parse(f)
+			f.close()
+		
+		return motifs, stdout, stderr
+
+	def parse(self, fo):
+		motifs = []
+		
+		#160:  112  CACGTGC      7.25   chr14:32308489-32308689
+		p = re.compile(r'\d+\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)')
+		wm = []
+		name = ""
+		for line in fo.readlines():
+			if line.startswith("Motif") and line.strip().endswith(":"):
+				if name:
+					motifs.append(Motif(wm))
+					motifs[-1].id = name
+					name = ""
+					wm = []
+				name = "%s_%s" % (self.name, line.split(":")[0])
+			else:
+				m = p.search(line)
+				if m:
+					wm.append([float(m.group(x)) for x in range(1,5)])
+		motifs.append(Motif(wm))
+		motifs[-1].id = name
+		
+		return motifs
 
 class MoAn(MotifProgram):
 	def __init__(self):
@@ -281,7 +354,7 @@ class Improbizer(MotifProgram):
 				for i in range(len(pwm_data["A"])):
 					pwm.append([float(pwm_data[x][i]) for x in ["A","C","G","T"]])
 				motifs.append(Motif(pwm))
-				motifs[-1].id = ">Improbizer_%s" % m.group(1)
+				motifs[-1].id = "%s_%s" % (self.name, m.group(1))
 			line = fo.readline()
 		
 		return motifs
@@ -342,6 +415,9 @@ class Trawler(MotifProgram):
 			os.unlink(tmp.name)
 		if os.path.exists(tmpdir):
 			shutil.rmtree(tmpdir)
+		
+		for motif in motifs:
+			motif.id = "%s_%s" % (self.name, motif.id)
 		
 		return motifs, stdout, stderr
 
@@ -567,6 +643,9 @@ class MotifSampler(MotifProgram):
 		tmp.close()
 		tmp2.close()
 		
+		for motif in motifs:
+			motif.id = "%s_%s" % (self.name, motif.id)
+		
 		return motifs, stdout, stderr
 
 	def parse(self, fo):
@@ -673,6 +752,8 @@ class MDmodule(MotifProgram):
 		# remove temporary files
 		shutil.rmtree(tmpdir)
 		
+		for motif in motifs:
+			motif.id = "%s_%s" % (self.name, motif.id)
 		
 		return motifs, stdout, stderr
 
@@ -848,6 +929,9 @@ class Posmo(MotifProgram):
 			m.id = lines[0].strip().split(" ")[-1]
 			motifs.append(m)
 			lines = [fo.readline() for x in range(6)]
+		
+		for i,motif in enumerate(motifs):
+			motif.id = "%s_%s" % (self.name, i + 1)
 
 		return motifs
 
