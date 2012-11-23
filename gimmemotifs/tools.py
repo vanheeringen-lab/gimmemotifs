@@ -157,8 +157,7 @@ class Hms(MotifProgram):
 
 		fastafile = os.path.abspath(fastafile)
 		
-		#tmpdir = tempfile.mkdtemp()
-		tmpdir = "/home/simon/tmp/hms"
+		tmpdir = tempfile.mkdtemp()
 		fgfile = os.path.join(tmpdir, "HMS.in.fa")
 		summitfile = os.path.join(tmpdir, "HMS.in.summits.txt")
 		outfile = os.path.join(tmpdir, "thetafinal.txt")	
