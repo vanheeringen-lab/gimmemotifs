@@ -51,8 +51,8 @@ class MotifProgram:
 			return self._run_program(self.bin(), fastafile, savedir, params)
 		except KeyboardInterrupt:
 			return ([], "Killed", "Killed")
-		except Exception as e:
-			return ([], "", e.strerror)
+#		except Exception as e:
+#			return ([], "", e.strerror)
 
 class BioProspector(MotifProgram):
 	def __init__(self):
@@ -138,6 +138,70 @@ class BioProspector(MotifProgram):
 			m = Motif(pwm)
 			m.id = "BioProspector_w%s_%s" % (len(m), id)
 			motifs.append(m)
+		return motifs
+
+
+class Hms(MotifProgram):
+	def __init__(self):
+		self.name = "HMS"
+		self.cmd = "hms"
+		self.use_width = False
+	
+	def _run_program(self, bin, fastafile, savedir="", params={}):
+		import os, tempfile, shutil
+		from subprocess import Popen, PIPE
+		from gimmemotifs.fasta import Fasta
+
+		hms = bin
+		thetas = ["theta%s.txt" % i for i in [0,1,2,3]]
+
+		fastafile = os.path.abspath(fastafile)
+		
+		#tmpdir = tempfile.mkdtemp()
+		tmpdir = "/home/simon/tmp/hms"
+		fgfile = os.path.join(tmpdir, "HMS.in.fa")
+		summitfile = os.path.join(tmpdir, "HMS.in.summits.txt")
+		outfile = os.path.join(tmpdir, "thetafinal.txt")	
+	
+		hmsdir = os.path.join(self.config.get_tools_dir(), "HMS")
+		shutil.copy(fastafile, fgfile)
+		for t in thetas:
+			shutil.copy(os.path.join(hmsdir, t), tmpdir)
+		
+		fa = Fasta(fgfile)
+		out = open(summitfile, "w")
+		for seq in fa.seqs:
+			out.write("%s\n" % (len(seq) / 2))
+		out.close()
+		
+		current_path = os.getcwd()
+		os.chdir(tmpdir)
+		
+		stdout = ""
+		stderr = ""
+	
+		cmd = "%s -i %s -w 21 -dna 4 -iteration 50 -chain 20 -seqprop -0.1 -strand 2 -peaklocation %s -t_dof 3 -dep 2" % (hms, fgfile, summitfile)
+		p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+		out,err = p.communicate()
+		stdout += out
+		stderr += err
+		
+		os.chdir(current_path)
+		motifs = []
+		if os.path.exists(outfile):
+			f = open(outfile)
+			motifs = self.parse(f)
+			f.close()
+		
+		return motifs, stdout, stderr
+
+	def parse(self, fo):
+		motifs = []
+		m = [[float(x) for x in fo.readline().strip().split(" ")] for i in range(4)]
+		matrix = [[m[0][i], m[1][i],m[2][i],m[3][i]] for i in range(len(m[0]))]
+		motifs = [Motif(matrix)]
+		motifs[-1].id = self.name
+		
 		return motifs
 
 class Amd(MotifProgram):
