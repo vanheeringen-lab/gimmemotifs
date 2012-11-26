@@ -69,9 +69,14 @@ class Fasta:
 		return random_f
 
 
-	def __getitem__(self, id):
-		if id in self.ids:
-			return self.seqs[self.ids.index(id)]
+	def __getitem__(self, idx):
+		if isinstance(idx, slice):
+			f = Fasta()
+			f.ids = self.ids[idx]
+			f.seqs = self.seqs[idx]
+			return f
+		elif idx in self.ids:
+			return self.seqs[self.ids.index(idx)]
 		else:
 			return None
 
