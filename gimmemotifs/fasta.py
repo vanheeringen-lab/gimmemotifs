@@ -72,8 +72,8 @@ class Fasta:
 	def __getitem__(self, idx):
 		if isinstance(idx, slice):
 			f = Fasta()
-			f.ids = self.ids[idx]
-			f.seqs = self.seqs[idx]
+			f.ids = self.ids[idx][:]
+			f.seqs = self.seqs[idx][:]
 			return f
 		elif idx in self.ids:
 			return self.seqs[self.ids.index(idx)]

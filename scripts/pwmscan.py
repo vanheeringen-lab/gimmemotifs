@@ -11,10 +11,12 @@ from optparse import OptionParser,TitledHelpFormatter
 import pp
 
 from gimmemotifs.motif import *
+from gimmemotifs.fasta import Fasta
 
-VERSION = "1.1"
+VERSION = "1.2"
 NREPORT = 1 
 MAX_CPUS = 16
+CHUNK = 1000
 
 usage = "usage: %prog -i <FILE> [optional arguments]"
 parser = OptionParser(version=VERSION, usage=usage, formatter=TitledHelpFormatter(max_help_position=40, short_first=1))
@@ -36,12 +38,24 @@ nreport = options.nreport
 cutoff = options.cutoff
 bed = options.bed
 
-def scan_fa_with_motif(fname, motif, cutoff, nreport, bed):
-	from gimmemotifs.fasta import Fasta
-	f = Fasta(fname)
-	strandmap = {-1:"-",1:"+"}
+def scan_fa_with_motif(fo, motif, cutoff, nreport, bed):
+	return motif, motif.pwm_scan_all(fo, cutoff, nreport)
+
+job_server = pp.Server(secret="beetrootsoup")
+if job_server.get_ncpus() > MAX_CPUS:
+	job_server.set_ncpus(MAX_CPUS)
+
+jobs = []
+motifs = pwmfile_to_motifs(options.pwmfile)
+fa = Fasta(inputfile)
+for motif in motifs:
+	for i in range(0, len(fa), CHUNK):
+		jobs.append(job_server.submit(scan_fa_with_motif, (fa[i:i + CHUNK], motif, cutoff, nreport, bed), (),()))
+
+strandmap = {-1:"-",1:"+"}
 	
-	result = motif.pwm_scan_all(f, cutoff, nreport)
+for job in jobs:
+	motif, result = job()
 	for seq_id, matches in result.items():
 		for (pos, score, strand) in matches:
 			if bed:
@@ -62,17 +76,6 @@ def scan_fa_with_motif(fname, motif, cutoff, nreport, bed):
 					strandmap[strand], 
 					".", 
 					motif.id, 
-					f[seq_id][pos: pos + len(motif)]
+					fa[seq_id][pos: pos + len(motif)]
 				)
 
-job_server = pp.Server(secret="beetrootsoup")
-if job_server.get_ncpus() > MAX_CPUS:
-	job_server.set_ncpus(MAX_CPUS)
-
-jobs = []
-motifs = pwmfile_to_motifs(options.pwmfile)
-for motif in motifs:
-	jobs.append(job_server.submit(scan_fa_with_motif, (inputfile, motif, cutoff, nreport, bed), (),()))
-
-for job in jobs:
-	job()
