@@ -23,3 +23,4 @@ available_tools = MDmodule,MEME,Weeder,GADEM,MotifSampler,trawler,Improbizer,MoA
 tools = MDmodule,MEME,Weeder,MotifSampler,trawler,Improbizer,BioProspector,AMD
 pvalue = 0.001
 max_time = None
+ncpus = 12

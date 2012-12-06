@@ -995,7 +995,7 @@ class Posmo(MotifProgram):
 		
 		for i,motif in enumerate(motifs):
 			motif.id = "%s_%s" % (self.name, i + 1)
-
+			motif.trim(0.25)
 		return motifs
 
 

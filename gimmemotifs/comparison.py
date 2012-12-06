@@ -31,6 +31,9 @@ except ImportError:
 	pass
 
 job_server = pp.Server(secret="pumpkinrisotto")	
+ncpus = int(MotifConfig().get_default_params()["ncpus"])
+if job_server.get_ncpus() > ncpus:
+	job_server.set_ncpus(ncpus)
 
 class MotifComparer:
 	def __init__(self):

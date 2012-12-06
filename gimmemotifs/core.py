@@ -244,7 +244,11 @@ class GimmeMotifs:
 	def _get_job_server(self):
 		self.logger.debug("Creating parallel python job server")
 		import pp
-		return pp.Server(secret="pumpkinrisotto")
+		server = pp.Server(secret="pumpkinrisotto")
+		ncpus = int(self.params["ncpus"])
+		if server.get_ncpus() > ncpus:
+			server.set_ncpus(ncpus)
+		return server
 
 	def _check_input(self, file):
 		""" Check if the inputfile is a valid bed-file """

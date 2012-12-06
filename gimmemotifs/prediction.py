@@ -74,7 +74,7 @@ class PredictionResult:
 				self.logger.info("Adding %s again!" % n)
 				job_server.submit(motif.stats, (self.fg_fa, self.bg_fa), (), (), self.add_stats, ("%s_%s" % (motif.id, motif.to_consensus()),), group="stats")
 
-def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools={}, job_server="", n_cpu=8, logger=None, max_time=None, fg_file=None, bg_file=None):
+def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools={}, job_server="", ncpus=8, logger=None, max_time=None, fg_file=None, bg_file=None):
 	
 	config = MotifConfig()
 
@@ -97,7 +97,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
 		analysis = "small"
 
 	if not job_server:
-		job_server = pp.Server(n_cpu, secret='pumpkinrisotto')
+		job_server = pp.Server(ncpus, secret='pumpkinrisotto')
 	
 	jobs = {}
 	
