@@ -189,6 +189,19 @@ class GenomeIndex:
 		d_offset = unpack(self.pack_char, entry)[0]
 		return d_offset
 		
+	def _make_gc_windows(self, fname, fasta, window):
+		f = open(fname, "w")
+		pc = float(window) / 100
+		for chrom, seq in fasta.items():
+			for i in range(0, len(seq), window):
+				subseq = seq[i: i + window].upper()
+				if subseq.count("N") < window / 4:
+					gc = int((subseq.count("G") + subseq.count("C")) / pc)
+					f.write("%s\t%s\t%s\n" % (chrom, i, gc))
+
+		f.close()
+				
+	
 	def _read(self, index, fasta, start, end, line_size):
 		#start = start - 1
 		start_line = int(start / line_size)  
