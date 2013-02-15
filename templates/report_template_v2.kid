@@ -161,7 +161,7 @@ padding: 0px 0 5px 20px;
 
 <div id="content">
 <p py:for="motif in motifs">
-<a py:attrs="motif.id_name"><h2 py:content="motif.id">Motif.5.2</h2></a>
+<a py:attrs="motif.id_name"><h2 py:content="motif.id + ' (' + motif.best + ')'">Motif.5.2</h2></a>
 <h3>Motif and consensus</h3>
 <table>
 
