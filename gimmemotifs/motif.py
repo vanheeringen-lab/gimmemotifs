@@ -24,7 +24,7 @@ class Motif:
 	def __init__(self, pfm=[]):
 		if len(pfm) > 0:
 			if sum(pfm[0]) > 2:
-				self.pfm = pfm
+				self.pfm = [list(x) for x in pfm]
 			else:
 				self.pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in pfm]
 			self.pwm = self.pfm_to_pwm(pfm)
