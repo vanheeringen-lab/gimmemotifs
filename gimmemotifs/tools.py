@@ -955,24 +955,25 @@ class Posmo(MotifProgram):
 		
 		fastafile = new_file
 		pwmfile = fastafile + ".pwm"
-		outfile = fastafile + ".out"
 	
+		motifs = []
 		current_path = os.getcwd()
 		os.chdir(tmpdir)	
-		cmd = "%s 5000 11111111 %s 1.6 2.5 20 200" % (bin, fastafile)
-		p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
-		stdout, stderr = p.communicate()
+		for x in ["111111", "11111111"]:
+			outfile = "%s.%s.out" % (fastafile, x)
+			cmd = "%s 5000 %s %s 1.6 2.5 20 200" % (bin, x, fastafile)
+			p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+			stdout, stderr = p.communicate()
 	
-		context_file = fastafile.replace(basename, "context.%s.11111111.txt" % basename)
-		cmd = "%s %s %s simi.txt 0.88 10 2 10" % (bin.replace("posmo","clusterwd"), context_file, outfile)
-		p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
-		out, err = p.communicate()
-		stdout += out
-		stderr += err
+			context_file = fastafile.replace(basename, "context.%s.%s.txt" % (basename, x))
+			cmd = "%s %s %s simi.txt 0.88 10 2 10" % (bin.replace("posmo","clusterwd"), context_file, outfile)
+			p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+			out, err = p.communicate()
+			stdout += out
+			stderr += err
 		
-		motifs = []
-		if os.path.exists(outfile):
-			motifs = self.parse(open(outfile))
+			if os.path.exists(outfile):
+				motifs += self.parse(open(outfile))
 		
 		os.chdir(current_path)
 		# remove temporary files
@@ -996,7 +997,9 @@ class Posmo(MotifProgram):
 		for i,motif in enumerate(motifs):
 			motif.id = "%s_%s" % (self.name, i + 1)
 			motif.trim(0.25)
+		
 		return motifs
+
 
 
 class Gadem(MotifProgram):
@@ -1143,7 +1146,81 @@ class Meme(MotifProgram):
 			align = []
 			pfm = []	
 			if m:
-				id = "Meme_%s_w%s" % (m.group(1), m.group(2))
+				id = "%s_%s_w%s" % (self.name, m.group(1), m.group(2))
+				while not line.startswith("//"):
+					ma = pa.search(line)
+					if ma:
+						l = ma.group(1)
+						align.append(l)
+						if not pfm:
+							pfm = [[0 for x in range(4)] for x in range(len(l))]
+						for pos in range(len(l)):
+							if l[pos] in nucs.keys():
+								pfm[pos][nucs[l[pos]]] += 1
+							else:
+								for i in range(4):
+									pfm[pos][i] += 0.25
+					
+					line = fo.readline()
+				
+				motifs.append(Motif(pfm[:]))
+				motifs[-1].id = id
+				motifs[-1].align = align[:]
+			line = fo.readline()
+
+		return motifs
+
+class MemeW(MotifProgram):
+	def __init__(self):
+		self.name = "MEMEW"
+		self.cmd = "meme.bin"
+		self.use_width = False
+
+	def _run_program(self, bin, fastafile, savedir, params={}):
+		from subprocess import Popen, PIPE, STDOUT, call
+		import os, tempfile, shutil, StringIO
+		
+		#EVT = 1.0
+		default_params = {"single":False, "number":10}
+		default_params.update(params)
+		
+		fastafile = os.path.abspath(fastafile)
+		savedir = os.path.abspath(savedir)
+		tmp = tempfile.NamedTemporaryFile()
+		tmpname = tmp.name
+	
+		strand = "-revcomp"
+		number = default_params["number"]
+		
+		cmd = [bin, fastafile, "-text","-dna","-nostatus","-mod", "zoops","-nmotifs", "%s" % number, "-minw", "6", "-maxw","20", "-maxsize", "10000000"]
+		if not default_params["single"]:
+			cmd.append(strand)
+		
+		#sys.stderr.write(" ".join(cmd) + "\n")
+		p = Popen(cmd, bufsize=1, stderr=PIPE, stdout=PIPE) 
+		stdout,stderr = p.communicate()
+
+		motifs = []
+		motifs = self.parse(StringIO.StringIO(stdout))
+		
+		# Delete temporary files
+		tmp.close()
+	 	
+		return motifs, stdout, stderr
+
+	def parse(self, fo):
+		motifs = []
+		nucs = {"A":0,"C":1,"G":2,"T":3}
+
+		p = re.compile('BL   MOTIF (\d+) width=(\d+) seqs=(\d+)')
+		pa = re.compile('\)\s+(\w+)')
+		line = fo.readline()
+		while line:
+			m = p.search(line)
+			align = []
+			pfm = []	
+			if m:
+				id = "%s_%s_w%s" % (self.name, m.group(1), m.group(2))
 				while not line.startswith("//"):
 					ma = pa.search(line)
 					if ma:
