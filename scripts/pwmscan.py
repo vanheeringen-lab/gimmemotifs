@@ -63,9 +63,9 @@ for job in jobs:
 				(chrom,loc) = first.split(":")
 				if loc:
 					(start, end) = map(int, loc.split("-"))
-					print "%s\t%s\t%s\t%s" % (chrom, start + pos, start + pos + len(motif) , score)
+					print "%s\t%s\t%s\t%s\t%s\t%s" % (chrom, start + pos, start + pos + len(motif) , motif.id, score, strandmap[strand])
 				else:
-					print "%s\t%s\t%s\t%s" % (seq_id, pos, pos +  len(motif), score)
+					print "%s\t%s\t%s\t%s\t%s\t%s" % (seq_id, pos, pos +  len(motif), motif.id, score, strandmap[strand])
 			else:
 				print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\tmotif_name \"%s\" ; motif_instance \"%s\"" % (
 					seq_id, 
