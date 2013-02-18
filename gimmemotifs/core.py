@@ -585,7 +585,7 @@ class GimmeMotifs:
 			f.write("%s\t%s\n" % (param, value))
 		f.close()
 
-	def _create_report(self, pwm, background, stats={}):
+	def _create_report(self, pwm, background, stats={}, best_id={}):
 		self.logger.info("Creating graphical report")
 		class ReportMotif:
 			pass
@@ -606,7 +606,9 @@ class GimmeMotifs:
 			rm.id_href = {"href": "#%s" % motif.id}
 			rm.id_name = {"name": motif.id}
 			rm.img = {"src":  os.path.join("images", "%s.png" % motif.id)}
-				
+			
+			rm.best = best_id[motif.id]
+			
 			rm.consensus = motif.to_consensus()
 			rm.stars = stats["%s_%s" % (motif.id, motif.to_consensus())]["stars"]
 
@@ -657,6 +659,7 @@ class GimmeMotifs:
 
 	def _determine_best_motif_in_cluster(self, clusters, pwm, sample_fa, bg_fa, imgdir=None):
 		num_cluster = {}
+		best_id = {}
 		out = open(pwm, "w")
 		for i, (clus, singles) in enumerate(clusters):
 			motifs = [clus] + singles
@@ -672,7 +675,9 @@ class GimmeMotifs:
 
 			self.logger.debug("end list")
 			best_motif = sorted(motifs, cmp=lambda x,y: cmp(mncp[x.id], mncp[y.id]))[-1]
+			old_id = best_motif.id
 			best_motif.id = "GimmeMotifs_%d" % (i + 1)
+			best_id[best_motif.id] = old_id.split("_")[0]
 			num_cluster["%s_%s" % (best_motif.id, best_motif.to_consensus())] = len(singles)
 			if imgdir:
 				best_motif.to_img(os.path.join(imgdir, best_motif.id), format="PNG")
@@ -680,7 +685,7 @@ class GimmeMotifs:
 			tmp.close()
 			tmp2.close()
 		out.close()
-		return num_cluster
+		return num_cluster, best_id
 
 	def run_full_analysis(self, inputfile, user_params={}):
 		""" Full analysis: from bed-file to motifs (including clustering, ROC-curves, location plots and html report) """
@@ -868,7 +873,7 @@ class GimmeMotifs:
 		clusters = self._cluster_motifs(self.significant_pfm, self.cluster_pwm, self.outdir, params["cluster_threshold"])
 		
 		# Determine best motif in cluster
-		num_cluster = self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, bg_file, self.imgdir)
+		num_cluster, best_id = self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, bg_file, self.imgdir)
 		
 		### Enable parallel and modular evaluation of results
 		# Scan (multiple) files with motifs
@@ -921,7 +926,7 @@ class GimmeMotifs:
 		# Create report	
 		self.print_params()
 		self._calc_report_values(self.final_pwm, background)
-		self._create_report(self.final_pwm, background, stats=p.stats)
+		self._create_report(self.final_pwm, background, stats=p.stats, best_id=best_id)
 		self._create_text_report(self.final_pwm, background)
 		self.logger.info("Open %s in your browser to see your results." % (self.motif_report))
 		
