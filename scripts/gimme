@@ -35,7 +35,12 @@ p.add_argument("-m", "--markov", dest="markov_model", help="Specify Markov model
 p.set_defaults(func=commands.motifs)
 
 # gimme_max.py
-subparsers.add_parser('max')
+p = subparsers.add_parser('maxenr')
+p.add_argument("pwmfile", help="File with pwms", metavar="PWMFILE")
+p.add_argument("sample", help="FASTA file", metavar="FG_FAFILE")
+p.add_argument("background", help="FASTA file with background sequences", metavar="BG_FAFILE")
+p.add_argument("-i", dest="ids", help="Comma-seperated list of motif ids to plot in ROC (default is all ids)", metavar="IDS")
+p.set_defaults(func=commands.maxenr)
 
 # closest_match.py
 p = subparsers.add_parser('match')
@@ -54,6 +59,16 @@ p.add_argument("background", help="FASTA file with background sequences", metava
 p.add_argument("-o", dest="outfile", help="Name of output file with ROC plot (png, svg, ps, pdf)", metavar="FILE")
 p.add_argument("-i", dest="ids", help="Comma-seperated list of motif ids to plot in ROC (default is all ids)", metavar="IDS")
 p.set_defaults(func=commands.roc)
+
+# motif_cluster.py
+p = subparsers.add_parser('cluster')
+p.add_argument("-i", "--inputfile", dest="inputfile", help="Inputfile (PFM format)", metavar="FILE")
+p.add_argument("-o", "--outdir", dest="outdir", help="Name of output directory", metavar="FILE")
+p.add_argument("-b", "--bg", dest="include_bg", help="bg (don't use this)", default=True, action="store_false")
+p.add_argument("-s", "--singlestrand", dest="single", help="Don't compare reverse complements of motifs", default=False,action="store_true")
+p.add_argument("-t", "--threshold", dest="threshold", help="Cluster threshold", default=0.95, type=float)
+p.set_defaults(func=commands.cluster)
+
 
 args = parser.parse_args()
 args.func(args)
