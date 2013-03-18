@@ -9,7 +9,7 @@
 
 # External imports
 from scipy.stats import stats
-from numpy import *
+from numpy import array
 
 def fraction_fdr(fg_vals, bg_vals, fdr=5):
 	from scipy.stats import scoreatpercentile
