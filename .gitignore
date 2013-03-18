@@ -1,3 +1,4 @@
+**/*.swp
 gimmemotifs/*.pyc
 test/*.pyc
 build/*
