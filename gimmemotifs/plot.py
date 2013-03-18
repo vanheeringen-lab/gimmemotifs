@@ -7,6 +7,10 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
 from tempfile import NamedTemporaryFile
+import numpy
+import os
+
+VALID_EXTENSIONS = [".png", ".pdf", ".svg", ".ps"]
 
 def axes_off(ax):
     """Get rid of all axis ticks, lines, etc.
@@ -15,48 +19,56 @@ def axes_off(ax):
     ax.axes.get_yaxis().set_visible(False)
     ax.axes.get_xaxis().set_visible(False)
 
-def roc_plot(outfile, x, y):
-	import matplotlib.pyplot as plt
-	import matplotlib.cm as cm
-	
-	fig = plt.figure()
-	try:
-		# matplotlib >= 0.99
-		rect = fig.patch # a rectangle instance
-	except:
-		# matplotlib 0.98
-		rect = fig.figurePatch # a rectangle instance
+def roc_plot(outfile, plot_x, plot_y, ids=[]):
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as cm
+    
+    fig = plt.figure()
+    fig.add_subplot(111, aspect="equal")
 
-	colors = [cm.Paired(256 / 11 * i) for i in range(11)]
-	plt.plot(x, y, color=colors[(0 * 2) % 10 + 1])
-	plt.axis([0,1,0,1])
-	plt.xlabel("1 - Specificity")
-	plt.ylabel("Sensitivity")
-	plt.savefig(outfile, format="png")
+    colors = [cm.Paired(256 / 11 * i) for i in range(11)]
+    
+    if type(plot_x[0]) == type(numpy.array([])):
+        for i,(x,y) in enumerate(zip(plot_x, plot_y)):
+            plt.plot(x, y, color=colors[(i * 2) % 10 + 1])
+    else:
+        plt.plot(plot_x,plot_y, color=colors[(0 * 2) % 10 + 1])
+    
+    plt.axis([0,1,0,1])
+    plt.xlabel("1 - Specificity")
+    plt.ylabel("Sensitivity")
+
+    if len(ids) > 0:
+         plt.legend(ids, loc=(1.03,0.2))
+
+    if not os.path.splitext(outfile)[-1] in VALID_EXTENSIONS:
+        outfile += ".png"
+      
+    plt.savefig(outfile, dpi=300, bbox_inches='tight')
 
 def plot_histogram(values, outfile, xrange=None, breaks=10, title=None, xlabel=None, color=10):
-	import matplotlib.pyplot as plt
-	import matplotlib.cm as cm
-	
-	colors = [cm.Paired(256 / 11 * i) for i in range(11)]
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as cm
+    
+    colors = [cm.Paired(256 / 11 * i) for i in range(11)]
 
-	plt.clf()
-	try:
-		# matplotlib >= 0.99
-		plt.hist(values, range=xrange, bins=breaks, color=colors[color], edgecolor="black")
-	except:
-		plt.hist(values, range=xrange, bins=breaks)
-	plt.xlim(xrange)
+    plt.clf()
+    try:
+        # matplotlib >= 0.99
+        plt.hist(values, range=xrange, bins=breaks, color=colors[color], edgecolor="black")
+    except:
+        plt.hist(values, range=xrange, bins=breaks)
+    plt.xlim(xrange)
 
-	if title:
-		plt.title(title)
+    if title:
+        plt.title(title)
 
-	plt.ylabel("Frequency")
-	if xlabel:
-		plt.xlabel(xlabel)
-	if not outfile.endswith(".svg"):
-		outfile += ".svg"
-	plt.savefig(outfile, format="svg")
+    plt.ylabel("Frequency")
+    if xlabel:
+        plt.xlabel(xlabel)
+    if not outfile.endswith(".svg"):
+        outfile += ".svg"
+    plt.savefig(outfile, format="svg")
 
 def match_plot(plotdata, outfile):
     """Plot list of motifs with database match and p-value

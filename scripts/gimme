@@ -32,6 +32,7 @@ p.add_argument("-l", "--localization_width", dest="lwidth", help="Width to use f
 p.add_argument("-t", "--tools", dest="tools", help="Tools to use, any combination of %s (default %s)" % (params["available_tools"], params["tools"]), metavar="N", default=params["tools"])
 p.add_argument("--max_time", dest="max_time", help="Time limit for motif prediction in hours (default: %s)" % str(params["max_time"]), metavar="HOURS", default=params["max_time"])
 p.add_argument("-m", "--markov", dest="markov_model", help="Specify Markov model, default is 1 for 1st order", default=1)
+p.set_defaults(func=commands.motifs)
 
 # gimme_max.py
 subparsers.add_parser('max')
@@ -44,7 +45,15 @@ p.add_argument("-o", dest="img", help="Output file with graphical report (png, s
 p.set_defaults(func=commands.match)
 
 subparsers.add_parser('background')
-subparsers.add_parser('roc')
+
+# motif_roc.py and motif_roc_metrics.py
+p = subparsers.add_parser('roc')
+p.add_argument("pwmfile", help="File with pwms", metavar="PWMFILE")
+p.add_argument("sample", help="FASTA file", metavar="FG_FAFILE")
+p.add_argument("background", help="FASTA file with background sequences", metavar="BG_FAFILE")
+p.add_argument("-o", dest="outfile", help="Name of output file with ROC plot (png, svg, ps, pdf)", metavar="FILE")
+p.add_argument("-i", dest="ids", help="Comma-seperated list of motif ids to plot in ROC (default is all ids)", metavar="IDS")
+p.set_defaults(func=commands.roc)
 
 args = parser.parse_args()
 args.func(args)
