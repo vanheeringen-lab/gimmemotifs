@@ -3,3 +3,4 @@ from motifs import motifs
 from roc import roc
 from maxenr import maxenr
 from cluster import cluster
+from index import index

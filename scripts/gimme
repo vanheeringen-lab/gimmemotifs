@@ -48,7 +48,6 @@ p.add_argument("pwmfile", help="File with pwms", metavar="PFILE")
 p.add_argument("dbpwmfile", help="File with pwms to match against", metavar="DBFILE")
 p.add_argument("-o", dest="img", help="Output file with graphical report (png, svg, ps, pdf)", metavar="FILE")
 p.set_defaults(func=commands.match)
-
 subparsers.add_parser('background')
 
 # motif_roc.py and motif_roc_metrics.py
@@ -68,6 +67,24 @@ p.add_argument("-b", "--bg", dest="include_bg", help="bg (don't use this)", defa
 p.add_argument("-s", "--singlestrand", dest="single", help="Don't compare reverse complements of motifs", default=False,action="store_true")
 p.add_argument("-t", "--threshold", dest="threshold", help="Cluster threshold", default=0.95, type=float)
 p.set_defaults(func=commands.cluster)
+
+# create_genome_index.py
+default_index = config.get_index_dir()
+p = subparsers.add_parser('index')
+p.add_argument("-i", "--indexdir", 
+               dest="indexdir", 
+               help="Index dir (default %s)" % default_index, 
+               metavar="DIR", 
+               default=default_index)
+p.add_argument("-f", "--fastadir", 
+               dest="fastadir", 
+               help="Directory containing fastafiles", 
+               metavar="DIR")
+p.add_argument("-n", "--indexname", 
+               dest="indexname", 
+               help="Name of index", 
+               metavar="NAME")
+p.set_defaults(func=commands.index)
 
 
 args = parser.parse_args()
