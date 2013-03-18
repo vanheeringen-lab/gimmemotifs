@@ -429,7 +429,7 @@ setup (name = 'gimmemotifs',
 		author_email='s.vanheeringen@ncmls.ru.nl',
 		url='http://www.ncmls.eu/bioinfo/gimmemotifs/',
 		license='MIT',
-		packages=['gimmemotifs'],
+		packages=['gimmemotifs', 'gimmemotifs/commands'],
 		ext_modules = [module1],
 		scripts=[
 			'scripts/get_fpr_based_pwmscan_threshold.py',
@@ -446,6 +446,7 @@ setup (name = 'gimmemotifs',
 			'scripts/track2fasta.py',
 			'scripts/pwmscan.py',
 			'scripts/gimme_max.py',
+			'scripts/gimme',
 			],
 		data_files=data_files
 )
