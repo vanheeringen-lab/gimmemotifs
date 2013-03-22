@@ -35,25 +35,6 @@ from gimmemotifs.plot import *
 def job_server_ok():
 	return True
 
-def motif_localization(fastafile, motif, width, outfile, cutoff=0.9):
-	NR_HIST_MATCHES = 100
-	from gimmemotifs.plot import plot_histogram
-	from gimmemotifs.utils import ks_pvalue
-	from gimmemotifs.fasta import Fasta
-	from numpy import array
-	
-	matches = motif.pwm_scan(Fasta(fastafile), cutoff=cutoff, nreport=NR_HIST_MATCHES)
-	if len(matches) > 0:
-		ar = []
-		for a in matches.values():
-			ar += a
-		matches = array(ar)
-		p = ks_pvalue(matches, width - len(motif))
-		plot_histogram(matches - width / 2 + len(motif) / 2, outfile, xrange=(-width / 2, width / 2), breaks=21, title="%s (p=%0.2e)" % (motif.id, p), xlabel="Position")
-		return motif.id, p
-	else:
-		return motif.id, 1.0
-
 def get_scores(motif, fg_file, bg_file):
 	error = None
 	auc = None
