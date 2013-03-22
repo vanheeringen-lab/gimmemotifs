@@ -10,6 +10,7 @@ import os
 
 ### CONSTANTS ###
 GM_VERSION = "0.8"
+BG_TYPES = ["random", "random_genomic", "matched_genomic", "random_promoter"]
 FA_VALID_BGS = ["random", "promoter", "user"]
 BED_VALID_BGS = ["genomic_matched", "random", "promoter", "user"]
 BG_RANK = {"user":1, "promoter":2, "genomic_matched":3, "random":4}

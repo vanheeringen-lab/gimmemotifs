@@ -5,7 +5,7 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 import argparse
-from gimmemotifs.config import MotifConfig
+from gimmemotifs.config import MotifConfig, BG_TYPES
 from  gimmemotifs import commands
 
 parser = argparse.ArgumentParser()
@@ -196,7 +196,45 @@ p.add_argument("-n", "--indexname",
                metavar="NAME")
 p.set_defaults(func=commands.index)
 
-subparsers.add_parser('background')
+p = subparsers.add_parser('background')
+p.add_argument("outputfile", 
+               help="Outputfile", 
+               metavar="FILE")
+p.add_argument("bg_type", 
+               help="Type of background sequences to generate (%s)" % 
+                    ",".join(BG_TYPES), 
+               metavar="TYPE")
+p.add_argument("-i", 
+               dest="inputfile", 
+               help="FASTA (random) or BED (matched_genomic) formatted inputfile", 
+               metavar="FILE")
+p.add_argument("-f", 
+               dest="outformat", 
+               help="Output format, BED or FASTA", 
+               metavar="TYPE", 
+               default="fasta")
+p.add_argument("-l", 
+               dest="length", 
+               help="Length of random sequences", 
+               metavar="INT", 
+               type=int)
+p.add_argument("-n", 
+               dest="number", 
+               help="Number of sequence to generate compared to input (1 means same amount, default is 10)", 
+               metavar="NUMBER", 
+               default=10, 
+               type=int)
+p.add_argument("-g", 
+               dest="genome", help="If type is matched_genomic, this specified the organism for which matched genomic background sequences will be selected", 
+               metavar="GENOME", 
+               default="hg18")
+p.add_argument("-m", 
+               dest="markov_order", 
+               help="If type is random, this specifies the order of the Markov model (default 1)", 
+               metavar="N", 
+               default=1, 
+               type=int)
+p.set_defaults(func=commands.background)
 
 args = parser.parse_args()
 args.func(args)
