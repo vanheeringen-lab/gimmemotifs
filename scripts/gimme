@@ -236,5 +236,21 @@ p.add_argument("-m",
                type=int)
 p.set_defaults(func=commands.background)
 
+p = subparsers.add_parser('threshold')
+p.add_argument("pwmfile", 
+               help="File with pwms", 
+               metavar="PWMFILE")
+p.add_argument("inputfile",
+               help="FASTA file with background sequences", 
+               metavar="FAFILE")
+p.add_argument("fdr", 
+               help="Desired fdr", 
+               type=float, 
+               metavar="FDR")
+p.set_defaults(func=commands.threshold)
+
+
+
+
 args = parser.parse_args()
 args.func(args)
