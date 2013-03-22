@@ -9,6 +9,7 @@ from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.utils import motif_localization
 import pp
 import sys
+import os
 
 def location(args):
     fastafile = args.fastafile
