@@ -29,12 +29,18 @@ def match(args):
             pval, pos, orient = mc.compare_motifs(motif, dbmotif, "partial", "wic", "mean", pval=True)
             
             if orient == -1:
-                 dbmotif = dbmotif.rc()
+                tmp = dbmotif.id
+                dbmotif = dbmotif.rc()
+                dbmotif.id = tmp
 
             if pos < 0:
+                tmp = motif.id
                 motif = Motif([[0.25,0.25,0.25,0.25]] * -pos + motif.pwm)
+                motif.id = tmp
             elif pos > 0:
+                tmp = dbmotif.id
                 dbmotif = Motif([[0.25,0.25,0.25,0.25]] * pos + dbmotif.pwm)
+                dbmotif.id = tmp
 
             plotdata.append((motif, dbmotif, pval))
             match_plot(plotdata, args.img)
