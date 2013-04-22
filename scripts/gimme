@@ -196,6 +196,29 @@ p.add_argument("-n", "--indexname",
                metavar="NAME")
 p.set_defaults(func=commands.index)
 
+p = subparsers.add_parser('histogram')
+p.add_argument("-p", "--pwmfile", 
+               dest="pwmfile", 
+               help="File with pwms", 
+               metavar="PWMFILE")
+p.add_argument("-f", "--fastafile", 
+               dest="fastafile", 
+               help="Fasta formatted file", 
+               metavar="FAFILE")
+p.add_argument("-w", "--width", 
+               dest="width", 
+               help="Set width to W (default: determined from fastafile)", 
+               metavar="W", type=int)
+p.add_argument("-i", "--ids", 
+               dest="ids", 
+               help="Plot histogram for motif ids in comma-separated list (default is all ids)",
+               metavar="IDS")
+p.add_argument("-c", "--cutoff", 
+               dest="cutoff", help="Cutoff for motif scanning (default 0.95)", 
+               type=float, 
+               default=0.95)
+p.set_defaults(func=commands.histogram)
+
 subparsers.add_parser('background')
 
 args = parser.parse_args()
