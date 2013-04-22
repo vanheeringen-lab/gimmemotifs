@@ -5,10 +5,13 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 
-from gimmemotifs.genome_index import GenomeIndex
 import sys
+import os
+
+from gimmemotifs.genome_index import GenomeIndex
 
 def index(args):
+    
     if not os.path.exists(args.indexdir):
     	print "Index_dir %s does not exist!" % (args.indexdir)
     	sys.exit(1)

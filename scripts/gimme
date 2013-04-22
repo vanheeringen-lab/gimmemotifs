@@ -181,19 +181,17 @@ p.set_defaults(func=commands.cluster)
 # create_genome_index.py
 default_index = config.get_index_dir()
 p = subparsers.add_parser('index')
+p.add_argument("fastadir", 
+               help="Directory containing fastafiles", 
+               metavar="FASTADIR")
+p.add_argument("indexname", 
+               help="Name of index", 
+               metavar="INDEXNAME")
 p.add_argument("-i", "--indexdir", 
                dest="indexdir", 
                help="Index dir (default %s)" % default_index, 
                metavar="DIR", 
                default=default_index)
-p.add_argument("-f", "--fastadir", 
-               dest="fastadir", 
-               help="Directory containing fastafiles", 
-               metavar="DIR")
-p.add_argument("-n", "--indexname", 
-               dest="indexname", 
-               help="Name of index", 
-               metavar="NAME")
 p.set_defaults(func=commands.index)
 
 p = subparsers.add_parser('background')
