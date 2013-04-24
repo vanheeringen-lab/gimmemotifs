@@ -305,5 +305,17 @@ p.add_argument("-b", "--bed",
                help="output bed format")
 p.set_defaults(func=commands.pwmscan)
 
+#pwm2logo.py
+p = subparsers.add_parser('logo')
+p.add_argument("pwmfile",
+                help="PWM file with motifs",
+                metavar="PWMFILE")
+p.add_argument("-i", 
+               dest="ids", 
+               help="Comma-seperated list of motif ids (default is all ids)", 
+               metavar="IDS")
+p.set_defaults(func=commands.logo)
+
+
 args = parser.parse_args()
 args.func(args)
