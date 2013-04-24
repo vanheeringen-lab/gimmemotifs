@@ -194,6 +194,7 @@ p.add_argument("-i", "--indexdir",
                default=default_index)
 p.set_defaults(func=commands.index)
 
+# generate_background_sequences.py
 p = subparsers.add_parser('background')
 p.add_argument("outputfile", 
                help="Outputfile", 
@@ -234,6 +235,7 @@ p.add_argument("-m",
                type=int)
 p.set_defaults(func=commands.background)
 
+# get_fpr_based_pwmscan_threshold.py
 p = subparsers.add_parser('threshold')
 p.add_argument("pwmfile", 
                help="File with pwms", 
@@ -247,6 +249,7 @@ p.add_argument("fdr",
                metavar="FDR")
 p.set_defaults(func=commands.threshold)
 
+# motif_localization_plots.py
 p = subparsers.add_parser('location')
 p.add_argument("pwmfile", 
                help="File with pwms", 
@@ -268,6 +271,39 @@ p.add_argument("-c",
                type=float, 
                default=0.95)
 p.set_defaults(func=commands.location)
+
+# pwmscan.py
+NREPORT = 1
+p = subparsers.add_parser('scan')
+p.add_argument("inputfile",
+               help="FASTA-formatted inputfile", 
+               metavar="FAFILE")
+p.add_argument("pwmfile", 
+               help="PWM file with motifs", 
+               metavar="PWMFILE")
+p.add_argument("-c", "--cutoff", 
+               dest="cutoff", 
+               help="motif score cutoff (fraction of maxscore, default 0.9)", 
+               metavar="", 
+               default=0.9, 
+               type=float)
+p.add_argument("-n", "--nreport", 
+               dest="nreport", 
+               help="report the N best matches", 
+               metavar="N", 
+               default=NREPORT, 
+               type=int)
+p.add_argument("-r", "--norc", 
+               dest="scan_rc", 
+               help="don't scan reverse complement (- strand)", 
+               default=True, 
+               action="store_false")
+p.add_argument("-b", "--bed", 
+               action="store_true", 
+               dest="bed", 
+               default=False, 
+               help="output bed format")
+p.set_defaults(func=commands.pwmscan)
 
 args = parser.parse_args()
 args.func(args)
