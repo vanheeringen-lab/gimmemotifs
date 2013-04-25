@@ -161,13 +161,13 @@ All fasta files need to be indexed before GimmeMotifs can use them, see section 
 \label{sec:indexing}
 All the genomes that you want to use with GimmeMotifs will need to be indexed for (relatively) fast retrieval of sequences. You can do this, once you have installed GimmeMotifs, by running the following command (as root or with sudo):
 \begin{verbatim}
-create_genome_index.py -f /dir/to/fasta/files/ -n genome_name
+gimme index /dir/to/fasta/files/ genome_name
 \end{verbatim}
-For instance, if I wanted to index the human genome (version hg18) on my computer, where all fasta files are located in the directory \texttt{/usr/share/genome/} I would run the following command:
+For instance, if I wanted to index the human genome (version hg19) on my computer, where all fasta files are located in the directory \texttt{/usr/share/genome/} I would run the following command:
 \begin{verbatim}
-sudo create_genome_index.py -f /usr/share/genome/hg18/ -n hg18
+gimme index /usr/share/genome/hg19/ hg19
 \end{verbatim}
-Repeat this step for every additional genome or organism that you want to use GimmeMotifs with. Please note: for Weeder, currently only hg18, hg19, mm9, sacCer2 and xenTro2 are supported as organism names (following the UCSC naming convention). This will be fixed as a configuration file in a later release.
+Repeat this step for every additional genome or organism that you want to use GimmeMotifs with. Please note: for Weeder, currently only hg18, hg19, mm9, rn4, dm3, fr2, danRer6, danRer7, galGal3, ce3, anoGam1, yeast, sacCer2, xenTro2 and xenTro3 are supported as organism names (following the UCSC naming convention). This will be fixed as a configuration file in a later release.
 
 \subsubsection{Adding gene files}
 When using the \texttt{genomic\_matched} background setting (which is the default), there needs to be a file describing genes in BED format in the \texttt{gene\_dir}, which is defined in the configuration file. By default this is: \texttt{/usr/share/gimmemotifs/genes/}. The file needs to be named \texttt{<index\_name>.bed}, so for instance \texttt{hg18.bed}. By default \texttt{hg18.bed}, \texttt{mm9.bed} and \texttt{xenTro2.bed} are included.
@@ -249,7 +249,7 @@ You can try GimmeMotifs with a small example dataset included in the examples di
 
 Change to a directory where you have write permissions and run the following command (substitute the filename with the location of the file on your system):
 \begin{verbatim}
-gimme_motifs.py -i /usr/share/gimmemotifs/examples/TAp73alpha.fa -n p73
+gimme motifs /usr/share/gimmemotifs/examples/TAp73alpha.fa -n p73
 \end{verbatim}
 
 The \texttt{-n} or \texttt{--name} option defines the name of the output directory that is created. All output files are stored in this directory.
@@ -260,7 +260,7 @@ Depending on your computer you may have to wait some minutes for your results. O
 This example is the same as above, except it will start from a BED file. This example does require you to have hg18 present and indexed. 
 Change to a directory where you have write permissions and run the following command (substitute the filename with the location of the file on your system):
 \begin{verbatim}
-gimme_motifs.py -i /usr/share/gimmemotifs/examples/TAp73alpha.bed -n example
+gimme motifs /usr/share/gimmemotifs/examples/TAp73alpha.bed -n example
 \end{verbatim}
 
 The \texttt{-n} or \texttt{--name} option defines the name of the output directory that is created. All output files are stored in this directory.
@@ -290,7 +290,7 @@ Keep in mind that GimmeMotifs is developed for larger datasets, where you have t
 \subsection{Detailed options}
 \begin{itemize}
 \item 
-\texttt{-i} or \texttt{--inputfile}
+INPUTFILE
 
 This is the only mandatory option. The inputfile needs to be in BED or FASTA format. BED-fomatted files need to contain at least three tab-seperated columns describing chromosome name, start and end. The fourth column is optional, if specified it will be used by MDmodule to sort the features before motif prediction. GimmeMotifs will take the center of these features, and subsequently extend those to the width specified by the \texttt{width} parameter (see below).
 
@@ -379,32 +379,29 @@ Most tools in this section take a file in PWM format as input. This is actually 
 The frequencies are seperated by tabs, and in the order A,C,G,T.
 
 \subsection{Descriptions}
-\subsection*{closest\_motif\_match.py}
+\subsection*{gimme match}
 Taking an input file with motifs, find the best matching file in another file of motifs (according to the WIC metric).
 
-\subsection*{create\_genome\_index.py}
+\subsection*{gimme index}
 Creates an index to use with GimmeMotifs. See section \ref{sec:configuration} for details.
 
-\subsection*{generate\_background\_sequences.py}
+\subsection*{gimme background}
 Generate random sequences according to one of two methods: random or matched\_genomic. With the argument \texttt{type} set to \texttt{random}, and an input file in FASTA format, this script will generate sequences with the same dinucleotide distribution as the input sequences according to a 1st order Markov model trained on the input sequences. The \texttt{-n} options is set to 10 by default. The length distribution of the sequences in the output file will be similar as the inputfile. The Markov model can be changed with option \texttt{-m}.
 If the \texttt{type} is specified as \texttt{matched\_genomic} the inputfile needs to be in BED format, and the script will select genomic regions with a similar distribution relative to the transcription start of genes as the input file. Make sure to select the correct genome. The length of the sequences in the output file will be set to the median of the features in the input file.
 
-\subsection*{motif\_cluster.py}
+\subsection*{gimme cluster}
 Cluster a set of motifs with the WIC metric.
 
-\subsection*{motif\_localization\_plots.py}
+\subsection*{gimme location}
 Create the positional preference plots for all the motifs in the input PWM file. This will give best results if all the sequences in the FASTA-formatted inputfile have the same length. Keep in mind that this only makes sense if the sequences are centered around a similar feature (transcription start site, highest point in a peak, etc.). The default threshold for motif scanning is 0.95, see \texttt{pwmscan.py} for more details.
 
-\subsection*{motif\_roc.py}
-Given a sample (positives, peaks) and a background file (random sequences, random promoters or similar),  creates a ROC plot for all the motifs in an input PWM file. All the motifs will be plotted in the same graph, you can select one or more specific motifs to plot with the \texttt{-i} option.
+\subsection*{gimme roc}
+Given a sample (positives, peaks) and a background file (random sequences, random promoters or similar), calculates several statistics and/or creates a ROC plot for all the motifs in an input PWM file. All the motifs will be plotted in the same graph, you can select one or more specific motifs to plot with the \texttt{-i} option. The statistics include ROC area under curve (ROC\_AUC) and Mean Normalized Conditional Probability (MNCP).
 
-\subsection*{motif\_roc\_metrics.py}
-Given a sample (positives, peaks) and a background file (random sequences, random promoters or similar),  calculated several statistics for all the motifs in an input PWM file. You can select one or more specific motifs with the \texttt{-i} option. The ROC area under curve (ROC\_AUC), Mean Normalized Conditional Probability (MNCP) and maximum f-measure are reported for each motif.
-
-\subsection*{pwm2logo.py}
+\subsection*{gimme logo}
 Convert the motifs in a PWM file to a logo using weblogo.
 
-\subsection*{pwmscan.py}
+\subsection*{gimme scan}
 Scan a set of sequences with a set of motifs, and give the resulting matches in GFF or BED format. The threshold is based on the maximum and minimum possible score for each motif. So, 0.95 means that the score of a motif should be at least 95\% of the (maximum score - minimum score). This should probably not be set much lower than 0.8, and should be generally at least 0.9 for good specificity. Keep in mind that the optimal threshold might be different for each motif!
 
 \subsection*{track2fasta.py }
