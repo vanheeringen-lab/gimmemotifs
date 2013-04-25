@@ -226,7 +226,7 @@ p.add_argument("-n",
 p.add_argument("-g", 
                dest="genome", help="If type is matched_genomic, this specified the organism for which matched genomic background sequences will be selected", 
                metavar="GENOME", 
-               default="hg18")
+               default="hg19")
 p.add_argument("-m", 
                dest="markov_order", 
                help="If type is random, this specifies the order of the Markov model (default 1)", 
