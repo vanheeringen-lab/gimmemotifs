@@ -8,7 +8,33 @@ import argparse
 from gimmemotifs.config import MotifConfig, BG_TYPES
 from  gimmemotifs import commands
 
-parser = argparse.ArgumentParser()
+
+description = """
+This is the description
+"""
+
+epilog = """
+commands:
+    motifs      predict motifs
+    match       find motif matches
+    roc         calculate statistics and plot roc
+    cluster     cluster similar motifs
+    index       index a genome
+    background  create a background file
+    threshold   calculate motif scan threshold
+    location    motif location histograms
+    scan        scan sequences with motif(s)
+    logo        create sequence logo(s)
+"""
+
+usage = "%(prog)s subcommand [options]"
+
+parser = argparse.ArgumentParser(
+                                usage=usage, 
+                                description=description, 
+                                epilog=epilog,
+                                formatter_class=argparse.RawDescriptionHelpFormatter
+                                )
 subparsers = parser.add_subparsers(title='subcommands')
 
 config = MotifConfig()
