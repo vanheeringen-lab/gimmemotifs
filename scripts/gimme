@@ -179,19 +179,12 @@ p.set_defaults(func=commands.roc)
 
 # motif_cluster.py
 p = subparsers.add_parser('cluster')
-p.add_argument("-i",
-               dest="inputfile", 
+p.add_argument("inputfile", 
                help="Inputfile (PFM format)", 
-               metavar="FILE")
-p.add_argument("-o", 
-               dest="outdir", 
+               metavar="INPUTFILE")
+p.add_argument("outdir", 
                help="Name of output directory", 
-               metavar="FILE")
-p.add_argument("-b", 
-               dest="include_bg", 
-               help="bg (don't use this)", 
-               default=True, 
-               action="store_false")
+               metavar="OUTDIR")
 p.add_argument("-s", 
                 dest="single", 
                 help="Don't compare reverse complements of motifs", 

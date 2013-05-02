@@ -27,7 +27,7 @@ def cluster(args):
     if len(motifs) == 1:
         clusters = [[motifs[0], motifs]]
     else:
-        tree = cluster_motifs(args.inputfile, "total", "wic", "mean", True, threshold=args.threshold, include_bg=args.include_bg)
+        tree = cluster_motifs(args.inputfile, "total", "wic", "mean", True, threshold=args.threshold, include_bg=True)
         clusters = tree.getResult()
     
     ids = []
