@@ -33,6 +33,7 @@ def cluster(args):
     ids = []
     mc = MotifComparer()
 
+    sys.stderr.write("Creating images\n")
     for cluster,members in clusters:
         cluster.trim(trim_ic)
         cluster.to_img(os.path.join(outdir,"%s.png" % cluster.id), format="PNG")
