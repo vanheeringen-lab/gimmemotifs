@@ -5,13 +5,15 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 import argparse
-from gimmemotifs.config import MotifConfig, BG_TYPES
+from gimmemotifs.config import MotifConfig, BG_TYPES, GM_VERSION
 from  gimmemotifs import commands
 
+config = MotifConfig()
+params = config.get_default_params()
 
 description = """
-This is the description
-"""
+GimmeMotifs v{0}
+""".format(GM_VERSION)
 
 epilog = """
 commands:
@@ -37,8 +39,6 @@ parser = argparse.ArgumentParser(
                                 )
 subparsers = parser.add_subparsers(title='subcommands')
 
-config = MotifConfig()
-params = config.get_default_params()
 
 # gimme_motifs.py
 p = subparsers.add_parser('motifs')
@@ -309,10 +309,9 @@ p.add_argument("pwmfile",
                metavar="PWMFILE")
 p.add_argument("-c", "--cutoff", 
                dest="cutoff", 
-               help="motif score cutoff (fraction of maxscore, default 0.9)", 
+               help="motif score cutoff or file with cutoffs(default 0.9)", 
                metavar="", 
-               default=0.9, 
-               type=float)
+               default=0.9)
 p.add_argument("-n", "--nreport", 
                dest="nreport", 
                help="report the N best matches", 
