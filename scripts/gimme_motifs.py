@@ -1,3 +1,3 @@
-#!/bin/bash
-echo "gimme_motifs.py is deprecated, please use: gimme motifs"
-gimme motifs $@
+#!/usr/bin/env python
+import sys
+sys.stderr.write("This script has been replaced by: gimme motifs\n")
