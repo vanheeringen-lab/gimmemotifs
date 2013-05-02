@@ -309,7 +309,7 @@ p.add_argument("pwmfile",
                metavar="PWMFILE")
 p.add_argument("-c", "--cutoff", 
                dest="cutoff", 
-               help="motif score cutoff or file with cutoffs(default 0.9)", 
+               help="motif score cutoff or file with cutoffs (default 0.9)", 
                metavar="", 
                default=0.9)
 p.add_argument("-n", "--nreport", 
