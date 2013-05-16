@@ -373,12 +373,12 @@ def track2fasta(index_dir, bedfile, fastafile, extend_up=0, extend_down=0, use_s
     seqs = {}
     for chrom,feats in chr_features.items():
         size = g.get_size(chrom)
-      
+     
         for f in feats:
             f[0][0] -= extend_up
             if f[0][0] < 0:
                 f[0][0] = 0
-            f[-1][1] -= extend_down
+            f[-1][1] += extend_down
             if f[-1][1] > size:
                 f[-1][1] = size
  
