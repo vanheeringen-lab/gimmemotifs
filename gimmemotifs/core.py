@@ -844,7 +844,6 @@ class GimmeMotifs:
 		if nsig == 0:
 			self.logger.info("No significant motifs found. Done.")
 			sys.exit()
-
 		
 		# ROC metrics of significant motifs
 		for bg in background:
