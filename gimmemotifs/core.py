@@ -802,7 +802,11 @@ class GimmeMotifs:
 		f.write("%s\t%s\n" % ("Motif", "\t".join(stat_keys)))
 		for motif in motifs:
 			stats = result.stats["%s_%s" % (motif.id, motif.to_consensus())]
-			f.write("%s\t%s\n" % (motif.id, "\t".join([str(stats[k]) for k in stat_keys])))
+			if stats:
+				f.write("%s\t%s\n" % (motif.id, "\t".join([str(stats[k]) for k in stat_keys])))
+			else:
+				self.logger.error("No stats for motif {0}, skipping this motif!".format(motif.id))
+				motifs.remove(motif)
 		f.close()
 	
 		f = open(self.ranks_file, "w")

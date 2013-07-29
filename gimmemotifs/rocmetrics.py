@@ -29,15 +29,24 @@ def enr_at_fdr(fg_vals, bg_vals, fdr=5):
     s = scoreatpercentile(neg, 100 - fdr)
     return len(pos[pos >= s]) / float(len(neg[neg >= s])) * len(neg) / float(len(pos))
 
-def max_enrichment(fg_vals, bg_vals):
-    from numpy import array,hstack
-    pos = array(fg_vals)
-    neg = array(bg_vals)
+def max_enrichment(fg_vals, bg_vals, minbg=2):
+    from numpy import hstack,argsort,ones,zeros
 
-    factor = len(neg) / float(len(pos))
-    scores = array([s for s in hstack((pos, neg)) if sum(neg >= s) > 2])
-    enr = array([(sum(pos >= x) / float(sum(neg >= x))) * factor for x in scores])
-    return max(enr), scores[enr.argmax()]
+    scores = hstack((fg_vals, bg_vals))
+    idx = argsort(scores)
+    x = hstack((ones(len(fg_vals)), zeros(len(bg_vals))))
+    xsort = x[idx]
+
+    m = 0
+    s = 0
+    for i in range(len(scores), 0, -1):
+        bgcount = float(len(xsort[i:][xsort[i:] == 0]))
+        if bgcount >= minbg:
+            enr = len(xsort[i:][xsort[i:] == 1]) / bgcount
+            if enr > m:
+                m = enr
+                s = scores[idx[i]]
+    return m, s
 
 def MNCP(fg_vals, bg_vals):
     from scipy.stats import stats

@@ -18,21 +18,11 @@ from gimmemotifs.rocmetrics import ROC_values, ROC_AUC, MNCP, max_enrichment, en
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import roc_plot
 
-def get_scores(motif, file):
-	from subprocess import Popen, PIPE
-	from tempfile import NamedTemporaryFile
-
-	pwm = NamedTemporaryFile()
-	pwm.write(motif.to_pwm())
-	pwm.flush()
-	
-	cmd = "pwmscan.py -i %s -p %s -c 0.0" % (file, pwm.name)
-	out = Popen(cmd, shell=True, stdout=PIPE).stdout
-
-	vals = []
-	for line in out.readlines():
-		vals.append(float(line.split("\t")[5]))
-	return vals
+def get_scores(motif, infile):
+    from gimmemotifs.scan import scan
+    result = scan(infile, [motif], 0.0, 1)    
+    vals = [matches[0][1] for matches in result.values()[0].values()]
+    return vals
 
 def roc(args):
     """ Calculate ROC_AUC and other metrics and optionally plot ROC curve.
@@ -53,36 +43,36 @@ def roc(args):
 
     ids = []
     if args.ids:
-    	ids = args.ids.split(",")
+        ids = args.ids.split(",")
     else:
-    	ids = motifs.keys()
-	
+        ids = motifs.keys()
+    
     fg_jobs = {}
     bg_jobs = {}
 
     # Do the prediction
     for id in ids:
-    	if motifs.has_key(id):
-    		bg_jobs[id] = job_server.submit(get_scores, (motifs[id],bg_file,))
-    		fg_jobs[id] = job_server.submit(get_scores, (motifs[id],fg_file,))
-    	else:
-    		print "Wrong id: %s" % id
-    		sys.exit(1)
+        if motifs.has_key(id):
+            bg_jobs[id] = job_server.submit(get_scores, (motifs[id],bg_file,))
+            fg_jobs[id] = job_server.submit(get_scores, (motifs[id],fg_file,))
+        else:
+            print "Wrong id: %s" % id
+            sys.exit(1)
 
     plot_x = []
     plot_y = []
     # Print the metrics
     print "Motif\tROC AUC\tMNCP\tEnr. at 5% FDR\tMax enr."
     for id in ids:
-    	fg_vals = fg_jobs[id]()	
-    	bg_vals = bg_jobs[id]()	
-    	(x, y) = ROC_values(fg_vals, bg_vals) 
-    	plot_x.append(x)
+        fg_vals = fg_jobs[id]()    
+        bg_vals = bg_jobs[id]()    
+        (x, y) = ROC_values(fg_vals, bg_vals) 
+        plot_x.append(x)
         plot_y.append(y)
         auc = ROC_AUC(fg_vals, bg_vals)
-    	mncp = MNCP(fg_vals, bg_vals)
-    	enr_fdr = enr_at_fdr(fg_vals, bg_vals)
-    	max_enr,score = max_enrichment(fg_vals, bg_vals)
+        mncp = MNCP(fg_vals, bg_vals)
+        enr_fdr = enr_at_fdr(fg_vals, bg_vals)
+        max_enr,score = max_enrichment(fg_vals, bg_vals)
         print "%s\t%0.3f\t%03f\t%0.2f\t%0.2f" % (id, auc, mncp, enr_fdr, max_enr)
     
     # Plot the ROC curve
