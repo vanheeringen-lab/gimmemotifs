@@ -14,7 +14,6 @@ from gimmemotifs.utils import parse_cutoff
 from gimmemotifs.scan import scan
 
 VERSION = "1.2"
-NREPORT = 1 
 MAX_CPUS = 16
 DEFAULT_CUTOFF = 0.9
 
@@ -25,7 +24,7 @@ def pwmscan(args):
     bed = args.bed
 
     motifs = pwmfile_to_motifs(args.pwmfile)
-    result = scan(inputfile, motifs, cutoff, NREPORT)
+    result = scan(inputfile, motifs, cutoff, nreport)
    
     p = re.compile(r'([^\s:]+):(\d+)-(\d+)')
     fa = Fasta(inputfile)
