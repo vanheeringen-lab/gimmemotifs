@@ -189,7 +189,7 @@ padding: 0px 0 5px 20px;
 <tr>
 <th align="center" py:content="motif.consensus"></th>
 <th>
-JASPAR match 
+Database match 
 </th>
 </tr>
 

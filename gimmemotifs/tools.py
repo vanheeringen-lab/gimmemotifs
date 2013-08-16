@@ -1091,7 +1091,7 @@ class Jaspar(MotifProgram):
     def _run_program(self, bin, fastafile, savedir, params={}):
         from gimmemotifs.motif import pwmfile_to_motifs
         import os
-        fname = os.path.join(self.config.get_motif_dir(), "jaspar.pfm")
+        fname = os.path.join(self.config.get_motif_dir(), "JASPAR2010_vertebrate.pwm")
         motifs =  pwmfile_to_motifs(fname)
         for motif in motifs:
             motif.id = "JASPAR_%s" % motif.id

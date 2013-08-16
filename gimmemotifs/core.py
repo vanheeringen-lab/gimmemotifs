@@ -549,7 +549,7 @@ class GimmeMotifs:
 			sort_key = "genomic_matched"
 
 		f = open(self.text_report, "w")
-		header = "ID\tconsensus\tBest match JASPAR\tp-value JASPAR\t" + "\t".join("Enrichment (%s)\tp-value (%s)\tROC AUC (%s)\tMNCP (%s)" % (b,b,b,b) for b in background)
+		header = "ID\tconsensus\tBest match db\tp-value best match\t" + "\t".join("Enrichment (%s)\tp-value (%s)\tROC AUC (%s)\tMNCP (%s)" % (b,b,b,b) for b in background)
 		#print header
 		f.write("%s\n" % header)
 		for motif in sorted(motifs, cmp=lambda x,y: cmp(self.mncp[sort_key][y.id], self.mncp[sort_key][x.id])):
@@ -621,12 +621,14 @@ class GimmeMotifs:
 
 	def determine_closest_match(self, motifs):
 		self.logger.info("Determining closest matching motifs in database (JASPAR)")
-		jaspar = os.path.join(self.config.get_motif_dir(), [x for x in os.listdir(self.config.get_motif_dir()) if x.startswith("jaspar")][0])
+        motif_db = self.config.get_default_params()["motif_db"]
+		db = os.path.join(self.config.get_motif_dir(), motif_db)
 		db_motifs = []
-		if jaspar.endswith("pwm") or jaspar.endswith("pfm"):
-			db_motifs = pwmfile_to_motifs(jaspar)
-		elif jaspar.endswith("transfac"):
-			db_motifs = transfac_to_motifs(jaspar)
+		if db.endswith("pwm") or db.endswith("pfm"):
+        
+			db_motifs = pwmfile_to_motifs(db)
+		elif db.endswith("transfac"):
+			db_motifs = transfac_to_motifs(db)
 		
 		closest_match = {}
 		mc = MotifComparer()
