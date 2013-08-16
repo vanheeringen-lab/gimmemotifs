@@ -31,7 +31,7 @@ DEFAULT_PARAMS = {
 	"background": "genomic_matched,random",
 	"genome": "hg19",
 	"tools": "MDmodule,Weeder,MotifSampler",
-	"available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,trawler,WannaMotif,Improbizer,MoAn,BioProspector,AMD",
+	"available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,MEMEW,trawler,Improbizer,MoAn,BioProspector,AMD,ChIPMunk,Jaspar",
 	"cluster_threshold": "0.95",
 	"use_strand": False,
 	"markov_model": 1,
@@ -58,7 +58,10 @@ data_files=[
 	('gimmemotifs/score_dists', ['score_dists/total_wic_mean_score_dist.txt']),
 	('gimmemotifs/genes', ['genes/hg18.bed', 'genes/hg19.bed', 'genes/xenTro2.bed', 'genes/mm9.bed']),
 	('gimmemotifs/bg', ['bg/hg19.MotifSampler.bg', 'bg/hg18.MotifSampler.bg', 'bg/mm9.MotifSampler.bg', 'bg/xenTro2.MotifSampler.bg']),
-	('gimmemotifs/motif_databases', ['motif_databases/*']),
+	('gimmemotifs/motif_databases', [
+                                    'motif_databases/JASPAR2010_vertebrate.pwm',
+                                    'motif_databases/vertebrate_motifs.pwm',
+                                    ]),
 	('gimmemotifs/doc', ['doc/gimmemotifs_manual.pdf','doc/gimmemotifs_manual.html']),
 	('gimmemotifs/examples', ['examples/TAp73alpha.bed','examples/TAp73alpha.fa']),
 	('gimmemotifs/genome_index', ['genome_index/README.txt'])
