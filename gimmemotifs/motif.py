@@ -670,7 +670,9 @@ def pwmfile_to_motifs(file):
 	pfm = []
 	id = ""
 	for n,line in enumerate(open(file).readlines()):
-		if line.startswith(">"):
+		if line.startswith("#") or line.strip() == "":
+            continue
+        if line.startswith(">"):
 			if pfm:
 				motifs.append(Motif(pfm))
 				motifs[-1].id = id

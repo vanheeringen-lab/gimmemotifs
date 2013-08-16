@@ -25,6 +25,7 @@ tools = MDmodule,MEME,Weeder,MotifSampler,trawler,Improbizer,BioProspector,Posmo
 pvalue = 0.001
 max_time = None
 ncpus = 12
+motif_db = vertebrate_motifs.pwm
 
 [AMD]
 bin = /usr/share/gimmemotifs/tools/AMD.bin

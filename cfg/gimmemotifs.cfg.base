@@ -24,4 +24,4 @@ tools = MDmodule,MEME,Weeder,MotifSampler,trawler,Improbizer,BioProspector,AMD
 pvalue = 0.001
 max_time = None
 ncpus = 12
-motif_db=JASPAR2010_vertebrate.pwm
+motif_db = vertebrate_motifs.pwm
