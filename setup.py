@@ -58,7 +58,7 @@ data_files=[
 	('gimmemotifs/score_dists', ['score_dists/total_wic_mean_score_dist.txt']),
 	('gimmemotifs/genes', ['genes/hg18.bed', 'genes/hg19.bed', 'genes/xenTro2.bed', 'genes/mm9.bed']),
 	('gimmemotifs/bg', ['bg/hg19.MotifSampler.bg', 'bg/hg18.MotifSampler.bg', 'bg/mm9.MotifSampler.bg', 'bg/xenTro2.MotifSampler.bg']),
-	('gimmemotifs/motif_databases', ['motif_databases/jaspar.pfm']),
+	('gimmemotifs/motif_databases', ['motif_databases/*.pfm', 'motif_databases/*.pwm']),
 	('gimmemotifs/doc', ['doc/gimmemotifs_manual.pdf','doc/gimmemotifs_manual.html']),
 	('gimmemotifs/examples', ['examples/TAp73alpha.bed','examples/TAp73alpha.fa']),
 	('gimmemotifs/genome_index', ['genome_index/README.txt'])
