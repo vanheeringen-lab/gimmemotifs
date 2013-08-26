@@ -7,7 +7,7 @@
 import sys
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import pwmfile_to_motifs
-from gimmemotifs.c_metrics import pwmscan
+from gimmemotifs.scan import scan
 from scipy.stats import scoreatpercentile
 
 def threshold(args):
@@ -15,18 +15,15 @@ def threshold(args):
         print "Please specify a FDR between 0 and 1"
         sys.exit(1)
 
-    f = Fasta(args.inputfile)
     motifs = pwmfile_to_motifs(args.pwmfile)
+    result = scan(args.inputfile, motifs, 0.0, 1)
 
     print "Motif\tScore\tCutoff"
-    for motif in motifs:
+    for motif in result.keys():
         pwm = motif.pwm
         scores = []
         min_score = motif.pwm_min_score()
-        for name,seq in f.items():
-            result = pwmscan(seq.upper(), pwm, min_score, 1, True)
-            score = result[0][0]
-            scores.append(score)
+        scores = [x[0][1] for x in result[motif].values()]
         opt_score = scoreatpercentile(scores, 100 - (100 * args.fdr))
         cutoff = (opt_score - min_score) / (motif.pwm_max_score() - min_score)
         print "%s\t%s\t%s" % (motif.id, opt_score , cutoff)
