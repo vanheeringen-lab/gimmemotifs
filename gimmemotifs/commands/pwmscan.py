@@ -11,11 +11,10 @@ import re
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.utils import parse_cutoff 
-from gimmemotifs.scan import scan
+from gimmemotifs.scan import scan, scan_it
 
 VERSION = "1.2"
 MAX_CPUS = 16
-DEFAULT_CUTOFF = 0.9
 
 def pwmscan(args):
     inputfile = args.inputfile
@@ -24,12 +23,12 @@ def pwmscan(args):
     bed = args.bed
 
     motifs = pwmfile_to_motifs(args.pwmfile)
-    result = scan(inputfile, motifs, cutoff, nreport)
+    result = scan_it(inputfile, motifs, cutoff, nreport)
    
     p = re.compile(r'([^\s:]+):(\d+)-(\d+)')
     fa = Fasta(inputfile)
     strandmap = {-1:"-",1:"+"}
-    for motif, result in result.items():
+    for motif, result in result:
         for seq_id, matches in result.items():
             for (pos, score, strand) in matches:
                 if bed:
@@ -46,7 +45,8 @@ def pwmscan(args):
                         seq_id, 
                         "pwmscan", 
                         "misc_feature", 
-                        pos, pos + len(motif) , 
+                        pos + 1,            # GFF is 1-based
+                        pos + len(motif), 
                         score, 
                         strandmap[strand], 
                         ".", 
