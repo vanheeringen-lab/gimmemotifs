@@ -33,6 +33,7 @@ class PredictionResult:
         self.logger = logger
         self.stats = {}
         self.outfile = outfile
+        self.job_server = job_server
 
         if fg_file and bg_file:
             self.fg_fa = Fasta(fg_file)
@@ -56,7 +57,15 @@ class PredictionResult:
             self.motifs.append(motif)
             if self.do_stats:
                 self.logger.debug("Starting stats job of motif %s" % motif.id)
-                job_server.submit(motif.stats, (self.fg_fa, self.bg_fa), (), (), self.add_stats, ("%s_%s" % (motif.id, motif.to_consensus()),), group="stats")
+                self.job_server.submit(
+                                    motif.stats, 
+                                    (self.fg_fa, self.bg_fa), 
+                                    (), 
+                                    (),
+                                    self.add_stats, 
+                                    ("%s_%s" % (motif.id, motif.to_consensus()),), 
+                                    group="stats"
+                                    )
             self.lock.release()
         
         self.logger.debug("stdout %s: %s" % (job, stdout))
@@ -72,7 +81,7 @@ class PredictionResult:
             n = "%s_%s" % (motif.id, motif.to_consensus())
             if not self.stats.has_key(n):
                 self.logger.info("Adding %s again!" % n)
-                job_server.submit(motif.stats, (self.fg_fa, self.bg_fa), (), (), self.add_stats, ("%s_%s" % (motif.id, motif.to_consensus()),), group="stats")
+                self.job_server.submit(motif.stats, (self.fg_fa, self.bg_fa), (), (), self.add_stats, ("%s_%s" % (motif.id, motif.to_consensus()),), group="stats")
 
 def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools={}, job_server="", ncpus=8, logger=None, max_time=None, fg_file=None, bg_file=None):
     
