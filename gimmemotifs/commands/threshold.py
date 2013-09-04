@@ -24,6 +24,10 @@ def threshold(args):
         scores = []
         min_score = motif.pwm_min_score()
         scores = [x[0][1] for x in result[motif].values()]
-        opt_score = scoreatpercentile(scores, 100 - (100 * args.fdr))
-        cutoff = (opt_score - min_score) / (motif.pwm_max_score() - min_score)
-        print "%s\t%s\t%s" % (motif.id, opt_score , cutoff)
+        if len(scores) > 0:
+            opt_score = scoreatpercentile(scores, 100 - (100 * args.fdr))
+            cutoff = (opt_score - min_score) / (motif.pwm_max_score() - min_score)
+            print "{0}\t{1}\t{2}".format(motif.id, opt_score , cutoff)
+        else:
+            sys.stderr.write("Warning: no matches for {0}\n".format(motif.id))
+            
