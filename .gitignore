@@ -24,3 +24,4 @@ src/GADEM_v1.3/config.log
 src/GADEM_v1.3/config.status
 src/GADEM_v1.3/src/Makefile
 src/GADEM_v1.3/Makefile
+src/MoAn/Makefile
