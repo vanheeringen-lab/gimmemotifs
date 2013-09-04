@@ -16,6 +16,8 @@ from gimmemotifs.motif import *
 from gimmemotifs.comparison import *
 from gimmemotifs.config import MotifConfig
 
+job_server = None 
+
 class MotifTree:
     """ class MotifTree used by cluster_motifs"""
     
@@ -76,10 +78,10 @@ class MotifTree:
         else:
             return [self.motif]
 
-def cluster_motifs(file, match="total", metric="wic", combine="mean", pval=True, threshold=0.95, trim_edges=False, edge_ic_cutoff=0.2, include_bg=True):
+def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=True, threshold=0.95, trim_edges=False, edge_ic_cutoff=0.2, include_bg=True):
     """ 
-    Clusters a set of sequence motifs. Required arg 'file' is a file containing
-    positional frequency matrices. 
+    Clusters a set of sequence motifs. Required arg 'motifs' is a file containing
+    positional frequency matrices or an array with motifs.
 
     Optional args:
 
@@ -110,16 +112,10 @@ def cluster_motifs(file, match="total", metric="wic", combine="mean", pval=True,
     """
 
     
-    config = MotifConfig()
-    ncpus = config.get_default_params()['ncpus']
-
-    # Setup parallel processing
-    job_server = pp.Server(secret="smokedpaprika")
-    if job_server.get_ncpus() > ncpus:
-        job_server.set_ncpus(ncpus)
-    
     # First read pfm or pfm formatted motiffile
-    motifs = pwmfile_to_motifs(file)
+    if type([]) != type(motifs):
+        motifs = pwmfile_to_motifs(motifs)
+    
     mc = MotifComparer()
 
     # Trim edges with low information content
