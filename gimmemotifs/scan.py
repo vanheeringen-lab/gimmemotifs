@@ -16,9 +16,54 @@ from gimmemotifs.utils import parse_cutoff
 CHUNK = 1000
 
 def scan_fa_with_motif(fo, motif, cutoff, nreport):
+    #try:
     return motif, motif.pwm_scan_all(fo, cutoff, nreport)
+    #except:
+    #    e = sys.exc_info()[0]
+    #    msg = "Error calculating stats of {0}, error {1}".format(motif.id, e)
+    #    sys.stderr.write("{0}\n".format(msg))
 
-def scan(infile, motifs, cutoff, nreport=1):
+def scan_it(infile, motifs, cutoff, nreport=1):
+    # Get configuration defaults
+    config = MotifConfig()
+    # Cutoff for motif scanning, only used if a cutoff is not supplied
+    default_cutoff = config.get_default_params()['scan_cutoff']
+    # Number of CPUs to use
+    ncpus =  config.get_default_params()['ncpus']
+    
+    cutoffs = parse_cutoff(motifs, cutoff, default_cutoff) 
+    
+    job_server = pp.Server(secret="beetrootsoup")
+    pp.SHOW_EXPECTED_EXCEPTIONS # True
+    if job_server.get_ncpus() > ncpus:
+        job_server.set_ncpus(ncpus)
+    
+    jobs = []
+    fa = Fasta(infile)
+    motifkey = dict([(m.id, m) for m in motifs])
+    
+    for motif in motifs:
+        for i in range(0, len(fa), CHUNK):
+            jobs.append(job_server.submit(
+                                          scan_fa_with_motif,
+                                          (fa[i:i + CHUNK],
+                                          motif,
+                                          cutoffs[motif.id],
+                                          nreport,
+                                          ),
+                                          (),()))
+    
+        while len(jobs) > 10:
+            job = jobs.pop(0) 
+            motif, result = job()
+            yield motifkey[motif.id], result
+
+    for job in jobs:
+        motif, result = job()
+        yield motifkey[motif.id], result
+ 
+
+def scan(infile, motifs, cutoff, nreport=1, it=False):
     # Get configuration defaults
     config = MotifConfig()
     # Cutoff for motif scanning, only used if a cutoff is not supplied
@@ -49,6 +94,7 @@ def scan(infile, motifs, cutoff, nreport=1):
     motifkey = dict([(m.id, m) for m in motifs])
     for job in jobs:
         motif, result = job()
+        
         total_result[motifkey[motif.id]].update(result)
     
     return total_result

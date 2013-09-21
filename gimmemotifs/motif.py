@@ -20,14 +20,16 @@ import numpy
 
 class Motif:
     PSEUDO_PFM_COUNT = 1000 # Jaspar mean
+    PSEUDO_PWM = 1e-6
 
     def __init__(self, pfm=[]):
         if len(pfm) > 0:
             if sum(pfm[0]) > 2:
                 self.pfm = [list(x) for x in pfm]
+                self.pwm = self.pfm_to_pwm(pfm)
             else:
+                self.pwm = [list(x) for x in pfm]
                 self.pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in pfm]
-            self.pwm = self.pfm_to_pwm(pfm)
         else:
             self.pwm = []
             self.pfm = []
@@ -137,7 +139,8 @@ class Motif:
     def ic_pos(self, row1, row2=[0.25,0.25,0.25,0.25]):
         score = 0
         for a,b in zip(row1, row2):
-            score += a * log(a/b) / log(2)
+            if a > 0:
+                score += a * log(a / b) / log(2)
         return score
 
     def pcc_pos(self, row1, row2):
@@ -207,6 +210,7 @@ class Motif:
         matches = {}
         for id, seq in fa.items():
             matches[id] = [] 
+            #sys.stderr.write("{0}\t{1}\t{2}\t{3}\t{4}\t{5}".format(seq.upper(), pwm, c, nreport, scan_rc))
             result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
             for score,pos,strand in result:
                 matches[id].append((pos,score,strand))
@@ -604,41 +608,48 @@ class Motif:
         #if os.path.exists(f.name):
         #    os.unlink(f.name)
 
-    def stats(self, fg_fa, bg_fa):
+    def stats(self, fg_fa, bg_fa, log=None):
         from gimmemotifs.rocmetrics import MNCP, ROC_AUC, max_enrichment, fraction_fdr, score_at_fdr, enr_at_fdr
         from gimmemotifs.fasta import Fasta
         from gimmemotifs.utils import ks_pvalue
         from numpy import array,std
         from math import log
 
-        stats = {}
-        fg_result = self.pwm_scan_all(fg_fa, cutoff=0.0, nreport=1, scan_rc=True)
-        bg_result = self.pwm_scan_all(bg_fa, cutoff=0.0, nreport=1, scan_rc=True)
+        try:
+            stats = {}
+            fg_result = self.pwm_scan_all(fg_fa, cutoff=0.0, nreport=1, scan_rc=True)
+            bg_result = self.pwm_scan_all(bg_fa, cutoff=0.0, nreport=1, scan_rc=True)
         
-        pos = array([x[0][1] for x in fg_result.values()])
-        neg = array([x[0][1] for x in bg_result.values()])
+            pos = array([x[0][1] for x in fg_result.values()])
+            neg = array([x[0][1] for x in bg_result.values()])
+            
+            stats["mncp"] = MNCP(pos, neg)
+            stats["roc_auc"] = ROC_AUC(pos, neg)
+            x,y = max_enrichment(pos, neg)
+            stats["maxenr"] = x
+            stats["scoreatmaxenr"] = y
+            stats["fraction"] = fraction_fdr(pos, neg)
+            stats["score_fdr"] = score_at_fdr(pos, neg)
+            stats["enr_fdr"] = enr_at_fdr(pos, neg)
+            stats["cutoff_fdr"] = (stats["score_fdr"] - self.pwm_min_score()) / (self.pwm_max_score() - self.pwm_min_score())
+
+            pos = [x[0][0] for x in fg_result.values()]
+            p = ks_pvalue(pos, max(pos))
+            stats["ks"] = p
+            if p > 0:
+                stats["ks_sig"] = -log(p)/log(10)
+            else:
+                stats["ks_sig"] = "Inf"
         
-        stats["mncp"] = MNCP(pos, neg)
-        stats["roc_auc"] = ROC_AUC(pos, neg)
-        x,y = max_enrichment(pos, neg)
-        stats["maxenr"] = x
-        stats["scoreatmaxenr"] = y
-        stats["fraction"] = fraction_fdr(pos, neg)
-        stats["score_fdr"] = score_at_fdr(pos, neg)
-        stats["enr_fdr"] = enr_at_fdr(pos, neg)
-        stats["cutoff_fdr"] = (stats["score_fdr"] - self.pwm_min_score()) / (self.pwm_max_score() - self.pwm_min_score())
 
-        pos = [x[0][0] for x in fg_result.values()]
-        p = ks_pvalue(pos, max(pos))
-        stats["ks"] = p
-        if p > 0:
-            stats["ks_sig"] = -log(p)/log(10)
-        else:
-            stats["ks_sig"] = "Inf"
-        
-
-        return stats
-
+            return stats
+        except:
+            e = sys.exc_info()[0]
+            msg = "Error calculating stats of {0}, error {1}".format(self.id, e)
+            if log:
+                log.fatal(msg)
+            else:
+                print msg
 
 def motif_from_align(align):
     width = len(align[0])

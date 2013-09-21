@@ -66,10 +66,11 @@ double wic(double col1[], double col2[]) {
 		double score = 0;;
 		double score_a = 0.0;
 		double score_b = 0.0;
-		
+		double pseudo = 0.0000001;
+
 		for (n = 0; n < 4; n++) {
-			x = col1[n] * log(col1[n] / 0.25) / log2;
-			y = col2[n] * log(col2[n] / 0.25) / log2;
+			x = col1[n] * log((col1[n] + pseudo) / 0.25) / log2;
+			y = col2[n] * log((col2[n] + pseudo) / 0.25) / log2;
 			score += fabs(x - y);
 			score_a += x;
 			score_b += y;
@@ -231,6 +232,7 @@ static PyObject * c_metrics_score(PyObject *self, PyObject * args)
 	const char *combine;
 	int matrix1_len;
 	int matrix2_len;
+
 	if (!PyArg_ParseTuple(args, "OOss", &matrix1_o, &matrix2_o, &metric, &combine)) {
 		PyErr_SetString( PyExc_TypeError, "Error parsing arguments");
 		return NULL;

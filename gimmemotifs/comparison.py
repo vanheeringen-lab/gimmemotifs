@@ -138,7 +138,8 @@ class MotifComparer:
             if metric == "fisim":
                 s = self.fisim(matrix1, matrix2)[0]
             else:
-                s = score(matrix1, matrix2, metric, combine)
+               s = score(matrix1, matrix2, metric, combine)
+             
             if s != s:
                 return None
             else:
