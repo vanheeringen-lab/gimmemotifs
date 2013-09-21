@@ -4,11 +4,19 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 """ Various plotting functions """
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import ImageGrid
-from tempfile import NamedTemporaryFile
-import numpy
 import os
+from tempfile import NamedTemporaryFile
+import numpy as np
+
+# Clustering
+import Pycluster
+from gimmemotifs.utils import sort_tree 
+
+# Matplotlib imports
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
+from mpl_toolkits.axes_grid1 import ImageGrid
 
 VALID_EXTENSIONS = [".png", ".pdf", ".svg", ".ps"]
 
@@ -28,7 +36,7 @@ def roc_plot(outfile, plot_x, plot_y, ids=[]):
 
     colors = [cm.Paired(256 / 11 * i) for i in range(11)]
     
-    if type(plot_x[0]) == type(numpy.array([])):
+    if type(plot_x[0]) == type(np.array([])):
         for i,(x,y) in enumerate(zip(plot_x, plot_y)):
             plt.plot(x, y, color=colors[(i * 2) % 10 + 1])
     else:
@@ -109,6 +117,126 @@ def match_plot(plotdata, outfile):
     
     plt.savefig(outfile, dpi=300, bbox_inches='tight')
 
+def diff_plot(motifs, pwms, names, freq, bgfreq, outfile, mindiff=0, minenr=3):
+    w_ratio = np.array([5, len(names), len(names) + 1])
+    plot_order = [0,1,2]
+    
+    nbar = 5
+    
+    freq = np.array(freq)
+    bgfreq = np.array([[x] for x in bgfreq])
+    
+    enr = np.log2(np.divide(freq, bgfreq))
+    
+    filt = np.logical_and(np.sum(enr > minenr, 1) > 0, (np.max(enr, 1) - np.min(enr, 1)) > mindiff)
 
-        
+    motifs = np.array(motifs)[filt]
+    freq = freq[filt]
+    bgfreq = bgfreq[filt]
+    enr = enr[filt]
 
+    tree = Pycluster.treecluster(freq, method="m", dist="c")
+    ind = sort_tree(tree, np.arange(len(motifs)))
+
+    fig = plt.figure(figsize=(6 + 1.5 * len(names),0.6 * len(motifs) + 3))
+    
+    gs = GridSpec(len(motifs) + 3 + nbar, 3,
+                  height_ratios=[1] * nbar + [3] * (len(motifs) + 3),
+                  width_ratios=w_ratio[plot_order],
+                  )
+    
+    # Colormaps
+    c1 = mpl.cm.RdBu
+    c2 = mpl.cm.Blues ##create_colormap("white", "blue")
+    
+    ### Frequency plot ###
+    
+    # Create axis
+    ax = plt.subplot(gs[nbar:-3, plot_order[2]])
+    
+    # Plot frequencies
+    vmin = 0
+    vmax = 0.3
+    
+    pfreq = np.hstack((freq, bgfreq))
+    ax.pcolormesh(pfreq[ind], cmap=c2, vmin=vmin, vmax=vmax)
+    
+    sm = plt.cm.ScalarMappable(cmap=c2, norm=mpl.colors.Normalize(vmin=vmin, vmax=vmax))
+    
+    # Show percentages
+    for y,row in enumerate(pfreq[ind]):
+        for x,val in enumerate(row):
+            v = vmax
+            if val >= (vmin + ((vmax - vmin) / 2)):
+                v = vmin        
+            plt.text(x + 0.5, y + 0.5, "{:.1%}".format(val), ha='center', va='center', color=sm.to_rgba(v))
+    
+    # Hide most labels
+    plt.setp(ax.get_xticklines(),visible=False)
+    plt.setp(ax.get_yticklines(),visible=False)
+    plt.setp(ax.get_yticklabels(),visible=False)
+    
+    # Set the X labels
+    ticks = np.arange(len(names)+ 1) + 0.5
+    plt.xticks(ticks, names + ["background"], rotation=30, ha="right")
+
+    ax.set_ylim(0, len(motifs))
+
+    # Title
+    plt.title('Frequency')
+    
+    # Colorbar
+    sm._A = []
+    cax = plt.subplot(gs[0,plot_order[2]])
+    cb = fig.colorbar(sm, cax=cax, ticks = [0, 0.3], orientation='horizontal')
+    cb.ax.set_xticklabels(["0%","30%"])
+   
+
+    #### Enrichment plot
+    ax = plt.subplot(gs[nbar:-3, plot_order[1]])
+    vmin = -10
+    vmax = 10
+    ax.pcolormesh(enr[ind], cmap=c1, vmin=vmin, vmax=vmax)
+    for y,row in enumerate(enr[ind]):
+        for x,val in enumerate(row):
+            col = "black"
+            if val >= (vmin + ((vmax - vmin) / 8.0 * 7)):
+                col = "white"
+            elif val <= (vmin + ((vmax - vmin) / 8.0)):
+                col = "white"
+            plt.text(x + 0.5, y + 0.5, "{:.1f}".format(val), ha='center', va='center', color=col)
+    
+    ticks = np.arange(len(names)) + 0.5
+    plt.xticks(ticks, names, rotation=30, ha="right")
+    #plt.setp(plt.xticks()[1], rotation=30)
+    #for label in labels: 
+    #    label.set_rotation(30)
+    ticks = np.arange(len(motifs)) + 0.5
+    plt.yticks(ticks, motifs[ind])
+    plt.setp(ax.get_xticklines(),visible=False)
+    plt.setp(ax.get_yticklines(),visible=False)
+    
+    ax.set_ylim(0, len(motifs))
+    
+    # Title
+    plt.title('Enrichment (log2)')
+    
+    # Colorbar
+    sm = plt.cm.ScalarMappable(cmap=c1, norm=mpl.colors.Normalize(vmin=vmin, vmax=vmax))
+    sm._A = []
+    cax = plt.subplot(gs[0,plot_order[1]])
+    cb = fig.colorbar(sm, cax=cax, ticks = [vmin,0, vmax], orientation='horizontal')
+    cb.ax.set_xticklabels([vmin, 0, vmax])
+   
+   
+    #### Motif logos
+   
+    for i,motif in enumerate(motifs[ind][::-1]):
+        ax = plt.subplot(gs[i + nbar, plot_order[0]]) 
+        axes_off(ax)
+        tmp = NamedTemporaryFile(suffix=".png")
+        pwms[motif].to_img(tmp.name, format="PNG")
+        ax.imshow(plt.imread(tmp.name), interpolation="none")
+    
+    #plt.show()
+    plt.savefig(outfile, dpi=600, bbox_inches='tight')

@@ -98,3 +98,15 @@ def scan(infile, motifs, cutoff, nreport=1, it=False):
         total_result[motifkey[motif.id]].update(result)
     
     return total_result
+
+def get_counts(fname, motifs, cutoff):
+    counts = {}
+    for m in motifs:
+        counts.setdefault(m.id, 0)
+    result = scan_it(fname, motifs, cutoff)
+    for motif, r in result:
+        ncount = len([x for x,y in r.items() if len(y) > 0])
+        counts[motif.id] += ncount
+
+    return counts
+

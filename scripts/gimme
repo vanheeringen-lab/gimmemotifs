@@ -28,6 +28,8 @@ commands:
     threshold   calculate motif scan threshold
     location    motif location histograms
     scan        scan sequences with motif(s)
+    diff        compare motif frequency and enrichment
+                between fasta files
     logo        create sequence logo(s)
 """
 
@@ -330,6 +332,32 @@ p.add_argument("-b", "--bed",
                default=False, 
                help="output bed format")
 p.set_defaults(func=commands.pwmscan)
+
+MAXENR = 3
+p = subparsers.add_parser('diff')
+p.add_argument("inputfiles",
+              help="FASTA-formatted inputfiles",
+              metavar="FAFILES")
+p.add_argument("bgfile",
+              help="FASTA-formatted background file",
+              metavar="BGFAFILE")
+p.add_argument("pwmfile",
+              help="PWM file with motifs",
+              metavar="PWMFILE")
+p.add_argument("outputfile",
+              help="outputfile (image)",
+              metavar="PNGFILE")
+#p.add_argument("-p",
+#               dest="pwmfile", 
+#               help="File with pwms (default: {0})".format(params["motif_db"]), 
+#               default=default_db,
+#               metavar="PWMFILE")
+p.add_argument("-c", "--cutoff",
+              dest="cutoff",
+              help="motif score cutoff or file with cutoffs (default 0.9)",
+              metavar="",
+              default=0.9)
+p.set_defaults(func=commands.diff)
 
 #pwm2logo.py
 p = subparsers.add_parser('logo')
