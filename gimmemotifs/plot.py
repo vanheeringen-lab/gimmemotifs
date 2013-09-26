@@ -5,6 +5,7 @@
 # distribution.
 """ Various plotting functions """
 import os
+import sys
 from tempfile import NamedTemporaryFile
 import numpy as np
 
@@ -117,8 +118,8 @@ def match_plot(plotdata, outfile):
     
     plt.savefig(outfile, dpi=300, bbox_inches='tight')
 
-def diff_plot(motifs, pwms, names, freq, bgfreq, outfile, mindiff=0, minenr=3):
-    w_ratio = np.array([5, len(names), len(names) + 1])
+def diff_plot(motifs, pwms, names, freq, bgfreq, outfile, mindiff=0, minenr=3, minfreq=0.01):
+    w_ratio = np.array([7, len(names), len(names) + 1])
     plot_order = [0,1,2]
     
     nbar = 5
@@ -128,16 +129,27 @@ def diff_plot(motifs, pwms, names, freq, bgfreq, outfile, mindiff=0, minenr=3):
     
     enr = np.log2(np.divide(freq, bgfreq))
     
-    filt = np.logical_and(np.sum(enr > minenr, 1) > 0, (np.max(enr, 1) - np.min(enr, 1)) > mindiff)
+    filt = np.logical_and(
+                        np.sum(enr > minenr, 1) > 0, 
+                        np.sum(freq > minfreq, 1) > 0, 
+                        (np.max(enr, 1) - np.min(enr, 1)) > mindiff
+                        )
 
+    
     motifs = np.array(motifs)[filt]
     freq = freq[filt]
     bgfreq = bgfreq[filt]
     enr = enr[filt]
-
-    tree = Pycluster.treecluster(freq, method="m", dist="c")
-    ind = sort_tree(tree, np.arange(len(motifs)))
-
+    
+    if len(freq) == 0:
+        sys.stderr.write("No enriched and/or differential motifs found.\n")
+        return
+    elif len(freq) >= 3:
+        tree = Pycluster.treecluster(freq, method="m", dist="c")
+        ind = sort_tree(tree, np.arange(len(motifs)))
+    else:
+        ind = np.arange(len(freq))
+    
     fig = plt.figure(figsize=(6 + 1.5 * len(names),0.6 * len(motifs) + 3))
     
     gs = GridSpec(len(motifs) + 3 + nbar, 3,

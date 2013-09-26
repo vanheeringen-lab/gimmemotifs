@@ -38,4 +38,7 @@ def diff(args):
     
     freq = np.array([freq[fname] for fname in infiles]).transpose()
     
+    for row in freq:
+        print freq
+
     diff_plot(motifs, pwms, names, freq, bgfreq, outfile)
