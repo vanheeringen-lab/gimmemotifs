@@ -16,7 +16,7 @@ from config import *
 from subprocess import *
 # External imports
 from numpy import mean,sum
-import numpy
+import numpy as np
 
 class Motif:
     PSEUDO_PFM_COUNT = 1000 # Jaspar mean
@@ -419,15 +419,15 @@ class Motif:
         # xxCATGYT
         # GGCTTGYx
         # pos = -2
-        pwm1 = numpy.array(pwm1)
-        pwm2 = numpy.array(pwm2)
-        pwm2_rev = numpy.array([row[::-1] for row in pwm2[::-1]])
-        bg = numpy.array(bg)
+        pwm1 = np.array(pwm1)
+        pwm2 = np.array(pwm2)
+        pwm2_rev = np.array([row[::-1] for row in pwm2[::-1]])
+        bg = np.array(bg)
         
-        a = pwm1 * numpy.log2(pwm1/bg)
-        b = pwm2 * numpy.log2(pwm2/bg)
+        a = pwm1 * np.log2(pwm1/bg)
+        b = pwm2 * np.log2(pwm2/bg)
         
-        b_rev = pwm2_rev * numpy.log2(pwm2_rev/bg)
+        b_rev = pwm2_rev * np.log2(pwm2_rev/bg)
         
         scores = []
         l1 = len(pwm1)
@@ -454,10 +454,10 @@ class Motif:
                 elif l2 < l1:
                     pwm1_end = l2
             
-            score = numpy.sum((numpy.sum(a[pwm1_start:pwm1_end],1) + numpy.sum(b[pwm2_start:pwm2_end],1)) / 2 - numpy.sum(numpy.abs(a[pwm1_start:pwm1_end] - b[pwm2_start:pwm2_end]),1))
+            score = np.sum((np.sum(a[pwm1_start:pwm1_end],1) + np.sum(b[pwm2_start:pwm2_end],1)) / 2 - np.sum(np.abs(a[pwm1_start:pwm1_end] - b[pwm2_start:pwm2_end]),1))
             scores.append([score, pos, 1])
             
-            score = numpy.sum((numpy.sum(a[pwm1_start:pwm1_end],1) + numpy.sum(b_rev[pwm2_start:pwm2_end],1)) / 2 - numpy.sum(numpy.abs(a[pwm1_start:pwm1_end] - b_rev[pwm2_start:pwm2_end]),1))
+            score = np.sum((np.sum(a[pwm1_start:pwm1_end],1) + np.sum(b_rev[pwm2_start:pwm2_end],1)) / 2 - np.sum(np.abs(a[pwm1_start:pwm1_end] - b_rev[pwm2_start:pwm2_end]),1))
             scores.append([score, pos, -1])
         
         return sorted(scores, key=lambda x: x[0])[-1]
@@ -734,6 +734,28 @@ def alignfile_to_motifs(file):
         motifs.append(m)
     return motifs
 
+def xxmotif_to_motifs(fname):
+    motifs = []
+    
+    f = open(fname)
+    line = f.readline()
+    while line:
+        while line and not line.startswith("Motif"):
+            line = f.readline()
+    
+        if line:
+            mid = line.split(":")[0]
+            freqs = []
+            for i in range(4):
+                line = f.readline()
+                freqs.append([float(x) for x in line.strip().split("\t")])
+
+            pwm = np.array(freqs).transpose()
+            motif = Motif(pwm)
+            motif.id = mid
+            motifs.append(motif)
+
+    return motifs
 
 def transfac_to_motifs(file):
     p = re.compile(r'\d+\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s*\w?')
