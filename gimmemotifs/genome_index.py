@@ -8,6 +8,7 @@
 from struct import pack,unpack
 from string import maketrans
 from glob import glob
+import subprocess as sp
 import random
 import bisect
 import sys
@@ -112,8 +113,20 @@ class GenomeIndex:
         self._check_dir(index_dir)
 
         # Get all fasta-files 
-        files = os.listdir(fasta_dir)
-        fastafiles = [os.path.join(fasta_dir, file) for file in files if os.path.splitext(file)[-1] in self.FASTA_EXT]
+        try:
+		files = os.listdir(fasta_dir)
+        except OSError:
+		if os.path.exists(fasta_dir):
+			cmd = "find {0} -maxdepth 1 -name \"*\"".format(fasta_dir)
+        		p = sp.Popen(cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
+        		stdout,stderr = p.communicate()
+        		files = [os.path.basename(fname) for fname in stdout.splitlines()]
+   		else:
+        		raise
+
+
+	
+	fastafiles = [os.path.join(fasta_dir, file) for file in files if os.path.splitext(file)[-1] in self.FASTA_EXT]
 
         if not fastafiles:
             print "No fastafiles found in %s with extension in %s" % (fasta_dir, ",".join(self.FASTA_EXT))
