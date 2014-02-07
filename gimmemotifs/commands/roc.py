@@ -9,10 +9,6 @@ import pp
 import sys
 import os
 
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.rocmetrics import ROC_values, ROC_AUC, MNCP, max_enrichment, enr_at_fdr
 from gimmemotifs.fasta import Fasta

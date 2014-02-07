@@ -16,8 +16,6 @@ from numpy import median
 
 # External imports
 import kid
-#import matplotlib
-#matplotlib.use('Agg')
 from scipy.stats.mstats import rankdata
 
 # GimmeMotifs imports
