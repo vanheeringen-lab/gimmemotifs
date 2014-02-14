@@ -653,7 +653,7 @@ class Motif:
             e = sys.exc_info()[0]
             msg = "Error calculating stats of {0}, error {1}".format(self.id, e)
             if log:
-                log.fatal(msg)
+                log.error(msg)
             else:
                 print msg
 
