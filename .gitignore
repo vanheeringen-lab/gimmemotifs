@@ -6,6 +6,7 @@ doc/*
 !doc/*.tex
 !doc/*.pdf
 !doc/*.txt
+!doc/*.md
 examples/*
 !examples/*.bed
 !examples/*.fa
