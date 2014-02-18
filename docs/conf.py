@@ -48,6 +48,7 @@ copyright = u'2014, Simon van Heeringen'
 # built documents.
 #
 # The short X.Y version.
+sys.path.append("../")
 from gimmemotifs.config import GM_VERSION
 version = GM_VERSION
 # The full version, including alpha/beta/rc tags.
