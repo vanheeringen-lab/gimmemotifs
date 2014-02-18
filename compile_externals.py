@@ -25,7 +25,7 @@ def compile_configmake(name, binary):
     if not os.path.exists(path):
         return
     
-    Popen(["chmod", "+x", "./configure", cwd=path, stdout=PIPE, stderr=PIPE).communicate()
+    Popen(["chmod", "+x", "./configure"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
     Popen(["./configure"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
     Popen(["make"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
 
