@@ -19,3 +19,5 @@ install pp from source
 sudo apt-get install libgsl0-dev
 
 install Pycluster from source
+
+pip install pyyaml
