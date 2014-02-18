@@ -1,4 +1,5 @@
 **/*.swp
+*egg-info/
 gimmemotifs/*.pyc
 test/*.pyc
 build/*
@@ -7,6 +8,7 @@ doc/*
 !doc/*.pdf
 !doc/*.txt
 !doc/*.md
+docs/_build/*
 examples/*
 !examples/*.bed
 !examples/*.fa
