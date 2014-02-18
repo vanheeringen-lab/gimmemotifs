@@ -1,3 +1,6 @@
+.. contents:: Table of Contents
+      :depth: 3
+
 Introduction
 ============
 
@@ -703,19 +706,19 @@ Descriptions
 ------------
 
 gimme match
------------
+~~~~~~~~~~~
 
 Taking an input file with motifs, find the best matching file in another
 file of motifs (according to the WIC metric).
 
 gimme index
------------
+~~~~~~~~~~~
 
 Creates an index to use with GimmeMotifs. See section
 [sec:configuration] for details.
 
 gimme background
-----------------
+~~~~~~~~~~~~~~~~
 
 Generate random sequences according to one of two methods: random or
 matched\_genomic. With the argument ``type`` set to ``random``, and an
@@ -732,23 +735,23 @@ select the correct genome. The length of the sequences in the output
 file will be set to the median of the features in the input file.
 
 gimme cluster
--------------
+~~~~~~~~~~~~~
 
 Cluster a set of motifs with the WIC metric.
 
 gimme location
---------------
+~~~~~~~~~~~~~~
 
 Create the positional preference plots for all the motifs in the input
 PWM file. This will give best results if all the sequences in the
 FASTA-formatted inputfile have the same length. Keep in mind that this
 only makes sense if the sequences are centered around a similar feature
 (transcription start site, highest point in a peak, etc.). The default
-threshold for motif scanning is 0.95, see ``pwmscan.py`` for more
+threshold for motif scanning is 0.95, see ``gimme scan`` for more
 details.
 
 gimme roc
----------
+~~~~~~~~~
 
 Given a sample (positives, peaks) and a background file (random
 sequences, random promoters or similar), calculates several statistics
@@ -759,12 +762,12 @@ ROC area under curve (ROC\_AUC) and Mean Normalized Conditional
 Probability (MNCP).
 
 gimme logo
-----------
+~~~~~~~~~~
 
 Convert the motifs in a PWM file to a logo using weblogo.
 
 gimme scan
-----------
+~~~~~~~~~~
 
 Scan a set of sequences with a set of motifs, and give the resulting
 matches in GFF or BED format. The threshold is based on the maximum and
@@ -775,10 +778,10 @@ generally at least 0.9 for good specificity. Keep in mind that the
 optimal threshold might be different for each motif!
 
 track2fasta.py 
----------------
+~~~~~~~~~~~~~~~
 
 Convert a set of BED formatted sequences to a FASTA file. The genome
-needs to be indexed for GimmeMotifs using ``create_genome_index.py``.
+needs to be indexed for GimmeMotifs using ``gimme index``.
 
 Acknowledgements
 ================
