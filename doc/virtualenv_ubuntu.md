@@ -12,7 +12,7 @@ Install the necessary packages to build numpy, scipy, matplotlib and GimmeMotifs
 
 Now you can install GimmeMotifs using pip. Latest stable release:
 
-    pip install https://github.com/simonvh/gimmemotifs/tarball/0.8.2
+    pip install https://github.com/simonvh/gimmemotifs/tarball/0.8.3
 
 Or the (unstable) master branch with the newest bells, whistles and bugs:
 
