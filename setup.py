@@ -6,6 +6,7 @@ from distutils.command.build import build
 from distutils.command.install import INSTALL_SCHEMES
 from distutils.util import get_platform
 from distutils import log as dlog
+import distutils.sysconfig
 from subprocess import Popen
 from platform import machine
 from gimmemotifs.tools import *
@@ -76,19 +77,6 @@ for platform, scheme in INSTALL_SCHEMES.iteritems():
         if scheme['data'][0] == '$' and '/' not in scheme['data']:
             scheme['data'] = os.path.join(scheme['data'], 'share')
 
-#dlog.info("checking dependencies")
-#try:
-#    import pp
-#    import matplotlib
-#    import kid
-#    import scipy
-#    import numpy
-#except ImportError, inst:
-#    print "Error: required dependency not found!"
-#    print inst
-#    sys.exit()    
-
-
 def which(file):
     if not os.environ.has_key("PATH") or not os.environ["PATH"]:
         path = os.defpath
@@ -126,11 +114,13 @@ class build_tools(Command):
 
     def run(self):
         from compile_externals import compile_all
+        prefix = distutils.sysconfig.get_config_var("prefix")
+        
         if not os.path.exists(self.build_tools_dir):
             os.mkdir(self.build_tools_dir)
 
         # Try to compile everything
-        compile_all()
+        compile_all(os.path.join(prefix, "share/gimmemotifs"))
 
         # Copy everything that has been compiled
         for bin in MOTIF_BINS.values():
