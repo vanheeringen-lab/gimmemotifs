@@ -14,9 +14,13 @@ from math import log,sqrt
 from tempfile import NamedTemporaryFile
 from config import *
 from subprocess import *
+
 # External imports
-from numpy import mean,sum
-import numpy as np
+try:
+    from numpy import mean,sum
+    import numpy as np
+except:
+    pass
 
 class Motif:
     PSEUDO_PFM_COUNT = 1000 # Jaspar mean

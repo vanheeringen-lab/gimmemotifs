@@ -16,10 +16,11 @@ from subprocess import *
 from tempfile import NamedTemporaryFile,mkdtemp
 import shutil
 from string import maketrans
-# External imports
-import pp
-# GimmeMotifs imports
-from gimmemotifs.motif import * 
+
+try:
+    from gimmemotifs.motif import * 
+except:
+    pass
 
 class MotifProgram:
     from gimmemotifs.config import MotifConfig
@@ -497,7 +498,8 @@ class Weeder(MotifProgram):
     def _run_program(self, bin,fastafile, savedir="", params={}):
         import os, tempfile, shutil
         from subprocess import Popen, PIPE
-        
+        import pp 
+
         default_params = {"analysis":"small", "organism":"hg18", "single":False, "parallel":True}
         default_params.update(params)
         

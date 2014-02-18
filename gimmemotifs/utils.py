@@ -15,6 +15,7 @@ import tempfile
 from math import log
 from string import strip
 from subprocess import Popen, PIPE
+
 # External imports
 import numpy
 from scipy import special
@@ -106,7 +107,10 @@ def divide_fa_file(file, sample, rest, fraction, abs_max):
     return x, len(ids[x:])    
 
 def make_gff_histogram(gfffile, outfile, l, title, breaks=21):
-    import matplotlib.pyplot as plt
+    try:
+        import matplotlib.pyplot as plt
+    except:
+        pass
     data = []
     for line in open(gfffile):
         vals = line.strip().split("\t")
@@ -159,23 +163,6 @@ def write_equalwidth_bedfile(bedfile, width, outfile):
     
     out.close()
     f.close()
-
-def which(file):
-    if not os.environ.has_key("PATH") or not os.environ["PATH"]:
-        path = os.defpath
-    else:
-        path = os.environ["PATH"]
-
-    for p in [os.path.join(x, file) for x in path.split(os.pathsep)]:
-        if os.access(p, os.X_OK) and not os.path.isdir(p):
-            return p
-    
-    p = Popen("locate %s" % file, shell=True, stdout=PIPE, stderr=PIPE)
-    (stdout, stderr) = p.communicate()
-    if not stderr:
-        for p in stdout.split("\n"):
-            if os.path.basename(p) == file and os.access(p, os.X_OK) and not os.path.isdir(p):
-                return p
 
 def get_significant_motifs(motifs, fg_fasta, bg_fasta, e_cutoff=None, p_cutoff=None, save_result=None):
     pass

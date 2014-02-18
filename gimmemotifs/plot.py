@@ -15,7 +15,7 @@ from gimmemotifs.utils import sort_tree
 
 # Matplotlib imports
 import matplotlib as mpl
-mpl.use("Cairo")
+mpl.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from mpl_toolkits.axes_grid1 import ImageGrid
