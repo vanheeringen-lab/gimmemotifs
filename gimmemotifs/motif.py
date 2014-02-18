@@ -15,6 +15,8 @@ from tempfile import NamedTemporaryFile
 from config import *
 from subprocess import *
 
+from gimmemotifs import mytmpdir
+
 # External imports
 try:
     from numpy import mean,sum
@@ -600,7 +602,7 @@ class Motif:
                 elif i <= vals[3]:
                     seqs[i] += "T"
     
-        f = NamedTemporaryFile()
+        f = NamedTemporaryFile(dir=mytmpdir)
         for seq in seqs:
             f.write("%s\n" % seq)
         f.flush()

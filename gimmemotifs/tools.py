@@ -17,6 +17,7 @@ from tempfile import NamedTemporaryFile,mkdtemp
 import shutil
 from string import maketrans
 
+from gimmemotifs import mytmpdir
 try:
     from gimmemotifs.motif import * 
 except:
@@ -27,8 +28,8 @@ class MotifProgram:
     config = MotifConfig()
 
     def __init__(self):
-        pass    
-    
+        pass
+
     def bin(self):
         return self.config.bin(self.name)
 
@@ -47,7 +48,11 @@ class MotifProgram:
 
         if not self.is_installed():
             raise ValueError, "%s is not installed or not correctly configured" % self.name
-
+        
+        # Define a temporary directory that is removed at program exit
+        self.tmpdir = mkdtemp(prefix="{0}.".format(self.name), dir=mytmpdir)
+        print "TEMPDIR {0}".format(self.tmpdir)
+ 
         try:
             return self._run_program(self.bin(), fastafile, savedir, params)
         except KeyboardInterrupt:
@@ -78,8 +83,7 @@ class BioProspector(MotifProgram):
             sys.exit()
         
         bgfile = os.path.abspath(default_params["background"])
-        tmpdir = tempfile.mkdtemp()
-        outfile = os.path.join(tmpdir, "bioprospector.out")    
+        outfile = os.path.join(self.tmpdir, "bioprospector.out")    
         
         stdout = ""
         stderr = ""
@@ -108,10 +112,6 @@ class BioProspector(MotifProgram):
             f = open(outfile)
             motifs = self.parse(f)
             f.close()
-        
-        # remove temporary files
-        if os.path.exists(tmpdir):
-            shutil.rmtree(tmpdir)
         
         return motifs, stdout, stderr
 
@@ -158,15 +158,14 @@ class Hms(MotifProgram):
 
         fastafile = os.path.abspath(fastafile)
         
-        tmpdir = tempfile.mkdtemp()
-        fgfile = os.path.join(tmpdir, "HMS.in.fa")
-        summitfile = os.path.join(tmpdir, "HMS.in.summits.txt")
-        outfile = os.path.join(tmpdir, "thetafinal.txt")    
+        fgfile = os.path.join(self.tmpdir, "HMS.in.fa")
+        summitfile = os.path.join(self.tmpdir, "HMS.in.summits.txt")
+        outfile = os.path.join(self.tmpdir, "thetafinal.txt")    
     
         hmsdir = os.path.join(self.config.get_tools_dir(), "HMS")
         shutil.copy(fastafile, fgfile)
         for t in thetas:
-            shutil.copy(os.path.join(hmsdir, t), tmpdir)
+            shutil.copy(os.path.join(hmsdir, t), self.tmpdir)
         
         fa = Fasta(fgfile)
         out = open(summitfile, "w")
@@ -175,7 +174,7 @@ class Hms(MotifProgram):
         out.close()
         
         current_path = os.getcwd()
-        os.chdir(tmpdir)
+        os.chdir(self.tmpdir)
         
         stdout = ""
         stderr = ""
@@ -227,14 +226,13 @@ class Amd(MotifProgram):
             sys.exit(1)
         
         bgfile = os.path.abspath(default_params["background"])
-        tmpdir = tempfile.mkdtemp()
-        fgfile = os.path.join(tmpdir, "AMD.in.fa")
+        fgfile = os.path.join(self.tmpdir, "AMD.in.fa")
         outfile = fgfile + ".Matrix"    
     
         shutil.copy(fastafile, fgfile)
         print fgfile
         current_path = os.getcwd()
-        os.chdir(tmpdir)
+        os.chdir(self.tmpdir)
         
         stdout = ""
         stderr = ""
@@ -301,11 +299,10 @@ class MoAn(MotifProgram):
             sys.exit()
         
         bgfile = os.path.abspath(default_params["background"])
-        tmpdir = tempfile.mkdtemp()
-        outfile = os.path.join(tmpdir, "moan.out")    
+        outfile = os.path.join(self.tmpdir, "moan.out")    
         
         current_path = os.getcwd()
-        os.chdir(tmpdir)
+        os.chdir(self.tmpdir)
         
         stdout = ""
         stderr = ""
@@ -329,9 +326,6 @@ class MoAn(MotifProgram):
             f.close()
         
         print outfile
-        # remove temporary files
-        #if os.path.exists(tmpdir):
-        #    shutil.rmtree(tmpdir)
         
         return motifs, stdout, stderr
 
@@ -375,11 +369,10 @@ class Improbizer(MotifProgram):
             sys.exit()
         
         bgfile = os.path.abspath(default_params["background"])
-        tmpdir = tempfile.mkdtemp()
-        outfile = os.path.join(tmpdir, "improbizer.out.html")    
+        outfile = os.path.join(self.tmpdir, "improbizer.out.html")    
         
         current_path = os.getcwd()
-        os.chdir(tmpdir)
+        os.chdir(self.tmpdir)
         
         stdout = ""
         stderr = ""
@@ -396,9 +389,6 @@ class Improbizer(MotifProgram):
             f.close()
         
         os.chdir(current_path)
-        # remove temporary files
-        if os.path.exists(tmpdir):
-            shutil.rmtree(tmpdir)
         
         return motifs, stdout, stderr
 
@@ -445,8 +435,6 @@ class Trawler(MotifProgram):
         bgfile = os.path.abspath(default_params["background"])
         savedir = os.path.abspath(savedir)
         
-        tmpdir = tempfile.mkdtemp()
-
         #savedir = "/tmp/trawler/"
 
         tmp = tempfile.NamedTemporaryFile(delete=False)
@@ -461,7 +449,7 @@ class Trawler(MotifProgram):
         strand = "double"
         if default_params["single"]:
             strand = "single"
-        cmd = "%s -sample %s -background %s -directory %s -strand %s" % (trawler, fastafile, bgfile, tmpdir, strand)
+        cmd = "%s -sample %s -background %s -directory %s -strand %s" % (trawler, fastafile, bgfile, self.tmpdir, strand)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
         stdout += out
@@ -469,16 +457,18 @@ class Trawler(MotifProgram):
         
         os.chdir(current_path)
         motifs = []
-        out_name = [dir for dir in os.listdir(tmpdir) if dir.startswith("tmp")][-1]
-        out_file = os.path.join(tmpdir, out_name, "result", "%s.pwm" % out_name)
+        out_name = [dir for dir in os.listdir(self.tmpdir) if dir.startswith("tmp")][-1]
+        out_file = os.path.join(self.tmpdir, out_name, "result", "%s.pwm" % out_name)
         if os.path.exists(out_file):
-            motifs = pwmfile_to_motifs(os.path.join(tmpdir, out_name, "result", "%s.pwm" % out_name))
+            motifs = pwmfile_to_motifs(os.path.join(
+                                                    self.tmpdir, 
+                                                    out_name, 
+                                                    "result", 
+                                                    "%s.pwm" % out_name))
         
         # remove temporary files
         if os.path.exists(tmp.name):
             os.unlink(tmp.name)
-        if os.path.exists(tmpdir):
-            shutil.rmtree(tmpdir)
         
         for motif in motifs:
             motif.id = "%s_%s" % (self.name, motif.id)
@@ -790,8 +780,7 @@ class MDmodule(MotifProgram):
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
     
-        tmpdir = tempfile.mkdtemp()
-        new_file = os.path.join(tmpdir, "mdmodule_in.fa")
+        new_file = os.path.join(self.tmpdir, "mdmodule_in.fa")
         shutil.copy(fastafile, new_file)
         
         fastafile = new_file
@@ -801,7 +790,7 @@ class MDmodule(MotifProgram):
         number = default_params['width']
     
         current_path = os.getcwd()
-        os.chdir(tmpdir)    
+        os.chdir(self.tmpdir)    
         cmd = "%s -i %s -a 1 -o %s -w %s -t 10 -r %s" % (bin, fastafile, pwmfile, width, number)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         stdout,stderr = p.communicate()
@@ -815,9 +804,6 @@ class MDmodule(MotifProgram):
             motifs = self.parse(open(pwmfile))
         
         os.chdir(current_path)
-        
-        # remove temporary files
-        shutil.rmtree(tmpdir)
         
         for motif in motifs:
             motif.id = "%s_%s" % (self.name, motif.id)
@@ -884,8 +870,7 @@ class ChIPMunk(MotifProgram):
 
         basename = "munk_in.fa"
 
-        tmpdir = tempfile.mkdtemp()
-        new_file = os.path.join(tmpdir, basename)
+        new_file = os.path.join(self.tmpdir, basename)
         out = open(new_file, "w")
         f = Fasta(fastafile)
         for name,seq in f.items():
@@ -909,8 +894,7 @@ class ChIPMunk(MotifProgram):
             motifs = self.parse(open(outfile))
         
         os.chdir(current_path)
-        # remove temporary files
-        shutil.rmtree(tmpdir)
+        
         return motifs, stdout, stderr
         
     def parse(self, fo):
@@ -953,8 +937,7 @@ class Posmo(MotifProgram):
     
         basename = "posmo_in.fa"
 
-        tmpdir = tempfile.mkdtemp()
-        new_file = os.path.join(tmpdir, basename)
+        new_file = os.path.join(self.tmpdir, basename)
         shutil.copy(fastafile, new_file)
         
         fastafile = new_file
@@ -962,7 +945,7 @@ class Posmo(MotifProgram):
     
         motifs = []
         current_path = os.getcwd()
-        os.chdir(tmpdir)    
+        os.chdir(self.tmpdir)    
         for x in ["111111", "11111111"]:
             outfile = "%s.%s.out" % (fastafile, x)
             cmd = "%s 5000 %s %s 1.6 2.5 20 200" % (bin, x, fastafile)
@@ -980,8 +963,6 @@ class Posmo(MotifProgram):
                 motifs += self.parse(open(outfile))
         
         os.chdir(current_path)
-        # remove temporary files
-        shutil.rmtree(tmpdir)
         
         return motifs, stdout, stderr
 
@@ -1022,8 +1003,7 @@ class Gadem(MotifProgram):
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
     
-        tmpdir = tempfile.mkdtemp()
-        new_file = os.path.join(tmpdir, "gadem_in.fa")
+        new_file = os.path.join(self.tmpdir, "gadem_in.fa")
         shutil.copy(fastafile, new_file)
         
         fastafile = new_file
@@ -1031,7 +1011,7 @@ class Gadem(MotifProgram):
         outfile = fastafile + ".out"
     
         current_path = os.getcwd()
-        os.chdir(tmpdir)    
+        os.chdir(self.tmpdir)    
         cmd = "%s -fseq %s -fpwm %s -fout %s" % (bin, fastafile, pwmfile, outfile)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         stdout, stderr = p.communicate()
@@ -1041,8 +1021,6 @@ class Gadem(MotifProgram):
             motifs = self.parse(open(pwmfile))
         
         os.chdir(current_path)
-        # remove temporary files
-        shutil.rmtree(tmpdir)
         
         return motifs, stdout, stderr
 
