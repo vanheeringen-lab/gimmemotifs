@@ -273,7 +273,7 @@ class MarkovFasta(Fasta):
                 self.add(id, random_seq)    
                 c += 1
 
-    def _initialize_matrices(self, seqs, k=1, skip_bad=True, alphabet=['a','c','g','t'], bad="n"):
+    def _initialize_matrices(self, seqs, k=1, skip_bad=True, alphabet=['A','C','G','T'], bad="n"):
         self.frequencies = {}
         kmercount = {}
         
@@ -296,7 +296,7 @@ class MarkovFasta(Fasta):
         p = re.compile("^[%s]+$" % "".join(alphabet))
         total = 0
         for seq in seqs:
-            seq = seq.lower()
+            seq = seq.upper()
             for i in range(len(seq) - k):
                 if p.search(seq[i:i + k + 1]):
                     lettercount[seq[i:i + k]] += 1
