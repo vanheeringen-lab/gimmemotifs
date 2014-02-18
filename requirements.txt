@@ -1,0 +1,7 @@
+numpy
+scipy
+kid
+matplotlib
+pyaml
+http://bonsai.hgc.jp/~mdehoon/software/cluster/Pycluster-1.52.tar.gz
+http://www.parallelpython.com/downloads/pp/pp-1.6.4.tar.gz
