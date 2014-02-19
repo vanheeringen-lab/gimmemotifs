@@ -1,5 +1,9 @@
-.. contents:: Table of Contents
-      :depth: 3
+Contents
+========
+
+.. toctree::
+      :maxdepth: 3
+
 
 Introduction
 ============
@@ -11,10 +15,10 @@ motifs using the WIC similarity scoring metric. It is freely available
 for download and use under the MIT license. If you find GimmeMotifs
 useful, please cite:
 
--  van Heeringen SJ and Veenstra GJC, GimmeMotifs: a *de novo* motif
-   prediction pipeline for ChIP-sequencing experiments, Bioinformatics
-   Advance Access published November 15, 2010,
-   doi:10.1093/bioinformatics/btq636.
+-  `van Heeringen SJ and Veenstra GJC, GimmeMotifs: a *de novo* motif
+   prediction pipeline for ChIP-sequencing experiments 
+   <http://www.ncbi.nlm.nih.gov/pubmed/21081511>`_, 
+   Bioinformatics. 2011 Jan 15;27(2):270-1. doi: 10.1093/bioinformatics/btq636.
 
 This document describes how to install and use GimmeMotifs, for
 theoretical details, please see our publication .
@@ -49,14 +53,23 @@ algorithms. GimmeMotifs includes several tools by default:
 
 -  trawler http://ani.embl.de/trawler/
 
-All these tools are installed automatically with GimmeMotifs. Due to an
+-  HMS http://www.sph.umich.edu/csg/qin/HMS/
+
+-  AMD 
+
+-  ChIPMunk http://autosome.ru/smbsm/librettos/libretto_chipmunk/chipmunk_home.rhtml
+
+-  Posmo https://cb.utdallas.edu/Posmo/index.html
+
+Almost all these tools are installed automatically with GimmeMotifs. Due to an
 issue with MoAn and the Ubuntu gcc version, I was not able to compile
 MoAn for the Ubuntu package, which means MoAn is not included. To use
 these programs *no additional steps have to be taken* (except for
-MotifSampler see [sec:MotifSampler]). **Please note: all these programs
-include their own license and most are free for academic or
-non-commercial use only! For commercial use of any of these programs,
-please consult the respective author!**
+MotifSampler see :ref:`MotifSampler`). 
+
+**Please note: all these programs include their own license and most are free
+for academic or non-commercial use only! For commercial use of any of these 
+programs, please consult the respective author!**
 
 Installation
 ============
@@ -121,9 +134,9 @@ Parallel Python from the Python Package Index:
 
 Now you should have a working version of GimmeMotifs! The next steps are
 to install additional motif tools (optional, see section
-[sec:adding:sub:`t`\ ools]) and to do some configuration (required, see
-section [sec:configuration] ). You can also directly try the quick
-example (section [sec:quick:sub:`e`\ xample]), if you’re impatient (but
+:ref:`adding_subtools`) and to do some configuration (required, see
+section :ref:`Configuration` ). You can also directly try the quick
+example (:ref:`quick-example`), if you’re impatient (but
 don’t forget to perform the additional steps!)
 
 Installation on Fedora
@@ -148,9 +161,9 @@ turn it off:
 
 Now you should have a working version of GimmeMotifs. The next steps are
 to install additional motif tools (optional, see section
-[sec:adding:sub:`t`\ ools]) and to do some configuration (required, see
-section [sec:configuration] ). You can also directly try the quick
-example (section [sec:quick:sub:`e`\ xample]), if you’re impatient (but
+:ref:`adding_subtools`) and to do some configuration (required, see
+:ref:`Configuration` ). You can also directly try the quick
+example (see :ref:`quick-example`), if you’re impatient (but
 don’t forget to perform the additional steps!)
 
 Installation from source
@@ -208,7 +221,7 @@ GimmeMotifs. The following tools have to be installed seperately:
 Please consult the respective manuals regarding installation of these
 tools. It’s always possible to install these programs after installation
 of GimmeMotifs and update the configuration files to include the new
-tools (see section [sec:adding:sub:`t`\ ools]). However, during
+tools (see section :ref:`adding_subtools`). However, during
 installation, GimmeMotifs will try to find any installed tools and add
 them automatically, so that’s the easiest option.
 
@@ -264,8 +277,11 @@ will have to put this configuration file in his/her home directory:
 ``~/.gimmemotifs.cfg``. The install script will also inform you of this
 during install. Please contact me if you run into problems with the
 installation. Once the installation is finished, you can try the quick
-example (section [sec:quick:sub:`e`\ xample]), or continue with the
+example (section :ref:`quick-example`), or continue with the
 configuration in the next section.
+
+
+.. _Configuration:
 
 Configuration
 -------------
@@ -290,7 +306,10 @@ to run the examples included with GimmeMotifs can be downloaded here:
      
 
 All fasta files need to be indexed before GimmeMotifs can use them, see
-section [sec:indexing].
+section :ref:`indexing`.
+
+
+.. _indexing:
 
 Indexing the genomes
 ~~~~~~~~~~~~~~~~~~~~
@@ -337,6 +356,9 @@ the fasta files, and adding a gene file), and makes sure the gene BED
 file is in the correct place with the correct name. This is the easiest
 way to add a new genome/organism for use with GimmeMotifs.
 
+
+.. _adding_subtools:
+
 Adding motif prediction tools
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -370,6 +392,8 @@ needs to be changed to:
 ::
 
     tools = MDmodule,MEME,MotifSampler,trawler,Improbizer,BioProspector,Weeder
+
+.. _MotifSampler:
 
 MotifSampler configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -455,6 +479,8 @@ here.
 
 Usage
 =====
+
+.. _quick-example:
 
 Quick GimmeMotifs example
 -------------------------
@@ -612,7 +638,7 @@ Detailed options
 -  ``-g`` or ``–genome``
 
    Name of the genome (index) to use. For instance, for the example in
-   section [sec:indexing] this would be ``hg18``.
+   section :ref:`indexing` this would be ``hg18``.
 
 -  ``-s`` or ``–singlestrand``
 
@@ -714,8 +740,7 @@ file of motifs (according to the WIC metric).
 gimme index
 ~~~~~~~~~~~
 
-Creates an index to use with GimmeMotifs. See section
-[sec:configuration] for details.
+Creates an index to use with GimmeMotifs. See :ref:`Configuration` for details.
 
 gimme background
 ~~~~~~~~~~~~~~~~
