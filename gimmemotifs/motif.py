@@ -602,7 +602,7 @@ class Motif:
                 elif i <= vals[3]:
                     seqs[i] += "T"
     
-        f = NamedTemporaryFile(dir=mytmpdir)
+        f = NamedTemporaryFile(dir=mytmpdir())
         for seq in seqs:
             f.write("%s\n" % seq)
         f.flush()

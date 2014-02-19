@@ -28,7 +28,7 @@ from gimmemotifs.comparison import *
 from gimmemotifs import genome_index
 from gimmemotifs.cluster import *
 from gimmemotifs.plot import *
-
+from gimmemotifs import mytmpdir
 
 def job_server_ok():
     return True
@@ -644,8 +644,8 @@ class GimmeMotifs:
         out = open(pwm, "w")
         for i, (clus, singles) in enumerate(clusters):
             motifs = [clus] + singles
-            tmp = NamedTemporaryFile()
-            tmp2 = NamedTemporaryFile()
+            tmp = NamedTemporaryFile(dir=mytmpdir())
+            tmp2 = NamedTemporaryFile(dir=mytmpdir())
             for m in motifs:
                 tmp.write("%s\n" % m.to_pwm())
             tmp.flush()
@@ -671,6 +671,7 @@ class GimmeMotifs:
     def run_full_analysis(self, inputfile, user_params={}):
         """ Full analysis: from bed-file to motifs (including clustering, ROC-curves, location plots and html report) """
         self.logger.info("Starting full motif analysis")
+        self.logger.info("Using temporary directory {0}".format(mytmpdir()))
     
         params = self.config.get_default_params()
         params.update(user_params)
@@ -868,7 +869,7 @@ class GimmeMotifs:
         #     -
         
         # Stars
-        tmp = NamedTemporaryFile().name
+        tmp = NamedTemporaryFile(dir=mytmpdir()).name
         p = PredictionResult(tmp, logger=self.logger, job_server=self.server, fg_file = self.validation_fa, bg_file = bg_file) 
         p.add_motifs("Clustering",  (pwmfile_to_motifs(self.final_pwm), "",""))
         while len(p.stats.keys()) < len(p.motifs):

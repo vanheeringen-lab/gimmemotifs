@@ -357,8 +357,8 @@ class MatchedGenomicFasta(Fasta):
         length = int(length)
 
         # Create temporary files
-        tmpbed = NamedTemporaryFile(dir=mytmpdir).name
-        tmpfasta = NamedTemporaryFile(dir=mytmpdir).name
+        tmpbed = NamedTemporaryFile(dir=mytmpdir()).name
+        tmpfasta = NamedTemporaryFile(dir=mytmpdir()).name
         
         # Create bed-file with coordinates of random sequences
         create_matched_genomic_bedfile(tmpbed, bedfile, genefile, length, multiply, self.match_chromosome)
@@ -392,8 +392,8 @@ class PromoterFasta(Fasta):
         length = int(length)
 
         # Create temporary files
-        tmpbed = NamedTemporaryFile(dir=mytmpdir).name
-        tmpfasta = NamedTemporaryFile(dir=mytmpdir).name
+        tmpbed = NamedTemporaryFile(dir=mytmpdir()).name
+        tmpfasta = NamedTemporaryFile(dir=mytmpdir()).name
         
         # Create bed-file with coordinates of random sequences
         create_promoter_bedfile(tmpbed, genefile, length, n)
@@ -423,8 +423,8 @@ class RandomGenomicFasta(Fasta):
         length = int(length)
 
         # Create temporary files
-        tmpbed = NamedTemporaryFile(dir=mytmpdir).name
-        tmpfasta = NamedTemporaryFile(dir=mytmpdir).name
+        tmpbed = NamedTemporaryFile(dir=mytmpdir()).name
+        tmpfasta = NamedTemporaryFile(dir=mytmpdir()).name
         
         # Create bed-file with coordinates of random sequences
         create_random_genomic_bedfile(tmpbed, index, length, n)

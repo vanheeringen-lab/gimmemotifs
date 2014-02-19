@@ -24,6 +24,7 @@ from gimmemotifs.comparison import *
 from gimmemotifs.nmer_predict import *
 from gimmemotifs.config import *
 from gimmemotifs.fasta import *
+from gimmemotifs import mytmpdir
 
 class PredictionResult:
     def __init__(self, outfile, logger=None, fg_file=None, bg_file=None, job_server=None):
@@ -134,7 +135,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
                     params['width'] = i
                     jobs[job_name] = job_server.submit(
                         t.run, 
-                        (fastafile, ".", params,), 
+                        (fastafile, ".", params, mytmpdir()), 
                         (tool_classes.MotifProgram,),
                         ("gimmemotifs.config",),  
                         result.add_motifs, 
@@ -144,7 +145,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
                 job_name = t.name
                 jobs[job_name] = job_server.submit(
                     t.run, 
-                    (fastafile, ".", params), 
+                    (fastafile, ".", params, mytmpdir()), 
                     (tool_classes.MotifProgram,),
                     ("gimmemotifs.config",), 
                     result.add_motifs, 
