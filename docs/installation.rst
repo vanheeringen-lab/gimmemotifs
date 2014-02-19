@@ -10,6 +10,45 @@ source, but it depends on quite some external packages. Please make sure
 all prerequisites are installed before installing GimmeMotifs from
 source.
 
+Installation using virtualenv
+-----------------------------
+
+Ubuntu prerequisites
+~~~~~~~~~~~~~~~~~~~~
+
+To install GimmeMotifs in a virtualenv, several Python packages need to be built from source. 
+
+Install the necessary packages to build numpy, scipy, matplotlib and GimmeMotifs:
+
+::
+
+    sudo apt-get install python-pip python-dev build-essential libatlas-base-dev \
+    gfortran liblapack-dev libatlas-base-dev cython libpng12-dev libfreetype6-dev \
+    libgsl0-dev
+
+Install via pip
+~~~~~~~~~~~~~~~
+
+First install numpy:
+
+::
+
+    pip install numpy
+
+
+Now you can install GimmeMotifs using pip. Latest stable release:
+
+::
+
+    pip install https://github.com/simonvh/gimmemotifs/tarball/0.8.3
+
+Or the (unstable) master branch with the newest bells, whistles and bugs:
+
+::
+
+    pip install https://github.com/simonvh/gimmemotifs/tarball/master
+
+
 Installation packages
 ---------------------
 
@@ -206,3 +245,5 @@ during install. Please contact me if you run into problems with the
 installation. Once the installation is finished, you can try the quick
 example (section :ref:`quick-example`), or continue with the
 configuration in the next section.
+
+
