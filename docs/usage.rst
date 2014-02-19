@@ -31,7 +31,7 @@ GimmeMotifs example
 -------------------
 
 This example is the same as above, except it will start from a BED file.
-This example does require you to have hg18 present and indexed. Change
+This example does require you to have hg19 present and indexed. Change
 to a directory where you have write permissions and run the following
 command (substitute the filename with the location of the file on your
 system):
@@ -159,7 +159,7 @@ Detailed options
 -  ``-g`` or ``–genome``
 
    Name of the genome (index) to use. For instance, for the example in
-   section :ref:`indexing` this would be ``hg18``.
+   section :ref:`indexing` this would be ``hg19``.
 
 -  ``-s`` or ``–singlestrand``
 

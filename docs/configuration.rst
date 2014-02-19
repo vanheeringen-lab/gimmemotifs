@@ -12,12 +12,12 @@ absolutely required. The fasta files should be organized in one
 directory with one file per chromosome or scaffold, with the filename
 being the chromosome name with an extension of ``.fa``, ``.fsa`` or
 ``.fasta``. No exceptions, no different layouts. A good source is the
-UCSC Genome Browser database . For instance, the human hg18 files needed
+UCSC Genome Browser database . For instance, the human hg19 files needed
 to run the examples included with GimmeMotifs can be downloaded here:
 
 ::
 
-    ftp://hgdownload.cse.ucsc.edu/goldenPath/hg18/bigZips/chromFa.zip
+    ftp://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/chromFa.zip
      
 
 All fasta files need to be indexed before GimmeMotifs can use them, see
@@ -60,8 +60,8 @@ When using the ``genomic_matched`` background setting (which is the
 default), there needs to be a file describing genes in BED format in the
 ``gene_dir``, which is defined in the configuration file. By default
 this is: ``/usr/share/gimmemotifs/genes/``. The file needs to be named
-``<index_name>.bed``, so for instance ``hg18.bed``. By default
-``hg18.bed``, ``mm9.bed`` and ``xenTro2.bed`` are included.
+``<index_name>.bed``, so for instance ``hg19.bed``. By default
+``hg18.bed``, ``hg19.bed``, ``mm9.bed`` and ``xenTro2.bed`` are included.
 
 The easy way: ``add_organism.py``
 ---------------------------------
@@ -115,7 +115,7 @@ MotifSampler configuration
 
 If you want to use MotifSampler there is one more step that you’ll have
 to take *after* installation of GimmeMotifs. For every organism, you’ll
-need a MotifSampler background. Note that human (hg18), mouse (mm9) and
+need a MotifSampler background. Note that human (hg19), mouse (mm9) and
 *Xenopus* (xenTro2) background models are included, so for these
 organisms MotifSampler will work out of the box. For other organisms the
 necessary background files can be created with ``CreateBackgroundModel``
@@ -125,7 +125,7 @@ the directory ``/usr/share/gimmemotifs/MotifSampler`` and it should be
 named ``<organism_index_name>.bg``. So, for instance, if I downloaded
 the human epd background
 (``epd_homo_sapiens_499_chromgenes_non_split_3.bg``), this file should
-be saved as ``/usr/share/gimmemotifs/MotifSampler/hg18.bg``.
+be saved as ``/usr/share/gimmemotifs/MotifSampler/hg19.bg``.
 
 Other configuration options
 ---------------------------
@@ -179,7 +179,7 @@ have a look at the options.
     pvalue = 0.001
     width = 200
     fraction = 0.2
-    genome = hg18
+    genome = hg19
     lwidth = 500
     cluster_threshold = 0.95
     available_tools = Weeder,MDmodule,MotifSampler,gadem,meme,trawler
