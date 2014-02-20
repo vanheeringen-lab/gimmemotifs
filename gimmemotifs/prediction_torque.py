@@ -15,6 +15,7 @@ import thread
 from time import time
 import inspect
 from tempfile import NamedTemporaryFile
+import glob
 
 # External imports
 import pbs
@@ -89,8 +90,9 @@ class PredictionResult:
                 self.job_server.submit(motif.stats, (self.fg_fa, self.bg_fa), (), (), self.add_stats, ("%s_%s" % (motif.id, motif.to_consensus()),), group="stats")
 
 
-def write_shell_script(tool, fastafile, params={}):  
-    rundir = os.path.abspath(".")
+def write_shell_script(tool, fastafile, rundir=os.path.abspath("."), params={}):  
+    local_params = dict([(k,v) for k,v in params.items()])
+    
     tmp = NamedTemporaryFile(
                             dir = rundir,
                             prefix = "{0}.{1}.".format(tool, os.getpid()),
@@ -110,12 +112,12 @@ def write_shell_script(tool, fastafile, params={}):
     tmp.write("cp {0} {1}/{2}\n".format(os.path.abspath(fastafile), tmpdir, infa))
     if params["background"]:
         tmp.write("cp {0} {1}/{2}\n".format(
-                                        params["background"], 
+                                        os.path.abspath(params["background"]), 
                                         tmpdir,
                                         bgfa,
                                         ))
-        params["background"] = bgfa
-    
+        local_params["background"] = bgfa
+
     
     tmp.write("cp {0} {1}/params.yaml\n".format(paramfile, tmpdir))
     tmp.write("cd {0}\n".format(tmpdir))
@@ -131,12 +133,13 @@ def write_shell_script(tool, fastafile, params={}):
                                                                      infa,
                                                                      ))
     
-    tmp.write("cp motifs.pwm {0}/{1}.pwm\n".format(rundir, base))
+    tmp.write("mv motifs.pwm {0}/{1}.pwm\n".format(rundir, base))
+    tmp.write("sleep 1\n")
     tmp.close()
 
     # Save parameters to file
     with open(paramfile, "w") as f:
-        f.write(yaml.dump(params))
+        f.write(yaml.dump(local_params))
     
     return tmp.name
 
@@ -184,7 +187,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
     server = pbs.pbs_default()
     c = pbs.pbs_connect(server)
     q = PBSQuery()
-    attropl = pbs.new_attropl(4)
+    attropl = pbs.new_attropl(6)
     # Name
     attropl[0].name  = pbs.ATTR_N
     # Restartable
@@ -197,7 +200,13 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
     # Node requirements
     attropl[3].name  = pbs.ATTR_l
     attropl[3].resource = 'nodes'
-    attropl[3].value = '1:ppn=12'   # 
+    attropl[3].value = '1:ppn=1'   # 
+    attropl[4].name  = pbs.ATTR_o
+    attropl[5].name  = pbs.ATTR_e
+   
+    rundir = os.path.join(os.path.split(os.path.abspath(fastafile))[0], "torque")
+    if not os.path.exists(rundir):
+        os.mkdir(rundir)
 
     params = {
               'analysis': analysis, 
@@ -206,32 +215,39 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
               "organism":organism
               }
     
-    jobs = []
+    jobs = {}
     for t in toolio:
         if tools.has_key(t.name) and tools[t.name]:
             if t.use_width:
                 for i in range(wmin, wmax + 1, step):
                     logger.info("Starting %s job, width %s" % (t.name, i))
                     params['width'] = i
-                    sh = write_shell_script(t.name, fastafile, params)
+                    sh = write_shell_script(t.name, fastafile, rundir=rundir, params=params)
+                    job_name = os.path.basename(os.path.splitext(sh)[0]) 
                     # submit
-                    attropl[0].value = os.path.basename(os.path.splitext(sh)[0])
-                    job_id = pbs.pbs_submit(c, attropl, sh, "footprint", 'NULL')
+                    attropl[0].value = job_name
+                    attropl[4].value = "{0}/{1}.stdout".format(rundir, job_name)
+                    attropl[5].value = "{0}/{1}.stderr".format(rundir, job_name)
+                    job_id = pbs.pbs_submit(c, attropl, sh, "batchq", 'NULL')
                     e, e_txt = pbs.error()
                     if e:
                         logger.error("Failed: {0}".format(e_txt))
                     else:
-                        jobs.append(job_id)
+                        jobs[job_id] = job_name
             else:
                 logger.debug("Starting %s job" % t.name)
-                sh = write_shell_script(t.name, fastafile, params)
-                attropl[0].value = os.path.basename(os.path.splitext(sh)[0])
-                job_id = pbs.pbs_submit(c, attropl, sh, "footprint", 'NULL')
+                sh = write_shell_script(t.name, fastafile, rundir=rundir, params=params)
+                job_name = os.path.basename(os.path.splitext(sh)[0]) 
+                # submit
+                attropl[0].value = job_name
+                attropl[4].value = "{0}/{1}.stdout".format(rundir, job_name)
+                attropl[5].value = "{0}/{1}.stderr".format(rundir, job_name)
+                job_id = pbs.pbs_submit(c, attropl, sh, "batchq", 'NULL')
                 e, e_txt = pbs.error()
                 if e:
                     logger.error("Failed submission: {0}".format(e_txt))
                 else:
-                    jobs.append(job_id)
+                    jobs[job_id] = job_name
         else:
             logger.debug("Skipping %s" % t.name)
     
@@ -240,21 +256,29 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
     try:
         # Run until all jobs are finished
         while len(jobs) > 0 and not(max_time) or time() - start_time < max_time:
-            for job_id in jobs:
+            for job_id,job_name in jobs.items():
                 job = q.getjob(job_id)
                 
-                if not job or not job.is_running():
+                if not job: # or not job.is_running():
                     motifs = []
                     if job:
                         name = job['Job_Name']
-                        pwmfile = "{0}.pwm".format(name)
+                        # Some error checking here!
+                    else:
+                        pwmfile = os.path.join(rundir, "{0}.pwm".format(job_name))
                         if os.path.exists(pwmfile):
                             motifs = pwmfile_to_motifs(pwmfile)
-                    else:
-                        logger.info("Can't find job {0}, assuming it's deleted.".format(job_id))
-                    stdout = "read from job file"
-                    stderr = "read from job file"
-                    jobs.remove(job_id)
+                        else:
+                            logger.error("Job {0} finished, but couldn find {1}!".format(job_name, pwmfile))
+                    stdout = open(os.path.join(rundir, "{0}.stdout".format(job_name))).read()
+                    stderr = open(os.path.join(rundir, "{0}.stderr".format(job_name))).read()
+                    
+                    result.add_motifs(job_id, (motifs, stdout, stderr))
+                    #for fname in glob.glob("{0}*".format(job_name)):
+                    #    logger.debug("Deleting {0}".format(fname))
+                    #    #os.unlink(fname)
+                    
+                    del jobs[job_id]
             sleep(5)
 
     ### Or the user gets impatient... ###
