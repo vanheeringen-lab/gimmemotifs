@@ -126,6 +126,12 @@ p.add_argument("-m", "--markov",
                dest="markov_model", 
                help="Specify Markov model, default is 1 for 1st order", 
                default=1)
+p.add_argument("--torque",
+               dest="torque",
+               help="Use torque, EXPERIMENTAL!",
+               default=False,
+               action="store_true",
+               )
 p.set_defaults(func=commands.motifs)
 
 # gimme_max.py

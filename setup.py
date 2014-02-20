@@ -65,7 +65,7 @@ data_files=[
                                     'motif_databases/JASPAR2010_vertebrate.pwm',
                                     'motif_databases/vertebrate_motifs.pwm',
                                     ]),
-    ('gimmemotifs/doc', ['doc/gimmemotifs_manual.pdf','doc/gimmemotifs_manual.html']),
+#    ('gimmemotifs/doc', ['doc/gimmemotifs_manual.pdf','doc/gimmemotifs_manual.html']),
     ('gimmemotifs/examples', ['examples/TAp73alpha.bed','examples/TAp73alpha.fa']),
     ('gimmemotifs/genome_index', ['genome_index/README.txt'])
 ]

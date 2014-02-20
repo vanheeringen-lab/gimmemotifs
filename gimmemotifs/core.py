@@ -22,7 +22,6 @@ from scipy.stats.mstats import rankdata
 from gimmemotifs.config import *
 from gimmemotifs.fasta import *
 from gimmemotifs.utils import *
-from gimmemotifs.prediction import *
 from gimmemotifs.background import *
 from gimmemotifs.comparison import *
 from gimmemotifs import genome_index
@@ -675,6 +674,13 @@ class GimmeMotifs:
     
         params = self.config.get_default_params()
         params.update(user_params)
+        
+        if params["torque"]:
+            from gimmemotifs.prediction_torque import pp_predict_motifs, PredictionResult
+            self.logger.info("Using torque")
+        else:
+            from gimmemotifs.prediction import pp_predict_motifs, PredictionResult
+            self.logger.info("Using pp")
 
         self.params = params
         #self.weird = params["weird_option"]
