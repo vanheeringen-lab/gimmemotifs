@@ -20,7 +20,8 @@ def prediction(args):
     paramfile = args.paramfile
 
     try:
-        klass = globals()[tool]
+        g = dict([(k.lower(),v) for k,v in globals().items()])
+        klass = g[tool.lower()]
     except:
         sys.stderr.write("Tool {0} not found!\n".format(tool))
         raise
