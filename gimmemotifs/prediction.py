@@ -24,6 +24,7 @@ from gimmemotifs.comparison import *
 from gimmemotifs.nmer_predict import *
 from gimmemotifs.config import *
 from gimmemotifs.fasta import *
+from gimmemotifs import mytmpdir
 
 class PredictionResult:
     def __init__(self, outfile, logger=None, fg_file=None, bg_file=None, job_server=None):
@@ -113,7 +114,12 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
     result = PredictionResult(outfile, logger=logger, fg_file=fg_file, bg_file=bg_file, job_server=job_server)
     
     # Dynamically load all tools
-    toolio = [x[1]() for x in inspect.getmembers(tool_classes, lambda x: inspect.isclass(x) and issubclass(x, tool_classes.MotifProgram)) if x[0] != 'MotifProgram']
+    toolio = [x[1]() for x in inspect.getmembers(
+                                                tool_classes, 
+                                                lambda x: 
+                                                        inspect.isclass(x) and 
+                                                        issubclass(x, tool_classes.MotifProgram)
+                                                ) if x[0] != 'MotifProgram']
     
     # TODO:
     # Add warnings for running time: Weeder, MoAn, GADEM
@@ -129,7 +135,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
                     params['width'] = i
                     jobs[job_name] = job_server.submit(
                         t.run, 
-                        (fastafile, ".", params,), 
+                        (fastafile, ".", params, mytmpdir()), 
                         (tool_classes.MotifProgram,),
                         ("gimmemotifs.config",),  
                         result.add_motifs, 
@@ -139,7 +145,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
                 job_name = t.name
                 jobs[job_name] = job_server.submit(
                     t.run, 
-                    (fastafile, ".", params), 
+                    (fastafile, ".", params, mytmpdir()), 
                     (tool_classes.MotifProgram,),
                     ("gimmemotifs.config",), 
                     result.add_motifs, 

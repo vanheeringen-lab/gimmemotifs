@@ -1,6 +1,6 @@
 RELEASE CHECKLIST (for personal use ;))
 
-- Update version (setup.py, core.py, gimmemotifs.py)
+- Update version (config.py)
 - Update gimmemotifs_manual.tex with new version
 - Compile gimmemotifs_manual.tex to pdf 
 - Convert gimmemotifs_manual.tex to html (tth)

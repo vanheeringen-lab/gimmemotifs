@@ -59,12 +59,12 @@ use File::Basename;
 use File::Spec::Functions qw[catfile catdir];
 use Getopt::Long;
 use Time::Local;
-use Algorithm::Cluster;
 
 # Locate Trawler modules
 use FindBin ();
 use lib "$FindBin::RealBin/../modules";
 my $script_name = $FindBin::RealScript;
+use Algorithm::Cluster;
 
 # Internal Modules
 use Trawler::Constants 1.0 qw(trawler_usage _read_config _tcst);

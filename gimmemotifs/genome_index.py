@@ -23,7 +23,7 @@ class GenomeIndex:
         
         # Make index
         g = GenomeIndex()
-        g.make_index("/usr/share/genomes/hg18", "/usr/share/genome_index/hg18")
+        g.create_index("/usr/share/genomes/hg18", "/usr/share/genome_index/hg18")
 
         # Retrieve sequence
         g = GenomeIndex("/usr/share/genome_index/hg18")

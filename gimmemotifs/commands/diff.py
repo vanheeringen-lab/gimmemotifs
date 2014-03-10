@@ -26,19 +26,22 @@ def diff(args):
     
     # Get background frequencies
     nbg = float(len(Fasta(bgfile).seqs))
-    counts = get_counts(bgfile, pwms.values(), cutoff)
-    bgfreq = [(counts[m] + 0.01) / nbg for m in motifs]
+    bgcounts = get_counts(bgfile, pwms.values(), cutoff)
+    bgfreq = [(bgcounts[m] + 0.01) / nbg for m in motifs]
     
     # Get frequences in input files
     freq = {}
+    counts = {}
     for fname in infiles:
-        counts = get_counts(fname, pwms.values(), cutoff)
+        c = get_counts(fname, pwms.values(), cutoff)
         n = float(len(Fasta(fname).seqs))
-        freq[fname] = [(counts[m] + 0.01) / n for m in motifs]
+        freq[fname] = [(c[m] + 0.01) / n for m in motifs]
+        counts[fname] = [c[m] for m in motifs]
     
     freq = np.array([freq[fname] for fname in infiles]).transpose()
+    counts = np.array([counts[fname] for fname in infiles]).transpose()
     
     #for row in freq:
     #    print freq
 
-    diff_plot(motifs, pwms, names, freq, bgfreq, outfile)
+    diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile)

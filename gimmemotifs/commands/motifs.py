@@ -61,7 +61,8 @@ def motifs(args):
         "keep_intermediate": args.keep_intermediate,
         "max_time": args.max_time,
         "markov_model": args.markov_model,
-        "user_background": args.user_background
+        "user_background": args.user_background,
+        "torque": args.torque,
     }
     
     gm = GimmeMotifs(args.name)

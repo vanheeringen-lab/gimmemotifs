@@ -14,9 +14,15 @@ from math import log,sqrt
 from tempfile import NamedTemporaryFile
 from config import *
 from subprocess import *
+
+from gimmemotifs import mytmpdir
+
 # External imports
-from numpy import mean,sum
-import numpy as np
+try:
+    from numpy import mean,sum
+    import numpy as np
+except:
+    pass
 
 class Motif:
     PSEUDO_PFM_COUNT = 1000 # Jaspar mean
@@ -554,7 +560,7 @@ class Motif:
         pwm = [self.iupac_pwm[char]for char in self.consensus.upper()]
         return ">%s\n%s" % (id, "\n".join(["\t".join(["%s" % x for x in row]) for row in pwm]))
 
-    def to_img(self, file, format="EPS", add_left=0, seqlogo=None):
+    def to_img(self, file, format="EPS", add_left=0, seqlogo=None, height=18):
         """ Valid formats EPS, GIF, PDF, PNG """
         if not seqlogo:
             seqlogo = self.seqlogo
@@ -596,12 +602,18 @@ class Motif:
                 elif i <= vals[3]:
                     seqs[i] += "T"
     
-        f = NamedTemporaryFile()
+        f = NamedTemporaryFile(dir=mytmpdir())
         for seq in seqs:
             f.write("%s\n" % seq)
         f.flush()
-        makelogo = "%s -f %s -F %s -c -a -h 18 -w %s -o %s -b -n -Y" 
-        cmd = makelogo % (seqlogo, f.name, format, (len(self) + add_left) * 3, file)
+        makelogo = "{0} -f {1} -F {2} -c -a -h {3} -w {4} -o {5} -b -n -Y" 
+        cmd = makelogo.format(
+                              seqlogo, 
+                              f.name, 
+                              format, 
+                              height,
+                              (len(self) + add_left) * 3, 
+                              file)
         call(cmd, shell=True)
         
         # Delete tempfile
@@ -647,7 +659,7 @@ class Motif:
             e = sys.exc_info()[0]
             msg = "Error calculating stats of {0}, error {1}".format(self.id, e)
             if log:
-                log.fatal(msg)
+                log.error(msg)
             else:
                 print msg
 
@@ -697,8 +709,9 @@ def pwmfile_to_motifs(file):
             else:
                 sys.stderr.write("WARNING: can't parse line %s, ignoring:\n%s" % (n + 1, line))
 
-    motifs.append(Motif(pfm))
-    motifs[-1].id = id
+    if len(pfm) > 0:
+        motifs.append(Motif(pfm))
+        motifs[-1].id = id
             
     return motifs
 

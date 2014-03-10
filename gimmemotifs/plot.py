@@ -12,9 +12,11 @@ import numpy as np
 # Clustering
 import Pycluster
 from gimmemotifs.utils import sort_tree 
+from gimmemotifs import mytmpdir
 
 # Matplotlib imports
 import matplotlib as mpl
+mpl.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from mpl_toolkits.axes_grid1 import ImageGrid
@@ -102,10 +104,10 @@ def match_plot(plotdata, outfile):
         for j in range(2):  
             axes_off(grid[j])
 
-        tmp = NamedTemporaryFile(suffix=".png")
-        motif.to_img(tmp.name, format="PNG")
+        tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
+        motif.to_img(tmp.name, format="PNG", height=6)
         grid[0].imshow(plt.imread(tmp.name), interpolation="none")
-        tmp = NamedTemporaryFile(suffix=".png")
+        tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
         dbmotif.to_img(tmp.name, format="PNG")
         grid[1].imshow(plt.imread(tmp.name), interpolation="none")
 
@@ -118,24 +120,30 @@ def match_plot(plotdata, outfile):
     
     plt.savefig(outfile, dpi=300, bbox_inches='tight')
 
-def diff_plot(motifs, pwms, names, freq, bgfreq, outfile, mindiff=0, minenr=3, minfreq=0.01):
+def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mindiff=0, minenr=3, minfreq=0.01):
     w_ratio = np.array([7, len(names), len(names) + 1])
     plot_order = [0,1,2]
     
     nbar = 5
     
     freq = np.array(freq)
+    counts = np.array(counts)
     bgfreq = np.array([[x] for x in bgfreq])
     
     enr = np.log2(np.divide(freq, bgfreq))
-    
-    filt = np.logical_and(
-                        np.sum(enr > minenr, 1) > 0, 
-                        np.sum(freq > minfreq, 1) > 0, 
-                        (np.max(enr, 1) - np.min(enr, 1)) > mindiff
-                        )
-
-    
+   
+    filt = np.ones(len(enr), dtype="bool")
+    filters = [
+                np.sum(enr > minenr, 1) > 0, 
+                np.sum(freq > minfreq, 1) > 0,
+                (np.max(enr, 1) - np.min(enr, 1)) > mindiff,
+                np.sum(counts > 2, 1) > 0 
+              ]
+    for f in filters:
+        filt = np.logical_and(filt, f)
+         
+        print "Filter: ", sum(filt)
+     
     motifs = np.array(motifs)[filt]
     freq = freq[filt]
     bgfreq = bgfreq[filt]
@@ -246,8 +254,8 @@ def diff_plot(motifs, pwms, names, freq, bgfreq, outfile, mindiff=0, minenr=3, m
     for i,motif in enumerate(motifs[ind][::-1]):
         ax = plt.subplot(gs[i + nbar, plot_order[0]]) 
         axes_off(ax)
-        tmp = NamedTemporaryFile(suffix=".png")
-        pwms[motif].to_img(tmp.name, format="PNG")
+        tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
+        pwms[motif].to_img(tmp.name, format="PNG", height=6)
         ax.imshow(plt.imread(tmp.name), interpolation="none")
     
     #plt.show()

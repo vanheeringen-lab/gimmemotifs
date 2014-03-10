@@ -126,6 +126,12 @@ p.add_argument("-m", "--markov",
                dest="markov_model", 
                help="Specify Markov model, default is 1 for 1st order", 
                default=1)
+p.add_argument("--torque",
+               dest="torque",
+               help="Use torque, EXPERIMENTAL!",
+               default=False,
+               action="store_true",
+               )
 p.set_defaults(func=commands.motifs)
 
 # gimme_max.py
@@ -369,6 +375,23 @@ p.add_argument("-i",
                help="Comma-seperated list of motif ids (default is all ids)", 
                metavar="IDS")
 p.set_defaults(func=commands.logo)
+
+p = subparsers.add_parser('prediction')
+p.add_argument("tool",
+                help="Specific motif prediction tool to run",
+                metavar="NAME")
+p.add_argument("infile", 
+               help="Input FASTA file",
+               metavar="FILE")
+p.add_argument("outfile", 
+               help="Output pwm file",
+               metavar="FILE")
+p.add_argument("-p",
+               dest = "paramfile",
+               help="YAML file with paramaters",
+               default = None,
+               metavar = "FILE")
+p.set_defaults(func=commands.prediction)
 
 if len(sys.argv) == 1:
     parser.print_help()
