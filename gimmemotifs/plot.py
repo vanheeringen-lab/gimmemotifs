@@ -12,6 +12,7 @@ import numpy as np
 # Clustering
 import Pycluster
 from gimmemotifs.utils import sort_tree 
+from gimmemotifs import mytmpdir
 
 # Matplotlib imports
 import matplotlib as mpl
@@ -103,10 +104,10 @@ def match_plot(plotdata, outfile):
         for j in range(2):  
             axes_off(grid[j])
 
-        tmp = NamedTemporaryFile(suffix=".png")
+        tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
         motif.to_img(tmp.name, format="PNG", height=6)
         grid[0].imshow(plt.imread(tmp.name), interpolation="none")
-        tmp = NamedTemporaryFile(suffix=".png")
+        tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
         dbmotif.to_img(tmp.name, format="PNG")
         grid[1].imshow(plt.imread(tmp.name), interpolation="none")
 
@@ -253,7 +254,7 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
     for i,motif in enumerate(motifs[ind][::-1]):
         ax = plt.subplot(gs[i + nbar, plot_order[0]]) 
         axes_off(ax)
-        tmp = NamedTemporaryFile(suffix=".png")
+        tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
         pwms[motif].to_img(tmp.name, format="PNG", height=6)
         ax.imshow(plt.imread(tmp.name), interpolation="none")
     

@@ -602,7 +602,7 @@ class Motif:
                 elif i <= vals[3]:
                     seqs[i] += "T"
     
-        f = NamedTemporaryFile(dir=mytmpdir)
+        f = NamedTemporaryFile(dir=mytmpdir())
         for seq in seqs:
             f.write("%s\n" % seq)
         f.flush()
@@ -709,8 +709,9 @@ def pwmfile_to_motifs(file):
             else:
                 sys.stderr.write("WARNING: can't parse line %s, ignoring:\n%s" % (n + 1, line))
 
-    motifs.append(Motif(pfm))
-    motifs[-1].id = id
+    if len(pfm) > 0:
+        motifs.append(Motif(pfm))
+        motifs[-1].id = id
             
     return motifs
 

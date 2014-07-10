@@ -13,11 +13,9 @@ import sys
 import logging
 from math import log,sqrt
 from subprocess import *
-from tempfile import NamedTemporaryFile,mkdtemp
 import shutil
 from string import maketrans
 
-from gimmemotifs import mytmpdir
 try:
     from gimmemotifs.motif import * 
 except:
@@ -42,16 +40,15 @@ class MotifProgram:
     def is_installed(self):
         return self.is_configured() and os.access(self.bin(), os.X_OK)
 
-    def run(self, fastafile, savedir, params={}):
+    def run(self, fastafile, savedir, params={}, tmp=None):
         if not self.is_configured():
             raise ValueError, "%s is not configured" % self.name
 
         if not self.is_installed():
             raise ValueError, "%s is not installed or not correctly configured" % self.name
         
-        # Define a temporary directory that is removed at program exit
-        self.tmpdir = mkdtemp(prefix="{0}.".format(self.name), dir=mytmpdir)
-        print "TEMPDIR {0}".format(self.tmpdir)
+        from tempfile import mkdtemp
+        self.tmpdir = mkdtemp(prefix="{0}.".format(self.name), dir=tmp)
  
         try:
             return self._run_program(self.bin(), fastafile, savedir, params)
@@ -437,7 +434,7 @@ class Trawler(MotifProgram):
         
         #savedir = "/tmp/trawler/"
 
-        tmp = tempfile.NamedTemporaryFile(delete=False)
+        tmp = tempfile.NamedTemporaryFile(dir=self.tmpdir, delete=False)
         shutil.copy(fastafile, tmp.name)
         fastafile = tmp.name
     
@@ -532,7 +529,7 @@ class Weeder(MotifProgram):
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
 
-        tmp = tempfile.NamedTemporaryFile()
+        tmp = tempfile.NamedTemporaryFile(dir=self.tmpdir)
         name = tmp.name
         tmp.close()
         shutil.copy(fastafile, name)
@@ -670,10 +667,10 @@ class MotifSampler(MotifProgram):
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
     
-        tmp = tempfile.NamedTemporaryFile()
+        tmp = tempfile.NamedTemporaryFile(dir=self.tmpdir)
         pwmfile = tmp.name
 
-        tmp2  = tempfile.NamedTemporaryFile()
+        tmp2  = tempfile.NamedTemporaryFile(dir=self.tmpdir)
         outfile = tmp2.name
     
         strand = 1
@@ -1093,7 +1090,7 @@ class Meme(MotifProgram):
         
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
-        tmp = tempfile.NamedTemporaryFile()
+        tmp = tempfile.NamedTemporaryFile(dir=self.tmpdir)
         tmpname = tmp.name
     
         strand = "-revcomp"
@@ -1168,7 +1165,7 @@ class MemeW(MotifProgram):
         
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
-        tmp = tempfile.NamedTemporaryFile()
+        tmp = tempfile.NamedTemporaryFile(dir=self.tmpdir)
         tmpname = tmp.name
     
         strand = "-revcomp"
