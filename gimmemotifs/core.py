@@ -578,7 +578,11 @@ class GimmeMotifs:
 
         roc_img_file = "%s_%s_roc"
         report_motifs = []
-        for motif in sorted(motifs, cmp=lambda x,y: cmp(self.mncp[sort_key][y.id], self.mncp[sort_key][x.id])):
+        sorted_motifs = sorted(motifs, 
+                cmp= lambda x,y: cmp(self.mncp[sort_key][y.id], self.mncp[sort_key][x.id])
+                )
+
+        for motif in [m for m in sorted_motifs if stats.has_key("%s_%s" % (motif.id, motif.to_consensus()))]:
             rm = ReportMotif()
             rm.id = motif.id
             rm.id_href = {"href": "#%s" % motif.id}
