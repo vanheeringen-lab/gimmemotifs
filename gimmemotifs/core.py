@@ -582,7 +582,7 @@ class GimmeMotifs:
                 cmp= lambda x,y: cmp(self.mncp[sort_key][y.id], self.mncp[sort_key][x.id])
                 )
 
-        for motif in [m for m in sorted_motifs if stats.has_key("%s_%s" % (motif.id, motif.to_consensus()))]:
+        for motif in motifs:
             rm = ReportMotif()
             rm.id = motif.id
             rm.id_href = {"href": "#%s" % motif.id}
@@ -820,12 +820,14 @@ class GimmeMotifs:
                 motifs.remove(motif)
         f.close()
     
+        self.motifs_with_stats = motifs
+
         f = open(self.ranks_file, "w")
         tools = dict((m.id.split("_")[0],1) for m in motifs).keys()
         f.write("Metric\tType\t%s\n" % ("\t".join(tools)))
         for stat in ["mncp", "roc_auc", "maxenr"]:
             best_motif = {}
-            for motif in motifs:
+            for motif in self.motifs_with_stats:
                 val = result.stats["%s_%s" % (motif.id, motif.to_consensus())][stat]
                 name = motif.id.split("_")[0]
                 if val > best_motif.setdefault(name, 0):
