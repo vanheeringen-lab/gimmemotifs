@@ -620,7 +620,7 @@ class Motif:
         #if os.path.exists(f.name):
         #    os.unlink(f.name)
 
-    def stats(self, fg_fa, bg_fa, log=None):
+    def stats(self, fg_fa, bg_fa, logger=None):
         from gimmemotifs.rocmetrics import MNCP, ROC_AUC, max_enrichment, fraction_fdr, score_at_fdr, enr_at_fdr
         from gimmemotifs.fasta import Fasta
         from gimmemotifs.utils import ks_pvalue
@@ -658,8 +658,8 @@ class Motif:
         except:
             e = sys.exc_info()[0]
             msg = "Error calculating stats of {0}, error {1}".format(self.id, e)
-            if log:
-                log.error(msg)
+            if logger:
+                logger.error(msg)
             else:
                 print msg
 
