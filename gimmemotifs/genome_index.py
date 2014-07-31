@@ -291,13 +291,13 @@ class GenomeIndex:
 
         #print fasta_file, index_file, line_size, total_size
         if start > total_size:
-            raise ValueError, "Invalid start, greater than sequence length!"
+            raise ValueError, "Invalid start {0}, greater than sequence length {1} of {2}!".format(start, total_size, chr)
         
         if start < 0:
             raise ValueError, "Invalid start, < 0!"
         
         if end > total_size:
-            raise ValueError, "Invalid end, greater than sequence length!"
+            raise ValueError, "Invalid end {0}, greater than sequence length {1} of {2}!".format(end, total_size, chr)
 
 
         index = open(index_file)
