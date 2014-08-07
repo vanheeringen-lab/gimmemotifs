@@ -15,7 +15,7 @@ class Fasta:
 		""" Instantiate fasta object. Optional Fasta-formatted file as argument"""
 		self.ids = []
 		self.seqs = []
-		p = re.compile(r'[^actgnACTGN]')
+		p = re.compile(r'[^abcdefghiklmnpqrstuvwyzxABCDEFGHIKLMNPQRSTUVWXYZ]')
 		if file:
 			f = open(file, "r")
 			c = f.read()
