@@ -143,11 +143,16 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
         filt = np.logical_and(filt, f)
          
         print "Filter: ", sum(filt)
-     
+    
+
     motifs = np.array(motifs)[filt]
     freq = freq[filt]
     bgfreq = bgfreq[filt]
     enr = enr[filt]
+    
+    for m,f,b,e in zip(motifs,freq,bgfreq,enr):
+        sys.stderr.write("{0}\t{1}\t{2}\t{3}\n".format(m,f,b,e))
+    
     
     if len(freq) == 0:
         sys.stderr.write("No enriched and/or differential motifs found.\n")
