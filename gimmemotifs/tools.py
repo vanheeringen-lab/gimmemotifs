@@ -47,7 +47,7 @@ class MotifProgram:
         if not self.is_installed():
             raise ValueError, "%s is not installed or not correctly configured" % self.name
         
-        from tempfile import mkdtemp
+        from tempfile import mkdtemp,NamedTemporaryFile
         self.tmpdir = mkdtemp(prefix="{0}.".format(self.name), dir=tmp)
  
         try:
@@ -138,25 +138,30 @@ class Homer(MotifProgram):
             sys.exit()
         
         bgfile = os.path.abspath(default_params["background"])
-        outfile = os.path.join(self.tmpdir, "homer.out")    
         
-        stdout = ""
+        outfile = tempfile.NamedTemporaryFile(
+                dir=self.tmpdir, 
+                prefix= "homer_w{}.".format(default_params["width"])
+                ).name
+        
         stderr = ""
         
         strand = ""
         if default_params["single"]:
             strand = " -strand + "
 
-        cmd = "%s denovo -i %s -b %s -len %s -S %s -o %s %s -p 8" % (
+        cmd = "%s denovo -i %s -b %s -len %s -S %s %s -o %s -p 8" % (
             homer,
             fastafile,
-            default_params["background"],
+            bgfile,
             default_params["width"],
             default_params["number"],
             strand,
             outfile)
 
-        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+        stdout = "Running command:\n{}\n".format(cmd)
+        
+        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=tmpdir) 
         out,err = p.communicate()
         stdout += out
         stderr += err

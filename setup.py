@@ -41,7 +41,7 @@ DEFAULT_PARAMS = {
     "motif_db": "vertebrate_motifs.pwm"
 }
 
-MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms"]
+MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms", "Homer"]
 LONG_RUNNING = ["MoAn", "GADEM"]
 
 
@@ -53,7 +53,8 @@ MOTIF_BINS = {
     "MoAn": "src/MoAn/moan",
     "GADEM": "src/GADEM_v1.3/src/gadem",
     "Posmo": "src/posmo/posmo",
-    "AMD": "src/AMD/AMD.bin"
+    "AMD": "src/AMD/AMD.bin",
+    "Homer": "src/homer/bin/homer2",
 }
 
 data_files=[

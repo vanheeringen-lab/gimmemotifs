@@ -19,14 +19,15 @@ def compile_simple(name):
     if os.path.exists(os.path.join(path, name)):
         return True
 
-def compile_configmake(name, binary):
+def compile_configmake(name, binary, configure=True):
     path = "src/%s" % name
 
     if not os.path.exists(path):
         return
     
-    Popen(["chmod", "+x", "./configure"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
-    Popen(["./configure"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
+    if configure:
+        Popen(["chmod", "+x", "./configure"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
+        Popen(["./configure"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
     Popen(["make"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
 
     if os.path.exists(os.path.join(path, binary)):
@@ -106,4 +107,8 @@ def compile_all(prefix=None):
                           prefix=os.path.join(prefix, "tools/trawler/modules"))
     print_result(result)
 
+    sys.stderr.write("compiling homer2")
+    result = compile_configmake("homer/cpp", "../bin/homer2", configure=False)
+    print_result(result)
+    
     return

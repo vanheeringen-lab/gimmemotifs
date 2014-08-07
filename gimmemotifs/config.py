@@ -10,7 +10,7 @@ import distutils.sysconfig
 import os
 
 ### CONSTANTS ###
-GM_VERSION = "0.8.4"
+GM_VERSION = "0.8.5"
 BG_TYPES = ["random", "random_genomic", "matched_genomic", "random_promoter"]
 FA_VALID_BGS = ["random", "promoter", "user"]
 BED_VALID_BGS = ["genomic_matched", "random", "promoter", "user"]
