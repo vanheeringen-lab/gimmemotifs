@@ -91,7 +91,8 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
     if not tools:
         tools = dict([(x,1) for x in config.get_default_params["tools"].split(",")])
     
-    #logger = logging.getLogger('prediction.pp_predict_motifs')
+    if not logger:
+        logger = logging.getLogger('prediction.pp_predict_motifs')
 
     wmin = 5 
     step = 1
