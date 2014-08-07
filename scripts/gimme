@@ -337,12 +337,18 @@ p.add_argument("-b", "--bed",
                dest="bed", 
                default=False, 
                help="output bed format")
+p.add_argument("-t", "--table",
+               dest="table", 
+               help="Output in tabular format", 
+               action="store_true",
+               default=False)
+
 p.set_defaults(func=commands.pwmscan)
 
 MAXENR = 3
 p = subparsers.add_parser('diff')
 p.add_argument("inputfiles",
-              help="FASTA-formatted inputfiles",
+              help="FASTA-formatted inputfiles OR a BED file with an identifier in the 4th column, for instance a cluster number.",
               metavar="FAFILES")
 p.add_argument("bgfile",
               help="FASTA-formatted background file",
@@ -363,6 +369,17 @@ p.add_argument("-c", "--cutoff",
               help="motif score cutoff or file with cutoffs (default 0.9)",
               metavar="",
               default=0.9)
+p.add_argument("-e", "--enrichment",
+              dest="minenr",
+              help="minimum enrichment in at least one of the datasets compared to background",
+              metavar="MINENR",
+              type=float,
+              default=3)
+p.add_argument("-g", "--genome",
+               dest="genome", 
+               help="Genome version. Only necessary in combination with a BED file with clusters as inputfile.",
+               metavar="VERSION", 
+               )
 p.set_defaults(func=commands.diff)
 
 #pwm2logo.py
