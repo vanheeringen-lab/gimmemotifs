@@ -50,7 +50,7 @@ def phyper(k, good, bad, N):
 
 def divide_file(file, sample, rest, fraction, abs_max):
     lines = open(file).readlines()
-    random.seed()
+    #random.seed()
     random.shuffle(lines)
 
     x = int(fraction * len(lines))
