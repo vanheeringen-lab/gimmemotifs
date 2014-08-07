@@ -10,6 +10,7 @@
 import re
 import os
 import sys
+import random
 from math import log,sqrt
 from tempfile import NamedTemporaryFile
 from config import *
@@ -631,10 +632,21 @@ class Motif:
             stats = {}
             fg_result = self.pwm_scan_all(fg_fa, cutoff=0.0, nreport=1, scan_rc=True)
             bg_result = self.pwm_scan_all(bg_fa, cutoff=0.0, nreport=1, scan_rc=True)
-        
-            pos = array([x[0][1] for x in fg_result.values()])
-            neg = array([x[0][1] for x in bg_result.values()])
-            
+           
+            pos = []
+            for x in fg_result.values():
+                if len(x):
+                    pos.append(x[0][1])
+                else:
+                    pos.append(-100)
+
+            neg = []
+            for x in bg_result.values():
+                if len(x):
+                    neg.append(x[0][1])
+                else:
+                    neg.append(-100)
+           
             stats["mncp"] = MNCP(pos, neg)
             stats["roc_auc"] = ROC_AUC(pos, neg)
             x,y = max_enrichment(pos, neg)
@@ -645,7 +657,7 @@ class Motif:
             stats["enr_fdr"] = enr_at_fdr(pos, neg)
             stats["cutoff_fdr"] = (stats["score_fdr"] - self.pwm_min_score()) / (self.pwm_max_score() - self.pwm_min_score())
 
-            pos = [x[0][0] for x in fg_result.values()]
+            pos = [x[0][0] for x in fg_result.values() if len(x)]
             p = ks_pvalue(pos, max(pos))
             stats["ks"] = p
             if p > 0:
@@ -655,13 +667,32 @@ class Motif:
         
 
             return stats
-        except:
-            e = sys.exc_info()[0]
-            msg = "Error calculating stats of {0}, error {1}".format(self.id, e)
+        except Exception as e:
+            raise
+            #e = sys.exc_info()[0]
+            msg = "Error calculating stats of {0}, error {1}".format(self.id, str(e))
             if logger:
                 logger.error(msg)
             else:
                 print msg
+
+
+    def randomize(self):
+        random_pfm = [[c for c in row] for row in self.pfm]
+        random.shuffle(random_pfm)
+        m = Motif(pfm=random_pfm)
+        m.id = "random"
+        return m
+
+    def randomize_dimer(self):
+        l = len(self.pfm)
+        random_pfm = []
+        for i in range(l / 2):
+            pos = random.randint(0, l - 1)
+            random_pfm += [[c for c in row] for row in self.pfm[pos:pos + 2]]
+        m = Motif(pfm=random_pfm)
+        m.id = "random"
+        return m
 
 def motif_from_align(align):
     width = len(align[0])
@@ -765,7 +796,7 @@ def xxmotif_to_motifs(fname):
 
             pwm = np.array(freqs).transpose()
             motif = Motif(pwm)
-            motif.id = mid
+            motif.id = mid.replace(" ", "_")
             motifs.append(motif)
 
     return motifs
