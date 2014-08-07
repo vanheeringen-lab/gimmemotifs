@@ -57,6 +57,119 @@ class MotifProgram:
 #        except Exception as e:
 #            return ([], "", e.strerror)
 
+class XXmotif(MotifProgram):
+
+    def __init__(self):
+        self.name = "XXmotif"
+        self.cmd = "XXmotif"
+        self.use_width = False
+
+    def _run_program(self, bin, fastafile, savedir="", params={}):
+        import os, tempfile, shutil
+        from subprocess import Popen, PIPE
+        
+        default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
+        default_params.update(params)
+        
+        cmd = bin
+        
+        fastafile = os.path.abspath(fastafile)
+        
+        bgfile = os.path.abspath(default_params["background"])
+        background = ""
+        if bgfile:
+            background = " --negSet {0} ".format(bgfile)
+
+        outfile = os.path.join(self.tmpdir, os.path.basename(fastafile.replace(".fa", ".pwm")))
+        
+        stdout = ""
+        stderr = ""
+        
+        strand = ""
+        if not default_params["single"]:
+            strand = " --revcomp "
+
+        cmd = "%s %s %s --localization --batch --no-graphics %s %s" % (
+            cmd,
+            self.tmpdir, 
+            fastafile,
+            background,
+            strand
+            )
+
+        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+        out,err = p.communicate()
+        stdout += out
+        stderr += err
+        
+        motifs = []
+        
+        if os.path.exists(outfile):
+            motifs = xxmotif_to_motifs(outfile)
+            for m in motifs:
+                m.id = "{0}_{1}".format(self.name, m.id)
+        else:
+            stdout += "\nMotif file {0} not found!\n".format(outfile)
+            stderr += "\nMotif file {0} not found!\n".format(outfile)
+        
+        return motifs, stdout, stderr
+        
+class Homer(MotifProgram):
+
+    def __init__(self):
+        self.name = "Homer"
+        self.cmd = "homer2"
+        self.use_width = True
+
+    def _run_program(self, bin, fastafile, savedir="", params={}):
+        import os, tempfile, shutil
+        from subprocess import Popen, PIPE
+        
+        default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
+        default_params.update(params)
+        
+        homer = bin
+        
+        fastafile = os.path.abspath(fastafile)
+        
+        # Background file is essential!
+        if not default_params["background"]:
+            print "Background file needed!"
+            sys.exit()
+        
+        bgfile = os.path.abspath(default_params["background"])
+        outfile = os.path.join(self.tmpdir, "homer.out")    
+        
+        stdout = ""
+        stderr = ""
+        
+        strand = ""
+        if default_params["single"]:
+            strand = " -strand + "
+
+        cmd = "%s denovo -i %s -b %s -len %s -S %s -o %s %s -p 8" % (
+            homer,
+            fastafile,
+            default_params["background"],
+            default_params["width"],
+            default_params["number"],
+            strand,
+            outfile)
+
+        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+        out,err = p.communicate()
+        stdout += out
+        stderr += err
+        
+        motifs = []
+        
+        if os.path.exists(outfile):
+            motifs = pwmfile_to_motifs(outfile)
+            for i, m in enumerate(motifs):
+                m.id = "{0}_{1}".format(self.name, i + 1)
+        
+        return motifs, stdout, stderr
+
 class BioProspector(MotifProgram):
     def __init__(self):
         self.name = "BioProspector"
