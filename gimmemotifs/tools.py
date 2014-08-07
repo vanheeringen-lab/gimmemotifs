@@ -161,7 +161,7 @@ class Homer(MotifProgram):
 
         stdout = "Running command:\n{}\n".format(cmd)
         
-        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=tmpdir) 
+        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.tmpdir) 
         out,err = p.communicate()
         stdout += out
         stderr += err
@@ -171,7 +171,7 @@ class Homer(MotifProgram):
         if os.path.exists(outfile):
             motifs = pwmfile_to_motifs(outfile)
             for i, m in enumerate(motifs):
-                m.id = "{0}_{1}".format(self.name, i + 1)
+                m.id = "{}_{}_{}".format(self.name, default_params["width"], i + 1)
         
         return motifs, stdout, stderr
 
