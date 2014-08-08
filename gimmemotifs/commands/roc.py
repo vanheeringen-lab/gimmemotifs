@@ -13,12 +13,7 @@ from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.rocmetrics import ROC_values, ROC_AUC, MNCP, max_enrichment, enr_at_fdr
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import roc_plot
-
-def get_scores(motif, infile):
-    from gimmemotifs.scan import scan
-    result = scan(infile, [motif], 0.0, 1)    
-    vals = [matches[0][1] for matches in result.values()[0].values()]
-    return vals
+from gimmemotifs.scan import scan
 
 def roc(args):
     """ Calculate ROC_AUC and other metrics and optionally plot ROC curve.
@@ -31,10 +26,6 @@ def roc(args):
     if outputfile and   not outputfile.endswith(".png"):
         outputfile += ".png"
     
-    # Parallel processing
-    n_cpu = 8
-    job_server = pp.Server(n_cpu, secret="pumpkinrisotto")
-
     motifs = dict([(x.id, x) for x in pwmfile_to_motifs(pwmfile)])
 
     ids = []
@@ -42,26 +33,24 @@ def roc(args):
         ids = args.ids.split(",")
     else:
         ids = motifs.keys()
+
+    fg_total = {}
+    result = scan(fg_file, [motifs[x] for x in ids], 0.0, 1)    
+    for key,m in result.items():
+        fg_total[key.id.split("\t")[0]] = [matches[0][1] for matches in m.values()]
+   
+    bg_total = {}
+    result = scan(bg_file, [motifs[x] for x in ids], 0.0, 1)    
+    for key,m in result.items():
+        bg_total[key.id.split("\t")[0]] = [matches[0][1] for matches in m.values()]
     
-    fg_jobs = {}
-    bg_jobs = {}
-
-    # Do the prediction
-    for id in ids:
-        if motifs.has_key(id):
-            bg_jobs[id] = job_server.submit(get_scores, (motifs[id],bg_file,))
-            fg_jobs[id] = job_server.submit(get_scores, (motifs[id],fg_file,))
-        else:
-            print "Wrong id: %s" % id
-            sys.exit(1)
-
     plot_x = []
     plot_y = []
     # Print the metrics
     print "Motif\tROC AUC\tMNCP\tEnr. at 5% FDR\tMax enr."
     for id in ids:
-        fg_vals = fg_jobs[id]()    
-        bg_vals = bg_jobs[id]()    
+        fg_vals = fg_total[id] 
+        bg_vals = bg_total[id]    
         (x, y) = ROC_values(fg_vals, bg_vals) 
         plot_x.append(x)
         plot_y.append(y)
