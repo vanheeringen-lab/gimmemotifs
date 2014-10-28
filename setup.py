@@ -38,7 +38,8 @@ DEFAULT_PARAMS = {
     "cluster_threshold": "0.95",
     "use_strand": False,
     "markov_model": 1,
-    "motif_db": "vertebrate_motifs.pwm"
+    "motif_db": "vertebrate_motifs.pwm",
+    "scan_cutoff": 0.9,    
 }
 
 MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms", "Homer"]
@@ -65,6 +66,7 @@ data_files=[
     ('gimmemotifs/motif_databases', [
                                     'motif_databases/JASPAR2010_vertebrate.pwm',
                                     'motif_databases/vertebrate_motifs.pwm',
+                                    'motif_databases/vertebrate_clusters.pwm',
                                     ]),
 #    ('gimmemotifs/doc', ['doc/gimmemotifs_manual.pdf','doc/gimmemotifs_manual.html']),
     ('gimmemotifs/examples', ['examples/TAp73alpha.bed','examples/TAp73alpha.fa']),
