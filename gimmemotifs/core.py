@@ -582,7 +582,7 @@ class GimmeMotifs:
                 cmp= lambda x,y: cmp(self.mncp[sort_key][y.id], self.mncp[sort_key][x.id])
                 )
 
-        for motif in motifs:
+        for motif in sorted_motifs:
             rm = ReportMotif()
             rm.id = motif.id
             rm.id_href = {"href": "#%s" % motif.id}
