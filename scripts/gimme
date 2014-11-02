@@ -23,6 +23,7 @@ commands:
     match       find motif matches
     roc         calculate statistics and plot roc
     cluster     cluster similar motifs
+    genome      download genome and genes from UCSC
     index       index a genome
     background  create a background file
     threshold   calculate motif scan threshold
@@ -228,6 +229,21 @@ p.add_argument("-i", "--indexdir",
                metavar="DIR", 
                default=default_index)
 p.set_defaults(func=commands.index)
+
+# gimme genome
+p = subparsers.add_parser('genome')
+p.add_argument("fastadir",
+               help="Directory to place genome",
+               metavar="FASTADIR")
+p.add_argument("genomebuild",
+               help="UCSC genome name",
+               metavar="GENOMEBUILD")
+p.add_argument("-i", "--indexdir",
+               dest="indexdir",
+               help="Index dir (default %s)" % default_index,
+               metavar="DIR",
+               default=default_index)
+p.set_defaults(func=commands.genome)
 
 # generate_background_sequences.py
 p = subparsers.add_parser('background')
