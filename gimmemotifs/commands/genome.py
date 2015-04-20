@@ -11,15 +11,28 @@ import urllib
 import urllib2
 import re
 import subprocess as sp
+from glob import glob
 from tempfile import NamedTemporaryFile
 from distutils.spawn import find_executable
-
 from gimmemotifs.genome_index import GenomeIndex
 from gimmemotifs.config import MotifConfig
+from gimmemotifs.fasta import Fasta
 
 UCSC_GENOME_URL = "http://hgdownload.soe.ucsc.edu/goldenPath/{0}/bigZips/chromFa.tar.gz"
+ALT_UCSC_GENOME_URL = "http://hgdownload.soe.ucsc.edu/goldenPath/{0}/bigZips/{0}.fa.gz"
 UCSC_GENE_URL = "http://hgdownload.cse.ucsc.edu/goldenPath/{}/database/"
 ANNOS = ["knownGene.txt.gz", "ensGene.txt.gz", "refGene.txt.gz"]
+
+
+def check_genome_file(fname):
+    if os.path.exists(fname):
+        with open(fname) as f:
+            for i in range(10):
+                line = f.readline()
+                if line.find("Not Found") != -1:
+                    return False
+            return True
+    return False
 
 def genome(args):
     
@@ -39,12 +52,6 @@ def genome(args):
         sys.stderr.write("{} not found in path!\n".format(pred_bin))
         sys.exit(1)
     
-    fa_split_bin = "faSplit"
-    fa_split = find_executable(fa_split_bin)
-    if not fa_split:
-        sys.stderr.write("{} not found in path!\n".format(fa_split_bin))
-        sys.exit(1)
-
     fastadir = args.fastadir
     genomebuild = args.genomebuild
     genome_dir = os.path.join(fastadir, genomebuild)
@@ -90,15 +97,46 @@ def genome(args):
   
     # download genome based on URL + genomebuild
     sys.stderr.write("Downloading {} genome\n".format(genomebuild))
-    genome_fa = os.path.join(genome_dir, "chromfa.tar.gz".format(genomebuild))
-    urllib.urlretrieve(
-                UCSC_GENOME_URL.format(genomebuild),
+    for genome_url in [UCSC_GENOME_URL, ALT_UCSC_GENOME_URL]:
+        
+        remote = genome_url.format(genomebuild)
+
+        genome_fa = os.path.join(
+                genome_dir, 
+                os.path.split(remote)[-1]
+                )
+
+        sys.stderr.write("Trying to download {}\n".format(genome_url.format(genomebuild)))
+        urllib.urlretrieve(
+                genome_url.format(genomebuild),
                 genome_fa
                 )
-    
+        
+        if not check_genome_file(genome_fa):    
+            continue
+        
+        break
+
+    if not check_genome_file(genome_fa):
+        sys.stderr.write("Failed to download genome\n")
+        sys.exit(1)
+
     sys.stderr.write("Unpacking\n")
-    cmd = "tar -C {0} -xvzf {1} && rm {1}".format(genome_dir, genome_fa)
-    sp.call(cmd, shell=True)
+    if genome_fa.endswith("tar.gz"):
+        cmd = "tar -C {0} -xvzf {1} && rm {1}".format(genome_dir, genome_fa)
+    else:
+        cmd = "gunzip {0} && rm {0}".format(genome_fa)
+
+    sp.call(cmd, shell=True, cwd=genome_dir)
+
+    fa_files = glob("{}/*.fa".format(genome_dir))
+    if len(fa_files) == 1:
+        f = Fasta(fa_files[0])
+        for n,s in f.items():
+            with open("{}/{}.fa".format(n)) as f:
+                f.write("{}\n{}\n".format(n,s))
+    
+        os.unlink(fa_files[0])
 
     sys.stderr.write("Creating index\n")
     g = GenomeIndex()
