@@ -121,7 +121,7 @@ def match_plot(plotdata, outfile):
     plt.savefig(outfile, dpi=300, bbox_inches='tight')
 
 def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mindiff=0, minenr=3, minfreq=0.01):
-    w_ratio = np.array([7, len(names), len(names) + 1])
+    w_ratio = np.array([14, len(names), len(names) + 1])
     plot_order = [0,1,2]
     
     nbar = 5
@@ -162,8 +162,11 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
         ind = sort_tree(tree, np.arange(len(motifs)))
     else:
         ind = np.arange(len(freq))
-    
-    fig = plt.figure(figsize=(6 + 1.5 * len(names),0.6 * len(motifs) + 3))
+   
+    fig = plt.figure(figsize=(
+                (5 + 0.75 * len(names)) * 3,
+                (0.3 * len(motifs) + 1.5) * 3
+            ))
     
     gs = GridSpec(len(motifs) + 3 + nbar, 3,
                   height_ratios=[1] * nbar + [3] * (len(motifs) + 3),
@@ -264,4 +267,4 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
         ax.imshow(plt.imread(tmp.name), interpolation="none")
     
     #plt.show()
-    plt.savefig(outfile, dpi=600, bbox_inches='tight')
+    plt.savefig(outfile, dpi=300, bbox_inches='tight')

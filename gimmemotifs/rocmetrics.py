@@ -27,7 +27,10 @@ def enr_at_fdr(fg_vals, bg_vals, fdr=5):
     pos = array(fg_vals)
     neg = array(bg_vals)
     s = scoreatpercentile(neg, 100 - fdr)
-    return len(pos[pos >= s]) / float(len(neg[neg >= s])) * len(neg) / float(len(pos))
+    neg_matches = float(len(neg[neg >= s]))
+    if neg_matches == 0:
+        return float("inf")
+    return len(pos[pos >= s]) / neg_matches * len(neg) / float(len(pos))
 
 def max_enrichment(fg_vals, bg_vals, minbg=2):
     from numpy import hstack,argsort,ones,zeros

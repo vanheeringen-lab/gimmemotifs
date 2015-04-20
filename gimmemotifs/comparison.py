@@ -209,7 +209,10 @@ class MotifComparer:
             if s:
                 scores.append([s, i, -1])
         
+        
+        
         if not scores:
+            sys.stdout.write("No score {} {}".format(matrix1, matrix2))
             return []
         return sorted(scores, key=lambda x: x[0])[-1]
     

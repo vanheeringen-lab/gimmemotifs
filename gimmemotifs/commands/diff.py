@@ -37,7 +37,7 @@ def diff(args):
         clusters = {}
         for line in open(infiles[0]):
             vals = line.strip().split("\t")
-            clusters.setdefault(vals[3], []).append(vals[:3])
+            clusters.setdefault(vals[4], []).append(vals[:3])
         
         infiles = []
         

@@ -25,3 +25,4 @@ pvalue = 0.001
 max_time = None
 ncpus = 12
 motif_db = vertebrate_motifs.pwm
+scan_cutoff = 0.9
