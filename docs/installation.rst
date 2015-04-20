@@ -40,7 +40,7 @@ Now you can install GimmeMotifs using pip. Latest stable release:
 
 ::
 
-    pip install https://github.com/simonvh/gimmemotifs/tarball/0.8.3
+    pip install https://github.com/simonvh/gimmemotifs/tarball/0.8.5
 
 Or the (unstable) master branch with the newest bells, whistles and bugs:
 
@@ -194,14 +194,16 @@ them automatically, so that’s the easiest option.
 Building from source
 ~~~~~~~~~~~~~~~~~~~~
 
-| You can download the lastest version of GimmeMotifs at:
-| http://www.ncmls.eu/bioinfo/gimmemotifs/.
-| Start by unpacking the source archive
+You can download the lastest version of GimmeMotifs at:
+
+| https://github.com/simonvh/gimmemotifs/releases
+
+Start by unpacking the source archive
 
 ::
 
-    tar xvzf gimmemotifs-1.00.tar.gz
-    cd gimmemotifs-1.00
+    tar xvzf gimmemotifs-0.8.5.tar.gz
+    cd gimmemotifs-0.8.5
 
 You can build GimmeMotifs with the following command:
 

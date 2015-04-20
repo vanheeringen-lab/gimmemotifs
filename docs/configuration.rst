@@ -186,6 +186,7 @@ have a look at the options.
     abs_max = 1000
     enrichment = 1.5
     max_time = None
+    scan_cutoff = 0.9
 
 This section specifies all the default GimmeMotifs parameters. Most of
 these can also be specified at the command-line when running
