@@ -1,7 +1,7 @@
 Other scripts
 =============
 
-In addition to ``gimme_motifs.py`` the GimmeMotifs package contains
+In addition to ``gimme motifs`` the GimmeMotifs package contains
 several other tools that can perform the various substeps of
 GimmeMotifs, as well as other useful tools. Run them to see the options.
 
