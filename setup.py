@@ -475,6 +475,7 @@ setup (name = 'gimmemotifs',
             "pyyaml >= 3.10",
             "pp >= 1.6",
             "Pycluster >= 1.52",
+            "pybedtools",
         ],
         dependency_links = [
             "http://bonsai.hgc.jp/~mdehoon/software/cluster/software.htm",
