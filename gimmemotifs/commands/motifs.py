@@ -41,10 +41,10 @@ def motifs(args):
             print "Sorry, motif prediction tool %s is not supported" % (tool)
             sys.exit(1)
     
-    if "matched_genomic" in background:
+    if "promoter" in background:
         gene_file = os.path.join(config.get_gene_dir(), args.genome)
         if not os.path.exists(gene_file):
-            print "Sorry, genomic background for %s is not supported!" % args.genome
+            print "gene annotation for %s is missing, can't do background 'promoter'" % args.genome
             sys.exit(1)
     
     params = {

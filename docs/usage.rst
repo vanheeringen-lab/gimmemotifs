@@ -197,8 +197,8 @@ Detailed options
 
    Type of background to use. By default ``random`` (1st order Markov
    model, similar dinucleotide frequencies as your sequences) and
-   ``matched_genomic`` (randomly chosen from the genome with a similar
-   distribution respective to the TSS of genes) are used.
+   ``gc`` (randomly chosen from the genome with a similar
+   GC% as your input sequences) are used.
 
 -  ``-l`` or ``–localization_width``
 

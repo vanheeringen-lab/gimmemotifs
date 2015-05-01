@@ -248,39 +248,39 @@ p.set_defaults(func=commands.genome)
 # generate_background_sequences.py
 p = subparsers.add_parser('background')
 p.add_argument("outputfile", 
-               help="Outputfile", 
+               help="outputfile", 
                metavar="FILE")
 p.add_argument("bg_type", 
-               help="Type of background sequences to generate (%s)" % 
+               help="type of background sequences to generate (%s)" % 
                     ",".join(BG_TYPES), 
                metavar="TYPE")
 p.add_argument("-i", 
                dest="inputfile", 
-               help="FASTA (random) or BED (matched_genomic) formatted inputfile", 
+               help="input sequences (BED or FASTA)", 
                metavar="FILE")
 p.add_argument("-f", 
                dest="outformat", 
-               help="Output format, BED or FASTA", 
+               help="output format (BED or FASTA", 
                metavar="TYPE", 
                default="fasta")
 p.add_argument("-l", 
                dest="length", 
-               help="Length of random sequences", 
+               help="length of random sequences", 
                metavar="INT", 
                type=int)
 p.add_argument("-n", 
                dest="number", 
-               help="Number of sequence to generate compared to input (1 means same amount, default is 10)", 
+               help="number of sequence to generate", 
                metavar="NUMBER", 
                default=10, 
                type=int)
 p.add_argument("-g", 
-               dest="genome", help="If type is matched_genomic, this specified the organism for which matched genomic background sequences will be selected", 
+               dest="genome", help="genome version (not for type 'random')", 
                metavar="GENOME", 
                default="hg19")
 p.add_argument("-m", 
                dest="markov_order", 
-               help="If type is random, this specifies the order of the Markov model (default 1)", 
+               help="order of the Markov model (only for type 'random', default 1)", 
                metavar="N", 
                default=1, 
                type=int)

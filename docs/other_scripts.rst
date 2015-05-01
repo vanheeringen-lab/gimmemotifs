@@ -46,19 +46,16 @@ Creates an index to use with GimmeMotifs. See :ref:`Configuration` for details.
 gimme background
 ~~~~~~~~~~~~~~~~
 
-Generate random sequences according to one of two methods: random or
-matched\_genomic. With the argument ``type`` set to ``random``, and an
-input file in FASTA format, this script will generate sequences with the
-same dinucleotide distribution as the input sequences according to a 1st
-order Markov model trained on the input sequences. The ``-n`` options is
-set to 10 by default. The length distribution of the sequences in the
-output file will be similar as the inputfile. The Markov model can be
-changed with option ``-m``. If the ``type`` is specified as
-``matched_genomic`` the inputfile needs to be in BED format, and the
-script will select genomic regions with a similar distribution relative
-to the transcription start of genes as the input file. Make sure to
-select the correct genome. The length of the sequences in the output
-file will be set to the median of the features in the input file.
+Generate random sequences according to one of several methods:
+
+- ``random`` - randomly generated sequence with the same dinucleotide distribution as the input sequences according to a 1st order Markov model
+- ``genomic`` - sequences randomly chosen from the genome 
+- ``gc`` - sequences randomly chosen from the genome with the same GC% as the input sequences
+- ``promoter`` - random promoter sequences
+
+The background types ``gc`` and ``random`` need a set of input sequences
+in BED or FASTA format. If the input sequences are in BED format, the 
+genome version needs to be specified with `-g`. 
 
 gimme cluster
 ~~~~~~~~~~~~~

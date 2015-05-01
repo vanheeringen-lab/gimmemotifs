@@ -21,6 +21,7 @@ import numpy
 from scipy import special
 from gimmemotifs import tools
 from gimmemotifs.fasta import *
+import pybedtools
 
 lgam = special.gammaln
 
@@ -583,3 +584,18 @@ def sort_tree(tree, order):
     index = _treesort(order, nodeorder, nodecounts, tree)
     return index
 
+def number_of_seqs_in_file(fname):
+    try:
+        fa = Fasta(fname)
+        return len(fa)
+    except:
+        pass
+
+    try:
+        bed = pybedtools.BedTool(fname)
+        return len([x for x in bed])
+    except:
+        pass
+
+    sys.stderr.write("unknown filetype {}\n".format(fname))
+    sys.exit(1)

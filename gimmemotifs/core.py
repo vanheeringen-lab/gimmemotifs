@@ -303,6 +303,7 @@ class GimmeMotifs:
 
 
     def _create_background(self, bg_type, bedfile, fafile, outfile, organism="hg18", width=200, nr_times=10):
+        fg = Fasta(fafile)
         if bg_type == "random":
             if int(self.markov_model) >= 6:
                 self.logger.warn("Are you sure about the Markov model? It seems too high!")
@@ -310,27 +311,23 @@ class GimmeMotifs:
                 order = {"1":"1st","2":"2nd", "3":"3rd", "4":"4th", "5":"5th"}[str(self.markov_model)]
                 self.logger.info("Creating random background (%s order Markov)" % order)
         
-            f = Fasta(fafile)
-            m = MarkovFasta(f, k=int(self.markov_model))
+            m = MarkovFasta(fg, k=int(self.markov_model), number=nr_times * len(fg))
             m.writefasta(outfile)
             self.logger.debug("Random background: %s" % (outfile))
             # return the number of random sequences created
             return len(m)
-        elif bg_type == "genomic_matched":    
-            gene_file = os.path.join(self.config.get_gene_dir(), "%s.bed" % organism)
-            index_dir = os.path.join(self.config.get_index_dir(), organism)
-            self.logger.info("Creating matched genomic background (%s, using genes in %s)" % (organism, gene_file))
-        
-            f = MatchedGenomicFasta(bedfile, gene_file, index_dir, width, nr_times)
+        elif bg_type == "gc":    
+            self.logger.info("Creating GC matched background")
+            
+            f = MatchedGcFasta(fafile, organism, nr_times * len(fg))
             f.writefasta(outfile)
-            self.logger.debug("Matched genomic background: %s" % (outfile))
+            self.logger.debug("GC matched background: %s" % (outfile))
             return len(f)
         elif bg_type == "promoter":
             gene_file = os.path.join(self.config.get_gene_dir(), "%s.bed" % organism)
             index_dir = os.path.join(self.config.get_index_dir(), organism)
             
             self.logger.info("Creating random promoter background (%s, using genes in %s)" % (organism, gene_file))
-            fg = Fasta(fafile)
             f = PromoterFasta(gene_file, index_dir, width, nr_times * len(fg))
             f.writefasta(outfile)
             self.logger.debug("Random promoter background: %s" % (outfile))
@@ -395,9 +392,8 @@ class GimmeMotifs:
         nr_sequences = {}
         
         # Create background for motif prediction
-        if "genomic_matched" in background:
-            self._create_background("genomic_matched", self.validation_bed, None, self.prediction_bg, organism=organism, width=width)
-        # This is not ideal, but for genomes where matched_genomic cannot be used...
+        if "gc" in background:
+            self._create_background("gc", self.validation_bed, self.validation_fa, self.prediction_bg, organism=organism, width=width)
         else:
             self._create_background(background[0], self.validation_bed, self.validation_fa, self.prediction_bg, organism=organism, width=width)
 
@@ -542,8 +538,8 @@ class GimmeMotifs:
         motifs = pwmfile_to_motifs(pwm)
 
         sort_key = background[0]
-        if "genomic_matched" in background:
-            sort_key = "genomic_matched"
+        if "gc" in background:
+            sort_key = "gc"
 
         f = open(self.text_report, "w")
         header = "ID\tconsensus\tBest match db\tp-value best match\t" + "\t".join("Enrichment (%s)\tp-value (%s)\tROC AUC (%s)\tMNCP (%s)" % (b,b,b,b) for b in background)
@@ -573,8 +569,8 @@ class GimmeMotifs:
             match[0].to_img(os.path.join(self.imgdir,"%s.png" % match[0].id), format="PNG")
 
         sort_key = background[0]
-        if "genomic_matched" in background:
-            sort_key = "genomic_matched"
+        if "gc" in background:
+            sort_key = "gc"
 
         roc_img_file = "%s_%s_roc"
         report_motifs = []
