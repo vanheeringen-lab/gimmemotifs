@@ -561,7 +561,7 @@ class Motif:
         pwm = [self.iupac_pwm[char]for char in self.consensus.upper()]
         return ">%s\n%s" % (id, "\n".join(["\t".join(["%s" % x for x in row]) for row in pwm]))
 
-    def to_img(self, file, format="EPS", add_left=0, seqlogo=None, height=18):
+    def to_img(self, file, format="EPS", add_left=0, seqlogo=None, height=6):
         """ Valid formats EPS, GIF, PDF, PNG """
         if not seqlogo:
             seqlogo = self.seqlogo
@@ -613,7 +613,7 @@ class Motif:
                               f.name, 
                               format, 
                               height,
-                              (len(self) + add_left) * 3, 
+                              len(self) + add_left, 
                               file)
         call(cmd, shell=True)
         
