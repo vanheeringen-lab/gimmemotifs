@@ -35,7 +35,7 @@ DEFAULT_PARAMS = {
     "background": "genomic_matched,random",
     "genome": "hg19",
     "tools": "MDmodule,Weeder,MotifSampler",
-    "available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,MEMEW,trawler,Improbizer,MoAn,BioProspector,AMD,ChIPMunk,Jaspar",
+    "available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,MEMEW,trawler,Improbizer,BioProspector,AMD,ChIPMunk,Jaspar",
     "cluster_threshold": "0.95",
     "use_strand": False,
     "markov_model": 1,
@@ -43,8 +43,8 @@ DEFAULT_PARAMS = {
     "scan_cutoff": 0.9,    
 }
 
-MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer", "MoAn", "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms", "Homer"]
-LONG_RUNNING = ["MoAn", "GADEM"]
+MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer",  "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms", "Homer"]
+LONG_RUNNING = ["GADEM"]
 
 
 # Included binaries after compile
@@ -52,7 +52,6 @@ MOTIF_BINS = {
     "MEME": "src/meme_4.6.0/src/meme.bin",
     "MDmodule": "src/MDmodule/MDmodule",
     "BioProspector": "src/BioProspector/BioProspector",
-    "MoAn": "src/MoAn/moan",
     "GADEM": "src/GADEM_v1.3/src/gadem",
     "Posmo": "src/posmo/posmo",
     "AMD": "src/AMD/AMD.bin",

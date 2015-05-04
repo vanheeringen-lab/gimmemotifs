@@ -66,7 +66,7 @@ Running time
 
 The running time of GimmeMotifs greatly depends on which tools you use
 for prediction and how large the dataset is. Some of the tools might
-take a very long time and two of them, GADEM and MoAn, are not added to
+take a very long time and two of them, GADEM is not added to
 the default tools because of this reason. You can always use them for an
 analysis (by specifying the ``-t`` command-line option), but it is
 recommended to only do this for a small dataset (say, less than 5000

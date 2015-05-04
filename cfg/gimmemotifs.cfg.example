@@ -20,7 +20,7 @@ genome = hg18
 background = gc,random
 cluster_threshold = 0.95
 scan_cutoff = 0.9
-available_tools = MDmodule,MEME,Weeder,GADEM,MotifSampler,trawler,Improbizer,MoAn,BioProspector,Posmo,ChIPMunk,AMD,Jaspar
+available_tools = MDmodule,MEME,Weeder,GADEM,MotifSampler,trawler,Improbizer,BioProspector,Posmo,ChIPMunk,AMD,Jaspar
 tools = MDmodule,MEME,Weeder,MotifSampler,trawler,Improbizer,BioProspector,Posmo,ChIPMunk,AMD,Jaspar
 pvalue = 0.001
 max_time = None
@@ -34,10 +34,6 @@ dir = /usr/share/gimmemotifs/tools/
 
 [MEME]
 bin = /usr/share/gimmemotifs/tools/meme.bin
-dir = /usr/share/gimmemotifs/tools/
-
-[MoAn]
-bin = /usr/share/gimmemotifs/tools/moan
 dir = /usr/share/gimmemotifs/tools/
 
 [MDmodule]

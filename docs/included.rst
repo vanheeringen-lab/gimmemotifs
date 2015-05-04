@@ -16,8 +16,6 @@ algorithms. GimmeMotifs includes several tools by default:
 
 -  MEME http://meme.sdsc.edu/
 
--  MoAn http://moan.binf.ku.dk/
-
 -  MotifSampler
    http://homes.esat.kuleuven.be/~sistawww/bioi/thijs/download.html
 
@@ -31,10 +29,8 @@ algorithms. GimmeMotifs includes several tools by default:
 
 -  Posmo https://cb.utdallas.edu/Posmo/index.html
 
-Almost all these tools are installed automatically with GimmeMotifs. Due to an
-issue with MoAn and the Ubuntu gcc version, I was not able to compile
-MoAn for the Ubuntu package, which means MoAn is not included. To use
-these programs *no additional steps have to be taken* (except for
+Almost all these tools are installed automatically with GimmeMotifs. 
+To use these programs *no additional steps have to be taken* (except for
 MotifSampler see :ref:`MotifSampler`). 
 
 **Please note: all these programs include their own license and most are free

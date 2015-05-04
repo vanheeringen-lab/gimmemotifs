@@ -123,7 +123,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
                                                 ) if x[0] != 'MotifProgram']
     
     # TODO:
-    # Add warnings for running time: Weeder, MoAn, GADEM
+    # Add warnings for running time: Weeder, GADEM
         
     ### Add all jobs to the job_server ###
     params = {'analysis': analysis, 'background':background, "single":single, "organism":organism}
