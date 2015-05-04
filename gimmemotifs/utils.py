@@ -19,17 +19,13 @@ from subprocess import Popen, PIPE
 # External imports
 import numpy
 from scipy import special
-from gimmemotifs import tools
-from gimmemotifs.fasta import *
 import pybedtools
 
-lgam = special.gammaln
+from gimmemotifs import tools
+from gimmemotifs.fasta import *
+from gimmemotifs.shutils import which
 
-def run_command(cmd):
-    #print args
-    from subprocess import Popen
-    p = Popen(cmd, shell=True)
-    p.communicate()
+lgam = special.gammaln
 
 def star(stat, categories):
     stars = 0

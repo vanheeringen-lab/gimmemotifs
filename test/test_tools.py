@@ -19,7 +19,7 @@ class TestMotifProgram(unittest.TestCase):
 		m = Meme()
 		bin = locate_tool("Meme")
 		if bin and self.isInstalled(bin):
-			(motifs, stderr, stdout) =  m._run_program(bin, self.fa, ".")
+			(motifs, stderr, stdout) =  m.run(self.fa, ".")
 			#print "meme:", motifs
 			self.assert_(len(motifs) > 0)
 		else:
@@ -30,7 +30,7 @@ class TestMotifProgram(unittest.TestCase):
 		m = MDmodule()
 		bin = locate_tool("MDmodule")
 		if bin and self.isInstalled(bin):
-			(motifs, stderr, stdout) =  m._run_program(bin, self.fa, ".")
+			(motifs, stderr, stdout) =  m.run(self.fa, ".")
 			#print motifs
 			self.assert_(len(motifs) > 0)
 		else:
@@ -41,7 +41,7 @@ class TestMotifProgram(unittest.TestCase):
 		m = Weeder()
 		bin = locate_tool("Weeder")
 		if bin and self.isInstalled(bin):
-			(motifs, stderr, stdout) =  m._run_program(bin, self.fa, ".")
+			(motifs, stderr, stdout) =  m.run(self.fa, ".")
 			self.assert_(len(motifs) > 0)
 		else:
 			sys.stderr.write("Skipping Weeder test\n")
@@ -51,7 +51,7 @@ class TestMotifProgram(unittest.TestCase):
 		m = MotifSampler()
 		bin = locate_tool("MotifSampler")
 		if bin and self.isInstalled(bin):
-			(motifs, stderr, stdout) =  m._run_program(bin, self.fa, ".", {"background":os.path.join(self.data_dir, "test.bg")})
+			(motifs, stderr, stdout) =  m.run(self.fa, ".", {"background":os.path.join(self.data_dir, "test.bg")})
 			#print motifs
 			self.assert_(len(motifs) > 0)
 		else:

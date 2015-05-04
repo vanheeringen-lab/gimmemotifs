@@ -11,6 +11,7 @@ from subprocess import Popen
 from platform import machine
 from gimmemotifs.tools import *
 from gimmemotifs.config import *
+from gimmemotifs.shutils import which
 from glob import glob
 import os
 import sys
@@ -79,23 +80,6 @@ for platform, scheme in INSTALL_SCHEMES.iteritems():
     if platform.startswith('unix_'):
         if scheme['data'][0] == '$' and '/' not in scheme['data']:
             scheme['data'] = os.path.join(scheme['data'], 'share')
-
-def which(file):
-    if not os.environ.has_key("PATH") or not os.environ["PATH"]:
-        path = os.defpath
-    else:
-        path = os.environ["PATH"]
-
-    for p in [os.path.join(x, file) for x in path.split(os.pathsep)]:
-        if os.access(p, os.X_OK) and not os.path.isdir(p):
-            return p
-
-    p = Popen("locate %s" % file, shell=True, stdout=PIPE, stderr=PIPE)
-    (stdout, stderr) = p.communicate()
-    if not stderr:
-        for p in stdout.split("\n"):
-            if os.path.basename(p) == file and os.access(p, os.X_OK) and not os.path.isdir(p):
-                return p
 
 class build_tools(Command):
     description = "compile all included motif prediction tools"
