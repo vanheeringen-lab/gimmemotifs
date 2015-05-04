@@ -367,8 +367,8 @@ def track2fasta(index_dir, bedfile, fastafile, extend_up=0, extend_down=0, use_s
                     val = vals[3]
                 if len(vals) == 12:
                     # BED12
-                    blockSizes = [int(x) for x in vals[10].split(",")[:-1]]
-                    blockStarts = [int(x) for x in vals[11].split(",")[:-1]]
+                    blockSizes = [int(x) for x in vals[10].strip(",").split(",")]
+                    blockStarts = [int(x) for x in vals[11].strip(",").split(",")]
                     chr_features.setdefault(chrom,[]).append([])
                     for estart,esize in zip(blockStarts, blockSizes):
                         chr_features[chrom][-1].append([start + estart, 
