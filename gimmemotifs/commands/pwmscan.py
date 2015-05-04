@@ -21,9 +21,10 @@ def pwmscan(args):
     nreport = args.nreport
     cutoff = args.cutoff
     bed = args.bed
+    scan_rc = args.scan_rc
 
     motifs = pwmfile_to_motifs(args.pwmfile)
-    result = scan_it(inputfile, motifs, cutoff, nreport)
+    result = scan_it(inputfile, motifs, cutoff, nreport, scan_rc)
    
     p = re.compile(r'([^\s:]+):(\d+)-(\d+)')
     fa = Fasta(inputfile)

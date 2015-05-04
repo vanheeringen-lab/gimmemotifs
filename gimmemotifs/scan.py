@@ -15,15 +15,15 @@ from gimmemotifs.utils import parse_cutoff
 
 CHUNK = 1000
 
-def scan_fa_with_motif(fo, motif, cutoff, nreport):
+def scan_fa_with_motif(fo, motif, cutoff, nreport, rc=True):
     #try:
-    return motif, motif.pwm_scan_all(fo, cutoff, nreport)
+    return motif, motif.pwm_scan_all(fo, cutoff, nreport, scan_rc=rc)
     #except:
     #    e = sys.exc_info()[0]
     #    msg = "Error calculating stats of {0}, error {1}".format(motif.id, e)
     #    sys.stderr.write("{0}\n".format(msg))
 
-def scan_it(infile, motifs, cutoff, nreport=1):
+def scan_it(infile, motifs, cutoff, nreport=1, rc=True):
     # Get configuration defaults
     config = MotifConfig()
     # Cutoff for motif scanning, only used if a cutoff is not supplied
@@ -50,6 +50,7 @@ def scan_it(infile, motifs, cutoff, nreport=1):
                                           motif,
                                           cutoffs[motif.id],
                                           nreport,
+                                          rc,
                                           ),
                                           (),()))
     
