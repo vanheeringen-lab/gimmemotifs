@@ -13,13 +13,14 @@ examples/*
 !examples/*.bed
 !examples/*.fa
 *.pyc
+
+tmp/*
+
 src/meme_4.6.0
 src/meme_4.6.0/src/dir.h
 src/BioProspector/BioProspector
 src/MDmodule/MDmodule
 src/Algorithm-Cluster-1.49/
-src/MoAn/moan
-src/MoAn/obj/
 src/GADEM_v1.3/src/*.o
 src/GADEM_v1.3/src/.deps/
 src/GADEM_v1.3/src/gadem
@@ -27,6 +28,8 @@ src/GADEM_v1.3/config.log
 src/GADEM_v1.3/config.status
 src/GADEM_v1.3/src/Makefile
 src/GADEM_v1.3/Makefile
+src/GADEM_v1.3/autom4te.cache/output.0t
+src/GADEM_v1.3/autom4te.cache/traces.0t
 
 # Homer compiled files
 src/homer/bin/analyzeHiC
