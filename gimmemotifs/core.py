@@ -282,9 +282,9 @@ class GimmeMotifs:
         index_dir = os.path.join(self.config.get_index_dir(), organism)
         self.logger.debug("Creating %s" % (self.prediction_fa))
         
-        genome_index.track2fasta(index_dir, self.prediction_bed, self.prediction_fa, use_strand=use_strand)
+        genome_index.track2fasta(index_dir, self.prediction_bed, self.prediction_fa, use_strand=use_strand, ignore_missing=True)
         self.logger.debug("Creating %s" % (self.validation_fa))
-        genome_index.track2fasta(index_dir, self.validation_bed, self.validation_fa, use_strand=use_strand)
+        genome_index.track2fasta(index_dir, self.validation_bed, self.validation_fa, use_strand=use_strand, ignore_missing=True)
 
     def prepare_input_fa(self, inputfile, width=200, fraction=0.2, abs_max=1000):
         """ Create all the bed- and fasta-files necessary for motif prediction and validation """    
@@ -762,7 +762,7 @@ class GimmeMotifs:
             lwidth = int(params["lwidth"])
             width = int(params["width"])
             extend = (lwidth - width) / 2
-            genome_index.track2fasta(index_dir, self.validation_bed, self.location_fa, extend_up=extend, extend_down=extend, use_strand=params["use_strand"])
+            genome_index.track2fasta(index_dir, self.validation_bed, self.location_fa, extend_up=extend, extend_down=extend, use_strand=params["use_strand"], ignore_missing=True)
         
         elif self.input_type == "FASTA":
             self.prepare_input_fa(inputfile, params["width"], params["fraction"], params["abs_max"])

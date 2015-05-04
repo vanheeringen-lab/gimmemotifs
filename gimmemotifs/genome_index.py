@@ -314,12 +314,17 @@ class GenomeIndex:
         """ Return all sequences in the index """
         return self.index_file.keys()
 
-    def get_size(self, chr=None):
-        """ Return the sizes of all sequences in the index, or the size of chr if specified
+    def get_size(self, chrom=None):
+        """ Return the sizes of all sequences in the index, or the size of chrom if specified
         as an optional argument """
-        if chr:
-            return self.size[chr]
+        if len(self.size) == 0:
+            raise LookupError("no chromosomes in index, is the index correct?")
 
+        if chrom:
+            if self.size.has_key(chrom):
+                return self.size[chrom]
+            else: 
+                raise KeyError("chromosome {} not in index".format(chrom))
         total = 0
         for size in self.size.values():
             total += size
@@ -331,7 +336,7 @@ def rc(seq):
     d = maketrans("actgACTG","tgacTGAC")
     return seq[::-1].translate(d)
 
-def track2fasta(index_dir, bedfile, fastafile, extend_up=0, extend_down=0, use_strand=False):
+def track2fasta(index_dir, bedfile, fastafile, extend_up=0, extend_down=0, use_strand=False, ignore_missing=False):
     """ Convert a bedfile to a fastafile, given a certain index """
     try:
         g = GenomeIndex(index_dir)
@@ -385,7 +390,15 @@ def track2fasta(index_dir, bedfile, fastafile, extend_up=0, extend_down=0, use_s
     
     seqs = {}
     for chrom,feats in chr_features.items():
-        size = g.get_size(chrom)
+        try: 
+            size = g.get_size(chrom)
+        except KeyError as e:
+            if ignore_missing:
+                sys.stderr.write("skipping {}: {}\n".format(chrom, str(e)))
+                continue
+            else:
+                raise
+
         feats = [f for f in feats if len(f) > 0] 
         for f in feats:
             f[0][0] -= extend_up
@@ -405,13 +418,14 @@ def track2fasta(index_dir, bedfile, fastafile, extend_up=0, extend_down=0, use_s
     
     out = open(fastafile, "w")
     for chrom, i in features:
-        seq, ext_start, ext_end, val, strand = seqs[(chrom, i)]
-        if use_strand and strand == "-":
-            seq = rc(seq)
-        if val:
-            out.write(">%s:%s-%s %s\n%s\n" % (chrom, ext_start, ext_end, val, seq))
-        else:
-            out.write(">%s:%s-%s\n%s\n" % (chrom, ext_start, ext_end, seq))
+        if seqs.has_key((chrom, i)):
+            seq, ext_start, ext_end, val, strand = seqs[(chrom, i)]
+            if use_strand and strand == "-":
+                seq = rc(seq)
+            if val:
+                out.write(">%s:%s-%s %s\n%s\n" % (chrom, ext_start, ext_end, val, seq))
+            else:
+                out.write(">%s:%s-%s\n%s\n" % (chrom, ext_start, ext_end, seq))
     out.close()
 
 def _weighted_selection(l, n):
