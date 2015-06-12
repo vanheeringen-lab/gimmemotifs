@@ -17,6 +17,7 @@ def background(args):
     out = args.outputfile
     bg_type = args.bg_type
     outformat = args.outformat.lower()
+    length = args.length
 
     if not bg_type in BG_TYPES:
         print "The argument 'type' should be one of: %s" % (",".join(BG_TYPES))
@@ -26,6 +27,10 @@ def background(args):
         print "Random background can only be generated in FASTA format!"
         sys.exit(1)
         
+    if bg_type == "gc" and not inputfile:
+        print "need a FASTA formatted input file for background gc"
+        sys.exit(1)
+    
     # GimmeMotifs configuration for file and directory locations
     config = MotifConfig()
         
@@ -45,7 +50,7 @@ def background(args):
     
     # Number of sequences
     number = None
-    if args.umber:
+    if args.number:
         number = args.number
     elif inputfile:
         number = number_of_seqs_in_file(inputfile)
@@ -65,14 +70,14 @@ def background(args):
             bg.matched_gc_bedfile(out, inputfile, args.genome, number)
     elif bg_type == "promoter":
         if outformat in ["fasta", "fa"]:
-            m = bg.PromoterFasta(gene_file, index_dir, length=l, n=number)
+            m = bg.PromoterFasta(gene_file, index_dir, length=length, n=number)
             m.writefasta(out)
         else:
-            bg.create_promoter_bedfile(out, gene_file, l, number)
+            bg.create_promoter_bedfile(out, gene_file, length, number)
     elif bg_type == "genomic":
         if outformat in ["fasta", "fa"]:
-            m = bg.RandomGenomicFasta(index_dir, l, number)
+            m = bg.RandomGenomicFasta(index_dir, length, number)
             m.writefasta(out)
         else:
-            bg.create_random_genomic_bedfile(out, index_dir, l, number)
+            bg.create_random_genomic_bedfile(out, index_dir, length, number)
         

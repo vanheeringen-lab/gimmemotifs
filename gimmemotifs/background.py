@@ -92,8 +92,6 @@ class MarkovFasta(Fasta):
     """
     
     def __init__(self, fasta, length=None, number=None, k=1, matrix_only=False):
-        
-        
         self.k = k
 
         # Initialize super Fasta object
@@ -219,15 +217,24 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
 
     rnd = pybedtools.BedTool()
     out = open(bedfile, "w")
+    #sys.stderr.write("Generating sequences\n")
+    #sys.stderr.write("{}\n".format(number))
+    
+    r = rnd.random(l=length, n=number * 15, g=genome_size).nucleotide_content(fi=genome_fa)
+    #sys.stderr.write("Retrieving\n")
+    features = [f[:3] + [float(f[7])] for f in r]
+    gc = [f[3] for f in features]
+    
+    #sys.stderr.write("Done\n")
     for bin_start, bin_end, count in zip(bins[:-1], bins[1:], gc_hist):
+        #sys.stderr.write("CG {}-{}\n".format(bin_start, bin_end))
         if count > 0:
-            r = rnd.random(l=length, n=total * 100, g=genome_size).nucleotide_content(fi=genome_fa, stream=True)
             rcount = 0
-            for f in r:
-                if (float(f[7]) >= bin_start and float(f[7]) < bin_end):
+            for f in features:
+                if (f[3] >= bin_start and f[3] < bin_end):
                     out.write("{}\t{}\t{}\n".format(*f[:3]))
                     rcount += 1
-                    if rcount == count:
+                    if rcount >= count:
                         break
 
             if count != rcount:
