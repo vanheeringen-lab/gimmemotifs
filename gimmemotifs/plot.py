@@ -56,6 +56,7 @@ def roc_plot(outfile, plot_x, plot_y, ids=[]):
         outfile += ".png"
       
     plt.savefig(outfile, dpi=300, bbox_inches='tight')
+    plt.close(fig)
 
 def plot_histogram(values, outfile, xrange=None, breaks=10, title=None, xlabel=None, color=10):
     import matplotlib.pyplot as plt
@@ -119,6 +120,7 @@ def match_plot(plotdata, outfile):
         verticalalignment='center') 
     
     plt.savefig(outfile, dpi=300, bbox_inches='tight')
+    plt.close(fig)
 
 def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mindiff=0, minenr=3, minfreq=0.01):
     w_ratio = np.array([14, len(names), len(names) + 1])
@@ -268,3 +270,4 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
     
     #plt.show()
     plt.savefig(outfile, dpi=300, bbox_inches='tight')
+    plt.close(fig)
