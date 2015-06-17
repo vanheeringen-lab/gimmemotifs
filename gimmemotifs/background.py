@@ -176,6 +176,7 @@ class MarkovFasta(Fasta):
         return item
 
 def matched_gc_bedfile(bedfile, matchfile, genome, number):
+    N_FRACTION = 0.1
     genome_size = "/data/genomes/{0}/bwa/{0}.fa.sizes".format(genome)
     genome_fa = "/data/genomes/{0}/bwa/{0}.fa".format(genome)
 
@@ -222,7 +223,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
     
     r = rnd.random(l=length, n=number * 15, g=genome_size).nucleotide_content(fi=genome_fa)
     #sys.stderr.write("Retrieving\n")
-    features = [f[:3] + [float(f[7])] for f in r]
+    features = [f[:3] + [float(f[7])] for f in r if float(f[12]) <= length * N_FRACTION]
     gc = [f[3] for f in features]
     
     #sys.stderr.write("Done\n")
@@ -238,7 +239,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
                         break
 
             if count != rcount:
-                sys.stderr.write("not enough random sequences found for {} <= GC < {}\n".format(bin_start, bin_end))
+                sys.stderr.write("not enough random sequences found for {} <= GC < {} ({} instead of {})\n".format(bin_start, bin_end, rcount, count))
     out.close()
 
 class MatchedGcFasta(Fasta):
