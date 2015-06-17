@@ -182,7 +182,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
 
     try:
         fa = Fasta(matchfile)
-        gc = [(seq.count("C") + seq.count("G")) / float(len(seq)) for seq in fa.seqs]
+        gc = [(seq.upper().count("C") + seq.upper().count("G")) / float(len(seq)) for seq in fa.seqs]
         lengths = [len(seq) for seq in fa.seqs]
     except:
         try:
