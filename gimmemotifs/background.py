@@ -177,8 +177,16 @@ class MarkovFasta(Fasta):
 
 def matched_gc_bedfile(bedfile, matchfile, genome, number):
     N_FRACTION = 0.1
-    genome_size = "/data/genomes/{0}/bwa/{0}.fa.sizes".format(genome)
-    genome_fa = "/data/genomes/{0}/bwa/{0}.fa".format(genome)
+    
+    config = MotifConfig()
+    index = os.path.join(config.get_index_dir(), genome)
+    
+    genome_size = os.path.join(index, "genome.size")
+    genome_fa = os.path.join(index, "genome.fa")
+
+    if not os.path.exists(genome_size) or not os.path.exists(genome_fa):
+        raise RuntimeError, "genome files not found, please re-index {} "  \
+                "with a recent version of gimme index".format(genome)
 
     try:
         fa = Fasta(matchfile)
@@ -222,7 +230,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
     #sys.stderr.write("{}\n".format(number))
     
     r = rnd.random(l=length, n=number * 15, g=genome_size).nucleotide_content(fi=genome_fa)
-    #sys.stderr.write("Retrieving\n")
+   #sys.stderr.write("Retrieving\n")
     features = [f[:3] + [float(f[7])] for f in r if float(f[12]) <= length * N_FRACTION]
     gc = [f[3] for f in features]
     

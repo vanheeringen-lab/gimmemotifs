@@ -15,6 +15,8 @@ BG_TYPES = ["random", "genomic", "gc", "promoter"]
 FA_VALID_BGS = ["random", "promoter", "gc", "user"]
 BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "user"]
 BG_RANK = {"user":1, "promoter":2, "gc":3, "random":4, "genomic":5}
+FASTA_EXT = [".fasta", ".fa", ".fsa"]
+
 
 class MotifConfig:
     __shared_state = {}
