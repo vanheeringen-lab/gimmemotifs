@@ -8,7 +8,7 @@ from datetime import datetime
 
 build_dir = "build/debian"
 author = "Simon van Heeringen"
-email = "s.vanheeringen@ncmls.ru.nl"
+email = "s.vanheeringen@science.ru.nl"
 timestamp = datetime.now().strftime("%a, %d %b %Y %H:%M:%S +0100")
 
 # Get package name
