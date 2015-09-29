@@ -23,7 +23,7 @@ def threshold(args):
         pwm = motif.pwm
         scores = []
         min_score = motif.pwm_min_score()
-        scores = [x[0][1] for x in result[motif].values()]
+        scores = [x[0][1] for x in result[motif].values() if len(x) > 0]
         if len(scores) > 0:
             opt_score = scoreatpercentile(scores, 100 - (100 * args.fdr))
             cutoff = (opt_score - min_score) / (motif.pwm_max_score() - min_score)

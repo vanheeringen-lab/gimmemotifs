@@ -11,7 +11,7 @@ import re
 import os
 import sys
 import random
-from math import log,sqrt
+from math import log,sqrt,log
 from tempfile import NamedTemporaryFile
 from config import *
 from subprocess import *
@@ -112,6 +112,12 @@ class Motif:
 
     def __repr__(self):
         return "%s\t%s" % (self.id, self.to_consensus())
+
+    def information_content(self):
+        ic = 0
+        for row in self.pwm:
+            ic += 2.0 + sum([row[x] * log(row[x])/log(2) for x in range(4) if row[x] > 0])
+        return ic
 
     def pwm_min_score(self):
         score = 0
