@@ -32,6 +32,8 @@ commands:
     diff        compare motif frequency and enrichment
                 between fasta files
     logo        create sequence logo(s)
+
+type `gimme <command> -h` for more details
 """
 
 usage = "%(prog)s [-h] <subcommand> [options]"
@@ -391,6 +393,12 @@ p.add_argument("-e", "--enrichment",
               metavar="MINENR",
               type=float,
               default=3)
+p.add_argument("-f", "--frequency",
+              dest="minfreq",
+              help="minimum frequency in at least one of the datasets",
+              metavar="MINFREQ",
+              type=float,
+              default=0.01)
 p.add_argument("-g", "--genome",
                dest="genome", 
                help="Genome version. Only necessary in combination with a BED file with clusters as inputfile.",
@@ -429,5 +437,7 @@ p.set_defaults(func=commands.prediction)
 if len(sys.argv) == 1:
     parser.print_help()
 else:
+    if len(sys.argv) == 2:
+        print "\033[93mtype `gimme {} -h` for more details\033[0m\n".format(sys.argv[-1])
     args = parser.parse_args()
     args.func(args)

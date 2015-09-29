@@ -25,6 +25,7 @@ def diff(args):
     cutoff = args.cutoff
     genome = args.genome
     minenr = float(args.minenr)
+    minfreq = float(args.minfreq)
 
     tmpdir = mkdtemp()
     
@@ -78,6 +79,6 @@ def diff(args):
     #for row in freq:
     #    print freq
 
-    diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, minenr=minenr)
+    diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, minenr=minenr, minfreq=minfreq)
 
     shutil.rmtree(tmpdir)
