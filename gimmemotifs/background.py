@@ -199,8 +199,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
             lengths = [x.length for x in bed]
         except:
             sys.stderr.write("Please provide input file in BED or FASTA format\n")
-            sys.exit(1)
-
+            raise
     gc_hist,bins = np.histogram(gc, range=(0,1), bins=20)
     
     length = np.median(lengths)
