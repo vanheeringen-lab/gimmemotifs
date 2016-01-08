@@ -43,6 +43,24 @@ def pwmscan(args):
         for seq_id in fa.ids:
             counts = [table[seq_id].get(m, 0) for m in motifs]
             print "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
+    
+    if args.score_table:
+        table = {}
+        for seq_id in fa.ids:
+            table[seq_id] = {}
+
+        for motif, result in result:
+            for seq_id, matches in result.items():
+                max_score = max(m[1] for m in matches)
+                table[seq_id][motif] = max_score
+        
+        #mnames = [m.id for m in motifs]
+        #print table
+        print "\t{}".format("\t".join([m.id for m in motifs]))
+        for seq_id in fa.ids:
+            score = [table[seq_id].get(m, -20) for m in motifs]
+            print "{}\t{}".format(seq_id, "\t".join([str(x) for x in score]))
+
 
     else:
         strandmap = {-1:"-",1:"+"}

@@ -357,9 +357,15 @@ p.add_argument("-b", "--bed",
                help="output bed format")
 p.add_argument("-t", "--table",
                dest="table", 
-               help="Output in tabular format", 
+               help="output counts in tabular format", 
                action="store_true",
                default=False)
+p.add_argument("-T", "--score_table",
+               dest="score_table", 
+               help="output maximum score in tabular format", 
+               action="store_true",
+               default=False)
+
 
 p.set_defaults(func=commands.pwmscan)
 
