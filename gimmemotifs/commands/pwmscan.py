@@ -24,6 +24,11 @@ def pwmscan(args):
     scan_rc = args.scan_rc
 
     motifs = pwmfile_to_motifs(args.pwmfile)
+    
+    # need to report always one match per sequence
+    if args.score_table:
+        cutoff = 0
+    
     result = scan_it(inputfile, motifs, cutoff, nreport, scan_rc)
    
     p = re.compile(r'([^\s:]+):(\d+)-(\d+)')
