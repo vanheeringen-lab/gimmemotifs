@@ -14,9 +14,7 @@ import subprocess
 import thread
 from time import time
 import inspect
-
-# External imports
-import pp
+from multiprocessing import pool
 
 # GimmeMotifs imports
 from gimmemotifs import tools as tool_classes
@@ -108,7 +106,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
         analysis = "small"
 
     if not job_server:
-        job_server = pp.Server(ncpus, secret='pumpkinrisotto')
+        job_server = Pool(processes=ncpus)
     
     jobs = {}
     

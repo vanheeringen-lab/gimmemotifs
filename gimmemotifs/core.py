@@ -13,6 +13,7 @@ import logging
 import logging.handlers
 from datetime import datetime
 from numpy import median
+from multiprocessing import Pool
 
 # External imports
 import kid
@@ -100,13 +101,6 @@ class GimmeMotifs:
         # setup the names of the intermediate and output files
         self._setup_filenames()
 
-        # check for parallel python
-        self.parallel = self._is_parallel_enabled()
-        if self.parallel:
-            self.logger.debug("Parallel Python is installed")
-        else:
-            self.logger.info("Couldn't find Parallel Python! I will continue, but installing pp will signifcantly speed up your analysis!")
-    
     def job_server(self):
         try:
             self.server.submit(job_server_ok)
@@ -213,20 +207,13 @@ class GimmeMotifs:
                 self.bg_file[ftype][bg] =  os.path.join(self.tmpdir, "%s_bg_%s%s" % (self.name, bg, extension))
 
     def _is_parallel_enabled(self):
-        try:
-            import pp
-            return True
-        except:
-            return False
+        return True
 
     def _get_job_server(self):
-        self.logger.debug("Creating parallel python job server")
-        import pp
-        server = pp.Server(secret="pumpkinrisotto")
+        self.logger.debug("Creating multiprocessing pool")
         ncpus = int(self.params["ncpus"])
-        if server.get_ncpus() > ncpus:
-            server.set_ncpus(ncpus)
-        return server
+        pool = Pool(processes=ncpus)
+        return pool
 
     def _check_input(self, file):
         """ Check if the inputfile is a valid bed-file """
@@ -365,18 +352,17 @@ class GimmeMotifs:
         scan_cmd = scan_fasta_file_with_motifs
         jobs = []
         if self.parallel:
-            jobs.append(self.job_server().submit(scan_cmd, (fg[0], motif_file, self.SCAN_THRESHOLD, fg[1],), (),()))
+            jobs.append(self.job_server().apply_async(scan_cmd, (fg[0], motif_file, self.SCAN_THRESHOLD, fg[1],)))
         else:
             scan_cmd(fg[0], motif_file, self.SCAN_THRESHOLD, fg[1])
 
         for fasta_file, gff_file in [x[:2] for x in bg]:
             if self.parallel:
-                jobs.append(self.job_server().submit(scan_cmd, (fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file,), (),()))
+                jobs.append(self.job_server().apply_async(scan_cmd, (fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file,)))
             else:
                 scan_cmd(fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file)
-            
         for job in jobs:
-                error = job()
+                error = job.get()
                 if error:
                     self.logger.error("Error in thread: %s" % error)
                     sys.exit(1)
@@ -463,12 +449,12 @@ class GimmeMotifs:
         
         jobs = {}
         for id,m in motifs.items():
-            jobs[id] = self.job_server().submit(get_roc_values, (motifs[id],fg_fasta,bg_fasta,))
+            jobs[id] = self.job_server().apply_async(get_roc_values, (motifs[id],fg_fasta,bg_fasta,))
     
         roc_img_file = os.path.join(self.imgdir, "%s_%s_roc.png")
         
         for id in motifs.keys():
-            error, x, y = jobs[id]()
+            error, x, y = jobs[id].get()
             if error:
                 self.logger.error("Error in thread: %s" % error)
                 sys.exit(1)
@@ -487,14 +473,14 @@ class GimmeMotifs:
         
         jobs = {}
         for id,m in motifs.items():
-            jobs[id] = self.job_server().submit(get_scores, (motifs[id],sample_fa,bg_fa,))
+            jobs[id] = self.job_server().apply_async(get_scores, (motifs[id],sample_fa,bg_fa,))
         
         all_auc = {}
         all_mncp = {}
         f = open(roc_file, "w")
         f.write("Motif\tROC AUC\tMNCP\tMax f-measure\tSens @ max f-measure\n")
         for id in motifs.keys():
-            error, auc, mncp, max_f, y = jobs[id]()
+            error, auc, mncp, max_f, y = jobs[id].get()
             if error:
                 self.logger.error("Error in thread: %s" % error)
                 sys.exit(1)
