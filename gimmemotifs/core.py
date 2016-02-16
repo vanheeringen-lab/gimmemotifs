@@ -123,7 +123,7 @@ class GimmeMotifs:
             #sys.exit(1)
         else:
             try:
-                os.mkdir(name)
+                os.makedirs(name)
             except:
                 sys.stderr.write("Can't create output directory %s!\n" % name)
                 #sys.exit(1)
@@ -165,34 +165,38 @@ class GimmeMotifs:
         self.logger.info("Created logfile %s" % logfile)
 
     def _setup_filenames(self):
+        basename = os.path.split(self.name)[-1]
+        self.basename = basename
+
+        self.logger.info("basename: {}".format(basename))
         # Um yes, there is a smarter way, I'm sure! ;)
-        self.input_bed = os.path.join(self.tmpdir, "%s_peakinputfile.bed" % self.name)
+        self.input_bed = os.path.join(self.tmpdir, "%s_peakinputfile.bed" % basename)
 
-        self.prediction_bed    = os.path.join(self.tmpdir, "%s_prediction.bed" % self.name)
-        self.prediction_fa = os.path.join(self.tmpdir, "%s_prediction.fa" % self.name)
-        self.prediction_bg = os.path.join(self.tmpdir, "%s_prediction_background.fa" % self.name)
+        self.prediction_bed    = os.path.join(self.tmpdir, "%s_prediction.bed" % basename)
+        self.prediction_fa = os.path.join(self.tmpdir, "%s_prediction.fa" % basename)
+        self.prediction_bg = os.path.join(self.tmpdir, "%s_prediction_background.fa" % basename)
         
-        self.validation_bed = os.path.join(self.tmpdir, "%s_validation.bed" % self.name)
-        self.validation_fa = os.path.join(self.tmpdir, "%s_validation.fa" % self.name)
-        self.validation_gff = os.path.join(self.tmpdir, "%s_validation.gff" % self.name)
+        self.validation_bed = os.path.join(self.tmpdir, "%s_validation.bed" % basename)
+        self.validation_fa = os.path.join(self.tmpdir, "%s_validation.fa" % basename)
+        self.validation_gff = os.path.join(self.tmpdir, "%s_validation.gff" % basename)
         
-        self.predicted_pfm = os.path.join(self.tmpdir, "%s_all_motifs.pfm" % self.name)
+        self.predicted_pfm = os.path.join(self.tmpdir, "%s_all_motifs.pfm" % basename)
 
-        self.significant_pfm = os.path.join(self.tmpdir, "%s_significant_motifs.pfm" % self.name)
+        self.significant_pfm = os.path.join(self.tmpdir, "%s_significant_motifs.pfm" % basename)
         
-        self.location_fa = os.path.join(self.tmpdir, "%s_validation_500.fa" % self.name)
-        self.location_pfile = os.path.join(self.tmpdir, "%s_localization_pvalue.txt" % self.name)
-        self.stats_file = os.path.join(self.tmpdir, "%s_stats.txt" % self.name)
-        self.ranks_file = os.path.join(self.tmpdir, "%s_ranks.txt" % self.name)
+        self.location_fa = os.path.join(self.tmpdir, "%s_validation_500.fa" % basename)
+        self.location_pfile = os.path.join(self.tmpdir, "%s_localization_pvalue.txt" % basename)
+        self.stats_file = os.path.join(self.tmpdir, "%s_stats.txt" % basename)
+        self.ranks_file = os.path.join(self.tmpdir, "%s_ranks.txt" % basename)
 
         #self.cluster_dir = os.path.join(self.outdir, "cluster_report")
-        self.validation_cluster_gff = os.path.join(self.tmpdir, "%s_validation_clustered.gff" % self.name)
-        self.cluster_pwm = os.path.join(self.tmpdir, "%s_clustered_motifs.pwm" % self.name)
-        self.final_pwm = os.path.join(self.outdir, "%s_motifs.pwm" % self.name)
-        self.cluster_report = os.path.join(self.outdir, "%s_cluster_report.html" % self.name)
-        self.motif_report = os.path.join(self.outdir, "%s_motif_report.html" % self.name)
-        self.text_report = os.path.join(self.outdir, "%s_motif_report.tsv" % self.name)
-        self.params_file = os.path.join(self.outdir, "%s_params.txt" % self.name)
+        self.validation_cluster_gff = os.path.join(self.tmpdir, "%s_validation_clustered.gff" % basename)
+        self.cluster_pwm = os.path.join(self.tmpdir, "%s_clustered_motifs.pwm" % basename)
+        self.final_pwm = os.path.join(self.outdir, "%s_motifs.pwm" % basename)
+        self.cluster_report = os.path.join(self.outdir, "%s_cluster_report.html" % basename)
+        self.motif_report = os.path.join(self.outdir, "%s_motif_report.html" % basename)
+        self.text_report = os.path.join(self.outdir, "%s_motif_report.tsv" % basename)
+        self.params_file = os.path.join(self.outdir, "%s_params.txt" % basename)
 
         # Data structures to hold the background file locations
         ftypes = {
@@ -210,7 +214,7 @@ class GimmeMotifs:
         
         for bg in (FA_VALID_BGS + BED_VALID_BGS):
             for ftype, extension in ftypes.items():
-                self.bg_file[ftype][bg] =  os.path.join(self.tmpdir, "%s_bg_%s%s" % (self.name, bg, extension))
+                self.bg_file[ftype][bg] =  os.path.join(self.tmpdir, "%s_bg_%s%s" % (basename, bg, extension))
 
     def _is_parallel_enabled(self):
         try:
@@ -442,7 +446,7 @@ class GimmeMotifs:
         
         kid.enable_import()
         template_file = os.path.join(self.config.get_template_dir(), "cluster_template_v2.kid")
-        template = kid.Template(file=template_file, expname=self.name, motifs=ids, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
+        template = kid.Template(file=template_file, expname=self.basename, motifs=ids, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
         f = open(self.cluster_report, "w")
         f.write(template.serialize())
         f.close()
@@ -611,7 +615,7 @@ class GimmeMotifs:
         total_report = self.motif_report 
         kid.enable_import()
         template_file = os.path.join(self.config.get_template_dir(), "report_template_v2.kid") 
-        template = kid.Template(file=template_file, expname=self.name, motifs=report_motifs, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
+        template = kid.Template(file=template_file, expname=self.basename, motifs=report_motifs, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
         f = open(total_report, "w")
         f.write(template.serialize())
         f.close()
@@ -856,7 +860,7 @@ class GimmeMotifs:
         
         if nsig == 0:
             self.logger.info("No significant motifs found. Done.")
-            sys.exit()
+            return
         
         # ROC metrics of significant motifs
         for bg in background:
@@ -929,7 +933,8 @@ class GimmeMotifs:
             shutil.rmtree(self.tmpdir)
 
         self.logger.info("Done")
-
+        
+        return self.motif_report
 
 if __name__ == "__main__":
     gm = GimmeMotifs()
