@@ -461,10 +461,7 @@ setup (name = 'gimmemotifs',
             "pybedtools",
         ],
         dependency_links = [
-            "http://bonsai.hgc.jp/~mdehoon/software/cluster/software.htm",
-            #"http://www.parallelpython.com/content/view/18/32/",
-#            "http://www.parallelpython.com/index2.php?option=com_content&task=view&id=18&pop=1&page=0&Itemid=32",
-#           "https://pypi.python.org/pypi/pp",
-#            "http://www.parallelpython.com/downloads/pp/pp-1.6.4.tar.gz",
+            "http://bonsai.hgc.jp/~mdehoon/software/cluster/Pycluster-1.52.tar.gz#egg=Pycluster-1.5.2",
+            "http://www.parallelpython.com/downloads/pp/pp-1.6.4.zip#egg=pp-1.6.4",
         ],
 )
