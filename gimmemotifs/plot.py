@@ -10,8 +10,7 @@ from tempfile import NamedTemporaryFile
 import numpy as np
 
 # Clustering
-import Pycluster
-from gimmemotifs.utils import sort_tree 
+from scipy.cluster import hierarchy as hier
 from gimmemotifs import mytmpdir
 
 # Matplotlib imports
@@ -160,8 +159,8 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
         sys.stderr.write("No enriched and/or differential motifs found.\n")
         return
     elif len(freq) >= 3:
-        tree = Pycluster.treecluster(freq, method="m", dist="c")
-        ind = sort_tree(tree, np.arange(len(motifs)))
+        z = hier.linkage(freq, method="complete", metric="correlation")
+        ind = hier.leaves_list(z)
     else:
         ind = np.arange(len(freq))
    

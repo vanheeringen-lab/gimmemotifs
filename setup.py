@@ -468,11 +468,9 @@ setup (name = 'gimmemotifs',
             "kid >= 0.9.6",
             "pyyaml >= 3.10",
             "pp >= 1.6",
-            "Pycluster >= 1.52",
             "pybedtools",
         ],
         dependency_links = [
-            "http://bonsai.hgc.jp/~mdehoon/software/cluster/Pycluster-1.52.tar.gz#egg=Pycluster-1.5.2",
             "http://www.parallelpython.com/downloads/pp/pp-1.6.4.zip#egg=pp-1.6.4",
         ],
 )
