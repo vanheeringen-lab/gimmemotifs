@@ -351,16 +351,10 @@ class GimmeMotifs:
         self.logger.info("Scanning background sequences with motifs")
         scan_cmd = scan_fasta_file_with_motifs
         jobs = []
-        if self.parallel:
-            jobs.append(self.job_server().apply_async(scan_cmd, (fg[0], motif_file, self.SCAN_THRESHOLD, fg[1],)))
-        else:
-            scan_cmd(fg[0], motif_file, self.SCAN_THRESHOLD, fg[1])
+        jobs.append(self.job_server().apply_async(scan_cmd, (fg[0], motif_file, self.SCAN_THRESHOLD, fg[1],)))
 
         for fasta_file, gff_file in [x[:2] for x in bg]:
-            if self.parallel:
-                jobs.append(self.job_server().apply_async(scan_cmd, (fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file,)))
-            else:
-                scan_cmd(fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file)
+            jobs.append(self.job_server().apply_async(scan_cmd, (fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file,)))
         for job in jobs:
                 error = job.get()
                 if error:
@@ -666,7 +660,7 @@ class GimmeMotifs:
             self.logger.info("Using torque")
         else:
             from gimmemotifs.prediction import pp_predict_motifs, PredictionResult
-            self.logger.info("Using pp")
+            self.logger.info("Using multiprocessing")
 
         self.params = params
         #self.weird = params["weird_option"]
@@ -772,18 +766,16 @@ class GimmeMotifs:
 
         # Predict the motifs
         analysis = params["analysis"]
-        if self.parallel:
-            """ Predict motifs, input is a FASTA-file"""
-            self.logger.info("Starting motif prediction (%s) using %s" % 
-                (analysis, ", ".join([x for x in tools.keys() if tools[x]])))
+        """ Predict motifs, input is a FASTA-file"""
+        self.logger.info("Starting motif prediction (%s) using %s" % 
+            (analysis, ", ".join([x for x in tools.keys() if tools[x]])))
 
-            bg_file = self.bg_file["fa"][sorted(background, lambda x,y: cmp(BG_RANK[x], BG_RANK[y]))[0]]
-            self.logger.info("Using bg_file %s for significance" % bg_file)
-            result = pp_predict_motifs(self.prediction_fa, self.predicted_pfm, analysis, params["genome"], params["use_strand"], self.prediction_bg, tools, self.job_server(), logger=self.logger, max_time=self.max_time, fg_file=self.validation_fa, bg_file=bg_file)
+        bg_file = self.bg_file["fa"][sorted(background, lambda x,y: cmp(BG_RANK[x], BG_RANK[y]))[0]]
+        self.logger.info("Using bg_file %s for significance" % bg_file)
+        result = pp_predict_motifs(self.prediction_fa, self.predicted_pfm, analysis, params["genome"], params["use_strand"], self.prediction_bg, tools, self.job_server(), logger=self.logger, max_time=self.max_time, fg_file=self.validation_fa, bg_file=bg_file)
     
-            motifs = result.motifs
-            self.logger.info("Predicted %s motifs, written to %s" % (len(motifs), self.predicted_pfm))
-
+        motifs = result.motifs
+        self.logger.info("Predicted %s motifs, written to %s" % (len(motifs), self.predicted_pfm))
         
         if len(motifs) == 0:
             self.logger.info("No motifs found. Done.")

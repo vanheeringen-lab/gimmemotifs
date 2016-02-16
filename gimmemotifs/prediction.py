@@ -24,6 +24,13 @@ from gimmemotifs.config import *
 from gimmemotifs.fasta import *
 from gimmemotifs import mytmpdir
 
+
+def _calc_motif_stats(motif, fg_fa, bg_fa):
+    return motif, motif.stats(fg_fa, bg_fa)
+
+def _run_tool(t, fastafile, params):
+    t.run(fastafile, ".", params, mytmpdir()), 
+
 class PredictionResult:
     def __init__(self, outfile, logger=None, fg_file=None, bg_file=None, job_server=None):
         self.lock = thread.allocate_lock()
@@ -53,34 +60,42 @@ class PredictionResult:
             f = open(self.outfile, "a")
             f.write("%s\n" % motif.to_pfm())
             f.close()
-            self.motifs.append(motif)
-            if self.do_stats:
-                self.logger.debug("Starting stats job of motif %s" % motif.id)
-                self.job_server.submit(
-                                    motif.stats, 
-                                    (self.fg_fa, self.bg_fa), 
-                                    (), 
-                                    (),
-                                    self.add_stats, 
-                                    ("%s_%s" % (motif.id, motif.to_consensus()),), 
-                                    group="stats"
-                                    )
             self.lock.release()
+            self.motifs.append(motif)
+            
+            if self.do_stats:
+                job_id = "%s_%s" % (motif.id, motif.to_consensus())
+                if self.logger:
+                    self.logger.debug("Starting stats job of motif %s" % motif.id)
+                job = self.job_server.apply_async(
+                                    _calc_motif_stats, 
+                                    (motif, self.fg_fa, self.bg_fa), 
+                                    callback=self.add_stats
+                                    )
         
-        self.logger.debug("stdout %s: %s" % (job, stdout))
-        self.logger.debug("stdout %s: %s" % (job, stderr))
+        if self.logger:
+            self.logger.debug("stdout %s: %s" % (job, stdout))
+            self.logger.debug("stdout %s: %s" % (job, stderr))
         self.finished.append(job)
 
-    def add_stats(self, motif, stats):
-        self.logger.debug("Stats: %s %s" % (motif, stats))
+    def add_stats(self, args):
+        motif, stats = args
+        if self.logger:
+            self.logger.debug("Stats: %s %s" % (motif, stats))
         self.stats[motif] = stats
 
     def get_remaining_stats(self):
         for motif in self.motifs:
             n = "%s_%s" % (motif.id, motif.to_consensus())
             if not self.stats.has_key(n):
+                
                 self.logger.info("Adding %s again!" % n)
-                self.job_server.submit(motif.stats, (self.fg_fa, self.bg_fa), (), (), self.add_stats, ("%s_%s" % (motif.id, motif.to_consensus()),), group="stats")
+                job_id = "%s_%s" % (motif.id, motif.to_consensus())
+                job = self.job_server.apply_async(
+                                    _calc_motif_stats, 
+                                    (motif, self.fg_fa, self.bg_fa), 
+                                    callback=self.add_stats)
+                
 
 def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools={}, job_server="", ncpus=8, logger=None, max_time=None, fg_file=None, bg_file=None):
     
@@ -132,23 +147,17 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
                     logger.debug("Starting %s job, width %s" % (t.name, i))
                     job_name = "%s_width_%s" % (t.name, i)
                     params['width'] = i
-                    jobs[job_name] = job_server.submit(
-                        t.run, 
-                        (fastafile, ".", params, mytmpdir()), 
-                        (tool_classes.MotifProgram,),
-                        ("gimmemotifs.config",),  
-                        result.add_motifs, 
-                        (job_name,))
+                    jobs[job_name] = job_server.apply_async(
+                        _run_tool,
+                        (t.run, fastafile, params), 
+                        callback=result.add_motifs)
             else:
                 logger.debug("Starting %s job" % t.name)
                 job_name = t.name
-                jobs[job_name] = job_server.submit(
-                    t.run, 
-                    (fastafile, ".", params, mytmpdir()), 
-                    (tool_classes.MotifProgram,),
-                    ("gimmemotifs.config",), 
-                    result.add_motifs, 
-                    (job_name,))
+                jobs[job_name] = job_server.apply_async(
+                        _run_tool,
+                        (t.run, fastafile, params), 
+                        callback=result.add_motifs)
         else:
             logger.debug("Skipping %s" % t.name)
     
