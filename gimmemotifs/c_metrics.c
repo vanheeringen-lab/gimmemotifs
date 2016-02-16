@@ -498,8 +498,9 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 	int i, j;
 	double zeta = 0.01;
 	int scan_rc;
+	int return_all = 0;
 
-	if (!PyArg_ParseTuple(args, "OOOii", &seq_o, &pwm_o, &cutoff_o, &n_report, &scan_rc))
+	if (!PyArg_ParseTuple(args, "OOOii|i", &seq_o, &pwm_o, &cutoff_o, &n_report, &scan_rc, &return_all))
 		return NULL;
 	
 	// Sequence and length
@@ -561,6 +562,15 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 		score_matrix[j] = score;
 		rc_score_matrix[j] = rc_score;
 	}
+	
+	if (return_all) {
+		PyObject *return_list = PyList_New(j_max);
+
+		for (j = 0; j < j_max; j++) {
+    			PyList_SetItem(return_list, j, PyFloat_FromDouble(score_matrix[j]));
+		}
+	    	return return_list;
+	}
 
 	// Initialize matrices of n_report highest scores and corresponding positions + strands
 	double maxScores[n_report];
@@ -572,7 +582,9 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 		maxStrand[j] = 1;
 	}
 	PyObject*  return_list = PyList_New(0);
-	
+
+
+
 	int p,q;
 	PyObject *x;
 	for (j = 0; j < j_max; j++) {
