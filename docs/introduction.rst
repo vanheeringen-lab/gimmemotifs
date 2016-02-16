@@ -19,4 +19,4 @@ theoretical details, please see our publication .
 Hopefully this document explains at least the basics of installation and
 usage, but it’s probably far from complete. If you have any further
 question, please don’t hesistate to contact me:
-`s.vanheeringen@ncmls.ru.nl <s.vanheeringen@ncmls.ru.nl>`__.
+`simon.vanheeringen@gmail.com <simon.vanheeringen@gmail.com>`__.
