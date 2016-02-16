@@ -1,40 +1,23 @@
+include README.md
 include MANIFEST
 include NEWS
 include INSTALL
 include COPYING
 include ChangeLog
-include setup.py
 include run_tests.py
 include compile_externals.py
 include cfg/gimmemotifs.cfg.example
-include doc/gimmemotifs_manual.pdf
-include doc/gimmemotifs_manual.html
 include examples/TAp73alpha.bed
 include examples/TAp73alpha.fa
 include genes/*.bed
 include genome_index/README.txt
-include motif_databases/jaspar.pfm
-include gimmemotifs/*.py
-include gimmemotifs/*.c
+include motif_databases/*.pwm
 include score_dists/*.txt
 include templates/*.kid
 recursive-include src *
-recursive-include test/data/fasta/ *
-recursive-include test/data/genome_index/ *
-recursive-include test/data/motif/ *
+recursive-include test/data/fasta/*
+recursive-include test/data/genome_index/*
+recursive-include test/data/motif/*
 include test/*.py
 include test/data/*/*
 include bg/*.bg
-include scripts/add_organism.py
-include scripts/closest_motif_match.py
-include scripts/create_genome_index.py
-include scripts/generate_background_sequences.py
-include scripts/gimme_motifs.py
-include scripts/motif_cluster.py
-include scripts/motif_localization_plots.py
-include scripts/motif_roc.py
-include scripts/motif_roc_metrics.py
-include scripts/pwm2logo.py
-include scripts/pwmscan.py
-include scripts/track2fasta.py
-include scripts/get_fpr_based_pwmscan_threshold.py

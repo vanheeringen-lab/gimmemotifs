@@ -13,6 +13,7 @@ examples/*
 !examples/*.bed
 !examples/*.fa
 *.pyc
+.pypirc
 
 tmp/*
 
