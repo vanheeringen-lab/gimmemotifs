@@ -12,9 +12,9 @@ Module to compare DNA sequence motifs (positional frequency matrices)
 import sys
 import os
 from time import sleep
+from multiprocessing import Pool
 
 # External imports
-import pp
 from scipy.stats import norm,entropy
 from scipy.spatial import distance
 from numpy import mean,std,array,sum
@@ -33,10 +33,15 @@ try:
 except ImportError:
     pass
 
-job_server = pp.Server(secret="pumpkinrisotto")    
-ncpus = int(MotifConfig().get_default_params()["ncpus"])
-if job_server.get_ncpus() > ncpus:
-    job_server.set_ncpus(ncpus)
+# Function that can be parallelized
+def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
+    scores = {}
+    for m1 in motifs:
+        scores[m1.id] = {}
+        for m2 in dbmotifs:
+            scores[m1.id][m2.id] = mc.compare_motifs(m1, m2, match, metric, combine, pval=pval)    
+    return scores
+
 
 def akl(x,y):
     """ Calcylates the average Kullback-Leibler similarity
@@ -325,14 +330,6 @@ class MotifComparer:
 
     def get_all_scores(self, motifs, dbmotifs, match, metric, combine, pval=False, parallel=True, trim=None):
     
-        # Local function that can be parallelized
-        def local_get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
-            scores = {}
-            for m1 in motifs:
-                scores[m1.id] = {}
-                for m2 in dbmotifs:
-                    scores[m1.id][m2.id] = mc.compare_motifs(m1, m2, match, metric, combine, pval=pval)    
-            return scores
             
         # trim motifs first, if specified
         if trim:
@@ -347,19 +344,22 @@ class MotifComparer:
         if parallel:    
             # Divide the job into big chunks, to keep parallel overhead to minimum
             # Number of chunks = number of processors available
-            n_cpus = job_server.get_ncpus()
+            n_cpus = int(MotifConfig().get_default_params()["ncpus"])
+            pool = Pool(processes=n_cpus)
             batch_len = len(dbmotifs) / n_cpus
             if batch_len <= 0:
                 batch_len = 1
             jobs = []
             for i in range(0, len(dbmotifs), batch_len): 
                 # submit jobs to the job server
-                job = job_server.submit(local_get_all_scores, (self, motifs, dbmotifs[i: i + batch_len], match, metric, combine, pval),(),())
-                jobs.append(job)
-
+                
+                p = pool.apply_async(_get_all_scores, 
+                    args=(self, motifs, dbmotifs[i: i + batch_len], match, metric, combine, pval))
+                jobs.append(p)
+            
             for job in jobs:
                 # Get the job result
-                result = job()
+                result = job.get()
                 # and update the result score
                 for m1,v in result.items():
                     for m2, score in v.items():
@@ -370,17 +370,15 @@ class MotifComparer:
         
         else:
             # Do the whole thing at once if we don't want parallel
-            scores = local_get_all_scores(self, motifs, dbmotifs, match, metric, combine, pval)
+            scores = _get_all_scores(self, motifs, dbmotifs, match, metric, combine, pval)
         
         return scores
-
 
     def get_closest_match(self, motifs, dbmotifs, match, metric, combine, parallel=True):
         scores = self.get_all_scores(motifs, dbmotifs, match, metric, combine, parallel=parallel)
         for motif, matches in scores.items():
             scores[motif] = sorted(scores[motif].items(), cmp=lambda x,y: cmp(y[1][0], x[1][0]))[0]
         return scores
-
 
     def generate_score_dist(self, motifs, match, metric, combine):
         
