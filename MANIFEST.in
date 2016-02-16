@@ -15,9 +15,7 @@ include motif_databases/*.pwm
 include score_dists/*.txt
 include templates/*.kid
 recursive-include src *
-recursive-include test/data/fasta/*
-recursive-include test/data/genome_index/*
-recursive-include test/data/motif/*
+recursive-include test/data/ *
 include test/*.py
 include test/data/*/*
 include bg/*.bg
