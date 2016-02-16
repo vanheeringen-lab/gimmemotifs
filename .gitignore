@@ -13,6 +13,9 @@ examples/*
 !examples/*.bed
 !examples/*.fa
 *.pyc
+dist/*
+website/**/*
+
 
 tmp/*
 
