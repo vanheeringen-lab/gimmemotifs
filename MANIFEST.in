@@ -14,8 +14,10 @@ include genome_index/README.txt
 include motif_databases/*.pwm
 include score_dists/*.txt
 include templates/*.kid
+include templates/*.png
 recursive-include src *
 recursive-include test/data/ *
 include test/*.py
 include test/data/*/*
 include bg/*.bg
+
