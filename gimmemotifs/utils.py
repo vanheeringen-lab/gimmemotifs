@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2010 Simon van Heeringen <s.vanheeringen@ncmls.ru.nl>
+# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -546,39 +546,6 @@ def _treesort(order, nodeorder, nodecounts, tree):
                 if clusterid == i1 or clusterid == i2:
                     clusterids[j] = -i-1
     return numpy.argsort(neworder)
-
-def sort_tree(tree, order):
-    # Adapted from the Pycluster library, Michiel de Hoon
-    nnodes = len(tree)
-    nodeindex = 0
-    nodecounts = numpy.zeros(nnodes, int)
-    nodeorder = numpy.zeros(nnodes)
-    nodedist = numpy.array([node.distance for node in tree])
-    for nodeindex in range(nnodes):
-        min1 = tree[nodeindex].left
-        min2 = tree[nodeindex].right
-        if min1 < 0:
-            index1 = -min1-1
-            order1 = nodeorder[index1]
-            counts1 = nodecounts[index1]
-            nodedist[nodeindex] = max(nodedist[nodeindex],nodedist[index1])
-        else:
-            order1 = order[min1]
-            counts1 = 1
-        if min2 < 0:
-            index2 = -min2-1
-            order2 = nodeorder[index2]
-            counts2 = nodecounts[index2]
-            nodedist[nodeindex] = max(nodedist[nodeindex],nodedist[index2])
-        else:
-            order2 = order[min2]
-            counts2 = 1
-        counts = counts1 + counts2
-        nodecounts[nodeindex] = counts
-        nodeorder[nodeindex] = (counts1*order1+counts2*order2) / counts
-    # Now set up order based on the tree structure
-    index = _treesort(order, nodeorder, nodecounts, tree)
-    return index
 
 def number_of_seqs_in_file(fname):
     try:

@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2013 Simon van Heeringen <s.vanheeringen@ncmls.ru.nl>
+# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -10,7 +10,7 @@ import distutils.sysconfig
 import os
 
 ### CONSTANTS ###
-GM_VERSION = "0.8.6"
+GM_VERSION = "0.8.7"
 BG_TYPES = ["random", "genomic", "gc", "promoter"]
 FA_VALID_BGS = ["random", "promoter", "gc", "user"]
 BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "user"]

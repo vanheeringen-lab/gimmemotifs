@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2010 Simon van Heeringen <s.vanheeringen@ncmls.ru.nl>
+# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -12,14 +12,17 @@ Module to compare DNA sequence motifs (positional frequency matrices)
 import sys
 import os
 from time import sleep
+
 # External imports
 import pp
-from scipy.stats import norm
+from scipy.stats import norm,entropy
+from scipy.spatial import distance
+from numpy import mean,std,array,sum
+
 # GimmeMotifs imports
 from gimmemotifs.motif import *
 from gimmemotifs.config import *
 from gimmemotifs.c_metrics import *
-from numpy import mean,std,array
 
 # Try to import the fisim code, if it present
 try:
@@ -34,6 +37,44 @@ job_server = pp.Server(secret="pumpkinrisotto")
 ncpus = int(MotifConfig().get_default_params()["ncpus"])
 if job_server.get_ncpus() > ncpus:
     job_server.set_ncpus(ncpus)
+
+def akl(x,y):
+    """ Calcylates the average Kullback-Leibler similarity
+    See Mahony,  2007
+    """
+    return 10 - (entropy(x,y) + entropy(y,x)) / 2.0
+
+
+def ssd(x,y):
+    """ Sum of squared distances 
+    """
+    return sum([(a-b)**2 for a,b in zip(x,y)] )
+
+def seqcor(m1,m2):
+    l1 = len(m1)
+    l2 = len(m2)
+
+    l = max(l1, l2)
+
+    # Create random sequence
+    nucs = []
+    L = 10 ** 4
+    for i in range(L):
+        nucs.append(random.choice(['A', 'C', 'T', 'G']))
+    random_seq = "".join(nucs)
+
+    # Scan random sequence
+    result1 = pwmscan(random_seq.upper(), m1.pwm, m1.pwm_min_score(), len(random_seq), False, True)
+    result2 = pwmscan(random_seq.upper(), m2.pwm, m2.pwm_min_score(), len(random_seq), False, True)
+
+    # Return maximum correlation
+    c = []
+    for i in range(l1):
+        c.append(1 - distance.correlation(result1[:L-l-i],result2[i:L-l]))
+    for i in range(l2):
+        c.append(1 - distance.correlation(result1[i:L-l],result2[:L-l-i]))
+    return max(c)
+
 
 class MotifComparer:
     def __init__(self):
@@ -56,11 +97,13 @@ class MotifComparer:
                         for line in open(score_file):
                             l1, l2, m, sd = line.strip().split("\t")[:4]
                             self.scoredist[metric]["%s_%s" % (match, combine)].setdefault(int(l1), {})[int(l2)] = [float(m), float(sd)]
-        #print self.scoredist
     
     def compare_motifs(self, m1, m2, match="total", metric="wic", combine="mean", pval=False):
+
         if metric == "fisim":
             return self.fisim(m1, m2)
+        elif metric == "seqcor":
+            return seqcor(m1, m2)
         elif match == "partial":
             if pval:
                 return self.pvalue(m1, m2, "total", metric, combine, self.max_partial(m1.pwm, m2.pwm, metric, combine))
@@ -124,7 +167,6 @@ class MotifComparer:
         except:
             pass
         
-        #print m1
         fm1 = fisim.Motif.Motif(matrix=array(m1))
         fm2 = fisim.Motif.Motif(matrix=array(m2))
         score = fm1.fisim(fm2)
@@ -139,12 +181,32 @@ class MotifComparer:
                 s = self.fisim(matrix1, matrix2)[0]
             else:
                s = score(matrix1, matrix2, metric, combine)
-             
             if s != s:
                 return None
             else:
                 return s
         
+        else:
+            if metric == "akl":
+                func = akl
+            elif metric == "ssd":
+                func = ssd
+            else:
+                try:
+                    func = getattr(distance, metric)     
+                except: 
+                    raise Exception, "Unknown metric '{}'".format(metric)
+
+            scores = []
+            for pos1,pos2 in zip(matrix1,matrix2):
+                scores.append(func(pos1, pos2))
+            if combine == "mean":
+                return mean(scores)
+            elif combine == "sum":
+                return sum(scores)
+            else:
+                raise "Unknown combine"
+
     def max_subtotal(self, matrix1, matrix2, metric, combine):
         scores = []
         min_overlap = 4 
@@ -157,7 +219,6 @@ class MotifComparer:
         for i in range(-(len(matrix2) - min_overlap), len(matrix1) - min_overlap + 1):
             p1,p2 = self.make_equal_length_truncate(matrix1, matrix2, i)
             s = self.score_matrices(p1, p2, metric, combine)
-            #print "i", i, "len", len(p1), "score", s
             if s:
                 scores.append([s, i, 1])
     
@@ -208,8 +269,6 @@ class MotifComparer:
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, -1])
-        
-        
         
         if not scores:
             sys.stdout.write("No score {} {}".format(matrix1, matrix2))
@@ -289,7 +348,6 @@ class MotifComparer:
             # Divide the job into big chunks, to keep parallel overhead to minimum
             # Number of chunks = number of processors available
             n_cpus = job_server.get_ncpus()
-            #print n_cpus
             batch_len = len(dbmotifs) / n_cpus
             if batch_len <= 0:
                 batch_len = 1

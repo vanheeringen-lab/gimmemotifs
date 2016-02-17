@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (c) 2009-2013 Simon van Heeringen <s.vanheeringen@ncmls.ru.nl>
+# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -14,6 +14,8 @@ from gimmemotifs.config import MotifConfig
 from gimmemotifs.utils import parse_cutoff
 
 CHUNK = 1000
+
+job_server = pp.Server(secret="beetrootsoup")
 
 def scan_fa_with_motif(fo, motif, cutoff, nreport, rc=True):
     #try:
@@ -64,7 +66,7 @@ def scan_it(infile, motifs, cutoff, nreport=1, rc=True):
         yield motifkey[motif.id], result
  
 
-def scan(infile, motifs, cutoff, nreport=1, it=False):
+def scan(infile, motifs, cutoff, nreport=1, it=False, job_server=job_server):
     # Get configuration defaults
     config = MotifConfig()
     # Cutoff for motif scanning, only used if a cutoff is not supplied
@@ -74,7 +76,6 @@ def scan(infile, motifs, cutoff, nreport=1, it=False):
     
     cutoffs = parse_cutoff(motifs, cutoff, default_cutoff) 
     
-    job_server = pp.Server(secret="beetrootsoup")
     if job_server.get_ncpus() > ncpus:
         job_server.set_ncpus(ncpus)
     
@@ -97,7 +98,10 @@ def scan(infile, motifs, cutoff, nreport=1, it=False):
         motif, result = job()
         
         total_result[motifkey[motif.id]].update(result)
+   
     
+    #del job_server
+
     return total_result
 
 def get_counts(fname, motifs, cutoff):

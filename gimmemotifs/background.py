@@ -1,4 +1,4 @@
-# Copyright (c) 2009-20155555on van Heeringen <s.vanheeringen@ncmls.ru.nl>
+# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -199,8 +199,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
             lengths = [x.length for x in bed]
         except:
             sys.stderr.write("Please provide input file in BED or FASTA format\n")
-            sys.exit(1)
-
+            raise
     gc_hist,bins = np.histogram(gc, range=(0,1), bins=20)
     
     length = np.median(lengths)

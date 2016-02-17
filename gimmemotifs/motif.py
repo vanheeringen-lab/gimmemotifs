@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2010 Simon van Heeringen <s.vanheeringen@ncmls.ru.nl>
+# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -46,6 +46,8 @@ class Motif:
         self.config = MotifConfig()
         self.seqlogo = self.config.get_seqlogo()
 
+        self.nucs = "ACGT"
+        
         self.iupac_rev = {
             'CG': 'S',
             'AG': 'R',
@@ -366,8 +368,6 @@ class Motif:
         
         return score
 
-
-
     def ic(self, pwm1, pwm2, pos, bg=[0.25,0.25,0.25,0.25], bg_factor=1):
         # xxCATGYT
         # GGCTTGYx
@@ -520,7 +520,18 @@ class Motif:
         #print scores
         return sorted(scores, key=lambda x: x[0])[-1]
 
-    
+    def _format_jaspar(self, version=1, header=True):
+        rows = np.array(self.pwm).transpose()
+        rows = [" ".join([str(x) for x in row]) for row in rows]
+        if version == 2:
+            rows = ["{} [{} ]".format(n,row) for n,row in zip(self.nucs, rows)]
+        
+        str_out = "\n".join(rows)
+        if header:
+            str_out = "\n".join(self.id, str_out)
+        
+        return str_out
+
     def to_consensus(self):
         if self.consensus:
             return self.consensus
@@ -535,7 +546,6 @@ class Motif:
                 else:
                     consensus += "n"
             return consensus
-
 
     def to_consensusv2(self):
         if self.consensus:
@@ -564,7 +574,6 @@ class Motif:
             pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in self.pwm]
             return ">%s\n%s" % (self.id, "\n".join(["\t".join(["%s" % x for x in row]) for row in pfm]))
 
-    
     def to_pwm(self, extra_str=""):
         id = self.id
         if extra_str:
@@ -845,7 +854,6 @@ def transfac_to_motifs(file):
 def motifs_to_meme(motifs):
     m = "MEME version 3.0\n\nALPHABET= ACGT\n\nstrands: + -\n\n"
     m += "Background letter frequencies\nA 0.25 C 0.25 G 0.25 T 0.25\n"
-    m += "Background letter frequencies (from\nA 0.25 C 0.25 G 0.25 T 0.25\\n\n"
 
     for motif in motifs:
         m += motif.to_meme() + "\n"

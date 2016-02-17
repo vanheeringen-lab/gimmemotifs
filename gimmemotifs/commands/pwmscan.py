@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (c) 2009-2013 Simon van Heeringen <s.vanheeringen@ncmls.ru.nl>
+# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -24,6 +24,11 @@ def pwmscan(args):
     scan_rc = args.scan_rc
 
     motifs = pwmfile_to_motifs(args.pwmfile)
+    
+    # need to report always one match per sequence
+    if args.score_table:
+        cutoff = 0
+    
     result = scan_it(inputfile, motifs, cutoff, nreport, scan_rc)
    
     p = re.compile(r'([^\s:]+):(\d+)-(\d+)')
@@ -43,6 +48,24 @@ def pwmscan(args):
         for seq_id in fa.ids:
             counts = [table[seq_id].get(m, 0) for m in motifs]
             print "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
+    
+    if args.score_table:
+        table = {}
+        for seq_id in fa.ids:
+            table[seq_id] = {}
+
+        for motif, result in result:
+            for seq_id, matches in result.items():
+                max_score = max(m[1] for m in matches)
+                table[seq_id][motif] = max_score
+        
+        #mnames = [m.id for m in motifs]
+        #print table
+        print "\t{}".format("\t".join([m.id for m in motifs]))
+        for seq_id in fa.ids:
+            score = [table[seq_id].get(m, -20) for m in motifs]
+            print "{}\t{}".format(seq_id, "\t".join([str(x) for x in score]))
+
 
     else:
         strandmap = {-1:"-",1:"+"}

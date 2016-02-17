@@ -1,5 +1,5 @@
 #!/usr/bin/env python 
-# Copyright (c) 2013 Simon van Heeringen <s.vanheeringen@ncmls.ru.nl>
+# Copyright (c) 2013 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -357,9 +357,15 @@ p.add_argument("-b", "--bed",
                help="output bed format")
 p.add_argument("-t", "--table",
                dest="table", 
-               help="Output in tabular format", 
+               help="output counts in tabular format", 
                action="store_true",
                default=False)
+p.add_argument("-T", "--score_table",
+               dest="score_table", 
+               help="output maximum score in tabular format", 
+               action="store_true",
+               default=False)
+
 
 p.set_defaults(func=commands.pwmscan)
 
