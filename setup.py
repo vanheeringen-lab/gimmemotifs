@@ -467,10 +467,6 @@ setup (name = 'gimmemotifs',
             "matplotlib >= 1.1.1",
             "kid >= 0.9.6",
             "pyyaml >= 3.10",
-            "pp >= 1.6",
             "pybedtools",
-        ],
-        dependency_links = [
-            "http://www.parallelpython.com/downloads/pp/pp-1.6.4.zip#egg=pp-1.6.4",
         ],
 )

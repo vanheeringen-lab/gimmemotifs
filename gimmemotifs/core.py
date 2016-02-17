@@ -28,6 +28,10 @@ from gimmemotifs import genome_index
 from gimmemotifs.cluster import *
 from gimmemotifs.plot import *
 from gimmemotifs import mytmpdir
+try:
+    from gimmemotifs.mp import pool
+except:
+    pass
 
 def job_server_ok():
     return True
@@ -100,13 +104,6 @@ class GimmeMotifs:
         # setup the names of the intermediate and output files
         self._setup_filenames()
 
-        # check for parallel python
-        self.parallel = self._is_parallel_enabled()
-        if self.parallel:
-            self.logger.debug("Parallel Python is installed")
-        else:
-            self.logger.info("Couldn't find Parallel Python! I will continue, but installing pp will signifcantly speed up your analysis!")
-    
     def job_server(self):
         try:
             self.server.submit(job_server_ok)
@@ -213,20 +210,10 @@ class GimmeMotifs:
                 self.bg_file[ftype][bg] =  os.path.join(self.tmpdir, "%s_bg_%s%s" % (self.name, bg, extension))
 
     def _is_parallel_enabled(self):
-        try:
-            import pp
-            return True
-        except:
-            return False
+        return True
 
     def _get_job_server(self):
-        self.logger.debug("Creating parallel python job server")
-        import pp
-        server = pp.Server(secret="pumpkinrisotto")
-        ncpus = int(self.params["ncpus"])
-        if server.get_ncpus() > ncpus:
-            server.set_ncpus(ncpus)
-        return server
+        return pool
 
     def _check_input(self, file):
         """ Check if the inputfile is a valid bed-file """
@@ -364,19 +351,12 @@ class GimmeMotifs:
         self.logger.info("Scanning background sequences with motifs")
         scan_cmd = scan_fasta_file_with_motifs
         jobs = []
-        if self.parallel:
-            jobs.append(self.job_server().submit(scan_cmd, (fg[0], motif_file, self.SCAN_THRESHOLD, fg[1],), (),()))
-        else:
-            scan_cmd(fg[0], motif_file, self.SCAN_THRESHOLD, fg[1])
+        jobs.append(self.job_server().apply_async(scan_cmd, (fg[0], motif_file, self.SCAN_THRESHOLD, fg[1],)))
 
         for fasta_file, gff_file in [x[:2] for x in bg]:
-            if self.parallel:
-                jobs.append(self.job_server().submit(scan_cmd, (fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file,), (),()))
-            else:
-                scan_cmd(fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file)
-            
+            jobs.append(self.job_server().apply_async(scan_cmd, (fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file,)))
         for job in jobs:
-                error = job()
+                error = job.get()
                 if error:
                     self.logger.error("Error in thread: %s" % error)
                     sys.exit(1)
@@ -463,12 +443,12 @@ class GimmeMotifs:
         
         jobs = {}
         for id,m in motifs.items():
-            jobs[id] = self.job_server().submit(get_roc_values, (motifs[id],fg_fasta,bg_fasta,))
+            jobs[id] = self.job_server().apply_async(get_roc_values, (motifs[id],fg_fasta,bg_fasta,))
     
         roc_img_file = os.path.join(self.imgdir, "%s_%s_roc.png")
         
         for id in motifs.keys():
-            error, x, y = jobs[id]()
+            error, x, y = jobs[id].get()
             if error:
                 self.logger.error("Error in thread: %s" % error)
                 sys.exit(1)
@@ -487,14 +467,14 @@ class GimmeMotifs:
         
         jobs = {}
         for id,m in motifs.items():
-            jobs[id] = self.job_server().submit(get_scores, (motifs[id],sample_fa,bg_fa,))
+            jobs[id] = self.job_server().apply_async(get_scores, (motifs[id],sample_fa,bg_fa,))
         
         all_auc = {}
         all_mncp = {}
         f = open(roc_file, "w")
         f.write("Motif\tROC AUC\tMNCP\tMax f-measure\tSens @ max f-measure\n")
         for id in motifs.keys():
-            error, auc, mncp, max_f, y = jobs[id]()
+            error, auc, mncp, max_f, y = jobs[id].get()
             if error:
                 self.logger.error("Error in thread: %s" % error)
                 sys.exit(1)
@@ -680,7 +660,7 @@ class GimmeMotifs:
             self.logger.info("Using torque")
         else:
             from gimmemotifs.prediction import pp_predict_motifs, PredictionResult
-            self.logger.info("Using pp")
+            self.logger.info("Using multiprocessing")
 
         self.params = params
         #self.weird = params["weird_option"]
@@ -786,18 +766,16 @@ class GimmeMotifs:
 
         # Predict the motifs
         analysis = params["analysis"]
-        if self.parallel:
-            """ Predict motifs, input is a FASTA-file"""
-            self.logger.info("Starting motif prediction (%s) using %s" % 
-                (analysis, ", ".join([x for x in tools.keys() if tools[x]])))
+        """ Predict motifs, input is a FASTA-file"""
+        self.logger.info("Starting motif prediction (%s) using %s" % 
+            (analysis, ", ".join([x for x in tools.keys() if tools[x]])))
 
-            bg_file = self.bg_file["fa"][sorted(background, lambda x,y: cmp(BG_RANK[x], BG_RANK[y]))[0]]
-            self.logger.info("Using bg_file %s for significance" % bg_file)
-            result = pp_predict_motifs(self.prediction_fa, self.predicted_pfm, analysis, params["genome"], params["use_strand"], self.prediction_bg, tools, self.job_server(), logger=self.logger, max_time=self.max_time, fg_file=self.validation_fa, bg_file=bg_file)
+        bg_file = self.bg_file["fa"][sorted(background, lambda x,y: cmp(BG_RANK[x], BG_RANK[y]))[0]]
+        self.logger.info("Using bg_file %s for significance" % bg_file)
+        result = pp_predict_motifs(self.prediction_fa, self.predicted_pfm, analysis, params["genome"], params["use_strand"], self.prediction_bg, tools, self.job_server(), logger=self.logger, max_time=self.max_time, fg_file=self.validation_fa, bg_file=bg_file)
     
-            motifs = result.motifs
-            self.logger.info("Predicted %s motifs, written to %s" % (len(motifs), self.predicted_pfm))
-
+        motifs = result.motifs
+        self.logger.info("Predicted %s motifs, written to %s" % (len(motifs), self.predicted_pfm))
         
         if len(motifs) == 0:
             self.logger.info("No motifs found. Done.")
@@ -807,6 +785,7 @@ class GimmeMotifs:
         f = open(self.stats_file, "w")
         stat_keys = result.stats.values()[0].keys()
         f.write("%s\t%s\n" % ("Motif", "\t".join(stat_keys)))
+        print result.stats
         for motif in motifs:
             stats = result.stats["%s_%s" % (motif.id, motif.to_consensus())]
             if stats:
@@ -879,7 +858,7 @@ class GimmeMotifs:
         # Stars
         tmp = NamedTemporaryFile(dir=mytmpdir()).name
         p = PredictionResult(tmp, logger=self.logger, job_server=self.server, fg_file = self.validation_fa, bg_file = bg_file) 
-        p.add_motifs("Clustering",  (pwmfile_to_motifs(self.final_pwm), "",""))
+        p.add_motifs(("Clustering",  (pwmfile_to_motifs(self.final_pwm), "","")))
         while len(p.stats.keys()) < len(p.motifs):
             sleep(5)
 
