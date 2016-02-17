@@ -12,7 +12,6 @@ Module to compare DNA sequence motifs (positional frequency matrices)
 import sys
 import os
 from time import sleep
-from multiprocessing import Pool
 
 # External imports
 from scipy.stats import norm,entropy
@@ -23,6 +22,7 @@ from numpy import mean,std,array,sum
 from gimmemotifs.motif import *
 from gimmemotifs.config import *
 from gimmemotifs.c_metrics import *
+from gimmemotifs.mp import pool
 
 # Try to import the fisim code, if it present
 try:
@@ -345,7 +345,7 @@ class MotifComparer:
             # Divide the job into big chunks, to keep parallel overhead to minimum
             # Number of chunks = number of processors available
             n_cpus = int(MotifConfig().get_default_params()["ncpus"])
-            pool = Pool(processes=n_cpus)
+            
             batch_len = len(dbmotifs) / n_cpus
             if batch_len <= 0:
                 batch_len = 1

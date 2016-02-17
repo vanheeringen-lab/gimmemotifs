@@ -13,7 +13,6 @@ import logging
 import logging.handlers
 from datetime import datetime
 from numpy import median
-from multiprocessing import Pool
 
 # External imports
 import kid
@@ -29,6 +28,10 @@ from gimmemotifs import genome_index
 from gimmemotifs.cluster import *
 from gimmemotifs.plot import *
 from gimmemotifs import mytmpdir
+try:
+    from gimmemotifs.mp import pool
+except:
+    pass
 
 def job_server_ok():
     return True
@@ -210,9 +213,6 @@ class GimmeMotifs:
         return True
 
     def _get_job_server(self):
-        self.logger.debug("Creating multiprocessing pool")
-        ncpus = int(self.params["ncpus"])
-        pool = Pool(processes=ncpus)
         return pool
 
     def _check_input(self, file):
@@ -785,6 +785,7 @@ class GimmeMotifs:
         f = open(self.stats_file, "w")
         stat_keys = result.stats.values()[0].keys()
         f.write("%s\t%s\n" % ("Motif", "\t".join(stat_keys)))
+        print result.stats
         for motif in motifs:
             stats = result.stats["%s_%s" % (motif.id, motif.to_consensus())]
             if stats:
@@ -857,7 +858,7 @@ class GimmeMotifs:
         # Stars
         tmp = NamedTemporaryFile(dir=mytmpdir()).name
         p = PredictionResult(tmp, logger=self.logger, job_server=self.server, fg_file = self.validation_fa, bg_file = bg_file) 
-        p.add_motifs("Clustering",  (pwmfile_to_motifs(self.final_pwm), "",""))
+        p.add_motifs(("Clustering",  (pwmfile_to_motifs(self.final_pwm), "","")))
         while len(p.stats.keys()) < len(p.motifs):
             sleep(5)
 
