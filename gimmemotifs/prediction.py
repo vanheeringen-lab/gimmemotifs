@@ -22,6 +22,7 @@ from gimmemotifs.nmer_predict import *
 from gimmemotifs.config import *
 from gimmemotifs.fasta import *
 from gimmemotifs import mytmpdir
+
 try:
     from gimmemotifs.mp import pool
 except:
@@ -38,8 +39,8 @@ def _calc_motif_stats(motif, fg_fa, bg_fa):
 def _run_tool(job_name, t, fastafile, params):
     try:
         result = t.run(fastafile, ".", params, mytmpdir())
-    except:
-        result = ([], "", "{} failed to run".format(job_name))
+    except Exception as e:
+        result = ([], "", "{} failed to run: {}".format(job_name, e))
     
     return job_name, result
 

@@ -20,7 +20,6 @@ import glob
 # External imports
 import pbs
 from PBSQuery import PBSQuery
-import pp
 import yaml
 
 # GimmeMotifs imports

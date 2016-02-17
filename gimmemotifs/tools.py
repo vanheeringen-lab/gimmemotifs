@@ -523,6 +523,12 @@ class Trawler(MotifProgram):
     def parse(self, fo):
         return []
 
+def run_weeder_subset(weeder, fastafile, w, e, organism, strand):
+    from subprocess import Popen,PIPE
+    cmd = "%s -f %s -W %s -e %s -R 50 -O %s %s" % (weeder, fastafile, w, e, organism, strand)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+    out,err = p.communicate()
+    return out, err
 
 class Weeder(MotifProgram):
     def __init__(self):
@@ -533,7 +539,11 @@ class Weeder(MotifProgram):
     def _run_program(self, bin,fastafile, savedir="", params={}):
         import os, tempfile, shutil
         from subprocess import Popen, PIPE
-        import pp 
+        #try: 
+        #    from gimmemotifs.mp import pool
+        #except:
+        #    pass
+
 
         default_params = {"analysis":"small", "organism":"hg18", "single":False, "parallel":True}
         default_params.update(params)
@@ -603,20 +613,17 @@ class Weeder(MotifProgram):
         stdout = ""
         stderr = ""
         
-        def run_weeder_subset(weeder, fastafile, w, e, organism, strand):
-            from subprocess import Popen,PIPE
-            cmd = "%s -f %s -W %s -e %s -R 50 -O %s %s" % (weeder, fastafile, w, e, organism, strand)
-            p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
-            out,err = p.communicate()
-            return out, err
-            
+        default_params["parallel"] = False 
         if default_params["parallel"]:
-            job_server = pp.Server(secret="pumpkinrisotto")
             jobs = []
             for (w,e) in coms:
-                jobs.append(job_server.submit(run_weeder_subset, (weeder, fastafile, w, e, weeder_organism, strand,), (), ()))
+                jobs.append(pool.apply_async(
+                    run_weeder_subset, 
+                    (weeder, fastafile, w, e, weeder_organism, strand,)
+                    ))
+
             for job in jobs:
-                out,err = job()
+                out,err = job.get()
                 stdout += out
                 stderr += err
         else:
