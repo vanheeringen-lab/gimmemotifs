@@ -152,7 +152,13 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
     # Add warnings for running time: Weeder, GADEM
         
     ### Add all jobs to the job_server ###
-    params = {'analysis': analysis, 'background':background, "single":single, "organism":organism}
+    params = {
+            'analysis': analysis, 
+            'background':background, 
+            "single":single, 
+            "organism":organism
+            }
+
     for t in toolio:
         if tools.has_key(t.name) and tools[t.name]:
             if t.use_width:
