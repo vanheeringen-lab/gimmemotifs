@@ -14,7 +14,6 @@ import subprocess
 import thread
 from time import time
 import inspect
-from multiprocessing import pool
 
 # GimmeMotifs imports
 from gimmemotifs import tools as tool_classes
@@ -23,13 +22,26 @@ from gimmemotifs.nmer_predict import *
 from gimmemotifs.config import *
 from gimmemotifs.fasta import *
 from gimmemotifs import mytmpdir
-
+try:
+    from gimmemotifs.mp import pool
+except:
+    pass
 
 def _calc_motif_stats(motif, fg_fa, bg_fa):
-    return motif, motif.stats(fg_fa, bg_fa)
+    try:
+        stats = motif.stats(fg_fa, bg_fa)
+    except Exception as e:
+        sys.stderr.write("ERROR: {}\n".format(e))
+        stats = {}
+    return motif, stats
 
-def _run_tool(t, fastafile, params):
-    t.run(fastafile, ".", params, mytmpdir()), 
+def _run_tool(job_name, t, fastafile, params):
+    try:
+        result = t.run(fastafile, ".", params, mytmpdir())
+    except:
+        result = ([], "", "{} failed to run".format(job_name))
+    
+    return job_name, result
 
 class PredictionResult:
     def __init__(self, outfile, logger=None, fg_file=None, bg_file=None, job_server=None):
@@ -48,9 +60,9 @@ class PredictionResult:
         else:
             self.do_stats = False
 
-    def add_motifs(self, job, args):
+    def add_motifs(self, args):
         # Callback function for motif programs
-        motifs, stdout, stderr = args
+        job, (motifs, stdout, stderr) = args
         
         if self.logger:
             self.logger.info("%s finished, found %s motifs" % (job, len(motifs))) 
@@ -60,8 +72,8 @@ class PredictionResult:
             f = open(self.outfile, "a")
             f.write("%s\n" % motif.to_pfm())
             f.close()
-            self.lock.release()
             self.motifs.append(motif)
+            self.lock.release()
             
             if self.do_stats:
                 job_id = "%s_%s" % (motif.id, motif.to_consensus())
@@ -82,7 +94,7 @@ class PredictionResult:
         motif, stats = args
         if self.logger:
             self.logger.debug("Stats: %s %s" % (motif, stats))
-        self.stats[motif] = stats
+        self.stats["{}_{}".format(motif.id, motif.to_consensus())] = stats
 
     def get_remaining_stats(self):
         for motif in self.motifs:
@@ -121,7 +133,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
         analysis = "small"
 
     if not job_server:
-        job_server = Pool(processes=ncpus)
+        job_server = pool
     
     jobs = {}
     
@@ -149,18 +161,19 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
                     params['width'] = i
                     jobs[job_name] = job_server.apply_async(
                         _run_tool,
-                        (t.run, fastafile, params), 
+                        (job_name, t, fastafile, params), 
                         callback=result.add_motifs)
             else:
                 logger.debug("Starting %s job" % t.name)
                 job_name = t.name
                 jobs[job_name] = job_server.apply_async(
                         _run_tool,
-                        (t.run, fastafile, params), 
+                        (job_name, t, fastafile, params), 
                         callback=result.add_motifs)
         else:
             logger.debug("Skipping %s" % t.name)
     
+    logger.info("All jobs submitted")
     ### Wait until all jobs are finished or the time runs out ###
     start_time = time()    
     try:
@@ -169,18 +182,15 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
             pass
         if len(result.finished) < len(jobs.keys()):
             logger.info("Maximum allowed running time reached, destroying remaining jobs")
-            job_server.destroy()
+            job_server.terminate()
             result.get_remaining_stats()
     ### Or the user gets impatient... ###
     except KeyboardInterrupt, e:
         # Destroy all running jobs
         logger.info("Caught interrupt, destroying all running jobs")
-        job_server.destroy()
+        job_server.terminate()
         result.get_remaining_stats()
         
-    # Wait for all stats jobs to finish
-    job_server.wait(group="stats")    
-    
     logger.info("Waiting for calculation of motif statistics to finish")
     while len(result.stats.keys()) < len(result.motifs):
         sleep(5)
