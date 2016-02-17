@@ -5,17 +5,18 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 
-import pp
 import os
 import sys
 
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.utils import parse_cutoff
+try: 
+    from gimmemotifs.mp import pool
+except:
+    pass
 
 CHUNK = 1000
-
-job_server = pp.Server(secret="beetrootsoup")
 
 def scan_fa_with_motif(fo, motif, cutoff, nreport, rc=True):
     #try:
@@ -35,38 +36,32 @@ def scan_it(infile, motifs, cutoff, nreport=1, rc=True):
     
     cutoffs = parse_cutoff(motifs, cutoff, default_cutoff) 
     
-    job_server = pp.Server(secret="beetrootsoup")
-    pp.SHOW_EXPECTED_EXCEPTIONS # True
-    if job_server.get_ncpus() > ncpus:
-        job_server.set_ncpus(ncpus)
-    
     jobs = []
     fa = Fasta(infile)
     motifkey = dict([(m.id, m) for m in motifs])
     
     for motif in motifs:
         for i in range(0, len(fa), CHUNK):
-            jobs.append(job_server.submit(
+            jobs.append(pool.apply_async(
                                           scan_fa_with_motif,
                                           (fa[i:i + CHUNK],
                                           motif,
                                           cutoffs[motif.id],
                                           nreport,
                                           rc,
-                                          ),
-                                          (),()))
+                                          )))
     
         while len(jobs) > 10:
             job = jobs.pop(0) 
-            motif, result = job()
+            motif, result = job.get()
             yield motifkey[motif.id], result
 
     for job in jobs:
-        motif, result = job()
+        motif, result = job.get()
         yield motifkey[motif.id], result
  
 
-def scan(infile, motifs, cutoff, nreport=1, it=False, job_server=job_server):
+def scan(infile, motifs, cutoff, nreport=1, it=False):
     # Get configuration defaults
     config = MotifConfig()
     # Cutoff for motif scanning, only used if a cutoff is not supplied
@@ -76,32 +71,25 @@ def scan(infile, motifs, cutoff, nreport=1, it=False, job_server=job_server):
     
     cutoffs = parse_cutoff(motifs, cutoff, default_cutoff) 
     
-    if job_server.get_ncpus() > ncpus:
-        job_server.set_ncpus(ncpus)
-    
     total_result = {}
     jobs = []
     fa = Fasta(infile)
     for motif in motifs:
         for i in range(0, len(fa), CHUNK):
             total_result[motif] = {}
-            jobs.append(job_server.submit(
+            jobs.append(pool.apply_async(
                                           scan_fa_with_motif,
                                           (fa[i:i + CHUNK],
                                           motif,
                                           cutoffs[motif.id],
                                           nreport,
-                                          ),
-                                          (),()))
+                                          )))
     motifkey = dict([(m.id, m) for m in motifs])
     for job in jobs:
-        motif, result = job()
+        motif, result = job.get()
         
         total_result[motifkey[motif.id]].update(result)
    
-    
-    #del job_server
-
     return total_result
 
 def get_counts(fname, motifs, cutoff):
