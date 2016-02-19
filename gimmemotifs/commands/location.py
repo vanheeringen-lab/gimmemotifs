@@ -7,7 +7,7 @@
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.utils import motif_localization
-import pp
+from gimmemotifs.mp import pool
 import sys
 import os
 
@@ -21,7 +21,6 @@ def location(args):
         lwidth = len(f.items()[0][1])
         f = None
 
-    job_server = pp.Server(secret="pumpkinrisotto")
     jobs = []
     motifs = pwmfile_to_motifs(pwmfile)
     ids = [motif.id for motif in motifs]
@@ -31,7 +30,11 @@ def location(args):
     for motif in motifs:
         if motif.id in ids:
             outfile = os.path.join("%s_histogram" % motif.id)
-            jobs.append(job_server.submit(motif_localization, (fastafile,motif,lwidth,outfile, args.cutoff), (),()))
+            jobs.append(
+                    pool.apply_async(
+                        motif_localization, 
+                        (fastafile,motif,lwidth,outfile, args.cutoff)
+                        ))
     
     for job in jobs:
-        job()
+        job.get()

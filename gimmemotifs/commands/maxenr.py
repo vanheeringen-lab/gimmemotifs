@@ -3,8 +3,8 @@ from numpy import array, hstack
 import sys
 import os
 from gimmemotifs.motif import pwmfile_to_motifs
-import pp
-    
+from gimmemotifs.mp import pool
+
 def get_scores(motif, file):
     from gimmemotifs.fasta import Fasta
     result = motif.pwm_scan_score(Fasta(file), cutoff=0.0, nreport=1)
@@ -20,8 +20,6 @@ def maxenr(args):
     if not os.path.exists(args.background):
         print "File %s does not exist!" % args.background
         exit(1)
-    
-    job_server = pp.Server(secret="pumpkinrisotto")
     
     pwmfile = args.pwmfile
     fg_file = args.sample
@@ -40,8 +38,8 @@ def maxenr(args):
     
     for id in ids:
         if motifs.has_key(id):
-            bg_jobs[id] = job_server.submit(get_scores, (motifs[id],bg_file,))
-            fg_jobs[id] = job_server.submit(get_scores, (motifs[id],fg_file,))
+            bg_jobs[id] = pool.apply_async(get_scores, (motifs[id],bg_file,))
+            fg_jobs[id] = pool.apply_async(get_scores, (motifs[id],fg_file,))
         else:
             print "Wrong id: %s" % id
             sys.exit()
@@ -49,8 +47,8 @@ def maxenr(args):
     print "Motif\t# matches\tMax. enrichment\tScore\tCutoff"
     
     for id in ids:
-        pos = array(fg_jobs[id]())
-        neg = array(bg_jobs[id]())
+        pos = array(fg_jobs[id].get())
+        neg = array(bg_jobs[id].get())
         factor = len(neg) / float(len(pos))
     
         scores = array([s for s in hstack((pos, neg)) if sum(neg >= s) > 1])
