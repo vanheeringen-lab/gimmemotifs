@@ -5,7 +5,6 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 
-import pp
 import sys
 import os
 
