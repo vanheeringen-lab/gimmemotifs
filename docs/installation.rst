@@ -42,7 +42,7 @@ Install via pip
 ~~~~~~~~~~~~~~~
 
 Create a virtualenv and activate it according to the 
-[documentation](https://virtualenv.readthedocs.org/en/latest/userguide.html#usage).
+`documentation<https://virtualenv.readthedocs.org/en/latest/userguide.html#usage>`_.
 
 Install numpy:
 
@@ -81,16 +81,13 @@ Required packages (Python)
 -  Python 2.5, 2.6 or 2.7 (not Python 3) http://www.python.org
 
 -  | Scipy http://www.scipy.org/
-   | SciPy is the fundamental package needed for scientific computing
-   with Python.
+   | SciPy is the fundamental package needed for scientific computing with Python.
 
 -  | matplotlib (0.98 or higher) http://matplotlib.sourceforge.net/
-   | A python 2D plotting library. All figures and plots produced by
-   GimmeMotifs are made using matplotlib.
+   | A python 2D plotting library. All figures and plots produced by GimmeMotifs are made using matplotlib.
 
 -  | kid http://www.kid-templating.org/
-   | A simple template language for XML based vocabularies; used to
-   produce the HTML reports.
+   | A simple template language for XML based vocabularies; used to produce the HTML reports.
 
 Other required packages
 ~~~~~~~~~~~~~~~~~~~~~~~
