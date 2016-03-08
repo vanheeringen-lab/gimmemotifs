@@ -42,7 +42,8 @@ Install via pip
 ~~~~~~~~~~~~~~~
 
 Create a virtualenv and activate it according to the 
-`documentation<https://virtualenv.readthedocs.org/en/latest/userguide.html#usage>`_.
+`documentation
+<https://virtualenv.readthedocs.org/en/latest/userguide.html#usage>`_.
 
 Install numpy:
 
