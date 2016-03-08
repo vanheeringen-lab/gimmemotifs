@@ -22,7 +22,7 @@ from numpy import mean,std,array,sum
 from gimmemotifs.motif import *
 from gimmemotifs.config import *
 from gimmemotifs.c_metrics import *
-from gimmemotifs.mp import pool
+# pool import is at the bottom
 
 # Try to import the fisim code, if it present
 try:
@@ -406,6 +406,10 @@ class MotifComparer:
                 f.write("%s\t%s\t%s\t%s\n" % (l1, l2, mean(scores), std(scores)))
 
         f.close()    
+
+# import here is necessary as workaround
+# see: http://stackoverflow.com/questions/18947876/using-python-multiprocessing-pool-in-the-terminal-and-in-code-modules-for-django
+from gimmemotifs.mp import pool
 
 if __name__ == "__main__":
     pass

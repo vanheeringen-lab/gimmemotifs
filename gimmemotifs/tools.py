@@ -24,12 +24,16 @@ except:
 class MotifProgram:
     from gimmemotifs.config import MotifConfig
     config = MotifConfig()
+    local_bin = None
 
     def __init__(self):
         pass
 
     def bin(self):
-        return self.config.bin(self.name)
+        if self.local_bin:
+            return self.local_bin
+        else:
+            return self.config.bin(self.name)
 
     def dir(self):
         return self.config.dir(self.name)
