@@ -368,7 +368,10 @@ class GimmeMotifs:
             num_bg = len(Fasta(fasta_file).items())
             enrichment_cmd(fg[1], gff_file, num_sample, num_bg, out_file)
 
-    def create_background(self, background=["random"], organism="hg18", width=200):
+    def create_background(self, background=None, organism="hg18", width=200):
+        if background is None:
+            background = ["random"]
+        
         nr_sequences = {}
         
         # Create background for motif prediction
@@ -539,7 +542,13 @@ class GimmeMotifs:
             f.write("%s\t%s\n" % (param, value))
         f.close()
 
-    def _create_report(self, pwm, background, stats={}, best_id={}):
+    def _create_report(self, pwm, background, stats=None, best_id=None):
+        if stats is None:
+            stats = {}
+        if best_id is None:
+            best_id = {}
+        
+        
         self.logger.info("Creating graphical report")
         class ReportMotif:
             pass
@@ -647,11 +656,13 @@ class GimmeMotifs:
         out.close()
         return num_cluster, best_id
 
-    def run_full_analysis(self, inputfile, user_params={}):
+    def run_full_analysis(self, inputfile, user_params=None):
         """ Full analysis: from bed-file to motifs (including clustering, ROC-curves, location plots and html report) """
         self.logger.info("Starting full motif analysis")
         self.logger.info("Using temporary directory {0}".format(mytmpdir()))
     
+        if user_params is None:
+            user_params = {}
         params = self.config.get_default_params()
         params.update(user_params)
         

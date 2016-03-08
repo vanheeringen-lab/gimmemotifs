@@ -16,4 +16,4 @@ def logo(args):
         motifs = [m for m in motifs if m.id in ids]
     
     for motif in motifs:
-    	motif.to_img(motif.id, format="PNG")
+        motif.to_img(motif.id, format="PNG")

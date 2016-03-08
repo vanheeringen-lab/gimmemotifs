@@ -21,7 +21,7 @@ from numpy import mean,std,array,sum
 # GimmeMotifs imports
 from gimmemotifs.motif import *
 from gimmemotifs.config import *
-from gimmemotifs.c_metrics import *
+from gimmemotifs.c_metrics import pwmscan
 # pool import is at the bottom
 
 # Try to import the fisim code, if it present
@@ -284,7 +284,10 @@ class MotifComparer:
             return []
         return sorted(scores, key=lambda x: x[0])[-1]
     
-    def make_equal_length(self, pwm1, pwm2, pos, bg=[0.25,0.25,0.25,0.25]):
+    def make_equal_length(self, pwm1, pwm2, pos, bg=None):
+        if bg is None:
+            bg = [0.25,0.25,0.25,0.25]
+        
         p1 = pwm1[:]
         p2 = pwm2[:]
     
@@ -316,7 +319,10 @@ class MotifComparer:
             p2 = p2[:len(p1)]
         return p1, p2
     
-    def make_equal_length_truncate_second(self, pwm1, pwm2, pos, bg=[0.25,0.25,0.25,0.25]):
+    def make_equal_length_truncate_second(self, pwm1, pwm2, pos, bg=None):
+        if bg is None:
+            bg = [0.25,0.25,0.25,0.25]
+        
         p1 = pwm1[:]
         p2 = pwm2[:]
 

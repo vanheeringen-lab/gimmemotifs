@@ -52,7 +52,7 @@ class Fasta:
 			while (i < n) and (len(ids) > 0):
 				id = ids.pop()
 				if (len(self[id]) >= l):
-					start = randint(0, len(self[id]) - l)
+					start = random.randint(0, len(self[id]) - l)
 					random_f["random%s" % (i + 1)] = self[id][start:start+l]
 					i += 1
 			if len(random_f) != n:
