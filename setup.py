@@ -413,7 +413,7 @@ class custom_install(install):
     def run(self):
         install.run(self)
     
-module1 = Extension('gimmemotifs.c_metrics', sources = ['gimmemotifs/c_metrics.c'], libraries = ['gsl', 'gslcblas'])
+module1 = Extension('gimmemotifs.c_metrics', sources = ['gimmemotifs/c_metrics.c'])
 
 setup (name = 'gimmemotifs',
         cmdclass={"build":custom_build, 

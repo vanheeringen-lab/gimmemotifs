@@ -13,7 +13,6 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
-#include <gsl/gsl_cdf.h>
 
 void fill_matrix(double matrix[][4], PyObject *matrix_o) {
 	// Parse a PyObject matrix into a C array	
@@ -189,41 +188,6 @@ double matrix_distance_mean(double matrix1[][4], double matrix2[][4], int length
 	return mean(result, length);
 }
 
-double chisq(double col1[], double col2[]) {
-	// Return the distance between two motifs (Harbison et al.) 
-	int n;
-	double sum1 = 0;
-	double sum2 = 0;
-	double e1, e2;	
-	double c = 0;
-	
-	for (n = 0; n < 4; n++) {
-		sum1 += col1[n];
-		sum2 += col2[n];
-	}
-
-	for (n = 0; n < 4; n++) {
-		e1 = (sum1 * (col1[n] + col2[n])) / (sum1 + sum2);
-		e2 = (sum2 * (col1[n] + col2[n])) / (sum1 + sum2);
-		c += pow((col1[n] - e1), 2) / e1;
-		c += pow((col2[n] - e2), 2) / e2;
-
-	}
-
-	return 1 - gsl_cdf_chisq_P(c, 3.0);
-}
-
-double matrix_chisq_mean(double matrix1[][4], double matrix2[][4], int length) {
-	// Return the mean distance (Harbison et al.) of two matrices 
-	int i;
-	double result[length];
-
-	for (i = 0; i < length; i++ ) {
-		result[i] = chisq(matrix1[i], matrix2[i]);
-	}
-	return mean(result, length);
-}
-
 static PyObject * c_metrics_score(PyObject *self, PyObject * args)
 {
 	PyObject *matrix1_o;
@@ -264,12 +228,7 @@ static PyObject * c_metrics_score(PyObject *self, PyObject * args)
 	}
 	int i;
 	double result[matrix1_len];
-	if (!strcmp(metric, "chisq")) {
-		for (i = 0; i < matrix1_len; i++ ) {
-			result[i] = chisq(matrix1[i], matrix2[i]);
-		}
-	}
-	else if (!strcmp(metric, "wic")) {
+	if (!strcmp(metric, "wic")) {
 		for (i = 0; i < matrix1_len; i++ ) {
 			result[i] = wic(matrix1[i], matrix2[i]);
 		}
@@ -417,8 +376,6 @@ static PyObject * c_metrics_max_subtotal(PyObject *self, PyObject * args)
 
 	// Assign correct function
 	
-	
-	
 	int pos = -2;
 	int l;
 	float max_score;
@@ -433,10 +390,7 @@ static PyObject * c_metrics_max_subtotal(PyObject *self, PyObject * args)
 
 	double (*ptr_metric_function)(double[][4], double[][4], int) = NULL; 
 		
-	if ((!strcmp(metric, "chisq")) && (!strcmp(combine, "mean"))) {
-		ptr_metric_function = &matrix_chisq_mean;
-	}
-	else if ((!strcmp(metric, "wic")) && (!strcmp(combine, "mean"))) {
+	if ((!strcmp(metric, "wic")) && (!strcmp(combine, "mean"))) {
 		ptr_metric_function = &matrix_wic_mean;
 	}
 	else if ((!strcmp(metric, "wic")) && (!strcmp(combine, "sum"))) {
@@ -496,7 +450,6 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 	int n_report;
 	int pwm_len;
 	int i, j;
-	double zeta = 0.01;
 	int scan_rc;
 	int return_all = 0;
 

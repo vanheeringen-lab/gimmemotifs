@@ -14,7 +14,7 @@ import os
 from time import sleep
 
 # External imports
-from scipy.stats import norm,entropy
+from scipy.stats import norm,entropy,chi2_contingency
 from scipy.spatial import distance
 from numpy import mean,std,array,sum
 
@@ -49,6 +49,8 @@ def akl(x,y):
     """
     return 10 - (entropy(x,y) + entropy(y,x)) / 2.0
 
+def chisq(x,y):
+    return chi2_contingency([x, y])[1]
 
 def ssd(x,y):
     """ Sum of squared distances 
@@ -84,7 +86,7 @@ def seqcor(m1,m2):
 class MotifComparer:
     def __init__(self):
         self.config = MotifConfig()
-        self.metrics = ["pcc", "ed", "distance", "wic", "chisq", "fisim"]
+        self.metrics = ["pcc", "ed", "distance", "wic", "fisim"]
         self.combine = ["mean", "sum"]
         self._load_scores()
         # Create a parallel python job server, to use for fast motif comparison
@@ -194,6 +196,8 @@ class MotifComparer:
         else:
             if metric == "akl":
                 func = akl
+            elif metric == "chisq":
+                func = chisq
             elif metric == "ssd":
                 func = ssd
             else:
