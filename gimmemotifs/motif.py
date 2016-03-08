@@ -11,7 +11,7 @@ import re
 import os
 import sys
 import random
-from math import log,sqrt,log
+from math import log,sqrt
 from tempfile import NamedTemporaryFile
 from config import *
 from subprocess import *
@@ -29,7 +29,10 @@ class Motif:
     PSEUDO_PFM_COUNT = 1000 # Jaspar mean
     PSEUDO_PWM = 1e-6
 
-    def __init__(self, pfm=[]):
+    def __init__(self, pfm=None):
+        if pfm is None:
+            pfm = []
+
         if len(pfm) > 0:
             if sum(pfm[0]) > 2:
                 self.pfm = [list(x) for x in pfm]
@@ -162,7 +165,10 @@ class Motif:
         m +="\n".join(["\t".join(["%s" % x for x in row]) for row in self.pwm])
         return m
 
-    def ic_pos(self, row1, row2=[0.25,0.25,0.25,0.25]):
+    def ic_pos(self, row1, row2=None):
+        if row2 is None:
+            row2 = [0.25,0.25,0.25,0.25]
+
         score = 0
         for a,b in zip(row1, row2):
             if a > 0:
@@ -323,7 +329,10 @@ class Motif:
         m.id = m.to_consensus()
         return m
     
-    def other_ic_pos(self, row1, row2, bg=[0.25,0.25,0.25,0.25]):
+    def other_ic_pos(self, row1, row2, bg=None):
+        if bg is None:
+            bg = [0.25,0.25,0.25,0.25]
+        
         score = 0
         score_a = 0
         score_b = 0
@@ -368,7 +377,10 @@ class Motif:
         
         return score
 
-    def ic(self, pwm1, pwm2, pos, bg=[0.25,0.25,0.25,0.25], bg_factor=1):
+    def ic(self, pwm1, pwm2, pos, bg=None, bg_factor=1):
+        if bg is None:
+            bg = [0.25,0.25,0.25,0.25]
+        
         # xxCATGYT
         # GGCTTGYx
         # pos = -2
@@ -407,7 +419,10 @@ class Motif:
     #    print "SCORE WITH BG: %s" % score
         return score
 
-    def other_ic(self, pwm1, pwm2, pos, bg=[0.25,0.25,0.25,0.25], bg_factor=0.8):
+    def other_ic(self, pwm1, pwm2, pos, bg=None, bg_factor=0.8):
+        if bg is None:
+            bg = [0.25,0.25,0.25,0.25]
+        
         # xxCATGYT
         # GGCTTGYx
         # pos = -2
@@ -439,7 +454,10 @@ class Motif:
         
         return score
 
-    def matrix_ic(self, pwm1, pwm2, bg=[0.25,0.25,0.25,0.25], bg_factor=0.8):
+    def matrix_ic(self, pwm1, pwm2, bg=None, bg_factor=0.8):
+        if bg is None:
+            bg = [0.25,0.25,0.25,0.25]
+        
         # xxCATGYT
         # GGCTTGYx
         # pos = -2

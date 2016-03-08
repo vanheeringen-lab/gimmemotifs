@@ -133,7 +133,7 @@ def genome(args):
     if len(fa_files) == 1:
         f = Fasta(fa_files[0])
         for n,s in f.items():
-            with open("{}/{}.fa".format(n)) as f:
+            with open("{}/{}.fa".format(genome_dir, n)) as f:
                 f.write("{}\n{}\n".format(n,s))
     
         os.unlink(fa_files[0])

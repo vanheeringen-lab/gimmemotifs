@@ -21,7 +21,7 @@ from numpy import mean,std,array,sum
 # GimmeMotifs imports
 from gimmemotifs.motif import *
 from gimmemotifs.config import *
-from gimmemotifs.c_metrics import pwmscan
+from gimmemotifs.c_metrics import pwmscan,score
 # pool import is at the bottom
 
 # Try to import the fisim code, if it present

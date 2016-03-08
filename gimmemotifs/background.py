@@ -117,7 +117,10 @@ class MarkovFasta(Fasta):
             self.add(id, random_seq)    
             c += 1
 
-    def _initialize_matrices(self, seqs, k=1, skip_bad=True, alphabet=['A','C','G','T'], bad="n"):
+    def _initialize_matrices(self, seqs, k=1, skip_bad=True, alphabet=None, bad="n"):
+        if alphabet is None:
+            alphabet = ['A','C','G','T']
+
         self.frequencies = {}
         kmercount = {}
         
