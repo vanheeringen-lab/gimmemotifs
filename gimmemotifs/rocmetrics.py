@@ -31,8 +31,8 @@ def enr_at_fdr(fg_vals, bg_vals, fdr=5):
 def max_enrichment(fg_vals, bg_vals, minbg=2):
 
     scores = np.hstack((fg_vals, bg_vals))
-    idx = argsort(scores)
-    x = np.hstack((ones(len(fg_vals)), zeros(len(bg_vals))))
+    idx = np.argsort(scores)
+    x = np.hstack((np.ones(len(fg_vals)), np.zeros(len(bg_vals))))
     xsort = x[idx]
 
     m = 0

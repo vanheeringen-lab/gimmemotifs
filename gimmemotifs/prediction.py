@@ -110,8 +110,10 @@ class PredictionResult:
                                     callback=self.add_stats)
                 
 
-def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools={}, job_server="", ncpus=8, logger=None, max_time=None, fg_file=None, bg_file=None):
-    
+def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools=None, job_server="", ncpus=8, logger=None, max_time=None, fg_file=None, bg_file=None):
+    if tools is None:
+        tools = {}
+
     config = MotifConfig()
 
     if not tools:

@@ -717,8 +717,7 @@ class MotifSampler(MotifProgram):
                         self.config.get_bg_dir(), 
                         "{}.{}.bg".format(org, "MotifSampler"))
             else:            
-                raise Exception, 
-                    "No background specified for {}".format(self.name)
+                raise Exception, "No background specified for {}".format(self.name)
 
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)

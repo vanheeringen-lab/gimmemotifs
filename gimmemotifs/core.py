@@ -298,7 +298,7 @@ class GimmeMotifs:
                 order = {"1":"1st","2":"2nd", "3":"3rd", "4":"4th", "5":"5th"}[str(self.markov_model)]
                 self.logger.info("Creating random background (%s order Markov)" % order)
         
-            m = MarkovFasta(fg, k=int(self.markov_model), number=nr_times * len(fg))
+            m = MarkovFasta(fg, k=int(self.markov_model), n=nr_times * len(fg))
             m.writefasta(outfile)
             self.logger.debug("Random background: %s" % (outfile))
             # return the number of random sequences created

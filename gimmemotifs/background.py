@@ -104,10 +104,10 @@ class MarkovFasta(Fasta):
             return
         
         c = 0
-        if not number:
-            number = len(fasta)
+        if not n:
+            n = len(fasta)
 
-        while len(self) < number:
+        while len(self) < n:
             seq = choice(fasta.seqs)
             id = "random_Markov%s_%s" % (k,c)
             if length:

@@ -26,6 +26,7 @@ import numpy as np
 # gimme imports
 from gimmemotifs import tools
 from gimmemotifs.fasta import Fasta
+from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.shutils import which
 from gimmemotifs.plot import plot_histogram
 
@@ -323,9 +324,6 @@ def calc_enrichment(sample, background, len_sample, len_back, mtc=None):
     """Calculate enrichment based on hypergeometric distribution"""
     
     INF = "Inf"
-
-    # Local imports to enable parellel Python calls
-    from scipy.stats import hypergeom
 
     if mtc not in [None, "Bonferroni", "Benjamini-Hochberg", "None"]:
         raise RuntimeError, "Unknown correction: %s" % mtc
