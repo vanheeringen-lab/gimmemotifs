@@ -17,9 +17,10 @@ addons:
     - gfortran
 
 before_install:
+  - rm -rf $HOME/miniconda
   - wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
-  - if [ ! -e $HOME/miniconda]; then ./miniconda.sh -b -p $HOME/miniconda; fi
+  - ./miniconda.sh -b
   - export PATH=$HOME/miniconda/bin:$PATH
   - conda update --yes conda
   - "export DISPLAY=:99.0"
