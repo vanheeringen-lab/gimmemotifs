@@ -11,6 +11,9 @@ import sys
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.utils import parse_cutoff
+from gimmemotifs.motif import pwmfile_to_motifs
+from gimmemotifs.utils import which
+
 try: 
     from gimmemotifs.mp import pool
 except:
