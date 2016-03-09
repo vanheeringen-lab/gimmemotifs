@@ -1,4 +1,5 @@
 # Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+from string import maketrans
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -48,7 +49,8 @@ class MotifProgram(object):
     def is_installed(self):
         return self.is_configured() and os.access(self.bin(), os.X_OK)
 
-    def run(self, fastafile, savedir, params={}, tmp=None):
+    def run(self, fastafile, savedir, params=None, tmp=None):
+
         if not self.is_configured():
             raise ValueError, "%s is not configured" % self.name
 
@@ -71,7 +73,9 @@ class XXmotif(MotifProgram):
         self.cmd = "XXmotif"
         self.use_width = False
 
-    def _run_program(self, bin, fastafile, savedir="", params={}):
+    def _run_program(self, bin, fastafile, savedir="", params=None):
+        if params is None:
+            params = {}
         
         default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
         default_params.update(params)
@@ -126,10 +130,11 @@ class Homer(MotifProgram):
         self.cmd = "homer2"
         self.use_width = True
 
-    def _run_program(self, bin, fastafile, savedir="", params={}):
+    def _run_program(self, bin, fastafile, savedir="", params=None):
         
         default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
-        default_params.update(params)
+        if not params is None: 
+            default_params.update(params)
         
         homer = bin
         
@@ -184,10 +189,11 @@ class BioProspector(MotifProgram):
         self.cmd = "BioProspector"
         self.use_width = True
 
-    def _run_program(self, bin, fastafile, savedir="", params={}):
+    def _run_program(self, bin, fastafile, savedir="", params=None):
         
         default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
-        default_params.update(params)
+        if not params is None: 
+            default_params.update(params)
         
         prospector = bin
         
@@ -264,7 +270,7 @@ class Hms(MotifProgram):
         self.cmd = "hms"
         self.use_width = False
     
-    def _run_program(self, bin, fastafile, savedir="", params={}):
+    def _run_program(self, bin, fastafile, savedir="", params=NNonee):
 
         hms = bin
         thetas = ["theta%s.txt" % i for i in [0,1,2,3]]
@@ -322,10 +328,11 @@ class Amd(MotifProgram):
         self.cmd = "AMD.bin"
         self.use_width = False
     
-    def _run_program(self, bin, fastafile, savedir="", params={}):
+    def _run_program(self, bin, fastafile, savedir="", params=None):
         
         default_params = {"background":None}
-        default_params.update(params)
+        if not params is None: 
+            default_params.update(params)
         
         amd = bin
         
@@ -393,10 +400,11 @@ class Improbizer(MotifProgram):
         self.cmd = "ameme"
         self.use_width = False 
 
-    def _run_program(self, bin, fastafile, savedir="", params={}):
+    def _run_program(self, bin, fastafile, savedir="", params=None):
         
         default_params = {"background":None, "number":10}
-        default_params.update(params)
+        if not params is None: 
+            default_params.update(params)
         
         ameme = bin
         
@@ -458,10 +466,11 @@ class Trawler(MotifProgram):
         self.cmd = "trawler.pl"
         self.use_width = False
 
-    def _run_program(self, bin, fastafile, savedir="", params={}):
+    def _run_program(self, bin, fastafile, savedir="", params=None):
         
         default_params = {"single":False, "background":None}
-        default_params.update(params)
+        if not params is None: 
+            default_params.update(params)
         
         trawler = bin
         
@@ -527,7 +536,7 @@ class Weeder(MotifProgram):
         self.cmd = "weederTFBS.out"
         self.use_width = False
 
-    def _run_program(self, bin,fastafile, savedir="", params={}):
+    def _run_program(self, bin,fastafile, savedir="", params=None):
         #try: 
         #    from gimmemotifs.mp import pool
         #except:
@@ -535,7 +544,8 @@ class Weeder(MotifProgram):
 
 
         default_params = {"analysis":"small", "organism":"hg18", "single":False, "parallel":True}
-        default_params.update(params)
+        if not params is None: 
+            default_params.update(params)
         
         organism = default_params["organism"]
         weeder_organism = ""
@@ -690,10 +700,11 @@ class MotifSampler(MotifProgram):
         self.cmd = "MotifSampler"
         self.use_width = True
 
-    def _run_program(self, bin, fastafile, savedir,params={}):
+    def _run_program(self, bin, fastafile, savedir, params=None):
         
         default_params = {"width":10, "background":"", "single":False, "number":10}
-        default_params.update(params)
+        if not params is None: 
+            default_params.update(params)
         
         background = default_params['background']
         width = default_params['width']
@@ -809,10 +820,11 @@ class MDmodule(MotifProgram):
         self.cmd = "MDmodule"
         self.use_width = True
         
-    def _run_program(self, bin, fastafile, savedir, params={}):
+    def _run_program(self, bin, fastafile, savedir, params=None):
         
         default_params = {"width":10, "number":10}
-        default_params.update(params)
+        if not params is None: 
+            default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
@@ -897,7 +909,7 @@ class ChIPMunk(MotifProgram):
         self.cmd = "ChIPMunk.sh"
         self.use_width = True
 
-    def _run_program(self, bin, fastafile, savedir, params={}):
+    def _run_program(self, bin, fastafile, savedir, params=None):
 
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
@@ -959,10 +971,11 @@ class Posmo(MotifProgram):
         self.cmd = "posmo"
         self.use_width = False
 
-    def _run_program(self, bin, fastafile, savedir, params={}):
+    def _run_program(self, bin, fastafile, savedir, params=None):
         
         default_params = {}
-        default_params.update(params)
+        if not params is None: 
+            default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
@@ -1025,10 +1038,11 @@ class Gadem(MotifProgram):
         self.cmd = "gadem"
         self.use_width = False
 
-    def _run_program(self, bin, fastafile, savedir, params={}):
+    def _run_program(self, bin, fastafile, savedir, params=None}):
         
         default_params = {}
-        default_params.update(params)
+        if not params is None: 
+            default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
@@ -1098,7 +1112,7 @@ class Jaspar(MotifProgram):
         self.cmd = "/bin/false"    
         self.use_width = False
 
-    def _run_program(self, bin, fastafile, savedir, params={}):
+    def _run_program(self, bin, fastafile, savedir, params=None):
         fname = os.path.join(self.config.get_motif_dir(), "JASPAR2010_vertebrate.pwm")
         motifs =  pwmfile_to_motifs(fname)
         for motif in motifs:
@@ -1111,10 +1125,11 @@ class Meme(MotifProgram):
         self.cmd = "meme.bin"
         self.use_width = True
 
-    def _run_program(self, bin, fastafile, savedir, params={}):
+    def _run_program(self, bin, fastafile, savedir, params=None):
         #EVT = 1.0
         default_params = {"width":10, "single":False, "number":10}
-        default_params.update(params)
+        if not params is None: 
+            default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
@@ -1183,11 +1198,12 @@ class MemeW(MotifProgram):
         self.cmd = "meme.bin"
         self.use_width = False
 
-    def _run_program(self, bin, fastafile, savedir, params={}):
+    def _run_program(self, bin, fastafile, savedir, params=None):
         
         #EVT = 1.0
         default_params = {"single":False, "number":10}
-        default_params.update(params)
+        if not params is None: 
+            default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
