@@ -270,7 +270,7 @@ class Hms(MotifProgram):
         self.cmd = "hms"
         self.use_width = False
     
-    def _run_program(self, bin, fastafile, savedir="", params=NNonee):
+    def _run_program(self, bin, fastafile, savedir="", params=None):
 
         hms = bin
         thetas = ["theta%s.txt" % i for i in [0,1,2,3]]
