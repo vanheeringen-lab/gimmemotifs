@@ -10,19 +10,23 @@
 import re
 import os
 import sys
-import logging
-from math import log,sqrt
-from subprocess import *
+from subprocess import Popen, PIPE, STDOUT, call
+from math import sqrt
 import shutil
-from string import maketrans
+from tempfile import NamedTemporaryFile, mkdtemp
+import StringIO
+
+# gimme imports
+from gimmemotifs.config import MotifConfig
+from gimmemotifs.fasta import Fasta
+from gimmemotifs.motif import pwmfile_to_motifs
 
 try:
     from gimmemotifs.motif import * 
-except:
+except Exception:
     pass
 
-class MotifProgram:
-    from gimmemotifs.config import MotifConfig
+class MotifProgram(object):
     config = MotifConfig()
     local_bin = None
 
@@ -51,7 +55,6 @@ class MotifProgram:
         if not self.is_installed():
             raise ValueError, "%s is not installed or not correctly configured" % self.name
         
-        from tempfile import mkdtemp,NamedTemporaryFile
         self.tmpdir = mkdtemp(prefix="{0}.".format(self.name), dir=tmp)
  
         try:
@@ -69,8 +72,6 @@ class XXmotif(MotifProgram):
         self.use_width = False
 
     def _run_program(self, bin, fastafile, savedir="", params={}):
-        import os, tempfile, shutil
-        from subprocess import Popen, PIPE
         
         default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
         default_params.update(params)
@@ -126,8 +127,6 @@ class Homer(MotifProgram):
         self.use_width = True
 
     def _run_program(self, bin, fastafile, savedir="", params={}):
-        import os, tempfile, shutil
-        from subprocess import Popen, PIPE
         
         default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
         default_params.update(params)
@@ -143,7 +142,7 @@ class Homer(MotifProgram):
         
         bgfile = os.path.abspath(default_params["background"])
         
-        outfile = tempfile.NamedTemporaryFile(
+        outfile = NamedTemporaryFile(
                 dir=self.tmpdir, 
                 prefix= "homer_w{}.".format(default_params["width"])
                 ).name
@@ -186,8 +185,6 @@ class BioProspector(MotifProgram):
         self.use_width = True
 
     def _run_program(self, bin, fastafile, savedir="", params={}):
-        import os, tempfile, shutil
-        from subprocess import Popen, PIPE
         
         default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
         default_params.update(params)
@@ -268,9 +265,6 @@ class Hms(MotifProgram):
         self.use_width = False
     
     def _run_program(self, bin, fastafile, savedir="", params={}):
-        import os, tempfile, shutil
-        from subprocess import Popen, PIPE
-        from gimmemotifs.fasta import Fasta
 
         hms = bin
         thetas = ["theta%s.txt" % i for i in [0,1,2,3]]
@@ -329,8 +323,6 @@ class Amd(MotifProgram):
         self.use_width = False
     
     def _run_program(self, bin, fastafile, savedir="", params={}):
-        import os, tempfile, shutil
-        from subprocess import Popen, PIPE
         
         default_params = {"background":None}
         default_params.update(params)
@@ -402,8 +394,6 @@ class Improbizer(MotifProgram):
         self.use_width = False 
 
     def _run_program(self, bin, fastafile, savedir="", params={}):
-        import os, tempfile, shutil
-        from subprocess import Popen, PIPE
         
         default_params = {"background":None, "number":10}
         default_params.update(params)
@@ -469,8 +459,6 @@ class Trawler(MotifProgram):
         self.use_width = False
 
     def _run_program(self, bin, fastafile, savedir="", params={}):
-        import os, tempfile, shutil
-        from subprocess import Popen, PIPE
         
         default_params = {"single":False, "background":None}
         default_params.update(params)
@@ -486,7 +474,7 @@ class Trawler(MotifProgram):
         
         #savedir = "/tmp/trawler/"
 
-        tmp = tempfile.NamedTemporaryFile(dir=self.tmpdir, delete=False)
+        tmp = NamedTemporaryFile(dir=self.tmpdir, delete=False)
         shutil.copy(fastafile, tmp.name)
         fastafile = tmp.name
     
@@ -528,7 +516,6 @@ class Trawler(MotifProgram):
         return []
 
 def run_weeder_subset(weeder, fastafile, w, e, organism, strand):
-    from subprocess import Popen,PIPE
     cmd = "%s -f %s -W %s -e %s -R 50 -O %s %s" % (weeder, fastafile, w, e, organism, strand)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
     out,err = p.communicate()
@@ -541,8 +528,6 @@ class Weeder(MotifProgram):
         self.use_width = False
 
     def _run_program(self, bin,fastafile, savedir="", params={}):
-        import os, tempfile, shutil
-        from subprocess import Popen, PIPE
         #try: 
         #    from gimmemotifs.mp import pool
         #except:
@@ -591,7 +576,7 @@ class Weeder(MotifProgram):
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
 
-        tmp = tempfile.NamedTemporaryFile(dir=self.tmpdir)
+        tmp = NamedTemporaryFile(dir=self.tmpdir)
         name = tmp.name
         tmp.close()
         shutil.copy(fastafile, name)
@@ -706,8 +691,6 @@ class MotifSampler(MotifProgram):
         self.use_width = True
 
     def _run_program(self, bin, fastafile, savedir,params={}):
-        import os, tempfile
-        from subprocess import Popen,PIPE
         
         default_params = {"width":10, "background":"", "single":False, "number":10}
         default_params.update(params)
@@ -726,10 +709,10 @@ class MotifSampler(MotifProgram):
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
     
-        tmp = tempfile.NamedTemporaryFile(dir=self.tmpdir)
+        tmp = NamedTemporaryFile(dir=self.tmpdir)
         pwmfile = tmp.name
 
-        tmp2  = tempfile.NamedTemporaryFile(dir=self.tmpdir)
+        tmp2  = NamedTemporaryFile(dir=self.tmpdir)
         outfile = tmp2.name
     
         strand = 1
@@ -827,8 +810,6 @@ class MDmodule(MotifProgram):
         self.use_width = True
         
     def _run_program(self, bin, fastafile, savedir, params={}):
-        from subprocess import Popen, PIPE
-        import os, tempfile, shutil
         
         default_params = {"width":10, "number":10}
         default_params.update(params)
@@ -917,9 +898,6 @@ class ChIPMunk(MotifProgram):
         self.use_width = True
 
     def _run_program(self, bin, fastafile, savedir, params={}):
-        from subprocess import Popen, PIPE
-        from gimmemotifs.fasta import Fasta
-        import os, tempfile, shutil
 
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
@@ -982,8 +960,6 @@ class Posmo(MotifProgram):
         self.use_width = False
 
     def _run_program(self, bin, fastafile, savedir, params={}):
-        from subprocess import Popen, PIPE
-        import os, tempfile, shutil
         
         default_params = {}
         default_params.update(params)
@@ -1050,8 +1026,6 @@ class Gadem(MotifProgram):
         self.use_width = False
 
     def _run_program(self, bin, fastafile, savedir, params={}):
-        from subprocess import Popen, PIPE
-        import os, tempfile, shutil
         
         default_params = {}
         default_params.update(params)
@@ -1125,8 +1099,6 @@ class Jaspar(MotifProgram):
         self.use_width = False
 
     def _run_program(self, bin, fastafile, savedir, params={}):
-        from gimmemotifs.motif import pwmfile_to_motifs
-        import os
         fname = os.path.join(self.config.get_motif_dir(), "JASPAR2010_vertebrate.pwm")
         motifs =  pwmfile_to_motifs(fname)
         for motif in motifs:
@@ -1140,16 +1112,13 @@ class Meme(MotifProgram):
         self.use_width = True
 
     def _run_program(self, bin, fastafile, savedir, params={}):
-        from subprocess import Popen, PIPE, STDOUT, call
-        import os, tempfile, shutil, StringIO
-        
         #EVT = 1.0
         default_params = {"width":10, "single":False, "number":10}
         default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
-        tmp = tempfile.NamedTemporaryFile(dir=self.tmpdir)
+        tmp = NamedTemporaryFile(dir=self.tmpdir)
         tmpname = tmp.name
     
         strand = "-revcomp"
@@ -1215,8 +1184,6 @@ class MemeW(MotifProgram):
         self.use_width = False
 
     def _run_program(self, bin, fastafile, savedir, params={}):
-        from subprocess import Popen, PIPE, STDOUT, call
-        import os, tempfile, shutil, StringIO
         
         #EVT = 1.0
         default_params = {"single":False, "number":10}
@@ -1224,7 +1191,7 @@ class MemeW(MotifProgram):
         
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
-        tmp = tempfile.NamedTemporaryFile(dir=self.tmpdir)
+        tmp = NamedTemporaryFile(dir=self.tmpdir)
         tmpname = tmp.name
     
         strand = "-revcomp"
