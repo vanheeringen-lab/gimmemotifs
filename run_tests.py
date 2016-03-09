@@ -4,9 +4,12 @@ import sys
 import unittest
 from glob import glob
 
-libdir = glob('build/lib.*')[0]
-p = [os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), libdir)), "test"]
-sys.path = p + sys.path
+libdirs = glob('build/lib.*')
+if len(libdirs) > 0:
+    p = [os.path.abspath(os.path.join(
+        os.path.dirname(sys.argv[0]), libdirs[0])
+        ), "test"]
+    sys.path = p + sys.path
 
 p = re.compile(r'^test_\w+\.py$')
 tests = [file[:-3] for file in os.listdir("test") if p.match(file)]
