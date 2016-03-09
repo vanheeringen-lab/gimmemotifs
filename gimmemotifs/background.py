@@ -41,20 +41,19 @@ def create_random_genomic_bedfile(out, index_dir, length, n):
 
 def create_promoter_bedfile(out, genefile, length, n):
     strand_map = {"+":True, "-":False, 1:True, -1:False, "1":True, "-1":False}
-    data = {}
 
     features = []
     
     for line in open(genefile):
         if not line.startswith("track"):
-            (chr, start, end, name, score, strand) = line[:-1].split("\t")[:6]
+            (chrom, start, end, name, score, strand) = line[:-1].split("\t")[:6]
             start, end = int(start), int(end)
             strand= strand_map[strand]
             if strand:
                 if start - length >= 0:
-                    features.append([chr, start - length, start, strand])
+                    features.append([chrom, start - length, start, strand])
             else:
-                features.append([chr, end, end + length, strand])
+                features.append([chrom, end, end + length, strand])
 
     
     if n < len(features):
@@ -64,8 +63,8 @@ def create_promoter_bedfile(out, genefile, length, n):
 
     # Write result to temporary bedfile
     tmp = open(out, "w")
-    for chr, start, end, strand in sorted(features, key=lambda x: x[0]):
-        tmp.write("%s\t%s\t%s\t0\t0\t%s\n" % (chr, start, end, {True:"+",False:"-"}[strand]))
+    for chrom, start, end, strand in sorted(features, key=lambda x: x[0]):
+        tmp.write("%s\t%s\t%s\t0\t0\t%s\n" % (chrom, start, end, {True:"+",False:"-"}[strand]))
     tmp.flush()
 
 class MarkovFasta(Fasta):
