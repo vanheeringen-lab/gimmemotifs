@@ -76,7 +76,7 @@ class MarkovFasta(Fasta):
 
     Required arg 'fasta' is a Fasta object
     Optional arg 'length' can be used to generate sequences of a different length
-    Optional arg 'number' specifies the number of sequences to generate
+    Optional arg 'n' specifies the number of sequences to generate
     Optional arg 'k' specifies the order of the Markov model, default is 1 for 1st
     order
 
@@ -91,7 +91,7 @@ class MarkovFasta(Fasta):
     
     """
     
-    def __init__(self, fasta, length=None, number=None, k=1, matrix_only=False):
+    def __init__(self, fasta, length=None, n=None, k=1, matrix_only=False):
         self.k = k
 
         # Initialize super Fasta object

@@ -615,16 +615,16 @@ class Weeder(MotifProgram):
         default_params["parallel"] = False 
         if default_params["parallel"]:
             jobs = []
-            for (w,e) in coms:
-                jobs.append(pool.apply_async(
-                    run_weeder_subset, 
-                    (weeder, fastafile, w, e, weeder_organism, strand,)
-                    ))
+            #for (w,e) in coms:
+            #    jobs.append(pool.apply_async(
+            #        run_weeder_subset, 
+            #        (weeder, fastafile, w, e, weeder_organism, strand,)
+            #        ))
 
-            for job in jobs:
-                out,err = job.get()
-                stdout += out
-                stderr += err
+            #for job in jobs:
+            #    out,err = job.get()
+            #    stdout += out
+            #    stderr += err
         else:
 
             for (w,e) in coms:
@@ -713,9 +713,12 @@ class MotifSampler(MotifProgram):
         if not background:
             if default_params["organism"]:
                 org = default_params["organism"]
-                background = os.path.join(self.config.get_bg_dir(), "%s.%s.bg" % (org, "MotifSampler"))
+                background = os.path.join(
+                        self.config.get_bg_dir(), 
+                        "{}.{}.bg".format(org, "MotifSampler"))
             else:            
-                raise Error, "No background specified for %s" % self.name
+                raise Exception, 
+                    "No background specified for {}".format(self.name)
 
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)

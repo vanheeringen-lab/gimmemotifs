@@ -31,14 +31,13 @@ from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs import mytmpdir
 
 class PredictionResult:
-    def __init__(self, outfile, logger=None, fg_file=None, bg_file=None, job_server=None):
+    def __init__(self, outfile, logger=None, fg_file=None, bg_file=None):
         self.lock = thread.allocate_lock()
         self.motifs = []
         self.finished = []
         self.logger = logger
         self.stats = {}
         self.outfile = outfile
-        self.job_server = job_server
 
         if fg_file and bg_file:
             self.fg_fa = Fasta(fg_file)
@@ -89,7 +88,11 @@ class PredictionResult:
                 self.job_server.submit(motif.stats, (self.fg_fa, self.bg_fa), (), (), self.add_stats, ("%s_%s" % (motif.id, motif.to_consensus()),), group="stats")
 
 
-def write_shell_script(tool, fastafile, rundir=os.path.abspath("."), params={}):  
+def write_shell_script(tool, fastafile, rundir=os.path.abspath("."), params=None):  
+    
+    if params is None:
+        params = {}
+
     local_params = dict([(k,v) for k,v in params.items()])
     
     tmp = NamedTemporaryFile(
@@ -142,8 +145,10 @@ def write_shell_script(tool, fastafile, rundir=os.path.abspath("."), params={}):
     
     return tmp.name
 
-def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools={}, job_server="", ncpus=8, logger=None, max_time=None, fg_file=None, bg_file=None):
-    
+def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools=None, job_server="", ncpus=8, logger=None, max_time=None, fg_file=None, bg_file=None):
+    if tools is None:
+        tools = {}
+
     config = MotifConfig()
 
     if not tools:
@@ -164,12 +169,9 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
         sys.stderr.write("Setting analysis xs to small")
         analysis = "small"
 
-    if not job_server:
-        job_server = pp.Server(ncpus, secret='pumpkinrisotto')
-    
     jobs = {}
     
-    result = PredictionResult(outfile, logger=logger, fg_file=fg_file, bg_file=bg_file, job_server=job_server)
+    result = PredictionResult(outfile, logger=logger, fg_file=fg_file, bg_file=bg_file)
     
     # Dynamically load all tools
     toolio = [x[1]() for x in inspect.getmembers(
@@ -284,11 +286,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
     except KeyboardInterrupt, e:
         # Destroy all running jobs
         logger.info("Caught interrupt, destroying all running jobs")
-        #job_server.destroy()
-        #result.get_remaining_stats()
         
-    # Wait for all stats jobs to finish
-    job_server.wait(group="stats")    
     
     logger.info("Waiting for calculation of motif statistics to finish")
     while len(result.stats.keys()) < len(result.motifs):

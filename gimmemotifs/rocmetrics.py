@@ -6,26 +6,22 @@
 
 """ Module to calculate ROC and MNCP scores """
 
-
 # External imports
-from scipy.stats import stats
-from numpy import array
+from scipy.stats import stats,scoreatpercentile
+import numpy as np
 
 def fraction_fdr(fg_vals, bg_vals, fdr=5):
-    from scipy.stats import scoreatpercentile
-    fg_vals = array(fg_vals)
+    fg_vals = np.array(fg_vals)
     s = scoreatpercentile(bg_vals, 100 - fdr)
     return len(fg_vals[fg_vals >= s]) / float(len(fg_vals))
 
 def score_at_fdr(fg_vals, bg_vals, fdr=5):
-    from scipy.stats import scoreatpercentile
-    bg_vals = array(bg_vals)
+    bg_vals = np.array(bg_vals)
     return scoreatpercentile(bg_vals, 100 - fdr)
 
 def enr_at_fdr(fg_vals, bg_vals, fdr=5):
-    from scipy.stats import scoreatpercentile
-    pos = array(fg_vals)
-    neg = array(bg_vals)
+    pos = np.array(fg_vals)
+    neg = np.array(bg_vals)
     s = scoreatpercentile(neg, 100 - fdr)
     neg_matches = float(len(neg[neg >= s]))
     if neg_matches == 0:
@@ -33,11 +29,10 @@ def enr_at_fdr(fg_vals, bg_vals, fdr=5):
     return len(pos[pos >= s]) / neg_matches * len(neg) / float(len(pos))
 
 def max_enrichment(fg_vals, bg_vals, minbg=2):
-    from numpy import hstack,argsort,ones,zeros
 
-    scores = hstack((fg_vals, bg_vals))
+    scores = np.hstack((fg_vals, bg_vals))
     idx = argsort(scores)
-    x = hstack((ones(len(fg_vals)), zeros(len(bg_vals))))
+    x = np.hstack((ones(len(fg_vals)), zeros(len(bg_vals))))
     xsort = x[idx]
 
     m = 0
@@ -52,29 +47,24 @@ def max_enrichment(fg_vals, bg_vals, minbg=2):
     return m, s
 
 def MNCP(fg_vals, bg_vals):
-    from scipy.stats import stats
-    from numpy import mean,array,hstack
-    #from pylab import *
     fg_len = len(fg_vals)
     total_len = len(fg_vals) + len(bg_vals)
 
-    if type(fg_vals) != type(array([])):
-        fg_vals = array(fg_vals)
-    if type(bg_vals) != type(array([])):
-        bg_vals = array(bg_vals)
+    if type(fg_vals) != type(np.array([])):
+        fg_vals = np.array(fg_vals)
+    if type(bg_vals) != type(np.array([])):
+        bg_vals = np.array(bg_vals)
     
     fg_rank = stats.rankdata(fg_vals)
-    total_rank = stats.rankdata(hstack((fg_vals, bg_vals)))
+    total_rank = stats.rankdata(np.hstack((fg_vals, bg_vals)))
 
     slopes = []
     for i in range(len(fg_vals)):
         slope = ((fg_len - fg_rank[i] + 1) / fg_len ) / ((total_len - total_rank[i] + 1)/ total_len)
         slopes.append(slope)
-    return mean(slopes)
+    return np.mean(slopes)
 
 def ROC_AUC(fg_vals, bg_vals):
-    from scipy.stats import stats
-    from numpy import mean,array,hstack
     #if len(fg_vals) != len(bg_vals):
     #    return None
     
@@ -84,13 +74,13 @@ def ROC_AUC(fg_vals, bg_vals):
     fg_len = len(fg_vals)
     total_len = len(fg_vals) + len(bg_vals)
     
-    if type(fg_vals) != type(array([])):
-        fg_vals = array(fg_vals)
-    if type(bg_vals) != type(array([])):
-        bg_vals = array(bg_vals)
+    if type(fg_vals) != type(np.array([])):
+        fg_vals = np.array(fg_vals)
+    if type(bg_vals) != type(np.array([])):
+        bg_vals = np.array(bg_vals)
 
     fg_rank = stats.rankdata(fg_vals) 
-    total_rank = stats.rankdata(hstack((fg_vals, bg_vals)))
+    total_rank = stats.rankdata(np.hstack((fg_vals, bg_vals)))
     
     return (sum(total_rank[:fg_len]) - sum(fg_rank))/ (fg_len * (total_len - fg_len))
 
@@ -128,8 +118,8 @@ def ROC_AUC_xlim(x_bla, y_bla, xlim=None):
     
     #print new_x
     #print new_y
-    new_x = 1 - array(new_x)
-    new_y = 1 - array(new_y)
+    new_x = 1 - np.array(new_x)
+    new_y = 1 - np.array(new_y)
     #plot(new_x, new_y)
     #show()
 
@@ -212,22 +202,21 @@ def ROC_values(x_bla, y_bla):
     
     #print new_x
     #print new_y
-    new_x = 1 - array(new_x)
-    new_y = 1 - array(new_y)
+    new_x = 1 - np.array(new_x)
+    new_y = 1 - np.array(new_y)
     
     return (new_x, new_y)
 
 def max_fmeasure(x,y):
-    from numpy import array, logical_and, nanmax
-    x = array(x[:])
-    y = array(y[:])
+    x = np.array(x[:])
+    y = np.array(y[:])
     p = y / (y + x)
-    filt = logical_and((p * y) > 0, (p + y) > 0)
+    filt = np.logical_and((p * y) > 0, (p + y) > 0)
     p = p[filt]
     y = y[filt]
     
     f = (2 * p * y) / (p + y)
     if len(f) > 0:
-        return nanmax(f), nanmax(y[f == nanmax(f)])
+        return np.nanmax(f), np.nanmax(y[f == np.nanmax(f)])
     else:
         return None,None

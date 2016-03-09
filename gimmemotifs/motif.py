@@ -17,6 +17,9 @@ from config import *
 from subprocess import *
 
 from gimmemotifs import mytmpdir
+from gimmemotifs.rocmetrics import MNCP, ROC_AUC, max_enrichment, fraction_fdr, score_at_fdr, enr_at_fdr
+from gimmemotifs.fasta import Fasta
+from gimmemotifs.utils import ks_pvalue
 
 # External imports
 try:
@@ -546,7 +549,7 @@ class Motif:
         
         str_out = "\n".join(rows)
         if header:
-            str_out = "\n".join(self.id, str_out)
+            str_out = "\n".join([self.id, str_out])
         
         return str_out
 
@@ -666,12 +669,6 @@ class Motif:
         #    os.unlink(f.name)
 
     def stats(self, fg_fa, bg_fa, logger=None):
-        from gimmemotifs.rocmetrics import MNCP, ROC_AUC, max_enrichment, fraction_fdr, score_at_fdr, enr_at_fdr
-        from gimmemotifs.fasta import Fasta
-        from gimmemotifs.utils import ks_pvalue
-        from numpy import array,std
-        from math import log
-
         try:
             stats = {}
             fg_result = self.pwm_scan_all(fg_fa, cutoff=0.0, nreport=1, scan_rc=True)

@@ -17,6 +17,7 @@ from gimmemotifs import mytmpdir
 import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from matplotlib.gridspec import GridSpec
 from mpl_toolkits.axes_grid1 import ImageGrid
 
@@ -29,10 +30,11 @@ def axes_off(ax):
     ax.axes.get_yaxis().set_visible(False)
     ax.axes.get_xaxis().set_visible(False)
 
-def roc_plot(outfile, plot_x, plot_y, ids=[]):
-    import matplotlib.pyplot as plt
-    import matplotlib.cm as cm
-    
+def roc_plot(outfile, plot_x, plot_y, ids=None):
+    if ids is None:
+        ids = []
+
+   
     fig = plt.figure()
     fig.add_subplot(111, aspect="equal")
 
@@ -58,8 +60,6 @@ def roc_plot(outfile, plot_x, plot_y, ids=[]):
     plt.close(fig)
 
 def plot_histogram(values, outfile, xrange=None, breaks=10, title=None, xlabel=None, color=10):
-    import matplotlib.pyplot as plt
-    import matplotlib.cm as cm
     
     colors = [cm.Paired(256 / 11 * i) for i in range(11)]
 
