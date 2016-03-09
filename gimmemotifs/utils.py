@@ -14,16 +14,22 @@ import random
 import tempfile
 from math import log
 from string import strip
-from subprocess import Popen, PIPE
+from subprocess import Popen
 
 # External imports
 import numpy
 from scipy import special
+from scipy.stats import kstest
 import pybedtools
+import matplotlib.pyplot as plt
+import numpy as np
 
+# gimme imports
 from gimmemotifs import tools
-from gimmemotifs.fasta import *
+from gimmemotifs.fasta import Fasta
 from gimmemotifs.shutils import which
+from gimmemotifs.plot import plot_histogram
+from gimmemotifs.utils import ks_pvalue
 
 lgam = special.gammaln
 
@@ -45,8 +51,8 @@ def phyper(k, good, bad, N):
     pvalues = [phyper_single(x, good, bad, N) for x in range(k + 1, N + 1)]
     return numpy.sum(pvalues)
 
-def divide_file(file, sample, rest, fraction, abs_max):
-    lines = open(file).readlines()
+def divide_file(fname, sample, rest, fraction, abs_max):
+    lines = open(fname).readlines()
     #random.seed()
     random.shuffle(lines)
 
@@ -67,7 +73,9 @@ def divide_file(file, sample, rest, fraction, abs_max):
     tmp.close()
 
     if stderr:
-        print "Something went wrong: %s" % stderr
+        print "Something went wrong.\nstdout: {}\nstderr; {}".format(
+                stdout,
+                stderr)
         sys.exit()
 
     # Rest
@@ -80,8 +88,8 @@ def divide_file(file, sample, rest, fraction, abs_max):
     #    os.unlink(tmp.name)
     return x, len(lines[x:])    
     
-def divide_fa_file(file, sample, rest, fraction, abs_max):
-    fa = Fasta(file)
+def divide_fa_file(fname, sample, rest, fraction, abs_max):
+    fa = Fasta(fname)
     ids = fa.ids[:]
 
     x = int(fraction * len(ids))
@@ -93,21 +101,17 @@ def divide_fa_file(file, sample, rest, fraction, abs_max):
     # Rest
     f_sample = open(sample, "w")
     f_rest = open(rest, "w")
-    for id,seq in fa.items():
-        if id in sample_seqs:
-            f_sample.write(">%s\n%s\n" % (id, seq))
+    for name,seq in fa.items():
+        if name in sample_seqs:
+            f_sample.write(">%s\n%s\n" % (name, seq))
         else:
-            f_rest.write(">%s\n%s\n" % (id, seq))
+            f_rest.write(">%s\n%s\n" % (name, seq))
     f_sample.close()
     f_rest.close()
     
     return x, len(ids[x:])    
 
 def make_gff_histogram(gfffile, outfile, l, title, breaks=21):
-    try:
-        import matplotlib.pyplot as plt
-    except:
-        pass
     data = []
     for line in open(gfffile):
         vals = line.strip().split("\t")
@@ -118,11 +122,9 @@ def make_gff_histogram(gfffile, outfile, l, title, breaks=21):
     plt.savefig(outfile)
 
 def ks_pvalue(values, l):
-    from scipy.stats import kstest
-    from numpy import array
     if len(values) == 0:
         return 1.0
-    a = array(values, dtype="float") / l
+    a = np.array(values, dtype="float") / l
     return kstest(a, "uniform")[1]
 
 def write_equalwidth_bedfile(bedfile, width, outfile):
@@ -451,17 +453,13 @@ def locate_tool(tool, verbose=True):
 
 def motif_localization(fastafile, motif, width, outfile, cutoff=0.9):
     NR_HIST_MATCHES = 100
-    from gimmemotifs.plot import plot_histogram
-    from gimmemotifs.utils import ks_pvalue
-    from gimmemotifs.fasta import Fasta
-    from numpy import array
 
     matches = motif.pwm_scan(Fasta(fastafile), cutoff=cutoff, nreport=NR_HIST_MATCHES)
     if len(matches) > 0:
         ar = []
         for a in matches.values():
             ar += a
-        matches = array(ar)
+        matches = np.array(ar)
         p = ks_pvalue(matches, width - len(motif))
         plot_histogram(matches - width / 2 + len(motif) / 2, outfile, xrange=(-width / 2, width / 2), breaks=21, title="%s (p=%0.2e)" % (motif.id, p), xlabel="Position")
         return motif.id, p
