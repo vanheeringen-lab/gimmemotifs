@@ -8,19 +8,18 @@ cache:
 #  directories:
 #    - $HOME/miniconda
 
-addons:
-  apt:
-    packages:
-    - libatlas-dev
-    - libatlas-base-dev
-    - liblapack-dev
-    - gfortran
+#addons:
+#  apt:
+#    packages:
+#    - libatlas-dev
+#    - libatlas-base-dev
+#    - liblapack-dev
+#    - gfortran
 
 before_install:
-  - rm -rf $HOME/miniconda
   - wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
-  - ./miniconda.sh -b
+  - ./miniconda.sh -b -p $HOME/miniconda -f
   - export PATH=$HOME/miniconda/bin:$PATH
   - conda update --yes conda
   - "export DISPLAY=:99.0"
