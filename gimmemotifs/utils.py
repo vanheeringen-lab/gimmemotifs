@@ -17,9 +17,8 @@ from string import strip
 from subprocess import Popen
 
 # External imports
-import numpy
 from scipy import special
-from scipy.stats import kstest
+from scipy.stats import kstest,hypergeom
 import pybedtools
 import matplotlib.pyplot as plt
 import numpy as np
@@ -29,7 +28,7 @@ from gimmemotifs import tools
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.shutils import which
 from gimmemotifs.plot import plot_histogram
-from gimmemotifs.utils import ks_pvalue
+from gimmemotifs.motif import pwmfile_to_motifs
 
 lgam = special.gammaln
 
@@ -253,8 +252,6 @@ def parse_gff(gff_file, lowmem=False):
 def scan_fasta_file_with_motifs(fastafile, motiffile, threshold, gfffile, scan_rc=True, nreport=1):
     error = None
     try:
-        from gimmemotifs.fasta import Fasta
-        from gimmemotifs.motif import pwmfile_to_motifs
         motifs = pwmfile_to_motifs(motiffile)
         fa = Fasta(fastafile)
         for motif in motifs:
@@ -268,8 +265,6 @@ def calc_motif_enrichment(sample, background, mtc=None, len_sample=None, len_bac
     
     INF = "Inf"
 
-    # Local imports to enable parellel Python calls
-    from scipy.stats import hypergeom
 
     if mtc not in [None, "Bonferroni", "Benjamini-Hochberg", "None"]:
         raise RuntimeError, "Unknown correction: %s" % mtc
