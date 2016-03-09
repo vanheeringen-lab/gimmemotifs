@@ -27,6 +27,16 @@ try:
 except Exception:
     pass
 
+def locate_tool(tool, verbose=True): 
+    tool = re.sub(r'[^a-zA-Z]','',tool) 
+    m = eval(tool)() 
+    bin = which(m.cmd) 
+    if bin: 
+        print "Found %s in %s" % (m.name, bin) 
+        return bin 
+    else: 
+        print "Couldn't find %s" % m.name 
+
 class MotifProgram(object):
     config = MotifConfig()
     local_bin = None

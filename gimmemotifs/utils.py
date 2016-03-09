@@ -24,9 +24,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # gimme imports
-from gimmemotifs import tools
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.shutils import which
 from gimmemotifs.plot import plot_histogram
 
@@ -249,17 +247,6 @@ def parse_gff(gff_file, lowmem=False):
         total += len(lines)
     return mr
 
-def scan_fasta_file_with_motifs(fastafile, motiffile, threshold, gfffile, scan_rc=True, nreport=1):
-    error = None
-    try:
-        motifs = pwmfile_to_motifs(motiffile)
-        fa = Fasta(fastafile)
-        for motif in motifs:
-            motif.pwm_scan_to_gff(fa, gfffile, nreport=nreport, cutoff=float(threshold), scan_rc=scan_rc, append=True)
-    except Exception,e :
-        error = e
-    return error
-
 def calc_motif_enrichment(sample, background, mtc=None, len_sample=None, len_back=None):
     """Calculate enrichment based on hypergeometric distribution"""
     
@@ -431,17 +418,6 @@ def median_bed_len(bedfile):
                 sys.exit(1)
     f.close()
     return np.median(l)
-
-
-def locate_tool(tool, verbose=True):
-    tool = re.sub(r'[^a-zA-Z]','',tool)
-    m = eval("tools." + tool)()
-    bin = which(m.cmd)
-    if bin:
-        print "Found %s in %s" % (m.name, bin)
-        return bin
-    else:
-        print "Couldn't find %s" % m.name
 
 def motif_localization(fastafile, motif, width, outfile, cutoff=0.9):
     NR_HIST_MATCHES = 100

@@ -27,6 +27,7 @@ from gimmemotifs.comparison import *
 from gimmemotifs import genome_index
 from gimmemotifs.cluster import *
 from gimmemotifs.plot import *
+from gimmemotifs.scan import scan_fasta_file_with_motifs
 from gimmemotifs import mytmpdir
 try:
     from gimmemotifs.mp import pool

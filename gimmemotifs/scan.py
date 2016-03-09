@@ -18,6 +18,17 @@ except:
 
 CHUNK = 1000
 
+def scan_fasta_file_with_motifs(fastafile, motiffile, threshold, gfffile, scan_rc=True, nreport=1):
+    error = None
+    try:
+        motifs = pwmfile_to_motifs(motiffile)
+        fa = Fasta(fastafile)
+        for motif in motifs:
+            motif.pwm_scan_to_gff(fa, gfffile, nreport=nreport, cutoff=float(threshold), scan_rc=scan_rc, append=True)
+    except Exception,e :
+        error = e
+    return error
+
 def scan_fa_with_motif(fo, motif, cutoff, nreport, rc=True):
     #try:
     return motif, motif.pwm_scan_all(fo, cutoff, nreport, scan_rc=rc)
