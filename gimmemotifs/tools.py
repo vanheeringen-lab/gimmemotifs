@@ -1038,7 +1038,7 @@ class Gadem(MotifProgram):
         self.cmd = "gadem"
         self.use_width = False
 
-    def _run_program(self, bin, fastafile, savedir, params=None}):
+    def _run_program(self, bin, fastafile, savedir, params=None):
         
         default_params = {}
         if not params is None: 
