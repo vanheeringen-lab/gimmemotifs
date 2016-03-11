@@ -21,7 +21,7 @@ import StringIO
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import pwmfile_to_motifs
-from gimmemoitfs.util import which
+from gimmemotifs.utils import which
 
 try:
     from gimmemotifs.motif import * 
