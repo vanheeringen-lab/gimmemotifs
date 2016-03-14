@@ -15,7 +15,7 @@ from math import log,sqrt
 from tempfile import NamedTemporaryFile
 from config import *
 from subprocess import *
-#from warnings import DeprecationWarning
+from warnings import warn
 
 from gimmemotifs import mytmpdir
 from gimmemotifs.rocmetrics import MNCP, ROC_AUC, max_enrichment, fraction_fdr, score_at_fdr, enr_at_fdr
@@ -813,7 +813,7 @@ def _read_motifs_jaspar(handle):
     pwm = {}
     for line in handle:
         line = line.strip()
-        if line.starts_with(">"):
+        if line.startswith(">"):
             motif_id = line[1:]
         if line[0] in "ACGT":
             m = p.search(line)
@@ -916,29 +916,29 @@ def motifs_to_meme(motifs):
 def alignfile_to_motifs(fname):
     # this method should be deleted
     msg = "alignfile_to_motifs is deprecated, please use read_motifs"
-    raise DeprecationWarning(msg)
-    
+    warn(msg, DeprecationWarning)
+
     return read_motifs(open(fname), fmt="align")    
 
 
 def pwmfile_to_motifs(fname):
     # this method should be deleted
     msg = "pwmfile_to_motifs is deprecated, please use read_motifs"
-    raise DeprecationWarning(msg)
+    warn(msg, DeprecationWarning)
     
     return read_motifs(open(fname), fmt="pwm")    
 
 def transfac_to_motifs(fname):
     # this method should be deleted
     msg = "transfac_to_motifs is deprecated, please use read_motifs"
-    raise DeprecationWarning(msg)
+    warn(msg, DeprecationWarning)
     
     return read_motifs(open(fname), fmt="transfac")    
 
 def xxmotif_to_motifs(fname):
     # this method should be deleted
     msg = "xxmotif_to_motifs is deprecated, please use read_motifs"
-    raise DeprecationWarning(msg)
+    warn(msg, DeprecationWarning)
     
     return read_motifs(open(fname), fmt="xxmotif")    
 
