@@ -7,7 +7,7 @@
 import os
 import sys
 import argparse
-from gimmemotifs.config import MotifConfig, BG_TYPES, GM_VERSION
+from gimmemotifs.config import MotifConfig, BG_TYPES, GM_VERSION, BED_VALID_BGS
 from  gimmemotifs import commands
 
 config = MotifConfig()
@@ -101,7 +101,8 @@ p.add_argument("-p", "--pvalue",
                type=float)
 p.add_argument("-b", "--background", 
                dest="background", 
-               help="Background to determine significance: (%s)" % params["background"], 
+               help="Background to determine significance: {} ({})".format(
+                   ",".join(BED_VALID_BGS), params["background"]), 
                metavar="N", 
                default=params["background"])
 p.add_argument("-u", "--user_background", 

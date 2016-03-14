@@ -1,3 +1,4 @@
+        align = []
 # Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
@@ -18,13 +19,8 @@ import StringIO
 # gimme imports
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.motif import read_motifs
+from gimmemotifs.motif import read_motifs, Motif
 from gimmemotifs.utils import which
-
-try:
-    from gimmemotifs.motif import Motif, read_motifs 
-except Exception:
-    pass
 
 def locate_tool(tool, verbose=True): 
     tool = re.sub(r'[^a-zA-Z]','',tool) 
@@ -124,7 +120,7 @@ class XXmotif(MotifProgram):
         motifs = []
         
         if os.path.exists(outfile):
-            motifs = xxmotif_to_motifs(outfile)
+            motifs = read_motifs(open(outfile), fmt="xxmotifs")
             for m in motifs:
                 m.id = "{0}_{1}".format(self.name, m.id)
         else:

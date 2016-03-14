@@ -14,7 +14,7 @@ import logging.handlers
 from datetime import datetime
 from numpy import median
 from tempfile import NamedTemporaryFile
-from sleep import sleep
+from time import sleep
 
 # External imports
 import kid
@@ -22,16 +22,18 @@ from scipy.stats.mstats import rankdata
 from numpy import mean
 
 # GimmeMotifs imports
-from gimmemotifs.config import MotifConfig,GM_VERSION,FA_VALID_BGS,BED_VALID_BGS,BG_RANK
+from gimmemotifs.config import (MotifConfig, GM_VERSION, FA_VALID_BGS,
+        BED_VALID_BGS, BG_RANK)
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.utils import divide_fa_file,divide_file,write_equalwidth_bedfile,gff_enrichment,motif_localization
-from gimmemotifs.background import MarkovFasta,MatchedGcFasta,PromoterFasta
+from gimmemotifs.utils import (divide_fa_file, divide_file, star, 
+        write_equalwidth_bedfile, gff_enrichment, motif_localization)
+from gimmemotifs.background import MarkovFasta, MatchedGcFasta, PromoterFasta
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs import genome_index
 from gimmemotifs.cluster import cluster_motifs
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.scan import scan_fasta_file_with_motifs
-from gimmemotifs.rocmetrics import ROC_values,ROC_AUC,MNCP,max_fmeasure
+from gimmemotifs.rocmetrics import ROC_values, ROC_AUC, MNCP, max_fmeasure
 from gimmemotifs.motif import read_motifs
 from gimmemotifs import mytmpdir
 try:
@@ -130,8 +132,8 @@ class GimmeMotifs(object):
             os.mkdir(self.imgdir)
         except OSError:
             pass
-        star = os.path.join(self.config.get_template_dir(), "star.png")
-        shutil.copyfile(star, os.path.join(self.imgdir, "star.png"))
+        star_img = os.path.join(self.config.get_template_dir(), "star.png")
+        shutil.copyfile(star_img, os.path.join(self.imgdir, "star.png"))
 
     def _setup_logging(self):
         self.logger = logging.getLogger('motif_analysis')

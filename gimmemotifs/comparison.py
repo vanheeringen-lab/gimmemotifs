@@ -12,6 +12,7 @@ Module to compare DNA sequence motifs (positional frequency matrices)
 import sys
 import os
 from time import sleep
+import random
 
 # External imports
 from scipy.stats import norm,entropy,chi2_contingency

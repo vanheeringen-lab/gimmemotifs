@@ -11,8 +11,8 @@ Module for clustering of DNA sequence motifs (positional frequency matrices)
 import sys
 
 # GimmeMotifs imports
-from gimmemotifs.motif import *
-from gimmemotifs.comparison import *
+from gimmemotifs.motif import read_motifs
+from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.config import MotifConfig
 
 class MotifTree:
