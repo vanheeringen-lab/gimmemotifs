@@ -17,21 +17,21 @@ Quick start
 
 Install using conda:
 
-$ conda install gimmemotifs -c bioconda
+`$ conda install gimmemotifs -c bioconda`
 
 Or with pip:
 
-$ pip install gimmemotifs
+`$ pip install gimmemotifs`
 
 Download a genome:
 
-$ gimme genome hg38
+`$ gimme genome $HOME/genomes/ hg38`
 
 Or index a genome directory with chromosome FASTA files on your computer:
 
-$ gimme index /usr/share/genomes/hg19 hg19
+`$ gimme index /usr/share/genomes/hg19 hg19`
 
 Predict some motifs:
 
-$ gimme motifs my_peaks.bed -g hg38 -n my_motifs 
+`$ gimme motifs my_peaks.bed -g hg38 -n my_motifs`
 
