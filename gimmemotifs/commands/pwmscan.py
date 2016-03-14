@@ -15,9 +15,9 @@ from gimmemotifs.scan import scan, scan_it
 
 MAX_CPUS = 16
 
-def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=True, table=False):
+def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=True, table=False, score_table=False):
     motifs = pwmfile_to_motifs(pwmfile)
-    result = scan_it(inputfile, motifs, cutoff, nreport, scan_rc)
+    result_it = scan_it(inputfile, motifs, cutoff, nreport, scan_rc)
    
     p = re.compile(r'([^\s:]+):(\d+)-(\d+)')
     fa = Fasta(inputfile)
@@ -35,7 +35,7 @@ def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=T
             counts = [table[seq_id].get(m, 0) for m in motifs]
             yield "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
     
-    if args.score_table:
+    elif score_table:
         table = {}
         for seq_id in fa.ids:
             table[seq_id] = {}
@@ -99,8 +99,16 @@ def pwmscan(args):
     bed = args.bed
     scan_rc = args.scan_rc
     table = args.table
+    score_table = args.score_table
     pwmfile = args.pwmfile
 
     for line in command_scan(
-            inputfile, pwmfile, nreport, cutoff, bed, scan_rc, table):
+            inputfile, 
+            pwmfile, 
+            nreport, 
+            cutoff, 
+            bed, 
+            scan_rc, 
+            table, 
+            score_table):
         print line
