@@ -1,5 +1,4 @@
 # Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
-from string import maketrans
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -20,12 +19,23 @@ import StringIO
 # gimme imports
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.motif import pwmfile_to_motifs
+from gimmemotifs.motif import read_motifs
+from gimmemotifs.utils import which
 
 try:
     from gimmemotifs.motif import * 
 except Exception:
     pass
+
+def locate_tool(tool, verbose=True): 
+    tool = re.sub(r'[^a-zA-Z]','',tool) 
+    m = eval(tool)() 
+    bin = which(m.cmd) 
+    if bin: 
+        print "Found %s in %s" % (m.name, bin) 
+        return bin 
+    else: 
+        print "Couldn't find %s" % m.name 
 
 class MotifProgram(object):
     config = MotifConfig()
@@ -177,7 +187,7 @@ class Homer(MotifProgram):
         motifs = []
         
         if os.path.exists(outfile):
-            motifs = pwmfile_to_motifs(outfile)
+            motifs = read_motifs(open(outfile), fmt="pwm")
             for i, m in enumerate(motifs):
                 m.id = "{}_{}_{}".format(self.name, default_params["width"], i + 1)
         
@@ -270,7 +280,7 @@ class Hms(MotifProgram):
         self.cmd = "hms"
         self.use_width = False
     
-    def _run_program(self, bin, fastafile, savedir="", params=NNonee):
+    def _run_program(self, bin, fastafile, savedir="", params=None):
 
         hms = bin
         thetas = ["theta%s.txt" % i for i in [0,1,2,3]]
@@ -506,11 +516,12 @@ class Trawler(MotifProgram):
         out_name = [dir for dir in os.listdir(self.tmpdir) if dir.startswith("tmp")][-1]
         out_file = os.path.join(self.tmpdir, out_name, "result", "%s.pwm" % out_name)
         if os.path.exists(out_file):
-            motifs = pwmfile_to_motifs(os.path.join(
+            motifs = read_motifs(open(os.path.join(
                                                     self.tmpdir, 
                                                     out_name, 
                                                     "result", 
-                                                    "%s.pwm" % out_name))
+                                                    "%s.pwm" % out_name)),
+                                                    fmt="pwm")
         
         # remove temporary files
         if os.path.exists(tmp.name):
@@ -615,16 +626,16 @@ class Weeder(MotifProgram):
         default_params["parallel"] = False 
         if default_params["parallel"]:
             jobs = []
-            for (w,e) in coms:
-                jobs.append(pool.apply_async(
-                    run_weeder_subset, 
-                    (weeder, fastafile, w, e, weeder_organism, strand,)
-                    ))
+            #for (w,e) in coms:
+            #    jobs.append(pool.apply_async(
+            #        run_weeder_subset, 
+            #        (weeder, fastafile, w, e, weeder_organism, strand,)
+            #        ))
 
-            for job in jobs:
-                out,err = job.get()
-                stdout += out
-                stderr += err
+            #for job in jobs:
+            #    out,err = job.get()
+            #    stdout += out
+            #    stderr += err
         else:
 
             for (w,e) in coms:
@@ -713,9 +724,11 @@ class MotifSampler(MotifProgram):
         if not background:
             if default_params["organism"]:
                 org = default_params["organism"]
-                background = os.path.join(self.config.get_bg_dir(), "%s.%s.bg" % (org, "MotifSampler"))
+                background = os.path.join(
+                        self.config.get_bg_dir(), 
+                        "{}.{}.bg".format(org, "MotifSampler"))
             else:            
-                raise Error, "No background specified for %s" % self.name
+                raise Exception, "No background specified for {}".format(self.name)
 
         fastafile = os.path.abspath(fastafile)
         savedir = os.path.abspath(savedir)
@@ -1114,7 +1127,7 @@ class Jaspar(MotifProgram):
 
     def _run_program(self, bin, fastafile, savedir, params=None):
         fname = os.path.join(self.config.get_motif_dir(), "JASPAR2010_vertebrate.pwm")
-        motifs =  pwmfile_to_motifs(fname)
+        motifs =  read_motifs(open(fname), fmt="pwm")
         for motif in motifs:
             motif.id = "JASPAR_%s" % motif.id
         return motifs, "", ""

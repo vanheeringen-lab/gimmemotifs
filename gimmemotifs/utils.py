@@ -24,11 +24,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # gimme imports
-from gimmemotifs import tools
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.shutils import which
 from gimmemotifs.plot import plot_histogram
-from gimmemotifs.motif import pwmfile_to_motifs
 
 lgam = special.gammaln
 
@@ -43,12 +41,12 @@ def star(stat, categories):
 
 def phyper_single(k, good, bad, N):
 
-    return numpy.exp(lgam(good+1) - lgam(good-k+1) - lgam(k+1) + lgam(bad+1) - lgam(bad-N+k+1) - lgam(N-k+1) - lgam(bad+good+1) + lgam(bad+good-N+1) + lgam(N+1))
+    return np.exp(lgam(good+1) - lgam(good-k+1) - lgam(k+1) + lgam(bad+1) - lgam(bad-N+k+1) - lgam(N-k+1) - lgam(bad+good+1) + lgam(bad+good-N+1) + lgam(N+1))
 
 def phyper(k, good, bad, N):
     """ Current hypergeometric implementation in scipy is broken, so here's the correct version """
     pvalues = [phyper_single(x, good, bad, N) for x in range(k + 1, N + 1)]
-    return numpy.sum(pvalues)
+    return np.sum(pvalues)
 
 def divide_file(fname, sample, rest, fraction, abs_max):
     lines = open(fname).readlines()
@@ -249,17 +247,6 @@ def parse_gff(gff_file, lowmem=False):
         total += len(lines)
     return mr
 
-def scan_fasta_file_with_motifs(fastafile, motiffile, threshold, gfffile, scan_rc=True, nreport=1):
-    error = None
-    try:
-        motifs = pwmfile_to_motifs(motiffile)
-        fa = Fasta(fastafile)
-        for motif in motifs:
-            motif.pwm_scan_to_gff(fa, gfffile, nreport=nreport, cutoff=float(threshold), scan_rc=scan_rc, append=True)
-    except Exception,e :
-        error = e
-    return error
-
 def calc_motif_enrichment(sample, background, mtc=None, len_sample=None, len_back=None):
     """Calculate enrichment based on hypergeometric distribution"""
     
@@ -324,9 +311,6 @@ def calc_enrichment(sample, background, len_sample, len_back, mtc=None):
     """Calculate enrichment based on hypergeometric distribution"""
     
     INF = "Inf"
-
-    # Local imports to enable parellel Python calls
-    from scipy.stats import hypergeom
 
     if mtc not in [None, "Bonferroni", "Benjamini-Hochberg", "None"]:
         raise RuntimeError, "Unknown correction: %s" % mtc
@@ -433,18 +417,7 @@ def median_bed_len(bedfile):
                 sys.stderr.write("Error in line %s: coordinates in column 2 and 3 need to be integers!\n" % (i))
                 sys.exit(1)
     f.close()
-    return numpy.median(l)
-
-
-def locate_tool(tool, verbose=True):
-    tool = re.sub(r'[^a-zA-Z]','',tool)
-    m = eval("tools." + tool)()
-    bin = which(m.cmd)
-    if bin:
-        print "Found %s in %s" % (m.name, bin)
-        return bin
-    else:
-        print "Couldn't find %s" % m.name
+    return np.median(l)
 
 def motif_localization(fastafile, motif, width, outfile, cutoff=0.9):
     NR_HIST_MATCHES = 100
@@ -493,8 +466,8 @@ def _treesort(order, nodeorder, nodecounts, tree):
     # tree, taking into account the preferred order of nodes.
     nNodes = len(tree)
     nElements = nNodes + 1
-    neworder = numpy.zeros(nElements)
-    clusterids = numpy.arange(nElements)
+    neworder = np.zeros(nElements)
+    clusterids = np.arange(nElements)
     for i in range(nNodes):
         i1 = tree[i].left
         i2 = tree[i].right
@@ -538,7 +511,7 @@ def _treesort(order, nodeorder, nodecounts, tree):
                     neworder[j] += increase
                 if clusterid == i1 or clusterid == i2:
                     clusterids[j] = -i-1
-    return numpy.argsort(neworder)
+    return np.argsort(neworder)
 
 def number_of_seqs_in_file(fname):
     try:

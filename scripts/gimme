@@ -1,5 +1,5 @@
 #!/usr/bin/env python 
-# Copyright (c) 2013 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2013-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -101,7 +101,7 @@ p.add_argument("-p", "--pvalue",
                type=float)
 p.add_argument("-b", "--background", 
                dest="background", 
-               help="Background to determine significance genomic_matched,random,promoter,user (%s)" % params["background"], 
+               help="Background to determine significance: (%s)" % params["background"], 
                metavar="N", 
                default=params["background"])
 p.add_argument("-u", "--user_background", 

@@ -13,63 +13,48 @@ from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.utils import parse_cutoff 
 from gimmemotifs.scan import scan, scan_it
 
-VERSION = "1.2"
 MAX_CPUS = 16
 
-def pwmscan(args):
-    inputfile = args.inputfile
-    nreport = args.nreport
-    cutoff = args.cutoff
-    bed = args.bed
-    scan_rc = args.scan_rc
-
-    motifs = pwmfile_to_motifs(args.pwmfile)
-    
-    # need to report always one match per sequence
-    if args.score_table:
-        cutoff = 0
-    
-    result = scan_it(inputfile, motifs, cutoff, nreport, scan_rc)
+def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=True, table=False, score_table=False):
+    motifs = pwmfile_to_motifs(pwmfile)
+    result_it = scan_it(inputfile, motifs, cutoff, nreport, scan_rc)
    
     p = re.compile(r'([^\s:]+):(\d+)-(\d+)')
     fa = Fasta(inputfile)
-    if args.table:
+    if table:
         table = {}
         for seq_id in fa.ids:
             table[seq_id] = {}
 
-        for motif, result in result:
+        for motif, result in result_it:
             for seq_id, matches in result.items():
                 table[seq_id][motif] = len(matches)
         
-        #mnames = [m.id for m in motifs]
-        #print table
-        print "\t{}".format("\t".join([m.id for m in motifs]))
+        yield "\t{}".format("\t".join([m.id for m in motifs]))
         for seq_id in fa.ids:
             counts = [table[seq_id].get(m, 0) for m in motifs]
-            print "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
+            yield "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
     
-    if args.score_table:
+    elif score_table:
         table = {}
         for seq_id in fa.ids:
             table[seq_id] = {}
 
-        for motif, result in result:
+        for motif, result in result_it:
             for seq_id, matches in result.items():
                 max_score = max(m[1] for m in matches)
                 table[seq_id][motif] = max_score
         
         #mnames = [m.id for m in motifs]
         #print table
-        print "\t{}".format("\t".join([m.id for m in motifs]))
+        yield "\t{}".format("\t".join([m.id for m in motifs]))
         for seq_id in fa.ids:
             score = [table[seq_id].get(m, -20) for m in motifs]
-            print "{}\t{}".format(seq_id, "\t".join([str(x) for x in score]))
-
+            yield "{}\t{}".format(seq_id, "\t".join([str(x) for x in score]))
 
     else:
         strandmap = {-1:"-",1:"+"}
-        for motif, result in result:
+        for motif, result in result_it:
             for seq_id, matches in result.items():
                 for (pos, score, strand) in matches:
                     if bed:
@@ -78,11 +63,22 @@ def pwmscan(args):
                             chrom = m.group(1)
                             start = int(m.group(2))
                             end = int(m.group(3))
-                            print "%s\t%s\t%s\t%s\t%s\t%s" % (chrom, start + pos, start + pos + len(motif) , motif.id, score, strandmap[strand])
+                            yield "{}\t{}\t{}\t{}\t{}\t{}".format(
+                                    chrom, 
+                                    start + pos, 
+                                    start + pos + len(motif) , 
+                                    motif.id, 
+                                    score, strandmap[strand])
                         else:
-                            print "%s\t%s\t%s\t%s\t%s\t%s" % (seq_id, pos, pos +  len(motif), motif.id, score, strandmap[strand])
+                            yield "{}\t{}\t{}\t{}\t{}\t{}".format(
+                                    seq_id, 
+                                    pos, 
+                                    pos +  len(motif), 
+                                    motif.id, 
+                                    score, 
+                                    strandmap[strand])
                     else:
-                        print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\tmotif_name \"%s\" ; motif_instance \"%s\"" % (
+                        yield "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\tmotif_name \"{}\" ; motif_instance \"{}\"".format(
                             seq_id, 
                             "pwmscan", 
                             "misc_feature", 
@@ -94,4 +90,25 @@ def pwmscan(args):
                             motif.id, 
                             fa[seq_id][pos: pos + len(motif)]
                         )
-    
+  
+
+def pwmscan(args):
+    inputfile = args.inputfile
+    nreport = args.nreport
+    cutoff = args.cutoff
+    bed = args.bed
+    scan_rc = args.scan_rc
+    table = args.table
+    score_table = args.score_table
+    pwmfile = args.pwmfile
+
+    for line in command_scan(
+            inputfile, 
+            pwmfile, 
+            nreport, 
+            cutoff, 
+            bed, 
+            scan_rc, 
+            table, 
+            score_table):
+        print line

@@ -8,7 +8,7 @@
 import sys
 import os
 
-from gimmemotifs.motif import pwmfile_to_motifs
+from gimmemotifs.motif import read_motifs
 from gimmemotifs.rocmetrics import ROC_values, ROC_AUC, MNCP, max_enrichment, enr_at_fdr
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import roc_plot
@@ -25,7 +25,7 @@ def roc(args):
     if outputfile and   not outputfile.endswith(".png"):
         outputfile += ".png"
     
-    motifs = dict([(x.id, x) for x in pwmfile_to_motifs(pwmfile)])
+    motifs = dict([(x.id, x) for x in read_motifs(open(pwmfile), fmt="pwm")])
 
     ids = []
     if args.ids:

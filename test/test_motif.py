@@ -10,6 +10,8 @@ class TestMotif(unittest.TestCase):
     def setUp(self):
         self.data_dir = "test/data/motif"
         self.pwm = os.path.join(self.data_dir, "test.pwm")
+        self.pwm2 = "test/data/pwms/motifs.pwm"
+        self.jaspar = "test/data/pwms/test.jaspar"
         self.pfm = [ 
             [1,0,0,0],
             [0,1,0,0],
@@ -63,6 +65,30 @@ class TestMotif(unittest.TestCase):
         m2 = Motif(pfm2)
 
         self.assertEquals(4, m1.max_pcc(m2)[0])
+    
+    def test7__read_motifs_pwm(self):
+        motifs = read_motifs(open(self.pwm2), fmt="pwm")
+
+        motif_ids = [m.id for m in motifs]
+        self.assertEquals(5, len(motif_ids))
+        self.assertEquals(["M1500_1.01","M5659_1.01","M5669_1.01","M5715_1.01", "M5717_1.01"], motif_ids)
+     
+    def test7__read_motifs_jaspar(self):
+        motifs = read_motifs(open(self.jaspar), fmt="jaspar")
+
+        my_motifs = [
+                "MA0002.2\tRUNX1",
+                "MA0003.3\tTFAP2A",
+                "MA0004.1\tArnt",
+                "MA0006.1\tAhr::Arnt"
+        ]
+
+        my_lens = [6,6,11,11]
+        
+        motif_ids = [m.id for m in motifs]
+        self.assertEquals(4, len(motif_ids))
+        self.assertEquals(my_motifs, motif_ids)
+        self.assertEquals(my_lens, sorted([len(m) for m in motifs]))
     
     def tearDown(self):
         pass

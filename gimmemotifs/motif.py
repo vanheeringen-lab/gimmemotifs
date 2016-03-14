@@ -15,8 +15,12 @@ from math import log,sqrt
 from tempfile import NamedTemporaryFile
 from config import *
 from subprocess import *
+from warnings import warn
 
 from gimmemotifs import mytmpdir
+from gimmemotifs.rocmetrics import MNCP, ROC_AUC, max_enrichment, fraction_fdr, score_at_fdr, enr_at_fdr
+from gimmemotifs.fasta import Fasta
+from gimmemotifs.utils import ks_pvalue
 
 # External imports
 try:
@@ -546,7 +550,7 @@ class Motif:
         
         str_out = "\n".join(rows)
         if header:
-            str_out = "\n".join(self.id, str_out)
+            str_out = "\n".join([self.id, str_out])
         
         return str_out
 
@@ -605,7 +609,7 @@ class Motif:
         pwm = [self.iupac_pwm[char]for char in self.consensus.upper()]
         return ">%s\n%s" % (id, "\n".join(["\t".join(["%s" % x for x in row]) for row in pwm]))
 
-    def to_img(self, file, format="EPS", add_left=0, seqlogo=None, height=6):
+    def to_img(self, fname, format="EPS", add_left=0, seqlogo=None, height=6):
         """ Valid formats EPS, GIF, PDF, PNG """
         if not seqlogo:
             seqlogo = self.seqlogo
@@ -621,8 +625,8 @@ class Motif:
             sys.stderr.write("Invalid motif format\n")
             return
         
-        if file[-4:].upper() == (".%s" % format):
-            file = file[:-4]
+        if fname[-4:].upper() == (".%s" % format):
+            fname = fname[:-4]
         seqs = []
         if add_left == 0:
             seqs = ["" for i in range(N)]
@@ -658,7 +662,7 @@ class Motif:
                               format, 
                               height,
                               len(self) + add_left, 
-                              file)
+                              fname)
         call(cmd, shell=True)
         
         # Delete tempfile
@@ -666,12 +670,6 @@ class Motif:
         #    os.unlink(f.name)
 
     def stats(self, fg_fa, bg_fa, logger=None):
-        from gimmemotifs.rocmetrics import MNCP, ROC_AUC, max_enrichment, fraction_fdr, score_at_fdr, enr_at_fdr
-        from gimmemotifs.fasta import Fasta
-        from gimmemotifs.utils import ks_pvalue
-        from numpy import array,std
-        from math import log
-
         try:
             stats = {}
             fg_result = self.pwm_scan_all(fg_fa, cutoff=0.0, nreport=1, scan_rc=True)
@@ -762,52 +760,99 @@ def motif_from_consensus(cons, n=12):
     return m
 
 
-def pwmfile_to_motifs(file):
+def read_motifs(handle, fmt="pwm"):
+    """ 
+    Read motifs from a stream or file-like object.
+    """
+
+    if fmt.lower() == "pwm":
+        return _read_motifs_pwm(handle)
+    if fmt.lower() == "transfac":
+        return _read_motifs_transfac(handle)
+    if fmt.lower() == "xxmotif":
+        return _read_motifs_xxmotif(handle)
+    if fmt.lower() == "align":
+        return _read_motifs_align(handle)
+    if fmt.lower() == "jaspar":
+        return _read_motifs_jaspar(handle)
+
+
+def _read_motifs_pwm(handle):
     p = re.compile(r'(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)')
     motifs = []
     pfm = []
-    id = ""
-    for n,line in enumerate(open(file).readlines()):
+    motif_id = ""
+    for n,line in enumerate(handle.readlines()):
         if line.startswith("#") or line.strip() == "":
             continue
         if line.startswith(">"):
             if pfm:
                 motifs.append(Motif(pfm))
-                motifs[-1].id = id
+                motifs[-1].id = motif_id
                 pfm = []
-            id = line.strip()[1:]
+            motif_id = line.strip()[1:]
         else:
             m = p.search(line)
             if m:
                 fractions =  [float(m.group(x)) for x in (1,4,7,10)]
                 pfm.append(fractions)
             else:
-                sys.stderr.write("WARNING: can't parse line %s, ignoring:\n%s" % (n + 1, line))
+                msg = "WARNING: can't parse line {}, ignoring:\n{}".format(n + 1, line)
+                sys.stderr.write(msg)
 
     if len(pfm) > 0:
         motifs.append(Motif(pfm))
-        motifs[-1].id = id
+        motifs[-1].id = motif_id
             
     return motifs
 
-def alignfile_to_motifs(file):
+def _read_motifs_jaspar(handle):
+    p = re.compile("([ACGT])\s*\[(.+)\]")
+    motifs = []
+    motif_id = ""
+    pwm = {}
+    for line in handle:
+        line = line.strip()
+        if len(line) == 0:
+            continue
+        
+        if line.startswith(">"):
+            motif_id = line[1:]
+        if line[0] in "ACGT":
+            m = p.search(line)
+            n = m.group(1)
+            counts = re.split(r'\s+', m.group(2).strip())
+            pwm[n] = [float(x) for x in counts]
+            if n == "T":
+                motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
+                motif.id = motif_id
+                motifs.append(motif)
+    if motif_id and motifs[-1].id != motif_id:
+        motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
+        motif.id = motif_id
+        motifs.append(motif)
+    
+    return motifs
+            
+
+def _read_motifs_align(handle):
     motifs = []
     nucs = {"A":0,"C":1,"G":2,"T":3}
     pwm = []
-    id = ""
+    motif_id = ""
     aligns = {}
     align = []
-    for line in open(file):
+    for line in handle:
         if line.startswith(">"):
-            if id:
-                aligns[id] = align
-            id = line.strip()[1:]
+            if motif_id:
+                aligns[motf_id] = align
+            motif_id = line.strip()[1:]
             align = []
         else:
             align.append(line.strip())
-    aligns[id] = align
+    aligns[motif_id] = align
 
-    for id, align in aligns.items():
+    for motif_id, align in aligns.items():
 
         width = len(align[0])
         pfm =  [[0 for x in range(4)] for x in range(width)]
@@ -818,24 +863,23 @@ def alignfile_to_motifs(file):
         m = Motif(pfm)
         m.align = align[:]
         m.pfm = pfm[:]
-        m.id = id
+        m.id = motif_id
         motifs.append(m)
     return motifs
 
-def xxmotif_to_motifs(fname):
+def _read_motifs_xxmotif(handle):
     motifs = []
     
-    f = open(fname)
-    line = f.readline()
+    line = handle.readline()
     while line:
         while line and not line.startswith("Motif"):
-            line = f.readline()
+            line = handle.readline()
     
         if line:
             mid = line.split(":")[0]
             freqs = []
             for i in range(4):
-                line = f.readline()
+                line = handle.readline()
                 freqs.append([float(x) for x in line.strip().split("\t")])
 
             pwm = np.array(freqs).transpose()
@@ -845,12 +889,12 @@ def xxmotif_to_motifs(fname):
 
     return motifs
 
-def transfac_to_motifs(file):
+def _read_motifs_transfac(handle):
     p = re.compile(r'\d+\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s*\w?')
     motifs = []
     pwm = []
     id = ""
-    for line in open(file).readlines():
+    for line in handle.readlines():
         if line.startswith("ID"):
             if pwm:
                 motifs.append(Motif(pwm))
@@ -876,6 +920,35 @@ def motifs_to_meme(motifs):
     for motif in motifs:
         m += motif.to_meme() + "\n"
     return m
+
+def alignfile_to_motifs(fname):
+    # this method should be deleted
+    msg = "alignfile_to_motifs is deprecated, please use read_motifs"
+    warn(msg, DeprecationWarning)
+
+    return read_motifs(open(fname), fmt="align")    
+
+
+def pwmfile_to_motifs(fname):
+    # this method should be deleted
+    msg = "pwmfile_to_motifs is deprecated, please use read_motifs"
+    warn(msg, DeprecationWarning)
+    
+    return read_motifs(open(fname), fmt="pwm")    
+
+def transfac_to_motifs(fname):
+    # this method should be deleted
+    msg = "transfac_to_motifs is deprecated, please use read_motifs"
+    warn(msg, DeprecationWarning)
+    
+    return read_motifs(open(fname), fmt="transfac")    
+
+def xxmotif_to_motifs(fname):
+    # this method should be deleted
+    msg = "xxmotif_to_motifs is deprecated, please use read_motifs"
+    warn(msg, DeprecationWarning)
+    
+    return read_motifs(open(fname), fmt="xxmotif")    
 
 if __name__ == "__main__":
     m = Motif()

@@ -23,7 +23,6 @@ ALT_UCSC_GENOME_URL = "http://hgdownload.soe.ucsc.edu/goldenPath/{0}/bigZips/{0}
 UCSC_GENE_URL = "http://hgdownload.cse.ucsc.edu/goldenPath/{}/database/"
 ANNOS = ["knownGene.txt.gz", "ensGene.txt.gz", "refGene.txt.gz"]
 
-
 def check_genome_file(fname):
     if os.path.exists(fname):
         with open(fname) as f:
@@ -113,6 +112,7 @@ def genome(args):
                 )
         
         if not check_genome_file(genome_fa):    
+            os.unlink(genome_fa)
             continue
         
         break
@@ -125,7 +125,7 @@ def genome(args):
     if genome_fa.endswith("tar.gz"):
         cmd = "tar -C {0} -xvzf {1} && rm {1}".format(genome_dir, genome_fa)
     else:
-        cmd = "gunzip {0} && rm {0}".format(genome_fa)
+        cmd = "gunzip {0}".format(genome_fa)
 
     sp.call(cmd, shell=True, cwd=genome_dir)
 
@@ -133,8 +133,8 @@ def genome(args):
     if len(fa_files) == 1:
         f = Fasta(fa_files[0])
         for n,s in f.items():
-            with open("{}/{}.fa".format(genome_dir, n)) as f:
-                f.write("{}\n{}\n".format(n,s))
+            with open("{}/{}.fa".format(genome_dir, n), "w") as f:
+                f.write(">{}\n{}\n".format(n,s))
     
         os.unlink(fa_files[0])
 

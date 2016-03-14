@@ -27,6 +27,7 @@ from gimmemotifs.comparison import *
 from gimmemotifs import genome_index
 from gimmemotifs.cluster import *
 from gimmemotifs.plot import *
+from gimmemotifs.scan import scan_fasta_file_with_motifs
 from gimmemotifs import mytmpdir
 try:
     from gimmemotifs.mp import pool
@@ -120,7 +121,7 @@ class GimmeMotifs:
             #sys.exit(1)
         else:
             try:
-                os.mkdir(name)
+                os.makedirs(name)
             except:
                 sys.stderr.write("Can't create output directory %s!\n" % name)
                 #sys.exit(1)
@@ -162,34 +163,38 @@ class GimmeMotifs:
         self.logger.info("Created logfile %s" % logfile)
 
     def _setup_filenames(self):
+        basename = os.path.split(self.name)[-1]
+        self.basename = basename
+
+        self.logger.info("basename: {}".format(basename))
         # Um yes, there is a smarter way, I'm sure! ;)
-        self.input_bed = os.path.join(self.tmpdir, "%s_peakinputfile.bed" % self.name)
+        self.input_bed = os.path.join(self.tmpdir, "%s_peakinputfile.bed" % basename)
 
-        self.prediction_bed    = os.path.join(self.tmpdir, "%s_prediction.bed" % self.name)
-        self.prediction_fa = os.path.join(self.tmpdir, "%s_prediction.fa" % self.name)
-        self.prediction_bg = os.path.join(self.tmpdir, "%s_prediction_background.fa" % self.name)
+        self.prediction_bed    = os.path.join(self.tmpdir, "%s_prediction.bed" % basename)
+        self.prediction_fa = os.path.join(self.tmpdir, "%s_prediction.fa" % basename)
+        self.prediction_bg = os.path.join(self.tmpdir, "%s_prediction_background.fa" % basename)
         
-        self.validation_bed = os.path.join(self.tmpdir, "%s_validation.bed" % self.name)
-        self.validation_fa = os.path.join(self.tmpdir, "%s_validation.fa" % self.name)
-        self.validation_gff = os.path.join(self.tmpdir, "%s_validation.gff" % self.name)
+        self.validation_bed = os.path.join(self.tmpdir, "%s_validation.bed" % basename)
+        self.validation_fa = os.path.join(self.tmpdir, "%s_validation.fa" % basename)
+        self.validation_gff = os.path.join(self.tmpdir, "%s_validation.gff" % basename)
         
-        self.predicted_pfm = os.path.join(self.tmpdir, "%s_all_motifs.pfm" % self.name)
+        self.predicted_pfm = os.path.join(self.tmpdir, "%s_all_motifs.pfm" % basename)
 
-        self.significant_pfm = os.path.join(self.tmpdir, "%s_significant_motifs.pfm" % self.name)
+        self.significant_pfm = os.path.join(self.tmpdir, "%s_significant_motifs.pfm" % basename)
         
-        self.location_fa = os.path.join(self.tmpdir, "%s_validation_500.fa" % self.name)
-        self.location_pfile = os.path.join(self.tmpdir, "%s_localization_pvalue.txt" % self.name)
-        self.stats_file = os.path.join(self.tmpdir, "%s_stats.txt" % self.name)
-        self.ranks_file = os.path.join(self.tmpdir, "%s_ranks.txt" % self.name)
+        self.location_fa = os.path.join(self.tmpdir, "%s_validation_500.fa" % basename)
+        self.location_pfile = os.path.join(self.tmpdir, "%s_localization_pvalue.txt" % basename)
+        self.stats_file = os.path.join(self.tmpdir, "%s_stats.txt" % basename)
+        self.ranks_file = os.path.join(self.tmpdir, "%s_ranks.txt" % basename)
 
         #self.cluster_dir = os.path.join(self.outdir, "cluster_report")
-        self.validation_cluster_gff = os.path.join(self.tmpdir, "%s_validation_clustered.gff" % self.name)
-        self.cluster_pwm = os.path.join(self.tmpdir, "%s_clustered_motifs.pwm" % self.name)
-        self.final_pwm = os.path.join(self.outdir, "%s_motifs.pwm" % self.name)
-        self.cluster_report = os.path.join(self.outdir, "%s_cluster_report.html" % self.name)
-        self.motif_report = os.path.join(self.outdir, "%s_motif_report.html" % self.name)
-        self.text_report = os.path.join(self.outdir, "%s_motif_report.tsv" % self.name)
-        self.params_file = os.path.join(self.outdir, "%s_params.txt" % self.name)
+        self.validation_cluster_gff = os.path.join(self.tmpdir, "%s_validation_clustered.gff" % basename)
+        self.cluster_pwm = os.path.join(self.tmpdir, "%s_clustered_motifs.pwm" % basename)
+        self.final_pwm = os.path.join(self.outdir, "%s_motifs.pwm" % basename)
+        self.cluster_report = os.path.join(self.outdir, "%s_cluster_report.html" % basename)
+        self.motif_report = os.path.join(self.outdir, "%s_motif_report.html" % basename)
+        self.text_report = os.path.join(self.outdir, "%s_motif_report.tsv" % basename)
+        self.params_file = os.path.join(self.outdir, "%s_params.txt" % basename)
 
         # Data structures to hold the background file locations
         ftypes = {
@@ -207,7 +212,7 @@ class GimmeMotifs:
         
         for bg in (FA_VALID_BGS + BED_VALID_BGS):
             for ftype, extension in ftypes.items():
-                self.bg_file[ftype][bg] =  os.path.join(self.tmpdir, "%s_bg_%s%s" % (self.name, bg, extension))
+                self.bg_file[ftype][bg] =  os.path.join(self.tmpdir, "%s_bg_%s%s" % (basename, bg, extension))
 
     def _is_parallel_enabled(self):
         return True
@@ -215,25 +220,25 @@ class GimmeMotifs:
     def _get_job_server(self):
         return pool
 
-    def _check_input(self, file):
+    def _check_input(self, fname):
         """ Check if the inputfile is a valid bed-file """
-        if not os.path.exists(file):    
-            self.logger.error("Inputfile %s does not exist!" % file)
+        if not os.path.exists(fname):    
+            self.logger.error("Inputfile %s does not exist!", fname)
             sys.exit(1)
         
-        for i, line in enumerate(open(file)):
+        for i, line in enumerate(open(fname)):
             if line.startswith("#") or line.startswith("track") or line.startswith("browser"):
                 # comment or BED specific stuff
                 pass
             else:
                 vals = line.strip().split("\t")
                 if len(vals) < 3:
-                    self.logger.error("Expecting tab-seperated values (chromosome<tab>start<tab>end) on line %s of file %s" % (i + 1, file))
+                    self.logger.error("Expecting tab-seperated values (chromosome<tab>start<tab>end) on line %s of file %s", i + 1, fname)
                     sys.exit(1)
                 try:
                     start, end = int(vals[1]), int(vals[2])
                 except:
-                    self.logger.error("No valid integer coordinates on line %s of file %s" % (i + 1, file))
+                    self.logger.error("No valid integer coordinates on line %s of file %s" % (i + 1, fname))
                     sys.exit(1)
                 if len(vals) > 3:
                     try:
@@ -298,7 +303,7 @@ class GimmeMotifs:
                 order = {"1":"1st","2":"2nd", "3":"3rd", "4":"4th", "5":"5th"}[str(self.markov_model)]
                 self.logger.info("Creating random background (%s order Markov)" % order)
         
-            m = MarkovFasta(fg, k=int(self.markov_model), number=nr_times * len(fg))
+            m = MarkovFasta(fg, k=int(self.markov_model), n=nr_times * len(fg))
             m.writefasta(outfile)
             self.logger.debug("Random background: %s" % (outfile))
             # return the number of random sequences created
@@ -389,7 +394,7 @@ class GimmeMotifs:
         
         trim_ic = 0.2
         clusters = []
-        motifs = pwmfile_to_motifs(pfm_file)
+        motifs = read_motifs(open(pfm_file), fmt="pwm")
         if len(motifs) == 1:
             clusters = [[motifs[0], motifs]]
         else:
@@ -425,7 +430,7 @@ class GimmeMotifs:
         
         kid.enable_import()
         template_file = os.path.join(self.config.get_template_dir(), "cluster_template_v2.kid")
-        template = kid.Template(file=template_file, expname=self.name, motifs=ids, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
+        template = kid.Template(file=template_file, expname=self.basename, motifs=ids, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
         f = open(self.cluster_report, "w")
         f.write(template.serialize())
         f.close()
@@ -442,7 +447,7 @@ class GimmeMotifs:
         return clusters
 
     def create_roc_plots(self, pwm_file, fg_fasta, bg_fasta, name):
-        motifs = dict([(m.id, m) for m in pwmfile_to_motifs(pwm_file)])
+        motifs = dict([(m.id, m) for m in read_motifs(open(pwm_file), fmt="pwm")])
         
         jobs = {}
         for id,m in motifs.items():
@@ -466,7 +471,7 @@ class GimmeMotifs:
 
 
     def _roc_metrics(self, pwm, sample_fa, bg_fa, roc_file):
-        motifs = dict([(m.id, m) for m in pwmfile_to_motifs(pwm)])
+        motifs = dict([(m.id, m) for m in read_motifs(open(pwm), fmt="pwm")])
         
         jobs = {}
         for id,m in motifs.items():
@@ -513,12 +518,12 @@ class GimmeMotifs:
             bg_fasta_file, roc_file = rocs[bg]
             self.auc[bg], self.mncp[bg] = self._roc_metrics(pwm, self.validation_fa, bg_fasta_file, roc_file)
     
-        motifs = pwmfile_to_motifs(pwm)
+        motifs = read_motifs(open(pwm), fmt="pwm")
         self.closest_match = self.determine_closest_match(motifs)
         
     def _create_text_report(self, pwm, background):
         self.logger.info("Creating text report")
-        motifs = pwmfile_to_motifs(pwm)
+        motifs = read_motifs(open(pwm), fmt="pwm")
 
         sort_key = background[0]
         if "gc" in background:
@@ -553,7 +558,7 @@ class GimmeMotifs:
         class ReportMotif:
             pass
         
-        motifs = pwmfile_to_motifs(pwm)
+        motifs = read_motifs(open(pwm), fmt="pwm")
         for m,match in self.closest_match.items():
             match[0].to_img(os.path.join(self.imgdir,"%s.png" % match[0].id), format="PNG")
 
@@ -600,7 +605,7 @@ class GimmeMotifs:
         total_report = self.motif_report 
         kid.enable_import()
         template_file = os.path.join(self.config.get_template_dir(), "report_template_v2.kid") 
-        template = kid.Template(file=template_file, expname=self.name, motifs=report_motifs, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
+        template = kid.Template(file=template_file, expname=self.basename, motifs=report_motifs, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
         f = open(total_report, "w")
         f.write(template.serialize())
         f.close()
@@ -612,7 +617,7 @@ class GimmeMotifs:
         db_motifs = []
         if db.endswith("pwm") or db.endswith("pfm"):
         
-            db_motifs = pwmfile_to_motifs(db)
+            db_motifs = read_motifs(open(db), fmt="pwm")
         elif db.endswith("transfac"):
             db_motifs = transfac_to_motifs(db)
         
@@ -846,7 +851,7 @@ class GimmeMotifs:
         
         if nsig == 0:
             self.logger.info("No significant motifs found. Done.")
-            sys.exit()
+            return
         
         # ROC metrics of significant motifs
         for bg in background:
@@ -869,7 +874,7 @@ class GimmeMotifs:
         # Stars
         tmp = NamedTemporaryFile(dir=mytmpdir()).name
         p = PredictionResult(tmp, logger=self.logger, job_server=self.server, fg_file = self.validation_fa, bg_file = bg_file) 
-        p.add_motifs(("Clustering",  (pwmfile_to_motifs(self.final_pwm), "","")))
+        p.add_motifs(("Clustering",  (read_motifs(open(self.final_pwm), fmt="pwm"), "","")))
         while len(p.stats.keys()) < len(p.motifs):
             sleep(5)
 
@@ -893,7 +898,7 @@ class GimmeMotifs:
         
         # Location plots
         self.logger.info("Creating localization plots")
-        motifs = pwmfile_to_motifs(self.final_pwm)
+        motifs = read_motifs(open(self.final_pwm), fmt="pwm")
         for motif in motifs:
             m = "%s_%s" % (motif.id, motif.to_consensus())
             s = p.stats[m]
@@ -919,7 +924,8 @@ class GimmeMotifs:
             shutil.rmtree(self.tmpdir)
 
         self.logger.info("Done")
-
+        
+        return self.motif_report
 
 if __name__ == "__main__":
     gm = GimmeMotifs()

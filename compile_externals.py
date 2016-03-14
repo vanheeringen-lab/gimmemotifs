@@ -1,7 +1,6 @@
 import sys
 import os
-from subprocess import *
-from platform import platform
+from subprocess import Popen,PIPE
 from distutils import log
 
 def compile_simple(name):
@@ -12,7 +11,7 @@ def compile_simple(name):
     
     try:
         Popen("gcc", stdout=PIPE, stderr=PIPE).communicate()
-    except:
+    except Exception:
         return
     
     Popen(["gcc","-o%s" % name, "%s.c" % name, "-lm"], cwd=path, stdout=PIPE).communicate()
@@ -52,7 +51,6 @@ def print_result(result):
         log.info("... ok")
     
 def compile_all(prefix=None):
-    
     sys.stderr.write("compiling BioProspector")
     result = compile_simple("BioProspector")
     print_result(result)

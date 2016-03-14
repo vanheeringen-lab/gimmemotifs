@@ -11,12 +11,26 @@ import sys
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.utils import parse_cutoff
+from gimmemotifs.motif import read_motifs
+from gimmemotifs.utils import which
+
 try: 
     from gimmemotifs.mp import pool
 except:
     pass
 
 CHUNK = 1000
+
+def scan_fasta_file_with_motifs(fastafile, motiffile, threshold, gfffile, scan_rc=True, nreport=1):
+    error = None
+    try:
+        motifs = read_motifs(open(motiffile), fmt="pwm")
+        fa = Fasta(fastafile)
+        for motif in motifs:
+            motif.pwm_scan_to_gff(fa, gfffile, nreport=nreport, cutoff=float(threshold), scan_rc=scan_rc, append=True)
+    except Exception,e :
+        error = e
+    return error
 
 def scan_fa_with_motif(fo, motif, cutoff, nreport, rc=True):
     #try:
