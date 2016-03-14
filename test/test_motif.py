@@ -11,6 +11,7 @@ class TestMotif(unittest.TestCase):
         self.data_dir = "test/data/motif"
         self.pwm = os.path.join(self.data_dir, "test.pwm")
         self.pwm2 = "test/data/pwms/motifs.pwm"
+        self.jaspar = "test/data/pwms/test.jaspar"
         self.pfm = [ 
             [1,0,0,0],
             [0,1,0,0],
@@ -71,6 +72,23 @@ class TestMotif(unittest.TestCase):
         motif_ids = [m.id for m in motifs]
         self.assertEquals(5, len(motif_ids))
         self.assertEquals(["M1500_1.01","M5659_1.01","M5669_1.01","M5715_1.01", "M5717_1.01"], motif_ids)
+     
+    def test7__read_motifs_jaspar(self):
+        motifs = read_motifs(open(self.jaspar), fmt="jaspar")
+
+        my_motifs = [
+                "MA0002.2  RUNX1",
+                "MA0003.3   TFAP2A",
+                "MA0004.1   Arnt",
+                "MA0006.1   Ahr::Arnt"
+        ]
+
+        my_lens = [6,6,11,11]
+        
+        motif_ids = [m.id for m in motifs]
+        self.assertEquals(4, len(motif_ids))
+        self.assertEquals(my_motifs, motif_ids)
+        self.assertEquals(my_lens, [len(m) for m in motifs])
     
     def tearDown(self):
         pass

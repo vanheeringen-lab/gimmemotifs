@@ -769,6 +769,12 @@ def read_motifs(handle, fmt="pwm"):
         return _read_motifs_pwm(handle)
     if fmt.lower() == "transfac":
         return _read_motifs_transfac(handle)
+    if fmt.lower() == "xxmotif":
+        return _read_motifs_xxmotif(handle)
+    if fmt.lower() == "align":
+        return _read_motifs_align(handle)
+    if fmt.lower() == "jaspar":
+        return _read_motifs_jaspar(handle)
 
 
 def _read_motifs_pwm(handle):
@@ -800,29 +806,45 @@ def _read_motifs_pwm(handle):
             
     return motifs
 
-
-def jaspar_to_motifs(fname):
+def _read_motifs_jaspar(handle):
+    p = re.compile("([ACGT])\s*[(.+)]")
     motifs = []
-    #for line
+    motif_id = ""
+    pwm = {}
+    for line in handle:
+        line = line.strip()
+        if line.starts_with(">"):
+            motif_id = line[1:]
+        if line[0] in "ACGT":
+            m = p.search(line)
+            n = n.group(1)
+            counts = re.split(r'\s+', m.group(2).strip())
+            pwm[n] = counts
+            if n == "T":
+                motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
+                motif.id = motif_id
+                motifs.append(motif)
+    return motifs
+            
 
-def alignfile_to_motifs(fname):
+def _read_motifs_align(handle):
     motifs = []
     nucs = {"A":0,"C":1,"G":2,"T":3}
     pwm = []
-    id = ""
+    motif_id = ""
     aligns = {}
     align = []
-    for line in open(fname):
+    for line in handle:
         if line.startswith(">"):
-            if id:
-                aligns[id] = align
-            id = line.strip()[1:]
+            if motif_id:
+                aligns[motf_id] = align
+            motif_id = line.strip()[1:]
             align = []
         else:
             align.append(line.strip())
-    aligns[id] = align
+    aligns[motif_id] = align
 
-    for id, align in aligns.items():
+    for motif_id, align in aligns.items():
 
         width = len(align[0])
         pfm =  [[0 for x in range(4)] for x in range(width)]
@@ -833,24 +855,23 @@ def alignfile_to_motifs(fname):
         m = Motif(pfm)
         m.align = align[:]
         m.pfm = pfm[:]
-        m.id = id
+        m.id = motif_id
         motifs.append(m)
     return motifs
 
-def xxmotif_to_motifs(fname):
+def _read_motifs_xxmotif(handle):
     motifs = []
     
-    f = open(fname)
-    line = f.readline()
+    line = handle.readline()
     while line:
         while line and not line.startswith("Motif"):
-            line = f.readline()
+            line = handle.readline()
     
         if line:
             mid = line.split(":")[0]
             freqs = []
             for i in range(4):
-                line = f.readline()
+                line = handle.readline()
                 freqs.append([float(x) for x in line.strip().split("\t")])
 
             pwm = np.array(freqs).transpose()
@@ -860,7 +881,7 @@ def xxmotif_to_motifs(fname):
 
     return motifs
 
-def _read_motifs_transfac(handle)
+def _read_motifs_transfac(handle):
     p = re.compile(r'\d+\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s*\w?')
     motifs = []
     pwm = []
@@ -892,6 +913,14 @@ def motifs_to_meme(motifs):
         m += motif.to_meme() + "\n"
     return m
 
+def alignfile_to_motifs(fname):
+    # this method should be deleted
+    msg = "alignfile_to_motifs is deprecated, please use read_motifs"
+    raise DeprecationWarning(msg)
+    
+    return read_motifs(open(fname), fmt="align")    
+
+
 def pwmfile_to_motifs(fname):
     # this method should be deleted
     msg = "pwmfile_to_motifs is deprecated, please use read_motifs"
@@ -906,8 +935,12 @@ def transfac_to_motifs(fname):
     
     return read_motifs(open(fname), fmt="transfac")    
 
-
-
+def xxmotif_to_motifs(fname):
+    # this method should be deleted
+    msg = "xxmotif_to_motifs is deprecated, please use read_motifs"
+    raise DeprecationWarning(msg)
+    
+    return read_motifs(open(fname), fmt="xxmotif")    
 
 if __name__ == "__main__":
     m = Motif()
