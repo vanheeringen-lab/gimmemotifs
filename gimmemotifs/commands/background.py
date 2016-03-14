@@ -60,7 +60,7 @@ def background(args):
     
     if bg_type == "random":
         f = Fasta(inputfile)
-        m = bg.MarkovFasta(f, n=number, k=args.markov_order)
+        m = bg.MarkovFasta(f, number=number, k=args.markov_order)
         m.writefasta(out)
     elif bg_type == "gc":
         if outformat in ["fasta", "fa"]:
