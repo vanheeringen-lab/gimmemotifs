@@ -807,23 +807,31 @@ def _read_motifs_pwm(handle):
     return motifs
 
 def _read_motifs_jaspar(handle):
-    p = re.compile("([ACGT])\s*[(.+)]")
+    p = re.compile("([ACGT])\s*\[(.+)\]")
     motifs = []
     motif_id = ""
     pwm = {}
     for line in handle:
         line = line.strip()
+        if len(line) == 0:
+            continue
+        
         if line.startswith(">"):
             motif_id = line[1:]
         if line[0] in "ACGT":
             m = p.search(line)
-            n = n.group(1)
+            n = m.group(1)
             counts = re.split(r'\s+', m.group(2).strip())
-            pwm[n] = counts
+            pwm[n] = [float(x) for x in counts]
             if n == "T":
                 motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
                 motif.id = motif_id
                 motifs.append(motif)
+    if motif_id and motifs[-1].id != motif_id:
+        motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
+        motif.id = motif_id
+        motifs.append(motif)
+    
     return motifs
             
 

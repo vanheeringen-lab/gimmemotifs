@@ -77,10 +77,10 @@ class TestMotif(unittest.TestCase):
         motifs = read_motifs(open(self.jaspar), fmt="jaspar")
 
         my_motifs = [
-                "MA0002.2  RUNX1",
-                "MA0003.3   TFAP2A",
-                "MA0004.1   Arnt",
-                "MA0006.1   Ahr::Arnt"
+                "MA0002.2\tRUNX1",
+                "MA0003.3\tTFAP2A",
+                "MA0004.1\tArnt",
+                "MA0006.1\tAhr::Arnt"
         ]
 
         my_lens = [6,6,11,11]
@@ -88,7 +88,7 @@ class TestMotif(unittest.TestCase):
         motif_ids = [m.id for m in motifs]
         self.assertEquals(4, len(motif_ids))
         self.assertEquals(my_motifs, motif_ids)
-        self.assertEquals(my_lens, [len(m) for m in motifs])
+        self.assertEquals(my_lens, sorted([len(m) for m in motifs]))
     
     def tearDown(self):
         pass
