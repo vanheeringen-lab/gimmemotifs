@@ -5,6 +5,8 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 
+from distutils import sysconfig
+
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.cluster import cluster_motifs
@@ -59,7 +61,8 @@ def cluster(args):
         ids[-1][2] = [dict([("src", "%s.png" % motif.id.replace(" ", "_")), ("alt", motif.id.replace(" ", "_"))]) for motif in members]
     
     kid.enable_import()
-    template_file = os.path.join(sys.prefix, "share/gimmemotifs/templates/cluster_template.kid")
+    prefix = sysconfig.get_config_var("prefix")
+    template_file = os.path.join(prefix, "share/gimmemotifs/templates/cluster_template.kid")
     template = kid.Template(file=template_file, motifs=ids)
     f = open(os.path.join(outdir, "cluster_report.html"), "w")
     f.write(template.serialize())
