@@ -8,28 +8,26 @@
 
 # Python imports
 import re
-import os
 import sys
 import random
 from math import log,sqrt
 from tempfile import NamedTemporaryFile
-from config import *
-from subprocess import *
+import subprocess as sp
 from warnings import warn
 
 from gimmemotifs import mytmpdir
-from gimmemotifs.rocmetrics import MNCP, ROC_AUC, max_enrichment, fraction_fdr, score_at_fdr, enr_at_fdr
-from gimmemotifs.fasta import Fasta
+from gimmemotifs.rocmetrics import (MNCP, ROC_AUC, max_enrichment, 
+        fraction_fdr, score_at_fdr, enr_at_fdr)
 from gimmemotifs.utils import ks_pvalue
+from gimmemotifs.c_metrics import pwmscan
 
 # External imports
 try:
-    from numpy import mean,sum
     import numpy as np
 except:
     pass
 
-class Motif:
+class Motif(object):
     PSEUDO_PFM_COUNT = 1000 # Jaspar mean
     PSEUDO_PWM = 1e-6
 
@@ -38,7 +36,7 @@ class Motif:
             pfm = []
 
         if len(pfm) > 0:
-            if sum(pfm[0]) > 2:
+            if np.sum(pfm[0]) > 2:
                 self.pfm = [list(x) for x in pfm]
                 self.pwm = self.pfm_to_pwm(pfm)
             else:
@@ -125,7 +123,7 @@ class Motif:
     def information_content(self):
         ic = 0
         for row in self.pwm:
-            ic += 2.0 + sum([row[x] * log(row[x])/log(2) for x in range(4) if row[x] > 0])
+            ic += 2.0 + np.sum([row[x] * log(row[x])/log(2) for x in range(4) if row[x] > 0])
         return ic
 
     def pwm_min_score(self):
@@ -136,7 +134,7 @@ class Motif:
    
     def score_kmer(self, kmer):
         if len(kmer) != len(self.pwm):
-            raise Exception, "incorrect k-mer length"
+            raise Exception("incorrect k-mer length")
         
         score = 0.0
         d = {"A":0, "C":1, "G":2, "T":3}
@@ -152,7 +150,7 @@ class Motif:
         return score
 
     def pfm_to_pwm(self, pfm, pseudo=0.001):
-        return [[(x + pseudo)/(float(sum(row)) + pseudo * 4) for x in row] for row in pfm]
+        return [[(x + pseudo)/(float(np.sum(row)) + pseudo * 4) for x in row] for row in pfm]
 
     def to_transfac(self):
         m = "%s\t%s\t%s\n" % ("DE", self.id, "unknown")
@@ -162,10 +160,10 @@ class Motif:
         return m
 
     def to_meme(self):
-        id = self.id.replace(" ", "_")
-        m = "MOTIF %s\n" % id
-        m += "BL   MOTIF %s width=0 seqs=0\n" % id
-        m += "letter-probability matrix: alength= 4 w= %s nsites= %s E= 0\n" % (len(self), sum(self.pfm[0]))
+        motif_id = self.id.replace(" ", "_")
+        m = "MOTIF %s\n" % motif_id
+        m += "BL   MOTIF %s width=0 seqs=0\n" motif_id
+        m += "letter-probability matrix: alength= 4 w= %s nsites= %s E= 0\n" % (len(self), np.sum(self.pfm[0]))
         m +="\n".join(["\t".join(["%s" % x for x in row]) for row in self.pwm])
         return m
 
@@ -180,8 +178,8 @@ class Motif:
         return score
 
     def pcc_pos(self, row1, row2):
-        mean1 = mean(row1)
-        mean2 = mean(row2)
+        mean1 = np.mean(row1)
+        mean2 = np.mean(row2)
 
         a = 0
         x = 0
@@ -210,64 +208,57 @@ class Motif:
             self.pwm = self.pwm[1:]
             self.pfm = self.pfm[1:]
         while len(pwm) > 0 and self.ic_pos(pwm[-1]) < edge_ic_cutoff:
-             pwm = pwm[:-1]
-             self.pwm = self.pwm[:-1]
-             self.pfm = self.pfm[:-1]
+            pwm = pwm[:-1]
+            self.pwm = self.pwm[:-1]
+            self.pfm = self.pfm[:-1]
 
     def consensus_scan(self, fa):
         regexp = "".join(["[" + "".join(self.iupac[x.upper()]) + "]" for x in self.to_consensusv2()])
         p = re.compile(regexp)
         matches = {}
-        for id,seq in fa.items():
-            matches[id] = [] 
+        for name,seq in fa.items():
+            matches[name] = [] 
             for match in p.finditer(seq):
                 middle = (match.span()[1] + match.span()[0]) / 2
-                matches[id].append(middle)
+                matches[name].append(middle)
         return matches
 
     def pwm_scan(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
-        from gimmemotifs.c_metrics import pwmscan
         c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff        
         pwm = self.pwm
-        strandmap = {"+":"+",1:"+","1":"+","-":"-",-1:"-","-1":"-"}
         matches = {}
         for id, seq in fa.items():
             matches[id] = [] 
             result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
-            for score,pos,strand in result:
+            for _,pos,strand in result:
                 matches[id].append(pos)
         return matches
     
     def pwm_scan_all(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
-        from gimmemotifs.c_metrics import pwmscan
         c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff        
         pwm = self.pwm
         strandmap = {"+":"+",1:"+","1":"+","-":"-",-1:"-","-1":"-"}
         matches = {}
-        for id, seq in fa.items():
-            matches[id] = [] 
-            #sys.stderr.write("{0}\t{1}\t{2}\t{3}\t{4}\t{5}".format(seq.upper(), pwm, c, nreport, scan_rc))
+        for name, seq in fa.items():
+            matches[name] = [] 
             result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
             for score,pos,strand in result:
-                matches[id].append((pos,score,strand))
+                matches[name].append((pos,score,strand))
         return matches
 
     def pwm_scan_score(self, fa, cutoff=0, nreport=1, scan_rc=True):
-        from gimmemotifs.c_metrics import pwmscan
         c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff        
         pwm = self.pwm
         strandmap = {"+":"+",1:"+","1":"+","-":"-",-1:"-","-1":"-"}
         matches = {}
-        for id, seq in fa.items():
-            matches[id] = [] 
+        for name, seq in fa.items():
+            matches[name] = [] 
             result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
             for score,pos,strand in result:
-                matches[id].append(score)
+                matches[name].append(score)
         return matches
             
     def pwm_scan_to_gff(self, fa, gfffile, cutoff=0.9, nreport=50, scan_rc=True, append=False):
-        #print "received", gfffile, cutoff, nreport, scan_rc, append
-        from gimmemotifs.c_metrics import pwmscan
         if append:
             out = open(gfffile, "a")
         else:    
@@ -277,11 +268,20 @@ class Motif:
         pwm = self.pwm
 
         strandmap = {-1:"-","-1":"-","-":"-","1":"+",1:"+","+":"+"}
-        for id, seq in fa.items():
+        gff_line = "{}\tpwmscan\tmisc_feature\t{}\t{}\t{}\t{}\t.\t"
+                    "motif_name \"{}\" ; motif_instance \"{}\"\n"
+        for name, seq in fa.items():
             result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
             for score, pos, strand in result:
-                out.write("%s\tpwmscan\tmisc_feature\t%s\t%s\t%s\t%s\t.\tmotif_name \"%s\" ; motif_instance \"%s\"\n" % 
-                    (id, pos, pos + len(pwm), score, strandmap[strand], self.id, seq[pos:pos + len(pwm)]))
+                out.write(gff_line.format( 
+                    name, 
+                    pos, 
+                    pos + len(pwm), 
+                    score, 
+                    strandmap[strand], 
+                    self.id, 
+                    seq[pos:pos + len(pwm)]
+                    ))
         out.close()
 
     def average_motifs(self, other, pos, orientation, include_bg=False):
@@ -301,9 +301,6 @@ class Motif:
         pfm2_count = 0.0
         for i in pfm2[0]:
             pfm2_count += i
-
-        if orientation < 0:
-            [row[::-1] for row in pfm2[::-1]]    
 
         if include_bg:
             if len(pfm1) > len(pfm2) + pos:
@@ -340,16 +337,12 @@ class Motif:
         score = 0
         score_a = 0
         score_b = 0
-        max = 2
+        
         for a,b,pbg  in zip(row1, row2, bg):
-            #print  a  * log(a/pbg) /log(2),  b *  log(b /pbg) / log(2)
-            #print a * log(a/pbg) / log(2),  b * log(b/pbg) / log(2), abs(a * log(a/pbg) / log(2) -  b * log(b/pbg) / log(2))
             score += abs(a * log(a/pbg) / log(2) -  b * log(b/pbg) / log(2))
             score_a += a * log(a/pbg) / log(2)
             score_b += b * log(b/pbg) / log(2)
 
-        #print score_a, score_b, score
-        #print
         return (score_a + score_b)/2 - score
 
     def pcc(self, pwm1, pwm2, pos):
@@ -597,11 +590,17 @@ class Motif:
             return ">%s\n%s" % (self.id, "\n".join(["\t".join(["%s" % x for x in row]) for row in pfm]))
 
     def to_pwm(self, extra_str=""):
-        id = self.id
+        motif_id = self.id
         if extra_str:
-            id += "_%s" % extra_str
+            motif_id += "_%s" % extra_str
         if self.pwm:
-            return ">%s\n%s" % (id, "\n".join(["\t".join(["%s" % x for x in row]) for row in self.pwm]))
+            return ">%s\n%s" % (
+                    motif_id, 
+                    "\n".join(
+                        ["\t".join(["%s" % x for x in row]) 
+                        for row in self.pwm]
+                        )
+                    )
         
         pseudocount = 0.8
         nucs = ["A","C","G","T"]
@@ -614,7 +613,7 @@ class Motif:
         if not seqlogo:
             seqlogo = self.seqlogo
         if not seqlogo:
-            raise ValueError, "seqlogo not specified or configured"
+            raise ValueError("seqlogo not specified or configured")
         
         #TODO: split to_align function
         
@@ -663,7 +662,7 @@ class Motif:
                               height,
                               len(self) + add_left, 
                               fname)
-        call(cmd, shell=True)
+        sp.call(cmd, shell=True)
         
         # Delete tempfile
         #if os.path.exists(f.name):
@@ -710,13 +709,13 @@ class Motif:
 
             return stats
         except Exception as e:
-            raise
             #e = sys.exc_info()[0]
             msg = "Error calculating stats of {0}, error {1}".format(self.id, str(e))
             if logger:
                 logger.error(msg)
             else:
                 print msg
+            raise
 
 
     def randomize(self):
@@ -729,7 +728,7 @@ class Motif:
     def randomize_dimer(self):
         l = len(self.pfm)
         random_pfm = []
-        for i in range(l / 2):
+        for _ in range(l / 2):
             pos = random.randint(0, l - 1)
             random_pfm += [[c for c in row] for row in self.pfm[pos:pos + 2]]
         m = Motif(pfm=random_pfm)
@@ -739,7 +738,7 @@ class Motif:
 def motif_from_align(align):
     width = len(align[0])
     nucs = {"A":0,"C":1,"G":2,"T":3}
-    pfm =  [[0 for x in range(4)] for x in range(width)]
+    pfm =  [[0 for _ in range(4)] for _ in range(width)]
     for row in align:
         for i in range(len(row)):
             pfm[i][nucs[row[i]]] += 1
@@ -750,7 +749,7 @@ def motif_from_align(align):
 def motif_from_consensus(cons, n=12):
     width = len(cons)
     nucs = {"A":0,"C":1,"G":2,"T":3}
-    pfm = [[0 for x in range(4)] for x in range(width)]
+    pfm = [[0 for _ in range(4)] for _ in range(width)]
     m = Motif()
     for i,char in enumerate(cons):
         for nuc in m.iupac[char.upper()]:
@@ -820,10 +819,10 @@ def _read_motifs_jaspar(handle):
             motif_id = line[1:]
         if line[0] in "ACGT":
             m = p.search(line)
-            n = m.group(1)
+            nuc = m.group(1)
             counts = re.split(r'\s+', m.group(2).strip())
-            pwm[n] = [float(x) for x in counts]
-            if n == "T":
+            pwm[nuc] = [float(x) for x in counts]
+            if nuc == "T":
                 motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
                 motif.id = motif_id
                 motifs.append(motif)
@@ -838,7 +837,6 @@ def _read_motifs_jaspar(handle):
 def _read_motifs_align(handle):
     motifs = []
     nucs = {"A":0,"C":1,"G":2,"T":3}
-    pwm = []
     motif_id = ""
     aligns = {}
     align = []
@@ -855,11 +853,10 @@ def _read_motifs_align(handle):
     for motif_id, align in aligns.items():
 
         width = len(align[0])
-        pfm =  [[0 for x in range(4)] for x in range(width)]
+        pfm =  [[0 for _ in range(4)] for _ in range(width)]
         for row in align:
             for i in range(len(row)):
                 pfm[i][nucs[row[i]]] += 1
-        total = float(len(align))
         m = Motif(pfm)
         m.align = align[:]
         m.pfm = pfm[:]
@@ -878,7 +875,7 @@ def _read_motifs_xxmotif(handle):
         if line:
             mid = line.split(":")[0]
             freqs = []
-            for i in range(4):
+            for _ in range(4):
                 line = handle.readline()
                 freqs.append([float(x) for x in line.strip().split("\t")])
 
@@ -893,23 +890,23 @@ def _read_motifs_transfac(handle):
     p = re.compile(r'\d+\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s*\w?')
     motifs = []
     pwm = []
-    id = ""
+    motif_id = ""
     for line in handle.readlines():
         if line.startswith("ID"):
             if pwm:
                 motifs.append(Motif(pwm))
-                motifs[-1].id = id
+                motifs[-1].id = motif_id
                 pwm = []
             try:
-                id = line.strip().split(" ")[-1].split("\t")[-1]
-            except:
-                id = line.strip().split("\t")[1]
+                motif_id = line.strip().split(" ")[-1].split("\t")[-1]
+            except IndexError:
+                motif_id = line.strip().split("\t")[1]
         elif p.search(line):
             m = p.search(line)
             pwm.append([float(x) for x in m.group(1,2,3,4)])
     
     motifs.append(Motif(pwm))
-    motifs[-1].id = id
+    motifs[-1].id = motif_id
             
     return motifs
 
