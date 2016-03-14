@@ -268,8 +268,8 @@ class Motif(object):
         pwm = self.pwm
 
         strandmap = {-1:"-","-1":"-","-":"-","1":"+",1:"+","+":"+"}
-        gff_line = "{}\tpwmscan\tmisc_feature\t{}\t{}\t{}\t{}\t.\t"
-                    "motif_name \"{}\" ; motif_instance \"{}\"\n"
+        gff_line = ("{}\tpwmscan\tmisc_feature\t{}\t{}\t{}\t{}\t.\t"
+                    "motif_name \"{}\" ; motif_instance \"{}\"\n")
         for name, seq in fa.items():
             result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
             for score, pos, strand in result:
@@ -294,14 +294,9 @@ class Motif(object):
         if orientation < 0:
             pfm2 = [row[::-1] for row in pfm2[::-1]]
         
-        pfm1_count = 0.0
-        for i in pfm1[0]:
-            pfm1_count += i
-
-        pfm2_count = 0.0
-        for i in pfm2[0]:
-            pfm2_count += i
-
+        pfm1_count = float(np.sum(pfm1[0]))
+        pfm2_count = float(np.sum(pfm2[0]))
+        
         if include_bg:
             if len(pfm1) > len(pfm2) + pos:
                 pfm2 += [[pfm2_count / 4.0 for x in range(4)] for i in range(-(len(pfm1) - len(pfm2) - pos), 0)]
