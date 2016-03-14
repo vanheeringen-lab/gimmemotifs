@@ -101,7 +101,7 @@ p.add_argument("-p", "--pvalue",
                type=float)
 p.add_argument("-b", "--background", 
                dest="background", 
-               help="Background to determine significance genomic_matched,random,promoter,user (%s)" % params["background"], 
+               help="Background to determine significance: (%s)" % params["background"], 
                metavar="N", 
                default=params["background"])
 p.add_argument("-u", "--user_background", 
