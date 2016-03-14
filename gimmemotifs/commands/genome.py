@@ -125,7 +125,7 @@ def genome(args):
     if genome_fa.endswith("tar.gz"):
         cmd = "tar -C {0} -xvzf {1} && rm {1}".format(genome_dir, genome_fa)
     else:
-        cmd = "gunzip {0} && rm {0}".format(genome_fa)
+        cmd = "gunzip {0}".format(genome_fa)
 
     sp.call(cmd, shell=True, cwd=genome_dir)
 
@@ -134,7 +134,7 @@ def genome(args):
         f = Fasta(fa_files[0])
         for n,s in f.items():
             with open("{}/{}.fa".format(genome_dir, n), "w") as f:
-                f.write("{}\n{}\n".format(n,s))
+                f.write(">{}\n{}\n".format(n,s))
     
         os.unlink(fa_files[0])
 
