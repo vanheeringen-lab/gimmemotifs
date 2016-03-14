@@ -13,7 +13,6 @@ from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.utils import parse_cutoff 
 from gimmemotifs.scan import scan, scan_it
 
-VERSION = "1.2"
 MAX_CPUS = 16
 
 def pwmscan(args):
@@ -29,7 +28,7 @@ def pwmscan(args):
     if args.score_table:
         cutoff = 0
     
-    result = scan_it(inputfile, motifs, cutoff, nreport, scan_rc)
+    result_it = scan_it(inputfile, motifs, cutoff, nreport, scan_rc)
    
     p = re.compile(r'([^\s:]+):(\d+)-(\d+)')
     fa = Fasta(inputfile)
@@ -38,7 +37,7 @@ def pwmscan(args):
         for seq_id in fa.ids:
             table[seq_id] = {}
 
-        for motif, result in result:
+        for motif, result in result_it:
             for seq_id, matches in result.items():
                 table[seq_id][motif] = len(matches)
         
@@ -54,7 +53,7 @@ def pwmscan(args):
         for seq_id in fa.ids:
             table[seq_id] = {}
 
-        for motif, result in result:
+        for motif, result in result_it:
             for seq_id, matches in result.items():
                 max_score = max(m[1] for m in matches)
                 table[seq_id][motif] = max_score
@@ -69,7 +68,7 @@ def pwmscan(args):
 
     else:
         strandmap = {-1:"-",1:"+"}
-        for motif, result in result:
+        for motif, result in result_it:
             for seq_id, matches in result.items():
                 for (pos, score, strand) in matches:
                     if bed:

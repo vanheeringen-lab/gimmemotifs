@@ -11,7 +11,7 @@ import sys
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.utils import parse_cutoff
-from gimmemotifs.motif import pwmfile_to_motifs
+from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import which
 
 try: 
@@ -24,7 +24,7 @@ CHUNK = 1000
 def scan_fasta_file_with_motifs(fastafile, motiffile, threshold, gfffile, scan_rc=True, nreport=1):
     error = None
     try:
-        motifs = pwmfile_to_motifs(motiffile)
+        motifs = read_motifs(open(motiffile), fmt="pwm")
         fa = Fasta(fastafile)
         for motif in motifs:
             motif.pwm_scan_to_gff(fa, gfffile, nreport=nreport, cutoff=float(threshold), scan_rc=scan_rc, append=True)

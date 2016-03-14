@@ -20,7 +20,7 @@ import StringIO
 # gimme imports
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.motif import pwmfile_to_motifs
+from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import which
 
 try:
@@ -188,7 +188,7 @@ class Homer(MotifProgram):
         motifs = []
         
         if os.path.exists(outfile):
-            motifs = pwmfile_to_motifs(outfile)
+            motifs = read_motifs(open(outfile), fmt="pwm")
             for i, m in enumerate(motifs):
                 m.id = "{}_{}_{}".format(self.name, default_params["width"], i + 1)
         
@@ -517,11 +517,12 @@ class Trawler(MotifProgram):
         out_name = [dir for dir in os.listdir(self.tmpdir) if dir.startswith("tmp")][-1]
         out_file = os.path.join(self.tmpdir, out_name, "result", "%s.pwm" % out_name)
         if os.path.exists(out_file):
-            motifs = pwmfile_to_motifs(os.path.join(
+            motifs = read_motifs(open(os.path.join(
                                                     self.tmpdir, 
                                                     out_name, 
                                                     "result", 
-                                                    "%s.pwm" % out_name))
+                                                    "%s.pwm" % out_name)),
+                                                    fmt="pwm")
         
         # remove temporary files
         if os.path.exists(tmp.name):
@@ -1127,7 +1128,7 @@ class Jaspar(MotifProgram):
 
     def _run_program(self, bin, fastafile, savedir, params=None):
         fname = os.path.join(self.config.get_motif_dir(), "JASPAR2010_vertebrate.pwm")
-        motifs =  pwmfile_to_motifs(fname)
+        motifs =  read_motifs(open(fname), fmt="pwm")
         for motif in motifs:
             motif.id = "JASPAR_%s" % motif.id
         return motifs, "", ""

@@ -27,7 +27,7 @@ from gimmemotifs import tools as tool_classes
 from gimmemotifs.comparison import *
 from gimmemotifs.config import *
 from gimmemotifs.fasta import *
-from gimmemotifs.motif import pwmfile_to_motifs
+from gimmemotifs.motif import read_motifs
 from gimmemotifs import mytmpdir
 
 class PredictionResult:
@@ -268,7 +268,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
                     else:
                         pwmfile = os.path.join(rundir, "{0}.pwm".format(job_name))
                         if os.path.exists(pwmfile):
-                            motifs = pwmfile_to_motifs(pwmfile)
+                            motifs = read_motifs(open(pwmfile), fmt="pwm")
                         else:
                             logger.error("Job {0} finished, but couldn find {1}!".format(job_name, pwmfile))
                     stdout = open(os.path.join(rundir, "{0}.stdout".format(job_name))).read()

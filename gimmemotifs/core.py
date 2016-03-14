@@ -390,7 +390,7 @@ class GimmeMotifs:
         
         trim_ic = 0.2
         clusters = []
-        motifs = pwmfile_to_motifs(pfm_file)
+        motifs = read_motifs(open(pfm_file), fmt="pwm")
         if len(motifs) == 1:
             clusters = [[motifs[0], motifs]]
         else:
@@ -443,7 +443,7 @@ class GimmeMotifs:
         return clusters
 
     def create_roc_plots(self, pwm_file, fg_fasta, bg_fasta, name):
-        motifs = dict([(m.id, m) for m in pwmfile_to_motifs(pwm_file)])
+        motifs = dict([(m.id, m) for m in read_motifs(open(pwm_file), fmt="pwm")])
         
         jobs = {}
         for id,m in motifs.items():
@@ -467,7 +467,7 @@ class GimmeMotifs:
 
 
     def _roc_metrics(self, pwm, sample_fa, bg_fa, roc_file):
-        motifs = dict([(m.id, m) for m in pwmfile_to_motifs(pwm)])
+        motifs = dict([(m.id, m) for m in read_motifs(open(pwm), fmt="pwm")])
         
         jobs = {}
         for id,m in motifs.items():
@@ -514,12 +514,12 @@ class GimmeMotifs:
             bg_fasta_file, roc_file = rocs[bg]
             self.auc[bg], self.mncp[bg] = self._roc_metrics(pwm, self.validation_fa, bg_fasta_file, roc_file)
     
-        motifs = pwmfile_to_motifs(pwm)
+        motifs = read_motifs(open(pwm), fmt="pwm")
         self.closest_match = self.determine_closest_match(motifs)
         
     def _create_text_report(self, pwm, background):
         self.logger.info("Creating text report")
-        motifs = pwmfile_to_motifs(pwm)
+        motifs = read_motifs(open(pwm), fmt="pwm")
 
         sort_key = background[0]
         if "gc" in background:
@@ -554,7 +554,7 @@ class GimmeMotifs:
         class ReportMotif:
             pass
         
-        motifs = pwmfile_to_motifs(pwm)
+        motifs = read_motifs(open(pwm), fmt="pwm")
         for m,match in self.closest_match.items():
             match[0].to_img(os.path.join(self.imgdir,"%s.png" % match[0].id), format="PNG")
 
@@ -613,7 +613,7 @@ class GimmeMotifs:
         db_motifs = []
         if db.endswith("pwm") or db.endswith("pfm"):
         
-            db_motifs = pwmfile_to_motifs(db)
+            db_motifs = read_motifs(open(db), fmt="pwm")
         elif db.endswith("transfac"):
             db_motifs = transfac_to_motifs(db)
         
@@ -870,7 +870,7 @@ class GimmeMotifs:
         # Stars
         tmp = NamedTemporaryFile(dir=mytmpdir()).name
         p = PredictionResult(tmp, logger=self.logger, job_server=self.server, fg_file = self.validation_fa, bg_file = bg_file) 
-        p.add_motifs(("Clustering",  (pwmfile_to_motifs(self.final_pwm), "","")))
+        p.add_motifs(("Clustering",  (read_motifs(open(self.final_pwm), fmt="pwm"), "","")))
         while len(p.stats.keys()) < len(p.motifs):
             sleep(5)
 
@@ -894,7 +894,7 @@ class GimmeMotifs:
         
         # Location plots
         self.logger.info("Creating localization plots")
-        motifs = pwmfile_to_motifs(self.final_pwm)
+        motifs = read_motifs(open(self.final_pwm), fmt="pwm")
         for motif in motifs:
             m = "%s_%s" % (motif.id, motif.to_consensus())
             s = p.stats[m]

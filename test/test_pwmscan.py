@@ -12,7 +12,7 @@ class TestMotifPwm(unittest.TestCase):
     def setUp(self):
         self.data_dir = "test/data/pwmscan"
         
-        self.motif = pwmfile_to_motifs(os.path.join(self.data_dir, "TATA.pwm"))[0]
+        self.motif = read_motifs(open(os.path.join(self.data_dir, "TATA.pwm")), fmt="pwm")[0]
         self.prom = Fasta(os.path.join(self.data_dir, "promoters.fa"))
         self.prom_gff = os.path.join(self.data_dir, "promoters_result.gff")
         self.random = Fasta(os.path.join(self.data_dir, "random_sequences.fa"))

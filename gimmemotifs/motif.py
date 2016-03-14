@@ -15,6 +15,7 @@ from math import log,sqrt
 from tempfile import NamedTemporaryFile
 from config import *
 from subprocess import *
+#from warnings import DeprecationWarning
 
 from gimmemotifs import mytmpdir
 from gimmemotifs.rocmetrics import MNCP, ROC_AUC, max_enrichment, fraction_fdr, score_at_fdr, enr_at_fdr
@@ -608,7 +609,7 @@ class Motif:
         pwm = [self.iupac_pwm[char]for char in self.consensus.upper()]
         return ">%s\n%s" % (id, "\n".join(["\t".join(["%s" % x for x in row]) for row in pwm]))
 
-    def to_img(self, file, format="EPS", add_left=0, seqlogo=None, height=6):
+    def to_img(self, fname, format="EPS", add_left=0, seqlogo=None, height=6):
         """ Valid formats EPS, GIF, PDF, PNG """
         if not seqlogo:
             seqlogo = self.seqlogo
@@ -624,8 +625,8 @@ class Motif:
             sys.stderr.write("Invalid motif format\n")
             return
         
-        if file[-4:].upper() == (".%s" % format):
-            file = file[:-4]
+        if fname[-4:].upper() == (".%s" % format):
+            fname = fname[:-4]
         seqs = []
         if add_left == 0:
             seqs = ["" for i in range(N)]
@@ -661,7 +662,7 @@ class Motif:
                               format, 
                               height,
                               len(self) + add_left, 
-                              file)
+                              fname)
         call(cmd, shell=True)
         
         # Delete tempfile
@@ -759,42 +760,59 @@ def motif_from_consensus(cons, n=12):
     return m
 
 
-def pwmfile_to_motifs(file):
+def read_motifs(handle, fmt="pwm"):
+    """ 
+    Read motifs from a stream or file-like object.
+    """
+
+    if fmt.lower() == "pwm":
+        return _read_motifs_pwm(handle)
+    if fmt.lower() == "transfac":
+        return _read_motifs_transfac(handle)
+
+
+def _read_motifs_pwm(handle):
     p = re.compile(r'(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)')
     motifs = []
     pfm = []
-    id = ""
-    for n,line in enumerate(open(file).readlines()):
+    motif_id = ""
+    for n,line in enumerate(handle.readlines()):
         if line.startswith("#") or line.strip() == "":
             continue
         if line.startswith(">"):
             if pfm:
                 motifs.append(Motif(pfm))
-                motifs[-1].id = id
+                motifs[-1].id = motif_id
                 pfm = []
-            id = line.strip()[1:]
+            motif_id = line.strip()[1:]
         else:
             m = p.search(line)
             if m:
                 fractions =  [float(m.group(x)) for x in (1,4,7,10)]
                 pfm.append(fractions)
             else:
-                sys.stderr.write("WARNING: can't parse line %s, ignoring:\n%s" % (n + 1, line))
+                msg = "WARNING: can't parse line {}, ignoring:\n{}".format(n + 1, line)
+                sys.stderr.write(msg)
 
     if len(pfm) > 0:
         motifs.append(Motif(pfm))
-        motifs[-1].id = id
+        motifs[-1].id = motif_id
             
     return motifs
 
-def alignfile_to_motifs(file):
+
+def jaspar_to_motifs(fname):
+    motifs = []
+    #for line
+
+def alignfile_to_motifs(fname):
     motifs = []
     nucs = {"A":0,"C":1,"G":2,"T":3}
     pwm = []
     id = ""
     aligns = {}
     align = []
-    for line in open(file):
+    for line in open(fname):
         if line.startswith(">"):
             if id:
                 aligns[id] = align
@@ -842,12 +860,12 @@ def xxmotif_to_motifs(fname):
 
     return motifs
 
-def transfac_to_motifs(file):
+def _read_motifs_transfac(handle)
     p = re.compile(r'\d+\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s*\w?')
     motifs = []
     pwm = []
     id = ""
-    for line in open(file).readlines():
+    for line in handle.readlines():
         if line.startswith("ID"):
             if pwm:
                 motifs.append(Motif(pwm))
@@ -873,6 +891,23 @@ def motifs_to_meme(motifs):
     for motif in motifs:
         m += motif.to_meme() + "\n"
     return m
+
+def pwmfile_to_motifs(fname):
+    # this method should be deleted
+    msg = "pwmfile_to_motifs is deprecated, please use read_motifs"
+    raise DeprecationWarning(msg)
+    
+    return read_motifs(open(fname), fmt="pwm")    
+
+def transfac_to_motifs(fname):
+    # this method should be deleted
+    msg = "transfac_to_motifs is deprecated, please use read_motifs"
+    raise DeprecationWarning(msg)
+    
+    return read_motifs(open(fname), fmt="transfac")    
+
+
+
 
 if __name__ == "__main__":
     m = Motif()
