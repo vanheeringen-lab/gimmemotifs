@@ -13,15 +13,18 @@ import logging
 import logging.handlers
 from datetime import datetime
 from numpy import median
+from tempfile import NamedTemporaryFile
+from sleep import sleep
 
 # External imports
 import kid
 from scipy.stats.mstats import rankdata
+from numpy import mean
 
 # GimmeMotifs imports
-from gimmemotifs.config import MotifConfig,GM_VERSION,FA_VALID_BGS,BED_VALID_BGS
+from gimmemotifs.config import MotifConfig,GM_VERSION,FA_VALID_BGS,BED_VALID_BGS,BG_RANK
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.utils import divide_fa_file,divide_file
+from gimmemotifs.utils import divide_fa_file,divide_file,write_equalwidth_bedfile,gff_enrichment,motif_localization
 from gimmemotifs.background import MarkovFasta,MatchedGcFasta,PromoterFasta
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs import genome_index
@@ -29,6 +32,7 @@ from gimmemotifs.cluster import cluster_motifs
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.scan import scan_fasta_file_with_motifs
 from gimmemotifs.rocmetrics import ROC_values,ROC_AUC,MNCP,max_fmeasure
+from gimmemotifs.motif import read_motifs
 from gimmemotifs import mytmpdir
 try:
     from gimmemotifs.mp import pool
@@ -107,7 +111,7 @@ class GimmeMotifs(object):
     def _setup_output_dir(self, name):
 
         if os.path.exists(name):
-            sys.stderr.write("Output directory %s already exists!\n", name)
+            sys.stderr.write("Output directory {} already exists!\n".format(name))
             sys.stderr.write("Resuming a previous run is not yet implemented. Please specify a different name,\n")
             sys.stderr.write("or delete this directory if you really want to overwrite it\n")
             #sys.exit(1)
@@ -115,7 +119,7 @@ class GimmeMotifs(object):
             try:
                 os.makedirs(name)
             except OSError:
-                sys.stderr.write("Can't create output directory %s!\n", name)
+                sys.stderr.write("Can't create output directory {}!\n".format(name))
                 #sys.exit(1)
 
         self.outdir = name
@@ -622,7 +626,7 @@ class GimmeMotifs(object):
 
             db_motifs = read_motifs(open(db), fmt="pwm")
         elif db.endswith("transfac"):
-            db_motifs = transfac_to_motifs(db)
+            db_motifs = read_motifs(db, fmt="transfac")
 
         closest_match = {}
         mc = MotifComparer()
