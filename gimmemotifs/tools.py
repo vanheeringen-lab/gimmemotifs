@@ -18,8 +18,15 @@ import StringIO
 # gimme imports
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.motif import read_motifs, Motif
 from gimmemotifs.utils import which
+
+# Necessary for when setup.py needs to import 
+# refactor at some point
+try:
+    from gimmemotifs.motif import read_motifs, Motif
+except ImportError:
+    pass
+
 
 def locate_tool(tool, verbose=True): 
     tool = re.sub(r'[^a-zA-Z]','',tool) 
