@@ -91,7 +91,7 @@ class GimmeMotifs(object):
 
         # setup logging
         self._setup_logging()
-        self.logger.info("%s version %s", self.NAME, GM_VERSION))
+        self.logger.info("%s version %s", self.NAME, GM_VERSION)
         self.logger.info("Created output directory %s (all output files will be stored here)", self.outdir)
 
         # setup the names of the intermediate and output files
@@ -100,22 +100,22 @@ class GimmeMotifs(object):
     def job_server(self):
         try:
             self.server.submit(job_server_ok)
-        except:
+        except Exception:
                 self.server = self._get_job_server()
         return self.server
 
     def _setup_output_dir(self, name):
 
         if os.path.exists(name):
-            sys.stderr.write("Output directory %s already exists!\n" % name)
+            sys.stderr.write("Output directory %s already exists!\n", name)
             sys.stderr.write("Resuming a previous run is not yet implemented. Please specify a different name,\n")
             sys.stderr.write("or delete this directory if you really want to overwrite it\n")
             #sys.exit(1)
         else:
             try:
                 os.makedirs(name)
-            except:
-                sys.stderr.write("Can't create output directory %s!\n" % name)
+            except OSError:
+                sys.stderr.write("Can't create output directory %s!\n", name)
                 #sys.exit(1)
 
         self.outdir = name
@@ -124,7 +124,7 @@ class GimmeMotifs(object):
         try:
             os.mkdir(self.tmpdir)
             os.mkdir(self.imgdir)
-        except:
+        except OSError:
             pass
         star = os.path.join(self.config.get_template_dir(), "star.png")
         shutil.copyfile(star, os.path.join(self.imgdir, "star.png"))
@@ -229,13 +229,13 @@ class GimmeMotifs(object):
                     sys.exit(1)
                 try:
                     start, end = int(vals[1]), int(vals[2])
-                except:
+                except ValueError:
                     self.logger.error("No valid integer coordinates on line %s of file %s", i + 1, fname)
                     sys.exit(1)
                 if len(vals) > 3:
                     try:
                         float(vals[3])
-                    except:
+                    except ValueError:
                         pass
                         #self.logger.warn("No numerical value in column 4 on line %s of file %s, ignoring..." % (i + 1, file))
 
@@ -698,7 +698,7 @@ class GimmeMotifs(object):
             Fasta(inputfile)
             self.logger.info("Inputfile is a FASTA file")
             self.input_type = "FASTA"
-        except:
+        except Exception:
             # Leave it to BED
             pass
 
@@ -734,7 +734,7 @@ class GimmeMotifs(object):
         if params["max_time"]:
             try:
                 max_time = float(params["max_time"])
-            except:
+            except Exception:
                 self.logger.info("Could not parse max_time value, setting to no limit")
                 self.max_time = None
 

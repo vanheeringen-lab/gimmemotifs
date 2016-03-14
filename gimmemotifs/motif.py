@@ -845,7 +845,7 @@ def _read_motifs_align(handle):
     for line in handle:
         if line.startswith(">"):
             if motif_id:
-                aligns[motf_id] = align
+                aligns[motif_id] = align
             motif_id = line.strip()[1:]
             align = []
         else:
