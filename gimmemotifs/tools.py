@@ -10,8 +10,7 @@
 import re
 import os
 import sys
-from subprocess import Popen, PIPE, STDOUT, call
-from math import sqrt
+from subprocess import Popen, PIPE, call
 import shutil
 from tempfile import NamedTemporaryFile, mkdtemp
 import StringIO
@@ -23,19 +22,20 @@ from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import which
 
 try:
-    from gimmemotifs.motif import * 
+    from gimmemotifs.motif import Motif, read_motifs 
 except Exception:
     pass
 
 def locate_tool(tool, verbose=True): 
     tool = re.sub(r'[^a-zA-Z]','',tool) 
     m = eval(tool)() 
-    bin = which(m.cmd) 
-    if bin: 
-        print "Found %s in %s" % (m.name, bin) 
-        return bin 
+    tool_bin = which(m.cmd) 
+    if tool_bin:
+        if verbose:
+            print "Found {} in {}".format(m.name, tool_bin) 
+        return tool_bin 
     else: 
-        print "Couldn't find %s" % m.name 
+        print "Couldn't find {}".format(m.name)
 
 class MotifProgram(object):
     config = MotifConfig()
@@ -62,10 +62,10 @@ class MotifProgram(object):
     def run(self, fastafile, savedir, params=None, tmp=None):
 
         if not self.is_configured():
-            raise ValueError, "%s is not configured" % self.name
+            raise ValueError("%s is not configured" % self.name)
 
         if not self.is_installed():
-            raise ValueError, "%s is not installed or not correctly configured" % self.name
+            raise ValueError("%s is not installed or not correctly configured" % self.name)
         
         self.tmpdir = mkdtemp(prefix="{0}.".format(self.name), dir=tmp)
  
@@ -143,7 +143,7 @@ class Homer(MotifProgram):
     def _run_program(self, bin, fastafile, savedir="", params=None):
         
         default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
-        if not params is None: 
+        if params is not None: 
             default_params.update(params)
         
         homer = bin
@@ -202,7 +202,7 @@ class BioProspector(MotifProgram):
     def _run_program(self, bin, fastafile, savedir="", params=None):
         
         default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
-        if not params is None: 
+        if params is not None: 
             default_params.update(params)
         
         prospector = bin
@@ -214,7 +214,7 @@ class BioProspector(MotifProgram):
             print "Background file needed!"
             sys.exit()
         
-        bgfile = os.path.abspath(default_params["background"])
+        #bgfile = os.path.abspath(default_params["background"])
         outfile = os.path.join(self.tmpdir, "bioprospector.out")    
         
         stdout = ""
@@ -251,16 +251,15 @@ class BioProspector(MotifProgram):
         motifs = []
         
         p = re.compile(r'^\d+\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)')
-        align = []
         pwm = []
-        id = ""
+        motif_id = ""
         for line in fo.readlines():
             if line.startswith("Motif #"):
                 if pwm:
                     m = Motif(pwm)
-                    m.id = "BioProspector_w%s_%s" % (len(m), id)
+                    m.id = "BioProspector_w%s_%s" % (len(m), motif_id)
                     motifs.append(m)
-                id =  line.split("#")[1].split(":")[0]
+                motif_id =  line.split("#")[1].split(":")[0]
                 pwm = []
             else:
                 m = p.search(line)
@@ -269,7 +268,7 @@ class BioProspector(MotifProgram):
 
         if pwm:
             m = Motif(pwm)
-            m.id = "BioProspector_w%s_%s" % (len(m), id)
+            m.id = "BioProspector_w%s_%s" % (len(m), motif_id)
             motifs.append(m)
         return motifs
 
@@ -341,7 +340,7 @@ class Amd(MotifProgram):
     def _run_program(self, bin, fastafile, savedir="", params=None):
         
         default_params = {"background":None}
-        if not params is None: 
+        if params is not None: 
             default_params.update(params)
         
         amd = bin
@@ -413,7 +412,7 @@ class Improbizer(MotifProgram):
     def _run_program(self, bin, fastafile, savedir="", params=None):
         
         default_params = {"background":None, "number":10}
-        if not params is None: 
+        if params is not None: 
             default_params.update(params)
         
         ameme = bin
@@ -479,7 +478,7 @@ class Trawler(MotifProgram):
     def _run_program(self, bin, fastafile, savedir="", params=None):
         
         default_params = {"single":False, "background":None}
-        if not params is None: 
+        if params is not None: 
             default_params.update(params)
         
         trawler = bin
@@ -555,7 +554,7 @@ class Weeder(MotifProgram):
 
 
         default_params = {"analysis":"small", "organism":"hg18", "single":False, "parallel":True}
-        if not params is None: 
+        if params is not None: 
             default_params.update(params)
         
         organism = default_params["organism"]
@@ -585,11 +584,11 @@ class Weeder(MotifProgram):
         adviser = weeder.replace("weederTFBS", "adviser")
     
         
-        dir = bin.replace("weederTFBS.out", "")
+        weeder_dir = bin.replace("weederTFBS.out", "")
         if self.is_configured():
-            dir = self.dir()
+            weeder_dir = self.dir()
 
-        freq_files = os.path.join(dir, "FreqFiles")
+        freq_files = os.path.join(weeder_dir, "FreqFiles")
         if not os.path.exists(freq_files):
             raise ValueError, "Can't find FreqFiles directory for Weeder"
                 
@@ -604,7 +603,7 @@ class Weeder(MotifProgram):
         fastafile = name
     
         current_path = os.getcwd()
-        os.chdir(dir)
+        os.chdir(weeder_dir)
         
         coms = ((8,2),(6,1))
 
@@ -714,7 +713,7 @@ class MotifSampler(MotifProgram):
     def _run_program(self, bin, fastafile, savedir, params=None):
         
         default_params = {"width":10, "background":"", "single":False, "number":10}
-        if not params is None: 
+        if params is not None: 
             default_params.update(params)
         
         background = default_params['background']
@@ -836,7 +835,7 @@ class MDmodule(MotifProgram):
     def _run_program(self, bin, fastafile, savedir, params=None):
         
         default_params = {"width":10, "number":10}
-        if not params is None: 
+        if params is not None: 
             default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
@@ -987,7 +986,7 @@ class Posmo(MotifProgram):
     def _run_program(self, bin, fastafile, savedir, params=None):
         
         default_params = {}
-        if not params is None: 
+        if params is not None: 
             default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
@@ -1054,7 +1053,7 @@ class Gadem(MotifProgram):
     def _run_program(self, bin, fastafile, savedir, params=None):
         
         default_params = {}
-        if not params is None: 
+        if params is not None: 
             default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
@@ -1141,7 +1140,7 @@ class Meme(MotifProgram):
     def _run_program(self, bin, fastafile, savedir, params=None):
         #EVT = 1.0
         default_params = {"width":10, "single":False, "number":10}
-        if not params is None: 
+        if params is not None: 
             default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
@@ -1215,7 +1214,7 @@ class MemeW(MotifProgram):
         
         #EVT = 1.0
         default_params = {"single":False, "number":10}
-        if not params is None: 
+        if params is not None: 
             default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
