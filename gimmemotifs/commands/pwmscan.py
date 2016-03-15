@@ -11,34 +11,39 @@ import re
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.utils import parse_cutoff 
-from gimmemotifs.scan import scan, scan_it, scan_it_moods
+from gimmemotifs.scan import scan, scan_it, scan_it_moods, scan_it_counts_table
 
 MAX_CPUS = 16
 
-def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=True, table=False, score_table=False, moods=False):
+def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=True, table=False, score_table=False, moods=False, pvalue=None):
     motifs = pwmfile_to_motifs(pwmfile)
     
     if moods:
-        result_it = scan_it_moods(inputfile, motifs, cutoff, nreport, scan_rc)
+        result_it = scan_it_moods(inputfile, motifs, cutoff, nreport, scan_rc, pvalue, table)
     else:
         result_it = scan_it(inputfile, motifs, cutoff, nreport, scan_rc)
 
     p = re.compile(r'([^\s:]+):(\d+)-(\d+)')
     fa = Fasta(inputfile)
     if table:
-        table = {}
-        for seq_id in fa.ids:
-            table[seq_id] = {}
+        if moods:
+            result_it = scan_it_moods(inputfile, motifs, cutoff, nreport, scan_rc, pvalue, table)
+        else:
+            result_it = scan_it_counts_table(inputfile, motifs, cutoff, nreport, scan_rc)
+        #table = {}
+        #for seq_id in fa.ids:
+        #    table[seq_id] = {}
 
-        for motif, result in result_it:
-            for seq_id, matches in result.items():
-                table[seq_id][motif] = len(matches)
+        #for motif, result in result_it:
+        #    for seq_id, matches in result.items():
+        #        table[seq_id][motif] = str(len(matches))
         
         yield "\t{}".format("\t".join([m.id for m in motifs]))
-        for seq_id in fa.ids:
-            counts = [table[seq_id].get(m, 0) for m in motifs]
+        #for seq_id in fa.ids:
+        #    counts = [table[seq_id].get(m, "0") for m in motifs]
+        for seq_id, counts in result_it:
             yield "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
-    
+
     elif score_table:
         table = {}
         for seq_id in fa.ids:
@@ -117,5 +122,6 @@ def pwmscan(args):
             table, 
             score_table,
             moods,
+            args.pvalue,
             ):
         print line
