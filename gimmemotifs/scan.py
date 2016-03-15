@@ -20,6 +20,7 @@ from gimmemotifs.config import MotifConfig
 from gimmemotifs.utils import parse_cutoff
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import which
+from gimmemotifs.c_metrics import pwmscan
 
 try: 
     from gimmemotifs.mp import pool
@@ -47,9 +48,68 @@ def scan_fa_with_motif(fo, motif, cutoff, nreport, scan_rc=True):
     #    msg = "Error calculating stats of {0}, error {1}".format(motif.id, e)
     #    sys.stderr.write("{0}\n".format(msg))
 
-def scan_fa_with_motif_moods(fo, motif, cutoff, nreport, scan_rc=True):
-    return motif, motif.pwm_scan_all(fo, cutoff, nreport, scan_rc=scan_rc)
+def scan_fa_with_motif_counts(fo, motifs, cutoffs, nreport, scan_rc=True):
+    ret = []
+    for name,seq in fo.items():
+        counts = []
+        for motif,cutoff in zip(motifs, cutoffs):
+            result = pwmscan(seq.upper(), motif.pwm, cutoff, nreport, scan_rc)
+            counts.append(len(result))
+        ret.append((name, counts))
+    return ret
 
+def scan_fa_with_motif_score(fo, motifs, cutoffs, scan_rc=True):
+    ret = []
+    for name,seq in fo.items():
+        scoress = []
+        for motif,cutoff in zip(motifs, cutoffs):
+            result = pwmscan(seq.upper(), motif.pwm, cutoff, 1, scan_rc)
+            scores.append(result[0][0])
+        ret.append((name, scores))
+    return ret
+
+def scan_fa_with_motif_moods(fo, motifs, matrices, bg, thresholds, nreport, scan_rc=True):
+    
+    scanner = MOODS.scan.Scanner(7)
+    scanner.set_motifs(matrices, bg, thresholds)
+    
+    ret = []
+    for name, seq in fo.items():
+        l = len(seq)
+        
+        scan_seq = seq.upper()
+        if scan_rc:
+            scan_seq = "".join((scan_seq, "N"*50, rc(scan_seq)))
+        results = scanner.scan_max_hits(scan_seq, nreport)
+        for motif,result in zip(motifs, results):
+            matches = []
+            for match in result:
+                strand = 1
+                pos = match.pos
+                if scan_rc:
+                    if pos > l:
+                        pos = l - (pos - l - 50) - len(motif) 
+                        strand = -1
+                matches.append((pos, match.score, strand))
+            ret.append((motif, {name: matches}))
+
+    return ret
+
+def scan_fa_with_motif_moods_count(fo, motifs, matrices, bg, thresholds, nreport, scan_rc=True):
+    scanner = MOODS.scan.Scanner(7)
+    scanner.set_motifs(matrices, bg, thresholds)
+  
+    ret = []
+    for name, seq in fo.items():
+        l = len(seq)
+        
+        scan_seq = seq.upper()
+        if scan_rc:
+            scan_seq = "".join((scan_seq, "N"*50, rc(scan_seq)))
+        results = scanner.counts_max_hits(scan_seq, nreport)
+        ret.append((name, results))
+
+    return ret
 
 def scan_it(infile, motifs, cutoff, nreport=1, scan_rc=True):
     # Get configuration defaults
@@ -57,7 +117,6 @@ def scan_it(infile, motifs, cutoff, nreport=1, scan_rc=True):
     # Cutoff for motif scanning, only used if a cutoff is not supplied
     default_cutoff = config.get_default_params()['scan_cutoff']
     # Number of CPUs to use
-    ncpus =  config.get_default_params()['ncpus']
     
     cutoffs = parse_cutoff(motifs, cutoff, default_cutoff) 
     
@@ -85,18 +144,68 @@ def scan_it(infile, motifs, cutoff, nreport=1, scan_rc=True):
         motif, result = job.get()
         yield motifkey[motif.id], result
 
+def get_cutoffs(motifs, cutoff):
+    # Get configuration defaults
+    config = MotifConfig()
+    # Cutoff for motif scanning, only used if a cutoff is not supplied
+    default_cutoff = config.get_default_params()['scan_cutoff']
+    
+    cutoffs = parse_cutoff(motifs, cutoff, default_cutoff) 
+    
+    return [cutoffs[m.id] for m in motifs]
+
+def scan_it_counts_table(infile, motifs, cutoff, nreport=1, scan_rc=True):
+    cutoffs = get_cutoffs(motifs, cutoff)
+
+    fa = Fasta(infile)
+        
+    jobs = []
+    for i in range(0, len(fa), CHUNK):
+        jobs.append(pool.apply_async(
+                                          scan_fa_with_motif_counts,
+                                          (fa[i:i + CHUNK],
+                                          motifs,
+                                          cutoffs,
+                                          nreport,
+                                          scan_rc,
+                                          )))
+    
+    for job in jobs:
+        for ret in job.get():
+            yield ret
+
+def scan_it_score_table(infile, motifs, cutoff, scan_rc=True):
+    cutoffs = get_cutoffs(motifs, cutoff)
+
+    fa = Fasta(infile)
+        
+    jobs = []
+    for i in range(0, len(fa), CHUNK):
+        jobs.append(pool.apply_async(
+                                          scan_fa_with_motif_score,
+                                          (fa[i:i + CHUNK],
+                                          motifs,
+                                          cutoffs,
+                                          scan_rc,
+                                          )))
+    
+    for job in jobs:
+        ret = job.get()
+        yield ret
+
+
 def calc_threshold_moods(m, c):
     m_min = MOODS.tools.min_score(m)
     m_max = MOODS.tools.max_score(m)
 
     return m_min + (m_max - m_min) * c
 
-def scan_it_moods(infile, motifs, cutoff, nreport=1, scan_rc=True):
+def scan_it_moods(infile, motifs, cutoff, nreport=1, scan_rc=True, pvalue=None, count=False):
     tmpdir = mkdtemp()
     matrices = []
     pseudocount = 1e-3
     bgfile = "/home/simon/prj/atac_zebrafish/zf/random_w500.fa"
-    bg = MOODS.tools.bg_from_sequence_dna("".join(Fasta(infile).seqs), 1)
+    bg = MOODS.tools.bg_from_sequence_dna("".join(Fasta(bgfile).seqs), 1)
 
     for motif in motifs:
         pfmname = os.path.join(tmpdir, "{}.pfm".format(motif.id))
@@ -106,32 +215,44 @@ def scan_it_moods(infile, motifs, cutoff, nreport=1, scan_rc=True):
                 f.write("{}\n".format(line))
 
         matrices.append(MOODS.parsers.pfm_log_odds(pfmname, bg, pseudocount))
-        #matrices.append(MOODS.parsers.pfm_log_odds_rc(pfmname, bg, pseudocount))
     
-    #thresholds = [MOODS.tools.threshold_from_p(m, bg, float(cutoff)) for m in matrices]
-    thresholds = [calc_threshold_moods(m, float(cutoff)) for m in matrices]
+    thresholds = []
+    if pvalue is not None:
+        thresholds = [MOODS.tools.threshold_from_p(m, bg, float(pvalue)) for m in matrices]
+        #sys.stderr.write("{}\n".format(thresholds))
+    else:
+        thresholds = [calc_threshold_moods(m, float(cutoff)) for m in matrices]
+    
     scanner = MOODS.scan.Scanner(7)
     scanner.set_motifs(matrices, bg, thresholds)
     
-    for name, seq in Fasta(infile).items():
-        l = len(seq)
-        
-        scan_seq = seq
-        if scan_rc:
-            scan_seq = "".join((seq, rc(seq)))
-        results = scanner.scan_max_hits(scan_seq, nreport)
-        for motif,result in zip(motifs, results):
-            matches = []
-            for match in result:
-                strand = 1
-                pos = match.pos
-                if scan_rc:
-                    if pos > l:
-                        pos = l - (pos - l) - len(motif) + 1
-                        strand = -1
-                matches.append((pos, match.score, strand))
-            yield motif, {name: sorted(matches, cmp=lambda y,x: cmp(x[1], y[1]))[:nreport]}
+    config = MotifConfig()
+    ncpus =  int(config.get_default_params()['ncpus'])
+    fa = Fasta(infile)
+    chunk = 500
+    if (len(fa) / chunk) < ncpus:
+        chunk = len(fa) / (ncpus + 1)
+    
+    jobs = []
+    func = scan_fa_with_motif_moods
+    if count:
+        func = scan_fa_with_motif_moods_count
 
+    for i in range(0, len(fa), chunk):
+        jobs.append(pool.apply_async(
+                                          func,
+                                          (fa[i:i + chunk],
+                                          motifs,
+                                          matrices,
+                                          bg,
+                                          thresholds,
+                                          nreport,
+                                          scan_rc,
+                                          )))
+    
+    for job in jobs:
+        for ret in job.get():
+            yield ret
 
 def scan(infile, motifs, cutoff, nreport=1, it=False):
     # Get configuration defaults
