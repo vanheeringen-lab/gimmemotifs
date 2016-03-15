@@ -11,14 +11,18 @@ import re
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.utils import parse_cutoff 
-from gimmemotifs.scan import scan, scan_it
+from gimmemotifs.scan import scan, scan_it, scan_it_moods
 
 MAX_CPUS = 16
 
-def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=True, table=False, score_table=False):
+def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=True, table=False, score_table=False, moods=False):
     motifs = pwmfile_to_motifs(pwmfile)
-    result_it = scan_it(inputfile, motifs, cutoff, nreport, scan_rc)
-   
+    
+    if moods:
+        result_it = scan_it_moods(inputfile, motifs, cutoff, nreport, scan_rc)
+    else:
+        result_it = scan_it(inputfile, motifs, cutoff, nreport, scan_rc)
+
     p = re.compile(r'([^\s:]+):(\d+)-(\d+)')
     fa = Fasta(inputfile)
     if table:
@@ -101,6 +105,7 @@ def pwmscan(args):
     table = args.table
     score_table = args.score_table
     pwmfile = args.pwmfile
+    moods = args.moods
 
     for line in command_scan(
             inputfile, 
@@ -110,5 +115,7 @@ def pwmscan(args):
             bed, 
             scan_rc, 
             table, 
-            score_table):
+            score_table,
+            moods,
+            ):
         print line

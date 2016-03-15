@@ -366,6 +366,12 @@ p.add_argument("-T", "--score_table",
                help="output maximum score in tabular format", 
                action="store_true",
                default=False)
+p.add_argument("-M", "--do_MOODS",
+               dest="moods", 
+               help="Use MOODS for scanning", 
+               action="store_true",
+               default=False)
+
 
 
 p.set_defaults(func=commands.pwmscan)
