@@ -120,11 +120,11 @@ def calc_threshold_moods(m, c):
 
     return m_min + (m_max - m_min) * c
 
-def scan_it_moods(infile, motifs, cutoff, nreport=1, scan_rc=True, pvalue=None, count=False):
+def scan_it_moods(infile, motifs, cutoff, bgfile, nreport=1, scan_rc=True, pvalue=None, count=False):
     tmpdir = mkdtemp()
     matrices = []
     pseudocount = 1e-3
-    bgfile = "/home/simon/prj/atac_zebrafish/zf/random_w500.fa"
+    sys.stderr.write("bgfile: {}\n".format(bgfile))
     bg = MOODS.tools.bg_from_sequence_dna("".join(Fasta(bgfile).seqs), 1)
 
     for motif in motifs:

@@ -377,6 +377,12 @@ p.add_argument("-p", "--pvalue",
                metavar="", 
                type=float,
                default=None)
+p.add_argument("-B", "--bgfile", 
+               dest="bgfile", 
+               help="experimental: MOODS background file", 
+               metavar="", 
+               default=None)
+
 
 p.set_defaults(func=commands.pwmscan)
 

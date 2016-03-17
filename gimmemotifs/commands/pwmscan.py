@@ -55,7 +55,7 @@ def format_line(fa, seq_id, motif, score, pos, strand, bed=False):
 
 
 
-def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=True, table=False, score_table=False, moods=False, pvalue=None):
+def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=True, table=False, score_table=False, moods=False, pvalue=None, bgfile=None):
     motifs = pwmfile_to_motifs(pwmfile)
     
     # initialize scanner
@@ -63,7 +63,7 @@ def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=T
     s.set_motifs(pwmfile)
     
     if moods:
-        result_it = scan_it_moods(inputfile, motifs, cutoff, nreport, scan_rc, pvalue, table)
+        result_it = scan_it_moods(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, table)
     else:
         result_it = s.scan(inputfile, nreport, scan_rc, cutoff)
 
@@ -113,8 +113,6 @@ def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=T
                         yield format_line(fa, seq_id, motif, 
                                    score, pos, strand, bed=bed)
 
-  
-
 def pwmscan(args):
     inputfile = args.inputfile
     nreport = args.nreport
@@ -124,6 +122,7 @@ def pwmscan(args):
     table = args.table
     score_table = args.score_table
     pwmfile = args.pwmfile
+    bgfile = args.bgfile
     moods = args.moods
 
     for line in command_scan(
@@ -137,5 +136,6 @@ def pwmscan(args):
             score_table,
             moods,
             args.pvalue,
+            bgfile,
             ):
         print line
