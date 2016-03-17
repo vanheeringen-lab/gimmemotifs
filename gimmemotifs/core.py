@@ -32,7 +32,7 @@ from gimmemotifs.comparison import MotifComparer
 from gimmemotifs import genome_index
 from gimmemotifs.cluster import cluster_motifs
 from gimmemotifs.plot import roc_plot
-from gimmemotifs.scan import scan_fasta_file_with_motifs
+from gimmemotifs.commands.pwmscan import command_scan
 from gimmemotifs.rocmetrics import ROC_values, ROC_AUC, MNCP, max_fmeasure
 from gimmemotifs.motif import read_motifs
 from gimmemotifs import mytmpdir
@@ -98,7 +98,7 @@ class GimmeMotifs(object):
         # setup logging
         self._setup_logging()
         self.logger.info("%s version %s", self.NAME, GM_VERSION)
-        self.logger.info("Created output directory %s (all output files will be stored here)", self.outdir)
+        self.logger.info("output dir: %s", self.outdir)
 
         # setup the names of the intermediate and output files
         self._setup_filenames()
@@ -157,14 +157,14 @@ class GimmeMotifs(object):
         sh.setFormatter(screen_formatter)
         self.logger.addHandler(sh)
 
-        self.logger.info("Logging started")
-        self.logger.info("Created logfile %s", logfile)
+        self.logger.debug("Logging started")
+        self.logger.info("log: %s", logfile)
 
     def _setup_filenames(self):
         basename = os.path.split(self.name)[-1]
         self.basename = basename
 
-        self.logger.info("basename: {}".format(basename))
+        self.logger.debug("basename: {}".format(basename))
         # Um yes, there is a smarter way, I'm sure! ;)
         self.input_bed = os.path.join(self.tmpdir, "%s_peakinputfile.bed" % basename)
 
@@ -254,7 +254,7 @@ class GimmeMotifs(object):
         abs_max = int(abs_max)
         use_strand = bool(use_strand)
 
-        self.logger.info("Preparing input (BED)")
+        self.logger.info("preparing input (BED)")
 
         # Set all peaks to specific width
         self.logger.debug("Creating inputfile %s, width %s", self.input_bed, width)
@@ -286,7 +286,7 @@ class GimmeMotifs(object):
         fraction = float(fraction)
         abs_max = int(abs_max)
 
-        self.logger.info("Preparing input (FASTA)")
+        self.logger.info("preparing input (FASTA)")
 
         # Split inputfile in prediction and validation set
         self.logger.debug(
@@ -304,7 +304,7 @@ class GimmeMotifs(object):
                 self.logger.warn("Are you sure about the Markov model? It seems too high!")
             else:
                 order = {"1":"1st","2":"2nd", "3":"3rd", "4":"4th", "5":"5th"}[str(self.markov_model)]
-                self.logger.info("Creating random background (%s order Markov)" % order)
+                self.logger.debug("Creating random background (%s order Markov)" % order)
 
             m = MarkovFasta(fg, k=int(self.markov_model), n=nr_times * len(fg))
             m.writefasta(outfile)
@@ -312,7 +312,7 @@ class GimmeMotifs(object):
             # return the number of random sequences created
             return len(m)
         elif bg_type == "gc":
-            self.logger.info("Creating GC matched background")
+            self.logger.debug("Creating GC matched background")
 
             f = MatchedGcFasta(fafile, organism, nr_times * len(fg))
             f.writefasta(outfile)
@@ -361,20 +361,21 @@ class GimmeMotifs(object):
     def calculate_enrichment(self, motif_file, fg, bg):
         """ fg: [sample_fa, sample_gff] bg: [[bg1_fa, bg1_gff, bg1_enrichment], [bg2_fa, bg2_gff, bg2_enrichment], .. etc] """
 
-        self.logger.info("Scanning background sequences with motifs")
-        scan_cmd = scan_fasta_file_with_motifs
-        jobs = []
-        jobs.append(self.job_server().apply_async(scan_cmd, (fg[0], motif_file, self.SCAN_THRESHOLD, fg[1],)))
-
-        for fasta_file, gff_file in [x[:2] for x in bg]:
-            jobs.append(self.job_server().apply_async(scan_cmd, (fasta_file, motif_file, self.SCAN_THRESHOLD, gff_file,)))
-        for job in jobs:
-                error = job.get()
-                if error:
-                    self.logger.error("Error in thread: %s", error)
-                    sys.exit(1)
-
-        self.logger.info("Calculating enrichment")
+        self.logger.debug("Scanning background sequences with motifs")
+        
+        # define filenames 
+        fnames = [(fg[0], fg[1])] + [x[:2] for x in bg]
+        # scan and save as gff
+        for infile,outfile in fnames:
+            with open(outfile, "w") as f:
+                for line in command_scan(infile, motif_file, 
+                                        nreport=1, 
+                                        cutoff=self.SCAN_THRESHOLD, 
+                                        bed=False,
+                                        scan_rc=True):
+                    f.write(line + "\n")
+        
+        self.logger.debug("Calculating enrichment")
         enrichment_cmd = gff_enrichment
         num_sample = len(Fasta(fg[0]).items())
         for fasta_file, gff_file, out_file in bg:
@@ -398,7 +399,7 @@ class GimmeMotifs(object):
             nr_sequences[bg] = self._create_background(bg, self.validation_bed, self.validation_fa, self.bg_file["fa"][bg], organism=organism, width=width)
 
     def _cluster_motifs(self, pfm_file, cluster_pwm, dir, threshold):
-        self.logger.info("Clustering significant motifs.")
+        self.logger.info("clustering significant motifs.")
 
         trim_ic = 0.2
         clusters = []
@@ -406,7 +407,16 @@ class GimmeMotifs(object):
         if len(motifs) == 1:
             clusters = [[motifs[0], motifs]]
         else:
-            tree = cluster_motifs(pfm_file, "total", "wic", "mean", True, threshold=float(threshold), include_bg=True)
+            tree = cluster_motifs(
+                    pfm_file, 
+                    "total", 
+                    "wic", 
+                    "mean", 
+                    True, 
+                    threshold=float(threshold), 
+                    include_bg=True,
+                    progress=False
+                    )
             clusters = tree.getResult()
 
         ids = []
@@ -451,7 +461,7 @@ class GimmeMotifs(object):
                 f.write("%s\n" % motif.to_pwm())
         f.close()
 
-        self.logger.info("Clustering done. See the result in %s", 
+        self.logger.debug("Clustering done. See the result in %s", 
                 self.cluster_report)
         return clusters
 
@@ -504,7 +514,7 @@ class GimmeMotifs(object):
         return all_auc,all_mncp
 
     def _calc_report_values(self, pwm, background):
-        self.logger.info("Calculating final statistics for report")
+        self.logger.debug("Calculating final statistics for report")
         self.p = dict([(b,{}) for b in background])
         self.e = dict([(b,{}) for b in background])
 
@@ -531,7 +541,7 @@ class GimmeMotifs(object):
         self.closest_match = self.determine_closest_match(motifs)
 
     def _create_text_report(self, pwm, background):
-        self.logger.info("Creating text report")
+        self.logger.debug("Creating text report")
         motifs = read_motifs(open(pwm), fmt="pwm")
 
         sort_key = background[0]
@@ -563,7 +573,7 @@ class GimmeMotifs(object):
             best_id = {}
 
 
-        self.logger.info("Creating graphical report")
+        self.logger.debug("Creating graphical report")
         class ReportMotif:
             pass
 
@@ -620,7 +630,7 @@ class GimmeMotifs(object):
         f.close()
 
     def determine_closest_match(self, motifs):
-        self.logger.info("Determining closest matching motifs in database (JASPAR)")
+        self.logger.debug("Determining closest matching motifs in database (JASPAR)")
         motif_db = self.config.get_default_params()["motif_db"]
         db = os.path.join(self.config.get_motif_dir(), motif_db)
         db_motifs = []
@@ -673,8 +683,8 @@ class GimmeMotifs(object):
 
     def run_full_analysis(self, inputfile, user_params=None):
         """ Full analysis: from bed-file to motifs (including clustering, ROC-curves, location plots and html report) """
-        self.logger.info("Starting full motif analysis")
-        self.logger.info("Using temporary directory {0}".format(mytmpdir()))
+        self.logger.info("starting full motif analysis")
+        self.logger.debug("Using temporary directory {0}".format(mytmpdir()))
 
         if user_params is None:
             user_params = {}
@@ -683,26 +693,26 @@ class GimmeMotifs(object):
 
         if params["torque"]:
             from gimmemotifs.prediction_torque import pp_predict_motifs, PredictionResult
-            self.logger.info("Using torque")
+            self.logger.debug("Using torque")
         else:
             from gimmemotifs.prediction import pp_predict_motifs, PredictionResult
-            self.logger.info("Using multiprocessing")
+            self.logger.debug("Using multiprocessing")
 
         self.params = params
         #self.weird = params["weird_option"]
 
         background = [x.strip() for x in params["background"].split(",")]
 
-        self.logger.info("Parameters:")
+        self.logger.debug("Parameters:")
         for param, value in params.items():
-            self.logger.info("  %s: %s", param, value)
+            self.logger.debug("  %s: %s", param, value)
 
         # Checking input
         self.input_type = "BED"
         # If we can load it as fasta then it is a fasta, yeh?
         try:
             Fasta(inputfile)
-            self.logger.info("Inputfile is a FASTA file")
+            self.logger.debug("Inputfile is a FASTA file")
             self.input_type = "FASTA"
         except Exception:
             # Leave it to BED
@@ -741,19 +751,19 @@ class GimmeMotifs(object):
             try:
                 max_time = float(params["max_time"])
             except Exception:
-                self.logger.info("Could not parse max_time value, setting to no limit")
+                self.logger.debug("Could not parse max_time value, setting to no limit")
                 self.max_time = None
 
             if max_time > 0:
-                self.logger.info("Time limit for motif prediction: %0.2f hours" % max_time)
+                self.logger.debug("Time limit for motif prediction: %0.2f hours" % max_time)
                 max_time = 3600 * max_time
                 self.max_time = max_time
                 self.logger.debug("Max_time in seconds %0.0f" % self.max_time)
             else:
-                self.logger.info("Invalid time limit for motif prediction, setting to no limit")
+                self.logger.debug("Invalid time limit for motif prediction, setting to no limit")
                 self.max_time = None
         else:
-                self.logger.info("No time limit for motif prediction")
+                self.logger.debug("No time limit for motif prediction")
 
         if "random" in background:
             self.markov_model = params["markov_model"]
@@ -793,25 +803,29 @@ class GimmeMotifs(object):
         # Predict the motifs
         analysis = params["analysis"]
         """ Predict motifs, input is a FASTA-file"""
-        self.logger.info("Starting motif prediction (%s) using %s" %
-            (analysis, ", ".join([x for x in tools.keys() if tools[x]])))
+        self.logger.info("starting motif prediction (%s)", analysis)
+        self.logger.info("tools: %s", 
+                ", ".join([x for x in tools.keys() if tools[x]]))
 
         bg_file = self.bg_file["fa"][sorted(background, lambda x,y: cmp(BG_RANK[x], BG_RANK[y]))[0]]
-        self.logger.info("Using bg_file %s for significance" % bg_file)
+        self.logger.debug("Using bg_file %s for significance" % bg_file)
         result = pp_predict_motifs(self.prediction_fa, self.predicted_pfm, analysis, params["genome"], params["use_strand"], self.prediction_bg, tools, self.job_server(), logger=self.logger, max_time=self.max_time, fg_file=self.validation_fa, bg_file=bg_file)
 
         motifs = result.motifs
-        self.logger.info("Predicted %s motifs, written to %s" % (len(motifs), self.predicted_pfm))
+        self.logger.info("predicted %s motifs", len(motifs))
+        self.logger.debug("written to %s",self.predicted_pfm)
 
         if len(motifs) == 0:
-            self.logger.info("No motifs found. Done.")
+            self.logger.info("no motifs found")
             sys.exit()
 
         # Write stats output to file
         f = open(self.stats_file, "w")
         stat_keys = result.stats.values()[0].keys()
         f.write("%s\t%s\n" % ("Motif", "\t".join(stat_keys)))
-        print result.stats
+        
+        self.logger.debug(result.stats)
+        
         for motif in motifs:
             stats = result.stats["%s_%s" % (motif.id, motif.to_consensus())]
             if stats:
@@ -857,10 +871,11 @@ class GimmeMotifs(object):
                 f.write("%s\n" % motif.to_pfm())
                 nsig += 1
         f.close()
-        self.logger.info("%s motifs are significant, written to %s" % (nsig, self.significant_pfm))
+        self.logger.info("%s motifs are significant", nsig)
+        self.logger.debug("written to %s", self.significant_pfm)
 
         if nsig == 0:
-            self.logger.info("No significant motifs found. Done.")
+            self.logger.info("no significant motifs found")
             return
 
         # ROC metrics of significant motifs
@@ -872,6 +887,7 @@ class GimmeMotifs(object):
 
         # Determine best motif in cluster
         num_cluster, best_id = self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, bg_file, self.imgdir)
+        
 
         ### Enable parallel and modular evaluation of results
         # Scan (multiple) files with motifs
@@ -884,7 +900,7 @@ class GimmeMotifs(object):
         # Stars
         tmp = NamedTemporaryFile(dir=mytmpdir()).name
         p = PredictionResult(tmp, logger=self.logger, job_server=self.server, fg_file = self.validation_fa, bg_file = bg_file)
-        p.add_motifs(("Clustering",  (read_motifs(open(self.final_pwm), fmt="pwm"), "","")))
+        p.add_motifs(("clustering",  (read_motifs(open(self.final_pwm), fmt="pwm"), "","")))
         while len(p.stats.keys()) < len(p.motifs):
             sleep(5)
 
@@ -901,13 +917,14 @@ class GimmeMotifs(object):
             "numcluster": [3, 6, 9],
         }
 
+        self.logger.info("creating report")
 
         # ROC plots
         for bg in background:
             self.create_roc_plots(self.final_pwm, self.validation_fa, self.bg_file["fa"][bg], bg)
 
         # Location plots
-        self.logger.info("Creating localization plots")
+        self.logger.debug("Creating localization plots")
         motifs = read_motifs(open(self.final_pwm), fmt="pwm")
         for motif in motifs:
             m = "%s_%s" % (motif.id, motif.to_consensus())
@@ -926,14 +943,18 @@ class GimmeMotifs(object):
         self._calc_report_values(self.final_pwm, background)
         self._create_report(self.final_pwm, background, stats=p.stats, best_id=best_id)
         self._create_text_report(self.final_pwm, background)
-        self.logger.info("Open %s in your browser to see your results." % (self.motif_report))
+        
+        self.logger.info("finished")
+        self.logger.info("output dir: %s", os.path.split(self.motif_report)[0])
+        self.logger.info("report: %s", os.path.split(self.motif_report)[-1])
+        #self.logger.info("Open %s in your browser to see your results." % (self.motif_report))
 
         if not(params["keep_intermediate"]):
 
-            self.logger.info("Deleting intermediate files. Please specifify the -k option if you want to keep these files.")
+            self.logger.debug("Deleting intermediate files. Please specifify the -k option if you want to keep these files.")
             shutil.rmtree(self.tmpdir)
 
-        self.logger.info("Done")
+        self.logger.debug("Done")
 
         return self.motif_report
 

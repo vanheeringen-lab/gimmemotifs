@@ -75,7 +75,7 @@ class MotifTree:
         else:
             return [self.motif]
 
-def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=True, threshold=0.95, trim_edges=False, edge_ic_cutoff=0.2, include_bg=True):
+def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=True, threshold=0.95, trim_edges=False, edge_ic_cutoff=0.2, include_bg=True, progress=True):
     """ 
     Clusters a set of sequence motifs. Required arg 'motifs' is a file containing
     positional frequency matrices or an array with motifs.
@@ -128,7 +128,8 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
     motif_nodes = dict([(n.motif.id,n) for n in nodes])
     motifs = [n.motif for n in nodes]
     
-    sys.stderr.write("Calculating initial scores\n")
+    if progress:
+        sys.stderr.write("Calculating initial scores\n")
     result = mc.get_all_scores(motifs, motifs, match, metric, combine, pval, parallel=True)
     
     for m1, other_motifs in result.items():
@@ -178,11 +179,21 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
         
         cmp_nodes = dict([(node.motif, node) for node in nodes if not node.parent])
         
+        if progress:
+            progress = (1 - len(cmp_nodes) / float(total)) * 100
+            sys.stderr.write('\rClustering [{0}{1}] {2}%'.format(
+                '#'*(int(progress)/10), 
+                " "*(10 - int(progress)/10), 
+                int(progress)))
         
-        #print "{0}%".format(len(cmp_nodes) / float(total) * 100)
-        progress = (1 - len(cmp_nodes) / float(total)) * 100
-        sys.stderr.write('\rClustering [{0}{1}] {2}%'.format('#'*(int(progress)/10), " "*(10 - int(progress)/10), int(progress)))
-        result = mc.get_all_scores([new_node.motif], cmp_nodes.keys(), match, metric, combine, pval, parallel=True)
+        result = mc.get_all_scores(
+                [new_node.motif], 
+                cmp_nodes.keys(), 
+                match, 
+                metric, 
+                combine, 
+                pval, 
+                parallel=True)
         
         for motif, n in cmp_nodes.items():
             x = result[new_node.motif.id][motif.id]
@@ -194,7 +205,8 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
 
         cluster_nodes = [node for node in nodes if not node.parent]
      
-    sys.stderr.write("\n") 
+    if progress:
+        sys.stderr.write("\n") 
     root = nodes[-1]
     for node in [node for node in nodes if not node.left]:
          node.parent.checkMerge(root, threshold)

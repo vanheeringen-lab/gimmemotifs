@@ -18,7 +18,6 @@ import inspect
 # GimmeMotifs imports
 from gimmemotifs import tools as tool_classes
 from gimmemotifs.comparison import *
-from gimmemotifs.nmer_predict import *
 from gimmemotifs.config import *
 from gimmemotifs.fasta import *
 from gimmemotifs import mytmpdir
@@ -182,7 +181,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
         else:
             logger.debug("Skipping %s" % t.name)
     
-    logger.info("All jobs submitted")
+    logger.info("all jobs submitted")
     ### Wait until all jobs are finished or the time runs out ###
     start_time = time()    
     try:
@@ -200,8 +199,23 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
         job_server.terminate()
         result.get_remaining_stats()
         
-    logger.info("Waiting for calculation of motif statistics to finish")
+    logger.info("waiting for motif statistics")
+    n = 0
+    last_len = 0 
     while len(result.stats.keys()) < len(result.motifs):
+        if n >= 3:
+            logger.debug("waited long enough")
+            logger.debug("motifs: %s, stats: %s", len(result.motifs), len(result.stats.keys()))
+            for i,motif in enumerate(result.motifs):
+                if "{}_{}".format(motif.id, motif.to_consensus()) not in result.stats:
+                    logger.idebug("deleting %s", motif)
+                    del result.motifs[i]
+            break
         sleep(5)
+        if len(result.stats.keys()) == last_len:
+            n += 1
+        else:
+            last_len = len(result.stats.keys())
+            n = 0
     
     return result
