@@ -1,6 +1,5 @@
 import os
 import re
-from multiprocessing import Pool
 from functools import partial
 
 from gimmemotifs.config import MotifConfig
@@ -73,7 +72,6 @@ def scan_regions(regions, index_dir, motif_file, nreport, scan_rc, cutoff=0.95, 
     # scan the regions that are not in the cache
     if len(scan_regions) > 0:
         n = 12
-        p = Pool(n)
         
         genome_index = GenomeIndex(index_dir)
        
@@ -88,7 +86,7 @@ def scan_regions(regions, index_dir, motif_file, nreport, scan_rc, cutoff=0.95, 
         jobs = []
         chunksize = len(scan_regions) / n + 1
         for i in range(n):
-            job = p.apply_async(scan_func, (scan_regions[i * chunksize:( i+ 1) * chunksize],))
+            job = pool.apply_async(scan_func, (scan_regions[i * chunksize:( i+ 1) * chunksize],))
             jobs.append(job)
         
         # store values in cache
@@ -142,8 +140,6 @@ def scan_sequences(seqs, motif_file, nreport, scan_rc, cutoff=0.95, use_cache=Fa
     # scan the sequences that are not in the cache
     if len(scan_seqs) > 0:
         n = 12
-        p = Pool(n)
-        
         motifs = load_motifs(motif_file, cutoff)
         scan_func = partial(scan_seq_mult,
             motifs=motifs,
@@ -153,7 +149,7 @@ def scan_sequences(seqs, motif_file, nreport, scan_rc, cutoff=0.95, use_cache=Fa
         jobs = []
         chunksize = len(scan_seqs) / n + 1 
         for i in range(n):
-            job = p.apply_async(scan_func, (scan_seqs[i * chunksize:(i  + 1) * chunksize],))
+            job = pool.apply_async(scan_func, (scan_seqs[i * chunksize:(i  + 1) * chunksize],))
             jobs.append(job)
         
         # store values in cache
@@ -206,12 +202,12 @@ class Scanner(object):
             raise ValueError("index for {} does not exist".format(genome))
         self.index_dir = index_dir
     
-    def count(self, seqs, nreport=100, scan_rc=True):
+    def count(self, seqs, nreport=100, scan_rc=True, cutoff=0.95):
         """
         count the number of matches above the cutoff
         returns an iterator of lists containing integer counts
         """
-        for matches in self.scan(seqs, nreport, scan_rc):
+        for matches in self.scan(seqs, nreport, scan_rc, cutoff):
             counts = [len(m) for m in matches]
             yield counts
     
@@ -306,3 +302,8 @@ class Scanner(object):
         
         for result in it:
             yield result
+
+try: 
+    from gimmemotifs.mp import pool
+except ImportError:
+    pass
