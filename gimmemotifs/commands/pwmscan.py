@@ -11,10 +11,49 @@ import re
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.utils import parse_cutoff 
-from gimmemotifs.scan import scan_it_moods
-from gimmemotifs.scanner import Scanner
+from gimmemotifs.scanner import Scanner,scan_it_moods
 
 MAX_CPUS = 16
+
+def format_line(fa, seq_id, motif, score, pos, strand, bed=False):                
+
+    strandmap = {-1:"-",1:"+"}
+    p = re.compile(r'([^\s:]+):(\d+)-(\d+)')
+    if bed:
+        m = p.search(seq_id)
+        if m:
+            chrom = m.group(1)
+            start = int(m.group(2))
+            end = int(m.group(3))
+            return "{}\t{}\t{}\t{}\t{}\t{}".format(
+                    chrom, 
+                    start + pos, 
+                    start + pos + len(motif) , 
+                    motif.id, 
+                    score, strandmap[strand])
+        else:
+            return "{}\t{}\t{}\t{}\t{}\t{}".format(
+                    seq_id, 
+                    pos, 
+                    pos +  len(motif), 
+                    motif.id, 
+                    score, 
+                    strandmap[strand])
+    else:
+        return "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\tmotif_name \"{}\" ; motif_instance \"{}\"".format(
+            seq_id, 
+            "pwmscan", 
+            "misc_feature", 
+            pos + 1,            # GFF is 1-based
+            pos + len(motif), 
+            score, 
+            strandmap[strand], 
+            ".", 
+            motif.id, 
+            fa[seq_id][pos: pos + len(motif)]
+        )
+
+
 
 def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=True, table=False, score_table=False, moods=False, pvalue=None):
     motifs = pwmfile_to_motifs(pwmfile)
@@ -28,7 +67,6 @@ def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=T
     else:
         result_it = s.scan(inputfile, nreport, scan_rc, cutoff)
 
-    p = re.compile(r'([^\s:]+):(\d+)-(\d+)')
     fa = Fasta(inputfile)
     if table:
         # header
@@ -61,44 +99,20 @@ def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=T
                     )
 
     else:
-        strandmap = {-1:"-",1:"+"}
-        for i, result in enumerate(result_it):
-            seq_id = fa.ids[i]
-            for motif, matches in zip(motifs, result):
-                for (score, pos, strand) in matches:
-                    if bed:
-                        m = p.search(seq_id)
-                        if m:
-                            chrom = m.group(1)
-                            start = int(m.group(2))
-                            end = int(m.group(3))
-                            yield "{}\t{}\t{}\t{}\t{}\t{}".format(
-                                    chrom, 
-                                    start + pos, 
-                                    start + pos + len(motif) , 
-                                    motif.id, 
-                                    score, strandmap[strand])
-                        else:
-                            yield "{}\t{}\t{}\t{}\t{}\t{}".format(
-                                    seq_id, 
-                                    pos, 
-                                    pos +  len(motif), 
-                                    motif.id, 
-                                    score, 
-                                    strandmap[strand])
-                    else:
-                        yield "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\tmotif_name \"{}\" ; motif_instance \"{}\"".format(
-                            seq_id, 
-                            "pwmscan", 
-                            "misc_feature", 
-                            pos + 1,            # GFF is 1-based
-                            pos + len(motif), 
-                            score, 
-                            strandmap[strand], 
-                            ".", 
-                            motif.id, 
-                            fa[seq_id][pos: pos + len(motif)]
-                        )
+        if moods:
+            for motif, d in result_it:
+                for seq_id,matches in d.items():
+                    for pos,score,strand in matches:
+                        yield format_line(fa, seq_id, motif,
+                                score, pos, strand, bed=bed)
+        else:
+            for i, result in enumerate(result_it):
+                seq_id = fa.ids[i]
+                for motif, matches in zip(motifs, result):
+                    for (score, pos, strand) in matches:
+                        yield format_line(fa, seq_id, motif, 
+                                   score, pos, strand, bed=bed)
+
   
 
 def pwmscan(args):
