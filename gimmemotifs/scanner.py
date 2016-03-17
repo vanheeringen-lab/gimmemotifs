@@ -24,7 +24,7 @@ try:
 
     from cityhash import CityHash64
 except ImportError:
-    pass
+    pass 
 
 def load_motifs(motif_file, cutoff=0.95):
     motifs = read_motifs(open(motif_file))
@@ -207,8 +207,9 @@ class Scanner(object):
                 #    }
             )
             self.use_cache = True
-        except:
+        except Exception as e:
             sys.stderr.write("failed to initialize cache\n")
+            sys.stderr.write("{}\n".format(e))
 
     def set_motifs(self, motifs):
         self.motifs = motifs
