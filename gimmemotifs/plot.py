@@ -15,7 +15,7 @@ from gimmemotifs import mytmpdir
 
 # Matplotlib imports
 import matplotlib as mpl
-mpl.use("Agg")
+mpl.use("Agg", warn=False)
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.gridspec import GridSpec
