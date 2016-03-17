@@ -1,18 +1,24 @@
 #!/usr/bin/env python
 import sys
 import argparse
+from functools import partial
+
+from multiprocessing import Pool
 
 import pandas as pd 
 import numpy as np
-from scipy.stats import scoreatpercentile,ks_2samp
+from scipy.stats import scoreatpercentile, ks_2samp
+from scipy.cluster.hierarchy import linkage, fcluster
 from statsmodels.sandbox.stats.multicomp import multipletests
 
 # scikit-learn
-from sklearn.grid_search import GridSearchCV
-from sklearn.preprocessing import scale, LabelEncoder
+from sklearn.cluster import AgglomerativeClustering
 from sklearn.cross_validation import train_test_split
+from sklearn.grid_search import GridSearchCV
 from sklearn.ensemble import BaggingClassifier
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import Ridge,MultiTaskLasso
+from sklearn.metrics.pairwise import pairwise_distances
+from sklearn.preprocessing import scale, LabelEncoder
 
 from lightning.classification import CDClassifier
 
@@ -22,7 +28,7 @@ from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.mara import make_model
 
-class LightningClassifier(object):
+class LightningMoap(object):
     def __init__(self, scale=True):
         """Predict motif activities using lighting CDClassifier
 
@@ -51,7 +57,7 @@ class LightningClassifier(object):
             "multiclass":[True],
             "max_iter":[20],
             "alpha": [np.exp(-x) for x in np.arange(0, 10, 1/3.0)],
-            "C":[1.0 / motifs.shape[0], 0.5, 1.0],
+            "C":[0.001, 0.01, 0.1, 0.5, 1.0],
             "tol":[1e-3]
         }
 
@@ -140,7 +146,7 @@ class LightningClassifier(object):
             self.sig_["sig"].loc[self.act_[col] >= c_high] = True
             self.sig_["sig"].loc[self.act_[col] <= c_low] = True
 
-class KSClassifier(object):
+class KSMoap(object):
     def __init__(self):
         """Predict motif activities using lighting CDClassifier
 
@@ -179,7 +185,7 @@ class KSClassifier(object):
         self.act_ = pd.DataFrame(-np.log10(pvals.T), 
                 columns=clusters, index=df_X.columns)
 
-class MaraClassifier(object):
+class MaraMoap(object):
     def __init__(self, iterations=10000):
         """Predict motif activities using a MARA-like algorithm
 
@@ -272,6 +278,297 @@ class MaraClassifier(object):
         
         mcmc.db.close()
 
+class LassoMoap(object):
+    def __init__(self, scale=True, kfolds=5, alpha_stepsize=1/3.0):
+        """Predict motif activities using Lasso MultiTask regression
+
+        Parameters
+        ----------
+        scale : boolean, optional, default True
+            If ``True``, the motif scores will be scaled 
+            before classification
+ 
+        kfolds : integer, optional, default 5
+            number of kfolds for parameter search
+        
+        alpha_stepsize : float, optional, default 0.333
+            stepsize for use in alpha gridsearch
+
+        Attributes
+        ----------
+        act_ : DataFrame, shape (n_motifs, n_clusters)
+            fitted motif activities
+    
+        sig_ : DataFrame, shape (n_motifs,)
+            boolean values, if coefficients are higher/lower than
+            the 1%t from random permutation
+        """
+        
+        self.kfolds = kfolds
+
+        # initialize attributes
+        self.act_ = None 
+        self.sig_ = None 
+    
+        mtk = MultiTaskLasso()
+        parameters = {
+            "alpha": [np.exp(-x) for x in np.arange(0, 10, alpha_stepsize)],
+        }
+        self.clf = GridSearchCV(mtk, parameters, cv=kfolds, n_jobs=4)
+
+    def fit(self, df_X, df_y):
+        if not df_y.shape[0] == df_X.shape[0]:
+            raise ValueError("number of regions is not equal")
+        
+        idx = range(df_y.shape[0])
+        y = df_y.iloc[idx]
+        X = df_X.loc[y.index].values
+        y = y.values
+       
+        X_train,X_test,y_train,y_test = train_test_split(X,y)
+        sys.stderr.write("set alpha through cross-validation\n")
+        # Determine best parameters based on CV
+        self.clf.fit(X_train, y_train)
+        
+        sys.stdout.write("average score ({} fold CV): {}\n".format(
+                    self.kfolds,
+                    self.clf.score(X_test, y_test)
+                    ))
+
+        sys.stderr.write("Estimate coefficients using bootstrapping\n")
+
+        # fit coefficients
+        coefs = self._get_coefs(X, y)
+        self.act_ = pd.DataFrame(coefs.T)
+        
+        # convert labels back to original names
+        self.act_.columns = df_y.columns
+        self.act_.index = df_X.columns
+
+        # Permutations
+        sys.stderr.write("permutations\n")
+        random_dfs = []
+        for i in range(10):
+            y_random = y[np.random.permutation(range(y.shape[0]))]
+            coefs = self._get_coefs(X, y_random)
+            random_dfs.append(pd.DataFrame(coefs.T))
+        random_df = pd.concat(random_dfs)
+
+        # Select cutoff based on percentile
+        high_cutoffs = random_df.quantile(0.99)
+        low_cutoffs = random_df.quantile(0.01)
+        
+        # Set significance
+        self.sig_ = pd.DataFrame(index=df_X.columns)
+        self.sig_["sig"] = False
+
+        for col,c_high,c_low in zip(
+                self.act_.columns, high_cutoffs, low_cutoffs):
+            self.sig_["sig"].loc[self.act_[col] >= c_high] = True
+            self.sig_["sig"].loc[self.act_[col] <= c_low] = True
+
+    
+    def _get_coefs(self, X, y):
+        n_samples = 0.75 * X.shape[0]
+        max_samples = X.shape[0]
+        m = self.clf.best_estimator_
+        coefs = []
+        for i in range(10):
+            idx = np.random.randint(0, n_samples, max_samples)
+            m.fit(X[idx], y[idx])
+            coefs.append(m.coef_)
+        coefs = np.array(coefs).mean(axis=0)
+        return coefs
+
+NCPUS=4
+
+def fit_model(data):
+    X,y,multi,alpha, C = data
+    #print "fitting {} {}".format(X.shape, y.shape)
+    # Set classifier options.
+    clf = CDClassifier(penalty="l1/l2",
+                       loss="squared_hinge",
+                       multiclass=multi,
+                       max_iter=20,
+                       alpha=alpha,
+                       C=C,
+                       tol=1e-3)
+
+    # Train the model.
+    return clf.fit(X, y)
+
+def eval_model(df, sets, motifs, alpha, nsample=1000, k=10, cutoff=0):
+    ret = select_sets(df, sets)
+    y = pd.DataFrame({"label":0}, index=df.index)
+    for label, rows in enumerate(ret):
+        y.loc[rows] = label + 1
+    y = y[y["label"] > 0]
+    y -= 1
+
+    clf = CDClassifier(penalty="l1/l2",
+                       loss="squared_hinge",
+                       multiclass=len(sets) > 2,
+                       max_iter=20,
+                       alpha=alpha,
+                       C=1.0 / motifs.shape[0],
+                       tol=1e-3)
+
+    accs = []
+    fractions = []
+
+    for i in np.arange(k):
+
+        idx = np.random.choice(range(y.shape[0]), nsample, replace=True)
+
+        y_pred = y.iloc[idx[:nsample * 0.8 + 1]]
+        X_pred = motifs.loc[y_pred.index].values
+        y_pred = y_pred.values.flatten()
+
+        y_test = y.iloc[idx[nsample * 0.8 + 1:]]
+        X_test = motifs.loc[y_test.index].values
+        y_test = y_test.values.flatten()
+
+        # train the model
+        clf.fit(X_pred, y_pred)
+
+        acc = clf.score(X_test, y_test)
+        fraction = clf.n_nonzero(percentage=True)
+
+        accs.append(acc)
+        fractions.append(fraction)
+
+    #print alpha, accs, fractions
+    return alpha, np.median(accs), np.median(fractions)
+
+def select_sets(df, sets, threshold=1):
+    ret = []
+    for s in sets:
+        other = [c for c in df.columns if not c  in s]
+        #print s, other
+        x = df[(df[s] >= threshold).any(1) & (df[s].max(1) >= (df[other].max(1) * 2))].index
+        ret.append(x)
+    return ret
+
+class MoreMoap(object):
+    def __init__(self):
+        pass
+
+    def fit(self, df_X, df_y):
+        dist = pairwise_distances(df_y.values.T)
+        L = linkage(dist, method="ward")
+        
+        dfs = dict(
+                [(exp, pd.DataFrame(index=df_X.columns)) for exp in df_y.columns])
+
+        for nclus in range(3, len(df_y.columns) + 1):
+            labels = fcluster(L, nclus, 'maxclust')
+            print labels
+            if max(labels) < nclus:
+                sys.stderr.write("remaining clusters are too similar")
+                break
+            sets = []
+            for i in range(1, nclus + 1):
+                sets.append(list(df_y.columns[labels == i]))
+            print sets
+    
+            result = self._run_bootstrap_model(
+                        df_y, sets, df_X, nsample=1000, nbootstrap=100
+                        )
+
+            for i in range(nclus):
+                cols = result.columns[range(i, nclus * 100, nclus)]
+                act = result[cols].mean(1)
+                for col in df_y.columns[labels == i + 1]:
+                    act[col][i + 1] = act
+
+    def _select_alpha(self, df, sets, motifs, nsample=1000):
+        f = partial(eval_model, df, sets, motifs,
+            nsample=int(nsample * 1.25), k=5)
+    
+        pool = Pool(NCPUS)
+        alphas = [np.exp(-x) for x in np.arange(0, 10, 1/3.0)]
+        results = pool.map(f, alphas)
+        pool.close()
+        pool.join()
+    
+        results = np.array(results)
+        alpha, acc, fraction = results[np.argmax(results[:,1])]
+    
+        sys.stderr.write("alpha {}  accuracy: {}  fraction: {}\n".format(alpha, acc, fraction))
+        return alpha
+    
+
+    def _run_bootstrap_model(self, df, sets, motifs, nsample=1000, cutoff=0, nbootstrap=100):
+
+        ret = select_sets(df, sets)
+        y = pd.DataFrame({"label":0}, index=df.index)
+        for label, rows in enumerate(ret):
+            y.loc[rows] = label + 1
+        y = y[y["label"] > 0]
+    
+        if nsample > (len(y) / 2):
+            nsample = len(y) / 2
+            sys.stderr.write("setting nsample to {}\n".format(nsample))
+    
+        coef = pd.DataFrame(index=motifs.columns)
+    
+        print y.shape
+    
+        sys.stderr.write("Selecting alpha\n")
+        alpha = self._select_alpha(df, sets, motifs, nsample=nsample)
+    
+        acc  = []
+        fraction = []
+    
+        data = []
+    
+        sys.stderr.write("Running {} bootstraps\n".format(nbootstrap))
+        for i in range(nbootstrap):
+    
+            # Sample with replacement
+            idx = np.random.choice(range(len(y.index)), nsample)
+    
+            # Create test dataset
+            y_small = y.iloc[idx]
+            X_small = motifs.loc[y_small.index]
+    
+            y_small -= 1
+            y_small = y_small.values.flatten()
+    
+            X = X_small.values
+            data.append((X, y_small, len(sets) > 2, alpha, 1.0 / motifs.shape[0]))
+    
+        pool = Pool(NCPUS)
+    
+        results = pool.map(fit_model, data)
+    
+        #close the pool and wait for the work to finish 
+        pool.close()
+        pool.join()
+    
+        for i,(clf,(X,y_small,_,_,_)) in enumerate(zip(results, data)):
+            # Accuracy
+            acc.append(clf.score(X, y_small))
+    
+            # Percentage of selected features
+            fraction.append(clf.n_nonzero(percentage=True))
+    
+            c = clf.coef_
+            names = ["_".join(s) for s in sets]
+            d = dict(zip(names, c))
+            c = pd.DataFrame(d, index=motifs.columns).fillna(0)
+    
+            coef = coef.join(c, rsuffix=i)
+            #c = c[(abs(c) > cutoff).any(1)]
+            #c = c.join(m2f)
+    
+            #counts.loc[c.index.values] += 1
+            #print counts.sort("count").tail(1)
+    
+        print "Average accuracy", np.mean(acc)
+        print "Average fraction", np.mean(fraction)
+        return coef
+    
 if __name__ == "__main__":
 
     motif_file = "/home/simon/prj/cis-bp/cis-bp.vertebrate.clusters.v3.0.pwm"
@@ -301,14 +598,16 @@ if __name__ == "__main__":
         scores.append(row)
     motifs = pd.DataFrame(scores, index=df.index, columns=motif_names)   
     
-    #clf = LightningClassifier()
-    #clf = KSClassifier()
-    clf = MaraClassifier(iterations=50)
+    #clf = LightningMoap()
+    #clf = KSMoap()
+    #clf = MaraMoap(iterations=5000)
+    #clf = LassoMoap(alpha_stepsize=5.0)
+    clf = MoreMoap()
 
     clf.fit(motifs, df)
    
-    print clf.ridge_.sort_values("NK")[["NK"]].tail()
-    print clf.act_.sort_values("NK")[["NK"]].tail()
+    #clf.ridge_.to_csv("mara.ridge.csv", sep="\t")
+    clf.act_.to_csv("lasso.act.csv", sep="\t")
     #print clf.act_.sort_values("trophoblast")
 
     #if nsample > 0:

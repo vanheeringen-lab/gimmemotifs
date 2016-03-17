@@ -456,5 +456,12 @@ setup (name = 'gimmemotifs',
             "kid >= 0.9.6",
             "pyyaml >= 3.10",
             "pybedtools",
+            "statsmodels",
+            "pymc",
+            "scikit-learn",
+            "lightning",
         ],
+        dependency_links = [
+            "https://github.com/scikit-learn-contrib/lightning/archive/master.zip"]
+        ,
 )
