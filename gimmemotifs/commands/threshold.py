@@ -5,10 +5,13 @@
 # distribution.
 
 import sys
+
+from scipy.stats import scoreatpercentile
+import numpy as np
+
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import pwmfile_to_motifs
-from gimmemotifs.scan import scan
-from scipy.stats import scoreatpercentile
+from gimmemotifs.scanner import Scanner
 
 def threshold(args):
     if args.fdr < 0 or args.fdr > 1:
@@ -16,18 +19,25 @@ def threshold(args):
         sys.exit(1)
 
     motifs = pwmfile_to_motifs(args.pwmfile)
-    result = scan(args.inputfile, motifs, 0.0, 1)
+    
+    s = Scanner()
+    s.set_motifs(args.pwmfile)
+    
+    score_table = []
+    for scores in s.best_score(args.inputfile):
+        score_table.append(scores)
 
     print "Motif\tScore\tCutoff"
-    for motif in result.keys():
+    for i,scores in enumerate(np.array(score_table).transpose()):
+        motif = motifs[i]
         pwm = motif.pwm
-        scores = []
         min_score = motif.pwm_min_score()
-        scores = [x[0][1] for x in result[motif].values() if len(x) > 0]
         if len(scores) > 0:
             opt_score = scoreatpercentile(scores, 100 - (100 * args.fdr))
-            cutoff = (opt_score - min_score) / (motif.pwm_max_score() - min_score)
-            print "{0}\t{1}\t{2}".format(motif.id, opt_score , cutoff)
+            cutoff = (opt_score - min_score) / (
+                    motif.pwm_max_score() - min_score)
+            print "{0}\t{1}\t{2}".format(
+                    motif.id, opt_score , cutoff)
         else:
             sys.stderr.write("Warning: no matches for {0}\n".format(motif.id))
             

@@ -19,16 +19,16 @@ GimmeMotifs v{0}
 
 epilog = """   
 commands:
-    motifs      predict motifs
-    match       find motif matches
-    roc         calculate statistics and plot roc
+    motifs      predict new motifs
+    scan        find known motifs
+    roc         calculate/plot statistics
+    match       find motif matches in database
     cluster     cluster similar motifs
     genome      download genome and genes from UCSC
     index       index a genome
     background  create a background file
     threshold   calculate motif scan threshold
     location    motif location histograms
-    scan        scan sequences with motif(s)
     diff        compare motif frequency and enrichment
                 between fasta files
     logo        create sequence logo(s)
@@ -368,17 +368,15 @@ p.add_argument("-T", "--score_table",
                default=False)
 p.add_argument("-M", "--do_MOODS",
                dest="moods", 
-               help="Use MOODS for scanning", 
+               help="experimental: use MOODS for scanning", 
                action="store_true",
                default=False)
 p.add_argument("-p", "--pvalue", 
                dest="pvalue", 
-               help="motif score p-value cutoff, only use in combination with MOODS", 
+               help="experimental: MOODS p-value cutoff", 
                metavar="", 
                type=float,
                default=None)
-
-
 
 p.set_defaults(func=commands.pwmscan)
 

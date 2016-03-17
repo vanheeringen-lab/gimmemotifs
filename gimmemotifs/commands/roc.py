@@ -12,7 +12,7 @@ from gimmemotifs.motif import read_motifs
 from gimmemotifs.rocmetrics import ROC_values, ROC_AUC, MNCP, max_enrichment, enr_at_fdr
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import roc_plot
-from gimmemotifs.scan import scan
+from gimmemotifs.scanner import Scanner
 
 def roc(args):
     """ Calculate ROC_AUC and other metrics and optionally plot ROC curve.
@@ -25,31 +25,34 @@ def roc(args):
     if outputfile and   not outputfile.endswith(".png"):
         outputfile += ".png"
     
-    motifs = dict([(x.id, x) for x in read_motifs(open(pwmfile), fmt="pwm")])
+    motifs = read_motifs(open(pwmfile), fmt="pwm")
 
+    s = Scanner()
+    s.set_motifs(pwmfile)
+    
     ids = []
     if args.ids:
         ids = args.ids.split(",")
     else:
-        ids = motifs.keys()
+        ids = [m.id for m in motifs]
 
-    fg_total = {}
-    result = scan(fg_file, [motifs[x] for x in ids], 0.0, 1)    
-    for key,m in result.items():
-        fg_total[key.id.split("\t")[0]] = [matches[0][1] for matches in m.values()]
-   
-    bg_total = {}
-    result = scan(bg_file, [motifs[x] for x in ids], 0.0, 1)    
-    for key,m in result.items():
-        bg_total[key.id.split("\t")[0]] = [matches[0][1] for matches in m.values()]
+    fg_total = dict([(m.id, []) for m in motifs])
+    for scores in s.best_score(fg_file):
+        for motif,score in zip(motifs, scores):
+            fg_total[motif.id].append(score)
     
+    bg_total = dict([(m.id, []) for m in motifs])
+    for scores in s.best_score(bg_file):
+        for motif,score in zip(motifs, scores):
+            bg_total[motif.id].append(score)
+   
     plot_x = []
     plot_y = []
     # Print the metrics
     print "Motif\tROC AUC\tMNCP\tEnr. at 5% FDR\tMax enr."
-    for id in ids:
-        fg_vals = fg_total[id] 
-        bg_vals = bg_total[id]    
+    for motif_id in ids:
+        fg_vals = fg_total[motif_id] 
+        bg_vals = bg_total[motif_id]    
         (x, y) = ROC_values(fg_vals, bg_vals) 
         plot_x.append(x)
         plot_y.append(y)
@@ -57,7 +60,8 @@ def roc(args):
         mncp = MNCP(fg_vals, bg_vals)
         enr_fdr = enr_at_fdr(fg_vals, bg_vals)
         max_enr,score = max_enrichment(fg_vals, bg_vals)
-        print "%s\t%0.3f\t%03f\t%0.2f\t%0.2f" % (id, auc, mncp, enr_fdr, max_enr)
+        print "%s\t%0.3f\t%03f\t%0.2f\t%0.2f" % (
+                motif_id, auc, mncp, enr_fdr, max_enr)
     
     # Plot the ROC curve
     if outputfile:

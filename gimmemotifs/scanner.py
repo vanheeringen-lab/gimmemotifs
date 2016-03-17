@@ -2,6 +2,8 @@ import os
 import re
 from functools import partial
 
+import numpy as np
+
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.genome_index import GenomeIndex
@@ -9,10 +11,14 @@ from gimmemotifs.c_metrics import pwmscan
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import parse_cutoff
 
-from dogpile.cache import make_region
-from dogpile.cache.api import NO_VALUE
+# only used when using cache, should not be a requirement
+try:
+    from dogpile.cache import make_region
+    from dogpile.cache.api import NO_VALUE
 
-from cityhash import CityHash64
+    from cityhash import CityHash64
+except ImportError:
+    pass
 
 def load_motifs(motif_file, cutoff=0.95):
     motifs = read_motifs(open(motif_file))
@@ -119,7 +125,16 @@ class Scanner(object):
         for matches in self.scan(seqs, nreport, scan_rc, cutoff):
             counts = [len(m) for m in matches]
             yield counts
-    
+     
+    def total_count(self, seqs, nreport=100, scan_rc=True, cutoff=0.95):
+        """
+        count the number of matches above the cutoff
+        returns an iterator of lists containing integer counts
+        """
+        
+        count_table = [counts for counts in self.count(seqs, nreport, scan_rc, cutoff)]
+        return np.sum(np.array(count_table), 0)
+
     def best_score(self, seqs, scan_rc=True):
         """
         give the score of the best match of each motif in each sequence

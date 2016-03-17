@@ -10,7 +10,7 @@ import shutil
 import numpy as np
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.genome_index import *
-from gimmemotifs.scan import get_counts
+from gimmemotifs.scanner import Scanner
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import diff_plot
@@ -58,20 +58,24 @@ def diff(args):
     pwms = dict([(m.id, m) for m in pwmfile_to_motifs(pwmfile)])
     motifs = [m for m in pwms.keys()]
     names = [os.path.basename(os.path.splitext(f)[0]) for f in infiles]
-    
+   
+    s = Scanner()
+    s.set_motifs(pwmfile)
+
     # Get background frequencies
     nbg = float(len(Fasta(bgfile).seqs))
-    bgcounts = get_counts(bgfile, pwms.values(), cutoff)
-    bgfreq = [(bgcounts[m] + 0.01) / nbg for m in motifs]
+    
+    bgcounts = s.total_count(bgfile, nreport=1, cutoff=cutoff) 
+    bgfreq = [(c + 0.01) / nbg for c in bgcounts]
     
     # Get frequences in input files
     freq = {}
     counts = {}
     for fname in infiles:
-        c = get_counts(fname, pwms.values(), cutoff)
+        mcounts = s.total_count(fname, nreport=1, cutoff=cutoff) 
         n = float(len(Fasta(fname).seqs))
-        freq[fname] = [(c[m] + 0.01) / n for m in motifs]
-        counts[fname] = [c[m] for m in motifs]
+        counts[fname] = mcounts
+        freq[fname] = [(c + 0.01) / n for c in mcounts]
     
     freq = np.array([freq[fname] for fname in infiles]).transpose()
     counts = np.array([counts[fname] for fname in infiles]).transpose()
