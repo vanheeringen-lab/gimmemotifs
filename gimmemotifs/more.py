@@ -457,29 +457,36 @@ class MoreMoap(object):
         dist = pairwise_distances(df_y.values.T)
         L = linkage(dist, method="ward")
         
-        dfs = dict(
+        self.dfs = dict(
                 [(exp, pd.DataFrame(index=df_X.columns)) for exp in df_y.columns])
 
         for nclus in range(3, len(df_y.columns) + 1):
             labels = fcluster(L, nclus, 'maxclust')
-            print labels
             if max(labels) < nclus:
                 sys.stderr.write("remaining clusters are too similar")
                 break
             sets = []
             for i in range(1, nclus + 1):
                 sets.append(list(df_y.columns[labels == i]))
-            print sets
-    
+            nbootstrap = 10
             result = self._run_bootstrap_model(
-                        df_y, sets, df_X, nsample=1000, nbootstrap=100
+                        df_y, sets, df_X, nsample=1000, nbootstrap=nbootstrap
                         )
-
+            
+            if result.shape[1] < (nbootstrap * nclus) * 0.5:
+                sys.stderr.write("not enough for bootstrap\n")
+                break
+            
             for i in range(nclus):
-                cols = result.columns[range(i, nclus * 100, nclus)]
+                cols = result.columns[range(i,result.shape[1], nclus)]
                 act = result[cols].mean(1)
                 for col in df_y.columns[labels == i + 1]:
-                    act[col][i + 1] = act
+                    self.dfs[col][str(i + 1)] = act.values
+        
+        self.act_ = pd.DataFrame(index=df_X.columns)
+        for col in self.dfs.keys():
+            self.act_[col] = self.dfs[col].mean(1)
+
 
     def _select_alpha(self, df, sets, motifs, nsample=1000):
         f = partial(eval_model, df, sets, motifs,
@@ -512,8 +519,6 @@ class MoreMoap(object):
     
         coef = pd.DataFrame(index=motifs.columns)
     
-        print y.shape
-    
         sys.stderr.write("Selecting alpha\n")
         alpha = self._select_alpha(df, sets, motifs, nsample=nsample)
     
@@ -530,6 +535,9 @@ class MoreMoap(object):
     
             # Create test dataset
             y_small = y.iloc[idx]
+            if len(np.unique(y_small)) != len(sets):
+                continue
+            
             X_small = motifs.loc[y_small.index]
     
             y_small -= 1
@@ -539,26 +547,25 @@ class MoreMoap(object):
             data.append((X, y_small, len(sets) > 2, alpha, 1.0 / motifs.shape[0]))
     
         pool = Pool(NCPUS)
-    
+        
         results = pool.map(fit_model, data)
     
         #close the pool and wait for the work to finish 
         pool.close()
         pool.join()
-    
         for i,(clf,(X,y_small,_,_,_)) in enumerate(zip(results, data)):
             # Accuracy
+            #print y_small.
             acc.append(clf.score(X, y_small))
     
             # Percentage of selected features
             fraction.append(clf.n_nonzero(percentage=True))
-    
+             
             c = clf.coef_
             names = ["_".join(s) for s in sets]
             d = dict(zip(names, c))
             c = pd.DataFrame(d, index=motifs.columns).fillna(0)
-    
-            coef = coef.join(c, rsuffix=i)
+            coef = coef.join(c, rsuffix=i, how="left")
             #c = c[(abs(c) > cutoff).any(1)]
             #c = c.join(m2f)
     
