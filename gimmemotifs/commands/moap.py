@@ -19,8 +19,11 @@ from gimmemotifs.more import ( KSMoap, LassoMoap, LightningMoap,
 _cluster_methods = ["classic", "ks", "lightning"]
 _value_methods = ["lasso", "mara", "more"]
 
-def command_moap(inputfile, motiffile=None, pwmfile=None, 
-                        genome=None, method="classic"):
+def command_moap(inputfile, motiffile=None, pwmfile=None, genome=None, 
+        cutoff=0.95, scoring="score", method="classic"):
+    
+    if scoring not in ['score', 'count']:
+        raise ValueError("valid values are 'score' and 'count'")
     
     config = MotifConfig()
 
@@ -29,6 +32,7 @@ def command_moap(inputfile, motiffile=None, pwmfile=None,
     # read data
     df = pd.read_table(inputfile, index_col=0)
    
+
     if method in _cluster_methods:
         if df.shape[1] != 1:
             raise ValueError("1 column expected for {}".format(method))
@@ -75,8 +79,8 @@ def command_moap(inputfile, motiffile=None, pwmfile=None,
         sys.stderr.write("scanning for motifs\n")
         motif_names = [m.id for m in read_motifs(open(pwmfile))]
         scores = []
-        if method == 'classic':
-            for row in s.count(list(df.index)):
+        if method == 'classic' or scoring == "count":
+            for row in s.count(list(df.index), cutoff=cutoff):
                 scores.append(row)
         else:
             for row in s.best_score(list(df.index)):
@@ -105,7 +109,7 @@ def command_moap(inputfile, motiffile=None, pwmfile=None,
     clf.act_.to_csv("outfile.txt", sep="\t")
 
 if __name__ == "__main__":
-    #infile = "/home/simon/git/gimmemotifs/test_rpkm_table.mm10.txt"
-    infile = "/home/simon/git/gimmemotifs/test_clustering.txt"
-    command_moap(infile, genome="hg19", method="classic")
+    infile = "/home/simon/git/gimmemotifs/test_rpkm_table.mm10.txt"
+    #infile = "/home/simon/git/gimmemotifs/test_clustering.txt"
+    command_moap(infile, genome="mm10", method="lasso", scoring="count")
 
