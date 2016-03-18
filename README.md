@@ -1,7 +1,4 @@
-GimmeMotifs
-===========
-
-
+# GimmeMotifs
 
 [![bioconda-badge](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io)
 [![PyPI version](https://badge.fury.io/py/gimmemotifs.svg)](https://badge.fury.io/py/gimmemotifs)
@@ -12,26 +9,29 @@ Suite of motif tools, including a motif prediction pipeline for ChIP-seq experim
 
 See [full GimmeMotifs documentation](http://gimmemotifs.readthedocs.org/) for detailed installation instructions and usage examples.
 
-Quick start
------------
+## Easy installation
 
-Install using conda:
+The most straightforward way to install GimmeMotifs is via [conda](https://docs.continuum.io/anaconda/) using the [bioconda](https://bioconda.github.io/) channel.
 
 `$ conda install gimmemotifs -c bioconda`
 
-Or with pip:
+## Quick start
 
-`$ pip install gimmemotifs`
+### Download a genome
 
-Download a genome:
+Create a directory to store genome files.
+
+`$ mkdir $HOME/genomes/`
+
+To download and index a genome:
 
 `$ gimme genome $HOME/genomes/ hg38`
 
-Or index a genome directory with chromosome FASTA files on your computer:
+Alternatively, you can index a genome directory with chromosome FASTA files on your computer.
 
 `$ gimme index /usr/share/genomes/hg19 hg19`
 
-Predict some motifs:
+### Predict some motifs:
 
 `$ gimme motifs my_peaks.bed -g hg38 -n my_motifs`
 
