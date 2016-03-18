@@ -7,7 +7,7 @@ from multiprocessing import Pool
 
 import pandas as pd 
 import numpy as np
-from scipy.stats import scoreatpercentile, ks_2samp
+from scipy.stats import scoreatpercentile, ks_2samp, hypergeom
 from scipy.cluster.hierarchy import linkage, fcluster
 from statsmodels.sandbox.stats.multicomp import multipletests
 
@@ -148,8 +148,12 @@ class LightningMoap(object):
 
 class KSMoap(object):
     def __init__(self):
-        """Predict motif activities using lighting CDClassifier
-
+        """Predict motif activities using Kolmogorov-Smirnov p-value
+    
+        This method compares the motif score distribution of each 
+        cluster versus the motif score distribution of all other 
+        clusters.
+        
         Parameters
         ----------
        
@@ -174,6 +178,60 @@ class KSMoap(object):
             pos = df_X[df_y.iloc[:,0] == cluster]
             neg = df_X[df_y.iloc[:,0] != cluster]
             p = [ks_2samp(pos[m], neg[m])[1] for m in pos.columns]
+            pvals.append(p)
+        
+        # correct for multipe testing
+        pvals = np.array(pvals)
+        fdr = multipletests(pvals.flatten(), 
+                method="fdr_bh")[1].reshape(pvals.shape)
+        
+        # create output DataFrame
+        self.act_ = pd.DataFrame(-np.log10(pvals.T), 
+                columns=clusters, index=df_X.columns)
+
+class ClassicMoap(object):
+    def __init__(self):
+        """Predict motif activities using hypergeometric p-value
+
+        Parameters
+        ----------
+       
+        Attributes
+        ----------
+        act_ : DataFrame, shape (n_motifs, n_clusters)
+            -log10 of the hypergeometric p-value, corrected for multiple
+            testing using the Benjamini-Hochberg correction
+        """
+        self.act_ = None
+    
+    def fit(self, df_X, df_y):
+        if not df_y.shape[0] == df_X.shape[0]:
+            raise ValueError("number of regions is not equal")
+        if df_y.shape[1] != 1:
+            raise ValueError("y needs to have 1 label column")
+       
+        if set(df_X.dtypes) != set([np.dtype(int)]):
+            raise ValueError("need motif counts, not scores")
+
+        # calculate hypergeometric p-values
+        pvals = []
+        clusters = df_y[df_y.columns[0]].unique()
+        M = df_X.shape[0]
+        for cluster in clusters:
+            pos = df_X[df_y.iloc[:,0] == cluster]
+            neg = df_X[df_y.iloc[:,0] != cluster]
+            
+            pos_true = (pos > 0).sum(0)
+            pos_false = (pos == 0).sum(0)
+            neg_true = (neg > 0).sum(0)
+            
+            p = []
+            for pt, pf, nt in zip(pos_true, pos_false, neg_true):
+                n = pt + nt
+                N = pt + pf
+                x = pt - 1
+                p.append(hypergeom.sf(x, M, n, N))
+            
             pvals.append(p)
         
         # correct for multipe testing
