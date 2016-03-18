@@ -3,7 +3,6 @@ import re
 import sys
 from functools import partial
 from tempfile import mkdtemp
-import hashlib
 
 import MOODS.tools
 import MOODS.parsers
@@ -214,8 +213,9 @@ class Scanner(object):
 
     def set_motifs(self, motifs):
         self.motifs = motifs
+        motif_ids = sorted([m.id for m in read_motifs(open(motifs))])
         self.checksum = {}
-        chksum = hashlib.sha256(open(self.motifs, 'rb').read()).digest()
+        chksum = CityHash64("\n".join(motif_ids))
         self.checksum[self.motifs] = chksum
 
     def set_threshold(self):
