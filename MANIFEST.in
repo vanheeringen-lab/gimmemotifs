@@ -12,6 +12,8 @@ include examples/TAp73alpha.fa
 include genes/*.bed
 include genome_index/README.txt
 include motif_databases/*.pwm
+include motif_databases/*.txt
+include motif_databases/*.README
 include score_dists/*.txt
 include templates/*.kid
 include templates/*.png

@@ -1,3 +1,4 @@
+factor	motifs
 9430076C15RIK	bZIP_Average_150
 AC002126.6	MADS_box_Average_21,MADS_box_M3420_1.01,MADS_box_M3423_1.01
 AC012531.1	Homeodomain_Average_268,Homeodomain_Average_314,Homeodomain_Average_353,Homeodomain_Average_367,Homeodomain_Average_399,Homeodomain_Average_402,Homeodomain_Average_404,Homeodomain_Average_405,Homeodomain_M3298_1.01,Homeodomain_M3303_1.01,Homeodomain_M6112_1.01,Homeodomain_M6118_1.01,Homeodomain_M6123_1.01
