@@ -498,39 +498,47 @@ def eval_model(df, sets, motifs, alpha, nsample=1000, k=10, cutoff=0):
     #print alpha, accs, fractions
     return alpha, np.median(accs), np.median(fractions)
 
-def select_sets(df, sets, threshold=1):
+def select_sets(df, sets, threshold=0.5):
+    abs_diff = 0.5 
     ret = []
     for s in sets:
-        other = [c for c in df.columns if not c  in s]
-        #print s, other
-        x = df[(df[s] >= threshold).any(1) & (df[s].max(1) >= (df[other].max(1) * 2))].index
+        other = [c for c in df.columns if not c in s]
+        print s, other
+        x = df[(df[s] >= threshold).any(1) & ((df[s].max(1) - df[other].max(1)) < abs_diff)].index
         ret.append(x)
     return ret
 
 class MoreMoap(object):
-    def __init__(self):
-        pass
+    def __init__(self, scale=True):
+        self.scale = scale
 
     def fit(self, df_X, df_y):
         dist = pairwise_distances(df_y.values.T)
         L = linkage(dist, method="ward")
+        
+        y = df_y.apply(scale, 0)
         
         self.dfs = dict(
                 [(exp, pd.DataFrame(index=df_X.columns)) for exp in df_y.columns])
 
         for nclus in range(3, len(df_y.columns) + 1):
             labels = fcluster(L, nclus, 'maxclust')
+            print labels
             if max(labels) < nclus:
                 sys.stderr.write("remaining clusters are too similar")
                 break
             sets = []
             for i in range(1, nclus + 1):
                 sets.append(list(df_y.columns[labels == i]))
+            print sets
             nbootstrap = 10
             result = self._run_bootstrap_model(
-                        df_y, sets, df_X, nsample=1000, nbootstrap=nbootstrap
+                        y, sets, df_X, nsample=1000, nbootstrap=nbootstrap
                         )
-            
+            if result is None:
+                sys.stderr.write("no result for {} clusters".format(nclus))
+                continue 
+
             if result.shape[1] < (nbootstrap * nclus) * 0.5:
                 sys.stderr.write("not enough for bootstrap\n")
                 break
@@ -570,7 +578,11 @@ class MoreMoap(object):
         for label, rows in enumerate(ret):
             y.loc[rows] = label + 1
         y = y[y["label"] > 0]
-    
+        
+        if y.shape[0] == 0:
+            sys.stderr.write("no sets with these filters\n")
+            return
+        
         if nsample > (len(y) / 2):
             nsample = len(y) / 2
             sys.stderr.write("setting nsample to {}\n".format(nsample))
@@ -633,52 +645,3 @@ class MoreMoap(object):
         print "Average accuracy", np.mean(acc)
         print "Average fraction", np.mean(fraction)
         return coef
-    
-if __name__ == "__main__":
-
-    motif_file = "/home/simon/prj/cis-bp/cis-bp.vertebrate.clusters.v3.0.pwm"
-    map_file = "/home/simon/prj/cis-bp/cis-bp.vertebrate.clusters.v3.0.motif2factors.txt"
-    # Load mapping of motif to transcription factors
-    m2f = pd.read_csv(map_file, sep="\t", names=["motif","factors"], index_col=0)
-    label_file = "test_rpkm_table.mm10.txt"
-
-    outfile = "vla.out"
-    #nsample = args.nsample
-    #state = np.random.RandomState(seed=args.seed)
-
-    # Read labels
-    sys.stderr.write("read labels\n")
-    df = pd.read_table(label_file, index_col=0)
-
-    # initialize scanner
-    s = Scanner()
-    s.set_motifs(motif_file)
-    s.set_genome("mm10")
-    
-    # scan for motifs
-    sys.stderr.write("scanning for motifs\n")
-    motif_names = [m.id for m in read_motifs(open(motif_file))]
-    scores = []
-    for row in s.best_score(list(df.index)):
-        scores.append(row)
-    motifs = pd.DataFrame(scores, index=df.index, columns=motif_names)   
-    
-    #clf = LightningMoap()
-    #clf = KSMoap()
-    #clf = MaraMoap(iterations=5000)
-    #clf = LassoMoap(alpha_stepsize=5.0)
-    clf = MoreMoap()
-
-    clf.fit(motifs, df)
-   
-    #clf.ridge_.to_csv("mara.ridge.csv", sep="\t")
-    clf.act_.to_csv("lasso.act.csv", sep="\t")
-    #print clf.act_.sort_values("trophoblast")
-
-    #if nsample > 0:
-    #    idx = np.random.choice(range(df.shape[0]), nsample, replace=False)
-    #else:
-    
-    
-    # Write output
-    #df.to_csv(outfile, sep="\t")

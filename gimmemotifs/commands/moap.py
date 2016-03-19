@@ -19,7 +19,7 @@ from gimmemotifs.more import ( KSMoap, LassoMoap, LightningMoap,
 _cluster_methods = ["classic", "ks", "lightning"]
 _value_methods = ["lasso", "mara", "more"]
 
-def command_moap(inputfile, motiffile=None, pwmfile=None, genome=None, 
+def moap(inputfile, outfile, motiffile=None, pwmfile=None, genome=None, 
         cutoff=0.95, scoring="score", method="classic"):
     
     if scoring not in ['score', 'count']:
@@ -106,10 +106,10 @@ def command_moap(inputfile, motiffile=None, pwmfile=None, genome=None,
         clf = ClassicMoap()
 
     clf.fit(motifs, df)
-    clf.act_.to_csv("outfile.txt", sep="\t")
+    clf.act_.to_csv(outfile, sep="\t")
 
 if __name__ == "__main__":
     infile = "/home/simon/git/gimmemotifs/test_rpkm_table.mm10.txt"
     #infile = "/home/simon/git/gimmemotifs/test_clustering.txt"
-    command_moap(infile, genome="mm10", method="lasso", scoring="count")
+    moap(infile, "act.out.txt", genome="mm10", method="lasso", scoring="count")
 
