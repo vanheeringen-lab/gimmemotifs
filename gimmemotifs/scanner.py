@@ -4,9 +4,14 @@ import sys
 from functools import partial
 from tempfile import mkdtemp
 
-import MOODS.tools
-import MOODS.parsers
-import MOODS.scan
+# "hidden" features, in development
+try:
+    import MOODS.tools
+    import MOODS.parsers
+    import MOODS.scan
+except ImportError:
+    pass
+
 import numpy as np
 
 from gimmemotifs.config import MotifConfig
