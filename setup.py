@@ -465,7 +465,7 @@ setup (name = 'gimmemotifs',
             "statsmodels",
             "pymc",
             "scikit-learn",
-            "lightning",
+            "sklearn-contrib-lightning",
         ],
         dependency_links = [
             "https://github.com/scikit-learn-contrib/lightning/archive/master.zip"]
