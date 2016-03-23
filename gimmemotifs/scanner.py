@@ -4,9 +4,14 @@ import sys
 from functools import partial
 from tempfile import mkdtemp
 
-import MOODS.tools
-import MOODS.parsers
-import MOODS.scan
+# "hidden" features, in development
+try:
+    import MOODS.tools
+    import MOODS.parsers
+    import MOODS.scan
+except ImportError:
+    pass
+
 import numpy as np
 
 from gimmemotifs.config import MotifConfig
@@ -124,7 +129,7 @@ def scan_it_moods(infile, motifs, cutoff, bgfile, nreport=1, scan_rc=True, pvalu
     tmpdir = mkdtemp()
     matrices = []
     pseudocount = 1e-3
-    sys.stderr.write("bgfile: {}\n".format(bgfile))
+    #sys.stderr.write("bgfile: {}\n".format(bgfile))
     bg = MOODS.tools.bg_from_sequence_dna("".join(Fasta(bgfile).seqs), 1)
 
     for motif in motifs:
@@ -213,6 +218,10 @@ class Scanner(object):
 
     def set_motifs(self, motifs):
         self.motifs = motifs
+        motif_ids = sorted([m.id for m in read_motifs(open(motifs))])
+        self.checksum = {}
+        chksum = CityHash64("\n".join(motif_ids))
+        self.checksum[self.motifs] = chksum
 
     def set_threshold(self):
         """
@@ -348,13 +357,14 @@ class Scanner(object):
     def _scan_regions(self, regions, nreport, scan_rc, cutoff=0.95):
         index_dir = self.index_dir
         motif_file = self.motifs
+        motif_digest = self.checksum[motif_file]
 
         # determine which regions are not in the cache 
         scan_regions = regions
         if self.use_cache:
             scan_regions = []
             for region in regions:
-                key = str((region, index_dir, motif_file, nreport, scan_rc, cutoff))
+                key = str((region, index_dir, motif_digest, nreport, scan_rc, cutoff))
                 ret = self.cache.get(key)
                 if ret == NO_VALUE:
                     scan_regions.append(region)
@@ -386,7 +396,7 @@ class Scanner(object):
                     if self.use_cache:
                         # store values in cache    
                         region = scan_regions[i]
-                        key = str((region, index_dir, motif_file, nreport, scan_rc, cutoff))
+                        key = str((region, index_dir, motif_digest, nreport, scan_rc, cutoff))
                         self.cache.set(key, ret)
                     else:
                         yield ret
@@ -395,13 +405,14 @@ class Scanner(object):
         if self.use_cache: 
             # return results from cache
             for region in regions:
-                key = str((region, index_dir, motif_file, nreport, scan_rc, cutoff))
+                key = str((region, index_dir, motif_digest, nreport, scan_rc, cutoff))
                 ret = self.cache.get(key)
                 yield ret
     
     def _scan_sequences(self, seqs, nreport, scan_rc, cutoff=0.95):
         
         motif_file = self.motifs
+        motif_digest = self.checksum[motif_file]
         
         scan_seqs = seqs
         if self.use_cache:
@@ -410,7 +421,7 @@ class Scanner(object):
             scan_seqs = []
         
             for seq,seq_hash in hashes.items():
-                key = str((seq_hash, motif_file, nreport, scan_rc, cutoff))
+                key = str((seq_hash, motif_digest, nreport, scan_rc, cutoff))
                 ret = self.cache.get(key)
                 if ret == NO_VALUE:
                     scan_seqs.append(seq.upper())
@@ -436,7 +447,7 @@ class Scanner(object):
                 for ret in job.get():
                     if self.use_cache:
                         h = hashes[scan_seqs[i]]
-                        key = str((h, motif_file, nreport, scan_rc, cutoff))
+                        key = str((h, motif_digest, nreport, scan_rc, cutoff))
                         self.cache.set(key, ret)
                     else: 
                         yield ret
@@ -445,7 +456,7 @@ class Scanner(object):
         if self.use_cache:
             # return results from cache
             for seq in seqs:
-                key = str((hashes[seq.upper()], motif_file, nreport, scan_rc, cutoff))
+                key = str((hashes[seq.upper()], motif_digest, nreport, scan_rc, cutoff))
                 ret = self.cache.get(key)
                 yield ret
 

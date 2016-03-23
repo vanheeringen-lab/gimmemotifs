@@ -65,8 +65,14 @@ data_files=[
     ('gimmemotifs/bg', ['bg/hg19.MotifSampler.bg', 'bg/hg18.MotifSampler.bg', 'bg/mm9.MotifSampler.bg', 'bg/xenTro2.MotifSampler.bg']),
     ('gimmemotifs/motif_databases', [
                                     'motif_databases/JASPAR2010_vertebrate.pwm',
+                                    'motif_databases/JASPAR2016_vertebrate.pwm',
                                     'motif_databases/vertebrate_motifs.pwm',
                                     'motif_databases/vertebrate_clusters.pwm',
+                                    'motif_databases/vertebrate_clusters.pwm',
+                                    'motif_databases/gimme.invertebrate.v1.0.pwm',
+                                    'motif_databases/gimme.vertebrate.v3.1.pwm',
+                                    'motif_databases/gimme.vertebrate.v3.1.factor2motifs.txt',
+                                    'motif_databases/gimme.vertebrate.v3.1.motif2factors.txt',
                                     ]),
 #    ('gimmemotifs/doc', ['doc/gimmemotifs_manual.pdf','doc/gimmemotifs_manual.html']),
     ('gimmemotifs/examples', ['examples/TAp73alpha.bed','examples/TAp73alpha.fa']),
@@ -456,5 +462,12 @@ setup (name = 'gimmemotifs',
             "kid >= 0.9.6",
             "pyyaml >= 3.10",
             "pybedtools",
+            "statsmodels",
+            "pymc",
+            "scikit-learn",
+            "sklearn-contrib-lightning",
         ],
+        dependency_links = [
+            "https://github.com/scikit-learn-contrib/lightning/archive/master.zip"]
+        ,
 )

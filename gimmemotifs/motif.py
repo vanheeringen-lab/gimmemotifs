@@ -884,26 +884,26 @@ def _read_motifs_xxmotif(handle):
 
 def _read_motifs_transfac(handle):
     p = re.compile(r'\d+\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s*\w?')
+    p_id = re.compile(r'^(NA|ID)\s+([^\s]+)')
     motifs = []
     pwm = []
     motif_id = ""
     for line in handle.readlines():
-        if line.startswith("ID"):
-            if pwm:
-                motifs.append(Motif(pwm))
-                motifs[-1].id = motif_id
-                pwm = []
-            try:
-                motif_id = line.strip().split(" ")[-1].split("\t")[-1]
-            except IndexError:
-                motif_id = line.strip().split("\t")[1]
+        m = p_id.search(line.strip())
+        if m:
+            motif_id = m.group(2)
+        elif line.startswith("//"):
+            motifs.append(Motif(pwm))
+            motifs[-1].id = motif_id
+            pwm = []
         elif p.search(line):
             m = p.search(line)
             pwm.append([float(x) for x in m.group(1,2,3,4)])
     
-    motifs.append(Motif(pwm))
-    motifs[-1].id = motif_id
-            
+    # If there's only one matrix, and the format is not complete
+    if len(pwm) != 0:
+        motifs.append(Motif(pwm))
+
     return motifs
 
 def motifs_to_meme(motifs):

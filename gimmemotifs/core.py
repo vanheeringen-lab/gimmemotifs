@@ -630,12 +630,11 @@ class GimmeMotifs(object):
         f.close()
 
     def determine_closest_match(self, motifs):
-        self.logger.debug("Determining closest matching motifs in database (JASPAR)")
+        self.logger.debug("Determining closest matching motifs in database")
         motif_db = self.config.get_default_params()["motif_db"]
         db = os.path.join(self.config.get_motif_dir(), motif_db)
         db_motifs = []
         if db.endswith("pwm") or db.endswith("pfm"):
-
             db_motifs = read_motifs(open(db), fmt="pwm")
         elif db.endswith("transfac"):
             db_motifs = read_motifs(db, fmt="transfac")
