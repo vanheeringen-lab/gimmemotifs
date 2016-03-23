@@ -5,10 +5,21 @@ GimmeMotifs runs on Linux. Definitely not on Windows, sorry. Mac OS X
 should work in theory, but as I don’t have the means to test this, I’m
 not completely sure.
 
+The easy way to install
+-----------------------
+
+The most straightforward way to install GimmeMotifs is by using `conda
+<https://docs.continuum.io/anaconda>`_.
+
+::
+
+    $ conda install gimmemotifs -c bioconda
+
+
 Using pip
 ---------
 
-Installation from PyPI with `pip` is the most straightforward option:
+Installation from PyPI with `pip` is another straightforward option:
 
 :: 
 
@@ -62,7 +73,7 @@ Now you can install GimmeMotifs using pip. Latest stable release:
 Installation packages
 ---------------------
 
-Installation packages for Ubuntu and Fedora are no longe supported.
+Installation packages for Ubuntu and Fedora are no longer supported.
 
 Installation from source
 ------------------------
@@ -70,7 +81,7 @@ Installation from source
 Prerequisites
 ~~~~~~~~~~~~~
 
-Before you can install GimmeMotifs you’ll need:
+Before you can install GimmeMotifs you willl need:
 
 -  some Python modules and other packages
 
@@ -79,7 +90,7 @@ Before you can install GimmeMotifs you’ll need:
 Required packages (Python)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  Python 2.5, 2.6 or 2.7 (not Python 3) http://www.python.org
+-  Python 2.7 (not Python 3) http://www.python.org
 
 -  | Scipy http://www.scipy.org/
    | SciPy is the fundamental package needed for scientific computing with Python.
@@ -121,8 +132,8 @@ Start by unpacking the source archive
 
 ::
 
-    tar xvzf gimmemotifs-0.8.9.1.tar.gz
-    cd gimmemotifs-0.8.9.1
+    tar xvzf gimmemotifs-0.9.0.2.tar.gz
+    cd gimmemotifs-0.9.0.2
 
 You can build GimmeMotifs with the following command:
 
