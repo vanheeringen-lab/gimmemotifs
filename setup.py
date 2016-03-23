@@ -23,6 +23,14 @@ CONFIG_NAME = "gimmemotifs.cfg"
 DESCRIPTION  = """GimmeMotifs is a motif prediction pipeline. 
 """
 
+# trick to get rst file for PyPi, see:
+# http://stackoverflow.com/questions/26737222/pypi-description-markdown-doesnt-work/26737672#26737672
+try:
+    import pypandoc
+    long_description = pypandoc.convert('README.md', 'rst')    
+except(IOError, ImportError):
+    long_description = open('README.md').read()
+
 DEFAULT_PARAMS = {
     "max_time": None,
     "analysis": "medium",
@@ -430,6 +438,7 @@ setup (name = 'gimmemotifs',
                             "install_config":install_config,
                             },
         version = GM_VERSION,
+        long_description = long_description,
         description = DESCRIPTION,
         author='Simon van Heeringen',
         author_email='simon.vanheeringen@gmail.com',
