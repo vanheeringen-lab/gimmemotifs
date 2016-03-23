@@ -14,7 +14,7 @@ import subprocess as sp
 from glob import glob
 from tempfile import NamedTemporaryFile
 from distutils.spawn import find_executable
-from gimmemotifs.genome_index import GenomeIndex
+from gimmemotifs.genome_index import GenomeIndex,create_bedtools_fa
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
 
@@ -141,3 +141,5 @@ def genome(args):
     sys.stderr.write("Creating index\n")
     g = GenomeIndex()
     g = g.create_index(genome_dir, index_dir)
+
+    create_bedtools_fa(index_dir, genome_dir)

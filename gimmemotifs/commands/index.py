@@ -11,11 +11,9 @@ from tempfile import NamedTemporaryFile
 
 import pybedtools
 
-from gimmemotifs.genome_index import GenomeIndex
+from gimmemotifs.genome_index import GenomeIndex, create_bedtools_fa
 from gimmemotifs.shutils import find_by_ext
 from gimmemotifs.config import FASTA_EXT
-
-
 
 def index(args):
     
@@ -29,21 +27,4 @@ def index(args):
     g = GenomeIndex()
     g.create_index(fasta_dir, index_dir)
 
-    # Create genome FASTA file for use with bedtools
-    with open(os.path.join(index_dir, "genome.fa"), 'w') as out:
-        for f in find_by_ext(fasta_dir, FASTA_EXT):
-            for line in open(f):
-                out.write(line)
-
-    test_chr = g.get_chromosomes()[0]
-    tmp = NamedTemporaryFile()
-    tmp.write("{}\t1\t2\n".format(test_chr))
-    tmp.flush()
-    
-    b = pybedtools.BedTool(tmp.name)
-    try:
-        b.nucleotide_content(fi=os.path.join(index_dir, "genome.fa"))
-    except pybedtools.helpers.BEDToolsError as e:
-        if str(e).find("generating") == -1:
-            raise
-
+    create_bedtools_fa(index_dir, fasta_dir)
