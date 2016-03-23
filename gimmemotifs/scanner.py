@@ -124,7 +124,7 @@ def scan_it_moods(infile, motifs, cutoff, bgfile, nreport=1, scan_rc=True, pvalu
     tmpdir = mkdtemp()
     matrices = []
     pseudocount = 1e-3
-    sys.stderr.write("bgfile: {}\n".format(bgfile))
+    #sys.stderr.write("bgfile: {}\n".format(bgfile))
     bg = MOODS.tools.bg_from_sequence_dna("".join(Fasta(bgfile).seqs), 1)
 
     for motif in motifs:

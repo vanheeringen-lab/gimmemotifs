@@ -73,7 +73,7 @@ def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=T
         yield "\t{}".format("\t".join([m.id for m in motifs]))
         
         if moods:
-            result_it = scan_it_moods(inputfile, motifs, cutoff, nreport, scan_rc, pvalue, table)
+            result_it = scan_it_moods(inputfile, motifs, cutoff, bgfile,  nreport, scan_rc, pvalue, table)
             for seq_id, counts in result_it:
                 yield "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
         else:
