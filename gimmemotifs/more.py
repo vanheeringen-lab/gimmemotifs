@@ -1,4 +1,10 @@
-#!/usr/bin/env python
+# Copyright (c) 2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+#
+# This module is free software. You can redistribute it and/or modify it under 
+# the terms of the MIT License, see the file COPYING included with this 
+# distribution.
+""" Module for motif activity prediction """
+
 import sys
 import argparse
 from functools import partial
@@ -510,6 +516,9 @@ def select_sets(df, sets, threshold=0.5):
 
 class MoreMoap(object):
     def __init__(self, scale=True):
+        """Predict motif activities using Lasso MultiTask regression
+        In development, doesn't really work consistently.
+        """
         self.scale = scale
 
     def fit(self, df_X, df_y):
