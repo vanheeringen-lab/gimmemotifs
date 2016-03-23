@@ -203,15 +203,15 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
     n = 0
     last_len = 0 
     while len(result.stats.keys()) < len(result.motifs):
-        if n >= 3:
+        if n >= 30:
             logger.debug("waited long enough")
             logger.debug("motifs: %s, stats: %s", len(result.motifs), len(result.stats.keys()))
             for i,motif in enumerate(result.motifs):
                 if "{}_{}".format(motif.id, motif.to_consensus()) not in result.stats:
-                    logger.idebug("deleting %s", motif)
+                    logger.debug("deleting %s", motif)
                     del result.motifs[i]
             break
-        sleep(5)
+        sleep(10)
         if len(result.stats.keys()) == last_len:
             n += 1
         else:
