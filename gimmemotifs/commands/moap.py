@@ -14,9 +14,9 @@ from gimmemotifs.config import MotifConfig
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.more import ( KSMoap, LassoMoap, LightningMoap, 
-    MaraMoap, MoreMoap, ClassicMoap )
+    MaraMoap, MoreMoap, ClassicMoap, RandomForestMoap )
 
-_cluster_methods = ["classic", "ks", "lightning"]
+_cluster_methods = ["classic", "ks", "lightning", "rf"]
 _value_methods = ["lasso", "mara", "more"]
 
 def moap(inputfile, outfile, motiffile=None, pwmfile=None, genome=None, 
@@ -104,6 +104,8 @@ def moap(inputfile, outfile, motiffile=None, pwmfile=None, genome=None,
         clf = MoreMoap()
     if method == "classic":
         clf = ClassicMoap()
+    if method == "rf":
+        clf = RandomForestMoap()
 
     clf.fit(motifs, df)
     clf.act_.to_csv(outfile, sep="\t")
