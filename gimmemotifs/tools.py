@@ -850,7 +850,7 @@ class MDmodule(MotifProgram):
         pwmfile = fastafile + ".out"
     
         width = default_params['width']
-        number = default_params['width']
+        number = default_params['number']
     
         current_path = os.getcwd()
         os.chdir(self.tmpdir)    
