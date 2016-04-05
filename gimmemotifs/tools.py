@@ -854,13 +854,11 @@ class MDmodule(MotifProgram):
     
         current_path = os.getcwd()
         os.chdir(self.tmpdir)    
-        cmd = "%s -i %s -a 1 -o %s -w %s -t 10 -r %s" % (bin, fastafile, pwmfile, width, number)
+        cmd = "%s -i %s -a 1 -o %s -w %s -t 100 -r %s" % (bin, fastafile, pwmfile, width, number)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         stdout,stderr = p.communicate()
         
-        #stdout,stderr = "",""
-        #p = Popen(cmd, shell=True)
-        #p.wait()
+        stdout = "cmd: {}\n".format(cmd) + stdout 
             
         motifs = []
         if os.path.exists(pwmfile):
