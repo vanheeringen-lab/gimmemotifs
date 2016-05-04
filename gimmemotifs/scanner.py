@@ -220,8 +220,9 @@ class Scanner(object):
         self.motifs = motifs
         motif_ids = sorted([m.id for m in read_motifs(open(motifs))])
         self.checksum = {}
-        chksum = CityHash64("\n".join(motif_ids))
-        self.checksum[self.motifs] = chksum
+        if self.use_cache:
+            chksum = CityHash64("\n".join(motif_ids))
+            self.checksum[self.motifs] = chksum
 
     def set_threshold(self):
         """
@@ -389,7 +390,7 @@ class Scanner(object):
                 job = pool.apply_async(scan_func, (scan_regions[i * chunksize:( i+ 1) * chunksize],))
                 jobs.append(job)
             
-            # store values in cache
+            # return values or store values in cache
             i = 0
             for job in jobs:
                 for ret in job.get():
@@ -399,6 +400,7 @@ class Scanner(object):
                         key = str((region, index_dir, motif_digest, nreport, scan_rc, cutoff))
                         self.cache.set(key, ret)
                     else:
+                        #return values
                         yield ret
                     i += 1
     
