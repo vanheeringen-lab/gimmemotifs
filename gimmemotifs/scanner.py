@@ -319,7 +319,8 @@ class Scanner(object):
                     if region_p.search(line):
                         return "regionfile"
                     else:
-                        if line.split("\t"):
+                        vals = line.split("\t")
+                        if len(vals) >= 3:
                             int(vals[1]), int(vals[2])
                             return "bedfile"
                 except:
@@ -358,7 +359,7 @@ class Scanner(object):
     def _scan_regions(self, regions, nreport, scan_rc, cutoff=0.95):
         index_dir = self.index_dir
         motif_file = self.motifs
-        motif_digest = self.checksum[motif_file]
+        motif_digest = self.checksum.get(motif_file, None)
 
         # determine which regions are not in the cache 
         scan_regions = regions
