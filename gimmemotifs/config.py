@@ -10,9 +10,9 @@ import distutils.sysconfig
 import os
 
 ### CONSTANTS ###
-GM_VERSION = "0.9.0.3"
+GM_VERSION = "0.9.0.6"
 BG_TYPES = ["random", "genomic", "gc", "promoter"]
-FA_VALID_BGS = ["random", "promoter", "gc", "user"]
+FA_VALID_BGS = ["random", "promoter", "gc", "user", "genomic"]
 BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "user"]
 BG_RANK = {"user":1, "promoter":2, "gc":3, "random":4, "genomic":5}
 FASTA_EXT = [".fasta", ".fa", ".fsa"]

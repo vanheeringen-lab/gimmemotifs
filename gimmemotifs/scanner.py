@@ -220,8 +220,9 @@ class Scanner(object):
         self.motifs = motifs
         motif_ids = sorted([m.id for m in read_motifs(open(motifs))])
         self.checksum = {}
-        chksum = CityHash64("\n".join(motif_ids))
-        self.checksum[self.motifs] = chksum
+        if self.use_cache:
+            chksum = CityHash64("\n".join(motif_ids))
+            self.checksum[self.motifs] = chksum
 
     def set_threshold(self):
         """
@@ -318,7 +319,8 @@ class Scanner(object):
                     if region_p.search(line):
                         return "regionfile"
                     else:
-                        if line.split("\t"):
+                        vals = line.split("\t")
+                        if len(vals) >= 3:
                             int(vals[1]), int(vals[2])
                             return "bedfile"
                 except:
@@ -357,7 +359,7 @@ class Scanner(object):
     def _scan_regions(self, regions, nreport, scan_rc, cutoff=0.95):
         index_dir = self.index_dir
         motif_file = self.motifs
-        motif_digest = self.checksum[motif_file]
+        motif_digest = self.checksum.get(motif_file, None)
 
         # determine which regions are not in the cache 
         scan_regions = regions
@@ -389,7 +391,7 @@ class Scanner(object):
                 job = pool.apply_async(scan_func, (scan_regions[i * chunksize:( i+ 1) * chunksize],))
                 jobs.append(job)
             
-            # store values in cache
+            # return values or store values in cache
             i = 0
             for job in jobs:
                 for ret in job.get():
@@ -399,6 +401,7 @@ class Scanner(object):
                         key = str((region, index_dir, motif_digest, nreport, scan_rc, cutoff))
                         self.cache.set(key, ret)
                     else:
+                        #return values
                         yield ret
                     i += 1
     

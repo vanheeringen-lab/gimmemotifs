@@ -27,7 +27,8 @@ from gimmemotifs.config import (MotifConfig, GM_VERSION, FA_VALID_BGS,
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.utils import (divide_fa_file, divide_file, star, 
         write_equalwidth_bedfile, gff_enrichment, motif_localization)
-from gimmemotifs.background import MarkovFasta, MatchedGcFasta, PromoterFasta
+from gimmemotifs.background import ( MarkovFasta, MatchedGcFasta, 
+                                    PromoterFasta, RandomGenomicFasta )
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs import genome_index
 from gimmemotifs.cluster import cluster_motifs
@@ -311,6 +312,12 @@ class GimmeMotifs(object):
             self.logger.debug("Random background: %s", outfile)
             # return the number of random sequences created
             return len(m)
+        elif bg_type == "genomic":
+            self.logger.debug("Creating genomic background")
+            index_dir = os.path.join(self.config.get_index_dir(), organism)
+            f = RandomGenomicFasta(index_dir, width, nr_times * len(fg))
+            f.writefasta(outfile)
+            return len(f)
         elif bg_type == "gc":
             self.logger.debug("Creating GC matched background")
 
@@ -717,17 +724,25 @@ class GimmeMotifs(object):
             # Leave it to BED
             pass
 
+        index_msg = ( "No index found for genome {}! " 
+                    "Has GimmeMotifs been configured correctly and is the " 
+                    "genome indexed?" ).format(params["genome"])
+        index_dir = os.path.join(self.config.get_index_dir(), params["genome"])
+        
         if self.input_type == "FASTA":
             for bg in background:
                 if not bg in FA_VALID_BGS:
                     self.logger.info("Input type is FASTA, can't use background type '%s'", bg)
+                if bg == "genomic":
+                    if not os.path.exists(index_dir):
+                        self.logger.error(index_msg)
+                        sys.exit(1)
             background = [bg for bg in background if bg in FA_VALID_BGS]
 
         elif self.input_type == "BED":
             # Does the index_dir exist?  #bed-specific
-            index_dir = os.path.join(self.config.get_index_dir(), params["genome"])
             if not os.path.exists(index_dir):
-                self.logger.error("No index found for genome %s! Has GimmeMotifs been configured correctly and is the genome indexed?", params["genome"])
+                self.logger.error(index_msg)
                 sys.exit(1)
 
             # is it a valid bed-file etc.
