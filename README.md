@@ -35,3 +35,11 @@ Alternatively, you can index a genome directory with chromosome FASTA files on y
 
 `$ gimme motifs my_peaks.bed -g hg38 -n my_motifs`
 
+## Frequently Asked Questions (FAQ)
+
+#### I get the following error: "Invalid value for background argument".
+
+Currently, this is a bug in the default configuration file. Run `gimme motifs` with the additional argument `-b gc,random`. 
+
+
+
