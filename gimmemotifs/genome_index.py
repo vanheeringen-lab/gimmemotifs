@@ -27,7 +27,7 @@ def check_genome(genome):
     if not genome in available_genomes(MotifConfig().get_index_dir()):
         raise ValueError("No index found for genome {}! "
                          "Has GimmeMotifs been configured correctly "
-                         "and is the genome indexed?" ).format(genome)
+                         "and is the genome indexed?".format(genome))
 
 def create_bedtools_fa(index_dir, fasta_dir):
     g = GenomeIndex(index_dir)
