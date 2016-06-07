@@ -21,4 +21,5 @@ for test in get_tests():
 	suite.addTest(test)
 
 runner = unittest.TextTestRunner(descriptions=1, verbosity=2)
-result = runner.run(suite)
+ret = not runner.run(suite).wasSuccessful()
+sys.exit(ret)
