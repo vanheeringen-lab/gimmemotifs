@@ -57,7 +57,10 @@ class MotifConfig:
             self.config.set("params", k, v)
     
     def get_default_params(self):
-        return dict(self.config.items("params"))
+        d = dict(self.config.items("params"))
+        for k in ["use_strand", "use_cache"]:
+            d[k] = self.config.getboolean("params", k)
+        return d
 
     def get_seqlogo(self):
         try:
