@@ -1,0 +1,6 @@
+	a	b	c	d	e
+1	bZIP	bZIP	SOX	T-box	POU
+2	AP2	AP2	AP2	AP2	AP2
+3	T-box	SOX	T-box	SOX	SOX
+4	SOX	T-box	POU	POU	T-box
+5	POU	POU	bZIP	bZIP	bZIP
