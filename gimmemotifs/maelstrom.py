@@ -27,18 +27,19 @@ def moap_with_bg(input_table, genome, data_dir, method, scoring):
     
     threshold_file = None
     if scoring == "count":
-        # Random sequences from genome
-        index_dir = os.path.join(config.get_index_dir(), genome)
-        bg_file = os.path.join(data_dir, "background.{}.fa".format(genome))
-        if not os.path.exists(bg_file):
-            m = RandomGenomicFasta(index_dir, BG_LENGTH, BG_NUMBER)
-            m.writefasta(bg_file)
-    
         # Motif scanning threshold
         threshold_file = os.path.join(data_dir, "threshold.{}.txt".format(genome))
-        pwmfile = config.get_default_params().get("motif_db")
-        pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
         if not os.path.exists(threshold_file):
+        # Random sequences from genome
+            index_dir = os.path.join(config.get_index_dir(), genome)
+            bg_file = os.path.join(data_dir, "background.{}.fa".format(genome))
+            if not os.path.exists(bg_file):
+                m = RandomGenomicFasta(index_dir, BG_LENGTH, BG_NUMBER)
+                m.writefasta(bg_file)
+    
+            pwmfile = config.get_default_params().get("motif_db")
+            pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
+            
             cmd = "gimme threshold {} {} {} > {}".format(
                     pwmfile,
                     bg_file,
