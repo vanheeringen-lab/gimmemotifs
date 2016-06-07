@@ -20,6 +20,7 @@ GimmeMotifs v{0}
 epilog = """   
 commands:
     motifs      predict new motifs
+    maelstrom   find differential motifs
     scan        find known motifs
     roc         calculate/plot statistics
     match       find motif matches in database
@@ -175,6 +176,19 @@ p.add_argument("-o",
                help="Output file with graphical report (png, svg, ps, pdf)", 
                metavar="FILE")
 p.set_defaults(func=commands.match)
+
+# closest_match.py
+p = subparsers.add_parser('maelstrom')
+p.add_argument("inputfile", 
+               help="file with regions and clusters", 
+               metavar="INPUTFILE")
+p.add_argument("genome",
+               help="genome",
+               metavar="GENOME")
+p.add_argument("outdir", 
+               help="output directory", 
+               metavar="DIR")
+p.set_defaults(func=commands.maelstrom)
 
 # motif_roc.py and motif_roc_metrics.py
 p = subparsers.add_parser('roc')

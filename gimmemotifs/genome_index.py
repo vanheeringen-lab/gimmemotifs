@@ -18,11 +18,16 @@ from tempfile import NamedTemporaryFile
 import pybedtools
 
 from gimmemotifs.shutils import find_by_ext
-from gimmemotifs.config import FASTA_EXT
+from gimmemotifs.config import FASTA_EXT,MotifConfig
 
 def available_genomes(index_dir):
     return [os.path.basename(x) for x in glob(os.path.join(index_dir, "*")) if os.path.isdir(x)]
 
+def check_genome(genome):
+    if not genome in available_genomes(MotifConfig().get_index_dir()):
+        raise ValueError("No index found for genome {}! "
+                         "Has GimmeMotifs been configured correctly "
+                         "and is the genome indexed?" ).format(genome)
 
 def create_bedtools_fa(index_dir, fasta_dir):
     g = GenomeIndex(index_dir)
