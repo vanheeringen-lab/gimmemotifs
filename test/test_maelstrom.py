@@ -2,7 +2,7 @@ import unittest
 import tempfile
 import os
 from glob import glob
-
+from shutil import rmtree
 import pandas as pd
 
 from gimmemotifs.maelstrom import run_maelstrom
@@ -15,11 +15,12 @@ class TestMoap(unittest.TestCase):
         self.outdir = "test/data/maelstrom"
         self.clusters = "test/data/moap/clusters.txt"
         self.outfile = os.path.join(self.outdir, "final.out.csv")
-        
+        self.fadir = "test/data/genomes"
+
         try:
             check_genome("mm10")
         except Exception:
-            get_genome("mm10")
+            get_genome("mm10", self.fadir)
     
     def test1_maelstrom(self):
         """ Test Motif Activity by Ensemble Learning (maelstrom) """
@@ -31,4 +32,3 @@ class TestMoap(unittest.TestCase):
         for fname in glob(os.path.join(self.outdir, "changed*")):
             os.unlink(fname)
         os.unlink(self.outfile)
-
