@@ -26,7 +26,6 @@ from gimmemotifs.genome_index import rc
 try:
     from dogpile.cache import make_region
     from dogpile.cache.api import NO_VALUE
-
     from cityhash import CityHash64
 except ImportError:
     pass 
@@ -179,11 +178,6 @@ def scan_it_moods(infile, motifs, cutoff, bgfile, nreport=1, scan_rc=True, pvalu
         for ret in job.get():
             yield ret
 
-
-
-
-
-
 class Scanner(object):
     """
     scan sequences with motifs
@@ -195,7 +189,7 @@ class Scanner(object):
         self.use_cache = False
         if self.config.get_default_params().get("use_cache", False):
             self._init_cache()
-            
+    
     def _init_cache(self):
         try:
             self.cache = make_region().configure(
@@ -218,10 +212,10 @@ class Scanner(object):
 
     def set_motifs(self, motifs):
         self.motifs = motifs
-        motif_ids = sorted([m.id for m in read_motifs(open(motifs))])
+        self.motif_ids = [m.id for m in read_motifs(open(motifs))]
         self.checksum = {}
         if self.use_cache:
-            chksum = CityHash64("\n".join(motif_ids))
+            chksum = CityHash64("\n".join(sorted(self.motif_ids)))
             self.checksum[self.motifs] = chksum
 
     def set_threshold(self):
@@ -410,12 +404,16 @@ class Scanner(object):
             for region in regions:
                 key = str((region, index_dir, motif_digest, nreport, scan_rc, cutoff))
                 ret = self.cache.get(key)
+                if ret == NO_VALUE or ret is None:
+                    raise Exception("cache is not big enough to hold all " 
+                                    "results, try increasing the cache size "
+                                    "or disable cache")
                 yield ret
     
     def _scan_sequences(self, seqs, nreport, scan_rc, cutoff=0.95):
         
         motif_file = self.motifs
-        motif_digest = self.checksum[motif_file]
+        motif_digest = self.checksum.get(motif_file, None)
         
         scan_seqs = seqs
         if self.use_cache:
@@ -426,7 +424,7 @@ class Scanner(object):
             for seq,seq_hash in hashes.items():
                 key = str((seq_hash, motif_digest, nreport, scan_rc, cutoff))
                 ret = self.cache.get(key)
-                if ret == NO_VALUE:
+                if ret == NO_VALUE or ret is None:
                     scan_seqs.append(seq.upper())
         
         # scan the sequences that are not in the cache
@@ -461,6 +459,11 @@ class Scanner(object):
             for seq in seqs:
                 key = str((hashes[seq.upper()], motif_digest, nreport, scan_rc, cutoff))
                 ret = self.cache.get(key)
+                if ret == NO_VALUE or ret is None:
+                    raise Exception("cache is not big enough to hold all " 
+                                    "results, try increasing the cache size "
+                                    "or disable cache")
+                    
                 yield ret
 
 try: 
