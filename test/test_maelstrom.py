@@ -5,8 +5,9 @@ from glob import glob
 from shutil import rmtree
 import pandas as pd
 
+from gimmemotifs.config import MotifConfig()
 from gimmemotifs.maelstrom import run_maelstrom
-from gimmemotifs.genome_index import get_genome,check_genome
+from gimmemotifs.genome_index import get_genome,check_genome,GenomeIndex
 
 class TestMoap(unittest.TestCase):
     """ A test class to test maelstrom"""
@@ -20,7 +21,12 @@ class TestMoap(unittest.TestCase):
         try:
             check_genome("mm10")
         except Exception:
-            get_genome("mm10", self.fadir)
+            try:
+                g = GenomeIndex()
+                index_dir = MotifConfig().get_index_dir()
+                g = g.create_index(self.fadir, index_dir)
+            except:
+                get_genome("mm10", self.fadir)
     
     def test1_maelstrom(self):
         """ Test Motif Activity by Ensemble Learning (maelstrom) """
