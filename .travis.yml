@@ -23,6 +23,9 @@ before_install:
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy matplotlib statsmodels pymc scikit-learn
   - conda install --yes -c bioconda python=$TRAVIS_PYTHON_VERSION pysam pybedtools
+  - conda install --yes -c r 
+  - wget https://cran.r-project.org/src/contrib/RobustRankAggreg_1.1.tar.gz
+  - R CMD INSTALL RobustRankAggreg_1.1.tar.gz
   - pip install https://github.com/scikit-learn-contrib/lightning/archive/master.zip
   - python setup.py develop
   - pip install .
