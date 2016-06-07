@@ -1,9 +1,12 @@
 import unittest
 import tempfile
 import os
-from gimmemotifs.maelstrom import run_maelstrom
-import pandas as pd
 from glob import glob
+
+import pandas as pd
+
+from gimmemotifs.maelstrom import run_maelstrom
+from gimmemotifs.genome_index import get_genome,check_genome
 
 class TestMoap(unittest.TestCase):
     """ A test class to test maelstrom"""
@@ -12,7 +15,12 @@ class TestMoap(unittest.TestCase):
         self.outdir = "test/data/maelstrom"
         self.clusters = "test/data/moap/clusters.txt"
         self.outfile = os.path.join(self.outdir, "final.out.csv")
-
+        
+        try:
+            check_genome("mm10")
+        except Exception:
+            get_genome("mm10")
+    
     def test1_maelstrom(self):
         """ Test Motif Activity by Ensemble Learning (maelstrom) """
         
