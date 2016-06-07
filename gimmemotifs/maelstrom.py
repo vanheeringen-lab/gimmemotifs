@@ -98,8 +98,8 @@ def run_maelstrom(infile, genome, outdir, cluster=True):
                             method, scoring)
         except Exception as e:
             sys.stderr.write(
-                    "Method {} with scoring {} failed, skipping\n".format(
-                        method, scoring)
+                    "Method {} with scoring {} failed\n{}\nSkipping\n".format(
+                        method, scoring, e)
                     )
     
     dfs = {}
