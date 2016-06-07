@@ -5,6 +5,7 @@
 # distribution.
 """ Module for motif activity prediction """
 
+import os
 import sys
 import argparse
 from functools import partial
@@ -21,10 +22,11 @@ from statsmodels.sandbox.stats.multicomp import multipletests
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.cross_validation import train_test_split
 from sklearn.grid_search import GridSearchCV
-from sklearn.ensemble import BaggingClassifier
+from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
 from sklearn.linear_model import Ridge,MultiTaskLasso
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.preprocessing import scale, LabelEncoder
+from sklearn.multiclass import OneVsRestClassifier
 
 from lightning.classification import CDClassifier
 
@@ -33,6 +35,10 @@ import pymc as pm
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.mara import make_model
+from gimmemotifs.config import MotifConfig
+
+CLUSTER_METHODS = ["classic", "ks", "lightning", "rf"]
+VALUE_METHODS = ["lasso", "mara"]
 
 class LightningMoap(object):
     def __init__(self, scale=True):
@@ -248,6 +254,41 @@ class ClassicMoap(object):
         # create output DataFrame
         self.act_ = pd.DataFrame(-np.log10(pvals.T), 
                 columns=clusters, index=df_X.columns)
+
+class RFMoap(object):
+    def __init__(self):
+        """Predict motif activities using a random forest classifier
+
+        Parameters
+        ----------
+       
+        Attributes
+        ----------
+        act_ : DataFrame, shape (n_motifs, n_clusters)
+            feature importances from the model
+        
+        """
+        self.act_ = None
+
+    def fit(self, df_X, df_y):
+        if not df_y.shape[0] == df_X.shape[0]:
+            raise ValueError("number of regions is not equal")
+        if df_y.shape[1] != 1:
+            raise ValueError("y needs to have 1 label column")
+
+        le = LabelEncoder()
+        y = le.fit_transform(df_y.iloc[:,0].values)
+
+        clf = RandomForestClassifier(n_estimators=100)
+        orc = OneVsRestClassifier(clf)
+        orc.fit(df_X.values, y)
+
+        test = np.array([c.feature_importances_ for c in orc.estimators_]).T
+
+        # create output DataFrame
+        self.act_ = pd.DataFrame(test,
+                columns=le.inverse_transform(range(len(le.classes_))),
+                index=df_X.columns)
 
 class MaraMoap(object):
     def __init__(self, iterations=10000):
@@ -654,3 +695,134 @@ class MoreMoap(object):
         print "Average accuracy", np.mean(acc)
         print "Average fraction", np.mean(fraction)
         return coef
+
+def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=None, pwmfile=None, genome=None, cutoff=0.95):
+    """ Run a single motif activity prediction algorithm.
+    
+    Parameters
+    ----------
+    
+    inputfile : str
+        File with regions (chr:start-end) in first column and either cluster 
+        name in second column or a table with values.
+    
+    method : str, optional
+        Motif activity method to use. Any of 'classic', 'ks', 'lasso', 
+        'lightning', 'mara', 'rf'. Default is 'classic'. 
+    
+    scoring:  str, optional
+        Either 'score' or 'count'
+    
+    outfile : str, optional
+        Name of outputfile to save the fitted activity values.
+    
+    motiffile : str, optional
+        Table with motif scan results. First column should be exactly the same
+        regions as in the inputfile.
+    
+    pwmfile : str, optional
+        File with motifs in pwm format. Required when motiffile is not 
+        supplied.
+    
+    genome : str, optional
+        Genome name, as indexed by gimme. Required when motiffile is not
+        supplied
+    
+    cutoff : float, optional
+        Cutoff for motif scanning
+    
+    Returns
+    -------
+    
+    pandas DataFrame with motif activity
+    """
+
+    if scoring not in ['score', 'count']:
+        raise ValueError("valid values are 'score' and 'count'")
+    
+    config = MotifConfig()
+
+    m2f = None
+    
+    # read data
+    df = pd.read_table(inputfile, index_col=0)
+
+    if method in CLUSTER_METHODS:
+        if df.shape[1] != 1:
+            raise ValueError("1 column expected for {}".format(method))
+    else:
+        if np.dtype('object') in set(df.dtypes):
+            raise ValueError(
+                    "columns should all be numeric for {}".format(method))
+        if method not in VALUE_METHODS:
+            raise ValueError("method {} not valid".format(method))
+
+    if motiffile is None:
+        if genome is None:
+            raise ValueError("need a genome")
+        # check pwmfile
+        if pwmfile is None:
+            pwmfile = config.get_default_params().get("motif_db", None)
+            if pwmfile is not None:
+                pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
+        
+        if pwmfile is None:
+            raise ValueError("no pwmfile given and no default database specified")
+
+        if not os.path.exists(pwmfile):
+            raise ValueError("{} does not exist".format(pwmfile))
+
+        try:
+            motifs = read_motifs(open(pwmfile))
+        except:
+            sys.stderr.write("can't read motifs from {}".format(pwmfile))
+            raise
+
+        base = os.path.splitext(pwmfile)[0]
+        map_file = base + ".motif2factors.txt"
+        if os.path.exists(map_file):
+            m2f = pd.read_table(map_file, index_col=0)
+
+        # initialize scanner
+        s = Scanner()
+        sys.stderr.write(pwmfile + "\n")
+        s.set_motifs(pwmfile)
+        s.set_genome(genome)
+
+        # scan for motifs
+        sys.stderr.write("scanning for motifs\n")
+        motif_names = [m.id for m in read_motifs(open(pwmfile))]
+        scores = []
+        if method == 'classic' or scoring == "count":
+            for row in s.count(list(df.index), cutoff=cutoff):
+                scores.append(row)
+        else:
+            for row in s.best_score(list(df.index)):
+                scores.append(row)
+
+        motifs = pd.DataFrame(scores, index=df.index, columns=motif_names)
+    else:
+        motifs = pd.read_table(motiffile, index_col=0)   
+
+    clf = None
+    if method == "ks":
+        clf = KSMoap()
+    if method == "rf":
+        clf = RFMoap()
+    if method == "lasso":
+        clf = LassoMoap()
+    if method == "lightning":
+        clf = LightningMoap()
+    if method == "mara":
+        clf = MaraMoap()
+    if method == "more":
+        clf = MoreMoap()
+    if method == "classic":
+        clf = ClassicMoap()
+
+    clf.fit(motifs, df)
+    
+    if outfile:
+        clf.act_.to_csv(outfile, sep="\t")
+
+    return clf.act_
