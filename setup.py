@@ -17,6 +17,7 @@ import os
 import sys
 import shutil
 from stat import ST_MODE
+import time
 import inspect
 
 CONFIG_NAME = "gimmemotifs.cfg" 
@@ -379,25 +380,17 @@ class install_config(Command):
         config_file = os.path.join(self.install_dir, "gimmemotifs/%s" % CONFIG_NAME)
         self.outfiles = [config_file] 
 
-
         if os.path.exists(config_file):
-            new_config = config_file + ".tmp"
-            dlog.info("INFO: Configfile %s already exists!" % config_file)
-            dlog.info("INFO: Will create %s, which contains the new config." % new_config)
-            dlog.info("INFO: If you want to use the newly generated config you can move %s to %s, otherwise you can delete %s.\n" % (new_config, config_file, new_config))
-
-            f =  open(new_config, "wb")
-            cfg.write(f)
-        else: 
-            dlog.info("writing configuration file %s" % config_file)
-            f =  open(config_file, "wb")
-            cfg.write(f)
+            timestr = time.strftime("%Y%m%d-%H%M%S")        
+            old_config = "{}.{}".format(config_file, timestr)
+            shutil.move(config_file, old_config)
+            dlog.info("INFO: Configfile %s already existed!", config_file)
+            dlog.info("INFO: This config has been saved as %s", old_config)
+         
+        dlog.info("writing configuration file %s" % config_file)
+        f =  open(config_file, "wb")
+        cfg.write(f)
         
-        if os.path.abspath(self.install_dir) != "/usr/share":
-            dlog.info("PLEASE NOTE: GimmeMotifs is installed in a non-standard location.")
-            dlog.info("PLEASE NOTE: This is fine, but then every user should have a file called ~/.gimmemotifs.cfg")
-            dlog.info("PLEASE NOTE: The file %s is fully configured during install and can be used for that purpose." % config_file)
-    
     def get_outputs(self):
         return self.outfiles or []
 
