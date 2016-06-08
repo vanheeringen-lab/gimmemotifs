@@ -15,23 +15,15 @@ class TestMoap(unittest.TestCase):
     def setUp(self):
         self.outdir = "test/data/maelstrom"
         self.clusters = "test/data/moap/clusters.txt"
+        self.score_table = "test/data/moap/motifs.score.txt"
+        self.count_table = "test/data/moap/motifs.count.txt"
         self.outfile = os.path.join(self.outdir, "final.out.csv")
-        self.fadir = "test/data/genomes"
-
-        try:
-            check_genome("mm10")
-        except Exception:
-            try:
-                g = GenomeIndex()
-                index_dir = MotifConfig().get_index_dir()
-                g = g.create_index(self.fadir, index_dir)
-            except:
-                get_genome("mm10", self.fadir)
     
     def test1_maelstrom(self):
         """ Test Motif Activity by Ensemble Learning (maelstrom) """
         
-        run_maelstrom(self.clusters, "mm10", self.outdir)
+        run_maelstrom(self.clusters, "mm10", self.outdir,
+                score_table=self.score_table, count_table=self.count_table)
         df = pd.read_table(self.outfile, index_col=0)
         self.assertEquals((623, 4), df.shape)
 

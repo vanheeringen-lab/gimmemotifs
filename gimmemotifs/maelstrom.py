@@ -55,7 +55,16 @@ def moap_with_bg(input_table, genome, data_dir, method, scoring):
     moap(input_table, outfile=outfile, genome=genome, method=method,
             scoring=scoring, cutoff=threshold_file)
 
-def run_maelstrom(infile, genome, outdir, cluster=True):
+def moap_with_table(input_table, motif_table, data_dir, method, scoring):
+    outfile = os.path.join(data_dir,"changed.{}.{}.out.txt".format(
+            method,
+            scoring))
+
+    moap(input_table, outfile=outfile, method=method, scoring=scoring, 
+            motiffile=motif_table)
+
+def run_maelstrom(infile, genome, outdir, cluster=True, 
+        score_table=None, count_table=None):
 
     if not os.path.exists(outdir):
         os.mkdir(outdir)
@@ -94,8 +103,14 @@ def run_maelstrom(infile, genome, outdir, cluster=True):
     for method, scoring, fname in exps:
         try:
             sys.stderr.write("Running {} with {}\n".format(method,scoring))
-            moap_with_bg(fname, genome, outdir,
-                            method, scoring)
+            if scoring == "count" and count_table:
+                moap_with_table(fname, count_table, outdir, method, scoring)
+            elif scoring == "score" and score_table:
+                moap_with_table(fname, score_table, outdir, method, scoring)
+            else:
+                moap_with_bg(fname, genome, outdir, method, scoring)
+        
+        
         except Exception as e:
             sys.stderr.write(
                     "Method {} with scoring {} failed\n{}\nSkipping\n".format(
@@ -105,7 +120,14 @@ def run_maelstrom(infile, genome, outdir, cluster=True):
     dfs = {}
     for method, scoring,fname  in exps:
         t = "{}.{}".format(method,scoring)
-        fname = os.path.join(outdir, "changed.{}.{}.{}.out.txt".format(
+        if scoring == "count" and count_table:
+            fname = os.path.join(outdir, "changed.{}.{}.out.txt".format(
+                           method, scoring))
+        elif scoring == "score" and score_table:
+            fname = os.path.join(outdir, "changed.{}.{}.out.txt".format(
+                           method, scoring))
+        else:
+            fname = os.path.join(outdir, "changed.{}.{}.out.txt".format(
                            genome, method, scoring))
         dfs[t] = pd.read_table(fname, index_col=0)
     
