@@ -1,6 +1,8 @@
 import unittest
 import tempfile
 import os
+import glob
+from shutil import rmtree
 from gimmemotifs.genome_index import *
 
 class TestGenomeIndex(unittest.TestCase):
@@ -94,6 +96,19 @@ class TestGenomeIndex(unittest.TestCase):
             name = gene.split(" ")[-1]
             self.assertEqual(len(test[gene]), len(target[name]))
             self.assertEqual(test[gene].upper(), target[name].upper())
+    
+    def test_get_genome(self):
+        """ test automatic install of genome """
+        # pretty small genome
+        genome = "sacCer3"
+        fadir = tempfile.mkdtemp(prefix="gimme.")
+        genome_dir = os.path.join(fadir, genome)
+        index_dir = tempfile.mkdtemp(prefix="gimme.")
+        get_genome(genome, fadir, index_dir)
+        self.assertEquals(17, len(glob(os.path.join(genome_dir, "*.fa*"))))
+        
+        for d in fadir, index_dir:
+            rmtree(d)
     
     def tearDown(self):
         for file in os.listdir(self.index_dir):
