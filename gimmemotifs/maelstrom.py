@@ -11,6 +11,7 @@ from tempfile import NamedTemporaryFile
 
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import scale
 
 from gimmemotifs.background import RandomGenomicFasta
 from gimmemotifs.config import MotifConfig
@@ -121,8 +122,10 @@ def run_maelstrom(infile, genome, outdir, cluster=True,
         t = "{}.{}".format(method,scoring)
         fname = os.path.join(outdir, "activity.{}.{}.out.txt".format(
                            method, scoring))
-        dfs[t] = pd.read_table(fname, index_col=0, comment="#")
-    
+        try:
+            dfs[t] = pd.read_table(fname, index_col=0, comment="#")
+        except:
+            sys.stderr.write("Activity file for {} not found!\n".format(t))
     
     df_p = pd.DataFrame(index=dfs.values()[0].index)
     names = dfs.values()[0].columns
