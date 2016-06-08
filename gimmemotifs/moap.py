@@ -22,7 +22,8 @@ from statsmodels.sandbox.stats.multicomp import multipletests
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.cross_validation import train_test_split
 from sklearn.grid_search import GridSearchCV
-from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
+from sklearn.ensemble import BaggingClassifier,RandomForestClassifier
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.linear_model import Ridge,MultiTaskLasso
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.preprocessing import scale, LabelEncoder
@@ -558,13 +559,12 @@ def eval_model(df, sets, motifs, alpha, nsample=1000, k=10, cutoff=0):
     #print alpha, accs, fractions
     return alpha, np.median(accs), np.median(fractions)
 
-def select_sets(df, sets, threshold=0.5):
-    abs_diff = 0.5 
+def select_sets(df, sets, threshold=1):
+    abs_diff = 1 
     ret = []
     for s in sets:
         other = [c for c in df.columns if not c in s]
-        print s, other
-        x = df[(df[s] >= threshold).any(1) & ((df[s].max(1) - df[other].max(1)) < abs_diff)].index
+        x = df[(df[s] >= threshold).any(1) & ((df[s].max(1) - df[other].max(1)) >= abs_diff)].index
         ret.append(x)
     return ret
 
@@ -576,10 +576,10 @@ class MoreMoap(object):
         self.scale = scale
 
     def fit(self, df_X, df_y):
-        dist = pairwise_distances(df_y.values.T)
-        L = linkage(dist, method="ward")
         
         y = df_y.apply(scale, 0)
+        dist = pairwise_distances(y.values.T)
+        L = linkage(dist, method="ward")
         
         self.dfs = dict(
                 [(exp, pd.DataFrame(index=df_X.columns)) for exp in df_y.columns])
@@ -594,7 +594,7 @@ class MoreMoap(object):
             for i in range(1, nclus + 1):
                 sets.append(list(df_y.columns[labels == i]))
             print sets
-            nbootstrap = 10
+            nbootstrap = 100
             result = self._run_bootstrap_model(
                         y, sets, df_X, nsample=1000, nbootstrap=nbootstrap
                         )
@@ -607,11 +607,20 @@ class MoreMoap(object):
                 break
             
             for i in range(nclus):
+                print '***'
+                print sets
+                print result.columns[:len(sets)]
+                print '***'
                 cols = result.columns[range(i,result.shape[1], nclus)]
+                print cols
                 act = result[cols].mean(1)
                 for col in df_y.columns[labels == i + 1]:
-                    self.dfs[col][str(i + 1)] = act.values
-        
+                    print col
+                    self.dfs[col][str(nclus)] = act.values
+
+            print self.dfs["NK"].shape
+            print self.dfs["NK"].columns 
+
         self.act_ = pd.DataFrame(index=df_X.columns)
         for col in self.dfs.keys():
             self.act_[col] = self.dfs[col].mean(1)
@@ -649,6 +658,8 @@ class MoreMoap(object):
         if nsample > (len(y) / 2):
             nsample = len(y) / 2
             sys.stderr.write("setting nsample to {}\n".format(nsample))
+        else:
+            sys.stderr.write("nsample = {}\n".format(nsample))
     
         coef = pd.DataFrame(index=motifs.columns)
     
@@ -697,7 +708,7 @@ class MoreMoap(object):
             c = clf.coef_
             names = ["_".join(s) for s in sets]
             d = dict(zip(names, c))
-            c = pd.DataFrame(d, index=motifs.columns).fillna(0)
+            c = pd.DataFrame(d, index=motifs.columns).fillna(0)[names]
             coef = coef.join(c, rsuffix=i, how="left")
             #c = c[(abs(c) > cutoff).any(1)]
             #c = c.join(m2f)
