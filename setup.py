@@ -41,15 +41,17 @@ DEFAULT_PARAMS = {
     "lwidth": 500,
     "pvalue": 0.001,
     "enrichment": 1.5,
-    "background": "genomic_matched,random",
+    "background": "gc,random",
     "genome": "hg19",
     "tools": "MDmodule,Weeder,MotifSampler",
-    "available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,MEMEW,trawler,Improbizer,BioProspector,AMD,ChIPMunk,Jaspar",
+    "available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,MEMEW,trawler,Improbizer,BioProspector,AMD,ChIPMunk,Jaspar,Homer",
     "cluster_threshold": "0.95",
     "use_strand": False,
     "markov_model": 1,
-    "motif_db": "vertebrate_motifs.pwm",
-    "scan_cutoff": 0.9,    
+    "motif_db": "gimme.vertebrate.v3.1.pwm",
+    "scan_cutoff": 0.9,
+    "ncpus": 2,
+    "use_cache": False,
 }
 
 MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer",  "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms", "Homer"]
