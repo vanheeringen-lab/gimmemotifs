@@ -79,6 +79,7 @@ data_files=[
                                     'motif_databases/vertebrate_clusters.pwm',
                                     'motif_databases/vertebrate_clusters.pwm',
                                     'motif_databases/gimme.invertebrate.v1.0.pwm',
+                                    'motif_databases/gimme.plant.v1.0.pwm',
                                     'motif_databases/gimme.vertebrate.v3.1.pwm',
                                     'motif_databases/gimme.vertebrate.v3.1.factor2motifs.txt',
                                     'motif_databases/gimme.vertebrate.v3.1.motif2factors.txt',
