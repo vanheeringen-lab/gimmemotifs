@@ -47,8 +47,7 @@ def moap_with_bg(input_table, genome, data_dir, method, scoring):
                     threshold_file)
             sp.call(cmd, shell=True)
     
-    outfile = os.path.join(data_dir,"changed.{}.{}.{}.out.txt".format(
-            genome,
+    outfile = os.path.join(data_dir,"activity.{}.{}.out.txt".format(
             method,
             scoring))
 
@@ -56,7 +55,7 @@ def moap_with_bg(input_table, genome, data_dir, method, scoring):
             scoring=scoring, cutoff=threshold_file)
 
 def moap_with_table(input_table, motif_table, data_dir, method, scoring):
-    outfile = os.path.join(data_dir,"changed.{}.{}.out.txt".format(
+    outfile = os.path.join(data_dir,"activity.{}.{}.out.txt".format(
             method,
             scoring))
 
@@ -120,16 +119,9 @@ def run_maelstrom(infile, genome, outdir, cluster=True,
     dfs = {}
     for method, scoring,fname  in exps:
         t = "{}.{}".format(method,scoring)
-        if scoring == "count" and count_table:
-            fname = os.path.join(outdir, "changed.{}.{}.out.txt".format(
+        fname = os.path.join(outdir, "activity.{}.{}.out.txt".format(
                            method, scoring))
-        elif scoring == "score" and score_table:
-            fname = os.path.join(outdir, "changed.{}.{}.out.txt".format(
-                           method, scoring))
-        else:
-            fname = os.path.join(outdir, "changed.{}.{}.out.txt".format(
-                           genome, method, scoring))
-        dfs[t] = pd.read_table(fname, index_col=0)
+        dfs[t] = pd.read_table(fname, index_col=0, comment="#")
     
     
     df_p = pd.DataFrame(index=dfs.values()[0].index)

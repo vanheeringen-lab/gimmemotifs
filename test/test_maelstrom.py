@@ -24,9 +24,9 @@ class TestMoap(unittest.TestCase):
         
         run_maelstrom(self.clusters, "mm10", self.outdir,
                 score_table=self.score_table, count_table=self.count_table)
-        df = pd.read_table(self.outfile, index_col=0)
+        df = pd.read_table(self.outfile, index_col=0, comment="#")
         self.assertEquals((623, 4), df.shape)
 
-        for fname in glob(os.path.join(self.outdir, "changed*")):
+        for fname in glob(os.path.join(self.outdir, "activity*")):
             os.unlink(fname)
         os.unlink(self.outfile)

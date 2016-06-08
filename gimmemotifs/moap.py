@@ -35,7 +35,7 @@ import pymc as pm
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.mara import make_model
-from gimmemotifs.config import MotifConfig
+from gimmemotifs.config import MotifConfig, GM_VERSION
 
 CLUSTER_METHODS = ["classic", "ks", "lightning", "rf"]
 VALUE_METHODS = ["lasso", "mara"]
@@ -59,6 +59,9 @@ class LightningMoap(object):
             boolean values, if coefficients are higher/lower than
             the 1%t from random permutation
         """
+        
+        self.act_description = ("activity values: coefficients from "
+                               "fitted model")
         
         #self.cdc = CDClassifier(random_state=args.seed)
         self.cdc = CDClassifier()
@@ -176,6 +179,8 @@ class KSMoap(object):
             testing using the Benjamini-Hochberg correction
         """
         self.act_ = None
+        self.act_description = ("activity values: BH-corrected "
+                               "-log10 KS p-value")
     
     def fit(self, df_X, df_y):
         if not df_y.shape[0] == df_X.shape[0]:
@@ -215,6 +220,8 @@ class ClassicMoap(object):
             testing using the Benjamini-Hochberg correction
         """
         self.act_ = None
+        self.act_description = ("activity values: BH-corrected "
+                               "hypergeometric p-values")
     
     def fit(self, df_X, df_y):
         if not df_y.shape[0] == df_X.shape[0]:
@@ -269,6 +276,8 @@ class RFMoap(object):
         
         """
         self.act_ = None
+        self.act_description = ("activity values: feature importances "
+                               "from fitted Random Forest model")
 
     def fit(self, df_X, df_y):
         if not df_y.shape[0] == df_X.shape[0]:
@@ -312,6 +321,8 @@ class MaraMoap(object):
         act_trace_std_ : DataFrame, shape (n_motifs, n_clusters)
             trace of the standard deviation of the activities from the MCMC
         """
+        self.act_description = ("activity values: mean coefficient from "
+                               "fitted model")
         
         self.iterations = iterations
 
@@ -410,6 +421,8 @@ class LassoMoap(object):
         """
         
         self.kfolds = kfolds
+        self.act_description = ("activity values: coefficients from "
+                               "fitted model")
 
         # initialize attributes
         self.act_ = None 
@@ -823,6 +836,16 @@ def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=N
     clf.fit(motifs, df)
     
     if outfile:
-        clf.act_.to_csv(outfile, sep="\t")
+        with open(outfile, "w") as f:
+            f.write("# maelstrom - GimmeMotifs version {}\n".format(GM_VERSION))
+            f.write("# method: {} with motif {}\n".format(method, scoring))
+            if genome:
+                f.write("# genome: {}\n".format(genome))
+            if motiffile:
+                f.write("# motif table: {}\n".format(motiffile))
+            f.write("# {}\n".format(clf.act_description))
+        
+        with open(outfile, "a") as f:
+            clf.act_.to_csv(f, sep="\t")
 
     return clf.act_

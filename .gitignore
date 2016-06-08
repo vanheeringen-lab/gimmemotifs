@@ -17,7 +17,7 @@ examples/*
 dist/*
 website/**/*
 
-test/data/maelstrom/changed*
+test/data/maelstrom/activity*
 test/data/maelstrom/final*
 
 tmp/*
