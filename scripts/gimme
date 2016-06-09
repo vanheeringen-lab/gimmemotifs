@@ -345,8 +345,13 @@ p.set_defaults(func=commands.location)
 NREPORT = 1
 p = subparsers.add_parser('scan')
 p.add_argument("inputfile",
-               help="FASTA-formatted inputfile", 
+               help="inputfile (FASTA, BED, regions)", 
                metavar="FAFILE")
+p.add_argument("-g", "--genome", 
+               dest="genome", 
+               help="genome version", 
+               metavar="GENOME", 
+                default=None)
 p.add_argument("-p", "--pwmfile",
                dest="pwmfile",
                help="PWM file with motifs "

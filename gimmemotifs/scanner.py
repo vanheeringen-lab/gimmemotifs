@@ -19,7 +19,7 @@ from gimmemotifs.fasta import Fasta
 from gimmemotifs.genome_index import GenomeIndex
 from gimmemotifs.c_metrics import pwmscan
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.utils import parse_cutoff
+from gimmemotifs.utils import parse_cutoff,get_seqs_type
 from gimmemotifs.genome_index import rc
 
 # only used when using cache, should not be a requirement
@@ -279,58 +279,14 @@ class Scanner(object):
                                     )[0] for m in matches]
             yield top
     
-    def _get_seqs_type(self, seqs):
-        """
-        automagically determine input type
-        the following types are detected:
-            - Fasta object
-            - FASTA file
-            - list of regions
-            - region file
-            - BED file
-        """
-        
-        region_p = re.compile(r'^(.+):(\d+)-(\d+)$')
-        if isinstance(seqs, Fasta):
-            return "fasta"
-        elif isinstance(seqs, list):
-            if len(seqs) == 0:
-                raise ValueError("empty list of sequences to scan")
-            else:
-                if region_p.search(seqs[0]):
-                    return "regions"
-                else:
-                    raise ValueError("unknown region type")
-        elif isinstance(seqs, str):
-            if os.path.isfile(seqs):
-                try:
-                    f = Fasta(seqs)
-                    return "fastafile"
-                except:
-                    pass
-                try:
-                    line = open(seqs).readline().strip()
-                    if region_p.search(line):
-                        return "regionfile"
-                    else:
-                        vals = line.split("\t")
-                        if len(vals) >= 3:
-                            int(vals[1]), int(vals[2])
-                            return "bedfile"
-                except:
-                    raise ValueError("unknown type for argument seqs")
-            else:
-                raise ValueError("no file found with name {}".format(seqs))
-        else:
-            raise ValueError("unknown type for argument seqs")
-    
+   
     def scan(self, seqs, nreport=100, scan_rc=True, cutoff=0.95):
         """
         scan a set of regions / sequences
         """
 
         # determine input type
-        seqs_type = self._get_seqs_type(seqs)
+        seqs_type = get_seqs_type(seqs)
         
         # Fasta object
         if seqs_type.startswith("fasta"):

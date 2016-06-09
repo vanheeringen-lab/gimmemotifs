@@ -15,6 +15,7 @@ import tempfile
 from math import log
 from string import strip
 from subprocess import Popen
+from tempfile import NamedTemporaryFile
 
 # External imports
 from scipy import special
@@ -27,6 +28,7 @@ import numpy as np
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.shutils import which
 from gimmemotifs.plot import plot_histogram
+from gimmemotifs.genome_index import track2fasta
 
 lgam = special.gammaln
 
@@ -528,3 +530,78 @@ def number_of_seqs_in_file(fname):
 
     sys.stderr.write("unknown filetype {}\n".format(fname))
     sys.exit(1)
+
+def get_seqs_type(seqs):
+    """
+    automagically determine input type
+    the following types are detected:
+        - Fasta object
+        - FASTA file
+        - list of regions
+        - region file
+        - BED file
+    """
+
+    region_p = re.compile(r'^(.+):(\d+)-(\d+)$')
+    if isinstance(seqs, Fasta):
+        return "fasta"
+    elif isinstance(seqs, list):
+        if len(seqs) == 0:
+            raise ValueError("empty list of sequences to scan")
+        else:
+            if region_p.search(seqs[0]):
+                return "regions"
+            else:
+                raise ValueError("unknown region type")
+    elif isinstance(seqs, str):
+        if os.path.isfile(seqs):
+            try:
+                f = Fasta(seqs)
+                return "fastafile"
+            except:
+                pass
+            try:
+                line = open(seqs).readline().strip()
+                if region_p.search(line):
+                    return "regionfile"
+                else:
+                    vals = line.split("\t")
+                    if len(vals) >= 3:
+                        int(vals[1]), int(vals[2])
+                        return "bedfile"
+                raise ValueError("unknown type")
+            except:
+                raise ValueError("unknown type")
+        else:
+            raise ValueError("no file found with name {}".format(seqs))
+    else:
+        raise ValueError("unknown type")
+
+def as_fasta(seqs, index_dir=None):
+    ftype = get_seqs_type(seqs)
+    if ftype == "fasta":
+        return seqs
+    elif ftype == "fastafile":
+        return Fasta(seqs)
+    else:
+        if index_dir is None:
+            raise ValueError("need index_dir / genome to convert to FASTA")
+
+        tmpfa = NamedTemporaryFile()
+        
+        if ftype == "bedfile":
+            track2fasta(index_dir, seqs, tmpfa.name) 
+        else:
+
+            if ftype == "regionfile":
+                seqs = [l.strip() for l in open(seqs).readlines()]
+            tmpbed = NamedTemporaryFile()
+            for seq in seqs:
+                vals = re.split(r'[:-]', seq)
+                print vals
+                tmpbed.write("{}\t{}\t{}\n".format(*vals))
+            tmpbed.flush()
+            track2fasta(index_dir, tmpbed.name, tmpfa.name) 
+        return Fasta(tmpfa.name)
+
+
