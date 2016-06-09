@@ -12,6 +12,8 @@ from  gimmemotifs import commands
 
 config = MotifConfig()
 params = config.get_default_params()
+default_pwm_file = os.path.join(config.get_motif_dir(), params["motif_db"])
+default_pwm = params["motif_db"]
 
 description = """
 GimmeMotifs v{0}
@@ -160,7 +162,6 @@ p.add_argument("-i",
 p.set_defaults(func=commands.maxenr)
 
 # closest_match.py
-default_db = os.path.join(config.get_motif_dir(), params["motif_db"])
 p = subparsers.add_parser('match')
 p.add_argument("pwmfile", 
                help="File with pwms", 
@@ -168,8 +169,8 @@ p.add_argument("pwmfile",
 p.add_argument("-d",
                dest="dbpwmfile",
                help="File with pwms to match against "
-               "(default: {0})".format(params["motif_db"]), 
-               default=default_db,
+               "(default: {0})".format(default_pwm), 
+               default=default_pwm_file,
                metavar="DBFILE")
 p.add_argument("-o", 
                dest="img", 
@@ -344,10 +345,18 @@ p.set_defaults(func=commands.location)
 NREPORT = 1
 p = subparsers.add_parser('scan')
 p.add_argument("inputfile",
-               help="FASTA-formatted inputfile", 
+               help="inputfile (FASTA, BED, regions)", 
                metavar="FAFILE")
-p.add_argument("pwmfile", 
-               help="PWM file with motifs", 
+p.add_argument("-g", "--genome", 
+               dest="genome", 
+               help="genome version", 
+               metavar="GENOME", 
+                default=None)
+p.add_argument("-p", "--pwmfile",
+               dest="pwmfile",
+               help="PWM file with motifs "
+               "(default: {0})".format(default_pwm), 
+               default=default_pwm_file,
                metavar="PWMFILE")
 p.add_argument("-c", "--cutoff", 
                dest="cutoff", 
@@ -386,7 +395,7 @@ p.add_argument("-M", "--do_MOODS",
                #help="experimental: use MOODS for scanning", 
                action="store_true",
                default=False)
-p.add_argument("-p", "--pvalue", 
+p.add_argument("-P", "--pvalue", 
                dest="pvalue", 
                help=argparse.SUPPRESS,
                #help="experimental: MOODS p-value cutoff", 

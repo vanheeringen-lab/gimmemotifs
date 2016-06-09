@@ -5,13 +5,14 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 
+import os
 import sys
 import re
 
-from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import pwmfile_to_motifs
-from gimmemotifs.utils import parse_cutoff 
+from gimmemotifs.utils import parse_cutoff, as_fasta 
 from gimmemotifs.scanner import Scanner,scan_it_moods
+from gimmemotifs.config import MotifConfig
 
 MAX_CPUS = 16
 
@@ -53,21 +54,27 @@ def format_line(fa, seq_id, motif, score, pos, strand, bed=False):
             fa[seq_id][pos: pos + len(motif)]
         )
 
-
-
-def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, scan_rc=True, table=False, score_table=False, moods=False, pvalue=None, bgfile=None):
+def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, 
+        scan_rc=True, table=False, score_table=False, moods=False, 
+        pvalue=None, bgfile=None, genome=None):
     motifs = pwmfile_to_motifs(pwmfile)
+    
+    index_dir = None
+    if genome is not None:
+        index_dir = os.path.join(MotifConfig().get_index_dir(), genome) 
     
     # initialize scanner
     s = Scanner()
     s.set_motifs(pwmfile)
     
+    fa = as_fasta(inputfile, index_dir)
+    
     if moods:
         result_it = scan_it_moods(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, table)
     else:
-        result_it = s.scan(inputfile, nreport, scan_rc, cutoff)
+        result_it = s.scan(fa, nreport, scan_rc, cutoff)
 
-    fa = Fasta(inputfile)
+    
     if table:
         # header
         yield "\t{}".format("\t".join([m.id for m in motifs]))
@@ -137,5 +144,6 @@ def pwmscan(args):
             moods,
             args.pvalue,
             bgfile,
+            genome=args.genome,
             ):
         print line
