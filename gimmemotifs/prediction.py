@@ -62,6 +62,15 @@ class PredictionResult:
 
     def add_motifs(self, args):
         # Callback function for motif programs
+        if args is None or len(args) != 2 or len(args[1]) != 3:
+            try:
+                job = args[0]
+                self.logger.warn("job {} failed".format(job)) 
+                self.finished.append(job)
+            except:
+                self.logger.warn("job failed") 
+            return
+        
         job, (motifs, stdout, stderr) = args
         
         if self.logger:
@@ -202,7 +211,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
     logger.info("waiting for motif statistics")
     n = 0
     last_len = 0 
-    while len(result.stats.keys()) < len(result.motifs):
+    while len(set(result.stats.keys())) < len(set([str(m) for m in result.motifs])):
         if n >= 30:
             logger.debug("waited long enough")
             logger.debug("motifs: %s, stats: %s", len(result.motifs), len(result.stats.keys()))
