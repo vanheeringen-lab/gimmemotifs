@@ -2614,10 +2614,8 @@ src/weblogo/img/prenyl.png
 src/weblogo/img/weblogo-fig1.png
 src/weblogo/img/weblogologo.png
 src/weblogo/release/.htaccess
-templates/cluster_template.kid
-templates/cluster_template_v2.kid
-templates/report_template.kid
-templates/report_template_v2.kid
+templates/cluster_template.jinja.html
+templates/report_template.jinja.html
 test/_test_trawler.py
 test/test_fasta.py
 test/test_genome_index.py

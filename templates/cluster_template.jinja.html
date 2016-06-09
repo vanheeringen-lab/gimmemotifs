@@ -1,10 +1,7 @@
-<?python
-title = "Gimme motifs cluster report"
-?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns:py="http://purl.org/kid/ns#">
+<html>
 <head>
-<title py:content="title"></title>	
+<title>Gimme Motifs cluster report</title>	
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <!--
 <link rel="stylesheet" type="text/css" href="style.css" media="screen" /> 
@@ -153,30 +150,34 @@ padding: 0px 0 5px 20px;
 <div id="page">
 
 <div id="header">
-<h1><a href="#">GimmeMotifs v${version}</a></h1>
-<h2>Cluster report: ${inputfile} (${date})</h2>
+	<h1><a href="#">GimmeMotifs v{{version}}</a></h1>
+	<h2>Cluster report: {{inputfile}} ({{date}})</h2>
 </div>
 
 <div id="wrapper">
 
 <div id="content">
 <table border="1">
-<tr py:for="motif in motifs">
-<td py:content="motif[0]"/>
+	{% for motif in motifs %}
+	<tr>
+		<td>{{motif[0]}}</td>
 <td>
-<img height="80" py:attrs="motif[1]"/>
+	<img height="80" src={{motif[1]['img']}}>
 </td>
 <td>
 <table>
-<tr py:for="m in motif[2]">
+	{% for m in motif[2] %}
+<tr>
 <td>
-<img height="40" py:attrs="m"/>
+	<img height="40" src={{m['img']}}/>
 </td>
-<td py:content='m["alt"]'/>
+<td>{{m["alt"]}}</td>
 </tr>
+{% endfor %}
 </table>
 </td>
 </tr>
+{% endfor %}
 </table>
 
 </div>
@@ -185,11 +186,11 @@ padding: 0px 0 5px 20px;
 
 <h2>Result Files</h2>
 <ul>
-<li><a href="${expname}_motif_report.html">Results</a></li> 
-<li><a href="${expname}_motif_report.tsv">Results (.tsv)</a></li> 
-<li><a href="${expname}_cluster_report.html">Cluster report</a></li> 
-<li><a href="${expname}_motifs.pwm">Weight matrices</a></li>
-<li><a href="${expname}_params.txt">Parameters</a></li>
+	<li><a href="{{expname}}_motif_report.html">Results</a></li> 
+	<li><a href="{{expname}}_motif_report.tsv">Results (.tsv)</a></li> 
+	<li><a href="{{expname}}_cluster_report.html">Cluster report</a></li> 
+	<li><a href="{{expname}}_motifs.pwm">Weight matrices</a></li>
+	<li><a href="{{expname}}_params.txt">Parameters</a></li>
 <li><a href="gimme_motifs.log">Log</a></li>
 </ul>
 

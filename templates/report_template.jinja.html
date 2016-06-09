@@ -1,15 +1,11 @@
-<?python
-title = "Gimme motifs report"
-?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns:py="http://purl.org/kid/ns#">
+<html>
 <head>
-<title py:content="title"></title>	
+<title>Gimme Motifs report</title>	
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <!--
 <link rel="stylesheet" type="text/css" href="style.css" media="screen" /> 
 -->
-
 <STYLE type="text/css">
 <!--
 
@@ -153,41 +149,44 @@ padding: 0px 0 5px 20px;
 <div id="page">
 
 <div id="header">
-<h1><a href="#">GimmeMotifs v${version}</a></h1>
-<h2>Result: ${inputfile} (${date})</h2>
+	<h1><a href="#">GimmeMotifs v{{version}}</a></h1>
+	<h2>Result: {{inputfile}} ({{date}})</h2>
 </div>
 
 <div id="wrapper">
 
 <div id="content">
-<p py:for="motif in motifs">
-<a py:attrs="motif.id_name"><h2 py:content="motif.id + ' (' + motif.best + ')'">Motif.5.2</h2></a>
-<h3>Motif and consensus</h3>
-<table>
+	{% for motif in motifs %}
+	
+	<a>
+					<h2>{{motif.id}} ({{motif.best}})</h2>
+	</a>
+
+	<h3>Motif and consensus</h3>
+	<table>
+  	<tr>
+		 	<td>
+							<img height="180" src="{{motif.img['src']}}"/>
+			</td>
+			<td>
+			  <table>
+					<tr>
+				    <td align="center">
+										<img height="60" src="{{motif.match_img['src']}}"/>
+						</td>
+					</tr>
+					<tr>
+									<td align="center">{{motif.match_id}}</td>
+					</tr>
+					<tr>
+									<td align="center">{{motif.match_pval}}</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
 
 <tr>
-<td>
-<img height="180" py:attrs="motif.img"/>
-</td>
-<td>
-<table>
-<tr>
-<td align="center">
-	<img height="60" py:attrs="motif.match_img"/>
-</td>
-</tr>
-<tr>
-<td align="center" py:content="motif.match_id"></td>
-</tr>
-<tr>
-<td align="center" py:content="motif.match_pval"></td>
-</tr>
-</table>
-</td>
-</tr>
-
-<tr>
-<th align="center" py:content="motif.consensus"></th>
+				<th align="center">{{motif.consensus}}</th>
 <th>
 Database match 
 </th>
@@ -198,61 +197,79 @@ Database match
 <br/>
 <h3>Significance and enrichment</h3>
 
-<?python
-	bg_types = motif.bg.keys()
-?>
 <table>
-	<tr py:for="i in range(0, len(bg_types), 2)">
+	{% for i in range(0, motif.bg.keys()|length, 2) %}
+	<tr>
 		<td>
 			<table>
 				<tr>
-					<td py:for="j in range(2)">
-						<a py:if="i + j &lt; len(bg_types)" py:attrs="motif.bg[bg_types[i + j]]['roc_img_link']"><img width="380" py:if="i + j &lt; len(bg_types)" py:attrs="motif.bg[bg_types[i+j]]['roc_img']"/></a>
-					</td>
-				</tr>
+								{% for j in range(2) %}
+								<td>
+											{% if i + j > motif.bg.keys()|length %}
+											<a href="{{motif.bg[bg_types[i + j]]['roc_img_link']}}">
+															
+															<img width="380" src="{{motif.bg[bg_types[i+j]]['roc_img']}}"/>
+											</a>
+											{% endif %}
+					
+		
+		</td>
+					{% endfor %}	
+			</tr>
 				<tr>
-					<td align="center" py:for="j in range(2)">
-						<table py:if="i + j &lt; len(bg_types)">
-							<tr><th colspan="2" align="left" py:content="bg_types[i + j]"></th></tr>
-							<tr><td>enrichment</td><td py:content="motif.bg[bg_types[i + j]]['e']"></td></tr>
-							<tr><td>p-value</td><td py:content="motif.bg[bg_types[i + j]]['p']"></td></tr>
-							<tr><td>ROC_AUC</td><td py:content="motif.bg[bg_types[i + j]]['auc']"></td></tr>
-							<tr><td>MNCP</td><td py:content="motif.bg[bg_types[i + j]]['mncp']"></td></tr>
+								{% for j in range(2) %}
+					<td align="center">
+									{% if i + j > motif.bg.keys()|length %}
+						<table>
+										<tr><th colspan="2" align="left">{{ bg_types[i + j] }}</th></tr>
+										<tr><td>enrichment</td><td>{{motif.bg[bg_types[i + j]]['e']}}</td></tr>
+										<tr><td>p-value</td><td>{{motif.bg[bg_types[i + j]]['p']}}</td></tr>
+										<tr><td>ROC_AUC</td><td>{{motif.bg[bg_types[i + j]]['auc']}}</td></tr>
+										<tr><td>MNCP</td><td>{{motif.bg[bg_types[i + j]]['mncp']}}</td></tr>
 						</table>
+						{% endif %}
 					</td>
+					{% endfor %}
 				</tr>
 			</table>
 		</td>
 	</tr>
+  {% endfor %}
 </table>
 
 <br/>
 
 <h3>Positional Preference Plot</h3>
-(<a py:attrs="motif.histogram_link">Fullscreen</a>)<br/>
+(<a href="{{motif.histogram_link['href']}}">Fullscreen</a>)<br/>
 
-<object py:attrs="motif.histogram_img" type="image/svg+xml" height="300">SVG image</object>
+<object src="{{motif.histogram_img['data']}}" type="image/svg+xml" height="300">SVG image</object>
 </p>
 
+{% endfor %}
 </div>
 
 <div id="sidebar"> 
 
 <h2>Result Files</h2>
 <ul>
-<li><a href="${expname}_motif_report.html">Results</a></li> 
-<li><a href="${expname}_motif_report.tsv">Results (.tsv)</a></li> 
-<li><a href="${expname}_cluster_report.html">Cluster report</a></li> 
-<li><a href="${expname}_motifs.pwm">Weight matrices</a></li>
-<li><a href="${expname}_params.txt">Parameters</a></li>
+				<li><a href="{{expname}}_motif_report.html">Results</a></li> 
+				<li><a href="{{expname}}_motif_report.tsv">Results (.tsv)</a></li> 
+				<li><a href="{{expname}}_cluster_report.html">Cluster report</a></li> 
+				<li><a href="{{expname}}_motifs.pwm">Weight matrices</a></li>
+				<li><a href="{{expname}}_params.txt">Parameters</a></li>
 <li><a href="gimme_motifs.log">Log</a></li>
 </ul>
 
 <h2>Identified Motifs</h2>
 <ul>
-<li py:for="motif in motifs"><a py:attrs="motif.id_href" py:content="motif.id">Motif.5.2</a>
-<img py:for="i in range(int(motif.stars))" src="images/star.png" width="15" height="15"></img>
+				{% for motif in motifs %}
+<li>
+<a href="{{motif.id_href}}">{{motif.id}}</a>
+{% for i in range(motif.stars|int) %}
+<img src="images/star.png" width="15" height="15"></img>
+{% endfor %}
 </li> 
+{% endfor %}
 </ul>
 
 <h2>Reference</h2>

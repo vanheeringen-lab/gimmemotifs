@@ -70,7 +70,12 @@ MOTIF_BINS = {
 }
 
 data_files=[
-    ('gimmemotifs/templates', ['templates/cluster_template.kid', 'templates/report_template.kid', 'templates/report_template_v2.kid', 'templates/cluster_template_v2.kid', 'templates/star.png']),
+    ('gimmemotifs/templates', 
+        [
+            'templates/star.png', 
+            'templates/report_template.jinja.html', 
+            'templates/cluster_template.jinja.html'
+            ]),
     ('gimmemotifs/score_dists', ['score_dists/total_wic_mean_score_dist.txt']),
     ('gimmemotifs/genes', ['genes/hg18.bed', 'genes/hg19.bed', 'genes/xenTro2.bed', 'genes/mm9.bed']),
     ('gimmemotifs/bg', ['bg/hg19.MotifSampler.bg', 'bg/hg18.MotifSampler.bg', 'bg/mm9.MotifSampler.bg', 'bg/xenTro2.MotifSampler.bg']),
@@ -464,7 +469,7 @@ setup (name = 'gimmemotifs',
             "numpy >= 1.6.0",
             "scipy >= 0.9.0",
             "matplotlib >= 1.1.1",
-            "kid >= 0.9.6",
+            "jinja2",
             "pyyaml >= 3.10",
             "pybedtools",
             "statsmodels",
