@@ -15,7 +15,7 @@ include motif_databases/*.pwm
 include motif_databases/*.txt
 include motif_databases/*.README
 include score_dists/*.txt
-include templates/*.kid
+include templates/*.html
 include templates/*.png
 recursive-include src *
 recursive-include test/data/ *

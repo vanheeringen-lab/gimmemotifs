@@ -15,11 +15,12 @@ from datetime import datetime
 from numpy import median
 from tempfile import NamedTemporaryFile
 from time import sleep
+import pickle
 
 # External imports
-import kid
 from scipy.stats.mstats import rankdata
 from numpy import mean
+import jinja2
 
 # GimmeMotifs imports
 from gimmemotifs.config import (MotifConfig, GM_VERSION, FA_VALID_BGS,
@@ -453,11 +454,13 @@ class GimmeMotifs(object):
                     motif.to_img(os.path.join(self.imgdir, "%s.png" % motif.id.replace(" ", "_")), format="PNG", add_left=add)
             ids[-1][2] = [dict([("src", "images/%s.png" % motif.id.replace(" ", "_")), ("alt", motif.id.replace(" ", "_"))]) for motif in members]
 
-        kid.enable_import()
-        template_file = os.path.join(self.config.get_template_dir(), "cluster_template_v2.kid")
-        template = kid.Template(file=template_file, expname=self.basename, motifs=ids, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
+        
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader([self.config.get_template_dir()]))
+        template = env.get_template("cluster_template.jinja.html")
+        result = template.render(expname=self.basename, motifs=ids, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
+        
         f = open(self.cluster_report, "w")
-        f.write(template.serialize())
+        f.write(result.encode('utf-8'))
         f.close()
 
         f = open(cluster_pwm, "w")
@@ -629,11 +632,13 @@ class GimmeMotifs(object):
             report_motifs.append(rm)
 
         total_report = self.motif_report
-        kid.enable_import()
-        template_file = os.path.join(self.config.get_template_dir(), "report_template_v2.kid")
-        template = kid.Template(file=template_file, expname=self.basename, motifs=report_motifs, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
+        
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader([self.config.get_template_dir()]))
+        template = env.get_template("report_template.jinja.html")
+        result = template.render(expname=self.basename, motifs=report_motifs, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
+        
         f = open(total_report, "w")
-        f.write(template.serialize())
+        f.write(result.encode('utf-8'))
         f.close()
 
     def determine_closest_match(self, motifs):
