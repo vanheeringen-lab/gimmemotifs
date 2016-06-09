@@ -205,7 +205,8 @@ Database match
 				<tr>
 								{% for j in range(2) %}
 								<td>
-											{% if i + j > motif.bg.keys()|length %}
+									{% if i + j < motif.bg.keys()|length %}
+
 											<a href="{{motif.bg[bg_types[i + j]]['roc_img_link']}}">
 															
 															<img width="380" src="{{motif.bg[bg_types[i+j]]['roc_img']}}"/>
@@ -219,7 +220,7 @@ Database match
 				<tr>
 								{% for j in range(2) %}
 					<td align="center">
-									{% if i + j > motif.bg.keys()|length %}
+									{% if i + j < motif.bg.keys()|length %}
 						<table>
 										<tr><th colspan="2" align="left">{{ bg_types[i + j] }}</th></tr>
 										<tr><td>enrichment</td><td>{{motif.bg[bg_types[i + j]]['e']}}</td></tr>
