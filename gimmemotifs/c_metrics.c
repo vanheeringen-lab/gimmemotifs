@@ -66,10 +66,19 @@ double wic(double col1[], double col2[]) {
 		double score_a = 0.0;
 		double score_b = 0.0;
 		double pseudo = 0.0000001;
+		double sum1 = 0;	
+		double sum2 = 0;	
+		
+		for (n = 0; n < 4; n++) {
+			sum1 += col1[n] + pseudo;
+			sum2 += col2[n] + pseudo;
+		}
 
 		for (n = 0; n < 4; n++) {
-			x = col1[n] * log((col1[n] + pseudo) / 0.25) / log2;
-			y = col2[n] * log((col2[n] + pseudo) / 0.25) / log2;
+			x = (col1[n] + pseudo) / sum1;
+			y = (col2[n] + pseudo) / sum2;
+			x = x * log(x / 0.25) / log2;
+			y = y * log(y / 0.25) / log2;
 			score += fabs(x - y);
 			score_a += x;
 			score_b += y;
