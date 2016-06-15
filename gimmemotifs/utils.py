@@ -598,7 +598,6 @@ def as_fasta(seqs, index_dir=None):
             tmpbed = NamedTemporaryFile()
             for seq in seqs:
                 vals = re.split(r'[:-]', seq)
-                print vals
                 tmpbed.write("{}\t{}\t{}\n".format(*vals))
             tmpbed.flush()
             track2fasta(index_dir, tmpbed.name, tmpfa.name) 
