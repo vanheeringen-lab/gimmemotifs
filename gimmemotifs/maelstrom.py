@@ -96,7 +96,7 @@ def run_maelstrom(infile, genome, outdir, cluster=True,
         exps += [
                 ("rf", "score", clusterfile),
                 ("classic", "count", clusterfile),
-                ("ks", "score", clusterfile),
+                ("mwu", "score", clusterfile),
                 ("lightning", "score", clusterfile),
                 ]
 
