@@ -17,23 +17,25 @@ from gimmemotifs.background import RandomGenomicFasta
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.moap import moap
 from gimmemotifs.rank import rankagg
+from gimmemotifs.motif import read_motifs
+from gimmemotifs.scanner import Scanner
 
 BG_LENGTH = 200
 BG_NUMBER = 10000
 FDR = 0.01
 
-def moap_with_bg(input_table, genome, data_dir, method, scoring):
+def check_threshold(outdir, genome, scoring="count"):
     # gimme_motifs config, to get defaults
     config = MotifConfig()
     
     threshold_file = None
     if scoring == "count":
         # Motif scanning threshold
-        threshold_file = os.path.join(data_dir, "threshold.{}.txt".format(genome))
+        threshold_file = os.path.join(outdir, "threshold.{}.txt".format(genome))
         if not os.path.exists(threshold_file):
         # Random sequences from genome
             index_dir = os.path.join(config.get_index_dir(), genome)
-            bg_file = os.path.join(data_dir, "background.{}.fa".format(genome))
+            bg_file = os.path.join(outdir, "background.{}.fa".format(genome))
             if not os.path.exists(bg_file):
                 m = RandomGenomicFasta(index_dir, BG_LENGTH, BG_NUMBER)
                 m.writefasta(bg_file)
@@ -47,6 +49,40 @@ def moap_with_bg(input_table, genome, data_dir, method, scoring):
                     FDR,
                     threshold_file)
             sp.call(cmd, shell=True)
+        return threshold_file
+
+def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
+    threshold = check_threshold(data_dir, genome, scoring)
+    
+    config = MotifConfig()
+    
+    if pwmfile is None:
+        pwmfile = config.get_default_params().get("motif_db", None)
+        if pwmfile is not None:
+            pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
+
+    if pwmfile is None:
+        raise ValueError("no pwmfile given and no default database specified")
+
+    df = pd.read_table(input_table, index_col=0)
+    regions = list(df.index)
+    s = Scanner()
+    s.set_motifs(pwmfile)
+    s.set_genome(genome)
+
+    scores = []
+    if scoring == "count":
+        for row in s.count(regions, cutoff=threshold):
+            scores.append(row)
+    else:
+        for row in s.best_score(regions):
+            scores.append(row)
+   
+    motif_names = [m.id for m in read_motifs(open(pwmfile))]
+    return pd.DataFrame(scores, index=df.index, columns=motif_names)
+
+def moap_with_bg(input_table, genome, data_dir, method, scoring):
+    check_threshold(data_dir, genome, scoring)
     
     outfile = os.path.join(data_dir,"activity.{}.{}.out.txt".format(
             method,
@@ -68,6 +104,8 @@ def run_maelstrom(infile, genome, outdir, cluster=True,
 
     if not os.path.exists(outdir):
         os.mkdir(outdir)
+
+    scan_to_table(infile, genome, outdir, "count")
 
     df = pd.read_table(infile, index_col=0)
 
@@ -96,7 +134,7 @@ def run_maelstrom(infile, genome, outdir, cluster=True,
         exps += [
                 ("rf", "score", clusterfile),
                 ("classic", "count", clusterfile),
-                ("ks", "score", clusterfile),
+                ("mwu", "score", clusterfile),
                 ("lightning", "score", clusterfile),
                 ]
 
