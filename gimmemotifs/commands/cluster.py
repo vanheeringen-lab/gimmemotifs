@@ -10,10 +10,11 @@ from distutils import sysconfig
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.cluster import cluster_motifs
+from gimmemotifs.config import MotifConfig
 import sys
 import os
 
-import kid
+import jinja2
 
 def cluster(args):
 
@@ -60,13 +61,13 @@ def cluster(args):
                 motif.to_img(os.path.join(outdir, "%s.png" % motif.id.replace(" ", "_")), format="PNG", add_left=add)
         ids[-1][2] = [dict([("src", "%s.png" % motif.id.replace(" ", "_")), ("alt", motif.id.replace(" ", "_"))]) for motif in members]
     
-    kid.enable_import()
-    prefix = sysconfig.get_config_var("prefix")
-    template_file = os.path.join(prefix, "share/gimmemotifs/templates/cluster_template.kid")
-    template = kid.Template(file=template_file, motifs=ids)
-    f = open(os.path.join(outdir, "cluster_report.html"), "w")
-    f.write(template.serialize())
-    f.close()
+    config = MotifConfig()
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader([config.get_template_dir()]))
+    template = env.get_template("cluster_template.jinja.html")
+    result = template.render(motifs=ids)
+
+    with open(os.path.join(outdir, "cluster_report.html"), "w") as f:
+        f.write(result.encode('utf-8'))
 
     f = open(os.path.join(outdir, "cluster_key.txt"), "w")
     for id in ids:

@@ -15,7 +15,7 @@ class TestMoap(unittest.TestCase):
     def test1_moap(self):
         """ Test motif activity prediction """
         
-        for method in ["rf", "ks", "lightning"]:
+        for method in ["mwu", "rf", "ks", "lightning"]:
             df = moap(self.clusters,
                     method=method,
                     scoring="score",

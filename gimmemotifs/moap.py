@@ -14,7 +14,7 @@ from multiprocessing import Pool
 
 import pandas as pd 
 import numpy as np
-from scipy.stats import scoreatpercentile, ks_2samp, hypergeom
+from scipy.stats import scoreatpercentile, ks_2samp, hypergeom,mannwhitneyu
 from scipy.cluster.hierarchy import linkage, fcluster
 from statsmodels.sandbox.stats.multicomp import multipletests
 
@@ -38,7 +38,7 @@ from gimmemotifs.scanner import Scanner
 from gimmemotifs.mara import make_model
 from gimmemotifs.config import MotifConfig, GM_VERSION
 
-CLUSTER_METHODS = ["classic", "ks", "lightning", "rf"]
+CLUSTER_METHODS = ["classic", "ks", "lightning", "rf", "mwu"]
 VALUE_METHODS = ["lasso", "mara"]
 
 class LightningMoap(object):
@@ -161,6 +161,51 @@ class LightningMoap(object):
                 self.act_.columns, high_cutoffs, low_cutoffs):
             self.sig_["sig"].loc[self.act_[col] >= c_high] = True
             self.sig_["sig"].loc[self.act_[col] <= c_low] = True
+
+class MWMoap(object):
+    def __init__(self):
+        """Predict motif activities using Mann-Whitney U p-value
+    
+        This method compares the motif score distribution of each 
+        cluster versus the motif score distribution of all other 
+        clusters.
+        
+        Parameters
+        ----------
+       
+        Attributes
+        ----------
+        act_ : DataFrame, shape (n_motifs, n_clusters)
+            -log10 of the Mann-Whitney U p-value, corrected for multiple
+            testing using the Benjamini-Hochberg correction
+        """
+        self.act_ = None
+        self.act_description = ("activity values: BH-corrected "
+                               "-log10 Mann-Whitney U p-value")
+    
+    def fit(self, df_X, df_y):
+        if not df_y.shape[0] == df_X.shape[0]:
+            raise ValueError("number of regions is not equal")
+        if df_y.shape[1] != 1:
+            raise ValueError("y needs to have 1 label column")
+        
+        # calculate Mann-Whitney U p-values
+        pvals = []
+        clusters  =  df_y[df_y.columns[0]].unique()
+        for cluster in clusters:
+            pos = df_X[df_y.iloc[:,0] == cluster]
+            neg = df_X[df_y.iloc[:,0] != cluster]
+            p = [mannwhitneyu(pos[m], neg[m], alternative="greater")[1] for m in pos.columns]
+            pvals.append(p)
+        
+        # correct for multipe testing
+        pvals = np.array(pvals)
+        fdr = multipletests(pvals.flatten(), 
+                method="fdr_bh")[1].reshape(pvals.shape)
+        
+        # create output DataFrame
+        self.act_ = pd.DataFrame(-np.log10(pvals.T), 
+                columns=clusters, index=df_X.columns)
 
 class KSMoap(object):
     def __init__(self):
@@ -831,6 +876,8 @@ def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=N
     clf = None
     if method == "ks":
         clf = KSMoap()
+    if method == "mwu":
+        clf = MWMoap()
     if method == "rf":
         clf = RFMoap()
     if method == "lasso":
