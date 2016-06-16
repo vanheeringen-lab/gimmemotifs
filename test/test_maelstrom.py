@@ -30,3 +30,13 @@ class TestMoap(unittest.TestCase):
         for fname in glob(os.path.join(self.outdir, "activity*")):
             os.unlink(fname)
         os.unlink(self.outfile)
+        
+        #run_maelstrom(self.clusters, "mm10", self.outdir)
+        #df = pd.read_table(self.outfile, index_col=0, comment="#")
+        #self.assertEquals((623, 4), df.shape)
+
+        #for fname in glob(os.path.join(self.outdir, "activity*")):
+        #    os.unlink(fname)
+        #for fname in glob(os.path.join(self.outdir, "motifs*")):
+        #    os.unlink(fname)
+        #os.unlink(self.outfile)

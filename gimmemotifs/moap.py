@@ -195,7 +195,14 @@ class MWMoap(object):
         for cluster in clusters:
             pos = df_X[df_y.iloc[:,0] == cluster]
             neg = df_X[df_y.iloc[:,0] != cluster]
-            p = [mannwhitneyu(pos[m], neg[m], alternative="greater")[1] for m in pos.columns]
+            p = []
+            for m in pos:
+                try:
+                    p.append(mannwhitneyu(pos[m], neg[m], alternative="greater")[1])
+                except Exception as e:
+                    sys.stderr.write(str(e) + "\n")
+                    sys.stderr.write("motif {} failed, setting to p = 1\n".format(m))
+                    p.append(1)
             pvals.append(p)
         
         # correct for multipe testing

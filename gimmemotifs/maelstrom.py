@@ -82,7 +82,7 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
     return pd.DataFrame(scores, index=df.index, columns=motif_names)
 
 def moap_with_bg(input_table, genome, data_dir, method, scoring):
-    check_threshold(data_dir, genome, scoring)
+    threshold_file = check_threshold(data_dir, genome, scoring)
     
     outfile = os.path.join(data_dir,"activity.{}.{}.out.txt".format(
             method,
@@ -105,8 +105,16 @@ def run_maelstrom(infile, genome, outdir, cluster=True,
     if not os.path.exists(outdir):
         os.mkdir(outdir)
 
-    scan_to_table(infile, genome, outdir, "count")
+    if not count_table:
+        counts = scan_to_table(infile, genome, outdir, "count")
+        count_table = os.path.join(outdir, "motif.count.txt")
+        counts.to_csv(count_table, sep="\t")
 
+    if not score_table:
+        scores = scan_to_table(infile, genome, outdir, "score")
+        score_table = os.path.join(outdir, "motif.score.txt")
+        scores.to_csv(score_table, sep="\t")
+    
     df = pd.read_table(infile, index_col=0)
 
     # Drop duplicate indices, doesn't work very well downstream
