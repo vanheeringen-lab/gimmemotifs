@@ -166,6 +166,7 @@ class MotifComparer:
             [1 - norm.cdf(score[0], m, s), score[1], score[2]]
         except:
             print "HOEI: {0}".format(score)
+            return 1
         return [1 - norm.cdf(score[0], m, s), score[1], score[2]]
 
     def fisim(self, m1, m2):
@@ -189,6 +190,7 @@ class MotifComparer:
                 s = self.fisim(matrix1, matrix2)[0]
             else:
                s = score(matrix1, matrix2, metric, combine)
+            
             if s != s:
                 return None
             else:
