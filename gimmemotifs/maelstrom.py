@@ -12,6 +12,12 @@ from tempfile import NamedTemporaryFile
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import scale
+from scipy.cluster import hierarchy
+from scipy.spatial import distance
+
+# Plotting
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 from gimmemotifs.background import RandomGenomicFasta
 from gimmemotifs.config import MotifConfig
@@ -99,7 +105,77 @@ def moap_with_table(input_table, motif_table, data_dir, method, scoring):
     moap(input_table, outfile=outfile, method=method, scoring=scoring, 
             motiffile=motif_table)
 
-def run_maelstrom(infile, genome, outdir, cluster=True, 
+def safe_join(df1, df2):     
+    df1["_safe_count"] = range(df1.shape[0])     
+    return df1.join(df2).sort_values("_safe_count").drop( "_safe_count", 1)
+
+def visualize_maelstrom(outdir, sig_cutoff=3):
+    
+    config = MotifConfig()
+    pwmfile = config.get_default_params().get("motif_db", None)
+    pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
+    mapfile = pwmfile.replace(".pwm", ".motif2factors.txt")
+    m2f = pd.read_csv(mapfile, sep="\t", names=["motif","factors"], index_col=0) 
+    m2f["factors"] = m2f["factors"].str[:50]
+
+    freq_fname = os.path.join(outdir, "motif.freq.txt")
+    sig_fname = os.path.join(outdir, "final.out.csv")
+    df_freq = pd.read_table(freq_fname, index_col=0) 
+    df_sig = pd.read_table(sig_fname, index_col=0)
+
+    df_freq = df_freq.T
+    f = np.any(df_sig >= sig_cutoff, 1)
+    vis = df_sig[f]
+
+    # size of figure
+    size = [2 + vis.shape[1] * 0.4, vis.shape[0] * 0.3]
+    
+    # cluster rows
+    row_linkage = hierarchy.linkage(
+        distance.pdist(vis, metric="euclidean"), 
+        method='complete')
+    idx = hierarchy.leaves_list(row_linkage)
+    
+    vis_freq = df_freq.loc[vis.iloc[idx].index]
+    vis_freq = safe_join(vis_freq, m2f).set_index("factors")
+    plt.figure(figsize=size)
+    
+    vis = safe_join(vis, m2f).set_index("factors")
+    cg = sns.heatmap(vis.iloc[idx], cmap="viridis", 
+                        yticklabels=True, 
+                       cbar_kws={"orientation":"horizontal"})
+    _ = plt.setp(cg.yaxis.get_majorticklabels(), rotation=0)
+    plt.title("Motif Relevance")
+    plt.tight_layout()
+    plt.savefig(os.path.join(outdir, "motif.relevance.png"), dpi=300) 
+    
+    
+    plt.figure(figsize=size)
+    cg = sns.heatmap(vis_freq, cmap="viridis", 
+                     yticklabels=True, vmin=0, vmax=0.2,
+                       cbar_kws={"orientation":"horizontal"})
+    #idx = cg.dendrogram_row.reordered_ind
+    _ = plt.setp(cg.yaxis.get_majorticklabels(), rotation=0)
+    plt.title("Motif Frequency")
+    plt.tight_layout()
+    plt.savefig(os.path.join(outdir, "motif.frequency.png"), dpi=300) 
+    
+    plt.figure(figsize=size)
+    
+    bla = vis_freq.min(1)
+    bla[bla < 0.01] = 0.01
+    
+    cg = sns.heatmap(np.log2(vis_freq.apply(lambda x: x / bla, 0)), 
+                     yticklabels=True, vmin=-5, vmax=5,
+                    cbar_kws={"orientation":"horizontal"})
+    #idx = cg.dendrogram_row.reordered_ind
+    _ = plt.setp(cg.yaxis.get_majorticklabels(), rotation=0)
+    plt.title("Motif Enrichment")
+    plt.tight_layout()
+    plt.savefig(os.path.join(outdir, "motif.enrichment.png"), dpi=300) 
+
+
+def run_maelstrom(infile, genome, outdir, plot=True, cluster=True, 
         score_table=None, count_table=None):
 
     if not os.path.exists(outdir):
@@ -113,7 +189,7 @@ def run_maelstrom(infile, genome, outdir, cluster=True,
     if not score_table:
         scores = scan_to_table(infile, genome, outdir, "score")
         score_table = os.path.join(outdir, "motif.score.txt")
-        scores.to_csv(score_table, sep="\t")
+        scores.to_csv(score_table, sep="\t", float_format="%.3f")
     
     df = pd.read_table(infile, index_col=0)
 
@@ -186,3 +262,14 @@ def run_maelstrom(infile, genome, outdir, cluster=True,
     df_p[names] = -np.log10(df_p[names])
     df_p.to_csv(os.path.join(outdir, "final.out.csv"), sep="\t")
     #df_p = df_p.join(m2f)
+
+    # Write motif frequency table
+    mcount = df.join(pd.read_table(count_table, index_col=0))
+    
+    m_group = mcount.groupby("cluster")
+    freq = (m_group.sum() / m_group.count())
+    freq.to_csv(os.path.join(outdir, "motif.freq.txt"), sep="\t")
+
+    if plot:
+        visualize_maelstrom(outdir)
+
