@@ -21,7 +21,7 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy matplotlib statsmodels pymc scikit-learn
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy matplotlib statsmodels pymc scikit-learn seaborn
   - conda install --yes -c bioconda python=$TRAVIS_PYTHON_VERSION bedtools pysam pybedtools ucsc-genepredtobed lightning
   - conda install --yes -c r r 
   - wget https://cran.r-project.org/src/contrib/RobustRankAggreg_1.1.tar.gz
