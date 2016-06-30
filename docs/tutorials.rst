@@ -1,6 +1,11 @@
 Tutorials
 =========
 
+Find de novo motifs
+-------------------
+
+gimme motifs
+
 Scan for known motifs
 ---------------------
 
@@ -38,3 +43,27 @@ gimme motifs
 combine: gimme cluster
 
 scan
+
+
+Custom genome
+-------------
+
+gimme genome 
+
+gimme index
+
+Create sequence logos
+---------------------
+
+gimme logo
+
+Motif enrichment statistics
+---------------------------
+
+gimme roc
+
+
+
+
+
+
