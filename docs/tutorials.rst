@@ -45,12 +45,39 @@ combine: gimme cluster
 scan
 
 
-Custom genome
--------------
+Installing genomes
+------------------
 
-gimme genome 
+To use most of the functionality of GimmeMotifs you will need to install a genome. 
+Is your genome of interest on UCSC? Then you're in luck. If not, don't despair. 
+It's still pretty easy, just a few more steps.
 
-gimme index
+Installing from UCSC: ::
+
+    $ gimme genome /data/genomes/ hg38 
+    
+This will do several things. First, the `FASTADIR` argument, `/data/genomes` in the example above,
+determines where the genome FASTA files will be stored. Be aware that this is the genome `root`
+directory. A subdirectory with the genome name will be created here.
+The second argument specifies the UCSC genome build. 
+In this case, `hg38` is the latest version of the human genome on UCSC.
+All the genomes that the UCSC Genome Browser supports sohuld be installable in this way. 
+Just a few more examples:
+
+Install the Drosophila genome, in a subdir of my home directory: ::
+
+    $ gimme genome ~/genomes sacCer3
+    
+Install the zebrafish genome, in the current directory: ::
+
+    $ gimme genome . danRer7
+    
+
+Installing a non-UCSC genome: 
+
+* Download the FASTA file
+* Create a directory with one sequence per file
+* gimme index
 
 Create sequence logos
 ---------------------
