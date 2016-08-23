@@ -32,7 +32,11 @@ install:
 #  - pip install coveralls
 # # command to run tests, e.g. python setup.py test
 script:  
+  - python test/test_cluster.py
+  - $HOME/miniconda/bin/python test/test_cluster.py
   - python run_tests.py
+  - $HOME/miniconda/bin/python test/test_cluster.py
+
  
 #after_sucess:
 #  coveralls
