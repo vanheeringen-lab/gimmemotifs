@@ -777,6 +777,8 @@ def _read_motifs_pwm(handle):
     motifs = []
     pfm = []
     motif_id = ""
+    seen_id = {}
+    
     for n,line in enumerate(handle.readlines()):
         if line.startswith("#") or line.strip() == "":
             continue
@@ -786,6 +788,12 @@ def _read_motifs_pwm(handle):
                 motifs[-1].id = motif_id
                 pfm = []
             motif_id = line.strip()[1:]
+            seen_id[motif_id] = seen_id.get(motif_id, 0) + 1
+            if seen_id.get(motif_id, 0) > 1:
+                msg = "WARNING: multiple motifs with same id: {}\n".format(motif_id)
+                sys.stderr.write(msg)
+                motif_id += "_{}".format(seen_id[motif_id] - 1)
+        
         else:
             m = p.search(line)
             if m:
