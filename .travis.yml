@@ -27,7 +27,7 @@ install:
   - wget https://cran.r-project.org/src/contrib/RobustRankAggreg_1.1.tar.gz
   - R CMD INSTALL RobustRankAggreg_1.1.tar.gz
   - python setup.py develop
-  - pip install .
+  - pip install --upgrade .
 #  - pip install nose coverage
 #  - pip install coveralls
 # # command to run tests, e.g. python setup.py test

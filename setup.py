@@ -360,7 +360,7 @@ class install_config(Command):
         cfg = MotifConfig(use_config=self.build_cfg)
 
         data_dir = self.remove_nonsense(os.path.abspath(self.install_dir))
-        
+        dlog.info("data_dir: {}".format(data_dir))
         cfg.set_template_dir(os.path.join(data_dir, 'gimmemotifs/templates'))
         cfg.set_gene_dir(os.path.join(data_dir, 'gimmemotifs/genes'))
         cfg.set_score_dir(os.path.join(data_dir, 'gimmemotifs/score_dists'))
@@ -476,6 +476,8 @@ setup (name = 'gimmemotifs',
             "pymc",
             "scikit-learn",
             "sklearn-contrib-lightning",
+            "seaborn",
+            "pysam"
         ],
         dependency_links = [
             "https://github.com/scikit-learn-contrib/lightning/archive/master.zip"]
