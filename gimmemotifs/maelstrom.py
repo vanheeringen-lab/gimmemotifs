@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # Copyright (c) 2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
@@ -18,6 +17,7 @@ from scipy.spatial import distance
 # Plotting
 import matplotlib.pyplot as plt
 import seaborn as sns
+sns.set_style('white')
 
 from gimmemotifs.background import RandomGenomicFasta
 from gimmemotifs.config import MotifConfig
