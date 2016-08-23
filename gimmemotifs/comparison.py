@@ -43,6 +43,7 @@ def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
             scores[m1.id] = {}
             for m2 in dbmotifs:
                 scores[m1.id][m2.id] = mc.compare_motifs(m1, m2, match, metric, combine, pval=pval)    
+        return scores
     except Exception:
         logging.exception("f(%r) failed" % (args,))
 
@@ -361,7 +362,7 @@ class MotifComparer:
             # Divide the job into big chunks, to keep parallel overhead to minimum
             # Number of chunks = number of processors available
             n_cpus = int(MotifConfig().get_default_params()["ncpus"])
-            
+
             batch_len = len(dbmotifs) / n_cpus
             if batch_len <= 0:
                 batch_len = 1
