@@ -102,7 +102,7 @@ class MotifConfig:
         self.config.set("main", "score_dir", path)
 
     def get_score_dir(self):
-        return self.config.get("main", "score_dir")
+        return os.path.join(self.prefix, self.config.get("main", "score_dir"))
 
     def set_seqlogo(self, bin):
         if not self.config.has_section("main"):
