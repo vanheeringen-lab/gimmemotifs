@@ -45,7 +45,7 @@ def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
                 scores[m1.id][m2.id] = mc.compare_motifs(m1, m2, match, metric, combine, pval=pval)    
         return scores
     except Exception:
-        logging.exception("f(%r) failed" % (args,))
+        logging.exception("_get_all_scores failed")
 
 
 def akl(x,y):
