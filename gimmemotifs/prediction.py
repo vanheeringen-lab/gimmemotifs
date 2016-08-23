@@ -44,7 +44,7 @@ def _run_tool(job_name, t, fastafile, params):
     return job_name, result
 
 class PredictionResult:
-    def __init__(self, outfile, logger=None, fg_file=None, bg_file=None, job_server=None):
+    def __init__(self, outfile, logger=None, fg_file=None, bg_file=None, job_server=None, do_counter=True):
         self.lock = thread.allocate_lock()
         self.motifs = []
         self.finished = []
@@ -52,6 +52,8 @@ class PredictionResult:
         self.stats = {}
         self.outfile = outfile
         self.job_server = job_server
+        self.counter = 0
+        self.do_counter = do_counter
 
         if fg_file and bg_file:
             self.fg_fa = Fasta(fg_file)
@@ -78,6 +80,9 @@ class PredictionResult:
         
         for motif in motifs:
             self.lock.acquire()
+            if self.do_counter:
+                self.counter += 1    
+                motif.id = "gimme_{}_".format(self.counter) + motif.id
             f = open(self.outfile, "a")
             f.write("%s\n" % motif.to_pfm())
             f.close()
