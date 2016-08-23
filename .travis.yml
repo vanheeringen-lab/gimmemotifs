@@ -3,10 +3,10 @@ language: python
 python:
   - "2.7"
 
-#cache:
-#  apt: true
-#  directories:
-#    - $HOME/miniconda
+cache:
+  apt: true
+  directories:
+    - $HOME/miniconda
 
 before_install:
   # install miniconda for Python dependencies
@@ -27,16 +27,12 @@ install:
   - wget https://cran.r-project.org/src/contrib/RobustRankAggreg_1.1.tar.gz
   - R CMD INSTALL RobustRankAggreg_1.1.tar.gz
   - python setup.py develop
-#  - pip install --upgrade .
   - python setup.py build
 #  - pip install nose coverage
 #  - pip install coveralls
 # # command to run tests, e.g. python setup.py test
 script:  
-  - python test/test_cluster.py
-  - $HOME/miniconda/bin/python test/test_cluster.py
   - python run_tests.py
-  - $HOME/miniconda/bin/python test/test_cluster.py
 
  
 #after_sucess:

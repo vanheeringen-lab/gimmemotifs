@@ -105,7 +105,6 @@ class MotifComparer:
                 for combine in ["mean"]:
                     self.scoredist[metric]["%s_%s" % (match, combine)] = {}
                     score_file = os.path.join(self.config.get_score_dir(), "%s_%s_%s_score_dist.txt" % (match, metric, combine))
-                    logging.warn(score_file)
                     if os.path.exists(score_file):
                         for line in open(score_file):
                             l1, l2, m, sd = line.strip().split("\t")[:4]
