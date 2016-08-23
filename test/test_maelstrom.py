@@ -23,7 +23,8 @@ class TestMoap(unittest.TestCase):
         """ Test Motif Activity by Ensemble Learning (maelstrom) """
         
         run_maelstrom(self.clusters, "mm10", self.outdir,
-                score_table=self.score_table, count_table=self.count_table)
+                score_table=self.score_table, count_table=self.count_table,
+                plot=False)
         df = pd.read_table(self.outfile, index_col=0, comment="#")
         self.assertEquals((623, 4), df.shape)
 
