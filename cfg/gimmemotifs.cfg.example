@@ -1,12 +1,12 @@
 [main]
-index_dir = /usr/share/gimmemotifs/genome_index
-bg = /usr/share/gimmemotifs/bg
-template_dir = /usr/share/gimmemotifs/templates
-score_dir = /usr/share/gimmemotifs/score_dists
-gene_dir = /usr/share/gimmemotifs/genes
-motif_databases = /usr/share/gimmemotifs/motif_databases
-seqlogo = /usr/share/gimmemotifs/tools/seqlogo
-tools = /usr/share/gimmemotifs/tools
+index_dir = genome_index
+bg = bg
+template_dir = templates
+score_dir = score_dists
+gene_dir = genes
+motif_databases = motif_databases
+seqlogo = tools/seqlogo
+tools = tools
 
 [params]
 fraction = 0.2
@@ -30,16 +30,16 @@ scan_cutoff = 0.9
 use_cache = False
 
 [AMD]
-bin = /usr/share/gimmemotifs/tools/AMD.bin
-dir = /usr/share/gimmemotifs/tools/
+bin = tools/AMD.bin
+dir = tools/
 
 [MEME]
-bin = /usr/share/gimmemotifs/tools/meme.bin
-dir = /usr/share/gimmemotifs/tools/
+bin = tools/meme.bin
+dir = tools/
 
 [MDmodule]
-bin = /usr/share/gimmemotifs/tools/MDmodule
-dir = /usr/share/gimmemotifs/tools/
+bin = tools/MDmodule
+dir = tools/
 
 [Improbizer]
 bin = /usr/local/bin/ameme
@@ -50,25 +50,25 @@ bin = /usr/local/bin/MotifSampler
 dir = /usr/local/bin/
 
 [GADEM]
-bin = /usr/share/gimmemotifs/tools/gadem
-dir = /usr/share/gimmemotifs/tools/
+bin = tools/gadem
+dir = tools/
 
 [trawler]
-bin = /usr/share/gimmemotifs/tools/trawler/bin/trawler.pl
-dir = /usr/share/gimmemotifs/tools/trawler/
+bin = tools/trawler/bin/trawler.pl
+dir = tools/trawler/
 
 [Weeder]
 bin = /usr/share/Weeder/weederTFBS.out
 dir = /usr/share/Weeder/
 
 [BioProspector]
-bin = /usr/share/gimmemotifs/tools/BioProspector
-dir = /usr/share/gimmemotifs/tools/
+bin = tools/BioProspector
+dir = tools/
 
 [ChIPMunk]
-bin = /usr/share/gimmemotifs/tools/ChIPMunk/ChIPMunk.sh
-dir = /usr/share/gimmemotifs/tools/ChIPMunk/
+bin = tools/ChIPMunk/ChIPMunk.sh
+dir = tools/ChIPMunk/
 
 [Homer]
-bin = /usr/share/gimmemotifs/tools/homer2
-dir = /usr/share/gimmemotifs/tools/
+bin = tools/homer2
+dir = tools/

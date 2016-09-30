@@ -6,11 +6,11 @@
 
 """ Configuration for GimmeMotifs """
 import ConfigParser
-import distutils.sysconfig
+import sysconfig
 import os
 
 ### CONSTANTS ###
-GM_VERSION = "0.10.0-beta"
+GM_VERSION = "0.10.0b2"
 BG_TYPES = ["random", "genomic", "gc", "promoter"]
 FA_VALID_BGS = ["random", "promoter", "gc", "user", "genomic"]
 BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "user"]
@@ -20,7 +20,7 @@ FASTA_EXT = [".fasta", ".fa", ".fsa"]
 
 class MotifConfig:
     __shared_state = {}
-    prefix = distutils.sysconfig.get_config_var("prefix")
+    prefix = sysconfig.get_config_var("prefix")
     config_dir = "share/gimmemotifs/gimmemotifs.cfg"
     configs = [
         'cfg/gimmemotifs.cfg.example', 

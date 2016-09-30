@@ -13,6 +13,7 @@ import sys
 import os
 from time import sleep
 import random
+import logging
 
 # External imports
 from scipy.stats import norm,entropy,chi2_contingency
@@ -36,12 +37,15 @@ except ImportError:
 
 # Function that can be parallelized
 def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
-    scores = {}
-    for m1 in motifs:
-        scores[m1.id] = {}
-        for m2 in dbmotifs:
-            scores[m1.id][m2.id] = mc.compare_motifs(m1, m2, match, metric, combine, pval=pval)    
-    return scores
+    try:
+        scores = {}
+        for m1 in motifs:
+            scores[m1.id] = {}
+            for m2 in dbmotifs:
+                scores[m1.id][m2.id] = mc.compare_motifs(m1, m2, match, metric, combine, pval=pval)    
+        return scores
+    except Exception:
+        logging.exception("_get_all_scores failed")
 
 
 def akl(x,y):
@@ -358,7 +362,7 @@ class MotifComparer:
             # Divide the job into big chunks, to keep parallel overhead to minimum
             # Number of chunks = number of processors available
             n_cpus = int(MotifConfig().get_default_params()["ncpus"])
-            
+
             batch_len = len(dbmotifs) / n_cpus
             if batch_len <= 0:
                 batch_len = 1

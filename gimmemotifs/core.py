@@ -454,7 +454,6 @@ class GimmeMotifs(object):
                     motif.to_img(os.path.join(self.imgdir, "%s.png" % motif.id.replace(" ", "_")), format="PNG", add_left=add)
             ids[-1][2] = [dict([("src", "images/%s.png" % motif.id.replace(" ", "_")), ("alt", motif.id.replace(" ", "_"))]) for motif in members]
 
-        
         env = jinja2.Environment(loader=jinja2.FileSystemLoader([self.config.get_template_dir()]))
         template = env.get_template("cluster_template.jinja.html")
         result = template.render(expname=self.basename, motifs=ids, inputfile=self.inputfile, date=datetime.today().strftime("%d/%m/%Y"), version=GM_VERSION)
@@ -666,20 +665,25 @@ class GimmeMotifs(object):
         best_id = {}
         out = open(pwm, "w")
         for i, (clus, singles) in enumerate(clusters):
-            motifs = [clus] + singles
-            tmp = NamedTemporaryFile(dir=mytmpdir())
-            tmp2 = NamedTemporaryFile(dir=mytmpdir())
-            for m in motifs:
-                tmp.write("%s\n" % m.to_pwm())
-            tmp.flush()
-            auc,mncp = self._roc_metrics(tmp.name, sample_fa, bg_fa, tmp2.name)
-            bla = sorted(motifs, cmp=lambda x,y: cmp(mncp[x.id], mncp[y.id]))
-            for m in bla:
-                self.logger.debug("sorted: %s %s %s", 
+            best_motif = clus
+            if len(singles) > 1:
+                motifs = [clus] + singles
+                tmp = NamedTemporaryFile(dir=mytmpdir())
+                tmp2 = NamedTemporaryFile(dir=mytmpdir())
+                for m in motifs:
+                    tmp.write("%s\n" % m.to_pwm())
+                tmp.flush()
+                auc,mncp = self._roc_metrics(tmp.name, sample_fa, bg_fa, tmp2.name)
+                bla = sorted(motifs, cmp=lambda x,y: cmp(mncp[x.id], mncp[y.id]))
+                for m in bla:
+                    self.logger.debug("sorted: %s %s %s", 
                         str(m), mncp[m.id], auc[m.id])
 
-            self.logger.debug("end list")
-            best_motif = sorted(motifs, cmp=lambda x,y: cmp(mncp[x.id], mncp[y.id]))[-1]
+                self.logger.debug("end list")
+            
+                best_motif = sorted(motifs, cmp=lambda x,y: cmp(mncp[x.id], mncp[y.id]))[-1]
+                tmp.close()
+                tmp2.close()
             old_id = best_motif.id
             best_motif.id = "GimmeMotifs_%d" % (i + 1)
             best_id[best_motif.id] = old_id.split("_")[0]
@@ -687,8 +691,6 @@ class GimmeMotifs(object):
             if imgdir:
                 best_motif.to_img(os.path.join(imgdir, best_motif.id), format="PNG")
             out.write("%s\n" % best_motif.to_pwm())
-            tmp.close()
-            tmp2.close()
         out.close()
         return num_cluster, best_id
 
@@ -846,11 +848,11 @@ class GimmeMotifs(object):
         self.logger.debug(result.stats)
         
         for motif in motifs:
-            stats = result.stats["%s_%s" % (motif.id, motif.to_consensus())]
+            stats = result.stats.get("%s_%s" % (motif.id, motif.to_consensus()), None)
             if stats:
                 f.write("%s\t%s\n" % (motif.id, "\t".join([str(stats[k]) for k in stat_keys])))
             else:
-                self.logger.error("No stats for motif {0}, skipping this motif!".format(motif.id))
+                self.logger.warn("No stats for motif {0}, skipping this motif!".format(motif.id))
                 motifs.remove(motif)
         f.close()
 
@@ -905,9 +907,9 @@ class GimmeMotifs(object):
         clusters = self._cluster_motifs(self.significant_pfm, self.cluster_pwm, self.outdir, params["cluster_threshold"])
 
         # Determine best motif in cluster
+        
         num_cluster, best_id = self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, bg_file, self.imgdir)
         
-
         ### Enable parallel and modular evaluation of results
         # Scan (multiple) files with motifs
         # Define callback functions once scanning is finished:
@@ -918,11 +920,15 @@ class GimmeMotifs(object):
 
         # Stars
         tmp = NamedTemporaryFile(dir=mytmpdir()).name
-        p = PredictionResult(tmp, logger=self.logger, job_server=self.server, fg_file = self.validation_fa, bg_file = bg_file)
-        p.add_motifs(("clustering",  (read_motifs(open(self.final_pwm), fmt="pwm"), "","")))
+        p = PredictionResult(tmp, logger=self.logger, job_server=self.server, fg_file = self.validation_fa, bg_file = bg_file, do_counter=False)
+        p.add_motifs(("clustering",  (read_motifs(open(self.final_pwm)), "","")))
         while len(p.stats.keys()) < len(p.motifs):
             sleep(5)
 
+        #print "p.stats"
+        #print p.stats
+        #print "num_cluster"
+        #print num_cluster
         for mid, num in num_cluster.items():
             p.stats[mid]["numcluster"] = num
 

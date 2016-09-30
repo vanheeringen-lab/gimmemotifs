@@ -23,7 +23,7 @@ Create a directory to store genome files.
 
 `$ mkdir $HOME/genomes/`
 
-To download and index a genome:
+To download and index a genome (all UCSC-supported genomes):
 
 `$ gimme genome $HOME/genomes/ hg38`
 
