@@ -8,7 +8,17 @@
 
 # External imports
 from scipy.stats import stats,scoreatpercentile
+from sklearn.metrics import precision_recall_curve
 import numpy as np
+
+def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.05):
+    y_score = np.hstack((fg_vals, bg_vals))
+    y_true = np.hstack((np.ones(len(fg_vals)), np.zeros(len(bg_vals))))
+    
+    precision, recall, thresholds = precision_recall_curve(y_true, y_score)
+    fdr = 1- precision
+    cutoff_index = next(i for i, x in enumerate(fdr) if x <= fdr_cutoff)
+    return recall[cutoff_index]
 
 def fraction_fdr(fg_vals, bg_vals, fdr=5):
     fg_vals = np.array(fg_vals)
