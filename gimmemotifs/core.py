@@ -686,7 +686,7 @@ class GimmeMotifs(object):
                 tmp2.close()
             old_id = best_motif.id
             best_motif.id = "GimmeMotifs_%d" % (i + 1)
-            best_id[best_motif.id] = old_id.split("_")[0]
+            best_id[best_motif.id] = old_id.split("_")[2]
             num_cluster["%s_%s" % (best_motif.id, best_motif.to_consensus())] = len(singles)
             if imgdir:
                 best_motif.to_img(os.path.join(imgdir, best_motif.id), format="PNG")

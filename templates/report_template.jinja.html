@@ -267,7 +267,7 @@ Database match
 <ul>
 				{% for motif in motifs %}
 <li>
-<a href="{{motif.id_href}}">{{motif.id}}</a>
+<a href="{{motif.id_href['href']}}">{{motif.id}}</a>
 {% for i in range(motif.stars|int) %}
 <img src="images/star.png" width="15" height="15"></img>
 {% endfor %}
