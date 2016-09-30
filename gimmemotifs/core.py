@@ -848,11 +848,11 @@ class GimmeMotifs(object):
         self.logger.debug(result.stats)
         
         for motif in motifs:
-            stats = result.stats["%s_%s" % (motif.id, motif.to_consensus())]
+            stats = result.stats.get("%s_%s" % (motif.id, motif.to_consensus()), None)
             if stats:
                 f.write("%s\t%s\n" % (motif.id, "\t".join([str(stats[k]) for k in stat_keys])))
             else:
-                self.logger.error("No stats for motif {0}, skipping this motif!".format(motif.id))
+                self.logger.warn("No stats for motif {0}, skipping this motif!".format(motif.id))
                 motifs.remove(motif)
         f.close()
 
