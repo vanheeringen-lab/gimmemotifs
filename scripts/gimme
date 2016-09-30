@@ -189,6 +189,12 @@ p.add_argument("genome",
 p.add_argument("outdir", 
                help="output directory", 
                metavar="DIR")
+p.add_argument("-p", "--pwmfile",
+               dest="pwmfile",
+               help="PWM file with motifs "
+               "(default: {0})".format(default_pwm), 
+               default=default_pwm_file,
+               metavar="PWMFILE")
 p.set_defaults(func=commands.maelstrom)
 
 # motif_roc.py and motif_roc_metrics.py

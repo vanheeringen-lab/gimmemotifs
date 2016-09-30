@@ -13,10 +13,11 @@ def maelstrom(args):
     infile = args.inputfile
     genome = args.genome
     outdir = args.outdir
+    pwmfile = args.pwmfile
 
     if not os.path.exists(infile):
         raise ValueError("file {} does not exist".format(infile))
 
     check_genome(genome)
                 
-    run_maelstrom(infile, genome, outdir)
+    run_maelstrom(infile, genome, outdir, pwmfile)

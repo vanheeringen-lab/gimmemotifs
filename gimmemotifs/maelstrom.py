@@ -30,7 +30,7 @@ BG_LENGTH = 200
 BG_NUMBER = 10000
 FDR = 0.01
 
-def check_threshold(outdir, genome, scoring="count"):
+def check_threshold(outdir, genome, scoring="count", pwmfile=None):
     # gimme_motifs config, to get defaults
     config = MotifConfig()
     
@@ -46,8 +46,9 @@ def check_threshold(outdir, genome, scoring="count"):
                 m = RandomGenomicFasta(index_dir, BG_LENGTH, BG_NUMBER)
                 m.writefasta(bg_file)
     
-            pwmfile = config.get_default_params().get("motif_db")
-            pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
+            if pwmfile is None:
+                pwmfile = config.get_default_params().get("motif_db")
+                pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
             
             cmd = "gimme threshold {} {} {} > {}".format(
                     pwmfile,
@@ -58,7 +59,7 @@ def check_threshold(outdir, genome, scoring="count"):
         return threshold_file
 
 def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
-    threshold = check_threshold(data_dir, genome, scoring)
+    threshold = check_threshold(data_dir, genome, scoring, pwmfile)
     
     config = MotifConfig()
     
@@ -87,8 +88,8 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
     motif_names = [m.id for m in read_motifs(open(pwmfile))]
     return pd.DataFrame(scores, index=df.index, columns=motif_names)
 
-def moap_with_bg(input_table, genome, data_dir, method, scoring):
-    threshold_file = check_threshold(data_dir, genome, scoring)
+def moap_with_bg(input_table, genome, data_dir, method, scoring, pwmfile=None):
+    threshold_file = check_threshold(data_dir, genome, scoring, pwmfile)
     
     outfile = os.path.join(data_dir,"activity.{}.{}.out.txt".format(
             method,
@@ -109,14 +110,18 @@ def safe_join(df1, df2):
     df1["_safe_count"] = range(df1.shape[0])     
     return df1.join(df2).sort_values("_safe_count").drop( "_safe_count", 1)
 
-def visualize_maelstrom(outdir, sig_cutoff=3):
+def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
     
     config = MotifConfig()
-    pwmfile = config.get_default_params().get("motif_db", None)
-    pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
+    if pmwfile is None:
+        pwmfile = config.get_default_params().get("motif_db", None)
+        pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
+    
     mapfile = pwmfile.replace(".pwm", ".motif2factors.txt")
-    m2f = pd.read_csv(mapfile, sep="\t", names=["motif","factors"], index_col=0) 
-    m2f["factors"] = m2f["factors"].str[:50]
+    if os.path.exists(mapsfile):
+    
+        m2f = pd.read_csv(mapfile, sep="\t", names=["motif","factors"], index_col=0) 
+        m2f["factors"] = m2f["factors"].str[:50]
 
     freq_fname = os.path.join(outdir, "motif.freq.txt")
     sig_fname = os.path.join(outdir, "final.out.csv")
@@ -175,19 +180,21 @@ def visualize_maelstrom(outdir, sig_cutoff=3):
     plt.savefig(os.path.join(outdir, "motif.enrichment.png"), dpi=300) 
 
 
-def run_maelstrom(infile, genome, outdir, plot=True, cluster=True, 
+def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True, 
         score_table=None, count_table=None):
 
     if not os.path.exists(outdir):
         os.mkdir(outdir)
 
     if not count_table:
-        counts = scan_to_table(infile, genome, outdir, "count")
+        counts = scan_to_table(infile, genome, outdir, "count",
+                pwmfile=pwmfile)
         count_table = os.path.join(outdir, "motif.count.txt")
         counts.to_csv(count_table, sep="\t")
 
     if not score_table:
-        scores = scan_to_table(infile, genome, outdir, "score")
+        scores = scan_to_table(infile, genome, outdir, "score",
+                pwmfile=pwmfile)
         score_table = os.path.join(outdir, "motif.score.txt")
         scores.to_csv(score_table, sep="\t", float_format="%.3f")
     
@@ -230,7 +237,7 @@ def run_maelstrom(infile, genome, outdir, plot=True, cluster=True,
             elif scoring == "score" and score_table:
                 moap_with_table(fname, score_table, outdir, method, scoring)
             else:
-                moap_with_bg(fname, genome, outdir, method, scoring)
+                moap_with_bg(fname, genome, outdir, method, scoring, pwmfile=pwmfile)
         
         
         except Exception as e:
