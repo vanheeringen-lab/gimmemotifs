@@ -21,7 +21,6 @@ from tempfile import NamedTemporaryFile
 from scipy import special
 from scipy.stats import kstest,hypergeom
 import pybedtools
-import matplotlib.pyplot as plt
 import numpy as np
 
 # gimme imports
@@ -109,16 +108,6 @@ def divide_fa_file(fname, sample, rest, fraction, abs_max):
     f_rest.close()
     
     return x, len(ids[x:])    
-
-def make_gff_histogram(gfffile, outfile, l, title, breaks=21):
-    data = []
-    for line in open(gfffile):
-        vals = line.strip().split("\t")
-        data.append((int(vals[3]) + int(vals[4])) / 2)
-
-    plt.hist(data, breaks)
-    plt.title(title)
-    plt.savefig(outfile)
 
 def ks_pvalue(values, l):
     if len(values) == 0:
