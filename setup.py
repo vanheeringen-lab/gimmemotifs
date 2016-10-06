@@ -181,9 +181,10 @@ class build_tools(Command):
                 "src/MotifSampler/MotifSampler{}".format(post_fix), 
                     os.path.join(
                         self.build_tools_dir, 
-                        "MotifSampler"))
+                        "MotifSampler")
+                    )
             shutil.copy(
-                "src/MotifSampler/CreateBackgroundModel{}",format(post_fix), 
+                "src/MotifSampler/CreateBackgroundModel{}".format(post_fix), 
                     os.path.join(
                         self.build_tools_dir, 
                         "CreateBackgroundModel")
