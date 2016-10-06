@@ -51,6 +51,9 @@ def print_result(result):
         log.info("... ok")
     
 def compile_all(prefix=None):
+    # are we in the conda build environment?
+    conda_build = os.environ.get("CONDA_BUILD")
+    
     sys.stderr.write("compiling BioProspector")
     result = compile_simple("BioProspector")
     print_result(result)
@@ -59,9 +62,11 @@ def compile_all(prefix=None):
     result = compile_simple("MDmodule")
     print_result(result)
     
-    sys.stderr.write("compiling MEME")
-    result = compile_configmake("meme_4.6.0", "src/meme.bin")
-    print_result(result)
+    # We don't need to compile MEME for conda
+    if not conda_build:
+       sys.stderr.write("compiling MEME")
+       result = compile_configmake("meme_4.6.0", "src/meme.bin")
+       print_result(result)
     
     sys.stderr.write("compiling GADEM")
     result = compile_configmake("GADEM_v1.3", "src/gadem")
