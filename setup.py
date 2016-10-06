@@ -24,6 +24,7 @@ CONFIG_NAME = "gimmemotifs.cfg"
 DESCRIPTION  = """GimmeMotifs is a motif prediction pipeline. 
 """
 
+print os.environ
 # trick to get rst file for PyPi, see:
 # http://stackoverflow.com/questions/26737222/pypi-description-markdown-doesnt-work/26737672#26737672
 try:
