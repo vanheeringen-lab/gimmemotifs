@@ -225,7 +225,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
                     logger.debug("deleting %s", motif)
                     del result.motifs[i]
             break
-        sleep(10)
+        sleep(30)
         if len(result.stats.keys()) == last_len:
             n += 1
         else:

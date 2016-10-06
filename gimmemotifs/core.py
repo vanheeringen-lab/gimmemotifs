@@ -853,7 +853,7 @@ class GimmeMotifs(object):
                 f.write("%s\t%s\n" % (motif.id, "\t".join([str(stats[k]) for k in stat_keys])))
             else:
                 self.logger.warn("No stats for motif {0}, skipping this motif!".format(motif.id))
-                motifs.remove(motif)
+                #motifs.remove(motif)
         f.close()
 
         self.motifs_with_stats = motifs
@@ -864,31 +864,29 @@ class GimmeMotifs(object):
         for stat in ["mncp", "roc_auc", "maxenr"]:
             best_motif = {}
             for motif in self.motifs_with_stats:
-                val = result.stats["%s_%s" % (motif.id, motif.to_consensus())][stat]
+                d = result.stats.get("%s_%s" % (motif.id, motif.to_consensus()), {})
+                val = d.get(stat, None)
+                if val is None:
+                    continue
                 name = motif.id.split("_")[0]
                 if val > best_motif.setdefault(name, 0):
                     best_motif[name] = val
-            names = best_motif.keys()
-            vals = [best_motif[name] for name in names]
-            rank = rankdata(vals)
-            ind = [names.index(x) for x in tools]
+            if len(best_motif.keys()) > 0:
+                names = best_motif.keys()
+                vals = [best_motif[name] for name in names]
+                rank = rankdata(vals)
+                ind = [names.index(x) for x in tools]
 
-            f.write("%s\t%s\t%s\n" % (stat, "value", "\t".join([str(vals[i]) for i in ind])))
-            f.write("%s\t%s\t%s\n" % (stat, "rank", "\t".join([str(rank[i]) for i in ind])))
+                f.write("%s\t%s\t%s\n" % (stat, "value", "\t".join([str(vals[i]) for i in ind])))
+                f.write("%s\t%s\t%s\n" % (stat, "rank", "\t".join([str(rank[i]) for i in ind])))
         f.close()
-
-
-            #self.logger.debug("RANK: %s" % stat)
-            #self.logger.debug("\t".join([str(x) for x in names]))
-            #self.logger.debug("\t".join([str(x) for x in vals]))
-            #self.logger.debug("\t".join([str(x) for x in rank]))
 
         # Determine significant motifs
         nsig = 0
         f = open(self.significant_pfm, "w")
         for motif in motifs:
-            stats = result.stats["%s_%s" % (motif.id, motif.to_consensus())]
-            if stats["maxenr"] >= 3 and stats["roc_auc"] >= 0.55 and stats['enr_fdr'] >= 2:
+            stats = result.stats.get("%s_%s" % (motif.id, motif.to_consensus()), {})
+            if stats.get("maxenr", 0) >= 3 and stats.get("roc_auc", 0) >= 0.55 and stats.get('enr_fdr', 0) >= 2:
                 f.write("%s\n" % motif.to_pfm())
                 nsig += 1
         f.close()
