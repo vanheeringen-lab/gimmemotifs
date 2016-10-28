@@ -193,14 +193,15 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
     if not count_table:
         counts = scan_to_table(infile, genome, outdir, "count",
                 pwmfile=pwmfile)
-        count_table = os.path.join(outdir, "motif.count.txt")
-        counts.to_csv(count_table, sep="\t")
+        count_table = os.path.join(outdir, "motif.count.txt.gz")
+        counts.to_csv(count_table, sep="\t", compression="gzip")
 
     if not score_table:
         scores = scan_to_table(infile, genome, outdir, "score",
                 pwmfile=pwmfile)
-        score_table = os.path.join(outdir, "motif.score.txt")
-        scores.to_csv(score_table, sep="\t", float_format="%.3f")
+        score_table = os.path.join(outdir, "motif.score.txt.gz")
+        scores.to_csv(score_table, sep="\t", float_format="%.3f", 
+                compression="gzip")
     
     df = pd.read_table(infile, index_col=0)
 

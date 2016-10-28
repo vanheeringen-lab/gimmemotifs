@@ -219,7 +219,7 @@ class KSMoap(object):
         """Predict motif activities using Kolmogorov-Smirnov p-value
     
         This method compares the motif score distribution of each 
-        cluster versus the motif score distribution of all other 
+         versus the motif score distribution of all other 
         clusters.
         
         Parameters
@@ -880,6 +880,8 @@ def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=N
     else:
         motifs = pd.read_table(motiffile, index_col=0)   
 
+    motifs = motifs.loc[df.index]
+    
     clf = None
     if method == "ks":
         clf = KSMoap()
