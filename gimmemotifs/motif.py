@@ -153,6 +153,18 @@ class Motif(object):
     def pfm_to_pwm(self, pfm, pseudo=0.001):
         return [[(x + pseudo)/(float(np.sum(row)) + pseudo * 4) for x in row] for row in pfm]
 
+    def to_motevo(self):
+        """
+        Return motif formatted in MotEvo (TRANSFAC-like) format
+        """
+        m = "//\n"
+        m += "NA {}\n".format(self.id)
+        m += "P0\tA\tC\tG\tT\n"
+        for i, row in enumerate(self.pfm):
+            m += "{}\t{}\n".format(i, "\t".join([str(int(x)) for x in row]))
+        m += "//"
+        return m
+
     def to_transfac(self):
         m = "%s\t%s\t%s\n" % ("DE", self.id, "unknown")
         for i, (row, cons) in enumerate(zip(self.pfm, self.to_consensus())):
