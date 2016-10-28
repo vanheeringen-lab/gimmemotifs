@@ -542,7 +542,7 @@ def get_seqs_type(seqs):
                 return "regions"
             else:
                 raise ValueError("unknown region type")
-    elif isinstance(seqs, str):
+    elif isinstance(seqs, str) or isinstance(seqs, unicode):
         if os.path.isfile(seqs):
             try:
                 f = Fasta(seqs)
@@ -564,7 +564,7 @@ def get_seqs_type(seqs):
         else:
             raise ValueError("no file found with name {}".format(seqs))
     else:
-        raise ValueError("unknown type")
+        raise ValueError("unknown type {}".format(type(seqs).__name__))
 
 def as_fasta(seqs, index_dir=None):
     ftype = get_seqs_type(seqs)
