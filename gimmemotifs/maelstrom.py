@@ -107,21 +107,25 @@ def moap_with_table(input_table, motif_table, data_dir, method, scoring):
             motiffile=motif_table)
 
 def safe_join(df1, df2):     
-    df1["_safe_count"] = range(df1.shape[0])     
-    return df1.join(df2).sort_values("_safe_count").drop( "_safe_count", 1)
+    tmp = df1.copy()
+    tmp["_safe_count"] = range(df1.shape[0])     
+    return tmp.join(df2).sort_values("_safe_count").drop( "_safe_count", 1)
 
 def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
     
     config = MotifConfig()
-    if pmwfile is None:
+    if pwmfile is None:
         pwmfile = config.get_default_params().get("motif_db", None)
         pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
     
     mapfile = pwmfile.replace(".pwm", ".motif2factors.txt")
-    if os.path.exists(mapsfile):
+    if os.path.exists(mapfile):
     
         m2f = pd.read_csv(mapfile, sep="\t", names=["motif","factors"], index_col=0) 
         m2f["factors"] = m2f["factors"].str[:50]
+    else:
+        motifs = [m.id for m in read_motifs(open(pwmfile))]
+        m2f = pd.DataFrame({"factors": motifs}, index=motifs)
 
     freq_fname = os.path.join(outdir, "motif.freq.txt")
     sig_fname = os.path.join(outdir, "final.out.csv")
@@ -133,7 +137,7 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
     vis = df_sig[f]
 
     # size of figure
-    size = [2 + vis.shape[1] * 0.4, vis.shape[0] * 0.3]
+    size = [2 + vis.shape[1] * 0.4, 1.8 + vis.shape[0] * 0.3]
     
     # cluster rows
     row_linkage = hierarchy.linkage(
@@ -278,5 +282,5 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
     freq.to_csv(os.path.join(outdir, "motif.freq.txt"), sep="\t")
 
     if plot:
-        visualize_maelstrom(outdir)
+        visualize_maelstrom(outdir, pwmfile=pwmfile)
 

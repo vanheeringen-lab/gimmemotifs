@@ -32,6 +32,9 @@ try:
 except(IOError, ImportError):
     long_description = open('README.md').read()
 
+# are we in the conda build environment?
+conda_build = os.environ.get("CONDA_BUILD")
+
 DEFAULT_PARAMS = {
     "max_time": None,
     "analysis": "medium",
@@ -166,23 +169,32 @@ class build_tools(Command):
                 shutil.rmtree(os.path.join(self.build_tools_dir, "trawler"))
             shutil.copytree("src/trawler_standalone-1.2", os.path.join(self.build_tools_dir, "trawler"))
 
-        # Copy MotifSampler & Improbizer (ameme)
         if self.machine == "x86_64":
-            if os.path.exists("src/MotifSampler"):
-                dlog.info("copying MotifSampler 64bit")
-                shutil.copy("src/MotifSampler/MotifSampler_x86_64", os.path.join(self.build_tools_dir, "MotifSampler"))
-                shutil.copy("src/MotifSampler/CreateBackgroundModel_x86_64", os.path.join(self.build_tools_dir, "CreateBackgroundModel"))
-            if os.path.exists("src/Improbizer"):
-                dlog.info("copying Improbizer (ameme) 64bit")
-                shutil.copy("src/Improbizer/ameme_x86_64", os.path.join(self.build_tools_dir, "ameme"))
-        else: 
-            if os.path.exists("src/MotifSampler"):
-                dlog.info("copying MotifSampler 32bit")
-                shutil.copy("src/MotifSampler/MotifSampler_i386", os.path.join(self.build_tools_dir, "MotifSampler"))
-                shutil.copy("src/MotifSampler/CreateBackgroundModel_i386", os.path.join(self.build_tools_dir, "CreateBackgroundModel"))
-            if os.path.exists("src/Improbizer"):
-                dlog.info("copying Improbizer (ameme) 32bit")
-                shutil.copy("src/Improbizer/ameme_i386", os.path.join(self.build_tools_dir, "ameme"))
+            post_fix = "_x86_64"
+        else:
+            post_fix = "_i386"
+        
+        # Copy MotifSampler
+        if not conda_build and os.path.exists("src/MotifSampler"):
+            dlog.info("copying MotifSampler")
+            shutil.copy(
+                "src/MotifSampler/MotifSampler{}".format(post_fix), 
+                    os.path.join(
+                        self.build_tools_dir, 
+                        "MotifSampler")
+                    )
+            shutil.copy(
+                "src/MotifSampler/CreateBackgroundModel{}".format(post_fix), 
+                    os.path.join(
+                        self.build_tools_dir, 
+                        "CreateBackgroundModel")
+                    )
+        
+        # Copy Improbizer (ameme)
+        if os.path.exists("src/Improbizer"):
+            dlog.info("copying Improbizer (ameme)")
+            shutil.copy("src/Improbizer/ameme{}".format(post_fix), 
+                    os.path.join(self.build_tools_dir, "ameme"))
 
 class build_config(Command):
     description = "create a rudimentary config file"
