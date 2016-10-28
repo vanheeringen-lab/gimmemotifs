@@ -516,13 +516,11 @@ class Trawler(MotifProgram):
         motifs = []
         out_name = [dir for dir in os.listdir(self.tmpdir) if dir.startswith("tmp")][-1]
         out_file = os.path.join(self.tmpdir, out_name, "result", "%s.pwm" % out_name)
+        stdout += "\nOutfile: {}".format(out_file)
+        
         if os.path.exists(out_file):
-            motifs = read_motifs(open(os.path.join(
-                                                    self.tmpdir, 
-                                                    out_name, 
-                                                    "result", 
-                                                    "%s.pwm" % out_name)),
-                                                    fmt="pwm")
+            motifs = read_motifs(open(out_file), fmt="pwm")
+            stdout += "\nTrawler: {} motifs".format(len(motifs))
         
         # remove temporary files
         if os.path.exists(tmp.name):
