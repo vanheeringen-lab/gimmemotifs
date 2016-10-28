@@ -859,7 +859,7 @@ class GimmeMotifs(object):
         self.motifs_with_stats = motifs
 
         f = open(self.ranks_file, "w")
-        tools = dict((m.id.split("_")[0],1) for m in motifs).keys()
+        tools = dict((m.id.split("_")[2],1) for m in motifs).keys()
         f.write("Metric\tType\t%s\n" % ("\t".join(tools)))
         for stat in ["mncp", "roc_auc", "maxenr"]:
             best_motif = {}
@@ -868,7 +868,7 @@ class GimmeMotifs(object):
                 val = d.get(stat, None)
                 if val is None:
                     continue
-                name = motif.id.split("_")[0]
+                name = motif.id.split("_")[2]
                 if val > best_motif.setdefault(name, 0):
                     best_motif[name] = val
             if len(best_motif.keys()) > 0:
