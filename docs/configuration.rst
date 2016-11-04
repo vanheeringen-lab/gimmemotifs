@@ -1,38 +1,34 @@
 Configuration
 =============
 
-Data sources
-------------
+Genomes
+-------
 
-You will need some genome fasta files for any motif-prediction if you
-want to run GimmeMotifs with BED files as input (which is recommended,
-although GimmeMotifs will also work on FASTA files). To get from a BED
-file to the sequence information these genomic fasta files are
-absolutely required. The fasta files should be organized in one
-directory with one file per chromosome or scaffold, with the filename
-being the chromosome name with an extension of ``.fa``, ``.fsa`` or
-``.fasta``. No exceptions, no different layouts. A good source is the
-UCSC Genome Browser database . For instance, the human hg19 files needed
-to run the examples included with GimmeMotifs can be downloaded here:
+You will need genome FASTA files for a lot of the tools that are included 
+with GimmeMotifs.
+
+Download from UCSC
+~~~~~~~~~~~~~~~~~~
+
+The most straightforward way to download and index a genome is to use
+the ``gimme genome`` tool.
 
 ::
 
-    ftp://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/chromFa.zip
-     
+    $ gimme genome $HOME/genomes hg19
 
-All fasta files need to be indexed before GimmeMotifs can use them, see
-section :ref:`indexing`.
+Here, the hg19 genome and accompanying gene annotation will be downloaded
+from UCSC to the directory ``$HOME/genomes/hg19``. 
+This works for all genomes supported by UCSC. 
 
+Index a genome
+~~~~~~~~~~~~~~
 
-.. _indexing:
-
-Indexing the genomes
---------------------
-
-All the genomes that you want to use with GimmeMotifs will need to be
-indexed for (relatively) fast retrieval of sequences. You can do this,
-once you have installed GimmeMotifs, by running the following command
-(as root or with sudo):
+Alternatively, you can index a set of genome FASTA files that you already
+have locally. The FASTA files should be organized in one
+directory with *one file per chromosome or scaffold*, with the filename
+being the chromosome name with an extension of ``.fa``, ``.fsa`` or
+``.fasta``. Then you can run the following command:
 
 ::
 
@@ -46,31 +42,18 @@ computer, where all fasta files are located in the directory
 
     gimme index /usr/share/genome/hg19/ hg19
 
-Repeat this step for every additional genome or organism that you want
-to use GimmeMotifs with. Please note: for Weeder, currently only hg18,
-hg19, mm9, rn4, dm3, fr2, danRer6, danRer7, galGal3, ce3, anoGam1,
-yeast, sacCer2, xenTro2 and xenTro3 are supported as organism names
-(following the UCSC naming convention). This will be fixed as a
-configuration file in a later release.
+**Note: if you installed GimmeMotifs as root, the ``gimme index`` command
+will need to be run as root too** 
 
 Adding gene files
------------------
+~~~~~~~~~~~~~~~~~
 
-When using the ``genomic_matched`` background setting (which is the
-default), there needs to be a file describing genes in BED format in the
-``gene_dir``, which is defined in the configuration file. By default
-this is: ``/usr/share/gimmemotifs/genes/``. The file needs to be named
-``<index_name>.bed``, so for instance ``hg19.bed``. By default
-``hg18.bed``, ``hg19.bed``, ``mm9.bed`` and ``xenTro2.bed`` are included.
-
-The easy way: ``add_organism.py``
----------------------------------
-
-The script ``add_organism.py`` combines the previous two steps (indexing
-the fasta files, and adding a gene file), and makes sure the gene BED
-file is in the correct place with the correct name. This is the easiest
-way to add a new genome/organism for use with GimmeMotifs.
-
+For some applications a gene file is used. This is a file containing gene
+annotation in BED12 format. It should be located in the ``gene_dir``, 
+which is defined in the configuration file (see below). 
+The file needs to be named ``<index_name>.bed``, so for instance ``hg19.bed``.
+If you used the ``gimme genome`` command, 
+annotation will be included automatically.
 
 .. _adding_subtools:
 

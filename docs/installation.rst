@@ -13,13 +13,20 @@ The most straightforward way to install GimmeMotifs is by using `conda
 
 ::
 
-    $ conda install gimmemotifs -c bioconda
+    $ conda install gimmemotifs -c bioconda -c r
 
 
 Using pip
 ---------
 
-Installation from PyPI with `pip` is another straightforward option:
+Installation from PyPI with `pip` is another straightforward option. 
+You will need to install some prerequisites though:
+
+- bedtools http://bedtools.readthedocs.io
+- UCSC genePredToBed http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/genePredToBed
+- (optional) R + RobustRankAggreg
+
+Install with pip as follows:
 
 :: 
 
@@ -78,51 +85,9 @@ Installation packages for Ubuntu and Fedora are no longer supported.
 Installation from source
 ------------------------
 
-Prerequisites
-~~~~~~~~~~~~~
+These instructions are not up-to-date! Basically, you're on your own!
 
-Before you can install GimmeMotifs you willl need:
-
--  some Python modules and other packages
-
--  motif prediction tools
-
-Required packages (Python)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--  Python 2.7 (not Python 3) http://www.python.org
-
--  | Scipy http://www.scipy.org/
-   | SciPy is the fundamental package needed for scientific computing with Python.
-
--  | matplotlib (0.98 or higher) http://matplotlib.sourceforge.net/
-   | A python 2D plotting library. All figures and plots produced by GimmeMotifs are made using matplotlib.
-
--  | kid http://www.kid-templating.org/
-   | A simple template language for XML based vocabularies; used to produce the HTML reports.
-
-Other required packages
-~~~~~~~~~~~~~~~~~~~~~~~
-
--  ghostscript
-
-Additional motif prediction programs
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A lot of motif prediction tools are compiled and/or installed with
-GimmeMotifs. The following tools have to be installed seperately:
-
--  Weeder http://159.149.109.9/modtools/
-
-Please consult the respective manuals regarding installation of these
-tools. It’s always possible to install these programs after installation
-of GimmeMotifs and update the configuration files to include the new
-tools (see section :ref:`adding_subtools`). However, during
-installation, GimmeMotifs will try to find any installed tools and add
-them automatically, so that’s the easiest option.
-
-Building from source
-~~~~~~~~~~~~~~~~~~~~
+Make sure to install all required dependencies.
 
 You can download the lastest stable version of GimmeMotifs at:
 
