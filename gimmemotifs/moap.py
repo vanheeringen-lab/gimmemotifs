@@ -420,7 +420,6 @@ class MaraMoap(object):
         self.act_trace_std_ = pd.DataFrame(index=df_X.columns)
         self.zscore_ = pd.DataFrame(index=df_X.columns)
  
-       
         # fit the activities
         for col in df_y.columns:
             self._fit_model(X, y, col)
