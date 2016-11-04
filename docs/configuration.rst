@@ -42,7 +42,7 @@ computer, where all fasta files are located in the directory
 
     gimme index /usr/share/genome/hg19/ hg19
 
-**Note: if you installed GimmeMotifs as root, the ``gimme index`` command
+**Note: if you installed GimmeMotifs as root, the** ``gimme index`` **command
 will need to be run as root too** 
 
 Adding gene files
@@ -155,21 +155,27 @@ have a look at the options.
 ::
 
     [params]
-    background = genomic_matched,random
-    use_strand = False
-    tools = MDmodule,Weeder,MotifSampler
-    analysis = medium
-    pvalue = 0.001
-    width = 200
     fraction = 0.2
-    genome = hg19
-    lwidth = 500
-    cluster_threshold = 0.95
-    available_tools = Weeder,MDmodule,MotifSampler,gadem,meme,trawler
+    use_strand = False
     abs_max = 1000
+    analysis = medium
     enrichment = 1.5
+    width = 200
+    lwidth = 500
+    genome = hg19
+    background = gc,random
+    cluster_threshold = 0.95
+    available_tools = MDmodule,MEME,Weeder,GADEM,MotifSampler,trawler,Improbizer,BioProspector,Posmo,ChIPMunk,JASPAR,AMD,HMS,Homer
+    tools = MDmodule,MEME,Weeder,MotifSampler,trawler,Improbizer,BioProspector,Posmo,ChIPMunk,JASPAR,AMD,HMS,Homer
+    pvalue = 0.001
     max_time = None
+    ncpus = 2
+    motif_db = gimme.vertebrate.v3.1.pwm
     scan_cutoff = 0.9
+    use_cache = False
+    markov_model = 1
+    
+
 
 This section specifies all the default GimmeMotifs parameters. Most of
 these can also be specified at the command-line when running
