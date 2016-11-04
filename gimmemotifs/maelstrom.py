@@ -127,29 +127,23 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
         motifs = [m.id for m in read_motifs(open(pwmfile))]
         m2f = pd.DataFrame({"factors": motifs}, index=motifs)
 
-    freq_fname = os.path.join(outdir, "motif.freq.txt")
     sig_fname = os.path.join(outdir, "final.out.csv")
-    df_freq = pd.read_table(freq_fname, index_col=0) 
     df_sig = pd.read_table(sig_fname, index_col=0)
-
-    df_freq = df_freq.T
     f = np.any(df_sig >= sig_cutoff, 1)
     vis = df_sig[f]
-
-    # size of figure
-    size = [2 + vis.shape[1] * 0.4, 1.8 + vis.shape[0] * 0.3]
-    
     # cluster rows
     row_linkage = hierarchy.linkage(
         distance.pdist(vis, metric="euclidean"), 
         method='complete')
     idx = hierarchy.leaves_list(row_linkage)
     
-    vis_freq = df_freq.loc[vis.iloc[idx].index]
-    vis_freq = safe_join(vis_freq, m2f).set_index("factors")
     plt.figure(figsize=size)
     
     vis = safe_join(vis, m2f).set_index("factors")
+    
+    # size of figure
+    size = [2 + vis.shape[1] * 0.4, 1.8 + vis.shape[0] * 0.3]
+    
     cg = sns.heatmap(vis.iloc[idx], cmap="viridis", 
                         yticklabels=True, 
                        cbar_kws={"orientation":"horizontal"})
@@ -157,32 +151,36 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
     plt.title("Motif Relevance")
     plt.tight_layout()
     plt.savefig(os.path.join(outdir, "motif.relevance.png"), dpi=300) 
-    
-    
-    plt.figure(figsize=size)
-    cg = sns.heatmap(vis_freq, cmap="viridis", 
-                     yticklabels=True, vmin=0, vmax=0.2,
-                       cbar_kws={"orientation":"horizontal"})
-    #idx = cg.dendrogram_row.reordered_ind
-    _ = plt.setp(cg.yaxis.get_majorticklabels(), rotation=0)
-    plt.title("Motif Frequency")
-    plt.tight_layout()
-    plt.savefig(os.path.join(outdir, "motif.frequency.png"), dpi=300) 
-    
-    plt.figure(figsize=size)
-    
-    bla = vis_freq.min(1)
-    bla[bla < 0.01] = 0.01
-    
-    cg = sns.heatmap(np.log2(vis_freq.apply(lambda x: x / bla, 0)), 
-                     yticklabels=True, vmin=-5, vmax=5,
-                    cbar_kws={"orientation":"horizontal"})
-    #idx = cg.dendrogram_row.reordered_ind
-    _ = plt.setp(cg.yaxis.get_majorticklabels(), rotation=0)
-    plt.title("Motif Enrichment")
-    plt.tight_layout()
-    plt.savefig(os.path.join(outdir, "motif.enrichment.png"), dpi=300) 
-
+   
+    freq_fname = os.path.join(outdir, "motif.freq.txt")
+    if os.path.exists(freq_fname):
+        df_freq = pd.read_table(freq_fname, index_col=0) 
+        df_freq = df_freq.T
+        vis_freq = df_freq.loc[vis.iloc[idx].index]
+        vis_freq = safe_join(vis_freq, m2f).set_index("factors")
+        plt.figure(figsize=size)
+        cg = sns.heatmap(vis_freq, cmap="viridis", 
+                         yticklabels=True, vmin=0, vmax=0.2,
+                           cbar_kws={"orientation":"horizontal"})
+        #idx = cg.dendrogram_row.reordered_ind
+        _ = plt.setp(cg.yaxis.get_majorticklabels(), rotation=0)
+        plt.title("Motif Frequency")
+        plt.tight_layout()
+        plt.savefig(os.path.join(outdir, "motif.frequency.png"), dpi=300) 
+        
+        plt.figure(figsize=size)
+        
+        bla = vis_freq.min(1)
+        bla[bla < 0.01] = 0.01
+        
+        cg = sns.heatmap(np.log2(vis_freq.apply(lambda x: x / bla, 0)), 
+                         yticklabels=True, vmin=-5, vmax=5,
+                        cbar_kws={"orientation":"horizontal"})
+        #idx = cg.dendrogram_row.reordered_ind
+        _ = plt.setp(cg.yaxis.get_majorticklabels(), rotation=0)
+        plt.title("Motif Enrichment")
+        plt.tight_layout()
+        plt.savefig(os.path.join(outdir, "motif.enrichment.png"), dpi=300) 
 
 def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True, 
         score_table=None, count_table=None):
@@ -276,11 +274,12 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
     #df_p = df_p.join(m2f)
 
     # Write motif frequency table
-    mcount = df.join(pd.read_table(count_table, index_col=0))
     
-    m_group = mcount.groupby("cluster")
-    freq = (m_group.sum() / m_group.count())
-    freq.to_csv(os.path.join(outdir, "motif.freq.txt"), sep="\t")
+    if df.shape[1] == 1:
+        mcount = df.join(pd.read_table(count_table, index_col=0))
+        m_group = mcount.groupby(df.columns[0])
+        freq = (m_group.sum() / m_group.count())
+        freq.to_csv(os.path.join(outdir, "motif.freq.txt"), sep="\t")
 
     if plot:
         visualize_maelstrom(outdir, pwmfile=pwmfile)
