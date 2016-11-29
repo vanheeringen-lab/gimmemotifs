@@ -26,6 +26,13 @@ from gimmemotifs.config import *
 from gimmemotifs.c_metrics import pwmscan,score
 # pool import is at the bottom
 
+# Create random sequence
+nucs = []
+L = 10 ** 4
+for i in range(L):
+    nucs.append(random.choice(['A', 'C', 'T', 'G']))
+RANDOM_SEQ = "".join(nucs)
+
 # Try to import the fisim code, if it present
 try:
     fisim_dir = "/usr/share/gimmemotifs/includes/fisim"
@@ -68,17 +75,12 @@ def seqcor(m1,m2):
 
     l = max(l1, l2)
 
-    # Create random sequence
-    nucs = []
-    L = 10 ** 4
-    for i in range(L):
-        nucs.append(random.choice(['A', 'C', 'T', 'G']))
-    random_seq = "".join(nucs)
-
     # Scan random sequence
-    result1 = pwmscan(random_seq.upper(), m1.pwm, m1.pwm_min_score(), len(random_seq), False, True)
-    result2 = pwmscan(random_seq.upper(), m2.pwm, m2.pwm_min_score(), len(random_seq), False, True)
-
+    result1 = pwmscan(RANDOM_SEQ, m1.pwm, m1.pwm_min_score(), len(RANDOM_SEQ), False, True)
+    result2 = pwmscan(RANDOM_SEQ, m2.pwm, m2.pwm_min_score(), len(RANDOM_SEQ), False, True)
+    result1 = np.array(result1)
+    result2 = np.array(result2)
+    
     # Return maximum correlation
     c = []
     for i in range(l1):
