@@ -20,8 +20,7 @@ from statsmodels.sandbox.stats.multicomp import multipletests
 
 # scikit-learn
 from sklearn.cluster import AgglomerativeClustering
-from sklearn.cross_validation import train_test_split
-from sklearn.grid_search import GridSearchCV
+from sklearn.model_selection import train_test_split,GridSearchCV
 from sklearn.ensemble import BaggingClassifier,RandomForestClassifier
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.linear_model import Ridge,MultiTaskLasso
