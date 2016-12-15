@@ -18,7 +18,7 @@ import logging
 # External imports
 from scipy.stats import norm,entropy,chi2_contingency
 from scipy.spatial import distance
-from numpy import mean,std,array,sum
+import numpy as np
 
 # GimmeMotifs imports
 from gimmemotifs.motif import *
@@ -67,17 +67,20 @@ def chisq(x,y):
 def ssd(x,y):
     """ Sum of squared distances 
     """
-    return sum([(a-b)**2 for a,b in zip(x,y)] )
+    return np.sum([(a-b)**2 for a,b in zip(x,y)] )
 
-def seqcor(m1,m2):
+def seqcor(m1, m2, seq=None):
     l1 = len(m1)
     l2 = len(m2)
 
     l = max(l1, l2)
 
+    if seq is None:
+        seq = RANDOM_SEQ
+    
     # Scan random sequence
-    result1 = pwmscan(RANDOM_SEQ, m1.pwm, m1.pwm_min_score(), len(RANDOM_SEQ), False, True)
-    result2 = pwmscan(RANDOM_SEQ, m2.pwm, m2.pwm_min_score(), len(RANDOM_SEQ), False, True)
+    result1 = pwmscan(seq, m1.pwm, m1.pwm_min_score(), len(seq), False, True)
+    result2 = pwmscan(seq, m2.pwm, m2.pwm_min_score(), len(seq), False, True)
     result1 = np.array(result1)
     result2 = np.array(result2)
     
@@ -172,7 +175,7 @@ class MotifComparer:
             [1 - norm.cdf(score[0], m, s), score[1], score[2]]
         except:
             print "HOEI: {0}".format(score)
-            return 1
+            return [1, np.nan, np.nan]
         return [1 - norm.cdf(score[0], m, s), score[1], score[2]]
 
     def fisim(self, m1, m2):
@@ -182,8 +185,8 @@ class MotifComparer:
         except:
             pass
         
-        fm1 = fisim.Motif.Motif(matrix=array(m1))
-        fm2 = fisim.Motif.Motif(matrix=array(m2))
+        fm1 = fisim.Motif.Motif(matrix=np.array(m1))
+        fm2 = fisim.Motif.Motif(matrix=np.array(m2))
         score = fm1.fisim(fm2)
         if score[2]:
             return (score[0], score[1], 1)
@@ -219,9 +222,9 @@ class MotifComparer:
             for pos1,pos2 in zip(matrix1,matrix2):
                 scores.append(func(pos1, pos2))
             if combine == "mean":
-                return mean(scores)
+                return np.mean(scores)
             elif combine == "sum":
-                return sum(scores)
+                return np.sum(scores)
             else:
                 raise "Unknown combine"
 
@@ -417,8 +420,8 @@ class MotifComparer:
                 scores = self.get_all_scores(sorted_motifs[l1], sorted_motifs[l2], match, metric, combine)
                 scores = scores.values()
                 scores = [[y[0] for y in x.values() if y] for x in scores]
-                scores = array(scores).ravel()
-                f.write("%s\t%s\t%s\t%s\n" % (l1, l2, mean(scores), std(scores)))
+                scores = np.array(scores).ravel()
+                f.write("%s\t%s\t%s\t%s\n" % (l1, l2, np.mean(scores), np.std(scores)))
 
         f.close()    
 
