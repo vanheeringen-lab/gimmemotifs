@@ -185,6 +185,11 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
 def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True, 
         score_table=None, count_table=None):
 
+    df = pd.read_table(infile, index_col=0)
+    # Check for duplicates
+    if df.index.duplicated(keep=False).any():
+        raise ValueError("Index contains duplicate regions! Please remove them.")
+    
     if not os.path.exists(outdir):
         os.mkdir(outdir)
 
@@ -200,11 +205,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         score_table = os.path.join(outdir, "motif.score.txt.gz")
         scores.to_csv(score_table, sep="\t", float_format="%.3f", 
                 compression="gzip")
-    
-    df = pd.read_table(infile, index_col=0)
 
-    # Drop duplicate indices, doesn't work very well downstream
-    df = df.loc[df.index.drop_duplicates(keep=False)]
     exps = []
     clusterfile = infile
     if df.shape[1] != 1:
