@@ -341,13 +341,29 @@ class RFMoap(object):
         y = le.fit_transform(df_y.iloc[:,0].values)
 
         clf = RandomForestClassifier(n_estimators=100)
-        orc = OneVsRestClassifier(clf)
-        orc.fit(df_X.values, y)
+        
+        # Multiclass
+        if len(le.classes_) > 2:
+            orc = OneVsRestClassifier(clf)
+            orc.fit(df_X.values, y)
 
-        test = np.array([c.feature_importances_ for c in orc.estimators_]).T
-
+            importances = np.array([c.feature_importances_ for c in orc.estimators_]).T
+        else: # Only two classes
+            clf.fit(df_X.values, y)
+            importances = np.array([
+                clf.feature_importances_,
+                clf.feature_importances_
+                ]).T
+        
+        for i,c in enumerate(le.classes_):
+            
+            diff = df_X.loc[y == c].quantile(q=0.75) - df_X.loc[y != c].quantile(q=0.75)
+            sign = (diff >= 0) * 2 - 1
+            importances[:,i] *= sign
+        
+        
         # create output DataFrame
-        self.act_ = pd.DataFrame(test,
+        self.act_ = pd.DataFrame(importances,
                 columns=le.inverse_transform(range(len(le.classes_))),
                 index=df_X.columns)
 
