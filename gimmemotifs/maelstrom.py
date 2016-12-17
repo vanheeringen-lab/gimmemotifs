@@ -131,6 +131,10 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
     df_sig = pd.read_table(sig_fname, index_col=0)
     f = np.any(df_sig >= sig_cutoff, 1)
     vis = df_sig[f]
+    if vis.shape[0] == 0:
+        sys.stderr.write("No motifs reach the threshold, skipping visualization.\n")
+        return
+    
     # cluster rows
     row_linkage = hierarchy.linkage(
         distance.pdist(vis, metric="euclidean"), 
@@ -185,26 +189,30 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
 def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True, 
         score_table=None, count_table=None):
 
+    df = pd.read_table(infile, index_col=0)
+    # Check for duplicates
+    if df.index.duplicated(keep=False).any():
+        raise ValueError("Input file contains duplicate regions! "
+                         "Please remove them.")
+    
     if not os.path.exists(outdir):
         os.mkdir(outdir)
 
+    # Create a file with the number of motif matches
     if not count_table:
         counts = scan_to_table(infile, genome, outdir, "count",
                 pwmfile=pwmfile)
         count_table = os.path.join(outdir, "motif.count.txt.gz")
         counts.to_csv(count_table, sep="\t", compression="gzip")
 
+    # Create a file with the score of the best motif match
     if not score_table:
         scores = scan_to_table(infile, genome, outdir, "score",
                 pwmfile=pwmfile)
         score_table = os.path.join(outdir, "motif.score.txt.gz")
         scores.to_csv(score_table, sep="\t", float_format="%.3f", 
                 compression="gzip")
-    
-    df = pd.read_table(infile, index_col=0)
 
-    # Drop duplicate indices, doesn't work very well downstream
-    df = df.loc[df.index.drop_duplicates(keep=False)]
     exps = []
     clusterfile = infile
     if df.shape[1] != 1:
@@ -265,8 +273,9 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         df_tmp = pd.DataFrame()
         for method,scoring,fname in exps:
             k = "{}.{}".format(method, scoring)
-            v = dfs[k]
-            df_tmp[k] = v.sort_values(e, ascending=False).index.values
+            if k in dfs:
+                v = dfs[k]
+                df_tmp[k] = v.sort_values(e, ascending=False).index.values
         
         df_p[e] = rankagg(df_tmp)
     df_p[names] = -np.log10(df_p[names])

@@ -132,8 +132,11 @@ class LightningMoap(object):
         coeffs = np.array([e.coef_ for e in b.estimators_]).mean(axis=0)
         
         # Create dataframe of predicted coefficients 
-        self.act_ = pd.DataFrame(coeffs.T)
-        
+        if len(l.classes_) == 2:
+            self.act_ = pd.DataFrame(np.hstack((-coeffs.T, coeffs.T)))
+        else:
+            self.act_ = pd.DataFrame(coeffs.T)
+
         # Convert labels back to original names
         self.act_.columns = l.inverse_transform(range(len(l.classes_)))
         self.act_.index = df_X.columns
@@ -145,7 +148,11 @@ class LightningMoap(object):
             y_random = np.random.permutation(y)
             b.fit(X,y_random)
             coeffs = np.array([e.coef_ for e in b.estimators_]).mean(axis=0)
-            random_dfs.append(pd.DataFrame(coeffs.T))
+            
+            if len(l.classes_) == 2:
+                random_dfs.append(pd.DataFrame(np.hstack((-coeffs.T, coeffs.T))))
+            else:
+                random_dfs.append(pd.DataFrame(coeffs.T))
         random_df = pd.concat(random_dfs)
     
         # Select cutoff based on percentile
