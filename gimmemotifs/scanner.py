@@ -264,7 +264,7 @@ class Scanner(object):
         for matches in self.scan(seqs, 1, scan_rc, cutoff=0):
             scores = [sorted(m, lambda x,y: 
                                     cmp(y[0], x[0])
-                                    )[0][0] for m in matches]
+                                    )[0][0] for m in matches if len(m) > 0]
             yield scores
  
     def best_match(self, seqs, scan_rc=True):
