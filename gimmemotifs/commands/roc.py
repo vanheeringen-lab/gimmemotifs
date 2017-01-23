@@ -9,7 +9,8 @@ import sys
 import os
 
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.rocmetrics import ROC_values, ROC_AUC, MNCP, max_enrichment, enr_at_fdr, recall_at_fdr
+from gimmemotifs.rocmetrics import ( roc_values, roc_auc, mncp, 
+        max_enrichment, enr_at_fdr, recall_at_fdr )
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.scanner import Scanner
@@ -45,7 +46,7 @@ def roc(args):
     for scores in s.best_score(bg_file):
         for motif,score in zip(motifs, scores):
             bg_total[motif.id].append(score)
-   
+    
     plot_x = []
     plot_y = []
     # Print the metrics
@@ -53,16 +54,16 @@ def roc(args):
     for motif_id in ids:
         fg_vals = fg_total[motif_id] 
         bg_vals = bg_total[motif_id]    
-        (x, y) = ROC_values(fg_vals, bg_vals) 
+        (x, y) = roc_values(fg_vals, bg_vals) 
         plot_x.append(x)
         plot_y.append(y)
-        auc = ROC_AUC(fg_vals, bg_vals)
-        mncp = MNCP(fg_vals, bg_vals)
+        auc = roc_auc(fg_vals, bg_vals)
+        mncp_score = mncp(fg_vals, bg_vals)
         enr_fdr = enr_at_fdr(fg_vals, bg_vals)
         max_enr,score = max_enrichment(fg_vals, bg_vals)
         recall = recall_at_fdr(fg_vals, bg_vals, 0.1)
         print "%s\t%0.3f\t%03f\t%0.2f\t%0.2f\t%0.4f" % (
-                motif_id, auc, mncp, enr_fdr, max_enr, recall)
+                motif_id, auc, mncp_score, enr_fdr, max_enr, recall)
     
     # Plot the ROC curve
     if outputfile:

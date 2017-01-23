@@ -17,7 +17,7 @@ from warnings import warn
 
 from gimmemotifs import mytmpdir
 from gimmemotifs.config import MotifConfig
-from gimmemotifs.rocmetrics import (MNCP, ROC_AUC, max_enrichment, 
+from gimmemotifs.rocmetrics import (mncp, roc_auc, max_enrichment, 
         fraction_fdr, score_at_fdr, enr_at_fdr)
 from gimmemotifs.utils import ks_pvalue
 from gimmemotifs.c_metrics import pwmscan
@@ -696,8 +696,8 @@ class Motif(object):
                 else:
                     neg.append(-100)
            
-            stats["mncp"] = MNCP(pos, neg)
-            stats["roc_auc"] = ROC_AUC(pos, neg)
+            stats["mncp"] = mncp(pos, neg)
+            stats["roc_auc"] = roc_auc(pos, neg)
             x,y = max_enrichment(pos, neg)
             stats["maxenr"] = x
             stats["scoreatmaxenr"] = y
