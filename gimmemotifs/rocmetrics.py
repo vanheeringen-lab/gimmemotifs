@@ -49,9 +49,9 @@ def values_to_labels(fg_vals, bg_vals):
     
     return y_true, y_score
 
-def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.05):
+def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.1):
     """
-    Computes the recall at a specific FDR (default 5%).
+    Computes the recall at a specific FDR (default 10%).
 
     Parameters
     ----------
@@ -344,9 +344,9 @@ def max_fmeasure(fg_vals, bg_vals):
         Maximum f-measure.
     """
     
-    x,y = ROC_values(fg_vals, bg_vals)
-    x = np.array(x[:])
-    y = np.array(y[:])
+    x, y = roc_values(fg_vals, bg_vals)
+    x, y = x[1:], y[1:] # don't include origin
+    
     p = y / (y + x)
     filt = np.logical_and((p * y) > 0, (p + y) > 0)
     p = p[filt]

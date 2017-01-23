@@ -2,7 +2,7 @@ import os
 import re
 import sys
 from functools import partial
-from tempfile import mkdtemp
+from tempfile import mkdtemp,NamedTemporaryFile
 
 # "hidden" features, in development
 try:
@@ -213,12 +213,23 @@ class Scanner(object):
             sys.stderr.write("{}\n".format(e))
 
     def set_motifs(self, motifs):
-        self.motifs = motifs
-        self.motif_ids = [m.id for m in read_motifs(open(motifs))]
+        try:
+            # Check if motifs is a list of Motif instances
+            motifs[0].to_pwm()
+            tmp = NamedTemporaryFile(delete=False)
+            for m in motifs:
+                tmp.write("{}\n".format(m.to_pwm()))
+            tmp.close()
+            motif_file = tmp.name
+        except AttributeError as e:
+            motif_file = motifs
+
+        self.motifs = motif_file
+        self.motif_ids = [m.id for m in read_motifs(open(motif_file))]
         self.checksum = {}
         if self.use_cache:
             chksum = CityHash64("\n".join(sorted(self.motif_ids)))
-            self.checksum[self.motifs] = chksum
+            self.checksum[self.motif_file] = chksum
 
     def set_threshold(self):
         """
