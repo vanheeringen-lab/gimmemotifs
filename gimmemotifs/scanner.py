@@ -46,6 +46,8 @@ def scan_sequence(seq, motifs, nreport, scan_rc):
     # scan for motifs
     for motif, cutoff in motifs:
         result = pwmscan(seq, motif.pwm, cutoff, nreport, scan_rc)
+        if len(result) == 0:
+            result = [[motif.pwm_min_score(), 0, 0]] * nreport
         ret.append(result)
 
     # return results
