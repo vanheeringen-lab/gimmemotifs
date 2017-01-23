@@ -18,6 +18,7 @@ import urllib
 import urllib2
 import re
 from distutils.spawn import find_executable
+import gzip 
 
 import pybedtools
 
@@ -43,12 +44,18 @@ def check_genome(genome):
 def create_bedtools_fa(index_dir, fasta_dir):
     g = GenomeIndex(index_dir)
 
+    genome_fa = os.path.join(index_dir, "genome.fa")
     # Create genome FASTA file for use with bedtools
-    with open(os.path.join(index_dir, "genome.fa"), 'w') as out:
+    with open(genome_fa, 'w') as out:
         for f in find_by_ext(fasta_dir, FASTA_EXT):
             for line in open(f):
                 out.write(line)
 
+    # Delete old bedtools index if it exists, otherwise bedtools will
+    # give an error.
+    if os.path.exists(genome_fa + ".fai"):
+        os.unlink(genome_fa + ".fai")
+    
     test_chr = g.get_chromosomes()[0]
     tmp = NamedTemporaryFile()
     tmp.write("{}\t1\t2\n".format(test_chr))
@@ -56,7 +63,7 @@ def create_bedtools_fa(index_dir, fasta_dir):
 
     b = pybedtools.BedTool(tmp.name)
     try:
-        b.nucleotide_content(fi=os.path.join(index_dir, "genome.fa"))
+        b.nucleotide_content(fi=genome_fa)
     except pybedtools.helpers.BEDToolsError as e:
         if str(e).find("generating") == -1:
             raise
@@ -113,12 +120,26 @@ def get_genome(genomebuild, fastadir, indexdir=None):
             url = UCSC_GENE_URL.format(genomebuild) + a
             break
     if url:
+        sys.stderr.write("Using {}\n".format(url))
         urllib.urlretrieve(
                 url,
                 tmp.name
                 )
+         
+        with gzip.open(tmp.name) as f:
+            cols = f.readline().split("\t")
 
-        sp.call("zcat {} | cut -f2-11 | {} /dev/stdin {}".format(tmp.name, pred, gene_file), shell=True)
+        for i,col in enumerate(cols):
+            if col == "+" or col == "-":
+                break
+        start_col = i - 1
+        end_col = start_col + 10
+       
+        cmd = "zcat {} | cut -f{}-{} | {} /dev/stdin {}"
+        print cmd.format(tmp.name, start_col, end_col, pred, gene_file)
+        sp.call(cmd.format(
+            tmp.name, start_col, end_col, pred, gene_file), 
+            shell=True)
 
     else:
         sys.stderr.write("No annotation found!")
@@ -157,7 +178,7 @@ def get_genome(genomebuild, fastadir, indexdir=None):
         cmd = "gunzip {0}".format(genome_fa)
 
     sp.call(cmd, shell=True, cwd=genome_dir)
-
+    
     fa_files = glob("{}/*.fa".format(genome_dir))
     if len(fa_files) == 1:
         f = Fasta(fa_files[0])
@@ -172,8 +193,6 @@ def get_genome(genomebuild, fastadir, indexdir=None):
     g = g.create_index(genome_dir, index_dir)
 
     create_bedtools_fa(index_dir, genome_dir)
-
-
 
 class GenomeIndex:
     """ Index fasta-formatted files for faster retrieval of sequences
