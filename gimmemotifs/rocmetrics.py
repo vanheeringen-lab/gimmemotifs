@@ -4,19 +4,78 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 
-""" Module to calculate ROC and MNCP scores """
+""" Module to calculate statistics, such as ROC AUC and MNCP scores, 
+on the basis of motif scanning results.
+"""
 
 # External imports
-from scipy.stats import stats,scoreatpercentile
-from sklearn.metrics import precision_recall_curve
+from scipy.stats import stats, scoreatpercentile
+from sklearn.metrics import precision_recall_curve, roc_auc_score, roc_curve
 import numpy as np
 
-def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.05):
-    y_score = np.hstack((fg_vals, bg_vals))
+__all__ = [
+    "recall_at_fdr",
+    "fraction_fdr",
+    "score_at_fdr",
+    "enr_at_fdr",
+    "max_enrichment",
+    "mncp",
+    "roc_auc",
+    "roc_auc_xlim",
+    "max_fmeasure",
+]
+
+def values_to_labels(fg_vals, bg_vals):
+    """
+    Convert two arrays of values to an array of labels and an array of scores.
+
+    Parameters
+    ----------
+    fg_vals : array_like
+        The list of values for the positive set.
+
+    bg_vals : array_like
+        The list of values for the negative set.
+
+    Returns
+    -------
+    y_true : array
+        Labels.
+    y_score : array
+        Values.
+    """ 
     y_true = np.hstack((np.ones(len(fg_vals)), np.zeros(len(bg_vals))))
+    y_score = np.hstack((fg_vals, bg_vals))
+    
+    return y_true, y_score
+
+def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.1):
+    """
+    Computes the recall at a specific FDR (default 10%).
+
+    Parameters
+    ----------
+    fg_vals : array_like
+        The list of values for the positive set.
+
+    bg_vals : array_like
+        The list of values for the negative set.
+    
+    fdr : float, optional
+        The FDR (between 0.0 and 1.0).
+    
+    Returns
+    -------
+    recall : float
+        The recall at the specified FDR.
+    """
+    if len(fg_vals) == 0:
+        return 0.0
+    
+    y_true, y_score = values_to_labels(fg_vals, bg_vals)
     
     precision, recall, thresholds = precision_recall_curve(y_true, y_score)
-    fdr = 1- precision
+    fdr = 1 - precision
     cutoff_index = next(i for i, x in enumerate(fdr) if x <= fdr_cutoff)
     return recall[cutoff_index]
 
@@ -29,7 +88,27 @@ def score_at_fdr(fg_vals, bg_vals, fdr=5):
     bg_vals = np.array(bg_vals)
     return scoreatpercentile(bg_vals, 100 - fdr)
 
-def enr_at_fdr(fg_vals, bg_vals, fdr=5):
+def enr_at_fdr(fg_vals, bg_vals, fdr=5.0):
+    """
+    Computes the enrichment at a specific FDR (default 5%).
+
+    Parameters
+    ----------
+    fg_vals : array_like
+        The list of values for the positive set.
+
+    bg_vals : array_like
+        The list of values for the negative set.
+    
+    fdr : float, optional
+        The FDR in percentages.
+    
+    Returns
+    -------
+    enrichment : float
+        The enrichment at the specified FDR.
+    """
+    
     pos = np.array(fg_vals)
     neg = np.array(bg_vals)
     s = scoreatpercentile(neg, 100 - fdr)
@@ -39,7 +118,28 @@ def enr_at_fdr(fg_vals, bg_vals, fdr=5):
     return len(pos[pos >= s]) / neg_matches * len(neg) / float(len(pos))
 
 def max_enrichment(fg_vals, bg_vals, minbg=2):
+    """
+    Computes the maximum enrichment.
 
+    Parameters
+    ----------
+    fg_vals : array_like
+        The list of values for the positive set.
+
+    bg_vals : array_like
+        The list of values for the negative set.
+    
+    minbg : int, optional
+        Minimum number of matches in background. The default is 2.
+    
+    Returns
+    -------
+    enrichment : float
+        Maximum enrichment.
+
+    score : float
+        Score at maximum enrichment.
+    """
     scores = np.hstack((fg_vals, bg_vals))
     idx = np.argsort(scores)
     x = np.hstack((np.ones(len(fg_vals)), np.zeros(len(bg_vals))))
@@ -56,7 +156,25 @@ def max_enrichment(fg_vals, bg_vals, minbg=2):
                 s = scores[idx[i]]
     return m, s
 
-def MNCP(fg_vals, bg_vals):
+def mncp(fg_vals, bg_vals):
+    """
+    Computes the Mean Normalized Conditional Probability (MNCP).
+
+    MNCP is described in Clarke & Granek, Bioinformatics, 2003.
+
+    Parameters
+    ----------
+    fg_vals : array_like
+        The list of values for the positive set.
+
+    bg_vals : array_like
+        The list of values for the negative set.
+    
+    Returns
+    -------
+    score : float
+        MNCP score
+    """
     fg_len = len(fg_vals)
     total_len = len(fg_vals) + len(bg_vals)
 
@@ -70,31 +188,36 @@ def MNCP(fg_vals, bg_vals):
 
     slopes = []
     for i in range(len(fg_vals)):
-        slope = ((fg_len - fg_rank[i] + 1) / fg_len ) / ((total_len - total_rank[i] + 1)/ total_len)
+        slope = ((fg_len - fg_rank[i] + 1) / fg_len ) / (
+                (total_len - total_rank[i] + 1)/ total_len)
         slopes.append(slope)
+    
     return np.mean(slopes)
 
-def ROC_AUC(fg_vals, bg_vals):
-    #if len(fg_vals) != len(bg_vals):
-    #    return None
-    
-    if len(fg_vals) == 0 or len(bg_vals) == 0:
-        return None
-    
-    fg_len = len(fg_vals)
-    total_len = len(fg_vals) + len(bg_vals)
-    
-    if type(fg_vals) != type(np.array([])):
-        fg_vals = np.array(fg_vals)
-    if type(bg_vals) != type(np.array([])):
-        bg_vals = np.array(bg_vals)
+def roc_auc(fg_vals, bg_vals):
+    """
+    Computes the ROC Area Under Curve (ROC AUC)
 
-    fg_rank = stats.rankdata(fg_vals) 
-    total_rank = stats.rankdata(np.hstack((fg_vals, bg_vals)))
-    
-    return (sum(total_rank[:fg_len]) - sum(fg_rank))/ (fg_len * (total_len - fg_len))
+    Parameters
+    ----------
+    fg_vals : array_like
+        list of values for positive set
 
-def ROC_AUC_xlim(x_bla, y_bla, xlim=None):
+    bg_vals : array_like
+        list of values for negative set
+    
+    Returns
+    -------
+    score : float
+        ROC AUC score
+    """
+
+    # Create y_labels
+    y_true, y_score = values_to_labels(fg_vals, bg_vals)
+    
+    return roc_auc_score(y_true, y_score)
+
+def roc_auc_xlim(x_bla, y_bla, xlim=0.1):
     x = x_bla[:]
     y = y_bla[:]
 
@@ -172,54 +295,58 @@ def ROC_AUC_xlim(x_bla, y_bla, xlim=None):
     if index < len(bla):
         (rank, i) = bla[index]
         auc += prev_y * (xlim - prev_x) + ((y[i] - prev_y)/(x[i] - prev_x) * (xlim -prev_x) * (xlim - prev_x)/2)
-
+ 
     return auc
 
-def ROC_values(x_bla, y_bla):
-    if len(x_bla) == 0 or len(y_bla) == 0:
-        return [],[]
+def roc_values(fg_vals, bg_vals):
+    """
+    Return fpr (x) and tpr (y) of the ROC curve.
 
-    x = x_bla[:]
-    y = y_bla[:]
+    Parameters
+    ----------
+    fg_vals : array_like
+        The list of values for the positive set.
 
-    x.sort()
-    y.sort()
+    bg_vals : array_like
+        The list of values for the negative set.
 
-    u = {}
-    for i in x + y:
-        u[i] = 1
+    Returns
+    -------
+    fpr : array
+        False positive rate.
+    tpr : array
+        True positive rate.
+    """
+    if len(fg_vals) == 0:
+        return 0
+    
+    y_true, y_score = values_to_labels(fg_vals, bg_vals)
+    
+    fpr, tpr, thresholds = roc_curve(y_true, y_score)
+     
+    return fpr, tpr
 
-    vals = u.keys()
-    vals.sort()
-    
-    len_x = float(len(x))
-    len_y = float(len(y))
-    
-    new_x = []
-    new_y = []
-    
-    x_p = 0
-    y_p = 0
-    for val in vals[::-1]:
-        while len(x) > 0 and x[-1] >= val:
-            x.pop()
-            x_p += 1
-        while len(y) > 0 and y[-1] >= val:
-            y.pop()
-            y_p += 1
-        new_y.append((len_x - x_p) / len_x)
-        new_x.append((len_y - y_p) / len_y)
-    
-    #print new_x
-    #print new_y
-    new_x = 1 - np.array(new_x)
-    new_y = 1 - np.array(new_y)
-    
-    return (new_x, new_y)
+def max_fmeasure(fg_vals, bg_vals):
+    """
+    Computes the maximum F-measure.
 
-def max_fmeasure(x,y):
-    x = np.array(x[:])
-    y = np.array(y[:])
+    Parameters
+    ----------
+    fg_vals : array_like
+        The list of values for the positive set.
+
+    bg_vals : array_like
+        The list of values for the negative set.
+    
+    Returns
+    -------
+    f : float
+        Maximum f-measure.
+    """
+    
+    x, y = roc_values(fg_vals, bg_vals)
+    x, y = x[1:], y[1:] # don't include origin
+    
     p = y / (y + x)
     filt = np.logical_and((p * y) > 0, (p + y) > 0)
     p = p[filt]

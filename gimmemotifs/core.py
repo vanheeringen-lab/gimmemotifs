@@ -35,7 +35,7 @@ from gimmemotifs import genome_index
 from gimmemotifs.cluster import cluster_motifs
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.commands.pwmscan import command_scan
-from gimmemotifs.rocmetrics import ROC_values, ROC_AUC, MNCP, max_fmeasure
+from gimmemotifs.rocmetrics import roc_values, roc_auc, mncp, max_fmeasure
 from gimmemotifs.motif import read_motifs
 from gimmemotifs import mytmpdir
 try:
@@ -59,10 +59,9 @@ def get_scores(motif, fg_file, bg_file):
         bg_result = motif.pwm_scan_score(Fasta(bg_file), cutoff=0.0, nreport=1)
         bg_vals = [sorted(x)[-1] for x in bg_result.values()]
 
-        (x, y) = ROC_values(fg_vals, bg_vals)
-        auc = ROC_AUC(fg_vals, bg_vals)
-        mncp = MNCP(fg_vals, bg_vals)
-        max_f, y = max_fmeasure(x,y)
+        auc = roc_auc(fg_vals, bg_vals)
+        mncp = mncp(fg_vals, bg_vals)
+        max_f, y = max_fmeasure(fg_vals, bg_vals)
 
     except Exception,e:
         error = e
@@ -76,7 +75,7 @@ def get_roc_values(motif, fg_file, bg_file):
         bg_result = motif.pwm_scan_score(Fasta(bg_file), cutoff=0.0, nreport=1)
         bg_vals = [sorted(x)[-1] for x in bg_result.values()]
 
-        (x, y) = ROC_values(fg_vals, bg_vals)
+        (x, y) = roc_values(fg_vals, bg_vals)
         return None,x,y
     except Exception,e:
         error = e
@@ -508,7 +507,7 @@ class GimmeMotifs(object):
         all_auc = {}
         all_mncp = {}
         f = open(roc_file, "w")
-        f.write("Motif\tROC AUC\tMNCP\tMax f-measure\tSens @ max f-measure\n")
+        f.write("Motif\tROC AUC\tmncp\tMax f-measure\tSens @ max f-measure\n")
         for id in motifs.keys():
             error, auc, mncp, max_f, y = jobs[id].get()
             if error:
@@ -558,7 +557,7 @@ class GimmeMotifs(object):
             sort_key = "gc"
 
         f = open(self.text_report, "w")
-        header = "ID\tconsensus\tBest match db\tp-value best match\t" + "\t".join("Enrichment (%s)\tp-value (%s)\tROC AUC (%s)\tMNCP (%s)" % (b,b,b,b) for b in background)
+        header = "ID\tconsensus\tBest match db\tp-value best match\t" + "\t".join("Enrichment (%s)\tp-value (%s)\tROC AUC (%s)\tmncp (%s)" % (b,b,b,b) for b in background)
         #print header
         f.write("%s\n" % header)
         for motif in sorted(motifs, cmp=lambda x,y: cmp(self.mncp[sort_key][y.id], self.mncp[sort_key][x.id])):

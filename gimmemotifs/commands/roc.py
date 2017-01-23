@@ -4,15 +4,12 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-
 import sys
 import os
 
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.rocmetrics import ROC_values, ROC_AUC, MNCP, max_enrichment, enr_at_fdr, recall_at_fdr
-from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import roc_plot
-from gimmemotifs.scanner import Scanner
+from gimmemotifs.stats import calc_stats
 
 def roc(args):
     """ Calculate ROC_AUC and other metrics and optionally plot ROC curve.
@@ -27,43 +24,35 @@ def roc(args):
     
     motifs = read_motifs(open(pwmfile), fmt="pwm")
 
-    s = Scanner()
-    s.set_motifs(pwmfile)
-    
     ids = []
     if args.ids:
         ids = args.ids.split(",")
     else:
         ids = [m.id for m in motifs]
-
-    fg_total = dict([(m.id, []) for m in motifs])
-    for scores in s.best_score(fg_file):
-        for motif,score in zip(motifs, scores):
-            fg_total[motif.id].append(score)
+    motifs = [m for m in motifs if (m.id in ids)]
     
-    bg_total = dict([(m.id, []) for m in motifs])
-    for scores in s.best_score(bg_file):
-        for motif,score in zip(motifs, scores):
-            bg_total[motif.id].append(score)
+    stats = ["roc_auc", "mncp", "enr_at_fdr", "max_enrichment", 
+            "recall_at_fdr", "roc_values"]
    
+    motif_stats = calc_stats(motifs, fg_file, bg_file, stats)
+    
     plot_x = []
     plot_y = []
     # Print the metrics
     print "Motif\tROC AUC\tMNCP\tEnr. at 5% FDR\tMax enr.\tRecall at 10% FDR"
     for motif_id in ids:
-        fg_vals = fg_total[motif_id] 
-        bg_vals = bg_total[motif_id]    
-        (x, y) = ROC_values(fg_vals, bg_vals) 
-        plot_x.append(x)
-        plot_y.append(y)
-        auc = ROC_AUC(fg_vals, bg_vals)
-        mncp = MNCP(fg_vals, bg_vals)
-        enr_fdr = enr_at_fdr(fg_vals, bg_vals)
-        max_enr,score = max_enrichment(fg_vals, bg_vals)
-        recall = recall_at_fdr(fg_vals, bg_vals, 0.1)
-        print "%s\t%0.3f\t%03f\t%0.2f\t%0.2f\t%0.4f" % (
-                motif_id, auc, mncp, enr_fdr, max_enr, recall)
-    
+        if outputfile:
+            x, y = motif_stats[motif_id]["roc_values"]
+            plot_x.append(x)
+            plot_y.append(y)
+        print "{}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.2f}\t{:0.4f}".format(
+                motif_id, 
+                motif_stats[motif_id]["roc_auc"], 
+                motif_stats[motif_id]["mncp"], 
+                motif_stats[motif_id]["enr_at_fdr"], 
+                motif_stats[motif_id]["max_enrichment"][0], 
+                motif_stats[motif_id]["recall_at_fdr"],
+                )
     # Plot the ROC curve
     if outputfile:
         roc_plot(outputfile, plot_x, plot_y, ids=ids)
