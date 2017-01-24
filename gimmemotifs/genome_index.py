@@ -63,6 +63,7 @@ def create_bedtools_fa(index_dir, fasta_dir):
 
     b = pybedtools.BedTool(tmp.name)
     try:
+        # pylint: disable=unexpected-keyword-arg
         b.nucleotide_content(fi=genome_fa)
     except pybedtools.helpers.BEDToolsError as e:
         if str(e).find("generating") == -1:
