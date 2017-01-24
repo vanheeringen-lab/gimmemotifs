@@ -18,7 +18,7 @@ BG_RANK = {"user":1, "promoter":2, "gc":3, "random":4, "genomic":5}
 FASTA_EXT = [".fasta", ".fa", ".fsa"]
 
 
-class MotifConfig:
+class MotifConfig(object):
     __shared_state = {}
     prefix = sysconfig.get_config_var("prefix")
     config_dir = "share/gimmemotifs/gimmemotifs.cfg"
@@ -44,10 +44,10 @@ class MotifConfig:
         
     def bin(self, program):
         try:
-            bin = self.config.get(program, "bin")
+            exe = self.config.get(program, "bin")
         except: 
             raise ValueError, "No configuration found for %s" % program
-        return bin
+        return exe
     
     def set_default_params(self, params):
         if not self.config.has_section("params"):
@@ -64,9 +64,9 @@ class MotifConfig:
 
     def get_seqlogo(self):
         try:
-            bin = self.config.get("main", "seqlogo")
-            return bin
-        except:
+            exe = self.config.get("main", "seqlogo")
+            return exe
+        except Exception:
             return None
 
     def dir(self, program):
@@ -74,12 +74,12 @@ class MotifConfig:
             if self.config.has_option(program, "dir"):
                 try: 
                     return self.config.get(program, "dir")
-                except:
+                except Exception:
                     return None
             else:
                 return os.path.dirname(self.bin(program))
         else:
-            raise ValueError, "No configuration found for %s" % program
+            raise ValueError("No configuration found for %s" % program)
     
     def set_program(self, program, d):
         if not self.config.has_section(program):
@@ -104,10 +104,10 @@ class MotifConfig:
     def get_score_dir(self):
         return self.config.get("main", "score_dir")
 
-    def set_seqlogo(self, bin):
+    def set_seqlogo(self, exe):
         if not self.config.has_section("main"):
             self.config.add_section("main")
-        self.config.set("main", "seqlogo",bin)
+        self.config.set("main", "seqlogo", exe)
 
     def set_index_dir(self, path):
         if not self.config.has_section("main"):
