@@ -196,6 +196,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
         lengths = [len(seq) for seq in fa.seqs]
     except:
         try:
+            # pylint: disable=unexpected-keyword-arg
             bed = pybedtools.BedTool(matchfile)
             gc = [float(x[4]) for x in bed.nucleotide_content(fi=genome_fa)]
             lengths = [x.length for x in bed]
@@ -230,6 +231,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
     #sys.stderr.write("Generating sequences\n")
     #sys.stderr.write("{}\n".format(number))
     
+    # pylint: disable=unexpected-keyword-arg
     r = rnd.random(l=length, n=number * 15, g=genome_size).nucleotide_content(fi=genome_fa)
    #sys.stderr.write("Retrieving\n")
     features = [f[:3] + [float(f[7])] for f in r if float(f[12]) <= length * N_FRACTION]
