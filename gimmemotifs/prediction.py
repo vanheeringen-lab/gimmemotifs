@@ -37,7 +37,7 @@ def _calc_motif_stats(motif, fg_fa, bg_fa):
 
 def _run_tool(job_name, t, fastafile, params):
     try:
-        result = t.run(fastafile, ".", params, mytmpdir())
+        result = t.run(fastafile, params, mytmpdir())
     except Exception as e:
         result = ([], "", "{} failed to run: {}".format(job_name, e))
     

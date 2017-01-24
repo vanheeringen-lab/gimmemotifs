@@ -24,7 +24,7 @@ def prediction(args):
     if paramfile:
         params = load(open(paramfile))
 
-    (motifs, stdout, stderr) = t.run(infile, ".", params)
+    (motifs, stdout, stderr) = t.run(infile, params)
 
     sys.stderr.write(stderr)
     sys.stdout.write(stdout)

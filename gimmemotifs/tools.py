@@ -10,7 +10,7 @@
 import re
 import os
 import sys
-from subprocess import Popen, PIPE, call
+from subprocess import Popen, PIPE
 import shutil
 from tempfile import NamedTemporaryFile, mkdtemp
 import StringIO
@@ -26,17 +26,6 @@ try:
     from gimmemotifs.motif import read_motifs, Motif
 except ImportError:
     pass
-
-def locate_tool(tool, verbose=True): 
-    tool = re.sub(r'[^a-zA-Z]','',tool) 
-    m = eval(tool)() 
-    tool_bin = which(m.cmd) 
-    if tool_bin:
-        if verbose:
-            print "Found {} in {}".format(m.name, tool_bin) 
-        return tool_bin 
-    else: 
-        print "Couldn't find {}".format(m.name)
 
 def get_tool(name): 
     """
@@ -57,7 +46,6 @@ def get_tool(name):
         raise ValueError("Tool {0} not found!\n".format(name))
 
     t = __tools__[tool]()
-    print t
 
     if not t.is_installed():
         sys.stderr.write("Tool {0} not installed!\n".format(tool))
@@ -66,6 +54,17 @@ def get_tool(name):
         sys.stderr.write("Tool {0} not configured!\n".format(tool))
 
     return t
+
+def locate_tool(tool, verbose=True): 
+    m = get_tool(tool) 
+    tool_bin = which(m.cmd) 
+    if tool_bin:
+        if verbose:
+            print "Found {} in {}".format(m.name, tool_bin) 
+        return tool_bin 
+    else: 
+        print "Couldn't find {}".format(m.name)
+
 
 class MotifProgram(object):
     config = MotifConfig()
@@ -89,7 +88,7 @@ class MotifProgram(object):
     def is_installed(self):
         return self.is_configured() and os.access(self.bin(), os.X_OK)
 
-    def run(self, fastafile, savedir, params=None, tmp=None):
+    def run(self, fastafile, params=None, tmp=None):
 
         if not self.is_configured():
             raise ValueError("%s is not configured" % self.name)
@@ -100,7 +99,7 @@ class MotifProgram(object):
         self.tmpdir = mkdtemp(prefix="{0}.".format(self.name), dir=tmp)
  
         try:
-            return self._run_program(self.bin(), fastafile, savedir, params)
+            return self._run_program(self.bin(), fastafile, params)
         except KeyboardInterrupt:
             return ([], "Killed", "Killed")
 #        except Exception as e:
@@ -113,7 +112,7 @@ class XXmotif(MotifProgram):
         self.cmd = "XXmotif"
         self.use_width = False
 
-    def _run_program(self, bin, fastafile, savedir="", params=None):
+    def _run_program(self, bin, fastafile, params=None):
         if params is None:
             params = {}
         
@@ -170,7 +169,7 @@ class Homer(MotifProgram):
         self.cmd = "homer2"
         self.use_width = True
 
-    def _run_program(self, bin, fastafile, savedir="", params=None):
+    def _run_program(self, bin, fastafile, params=None):
         
         default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
         if params is not None: 
@@ -229,7 +228,7 @@ class BioProspector(MotifProgram):
         self.cmd = "BioProspector"
         self.use_width = True
 
-    def _run_program(self, bin, fastafile, savedir="", params=None):
+    def _run_program(self, bin, fastafile, params=None):
         
         default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
         if params is not None: 
@@ -309,7 +308,7 @@ class Hms(MotifProgram):
         self.cmd = "hms"
         self.use_width = False
     
-    def _run_program(self, bin, fastafile, savedir="", params=None):
+    def _run_program(self, bin, fastafile, params=None):
 
         hms = bin
         thetas = ["theta%s.txt" % i for i in [0,1,2,3]]
@@ -367,7 +366,7 @@ class Amd(MotifProgram):
         self.cmd = "AMD.bin"
         self.use_width = False
     
-    def _run_program(self, bin, fastafile, savedir="", params=None):
+    def _run_program(self, bin, fastafile, params=None):
         
         default_params = {"background":None}
         if params is not None: 
@@ -439,7 +438,7 @@ class Improbizer(MotifProgram):
         self.cmd = "ameme"
         self.use_width = False 
 
-    def _run_program(self, bin, fastafile, savedir="", params=None):
+    def _run_program(self, bin, fastafile, params=None):
         
         default_params = {"background":None, "number":10}
         if params is not None: 
@@ -505,7 +504,7 @@ class Trawler(MotifProgram):
         self.cmd = "trawler.pl"
         self.use_width = False
 
-    def _run_program(self, bin, fastafile, savedir="", params=None):
+    def _run_program(self, bin, fastafile, params=None):
         
         default_params = {"single":False, "background":None}
         if params is not None: 
@@ -518,9 +517,6 @@ class Trawler(MotifProgram):
             print "Background file needed!"
             sys.exit()
         bgfile = os.path.abspath(default_params["background"])
-        savedir = os.path.abspath(savedir)
-        
-        #savedir = "/tmp/trawler/"
 
         tmp = NamedTemporaryFile(dir=self.tmpdir, delete=False)
         shutil.copy(fastafile, tmp.name)
@@ -574,7 +570,7 @@ class Weeder(MotifProgram):
         self.cmd = "weederTFBS.out"
         self.use_width = False
 
-    def _run_program(self, bin,fastafile, savedir="", params=None):
+    def _run_program(self, bin,fastafile, params=None):
         #try: 
         #    from gimmemotifs.mp import pool
         #except:
@@ -622,7 +618,6 @@ class Weeder(MotifProgram):
                 
 
         fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
 
         tmp = NamedTemporaryFile(dir=self.tmpdir)
         name = tmp.name
@@ -738,7 +733,7 @@ class MotifSampler(MotifProgram):
         self.cmd = "MotifSampler"
         self.use_width = True
 
-    def _run_program(self, bin, fastafile, savedir, params=None):
+    def _run_program(self, bin, fastafile, params=None):
         
         default_params = {"width":10, "background":"", "single":False, "number":10}
         if params is not None: 
@@ -758,7 +753,6 @@ class MotifSampler(MotifProgram):
                 raise Exception, "No background specified for {}".format(self.name)
 
         fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
     
         tmp = NamedTemporaryFile(dir=self.tmpdir)
         pwmfile = tmp.name
@@ -860,14 +854,13 @@ class MDmodule(MotifProgram):
         self.cmd = "MDmodule"
         self.use_width = True
         
-    def _run_program(self, bin, fastafile, savedir, params=None):
+    def _run_program(self, bin, fastafile, params=None):
         
         default_params = {"width":10, "number":10}
         if params is not None: 
             default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
     
         new_file = os.path.join(self.tmpdir, "mdmodule_in.fa")
         shutil.copy(fastafile, new_file)
@@ -947,10 +940,9 @@ class ChIPMunk(MotifProgram):
         self.cmd = "ChIPMunk.sh"
         self.use_width = True
 
-    def _run_program(self, bin, fastafile, savedir, params=None):
+    def _run_program(self, bin, fastafile, params=None):
 
         fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
 
         basename = "munk_in.fa"
 
@@ -1009,14 +1001,13 @@ class Posmo(MotifProgram):
         self.cmd = "posmo"
         self.use_width = False
 
-    def _run_program(self, bin, fastafile, savedir, params=None):
+    def _run_program(self, bin, fastafile, params=None):
         
         default_params = {}
         if params is not None: 
             default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
     
         basename = "posmo_in.fa"
 
@@ -1076,14 +1067,13 @@ class Gadem(MotifProgram):
         self.cmd = "gadem"
         self.use_width = False
 
-    def _run_program(self, bin, fastafile, savedir, params=None):
+    def _run_program(self, bin, fastafile, params=None):
         
         default_params = {}
         if params is not None: 
             default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
     
         new_file = os.path.join(self.tmpdir, "gadem_in.fa")
         shutil.copy(fastafile, new_file)
@@ -1150,7 +1140,7 @@ class Jaspar(MotifProgram):
         self.cmd = "/bin/false"    
         self.use_width = False
 
-    def _run_program(self, bin, fastafile, savedir, params=None):
+    def _run_program(self, bin, fastafile, params=None):
         fname = os.path.join(self.config.get_motif_dir(), "JASPAR2010_vertebrate.pwm")
         motifs =  read_motifs(open(fname), fmt="pwm")
         for motif in motifs:
@@ -1163,14 +1153,13 @@ class Meme(MotifProgram):
         self.cmd = "meme.bin"
         self.use_width = True
 
-    def _run_program(self, bin, fastafile, savedir, params=None):
+    def _run_program(self, bin, fastafile, params=None):
         #EVT = 1.0
         default_params = {"width":10, "single":False, "number":10}
         if params is not None: 
             default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
         tmp = NamedTemporaryFile(dir=self.tmpdir)
         tmpname = tmp.name
     
@@ -1236,7 +1225,7 @@ class MemeW(MotifProgram):
         self.cmd = "meme.bin"
         self.use_width = False
 
-    def _run_program(self, bin, fastafile, savedir, params=None):
+    def _run_program(self, bin, fastafile, params=None):
         
         #EVT = 1.0
         default_params = {"single":False, "number":10}
@@ -1244,7 +1233,6 @@ class MemeW(MotifProgram):
             default_params.update(params)
         
         fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
         tmp = NamedTemporaryFile(dir=self.tmpdir)
         tmpname = tmp.name
     
