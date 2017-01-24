@@ -3,16 +3,14 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-
 """ Core motif class """
-
 # Python imports
 import re
 import sys
 import random
 from math import log,sqrt
-from tempfile import NamedTemporaryFile
 import subprocess as sp
+from tempfile import NamedTemporaryFile
 from warnings import warn
 
 from gimmemotifs import mytmpdir
@@ -29,6 +27,24 @@ except ImportError:
     pass
 
 class Motif(object):
+    
+    """
+    Representation of a transcription factor binding motif.
+
+    Examples
+    --------
+
+    >>> motif = Motif([[0,1,0,0], [0.5,0,0,0.5], [0,0,1,0]])
+    >>> print(motif.to_pwm())
+    >
+    0   1   0   0
+    0.5 0   0   0.5
+    0   0   1   0
+    >>> print(motif.to_consensus())
+    CwG
+    
+    """
+    
     PSEUDO_PFM_COUNT = 1000 # Jaspar mean
     PSEUDO_PWM = 1e-6
 
@@ -104,6 +120,14 @@ class Motif(object):
     
     
     def __getitem__(self, x):
+        """
+        Take slice of a motif and return as new Motif instance.
+
+        Returns
+        -------
+        motif : Motif instance
+            Slice of the motif.
+        """
         m = Motif()
         if self.pwm:
             m.pwm = self.pwm[x]
@@ -116,6 +140,14 @@ class Motif(object):
         return m
             
     def __len__(self):
+        """
+        Return the motif length.
+
+        Returns
+        -------
+        len : int
+            Motif length
+        """
         return len(self.to_consensus())
 
     def __repr__(self):
@@ -128,11 +160,33 @@ class Motif(object):
         return ic
 
     def pwm_min_score(self):
+        """
+        Return the minimum PWM score.
+
+        Returns
+        -------
+        score : float
+            Minimum PWM score.
+        """
         score = 0
         for row in self.pwm:
             score += log(min(row) / 0.25 + 0.01)
         return score
    
+    def pwm_max_score(self):
+        """
+        Return the maximum PWM score.
+
+        Returns
+        -------
+        score : float
+            Maximum PWM score.
+        """
+        score = 0
+        for row in self.pwm:
+            score += log(max(row) / 0.25 + 0.01)
+        return score
+    
     def score_kmer(self, kmer):
         if len(kmer) != len(self.pwm):
             raise Exception("incorrect k-mer length")
@@ -142,12 +196,6 @@ class Motif(object):
         for nuc, row in zip(kmer.upper(), self.pwm):
             score += log(row[d[nuc]] / 0.25 + 0.01)
 
-        return score
-
-    def pwm_max_score(self):
-        score = 0
-        for row in self.pwm:
-            score += log(max(row) / 0.25 + 0.01)
         return score
 
     def pfm_to_pwm(self, pfm, pseudo=0.001):
