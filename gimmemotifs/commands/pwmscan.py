@@ -4,7 +4,9 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-
+"""
+Command line function 'scan'.
+"""
 import os
 import re
 
@@ -15,8 +17,7 @@ from gimmemotifs.config import MotifConfig
 
 MAX_CPUS = 16
 
-def format_line(fa, seq_id, motif, score, pos, strand, bed=False):                
-
+def format_line(fa, seq_id, motif, score, pos, strand, bed=False): 
     strandmap = {-1:"-",1:"+"}
     p = re.compile(r'([^\s:]+):(\d+)-(\d+)')
     if bed:
@@ -52,7 +53,7 @@ def format_line(fa, seq_id, motif, score, pos, strand, bed=False):
             fa[seq_id][pos: pos + len(motif)]
         )
 
-def scan_table(s, inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods):
+def scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods):
     # header
     yield "\t{}".format("\t".join([m.id for m in motifs]))
     table = True
@@ -117,36 +118,25 @@ def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False,
     fa = as_fasta(inputfile, index_dir)
     
     if table:
-        scan_table(s, inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods)
+        scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods)
     elif score_table:
         scan_score_table(s, fa, motifs, scan_rc) 
     else:
         scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods, bed)
 
 def pwmscan(args):
-    inputfile = args.inputfile
-    nreport = args.nreport
-    cutoff = args.cutoff
-    bed = args.bed
-    scan_rc = args.scan_rc
-    table = args.table
-    score_table = args.score_table
-    pwmfile = args.pwmfile
-    bgfile = args.bgfile
-    moods = args.moods
-
     for line in command_scan(
-            inputfile, 
-            pwmfile, 
-            nreport, 
-            cutoff, 
-            bed, 
-            scan_rc, 
-            table, 
-            score_table,
-            moods,
+            args.inputfile, 
+            args.pwmfile, 
+            args.nreport, 
+            args.cutoff, 
+            args.bed, 
+            args.scan_rc, 
+            args.table, 
+            args.score_table,
+            args.moods,
             args.pvalue,
-            bgfile,
+            args.bgfile,
             genome=args.genome,
             ):
         print line
