@@ -11,7 +11,6 @@ Module to compare DNA sequence motifs (positional frequency matrices)
 # Python imports
 import sys
 import os
-from time import sleep
 import random
 import logging
 
@@ -21,8 +20,7 @@ from scipy.spatial import distance
 import numpy as np
 
 # GimmeMotifs imports
-from gimmemotifs.motif import *
-from gimmemotifs.config import *
+from gimmemotifs.config import MotifConfig
 from gimmemotifs.c_metrics import pwmscan,score
 # pool import is at the bottom
 
@@ -93,7 +91,7 @@ def seqcor(m1, m2, seq=None):
     return max(c)
 
 
-class MotifComparer:
+class MotifComparer(object):
     def __init__(self):
         self.config = MotifConfig()
         self.metrics = ["pcc", "ed", "distance", "wic", "fisim"]
@@ -173,8 +171,8 @@ class MotifComparer:
         
         try:
             [1 - norm.cdf(score[0], m, s), score[1], score[2]]
-        except:
-            print "HOEI: {0}".format(score)
+        except Exception as e:
+            print "Error with score: {}\n{}".format(score, e)
             return [1, np.nan, np.nan]
         return [1 - norm.cdf(score[0], m, s), score[1], score[2]]
 
