@@ -273,15 +273,15 @@ class MotifComparer(object):
         p2 = pwm2[:]
     
         if pos < 1:
-            p1 = [bg for x in range(-pos)] + p1
+            p1 = [bg for _ in range(-pos)] + p1
         else:
-            p2 = [bg for x in range(pos)] + p2
+            p2 = [bg for _ in range(pos)] + p2
     
         diff = len(p1) - len(p2)
         if diff > 0:
-            p2 += [bg for x in range(diff)]
+            p2 += [bg for _ in range(diff)]
         elif diff < 0:
-            p1 += [bg for x in range(-diff)]
+            p1 += [bg for _ in range(-diff)]
     
         return p1,p2
     
@@ -310,11 +310,11 @@ class MotifComparer(object):
         if pos < 0:
             p2 = p2[-pos:]
         else:
-            p2 = [bg for x in range(pos)] + p2
+            p2 = [bg for _ in range(pos)] + p2
             
         diff = len(p1) - len(p2)
         if diff > 0:
-            p2 += [bg for x in range(diff)]
+            p2 += [bg for _ in range(diff)]
         elif diff < 0:
             p2 = p2[:len(p1)]
         return p1,p2
@@ -353,11 +353,10 @@ class MotifComparer(object):
                 result = job.get()
                 # and update the result score
                 for m1,v in result.items():
-                    for m2, score in v.items():
+                    for m2, s in v.items():
                         if not scores.has_key(m1):
                             scores[m1] = {}
-
-                        scores [m1][m2] = score
+                        scores[m1][m2] = s
         
         else:
             # Do the whole thing at once if we don't want parallel
@@ -367,8 +366,11 @@ class MotifComparer(object):
 
     def get_closest_match(self, motifs, dbmotifs, match, metric, combine, parallel=True):
         scores = self.get_all_scores(motifs, dbmotifs, match, metric, combine, parallel=parallel)
-        for motif, matches in scores.items():
-            scores[motif] = sorted(scores[motif].items(), cmp=lambda x,y: cmp(y[1][0], x[1][0]))[0]
+        for motif in scores:
+            scores[motif] = sorted(
+                    scores[motif].items(), 
+                    cmp=lambda x,y: cmp(y[1][0], x[1][0])
+                    )[0]
         return scores
 
     def generate_score_dist(self, motifs, match, metric, combine):
