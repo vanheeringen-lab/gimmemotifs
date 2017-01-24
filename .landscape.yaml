@@ -1,3 +1,4 @@
+doc-warnings: true
 ignore-paths:
   - src/
   - gimmemotifs/prediction_torque.py
