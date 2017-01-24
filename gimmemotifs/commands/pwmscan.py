@@ -52,16 +52,16 @@ def format_line(fa, seq_id, motif, score, pos, strand, bed=False):
             fa[seq_id][pos: pos + len(motif)]
         )
 
-def scan_table(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue):
+def scan_table(s, inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods):
     # header
     yield "\t{}".format("\t".join([m.id for m in motifs]))
-            
+    table = True
     if moods:
-        result_it = scan_it_moods(inputfile, motifs, cutoff, bgfile,  nreport, scan_rc, pvalue, table=True)
+        result_it = scan_it_moods(inputfile, motifs, cutoff, bgfile,  nreport, scan_rc, pvalue, table)
         for seq_id, counts in result_it:
             yield "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
     else:
-         # get iterator
+        # get iterator
         result_it = s.count(fa, nreport, scan_rc, cutoff)
         # counts table
         for i, counts in enumerate(result_it):
@@ -69,7 +69,7 @@ def scan_table(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue):
                         fa.ids[i], 
                         "\t".join([str(x) for x in counts])
                         )
-def scan_score_table(fa, motifs, scan_rc):
+def scan_score_table(s, fa, motifs, scan_rc):
     # get iterator
     result_it = s.best_score(fa, scan_rc)
     # header
@@ -81,10 +81,11 @@ def scan_score_table(fa, motifs, scan_rc):
                     "\t".join([str(x) for x in scores])
                     )
 
-def scan_normal(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue):
+def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods, bed):
     
+    table = False
     if moods:
-        result_it = scan_it_moods(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, table=False)
+        result_it = scan_it_moods(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, table)
         for motif, d in result_it:
             for seq_id,matches in d.items():
                 for pos,score,strand in matches:
@@ -116,11 +117,11 @@ def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False,
     fa = as_fasta(inputfile, index_dir)
     
     if table:
-        scan_table(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue)
+        scan_table(s, inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods)
     elif score_table:
-        scan_score_table(fa, motifs, scan_rc) 
+        scan_score_table(s, fa, motifs, scan_rc) 
     else:
-        scan_normal(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue)
+        scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods, bed)
 
 def pwmscan(args):
     inputfile = args.inputfile
