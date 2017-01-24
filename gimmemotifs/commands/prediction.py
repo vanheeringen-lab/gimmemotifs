@@ -5,11 +5,7 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 
-import sys
-
 from yaml import load
-
-import gimmemotifs.config as cfg
 from gimmemotifs.tools import get_tool
 
 def prediction(args):
