@@ -141,7 +141,7 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
         method='complete')
     idx = hierarchy.leaves_list(row_linkage)
     
-    plt.figure(figsize=size)
+    plt.figure()
     
     vis = safe_join(vis, m2f).set_index("factors")
     
