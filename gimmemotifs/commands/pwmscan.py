@@ -6,11 +6,10 @@
 # distribution.
 
 import os
-import sys
 import re
 
 from gimmemotifs.motif import pwmfile_to_motifs
-from gimmemotifs.utils import parse_cutoff, as_fasta 
+from gimmemotifs.utils import as_fasta 
 from gimmemotifs.scanner import Scanner,scan_it_moods
 from gimmemotifs.config import MotifConfig
 
@@ -25,7 +24,6 @@ def format_line(fa, seq_id, motif, score, pos, strand, bed=False):
         if m:
             chrom = m.group(1)
             start = int(m.group(2))
-            end = int(m.group(3))
             return "{}\t{}\t{}\t{}\t{}\t{}".format(
                     chrom, 
                     start + pos, 
@@ -54,6 +52,54 @@ def format_line(fa, seq_id, motif, score, pos, strand, bed=False):
             fa[seq_id][pos: pos + len(motif)]
         )
 
+def scan_table(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue):
+    # header
+    yield "\t{}".format("\t".join([m.id for m in motifs]))
+            
+    if moods:
+        result_it = scan_it_moods(inputfile, motifs, cutoff, bgfile,  nreport, scan_rc, pvalue, table=True)
+        for seq_id, counts in result_it:
+            yield "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
+    else:
+         # get iterator
+        result_it = s.count(fa, nreport, scan_rc, cutoff)
+        # counts table
+        for i, counts in enumerate(result_it):
+            yield "{}\t{}".format(
+                        fa.ids[i], 
+                        "\t".join([str(x) for x in counts])
+                        )
+def scan_score_table(fa, motifs, scan_rc):
+    # get iterator
+    result_it = s.best_score(fa, scan_rc)
+    # header
+    yield "\t{}".format("\t".join([m.id for m in motifs]))
+    # score table
+    for i,scores in enumerate(result_it):
+        yield "{}\t{}".format(
+                    fa.ids[i], 
+                    "\t".join([str(x) for x in scores])
+                    )
+
+def scan_normal(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue):
+    
+    if moods:
+        result_it = scan_it_moods(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, table=False)
+        for motif, d in result_it:
+            for seq_id,matches in d.items():
+                for pos,score,strand in matches:
+                    yield format_line(fa, seq_id, motif,
+                            score, pos, strand, bed=bed)
+    else:
+        result_it = s.scan(fa, nreport, scan_rc, cutoff)
+        for i, result in enumerate(result_it):
+            seq_id = fa.ids[i]
+            for motif, matches in zip(motifs, result):
+                for (score, pos, strand) in matches:
+                    yield format_line(fa, seq_id, motif, 
+                               score, pos, strand, bed=bed)
+
+
 def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, 
         scan_rc=True, table=False, score_table=False, moods=False, 
         pvalue=None, bgfile=None, genome=None):
@@ -69,56 +115,12 @@ def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False,
     
     fa = as_fasta(inputfile, index_dir)
     
-    if moods:
-        result_it = scan_it_moods(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, table)
-    else:
-        result_it = s.scan(fa, nreport, scan_rc, cutoff)
-
-    
     if table:
-        # header
-        yield "\t{}".format("\t".join([m.id for m in motifs]))
-        
-        if moods:
-            result_it = scan_it_moods(inputfile, motifs, cutoff, bgfile,  nreport, scan_rc, pvalue, table)
-            for seq_id, counts in result_it:
-                yield "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
-        else:
-            # get iterator
-            result_it = s.count(fa, nreport, scan_rc, cutoff)
-            # counts table
-            for i, counts in enumerate(result_it):
-                yield "{}\t{}".format(
-                        fa.ids[i], 
-                        "\t".join([str(x) for x in counts])
-                        )
-
+        scan_table(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue)
     elif score_table:
-        # get iterator
-        result_it = s.best_score(fa, scan_rc)
-        # header
-        yield "\t{}".format("\t".join([m.id for m in motifs]))
-        # score table
-        for i,scores in enumerate(result_it):
-            yield "{}\t{}".format(
-                    fa.ids[i], 
-                    "\t".join([str(x) for x in scores])
-                    )
-
+        scan_score_table(fa, motifs, scan_rc) 
     else:
-        if moods:
-            for motif, d in result_it:
-                for seq_id,matches in d.items():
-                    for pos,score,strand in matches:
-                        yield format_line(fa, seq_id, motif,
-                                score, pos, strand, bed=bed)
-        else:
-            for i, result in enumerate(result_it):
-                seq_id = fa.ids[i]
-                for motif, matches in zip(motifs, result):
-                    for (score, pos, strand) in matches:
-                        yield format_line(fa, seq_id, motif, 
-                                   score, pos, strand, bed=bed)
+        scan_normal(inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue)
 
 def pwmscan(args):
     inputfile = args.inputfile
