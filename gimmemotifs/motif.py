@@ -25,7 +25,7 @@ from gimmemotifs.c_metrics import pwmscan
 # External imports
 try:
     import numpy as np
-except:
+except ImportError:
     pass
 
 class Motif(object):
@@ -240,17 +240,16 @@ class Motif(object):
         c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff        
         pwm = self.pwm
         matches = {}
-        for id, seq in fa.items():
-            matches[id] = [] 
+        for name, seq in fa.items():
+            matches[name] = [] 
             result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
-            for _,pos,strand in result:
-                matches[id].append(pos)
+            for _,pos,_ in result:
+                matches[name].append(pos)
         return matches
     
     def pwm_scan_all(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
         c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff        
         pwm = self.pwm
-        strandmap = {"+":"+",1:"+","1":"+","-":"-",-1:"-","-1":"-"}
         matches = {}
         for name, seq in fa.items():
             matches[name] = [] 
@@ -262,12 +261,11 @@ class Motif(object):
     def pwm_scan_score(self, fa, cutoff=0, nreport=1, scan_rc=True):
         c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff        
         pwm = self.pwm
-        strandmap = {"+":"+",1:"+","1":"+","-":"-",-1:"-","-1":"-"}
         matches = {}
         for name, seq in fa.items():
             matches[name] = [] 
             result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
-            for score,pos,strand in result:
+            for score,_,_ in result:
                 matches[name].append(score)
         return matches
             
@@ -459,7 +457,7 @@ class Motif(object):
         
         return score
 
-    def matrix_ic(self, pwm1, pwm2, bg=None, bg_factor=0.8):
+    def matrix_ic(self, pwm1, pwm2, bg=None):
         if bg is None:
             bg = [0.25,0.25,0.25,0.25]
         
@@ -501,10 +499,18 @@ class Motif(object):
                 elif l2 < l1:
                     pwm1_end = l2
             
-            score = np.sum((np.sum(a[pwm1_start:pwm1_end],1) + np.sum(b[pwm2_start:pwm2_end],1)) / 2 - np.sum(np.abs(a[pwm1_start:pwm1_end] - b[pwm2_start:pwm2_end]),1))
+            score = np.sum((np.sum(a[pwm1_start:pwm1_end],1) + 
+                np.sum(b[pwm2_start:pwm2_end],1)) / 2 - 
+                np.sum(
+                    np.abs(a[pwm1_start:pwm1_end] - 
+                        b[pwm2_start:pwm2_end]),1))
             scores.append([score, pos, 1])
             
-            score = np.sum((np.sum(a[pwm1_start:pwm1_end],1) + np.sum(b_rev[pwm2_start:pwm2_end],1)) / 2 - np.sum(np.abs(a[pwm1_start:pwm1_end] - b_rev[pwm2_start:pwm2_end]),1))
+            score = np.sum((np.sum(a[pwm1_start:pwm1_end],1) + 
+                np.sum(b_rev[pwm2_start:pwm2_end],1)) / 2 - 
+                np.sum(
+                    np.abs(a[pwm1_start:pwm1_end] - 
+                        b_rev[pwm2_start:pwm2_end]),1))
             scores.append([score, pos, -1])
         
         return sorted(scores, key=lambda x: x[0])[-1]
@@ -610,13 +616,10 @@ class Motif(object):
                         )
                     )
         
-        pseudocount = 0.8
-        nucs = ["A","C","G","T"]
-
         pwm = [self.iupac_pwm[char]for char in self.consensus.upper()]
         return ">%s\n%s" % (id, "\n".join(["\t".join(["%s" % x for x in row]) for row in pwm]))
 
-    def to_img(self, fname, format="EPS", add_left=0, seqlogo=None, height=6):
+    def to_img(self, fname, fmt="EPS", add_left=0, seqlogo=None, height=6):
         """ Valid formats EPS, GIF, PDF, PNG """
         if not seqlogo:
             seqlogo = self.seqlogo
@@ -627,7 +630,7 @@ class Motif(object):
         
         VALID_FORMATS = ["EPS", "GIF", "PDF", "PNG"]
         N = 1000
-        format = format.upper()
+        fmt = fmt.upper()
         if not format in VALID_FORMATS:
             sys.stderr.write("Invalid motif format\n")
             return
@@ -706,7 +709,7 @@ class Motif(object):
             stats["enr_fdr"] = enr_at_fdr(pos, neg)
             stats["cutoff_fdr"] = (stats["score_fdr"] - self.pwm_min_score()) / (self.pwm_max_score() - self.pwm_min_score())
 
-            pos = [x[0][0] for x in fg_result.values() if len(x)]
+            pos = [v[0][0] for v in fg_result.values() if len(v)]
             p = ks_pvalue(pos, max(pos))
             stats["ks"] = p
             if p > 0:

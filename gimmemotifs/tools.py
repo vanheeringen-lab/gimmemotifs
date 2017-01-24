@@ -18,7 +18,7 @@ import StringIO
 # gimme imports
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.utils import which
+from gimmemotifs.shutils import which
 
 # Necessary for when setup.py needs to import 
 # refactor at some point

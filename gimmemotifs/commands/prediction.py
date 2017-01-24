@@ -5,6 +5,7 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 
+import sys
 from yaml import load
 from gimmemotifs.tools import get_tool
 

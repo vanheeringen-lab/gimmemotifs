@@ -9,6 +9,7 @@ import os
 from gimmemotifs.fasta import Fasta
 import gimmemotifs.background as bg
 from gimmemotifs.config import MotifConfig, BG_TYPES
+from gimmemotifs.utils import number_of_seqs_in_file
 
 def background(args):
 

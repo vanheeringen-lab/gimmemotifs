@@ -10,7 +10,7 @@
 import sys
 import logging
 import thread
-from time import time
+from time import time,sleep
 import inspect
 
 # GimmeMotifs imports
