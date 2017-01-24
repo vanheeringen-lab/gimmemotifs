@@ -3,7 +3,7 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-""" Interface module for all motif programs """
+"""Interface module for all motif programs."""
 # Python imports
 import re
 import os
@@ -66,7 +66,7 @@ def locate_tool(name, verbose=True):
     tool_bin : str
         Binary of tool.
     """
-    m = get_tool(tool) 
+    m = get_tool(name) 
     tool_bin = which(m.cmd) 
     if tool_bin:
         if verbose:
@@ -275,6 +275,35 @@ class Homer(MotifProgram):
         self.name = "Homer"
         self.cmd = "homer2"
         self.use_width = True
+        self.default_params = {
+                "single":False, 
+                "background":None, 
+                "analysis":"medium", 
+                "number":5, "width":10
+                }
+
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params
+        if params is not None: 
+            prm.update(params)
+ 
+        # Background file is essential!
+        if not prm["background"]:
+            print "Background file needed!"
+            sys.exit()
+        
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        strand = ""
+        if prm["single"]:
+            strand = " -strand + "
+    
+        return prm 
 
     def _run_program(self, bin, fastafile, params=None):
         """
@@ -303,42 +332,27 @@ class Homer(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
-       
-        default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
-        if params is not None: 
-            default_params.update(params)
-        
+        params = self._parse_params(params) 
         homer = bin
         
         fastafile = os.path.abspath(fastafile)
-        
-        # Background file is essential!
-        if not default_params["background"]:
-            print "Background file needed!"
-            sys.exit()
-        
-        bgfile = os.path.abspath(default_params["background"])
         
         outfile = NamedTemporaryFile(
                 dir=self.tmpdir, 
                 prefix= "homer_w{}.".format(default_params["width"])
                 ).name
         
-        stderr = ""
-        
-        strand = ""
-        if default_params["single"]:
-            strand = " -strand + "
 
         cmd = "%s denovo -i %s -b %s -len %s -S %s %s -o %s -p 8" % (
             homer,
             fastafile,
-            bgfile,
-            default_params["width"],
-            default_params["number"],
-            strand,
+            params["background"],
+            params["width"],
+            params["number"],
+            params["strand"],
             outfile)
 
+        stderr = ""
         stdout = "Running command:\n{}\n".format(cmd)
         
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.tmpdir) 
@@ -898,7 +912,6 @@ class Weeder(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
-
         default_params = {"analysis":"small", "organism":"hg18", "single":False, "parallel":True}
         if params is not None: 
             default_params.update(params)
