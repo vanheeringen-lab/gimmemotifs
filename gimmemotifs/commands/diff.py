@@ -9,6 +9,7 @@ import os
 import shutil
 import numpy as np
 from gimmemotifs.config import MotifConfig
+from gimmemotifs.genome_index import track2fasta
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.fasta import Fasta
