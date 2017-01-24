@@ -779,6 +779,7 @@ class Improbizer(MotifProgram):
         self.name = "Improbizer"
         self.cmd = "ameme"
         self.use_width = False 
+        self.default_params = {"background":None, "number":10}
     
     def _parse_params(self, params=None):
         """
@@ -789,10 +790,16 @@ class Improbizer(MotifProgram):
         prm = self.default_params.copy()
         if params is not None: 
             prm.update(params)
+        
+        # Not strictly necessary, but recommended
+        if not params["background"]:
+            print "Background file needed!"
+            sys.exit()
  
         # Absolute path, just to be sure
         prm["background"] =  os.path.abspath(prm["background"])
         
+        prm["outfile"] = os.path.join(self.tmpdir, "improbizer.out.html")    
         return prm 
 
     def _run_program(self, bin, fastafile, params=None):
@@ -822,31 +829,26 @@ class Improbizer(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
-        default_params = {"background":None, "number":10}
-        if params is not None: 
-            default_params.update(params)
-        
-        # Not strictly necessary, but recommended
-        if not default_params["background"]:
-            print "Background file needed!"
-            sys.exit()
-        
-        bgfile = os.path.abspath(default_params["background"])
-        outfile = os.path.join(self.tmpdir, "improbizer.out.html")    
+        params = self._parse_params(params) 
         
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
         
         stdout = ""
         stderr = ""
-        cmd = "%s good=%s bad=%s numMotifs=%s > %s" % (bin, fastafile, bgfile, default_params["number"], outfile)
+        cmd = "%s good=%s bad=%s numMotifs=%s > %s" % (
+                bin, 
+                fastafile, 
+                params["background"],
+                params["number"],
+                params["outfile"])
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
         stdout += out
         stderr += err
         
         motifs = []
-        if os.path.exists(outfile):
+        if os.path.exists(params["outfile"]):
             f = open(outfile)
             motifs = self.parse(f)
             f.close()
@@ -901,6 +903,7 @@ class Trawler(MotifProgram):
         self.name = "trawler"
         self.cmd = "trawler.pl"
         self.use_width = False
+        self.default_params = {"single":False, "background":None}
     
     def _parse_params(self, params=None):
         """
@@ -912,9 +915,18 @@ class Trawler(MotifProgram):
         if params is not None: 
             prm.update(params)
  
+        # Background file is essential!
+        if not prm["background"]:
+            print "Background file needed!"
+            sys.exit()
+        
         # Absolute path, just to be sure
         prm["background"] =  os.path.abspath(prm["background"])
-        
+         
+        prm['strand'] = "double"
+        if prm["single"]:
+            prm["strand"] = "single"
+       
         return prm 
 
     def _run_program(self, bin, fastafile, params=None):
@@ -944,14 +956,7 @@ class Trawler(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
-        default_params = {"single":False, "background":None}
-        if params is not None: 
-            default_params.update(params)
-        
-        if not default_params["background"]:
-            print "Background file needed!"
-            sys.exit()
-        bgfile = os.path.abspath(default_params["background"])
+        params = self._parse_params(params)
 
         tmp = NamedTemporaryFile(dir=self.tmpdir, delete=False)
         shutil.copy(fastafile, tmp.name)
@@ -962,10 +967,13 @@ class Trawler(MotifProgram):
         
         stdout = ""
         stderr = ""
-        strand = "double"
-        if default_params["single"]:
-            strand = "single"
-        cmd = "%s -sample %s -background %s -directory %s -strand %s" % (bin, fastafile, bgfile, self.tmpdir, strand)
+        cmd = "%s -sample %s -background %s -directory %s -strand %s" % (
+                bin, 
+                fastafile, 
+                params["background"], 
+                self.tmpdir, 
+                params["strand"],
+                )
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
         stdout += out
@@ -1090,7 +1098,6 @@ class Weeder(MotifProgram):
         freq_files = os.path.join(weeder_dir, "FreqFiles")
         if not os.path.exists(freq_files):
             raise ValueError, "Can't find FreqFiles directory for Weeder"
-                
 
         tmp = NamedTemporaryFile(dir=self.tmpdir)
         name = tmp.name
@@ -1225,6 +1232,11 @@ class MotifSampler(MotifProgram):
         self.name = "MotifSampler"
         self.cmd = "MotifSampler"
         self.use_width = True
+        self.default_params = {
+                "width":10, 
+                "background":"", 
+                "single":False, 
+                "number":10}
     
     def _parse_params(self, params=None):
         """
@@ -1236,9 +1248,29 @@ class MotifSampler(MotifProgram):
         if params is not None: 
             prm.update(params)
  
-        # Absolute path, just to be sure
-        prm["background"] =  os.path.abspath(prm["background"])
+        if prm["background"]:
+            # Absolute path, just to be sure
+            prm["background"] = os.path.abspath(prm["background"])
+        else::
+            if prm.get("organism", None):
+                prm["background"] = os.path.join(
+                        self.config.get_bg_dir(), 
+                        "{}.{}.bg".format(
+                            prm["organism"], 
+                            "MotifSampler"))
+            else:            
+                raise Exception, "No background specified for {}".format(self.name)
         
+        prm["strand"] = 1
+        if prm["single"]:
+            prm["strand"] = 0
+        
+        tmp = NamedTemporaryFile(dir=self.tmpdir)
+        prm["pwmfile"] = tmp.name
+
+        tmp2  = NamedTemporaryFile(dir=self.tmpdir)
+        prm["outfile"] = tmp2.name
+ 
         return prm 
 
     def _run_program(self, bin, fastafile, params=None):
@@ -1268,35 +1300,17 @@ class MotifSampler(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
-        default_params = {"width":10, "background":"", "single":False, "number":10}
-        if params is not None: 
-            default_params.update(params)
-        
-        background = default_params['background']
-        width = default_params['width']
-        number = default_params['number']
-
-        if not background:
-            if default_params["organism"]:
-                org = default_params["organism"]
-                background = os.path.join(
-                        self.config.get_bg_dir(), 
-                        "{}.{}.bg".format(org, "MotifSampler"))
-            else:            
-                raise Exception, "No background specified for {}".format(self.name)
-
-        tmp = NamedTemporaryFile(dir=self.tmpdir)
-        pwmfile = tmp.name
-
-        tmp2  = NamedTemporaryFile(dir=self.tmpdir)
-        outfile = tmp2.name
-    
-        strand = 1
-        if default_params["single"]:
-            strand = 0
-
+        params = self._parse_params(params)
         # TODO: test organism
-        cmd = "%s -f %s -b %s -m %s -w %s -n %s -o %s -s %s > /dev/null 2>&1" % (bin, fastafile, background, pwmfile, width, number, outfile, strand)
+        cmd = "%s -f %s -b %s -m %s -w %s -n %s -o %s -s %s > /dev/null 2>&1" % (
+                bin, 
+                fastafile, 
+                params["background"], 
+                params["pwmfile"], 
+                params["width"], 
+                params["number"], 
+                params["outfile"]
+                params["strand"])
         #print cmd
         #p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         #stdout, stderr = p.communicate()
@@ -1306,14 +1320,8 @@ class MotifSampler(MotifProgram):
         p.wait()
 
         motifs = []
-        #if os.path.exists(pwmfile):
-        #    motifs = self.parse(open(pwmfile))
         if os.path.exists(outfile):
             motifs = self.parse_out(open(outfile))
-        
-        # remove temporary files
-        tmp.close()
-        tmp2.close()
         
         for motif in motifs:
             motif.id = "%s_%s" % (self.name, motif.id)
@@ -1354,7 +1362,6 @@ class MotifSampler(MotifProgram):
                 pwm = []
             
         return motifs
-
 
     def parse_out(self, fo):
         motifs = []
