@@ -3,9 +3,7 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-
 """ Interface module for all motif programs """
-
 # Python imports
 import re
 import os
@@ -40,7 +38,6 @@ def get_tool(name):
     -------
     tools : MotifProgram instance
     """
-
     tool = name.lower()
     if tool not in __tools__:
         raise ValueError("Tool {0} not found!\n".format(name))
@@ -55,7 +52,20 @@ def get_tool(name):
 
     return t
 
-def locate_tool(tool, verbose=True): 
+def locate_tool(name, verbose=True): 
+    """
+    Returns the binary of a tool.
+
+    Parameters
+    ----------
+    name : str
+        Name of the tool (case-insensitive).
+
+    Returns
+    -------
+    tool_bin : str
+        Binary of tool.
+    """
     m = get_tool(tool) 
     tool_bin = which(m.cmd) 
     if tool_bin:
@@ -65,8 +75,10 @@ def locate_tool(tool, verbose=True):
     else: 
         print "Couldn't find {}".format(m.name)
 
-
 class MotifProgram(object):
+    
+    """Motif program base class."""
+
     config = MotifConfig()
     local_bin = None
 
@@ -74,22 +86,79 @@ class MotifProgram(object):
         pass
 
     def bin(self):
+        """
+        Get the command used to run the tool.
+
+        Returns
+        -------
+        command : str
+            The tool system command.
+        """
         if self.local_bin:
             return self.local_bin
         else:
             return self.config.bin(self.name)
 
     def dir(self):
+        """
+        Get the installation directory of the tool.
+
+        Returns
+        -------
+        dir : str
+            The tool directory.
+        """
         return self.config.dir(self.name)
 
     def is_configured(self):
+        """
+        Check if the tool is configured.
+        
+        Returns
+        -------
+        is_configured : bool
+            True if the tool is configured.
+        """
         return self.config.is_configured(self.name)
     
     def is_installed(self):
+        """
+        Check if the tool is installed.
+        
+        Returns
+        -------
+        is_installed : bool
+            True if the tool is installed.
+        """
         return self.is_configured() and os.access(self.bin(), os.X_OK)
 
     def run(self, fastafile, params=None, tmp=None):
+        """
+        Run the tool and predict motifs from a FASTA file.
 
+        Parameters
+        ----------
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        tmp : str, optional
+            Directory to use for creation of temporary files.
+       
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         if not self.is_configured():
             raise ValueError("%s is not configured" % self.name)
 
@@ -107,12 +176,44 @@ class MotifProgram(object):
 
 class XXmotif(MotifProgram):
 
+    """
+    Predict motifs using XXmotif.
+    
+    Reference: 
+    """
+
     def __init__(self):
         self.name = "XXmotif"
         self.cmd = "XXmotif"
         self.use_width = False
 
     def _run_program(self, bin, fastafile, params=None):
+        """
+        Run XXmotif and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         if params is None:
             params = {}
         
@@ -164,13 +265,45 @@ class XXmotif(MotifProgram):
         
 class Homer(MotifProgram):
 
+    """
+    Predict motifs using Homer.
+    
+    Reference: Heinz et al, 2010; PMID: 20513432 
+    """
+
     def __init__(self):
         self.name = "Homer"
         self.cmd = "homer2"
         self.use_width = True
 
     def _run_program(self, bin, fastafile, params=None):
+        """
+        Run Homer and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
         
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
+       
         default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
         if params is not None: 
             default_params.update(params)
@@ -223,13 +356,45 @@ class Homer(MotifProgram):
         return motifs, stdout, stderr
 
 class BioProspector(MotifProgram):
+
+    """
+    Predict motifs using BioProspector.
+    
+    Reference: 
+    """
+
     def __init__(self):
         self.name = "BioProspector"
         self.cmd = "BioProspector"
         self.use_width = True
 
     def _run_program(self, bin, fastafile, params=None):
+        """
+        Run BioProspector and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
         
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
         if params is not None: 
             default_params.update(params)
@@ -303,13 +468,45 @@ class BioProspector(MotifProgram):
 
 
 class Hms(MotifProgram):
+    
+    """
+    Predict motifs using HMS.
+    
+    Reference: 
+    """
+
     def __init__(self):
         self.name = "HMS"
         self.cmd = "hms"
         self.use_width = False
     
     def _run_program(self, bin, fastafile, params=None):
+        """
+        Run HMS and predict motifs from a FASTA file.
 
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         hms = bin
         thetas = ["theta%s.txt" % i for i in [0,1,2,3]]
 
@@ -361,13 +558,45 @@ class Hms(MotifProgram):
         return motifs
 
 class Amd(MotifProgram):
+    
+    """
+    Predict motifs using AMD.
+
+    Reference: 
+    """
+
     def __init__(self):
         self.name = "AMD"
         self.cmd = "AMD.bin"
         self.use_width = False
     
     def _run_program(self, bin, fastafile, params=None):
+        """
+        Run AMD and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
         
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {"background":None}
         if params is not None: 
             default_params.update(params)
@@ -433,13 +662,45 @@ class Amd(MotifProgram):
         return motifs
 
 class Improbizer(MotifProgram):
+    
+    """
+    Predict motifs using Improbizer.
+
+    Reference: 
+    """
+
     def __init__(self):
         self.name = "Improbizer"
         self.cmd = "ameme"
         self.use_width = False 
 
     def _run_program(self, bin, fastafile, params=None):
+        """
+        Run Improbizer and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
         
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {"background":None, "number":10}
         if params is not None: 
             default_params.update(params)
@@ -499,13 +760,45 @@ class Improbizer(MotifProgram):
         return motifs
 
 class Trawler(MotifProgram):
+    
+    """
+    Predict motifs using Trawler.
+
+    Reference: Ettwiller, 2010; PMID: 17589518 
+    """
+
     def __init__(self):
         self.name = "trawler"
         self.cmd = "trawler.pl"
         self.use_width = False
 
     def _run_program(self, bin, fastafile, params=None):
+        """
+        Run Trawler and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
         
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {"single":False, "background":None}
         if params is not None: 
             default_params.update(params)
@@ -565,17 +858,46 @@ def run_weeder_subset(weeder, fastafile, w, e, organism, strand):
     return out, err
 
 class Weeder(MotifProgram):
+    
+    """
+    Predict motifs using Weeder.
+    
+    Reference: 
+    
+    """
+    
     def __init__(self):
         self.name = "Weeder"
         self.cmd = "weederTFBS.out"
         self.use_width = False
 
     def _run_program(self, bin,fastafile, params=None):
-        #try: 
-        #    from gimmemotifs.mp import pool
-        #except:
-        #    pass
+        """
+        Run Weeder and predict motifs from a FASTA file.
 
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
 
         default_params = {"analysis":"small", "organism":"hg18", "single":False, "parallel":True}
         if params is not None: 
@@ -728,13 +1050,45 @@ class Weeder(MotifProgram):
         return motifs
 
 class MotifSampler(MotifProgram):
+    
+    """
+    Predict motifs using MotifSampler.
+    
+    Reference: 
+    """
+    
     def __init__(self):
         self.name = "MotifSampler"
         self.cmd = "MotifSampler"
         self.use_width = True
 
     def _run_program(self, bin, fastafile, params=None):
+        """
+        Run MotifSampler and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
         
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {"width":10, "background":"", "single":False, "number":10}
         if params is not None: 
             default_params.update(params)
@@ -849,13 +1203,45 @@ class MotifSampler(MotifProgram):
         return motifs
 
 class MDmodule(MotifProgram):
+    
+    """
+    Predict motifs using MDmodule.
+
+    Reference: 
+    """
+
     def __init__(self):
         self.name = "MDmodule"
         self.cmd = "MDmodule"
         self.use_width = True
         
     def _run_program(self, bin, fastafile, params=None):
+        """
+        Run MDmodule and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
         
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {"width":10, "number":10}
         if params is not None: 
             default_params.update(params)
@@ -935,13 +1321,45 @@ class MDmodule(MotifProgram):
         return motifs
 
 class ChIPMunk(MotifProgram):
+    
+    """
+    Predict motifs using ChIPMunk.
+
+    Reference: 
+    """
+    
     def __init__(self):
         self.name = "ChIPMunk"
         self.cmd = "ChIPMunk.sh"
         self.use_width = True
 
     def _run_program(self, bin, fastafile, params=None):
+        """
+        Run ChIPMunk and predict motifs from a FASTA file.
 
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         fastafile = os.path.abspath(fastafile)
 
         basename = "munk_in.fa"
@@ -996,13 +1414,45 @@ class ChIPMunk(MotifProgram):
 
 
 class Posmo(MotifProgram):
+    
+    """
+    Predict motifs using Posmo.
+
+    Reference: 
+    """
+    
     def __init__(self):
         self.name = "Posmo"
         self.cmd = "posmo"
         self.use_width = False
 
     def _run_program(self, bin, fastafile, params=None):
+        """
+        Run Posmo and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
         
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {}
         if params is not None: 
             default_params.update(params)
@@ -1059,16 +1509,46 @@ class Posmo(MotifProgram):
         
         return motifs
 
-
-
 class Gadem(MotifProgram):
+    
+    """
+    Predict motifs using GADEM.
+
+    Reference: 
+    """
+    
     def __init__(self):
         self.name = "GADEM"
         self.cmd = "gadem"
         self.use_width = False
 
     def _run_program(self, bin, fastafile, params=None):
+        """
+        Run GADEM and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
         
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {}
         if params is not None: 
             default_params.update(params)
@@ -1141,6 +1621,32 @@ class Jaspar(MotifProgram):
         self.use_width = False
 
     def _run_program(self, bin, fastafile, params=None):
+        """
+        Get enriched JASPAR motifs in a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         fname = os.path.join(self.config.get_motif_dir(), "JASPAR2010_vertebrate.pwm")
         motifs =  read_motifs(open(fname), fmt="pwm")
         for motif in motifs:
@@ -1148,13 +1654,45 @@ class Jaspar(MotifProgram):
         return motifs, "", ""
 
 class Meme(MotifProgram):
+    
+    """
+    Predict motifs using MEME.
+    
+    Reference: 
+    """
+
     def __init__(self):
         self.name = "MEME"
         self.cmd = "meme.bin"
         self.use_width = True
 
     def _run_program(self, bin, fastafile, params=None):
-        #EVT = 1.0
+        """
+        Run MEME and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {"width":10, "single":False, "number":10}
         if params is not None: 
             default_params.update(params)
@@ -1220,14 +1758,45 @@ class Meme(MotifProgram):
         return motifs
 
 class MemeW(MotifProgram):
+    
+    """
+    Predict motifs using MEME
+    
+    Reference: 
+    """
+    
     def __init__(self):
         self.name = "MEMEW"
         self.cmd = "meme.bin"
         self.use_width = False
 
     def _run_program(self, bin, fastafile, params=None):
+        """
+        Run MEME and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
         
-        #EVT = 1.0
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {"single":False, "number":10}
         if params is not None: 
             default_params.update(params)
