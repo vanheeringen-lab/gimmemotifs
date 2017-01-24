@@ -354,7 +354,6 @@ class Homer(MotifProgram):
                 prefix= "homer_w{}.".format(params["width"])
                 ).name
         
-s
         cmd = "%s denovo -i %s -b %s -len %s -S %s %s -o %s -p 8" % (
             bin,
             fastafile,
