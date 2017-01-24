@@ -166,6 +166,7 @@ class MotifProgram(object):
             raise ValueError("%s is not installed or not correctly configured" % self.name)
         
         self.tmpdir = mkdtemp(prefix="{0}.".format(self.name), dir=tmp)
+        fastafile = os.path.abspath(fastafile)
  
         try:
             return self._run_program(self.bin(), fastafile, params)
@@ -186,6 +187,35 @@ class XXmotif(MotifProgram):
         self.name = "XXmotif"
         self.cmd = "XXmotif"
         self.use_width = False
+        default_params = {
+                "single":False, 
+                "background":None, 
+                "analysis":"medium", 
+                "number":5, 
+                "width":10,
+                }
+
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        if prm["background"]:
+            # Absolute path, just to be sure
+            prm["background"] =  os.path.abspath(prm["background"])
+            prm["background"] = " --negSet {0} ".format(
+                    prm["background"])
+        
+        prm["strand"] = ""
+        if not prm["single"]:
+            prm["strand"] = " --revcomp "
+
+        return prm 
 
     def _run_program(self, bin, fastafile, params=None):
         """
@@ -214,36 +244,23 @@ class XXmotif(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
-        if params is None:
-            params = {}
-        
-        default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
-        default_params.update(params)
+        params = self._parse_params(params) 
         
         cmd = bin
         
-        fastafile = os.path.abspath(fastafile)
-        
-        bgfile = os.path.abspath(default_params["background"])
-        background = ""
-        if bgfile:
-            background = " --negSet {0} ".format(bgfile)
-
-        outfile = os.path.join(self.tmpdir, os.path.basename(fastafile.replace(".fa", ".pwm")))
+        outfile = os.path.join(
+                self.tmpdir, 
+                os.path.basename(fastafile.replace(".fa", ".pwm")))
         
         stdout = ""
         stderr = ""
         
-        strand = ""
-        if not default_params["single"]:
-            strand = " --revcomp "
-
         cmd = "%s %s %s --localization --batch --no-graphics %s %s" % (
             cmd,
             self.tmpdir, 
             fastafile,
-            background,
-            strand
+            params["background"],
+            params["strand"],
             )
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
@@ -288,7 +305,7 @@ class Homer(MotifProgram):
 
         Combine default and user-defined parameters.
         """
-        prm = self.default_params
+        prm = self.default_params.copy()
         if params is not None: 
             prm.update(params)
  
@@ -299,10 +316,10 @@ class Homer(MotifProgram):
         
         prm["background"] =  os.path.abspath(prm["background"])
         
-        strand = ""
+        prm["strand"] = ""
         if prm["single"]:
-            strand = " -strand + "
-    
+            prm["strand"] = " -strand + "
+        
         return prm 
 
     def _run_program(self, bin, fastafile, params=None):
@@ -335,14 +352,12 @@ class Homer(MotifProgram):
         params = self._parse_params(params) 
         homer = bin
         
-        fastafile = os.path.abspath(fastafile)
-        
         outfile = NamedTemporaryFile(
                 dir=self.tmpdir, 
-                prefix= "homer_w{}.".format(default_params["width"])
+                prefix= "homer_w{}.".format(params["width"])
                 ).name
         
-
+s
         cmd = "%s denovo -i %s -b %s -len %s -S %s %s -o %s -p 8" % (
             homer,
             fastafile,
@@ -381,6 +396,36 @@ class BioProspector(MotifProgram):
         self.name = "BioProspector"
         self.cmd = "BioProspector"
         self.use_width = True
+        self.default_params = {
+                "single":False, 
+                "background":None, 
+                "analysis":"medium", 
+                "number":5, 
+                "width":10}
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+        
+        # Background file is essential!
+        if not prm["background"]:
+            print "Background file needed!"
+            sys.exit()
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        prm["strand"] = 2
+        if prm["single"]:
+            prm["strand"] = 1
+        
+        return prm 
 
     def _run_program(self, bin, fastafile, params=None):
         """
@@ -409,36 +454,22 @@ class BioProspector(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
-        default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
-        if params is not None: 
-            default_params.update(params)
+        params = self._parse_params(params)
         
         prospector = bin
         
-        fastafile = os.path.abspath(fastafile)
-        
-        # Background file is essential!
-        if not default_params["background"]:
-            print "Background file needed!"
-            sys.exit()
-        
-        #bgfile = os.path.abspath(default_params["background"])
         outfile = os.path.join(self.tmpdir, "bioprospector.out")    
         
         stdout = ""
         stderr = ""
         
-        strand = 2
-        if default_params["single"]:
-            strand = 1
-
         cmd = "%s -i %s -W %s -d %s -b %s -r %s -o %s" % (
             prospector,
             fastafile,
-            default_params["width"],
-            strand,
-            default_params["background"],
-            default_params["number"],
+            params["width"],
+            params["strand",
+            params["background"],
+            params["number"],
             outfile)
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
@@ -493,7 +524,22 @@ class Hms(MotifProgram):
         self.name = "HMS"
         self.cmd = "hms"
         self.use_width = False
-    
+     
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
+   
     def _run_program(self, bin, fastafile, params=None):
         """
         Run HMS and predict motifs from a FASTA file.
@@ -524,8 +570,6 @@ class Hms(MotifProgram):
         hms = bin
         thetas = ["theta%s.txt" % i for i in [0,1,2,3]]
 
-        fastafile = os.path.abspath(fastafile)
-        
         fgfile = os.path.join(self.tmpdir, "HMS.in.fa")
         summitfile = os.path.join(self.tmpdir, "HMS.in.summits.txt")
         outfile = os.path.join(self.tmpdir, "thetafinal.txt")    
@@ -583,7 +627,22 @@ class Amd(MotifProgram):
         self.name = "AMD"
         self.cmd = "AMD.bin"
         self.use_width = False
-    
+        
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
+
     def _run_program(self, bin, fastafile, params=None):
         """
         Run AMD and predict motifs from a FASTA file.
@@ -616,8 +675,6 @@ class Amd(MotifProgram):
             default_params.update(params)
         
         amd = bin
-        
-        fastafile = os.path.abspath(fastafile)
         
         # Background file is essential!
         if not default_params["background"]:
@@ -687,6 +744,21 @@ class Improbizer(MotifProgram):
         self.name = "Improbizer"
         self.cmd = "ameme"
         self.use_width = False 
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
 
     def _run_program(self, bin, fastafile, params=None):
         """
@@ -720,8 +792,6 @@ class Improbizer(MotifProgram):
             default_params.update(params)
         
         ameme = bin
-        
-        fastafile = os.path.abspath(fastafile)
         
         # Not strictly necessary, but recommended
         if not default_params["background"]:
@@ -785,6 +855,21 @@ class Trawler(MotifProgram):
         self.name = "trawler"
         self.cmd = "trawler.pl"
         self.use_width = False
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
 
     def _run_program(self, bin, fastafile, params=None):
         """
@@ -819,7 +904,6 @@ class Trawler(MotifProgram):
         
         trawler = bin
         
-        fastafile = os.path.abspath(fastafile)
         if not default_params["background"]:
             print "Background file needed!"
             sys.exit()
@@ -884,6 +968,21 @@ class Weeder(MotifProgram):
         self.name = "Weeder"
         self.cmd = "weederTFBS.out"
         self.use_width = False
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
 
     def _run_program(self, bin,fastafile, params=None):
         """
@@ -951,8 +1050,6 @@ class Weeder(MotifProgram):
         if not os.path.exists(freq_files):
             raise ValueError, "Can't find FreqFiles directory for Weeder"
                 
-
-        fastafile = os.path.abspath(fastafile)
 
         tmp = NamedTemporaryFile(dir=self.tmpdir)
         name = tmp.name
@@ -1074,6 +1171,21 @@ class MotifSampler(MotifProgram):
         self.name = "MotifSampler"
         self.cmd = "MotifSampler"
         self.use_width = True
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
 
     def _run_program(self, bin, fastafile, params=None):
         """
@@ -1119,8 +1231,6 @@ class MotifSampler(MotifProgram):
             else:            
                 raise Exception, "No background specified for {}".format(self.name)
 
-        fastafile = os.path.abspath(fastafile)
-    
         tmp = NamedTemporaryFile(dir=self.tmpdir)
         pwmfile = tmp.name
 
@@ -1227,7 +1337,22 @@ class MDmodule(MotifProgram):
         self.name = "MDmodule"
         self.cmd = "MDmodule"
         self.use_width = True
+         
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
         
+        return prm 
+   
     def _run_program(self, bin, fastafile, params=None):
         """
         Run MDmodule and predict motifs from a FASTA file.
@@ -1259,8 +1384,6 @@ class MDmodule(MotifProgram):
         if params is not None: 
             default_params.update(params)
         
-        fastafile = os.path.abspath(fastafile)
-    
         new_file = os.path.join(self.tmpdir, "mdmodule_in.fa")
         shutil.copy(fastafile, new_file)
         
@@ -1345,6 +1468,21 @@ class ChIPMunk(MotifProgram):
         self.name = "ChIPMunk"
         self.cmd = "ChIPMunk.sh"
         self.use_width = True
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
 
     def _run_program(self, bin, fastafile, params=None):
         """
@@ -1373,8 +1511,6 @@ class ChIPMunk(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
-        fastafile = os.path.abspath(fastafile)
-
         basename = "munk_in.fa"
 
         new_file = os.path.join(self.tmpdir, basename)
@@ -1438,6 +1574,21 @@ class Posmo(MotifProgram):
         self.name = "Posmo"
         self.cmd = "posmo"
         self.use_width = False
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
 
     def _run_program(self, bin, fastafile, params=None):
         """
@@ -1470,8 +1621,6 @@ class Posmo(MotifProgram):
         if params is not None: 
             default_params.update(params)
         
-        fastafile = os.path.abspath(fastafile)
-    
         basename = "posmo_in.fa"
 
         new_file = os.path.join(self.tmpdir, basename)
@@ -1534,6 +1683,21 @@ class Gadem(MotifProgram):
         self.name = "GADEM"
         self.cmd = "gadem"
         self.use_width = False
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
 
     def _run_program(self, bin, fastafile, params=None):
         """
@@ -1566,8 +1730,6 @@ class Gadem(MotifProgram):
         if params is not None: 
             default_params.update(params)
         
-        fastafile = os.path.abspath(fastafile)
-    
         new_file = os.path.join(self.tmpdir, "gadem_in.fa")
         shutil.copy(fastafile, new_file)
         
@@ -1632,6 +1794,21 @@ class Jaspar(MotifProgram):
         self.name = "JASPAR"
         self.cmd = "/bin/false"    
         self.use_width = False
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
 
     def _run_program(self, bin, fastafile, params=None):
         """
@@ -1678,6 +1855,21 @@ class Meme(MotifProgram):
         self.name = "MEME"
         self.cmd = "meme.bin"
         self.use_width = True
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
 
     def _run_program(self, bin, fastafile, params=None):
         """
@@ -1710,7 +1902,6 @@ class Meme(MotifProgram):
         if params is not None: 
             default_params.update(params)
         
-        fastafile = os.path.abspath(fastafile)
         tmp = NamedTemporaryFile(dir=self.tmpdir)
         tmpname = tmp.name
     
@@ -1782,6 +1973,21 @@ class MemeW(MotifProgram):
         self.name = "MEMEW"
         self.cmd = "meme.bin"
         self.use_width = False
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
 
     def _run_program(self, bin, fastafile, params=None):
         """
@@ -1814,7 +2020,6 @@ class MemeW(MotifProgram):
         if params is not None: 
             default_params.update(params)
         
-        fastafile = os.path.abspath(fastafile)
         tmp = NamedTemporaryFile(dir=self.tmpdir)
         tmpname = tmp.name
     
