@@ -27,7 +27,6 @@ try:
 except ImportError:
     pass
 
-
 def locate_tool(tool, verbose=True): 
     tool = re.sub(r'[^a-zA-Z]','',tool) 
     m = eval(tool)() 
@@ -38,6 +37,35 @@ def locate_tool(tool, verbose=True):
         return tool_bin 
     else: 
         print "Couldn't find {}".format(m.name)
+
+def get_tool(name): 
+    """
+    Returns an instance of a specific tool.
+
+    Parameters
+    ----------
+    name : str
+        Name of the tool (case-insensitive).
+
+    Returns
+    -------
+    tools : MotifProgram instance
+    """
+
+    tool = name.lower()
+    if tool not in __tools__:
+        raise ValueError("Tool {0} not found!\n".format(name))
+
+    t = __tools__[tool]()
+    print t
+
+    if not t.is_installed():
+        sys.stderr.write("Tool {0} not installed!\n".format(tool))
+
+    if not t.is_configured():
+        sys.stderr.write("Tool {0} not configured!\n".format(tool))
+
+    return t
 
 class MotifProgram(object):
     config = MotifConfig()
@@ -1274,3 +1302,23 @@ class MemeW(MotifProgram):
             line = fo.readline()
 
         return motifs
+
+__tools__ = {
+        "xxmotif": XXmotif,
+        "homer": Homer, 
+        "bioprospector":BioProspector,
+        "hms": Hms,
+        "amd": Amd,
+        "improbizer": Improbizer,
+        "trawler": Trawler,
+        "weeder": Weeder,
+        "motifsampler": MotifSampler,
+        "mdmodule": MDmodule,
+        "chipmunk": ChIPMunk,
+        "posmo": Posmo,
+        "gadem": Gadem,
+        "jaspar": Jaspar,
+        "meme": Meme,
+        "memew": MemeW,
+    }
+
