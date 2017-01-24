@@ -40,7 +40,7 @@ def roc_plot(outfile, plot_x, plot_y, ids=None):
 
     colors = [cm.Paired(256 / 11 * i) for i in range(11)]
     
-    if type(plot_x[0]) == type(np.array([])):
+    if isinstance(plot_x[0], np.ndarray):
         for i,(x,y) in enumerate(zip(plot_x, plot_y)):
             plt.plot(x, y, color=colors[(i * 2) % 10 + 1])
     else:
@@ -51,7 +51,7 @@ def roc_plot(outfile, plot_x, plot_y, ids=None):
     plt.ylabel("Sensitivity")
 
     if len(ids) > 0:
-         plt.legend(ids, loc=(1.03,0.2))
+        plt.legend(ids, loc=(1.03,0.2))
 
     if not os.path.splitext(outfile)[-1] in VALID_EXTENSIONS:
         outfile += ".png"
@@ -67,7 +67,7 @@ def plot_histogram(values, outfile, xrange=None, breaks=10, title=None, xlabel=N
     try:
         # matplotlib >= 0.99
         plt.hist(values, range=xrange, bins=breaks, color=colors[color], edgecolor="black")
-    except:
+    except Exception:
         plt.hist(values, range=xrange, bins=breaks)
     plt.xlim(xrange)
 
@@ -121,7 +121,7 @@ def match_plot(plotdata, outfile):
     plt.savefig(outfile, dpi=300, bbox_inches='tight')
     plt.close(fig)
 
-def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mindiff=0, minenr=3, minfreq=0.01):
+def diff_plot(motifs, pwms, names, freq, counts, bgfreq, outfile, mindiff=0, minenr=3, minfreq=0.01):
     w_ratio = np.array([14, len(names), len(names) + 1])
     plot_order = [0,1,2]
     
@@ -215,6 +215,7 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
     plt.title('Frequency')
     
     # Colorbar
+    # pylint: disable=protected-access
     sm._A = []
     cax = plt.subplot(gs[0,plot_order[2]])
     cb = fig.colorbar(sm, cax=cax, ticks = [0, 0.3], orientation='horizontal')
