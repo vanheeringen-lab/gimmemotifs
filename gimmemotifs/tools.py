@@ -187,7 +187,7 @@ class XXmotif(MotifProgram):
         self.name = "XXmotif"
         self.cmd = "XXmotif"
         self.use_width = False
-        default_params = {
+        self.default_params = {
                 "single":False, 
                 "background":None, 
                 "analysis":"medium", 
@@ -246,8 +246,6 @@ class XXmotif(MotifProgram):
         """
         params = self._parse_params(params) 
         
-        cmd = bin
-        
         outfile = os.path.join(
                 self.tmpdir, 
                 os.path.basename(fastafile.replace(".fa", ".pwm")))
@@ -256,7 +254,7 @@ class XXmotif(MotifProgram):
         stderr = ""
         
         cmd = "%s %s %s --localization --batch --no-graphics %s %s" % (
-            cmd,
+            bin,
             self.tmpdir, 
             fastafile,
             params["background"],
@@ -350,7 +348,6 @@ class Homer(MotifProgram):
             Standard error of the tool.
         """
         params = self._parse_params(params) 
-        homer = bin
         
         outfile = NamedTemporaryFile(
                 dir=self.tmpdir, 
@@ -359,7 +356,7 @@ class Homer(MotifProgram):
         
 s
         cmd = "%s denovo -i %s -b %s -len %s -S %s %s -o %s -p 8" % (
-            homer,
+            bin,
             fastafile,
             params["background"],
             params["width"],
@@ -380,7 +377,7 @@ s
         if os.path.exists(outfile):
             motifs = read_motifs(open(outfile), fmt="pwm")
             for i, m in enumerate(motifs):
-                m.id = "{}_{}_{}".format(self.name, default_params["width"], i + 1)
+                m.id = "{}_{}_{}".format(self.name, params["width"], i + 1)
         
         return motifs, stdout, stderr
 
@@ -456,15 +453,13 @@ class BioProspector(MotifProgram):
         """
         params = self._parse_params(params)
         
-        prospector = bin
-        
         outfile = os.path.join(self.tmpdir, "bioprospector.out")    
         
         stdout = ""
         stderr = ""
         
         cmd = "%s -i %s -W %s -d %s -b %s -r %s -o %s" % (
-            prospector,
+            bin,
             fastafile,
             params["width"],
             params["strand",
@@ -487,6 +482,19 @@ class BioProspector(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert BioProspector output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing BioProspector output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         
         p = re.compile(r'^\d+\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)')
@@ -539,7 +547,25 @@ class Hms(MotifProgram):
         prm["background"] =  os.path.abspath(prm["background"])
         
         return prm 
-   
+  
+    def _prepare_files(self, fastafile):
+
+        hmsdir = os.path.join(self.config.get_tools_dir(), "HMS")
+        thetas = ["theta%s.txt" % i for i in [0,1,2,3]]
+        for t in thetas:
+            shutil.copy(os.path.join(hmsdir, t), self.tmpdir)
+
+        summitfile = os.path.join(self.tmpdir, "HMS.in.summits.txt")
+        outfile = os.path.join(self.tmpdir, "thetafinal.txt")    
+        fgfile = os.path.join(self.tmpdir, "HMS.in.fa")
+        
+        shutil.copy(fastafile, fgfile)
+        fa = Fasta(fgfile)
+        with open(summitfile, "w") as out:
+            for seq in fa.seqs:
+                out.write("%s\n" % (len(seq) / 2))
+
+    
     def _run_program(self, bin, fastafile, params=None):
         """
         Run HMS and predict motifs from a FASTA file.
@@ -567,37 +593,23 @@ class Hms(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
-        hms = bin
-        thetas = ["theta%s.txt" % i for i in [0,1,2,3]]
-
-        fgfile = os.path.join(self.tmpdir, "HMS.in.fa")
-        summitfile = os.path.join(self.tmpdir, "HMS.in.summits.txt")
-        outfile = os.path.join(self.tmpdir, "thetafinal.txt")    
-    
-        hmsdir = os.path.join(self.config.get_tools_dir(), "HMS")
-        shutil.copy(fastafile, fgfile)
-        for t in thetas:
-            shutil.copy(os.path.join(hmsdir, t), self.tmpdir)
-        
-        fa = Fasta(fgfile)
-        out = open(summitfile, "w")
-        for seq in fa.seqs:
-            out.write("%s\n" % (len(seq) / 2))
-        out.close()
-        
+        params = self._parse_params(params)
+        fgfile, summitfile, outfile = self._prepare_file(fastafile)
+                
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
         
         stdout = ""
         stderr = ""
     
-        cmd = "%s -i %s -w 21 -dna 4 -iteration 50 -chain 20 -seqprop -0.1 -strand 2 -peaklocation %s -t_dof 3 -dep 2" % (hms, fgfile, summitfile)
+        cmd = "%s -i %s -w 21 -dna 4 -iteration 50 -chain 20 -seqprop -0.1 -strand 2 -peaklocation %s -t_dof 3 -dep 2" % (bin, fgfile, summitfile)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
         stdout += out
         stderr += err
         
         os.chdir(current_path)
+        
         motifs = []
         if os.path.exists(outfile):
             f = open(outfile)
@@ -607,6 +619,19 @@ class Hms(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert HMS output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing HMS output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         m = [[float(x) for x in fo.readline().strip().split(" ")] for i in range(4)]
         matrix = [[m[0][i], m[1][i],m[2][i],m[3][i]] for i in range(len(m[0]))]
@@ -627,7 +652,8 @@ class Amd(MotifProgram):
         self.name = "AMD"
         self.cmd = "AMD.bin"
         self.use_width = False
-        
+        self.default_params = {"background":None}
+    
     def _parse_params(self, params=None):
         """
         Parse parameters.
@@ -638,9 +664,14 @@ class Amd(MotifProgram):
         if params is not None: 
             prm.update(params)
  
+        # Background file is essential!
+        if not prm["background"]:
+            print "Background file needed!"
+            sys.exit()
+ 
         # Absolute path, just to be sure
         prm["background"] =  os.path.abspath(prm["background"])
-        
+
         return prm 
 
     def _run_program(self, bin, fastafile, params=None):
@@ -670,30 +701,21 @@ class Amd(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
-        default_params = {"background":None}
-        if params is not None: 
-            default_params.update(params)
-        
-        amd = bin
-        
-        # Background file is essential!
-        if not default_params["background"]:
-            print "Background file needed!"
-            sys.exit(1)
-        
-        bgfile = os.path.abspath(default_params["background"])
         fgfile = os.path.join(self.tmpdir, "AMD.in.fa")
         outfile = fgfile + ".Matrix"    
-    
         shutil.copy(fastafile, fgfile)
-        print fgfile
+        
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
         
         stdout = ""
         stderr = ""
     
-        cmd = "%s -F %s -B %s" % (amd, fgfile, bgfile)
+        cmd = "%s -F %s -B %s" % (
+                bin, 
+                fgfile, 
+                params["background"],
+                )
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
         stdout += out
@@ -709,6 +731,19 @@ class Amd(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert AMD output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing AMD output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         
         #160:  112  CACGTGC      7.25   chr14:32308489-32308689
@@ -791,8 +826,6 @@ class Improbizer(MotifProgram):
         if params is not None: 
             default_params.update(params)
         
-        ameme = bin
-        
         # Not strictly necessary, but recommended
         if not default_params["background"]:
             print "Background file needed!"
@@ -806,7 +839,7 @@ class Improbizer(MotifProgram):
         
         stdout = ""
         stderr = ""
-        cmd = "%s good=%s bad=%s numMotifs=%s > %s" % (ameme, fastafile, bgfile, default_params["number"], outfile)
+        cmd = "%s good=%s bad=%s numMotifs=%s > %s" % (bin, fastafile, bgfile, default_params["number"], outfile)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
         stdout += out
@@ -823,6 +856,19 @@ class Improbizer(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert Improbizer output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing Improbizer output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         p = re.compile(r'\d+\s+@\s+\d+\.\d+\s+sd\s+\d+\.\d+\s+(\w+)$')
 
@@ -902,8 +948,6 @@ class Trawler(MotifProgram):
         if params is not None: 
             default_params.update(params)
         
-        trawler = bin
-        
         if not default_params["background"]:
             print "Background file needed!"
             sys.exit()
@@ -921,7 +965,7 @@ class Trawler(MotifProgram):
         strand = "double"
         if default_params["single"]:
             strand = "single"
-        cmd = "%s -sample %s -background %s -directory %s -strand %s" % (trawler, fastafile, bgfile, self.tmpdir, strand)
+        cmd = "%s -sample %s -background %s -directory %s -strand %s" % (bin, fastafile, bgfile, self.tmpdir, strand)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
         stdout += out
@@ -1038,10 +1082,7 @@ class Weeder(MotifProgram):
         else:
             return []    
 
-        weeder = bin
-        adviser = weeder.replace("weederTFBS", "adviser")
-    
-        
+        adviser = bin.replace("weederTFBS", "adviser")
         weeder_dir = bin.replace("weederTFBS.out", "")
         if self.is_configured():
             weeder_dir = self.dir()
@@ -1119,6 +1160,19 @@ class Weeder(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert Weeder output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing Weeder output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
 
@@ -1267,6 +1321,19 @@ class MotifSampler(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert MotifSampler output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing MotifSampler output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
 
         pwm = []
@@ -1413,6 +1480,19 @@ class MDmodule(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert MDmodule output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing MDmodule output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
         p = re.compile(r'(\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)')
@@ -1541,6 +1621,19 @@ class ChIPMunk(MotifProgram):
         return motifs, stdout, stderr
         
     def parse(self, fo):
+        """
+        Convert ChIPMunk output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing ChIPMunk output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         #KDIC|6.124756232026243
         #A|517.9999999999999 42.99999999999999 345.99999999999994 25.999999999999996 602.9999999999999 155.99999999999997 2.9999999999999996 91.99999999999999
         #C|5.999999999999999 4.999999999999999 2.9999999999999996 956.9999999999999 91.99999999999999 17.999999999999996 22.999999999999996 275.99999999999994
@@ -1653,6 +1746,19 @@ class Posmo(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert Posmo output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing Posmo output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
 
@@ -1752,6 +1858,19 @@ class Gadem(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert GADEM output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing GADEM output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
 
@@ -1926,6 +2045,19 @@ class Meme(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert MEME output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing MEME output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
 
@@ -2043,6 +2175,19 @@ class MemeW(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+         """
+        Convert MEME output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing MEME output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
 
