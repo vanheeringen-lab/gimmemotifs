@@ -36,7 +36,7 @@ def available_genomes(index_dir):
     return [os.path.basename(x) for x in glob(os.path.join(index_dir, "*")) if os.path.isdir(x)]
 
 def check_genome(genome):
-    if not genome in available_genomes(MotifConfig().get_index_dir()):
+    if genome not in available_genomes(MotifConfig().get_index_dir()):
         raise ValueError("No index found for genome {}! "
                          "Has GimmeMotifs been configured correctly "
                          "and is the genome indexed?".format(genome))
@@ -72,38 +72,27 @@ def create_bedtools_fa(index_dir, fasta_dir):
 def check_genome_file(fname):
     if os.path.exists(fname):
         with open(fname) as f:
-            for i in range(10):
+            for _ in range(10):
                 line = f.readline()
                 if line.find("Not Found") != -1:
                     return False
             return True
     return False
 
-def get_genome(genomebuild, fastadir, indexdir=None):
+def download_annotation(genomebuild, gene_file): 
+    """
+    Download gene annotation from UCSC based on genomebuild.
 
-    config = MotifConfig()
-    if not indexdir:
-       indexdir = config.get_index_dir()
+    Will check UCSC, Ensembl and RefSeq annotation.
 
-    genome_dir = os.path.join(fastadir, genomebuild)
-    index_dir = os.path.join(indexdir, genomebuild)
+    Parameters
+    ----------
+    genomebuild : str
+        UCSC genome name.
+    gene_file : str
+        Output file name.
+    """
 
-    pred_bin = "genePredToBed"
-    pred = find_executable(pred_bin)
-    if not pred:
-        sys.stderr.write("{} not found in path!\n".format(pred_bin))
-        sys.exit(1)
-
-    # Check for rights to write to directory
-    if not os.path.exists(genome_dir):
-        try:
-            os.mkdir(genome_dir)
-        except:
-            sys.stderr.write("Could not create genome dir {}\n".format(genome_dir))
-            sys.exit(1)
-
-    # Download gene file based on URL + genomebuild
-    gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % genomebuild)
     tmp = NamedTemporaryFile(delete=False, suffix=".gz")
 
     anno = []
@@ -130,10 +119,11 @@ def get_genome(genomebuild, fastadir, indexdir=None):
         with gzip.open(tmp.name) as f:
             cols = f.readline().split("\t")
 
+        start_col = 1
         for i,col in enumerate(cols):
             if col == "+" or col == "-":
+                start_col = i - 1
                 break
-        start_col = i - 1
         end_col = start_col + 10
        
         cmd = "zcat {} | cut -f{}-{} | {} /dev/stdin {}"
@@ -145,6 +135,7 @@ def get_genome(genomebuild, fastadir, indexdir=None):
     else:
         sys.stderr.write("No annotation found!")
 
+def download_genome(genomebuild, genome_dir): 
     # download genome based on URL + genomebuild
     sys.stderr.write("Downloading {} genome\n".format(genomebuild))
     for genome_url in [UCSC_GENOME_URL, ALT_UCSC_GENOME_URL]:
@@ -189,13 +180,42 @@ def get_genome(genomebuild, fastadir, indexdir=None):
 
         os.unlink(fa_files[0])
 
+def get_genome(genomebuild, fastadir, indexdir=None):
+
+    config = MotifConfig()
+    if not indexdir:
+        indexdir = config.get_index_dir()
+
+    genome_dir = os.path.join(fastadir, genomebuild)
+    index_dir = os.path.join(indexdir, genomebuild)
+
+    pred_bin = "genePredToBed"
+    pred = find_executable(pred_bin)
+    if not pred:
+        sys.stderr.write("{} not found in path!\n".format(pred_bin))
+        sys.exit(1)
+
+    # Check for rights to write to directory
+    if not os.path.exists(genome_dir):
+        try:
+            os.mkdir(genome_dir)
+        except PermissionError, FileNotFoundError:
+            sys.stderr.write("Could not create genome dir {}\n".format(genome_dir))
+            sys.exit(1)
+
+    # Download annotation
+    gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % genomebuild)
+    download_annotation(genomebuild, gene_file)
+    
+    # Download genome FASTA file
+    download_genome(genomebuild, genome_dir)
+
     sys.stderr.write("Creating index\n")
     g = GenomeIndex()
     g = g.create_index(genome_dir, index_dir)
-
     create_bedtools_fa(index_dir, genome_dir)
 
-class GenomeIndex:
+class GenomeIndex(object):
     """ Index fasta-formatted files for faster retrieval of sequences
         Typical use:
         
@@ -228,10 +248,10 @@ class GenomeIndex:
             if os.path.exists(os.path.join(self.index_dir, self.param_file)):
                 self._read_index_file()
     
-    def _check_dir(self, dir):
+    def _check_dir(self, dirname):
         """ Check if dir exists, if not: give warning and die"""
-        if not os.path.exists(dir):
-            print "Directory %s does not exist!" % dir
+        if not os.path.exists(dirname):
+            print "Directory %s does not exist!" % dirname
             sys.exit(1)
     
     def _make_index(self, fasta, index):
@@ -293,9 +313,9 @@ class GenomeIndex:
 
         fastafiles = find_by_ext(fasta_dir, FASTA_EXT)
         if not(fastafiles):
-            raise IOError, \
-                    "No fastafiles found in {} with extension in {}".format(
-                    fasta_dir, ",".join(FASTA_EXT))
+            mdg = "No fastafiles found in {} with extension in {}".format(
+                                        fasta_dir, ",".join(FASTA_EXT))
+            raise IOError(msg)
 
         # param_file will hold all the information about the location of the fasta-files, indeces and 
         # length of the sequences
@@ -304,12 +324,12 @@ class GenomeIndex:
         
         try:
             out = open(param_file, "w")
-        except IOError, e:
-                if e.args[0] == 13:
-                    sys.stderr.write("No permission to create files in index directory. Superuser access needed?\n")
-                    sys.exit()
-                else:
-                    sys.stderr.write(e)
+        except IOError as e:
+            if e.args[0] == 13:
+                sys.stderr.write("No permission to create files in index directory. Superuser access needed?\n")
+                sys.exit()
+            else:
+                sys.stderr.write(e)
         s_out = open(size_file, "w")
 
         for fasta_file in fastafiles:
