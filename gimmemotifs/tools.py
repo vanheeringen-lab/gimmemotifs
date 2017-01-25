@@ -563,6 +563,7 @@ class Hms(MotifProgram):
         with open(summitfile, "w") as out:
             for seq in fa.seqs:
                 out.write("%s\n" % (len(seq) / 2))
+        return fgfile, summitfile, outfile 
 
     
     def _run_program(self, bin, fastafile, params=None):
@@ -603,17 +604,14 @@ class Hms(MotifProgram):
     
         cmd = "%s -i %s -w 21 -dna 4 -iteration 50 -chain 20 -seqprop -0.1 -strand 2 -peaklocation %s -t_dof 3 -dep 2" % (bin, fgfile, summitfile)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
-        out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout,stderr = p.communicate()
         
         os.chdir(current_path)
         
         motifs = []
         if os.path.exists(outfile):
-            f = open(outfile)
-            motifs = self.parse(f)
-            f.close()
+            with open(outfile) as f: 
+                motifs = self.parse(f)
         
         return motifs, stdout, stderr
 
@@ -848,7 +846,7 @@ class Improbizer(MotifProgram):
         
         motifs = []
         if os.path.exists(params["outfile"]):
-            f = open(outfile)
+            f = open(params["outfile"])
             motifs = self.parse(f)
             f.close()
         
@@ -1140,7 +1138,7 @@ class Weeder(MotifProgram):
         else:
 
             for (w,e) in coms:
-                out,err = run_weeder_subset(weeder, fastafile, w, e, weeder_organism, strand)
+                out,err = run_weeder_subset(bin, fastafile, w, e, weeder_organism, strand)
                 stdout += out
                 stderr += err
     
@@ -1320,8 +1318,9 @@ class MotifSampler(MotifProgram):
         p.wait()
 
         motifs = []
-        if os.path.exists(outfile):
-            motifs = self.parse_out(open(outfile))
+        if os.path.exists(params["outfile"]):
+            with open(params["outfile"]) as f:
+                motifs = self.parse_out(f)
         
         for motif in motifs:
             motif.id = "%s_%s" % (self.name, motif.id)
