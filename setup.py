@@ -29,7 +29,7 @@ DESCRIPTION  = """GimmeMotifs is a motif prediction pipeline.
 try:
     import pypandoc
     long_description = pypandoc.convert('README.md', 'rst')    
-except(IOError, ImportError):
+except(IOError, ImportError, RuntimeError):
     long_description = open('README.md').read()
 
 # are we in the conda build environment?
