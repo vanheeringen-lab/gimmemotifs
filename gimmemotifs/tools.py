@@ -972,9 +972,7 @@ class Trawler(MotifProgram):
                 params["strand"],
                 )
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
-        out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout,stderr = p.communicate()
         
         os.chdir(current_path)
         motifs = []
@@ -995,8 +993,8 @@ class Trawler(MotifProgram):
         
         return motifs, stdout, stderr
 
-    def parse(self, fo):
-        return []
+    #def parse(self, fo):
+    #    return []
 
 def run_weeder_subset(weeder, fastafile, w, e, organism, strand):
     cmd = "%s -f %s -W %s -e %s -R 50 -O %s %s" % (weeder, fastafile, w, e, organism, strand)
@@ -1082,7 +1080,7 @@ class Weeder(MotifProgram):
             "sacCer2":"SC",
             "xenTro2":"XT",
             "xenTro3":"XT"}
-        if weeder_organisms.has_key(organism):
+        if organism in weeder_organisms:
             weeder_organism = weeder_organisms[organism]
         else:
             return []    
@@ -1094,7 +1092,7 @@ class Weeder(MotifProgram):
 
         freq_files = os.path.join(weeder_dir, "FreqFiles")
         if not os.path.exists(freq_files):
-            raise ValueError, "Can't find FreqFiles directory for Weeder"
+            raise ValueError("Can't find FreqFiles directory for Weeder")
 
         tmp = NamedTemporaryFile(dir=self.tmpdir)
         name = tmp.name
@@ -1112,11 +1110,11 @@ class Weeder(MotifProgram):
             strand = ""
             
         if default_params["analysis"] == "xl":
-             coms = ((12,4),(10,3),(8,2),(6,1))
+            coms = ((12,4),(10,3),(8,2),(6,1))
         elif default_params["analysis"] == "large":
-             coms = ((10,3),(8,2),(6,1))
+            coms = ((10,3),(8,2),(6,1))
         elif default_params["analysis"] == "medium":
-             coms = ((10,3),(8,2),(6,1))
+            coms = ((10,3),(8,2),(6,1))
         
         # TODO: test organism
         stdout = ""
@@ -1124,7 +1122,8 @@ class Weeder(MotifProgram):
         
         default_params["parallel"] = False 
         if default_params["parallel"]:
-            jobs = []
+            pass
+            #jobs = []
             #for (w,e) in coms:
             #    jobs.append(pool.apply_async(
             #        run_weeder_subset, 
