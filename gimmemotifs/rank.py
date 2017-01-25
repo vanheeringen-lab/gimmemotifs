@@ -10,8 +10,7 @@ import subprocess as sp
 import pandas as pd
 
 def rankagg(df, method="stuart"):
-    """ Return aggregated ranks
-    Stuart ranking as implemented in the RobustRankAgg R package
+    """Return aggregated ranks as implemented in the RobustRankAgg R package.
 
     References: 
         Kolde et al., 2012, DOI: 10.1093/bioinformatics/btr709
