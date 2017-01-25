@@ -49,7 +49,7 @@ def job_server_ok():
 def get_scores(motif, fg_file, bg_file):
     error = None
     auc = None
-    mncp = None
+    mncp_score = None
     max_f = None
     y = None
     try:
@@ -60,12 +60,12 @@ def get_scores(motif, fg_file, bg_file):
         bg_vals = [sorted(x)[-1] for x in bg_result.values()]
 
         auc = roc_auc(fg_vals, bg_vals)
-        mncp = mncp(fg_vals, bg_vals)
+        mncp_score = mncp(fg_vals, bg_vals)
         max_f, y = max_fmeasure(fg_vals, bg_vals)
 
     except Exception,e:
         error = e
-    return (error, auc, mncp, max_f, y)
+    return (error, auc, mncp_score, max_f, y)
 
 def get_roc_values(motif, fg_file, bg_file):
     try:
