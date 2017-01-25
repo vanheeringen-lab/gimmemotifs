@@ -461,7 +461,7 @@ class BioProspector(MotifProgram):
             bin,
             fastafile,
             params["width"],
-            params["strand",
+            params["strand"],
             params["background"],
             params["number"],
             outfile)
