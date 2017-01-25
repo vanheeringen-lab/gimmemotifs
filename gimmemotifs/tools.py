@@ -1250,7 +1250,7 @@ class MotifSampler(MotifProgram):
         if prm["background"]:
             # Absolute path, just to be sure
             prm["background"] = os.path.abspath(prm["background"])
-        else::
+        else:
             if prm.get("organism", None):
                 prm["background"] = os.path.join(
                         self.config.get_bg_dir(), 
@@ -1308,8 +1308,9 @@ class MotifSampler(MotifProgram):
                 params["pwmfile"], 
                 params["width"], 
                 params["number"], 
-                params["outfile"]
-                params["strand"])
+                params["outfile"],
+                params["strand"],
+                )
         #print cmd
         #p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         #stdout, stderr = p.communicate()
@@ -2181,7 +2182,7 @@ class MemeW(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
-         """
+        """
         Convert MEME output to motifs
         
         Parameters
