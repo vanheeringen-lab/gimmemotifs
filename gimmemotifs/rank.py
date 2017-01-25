@@ -4,6 +4,7 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
+"""Rank aggregation (wrapper for R RobustRankAgg)."""
 from tempfile import NamedTemporaryFile
 import subprocess as sp
 import pandas as pd
@@ -25,7 +26,6 @@ def rankagg(df, method="stuart"):
     -------
     pandas.DataFrame with aggregated ranks
     """
-    
     tmpdf = NamedTemporaryFile()
     tmpscript = NamedTemporaryFile() 
     tmpranks = NamedTemporaryFile()
@@ -36,13 +36,13 @@ def rankagg(df, method="stuart"):
 library(RobustRankAggreg); 
 a = read.table("{}", header=TRUE); 
 x = lapply(a, as.vector); 
-result = aggregateRanks(x, method="stuart"); 
+result = aggregateRanks(x, method="{}"); 
 result$p.adjust = p.adjust(result$Score); 
  write.table(result, file="{}", sep="\t", quote=FALSE, row.names=FALSE); 
-'''.format(tmpdf.name, tmpranks.name) 
+'''.format(tmpdf.name, method, tmpranks.name) 
     tmpscript.write(script) 
     tmpscript.flush() 
  
     p = sp.Popen(["Rscript", tmpscript.name], stdout=sp.PIPE, stderr=sp.PIPE)
-    stdout, stderr = p.communicate()
+    p.communicate()
     return pd.read_table(tmpranks.name, index_col=0)["p.adjust"] 
