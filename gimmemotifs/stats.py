@@ -1,5 +1,6 @@
+import sys
 from gimmemotifs import rocmetrics
-from gimmemotifs.scanner import Scanner
+from gimmemotifs.scanner import scan_fasta_to_best_score
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.config import MotifConfig
 from multiprocessing import Pool
@@ -31,31 +32,23 @@ def calc_stats(motifs, fg_file, bg_file, stats=None):
     if not stats:
         stats = rocmetrics.__all__
     
-    s = Scanner()
-    s.set_motifs(motifs)
-    
     try:
         motifs = read_motifs(open(motifs), fmt="pwm")
     except TypeError:
         pass
     
     ids = [m.id for m in motifs]
-    fg_total = dict([(m.id, []) for m in motifs])
-    for scores in s.best_score(fg_file):
-        for motif,score in zip(motifs, scores):
-            fg_total[motif.id].append(score)
-
-    bg_total = dict([(m.id, []) for m in motifs])
-    for scores in s.best_score(bg_file):
-        for motif,score in zip(motifs, scores):
-            bg_total[motif.id].append(score)
+   
+    fg_total = scan_fasta_to_best_score(fg_file, motifs)
+    bg_total = scan_fasta_to_best_score(bg_file, motifs)
  
     jobs = []
     result = {}
 
+    sys.stderr.write("calculating statistics\n".format(bg_file))
     # Initialize multiprocessing pool
     ncpus = int(MotifConfig().get_default_params()["ncpus"])
-    pool = Pool(ncpus)
+    pool = Pool(ncpus, maxtasksperchild=1000)
     
     for motif_id in ids:
         result[motif_id] = {}

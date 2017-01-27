@@ -30,6 +30,36 @@ try:
 except ImportError:
     pass 
 
+def scan_fasta_to_best_score(fname, motifs):
+    """Scan a FASTA file with motifs.
+
+    Scan a FASTA file and return a dictionary with the best score per motif.
+
+    Parameters
+    ----------
+    fname : str
+        Filename of a sequence file in FASTA format.
+
+    motifs : list
+        List of motif instances.
+
+    Returns
+    -------
+    result : dict
+        Dictionary with motif scanning results.
+    """
+    # Initialize scanner
+    s = Scanner()
+    s.set_motifs(motifs)
+
+    sys.stderr.write("scanning {}...\n".format(fname))
+    result = dict([(m.id, []) for m in motifs])
+    for scores in s.best_score(fname):
+        for motif,score in zip(motifs, scores):
+            result[motif.id].append(score)
+
+    return result
+
 def load_motifs(motif_file, cutoff=0.95):
     motifs = read_motifs(open(motif_file))
     d = parse_cutoff(motifs, cutoff)
@@ -336,7 +366,7 @@ class Scanner(object):
         
         # scan the regions that are not in the cache
         if len(scan_regions) > 0:
-            n = 12
+            n = int(MotifConfig().get_default_params()["ncpus"])
             
             genome_index = GenomeIndex(index_dir)
            
@@ -398,7 +428,7 @@ class Scanner(object):
         
         # scan the sequences that are not in the cache
         if len(scan_seqs) > 0:
-            n = 12
+            n = int(MotifConfig().get_default_params()['ncpus'])
             motifs = load_motifs(motif_file, cutoff)
             scan_func = partial(scan_seq_mult,
                 motifs=motifs,
