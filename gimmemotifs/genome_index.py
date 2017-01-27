@@ -36,7 +36,7 @@ def available_genomes(index_dir):
     return [os.path.basename(x) for x in glob(os.path.join(index_dir, "*")) if os.path.isdir(x)]
 
 def check_genome(genome):
-    if not genome in available_genomes(MotifConfig().get_index_dir()):
+    if genome not in available_genomes(MotifConfig().get_index_dir()):
         raise ValueError("No index found for genome {}! "
                          "Has GimmeMotifs been configured correctly "
                          "and is the genome indexed?".format(genome))
@@ -63,6 +63,7 @@ def create_bedtools_fa(index_dir, fasta_dir):
 
     b = pybedtools.BedTool(tmp.name)
     try:
+        # pylint: disable=unexpected-keyword-arg
         b.nucleotide_content(fi=genome_fa)
     except pybedtools.helpers.BEDToolsError as e:
         if str(e).find("generating") == -1:
@@ -71,38 +72,32 @@ def create_bedtools_fa(index_dir, fasta_dir):
 def check_genome_file(fname):
     if os.path.exists(fname):
         with open(fname) as f:
-            for i in range(10):
+            for _ in range(10):
                 line = f.readline()
                 if line.find("Not Found") != -1:
                     return False
             return True
     return False
 
-def get_genome(genomebuild, fastadir, indexdir=None):
+def download_annotation(genomebuild, gene_file): 
+    """
+    Download gene annotation from UCSC based on genomebuild.
 
-    config = MotifConfig()
-    if not indexdir:
-       indexdir = config.get_index_dir()
+    Will check UCSC, Ensembl and RefSeq annotation.
 
-    genome_dir = os.path.join(fastadir, genomebuild)
-    index_dir = os.path.join(indexdir, genomebuild)
-
+    Parameters
+    ----------
+    genomebuild : str
+        UCSC genome name.
+    gene_file : str
+        Output file name.
+    """
     pred_bin = "genePredToBed"
     pred = find_executable(pred_bin)
     if not pred:
         sys.stderr.write("{} not found in path!\n".format(pred_bin))
         sys.exit(1)
 
-    # Check for rights to write to directory
-    if not os.path.exists(genome_dir):
-        try:
-            os.mkdir(genome_dir)
-        except:
-            sys.stderr.write("Could not create genome dir {}\n".format(genome_dir))
-            sys.exit(1)
-
-    # Download gene file based on URL + genomebuild
-    gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % genomebuild)
     tmp = NamedTemporaryFile(delete=False, suffix=".gz")
 
     anno = []
@@ -129,10 +124,11 @@ def get_genome(genomebuild, fastadir, indexdir=None):
         with gzip.open(tmp.name) as f:
             cols = f.readline().split("\t")
 
+        start_col = 1
         for i,col in enumerate(cols):
             if col == "+" or col == "-":
+                start_col = i - 1
                 break
-        start_col = i - 1
         end_col = start_col + 10
        
         cmd = "zcat {} | cut -f{}-{} | {} /dev/stdin {}"
@@ -144,6 +140,7 @@ def get_genome(genomebuild, fastadir, indexdir=None):
     else:
         sys.stderr.write("No annotation found!")
 
+def download_genome(genomebuild, genome_dir): 
     # download genome based on URL + genomebuild
     sys.stderr.write("Downloading {} genome\n".format(genomebuild))
     for genome_url in [UCSC_GENOME_URL, ALT_UCSC_GENOME_URL]:
@@ -188,13 +185,37 @@ def get_genome(genomebuild, fastadir, indexdir=None):
 
         os.unlink(fa_files[0])
 
+def get_genome(genomebuild, fastadir, indexdir=None):
+
+    config = MotifConfig()
+    if not indexdir:
+        indexdir = config.get_index_dir()
+
+    genome_dir = os.path.join(fastadir, genomebuild)
+    index_dir = os.path.join(indexdir, genomebuild)
+
+    
+    # Check for rights to write to directory
+    if not os.path.exists(genome_dir):
+        try:
+            os.mkdir(genome_dir)
+        except OSError:
+            sys.stderr.write("Could not create genome dir {}\n".format(genome_dir))
+            sys.exit(1)
+
+    # Download annotation
+    gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % genomebuild)
+    download_annotation(genomebuild, gene_file)
+    
+    # Download genome FASTA file
+    download_genome(genomebuild, genome_dir)
+
     sys.stderr.write("Creating index\n")
     g = GenomeIndex()
     g = g.create_index(genome_dir, index_dir)
-
     create_bedtools_fa(index_dir, genome_dir)
 
-class GenomeIndex:
+class GenomeIndex(object):
     """ Index fasta-formatted files for faster retrieval of sequences
         Typical use:
         
@@ -227,10 +248,10 @@ class GenomeIndex:
             if os.path.exists(os.path.join(self.index_dir, self.param_file)):
                 self._read_index_file()
     
-    def _check_dir(self, dir):
+    def _check_dir(self, dirname):
         """ Check if dir exists, if not: give warning and die"""
-        if not os.path.exists(dir):
-            print "Directory %s does not exist!" % dir
+        if not os.path.exists(dirname):
+            print "Directory %s does not exist!" % dirname
             sys.exit(1)
     
     def _make_index(self, fasta, index):
@@ -292,9 +313,9 @@ class GenomeIndex:
 
         fastafiles = find_by_ext(fasta_dir, FASTA_EXT)
         if not(fastafiles):
-            raise IOError, \
-                    "No fastafiles found in {} with extension in {}".format(
-                    fasta_dir, ",".join(FASTA_EXT))
+            msg = "No fastafiles found in {} with extension in {}".format(
+                                        fasta_dir, ",".join(FASTA_EXT))
+            raise IOError(msg)
 
         # param_file will hold all the information about the location of the fasta-files, indeces and 
         # length of the sequences
@@ -303,12 +324,12 @@ class GenomeIndex:
         
         try:
             out = open(param_file, "w")
-        except IOError, e:
-                if e.args[0] == 13:
-                    sys.stderr.write("No permission to create files in index directory. Superuser access needed?\n")
-                    sys.exit()
-                else:
-                    sys.stderr.write(e)
+        except IOError as e:
+            if e.args[0] == 13:
+                sys.stderr.write("No permission to create files in index directory. Superuser access needed?\n")
+                sys.exit()
+            else:
+                sys.stderr.write(e)
         s_out = open(size_file, "w")
 
         for fasta_file in fastafiles:
@@ -362,7 +383,7 @@ class GenomeIndex:
     def _read_seq_from_fasta(self, fasta, offset, nr_lines):
         """ retrieve a number of lines from a fasta file-object, starting at offset"""
         fasta.seek(offset)
-        lines = [fasta.readline().strip() for i in range(nr_lines)]
+        lines = [fasta.readline().strip() for _ in range(nr_lines)]
         return "".join(lines)
 
     def _get_offset_from_index(self, index, offset):    
@@ -446,7 +467,7 @@ class GenomeIndex:
         return seqs
 
 
-    def get_sequence(self, chr, start, end, strand=None):
+    def get_sequence(self, chrom, start, end, strand=None):
         """ Retrieve a sequence """    
         # Check if we have an index_dir
         if not self.index_dir:
@@ -454,20 +475,22 @@ class GenomeIndex:
             sys.exit()
 
         # retrieve all information for this specific sequence
-        fasta_file = self.fasta_file[chr]
-        index_file = self.index_file[chr]
-        line_size = self.line_size[chr]
-        total_size = self.size[chr]
+        fasta_file = self.fasta_file[chrom]
+        index_file = self.index_file[chrom]
+        line_size = self.line_size[chrom]
+        total_size = self.size[chrom]
 
         #print fasta_file, index_file, line_size, total_size
         if start > total_size:
-            raise ValueError, "Invalid start {0}, greater than sequence length {1} of {2}!".format(start, total_size, chr)
+            raise ValueError(
+                    "Invalid start {0}, greater than sequence length {1} of {2}!".format(start, total_size, chrom))
         
         if start < 0:
-            raise ValueError, "Invalid start, < 0!"
+            raise ValueError("Invalid start, < 0!")
         
         if end > total_size:
-            raise ValueError, "Invalid end {0}, greater than sequence length {1} of {2}!".format(end, total_size, chr)
+            raise ValueError(
+                    "Invalid end {0}, greater than sequence length {1} of {2}!".format(end, total_size, chrom))
 
 
         index = open(index_file)
@@ -491,7 +514,7 @@ class GenomeIndex:
             raise LookupError("no chromosomes in index, is the index correct?")
 
         if chrom:
-            if self.size.has_key(chrom):
+            if chrom in self.size:
                 return self.size[chrom]
             else: 
                 raise KeyError("chromosome {} not in index".format(chrom))
@@ -511,8 +534,8 @@ def track2fasta(index_dir, bedfile, fastafile, extend_up=0, extend_down=0, use_s
     g = GenomeIndex(index_dir)
     
     BUFSIZE = 10000
-    f = open(bedfile)
-    lines = f.readlines(BUFSIZE)
+    bed = open(bedfile)
+    lines = bed.readlines(BUFSIZE)
     line_count = 0
     features = []
     chr_features = {}
@@ -523,14 +546,14 @@ def track2fasta(index_dir, bedfile, fastafile, extend_up=0, extend_down=0, use_s
                 vals = line.strip().split("\t")
                 try:
                     start, end = int(vals[1]), int(vals[2])
-                except:
+                except ValueError:
                     print "Error on line %s while reading %s. Is the file in BED or WIG format?" % (line_count, bedfile)
                     sys.exit(1)
                 strand = "+"
                 if use_strand:
                     try:
                         strand = vals[5]
-                    except:
+                    except IndexError:
                         strand = "+"
                 chrom = vals[0]
                 val = "" 
@@ -551,8 +574,8 @@ def track2fasta(index_dir, bedfile, fastafile, extend_up=0, extend_down=0, use_s
                 else:
                     chr_features.setdefault(chrom,[]).append([[start,end,val,strand]])    
                 features.append([chrom, len(chr_features[chrom]) - 1])
-        lines = f.readlines(BUFSIZE)
-    f.close()
+        lines = bed.readlines(BUFSIZE)
+    bed.close()
     
     seqs = {}
     for chrom,feats in chr_features.items():
@@ -584,7 +607,7 @@ def track2fasta(index_dir, bedfile, fastafile, extend_up=0, extend_down=0, use_s
     
     out = open(fastafile, "w")
     for chrom, i in features:
-        if seqs.has_key((chrom, i)):
+        if (chrom, i) in seqs:
             seq, ext_start, ext_end, val, strand = seqs[(chrom, i)]
             if use_strand and strand == "-":
                 seq = rc(seq)
@@ -607,7 +630,7 @@ def _weighted_selection(l, n):
         cuml.append(total_weight)
         items.append(item)
     
-    return [items[bisect.bisect(cuml, random.random()*total_weight)] for x in range(n)]
+    return [items[bisect.bisect(cuml, random.random()*total_weight)] for _ in range(n)]
 
 def get_random_sequences(index_dir, n=10, length=200, chroms=None):
     g = GenomeIndex(index_dir)

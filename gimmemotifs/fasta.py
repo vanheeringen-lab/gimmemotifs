@@ -9,19 +9,19 @@ import sys
 import random
 import re
 
-class Fasta:
+class Fasta(object):
 
-	def __init__(self, file=None, split_whitespace=False):
+	def __init__(self, fname=None, split_whitespace=False):
 		""" Instantiate fasta object. Optional Fasta-formatted file as argument"""
 		self.ids = []
 		self.seqs = []
 		p = re.compile(r'[^abcdefghiklmnpqrstuvwyzxABCDEFGHIKLMNPQRSTUVWXYZ]')
 		if file:
-			f = open(file, "r")
+			f = open(fname, "r")
 			c = f.read()
 			f.close()
 			if not(c.startswith(">")):
-				raise IOError, "Not a valid FASTA file"
+				raise IOError("Not a valid FASTA file")
 			
 			for seq in c.split(">"):
 				if len(seq) > 1:
@@ -32,14 +32,14 @@ class Fasta:
 					self.ids.append(seq_name)
 					sequence = "".join(lines[1:])
 					if p.match(sequence):
-						raise IOError, "Not a valid FASTA file"
+						raise IOError("Not a valid FASTA file")
 					self.seqs.append(sequence)
 		
 	def hardmask(self):
 		""" Mask all lowercase nucleotides with N's """
 		p = re.compile("a|c|g|t|n")
-		for id in self.fasta_dict.keys():
-			self.fasta_dict[id] = p.sub("N", self.fasta_dict[id])
+		for seq_id in self.fasta_dict.keys():
+			self.fasta_dict[seq_id] = p.sub("N", self.fasta_dict[seq_id])
 		return self
 
 	def get_random(self, n, l=None):
@@ -50,10 +50,10 @@ class Fasta:
 			random.shuffle(ids)
 			i = 0
 			while (i < n) and (len(ids) > 0):
-				id = ids.pop()
-				if (len(self[id]) >= l):
-					start = random.randint(0, len(self[id]) - l)
-					random_f["random%s" % (i + 1)] = self[id][start:start+l]
+				seq_id = ids.pop()
+				if (len(self[seq_id]) >= l):
+					start = random.randint(0, len(self[seq_id]) - l)
+					random_f["random%s" % (i + 1)] = self[seq_id][start:start+l]
 					i += 1
 			if len(random_f) != n:
 				sys.stderr.write("Not enough sequences of required length")
@@ -100,8 +100,8 @@ class Fasta:
 	def _format_seq(self, seq):
 		return seq
 
-	def add(self, id, seq):
-		self.ids.append(id)
+	def add(self, seq_id, seq):
+		self.ids.append(seq_id)
 		self.seqs.append(seq)
 	
 	def has_key(self, key):
@@ -111,11 +111,11 @@ class Fasta:
 			return False
 
 	def __str__(self):
-		return "\n".join([">%s\n%s" % (id, self._format_seq(seq)) for id, seq in self.items()])
+		return "\n".join([">%s\n%s" % (seq_id, self._format_seq(seq)) for seq_id, seq in self.items()])
 
-	def writefasta(self, file):
+	def writefasta(self, fname):
 		""" Write sequences to FASTA formatted file"""
-		f = open(file, "w")
+		f = open(fname, "w")
 		f.write(self.__str__())
 		f.close()
 

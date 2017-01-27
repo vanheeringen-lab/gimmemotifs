@@ -19,13 +19,12 @@ from tempfile import NamedTemporaryFile
 
 # External imports
 from scipy import special
-from scipy.stats import kstest,hypergeom
+from scipy.stats import kstest
 import pybedtools
 import numpy as np
 
 # gimme imports
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.shutils import which
 from gimmemotifs.plot import plot_histogram
 from gimmemotifs.genome_index import track2fasta
 
@@ -132,7 +131,7 @@ def write_equalwidth_bedfile(bedfile, width, outfile):
                 vals = line.strip().split("\t")
                 try:
                     start, end = int(vals[1]), int(vals[2])
-                except:
+                except ValueError:
                     print "Error on line %s while reading %s. Is the file in BED or WIG format?" % (line_count, bedfile)
                     sys.exit(1)
 
@@ -151,10 +150,7 @@ def write_equalwidth_bedfile(bedfile, width, outfile):
     out.close()
     f.close()
 
-def get_significant_motifs(motifs, fg_fasta, bg_fasta, e_cutoff=None, p_cutoff=None, save_result=None):
-    pass
-    
-class MotifMatch:
+class MotifMatch(object):
     def __init__(self, seq, name, instance, start, end, strand, score):
         self.sequence = seq
         self.motif_name = name
@@ -164,7 +160,7 @@ class MotifMatch:
         self.strand = strand
         self.score = score
 
-class MotifResult:
+class MotifResult(object):
     def __init__(self):
         self.raw_output = ""
         self.datetime = ""
@@ -183,8 +179,8 @@ class MotifResult:
         p = re.compile(r'([\w_]+):(\d+)-(\d+)')
         
         gff_output = ""    
-        for seq, dict in self.matches.items():
-            for motif, mms in dict.items():
+        for seq, d in self.matches.items():
+            for mms in d.values():
                 for mm in mms:
                     print_seq = seq
                     (start, end) = (mm.start, mm.end)
@@ -208,7 +204,7 @@ class MotifResult:
     def seqn(self):
         return len(self.sequences.keys())
 
-def parse_gff(gff_file, lowmem=False):
+def parse_gff(gff_file):
     mr = MotifResult()
     total = 0
     f = open(gff_file)
@@ -228,9 +224,9 @@ def parse_gff(gff_file, lowmem=False):
 
                 mr.sequences[seq] = 1
 
-                if not(mr.motifs.has_key(motif_name)):
+                if not motif_name in mr.motifs:
                     mr.motifs[motif_name] = {}
-                if not(mr.motifs[motif_name].has_key(seq)):
+                if not seq in mr.motifs[motif_name]:
                     mr.motifs[motif_name][seq] = 0
                 mr.motifs[motif_name][seq] += 1
             else:
@@ -291,68 +287,12 @@ def calc_motif_enrichment(sample, background, mtc=None, len_sample=None, len_bac
         motifs.sort(cmp=lambda x,y: -cmp(p_value[x],p_value[y]))
         l = len(p_value)
         c = l
-        for    m in motifs:
-            if  p_value[motif] != "NA":
+        for m in motifs:
+            if  p_value[m] != "NA":
                 p_value[m] = p_value[m] * l / c 
             c -= 1
 
     return (sig, p_value, n_sample, n_back)
-
-def calc_enrichment(sample, background, len_sample, len_back, mtc=None):
-    """Calculate enrichment based on hypergeometric distribution"""
-    
-    INF = "Inf"
-
-    if mtc not in [None, "Bonferroni", "Benjamini-Hochberg", "None"]:
-        raise RuntimeError, "Unknown correction: %s" % mtc
-
-    sig = {}
-    p_value  = {}
-    n_sample = {}
-    n_back = {}
-    
-    for motif in sample.keys():
-        p = "NA"
-        s = "NA"
-        q = sample[motif]
-        m = 0
-        if(background[motif]):
-            m = background[motif]
-            n = len_back - m
-            k = len_sample
-            p = phyper(q - 1, m, n, k) 
-            if p != 0:
-                s = -(log(p)/log(10))
-            else:
-                s = INF
-        else:
-            s = INF
-            p = 0.0
-
-        sig[motif] = s
-        p_value[motif] = p
-        n_sample[motif] = q
-        n_back[motif] = m
-    
-    if mtc == "Bonferroni":
-        for motif in p_value.keys():
-            if  p_value[motif] != "NA":
-                p_value[motif] = p_value[motif] * len(p_value.keys())
-                if p_value[motif] > 1:
-                    p_value[motif] = 1
-    
-    elif mtc == "Benjamini-Hochberg":
-        motifs = p_value.keys()
-        motifs.sort(cmp=lambda x,y: -cmp(p_value[x],p_value[y]))
-        l = len(p_value)
-        c = l
-        for    m in motifs:
-            if  p_value[motif] != "NA":
-                p_value[m] = p_value[m] * l / c 
-            c -= 1
-
-    return (sig, p_value, n_sample, n_back)
-
 
 def gff_enrichment(sample, background, numsample, numbackground, outfile):
     data_sample = parse_gff(sample)
@@ -404,7 +344,7 @@ def median_bed_len(bedfile):
             vals = line.split("\t")
             try:
                 l.append(int(vals[2]) - int(vals[1]))
-            except:
+            except ValueError:
                 sys.stderr.write("Error in line %s: coordinates in column 2 and 3 need to be integers!\n" % (i))
                 sys.exit(1)
     f.close()
@@ -420,7 +360,13 @@ def motif_localization(fastafile, motif, width, outfile, cutoff=0.9):
             ar += a
         matches = np.array(ar)
         p = ks_pvalue(matches, width - len(motif))
-        plot_histogram(matches - width / 2 + len(motif) / 2, outfile, xrange=(-width / 2, width / 2), breaks=21, title="%s (p=%0.2e)" % (motif.id, p), xlabel="Position")
+        plot_histogram(
+                matches - width / 2 + len(motif) / 2, 
+                outfile, 
+                xrange=(-width / 2, width / 2), 
+                breaks=21, 
+                title="%s (p=%0.2e)" % (motif.id, p), 
+                xlabel="Position")
         return motif.id, p
     else:
         return motif.id, 1.0
@@ -435,7 +381,7 @@ def parse_cutoff(motifs, cutoff, default=0.9):
         for i,line in enumerate(open(cutoff)):
             if line != "Motif\tScore\tCutoff\n":
                 try:
-                    motif,v,c = line.strip().split("\t")
+                    motif,_,c = line.strip().split("\t")
                     c = float(c)
                     cutoffs[motif] = c
                 except Exception as e:
@@ -446,7 +392,7 @@ def parse_cutoff(motifs, cutoff, default=0.9):
             cutoffs[motif.id] = float(cutoff)
     
     for motif in motifs:
-        if not cutoffs.has_key(motif.id):
+        if not motif.id in cutoffs:
             sys.stderr.write("No cutoff found for {0}, using default {1}\n".format(motif.id, default))
             cutoffs[motif.id] = default
     return cutoffs
@@ -508,13 +454,13 @@ def number_of_seqs_in_file(fname):
     try:
         fa = Fasta(fname)
         return len(fa)
-    except:
+    except Exception:
         pass
 
     try:
         bed = pybedtools.BedTool(fname)
         return len([x for x in bed])
-    except:
+    except Exception:
         pass
 
     sys.stderr.write("unknown filetype {}\n".format(fname))
@@ -545,7 +491,7 @@ def get_seqs_type(seqs):
     elif isinstance(seqs, str) or isinstance(seqs, unicode):
         if os.path.isfile(seqs):
             try:
-                f = Fasta(seqs)
+                Fasta(seqs)
                 return "fastafile"
             except:
                 pass
@@ -556,7 +502,7 @@ def get_seqs_type(seqs):
                 else:
                     vals = line.split("\t")
                     if len(vals) >= 3:
-                        int(vals[1]), int(vals[2])
+                        _, _ = int(vals[1]), int(vals[2])
                         return "bedfile"
                 raise ValueError("unknown type")
             except:

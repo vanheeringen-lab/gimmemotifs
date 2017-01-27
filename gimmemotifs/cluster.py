@@ -3,20 +3,16 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-
-""" 
-Module for clustering of DNA sequence motifs (positional frequency matrices)
-"""
-
+"""Module for motif clustering."""
 import sys
 
 # GimmeMotifs imports
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.comparison import MotifComparer
-from gimmemotifs.config import MotifConfig
 
-class MotifTree:
-    """ class MotifTree used by cluster_motifs"""
+class MotifTree(object):
+    
+    """Class MotifTree used by cluster_motifs"""
     
     def __init__(self, motif):
         self.motif = motif
@@ -153,7 +149,7 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
         l = sorted(scores.keys(), key=lambda x: scores[x][0])
         i = -1
         (n1, n2) = l[i]
-        while not n1 in cluster_nodes or not n2 in cluster_nodes:
+        while n1 not in cluster_nodes or n2 not in cluster_nodes:
             i -= 1
             (n1,n2) = l[i]
         
@@ -166,7 +162,7 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
         
         new_node = MotifTree(ave_motif)
         if pval:
-             new_node.maxscore = 1 - mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
+            new_node.maxscore = 1 - mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
         else:
             new_node.maxscore = mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
             
@@ -209,6 +205,6 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
         sys.stderr.write("\n") 
     root = nodes[-1]
     for node in [node for node in nodes if not node.left]:
-         node.parent.checkMerge(root, threshold)
+        node.parent.checkMerge(root, threshold)
     
     return root

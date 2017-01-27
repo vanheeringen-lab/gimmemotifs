@@ -9,7 +9,7 @@ import os
 from gimmemotifs.fasta import Fasta
 import gimmemotifs.background as bg
 from gimmemotifs.config import MotifConfig, BG_TYPES
-from gimmemotifs.utils import *
+from gimmemotifs.utils import number_of_seqs_in_file
 
 def background(args):
 
@@ -19,7 +19,7 @@ def background(args):
     outformat = args.outformat.lower()
     length = args.length
 
-    if not bg_type in BG_TYPES:
+    if bg_type not in BG_TYPES:
         print "The argument 'type' should be one of: %s" % (",".join(BG_TYPES))
         sys.exit(1)
 

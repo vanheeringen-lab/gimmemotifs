@@ -46,7 +46,7 @@ def create_promoter_bedfile(out, genefile, length, n):
     
     for line in open(genefile):
         if not line.startswith("track"):
-            (chrom, start, end, name, score, strand) = line[:-1].split("\t")[:6]
+            (chrom, start, end, _name, score, strand) = line[:-1].split("\t")[:6]
             start, end = int(start), int(end)
             strand= strand_map[strand]
             if strand:
@@ -108,15 +108,15 @@ class MarkovFasta(Fasta):
 
         while len(self) < n:
             seq = choice(fasta.seqs)
-            id = "random_Markov%s_%s" % (k,c)
+            name = "random_Markov%s_%s" % (k,c)
             if length:
                 random_seq = self._generate_sequence(length)
             else:
                 random_seq = self._generate_sequence(len(seq))
-            self.add(id, random_seq)    
+            self.add(name, random_seq)    
             c += 1
 
-    def _initialize_matrices(self, seqs, k=1, skip_bad=True, alphabet=None, bad="n"):
+    def _initialize_matrices(self, seqs, k=1, alphabet=None):
         if alphabet is None:
             alphabet = ['A','C','G','T']
 
@@ -164,12 +164,16 @@ class MarkovFasta(Fasta):
             
     def _generate_sequence(self, l):
         sequence = list(self._weighted_random(self.init.items()))
-        for i in range(l - self.k):
-            sequence.append(self._weighted_random(self.trans["".join(sequence[-self.k:])].items()))
+        for _ in range(l - self.k):
+            sequence.append(
+                    self._weighted_random(
+                        self.trans["".join(sequence[-self.k:])].items()
+                        ))
         return "".join(sequence)
 
     def _weighted_random(self, l):
         n = random.uniform(0,1)
+        item = None
         for item, weight in l:
             if n < weight:
                 break    
@@ -194,8 +198,9 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
         fa = Fasta(matchfile)
         gc = [(seq.upper().count("C") + seq.upper().count("G")) / float(len(seq)) for seq in fa.seqs]
         lengths = [len(seq) for seq in fa.seqs]
-    except:
+    except Exception:
         try:
+            # pylint: disable=unexpected-keyword-arg
             bed = pybedtools.BedTool(matchfile)
             gc = [float(x[4]) for x in bed.nucleotide_content(fi=genome_fa)]
             lengths = [x.length for x in bed]
@@ -209,8 +214,6 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
         sys.stderr.write("Sequences do not seem to be of equal length.\n")
         sys.stderr.write("GC% matched sequences of the median length ({}) will be created\n".format(length))
 
-    total = sum(gc_hist)
-    
     if number:
         norm = number * gc_hist / (float(sum(gc_hist))) + 0.5
         inorm = norm.astype(np.int)
@@ -230,8 +233,9 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
     #sys.stderr.write("Generating sequences\n")
     #sys.stderr.write("{}\n".format(number))
     
+    # pylint: disable=unexpected-keyword-arg
     r = rnd.random(l=length, n=number * 15, g=genome_size).nucleotide_content(fi=genome_fa)
-   #sys.stderr.write("Retrieving\n")
+    
     features = [f[:3] + [float(f[7])] for f in r if float(f[12]) <= length * N_FRACTION]
     gc = [f[3] for f in features]
     

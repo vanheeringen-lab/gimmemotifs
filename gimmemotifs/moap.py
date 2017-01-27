@@ -7,26 +7,23 @@
 
 import os
 import sys
-import argparse
 from functools import partial
 
 from multiprocessing import Pool
 
 import pandas as pd 
 import numpy as np
-from scipy.stats import scoreatpercentile, ks_2samp, hypergeom,mannwhitneyu
+from scipy.stats import ks_2samp, hypergeom,mannwhitneyu
 from scipy.cluster.hierarchy import linkage, fcluster
 from statsmodels.sandbox.stats.multicomp import multipletests
 
 # scikit-learn
-from sklearn.cluster import AgglomerativeClustering
 from sklearn.model_selection import train_test_split,GridSearchCV
 from sklearn.ensemble import BaggingClassifier,RandomForestClassifier
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.linear_model import Ridge,MultiTaskLasso
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.preprocessing import scale, LabelEncoder
-from sklearn.multiclass import OneVsRestClassifier
 
 from lightning.classification import CDClassifier
 
@@ -95,7 +92,7 @@ class LightningMoap(object):
         
         if self.scale:
             # Scale motif scores
-            df_X = df_X.apply(lambda x: scale(x))
+            df_X = df_X.apply(scale)
         
         idx = range(df_y.shape[0]) 
 
@@ -144,7 +141,7 @@ class LightningMoap(object):
         # Permutations
         sys.stderr.write("Permutations\n")
         random_dfs = []
-        for i in range(10):
+        for _ in range(10):
             y_random = np.random.permutation(y)
             b.fit(X,y_random)
             coeffs = np.array([e.coef_ for e in b.estimators_]).mean(axis=0)
@@ -217,7 +214,7 @@ class MWMoap(object):
                 method="fdr_bh")[1].reshape(pvals.shape)
         
         # create output DataFrame
-        self.act_ = pd.DataFrame(-np.log10(pvals.T), 
+        self.act_ = pd.DataFrame(-np.log10(fdr.T), 
                 columns=clusters, index=df_X.columns)
 
 class KSMoap(object):
@@ -262,7 +259,7 @@ class KSMoap(object):
                 method="fdr_bh")[1].reshape(pvals.shape)
         
         # create output DataFrame
-        self.act_ = pd.DataFrame(-np.log10(pvals.T), 
+        self.act_ = pd.DataFrame(-np.log10(fdr.T), 
                 columns=clusters, index=df_X.columns)
 
 class ClassicMoap(object):
@@ -318,7 +315,7 @@ class ClassicMoap(object):
                 method="fdr_bh")[1].reshape(pvals.shape)
         
         # create output DataFrame
-        self.act_ = pd.DataFrame(-np.log10(pvals.T), 
+        self.act_ = pd.DataFrame(-np.log10(fdr.T), 
                 columns=clusters, index=df_X.columns)
 
 class RFMoap(object):
@@ -540,7 +537,7 @@ class LassoMoap(object):
         # Permutations
         sys.stderr.write("permutations\n")
         random_dfs = []
-        for i in range(10):
+        for _ in range(10):
             y_random = y[np.random.permutation(range(y.shape[0]))]
             coefs = self._get_coefs(X, y_random)
             random_dfs.append(pd.DataFrame(coefs.T))
@@ -565,7 +562,7 @@ class LassoMoap(object):
         max_samples = X.shape[0]
         m = self.clf.best_estimator_
         coefs = []
-        for i in range(10):
+        for _ in range(10):
             idx = np.random.randint(0, n_samples, max_samples)
             m.fit(X[idx], y[idx])
             coefs.append(m.coef_)
@@ -608,7 +605,7 @@ def eval_model(df, sets, motifs, alpha, nsample=1000, k=10, cutoff=0):
     accs = []
     fractions = []
 
-    for i in np.arange(k):
+    for _ in np.arange(k):
 
         idx = np.random.choice(range(y.shape[0]), nsample, replace=True)
 

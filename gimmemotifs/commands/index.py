@@ -7,13 +7,8 @@
 
 import sys
 import os
-from tempfile import NamedTemporaryFile
-
-import pybedtools
 
 from gimmemotifs.genome_index import GenomeIndex, create_bedtools_fa
-from gimmemotifs.shutils import find_by_ext
-from gimmemotifs.config import FASTA_EXT
 
 def index(args):
     

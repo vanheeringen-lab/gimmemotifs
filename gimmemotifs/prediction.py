@@ -9,22 +9,19 @@
 # Python imports
 import sys
 import logging
-import os
-import subprocess 
 import thread
-from time import time
+from time import time,sleep
 import inspect
 
 # GimmeMotifs imports
 from gimmemotifs import tools as tool_classes
-from gimmemotifs.comparison import *
-from gimmemotifs.config import *
-from gimmemotifs.fasta import *
+from gimmemotifs.config import MotifConfig
+from gimmemotifs.fasta import Fasta
 from gimmemotifs import mytmpdir
 
 try:
     from gimmemotifs.mp import pool
-except:
+except Exception:
     pass
 
 def _calc_motif_stats(motif, fg_fa, bg_fa):
@@ -37,13 +34,13 @@ def _calc_motif_stats(motif, fg_fa, bg_fa):
 
 def _run_tool(job_name, t, fastafile, params):
     try:
-        result = t.run(fastafile, ".", params, mytmpdir())
+        result = t.run(fastafile, params, mytmpdir())
     except Exception as e:
         result = ([], "", "{} failed to run: {}".format(job_name, e))
     
     return job_name, result
 
-class PredictionResult:
+class PredictionResult(object):
     def __init__(self, outfile, logger=None, fg_file=None, bg_file=None, job_server=None, do_counter=True):
         self.lock = thread.allocate_lock()
         self.motifs = []
@@ -69,7 +66,7 @@ class PredictionResult:
                 job = args[0]
                 self.logger.warn("job {} failed".format(job)) 
                 self.finished.append(job)
-            except:
+            except Exception:
                 self.logger.warn("job failed") 
             return
         
@@ -90,7 +87,7 @@ class PredictionResult:
             self.lock.release()
             
             if self.do_stats:
-                job_id = "%s_%s" % (motif.id, motif.to_consensus())
+                #job_id = "%s_%s" % (motif.id, motif.to_consensus())
                 if self.logger:
                     self.logger.debug("Starting stats job of motif %s" % motif.id)
                 job = self.job_server.apply_async(
@@ -110,14 +107,14 @@ class PredictionResult:
             self.logger.debug("Stats: %s %s" % (motif, stats))
         self.stats["{}_{}".format(motif.id, motif.to_consensus())] = stats
 
-    def get_remaining_stats(self):
+    def submit_remaining_stats(self):
         for motif in self.motifs:
             n = "%s_%s" % (motif.id, motif.to_consensus())
-            if not self.stats.has_key(n):
+            if n in  self.stats:
                 
                 self.logger.info("Adding %s again!" % n)
-                job_id = "%s_%s" % (motif.id, motif.to_consensus())
-                job = self.job_server.apply_async(
+                #job_id = "%s_%s" % (motif.id, motif.to_consensus())
+                self.job_server.apply_async(
                                     _calc_motif_stats, 
                                     (motif, self.fg_fa, self.bg_fa), 
                                     callback=self.add_stats)
@@ -175,7 +172,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
             }
 
     for t in toolio:
-        if tools.has_key(t.name) and tools[t.name]:
+        if t.name in tools and tools[t.name]:
             if t.use_width:
                 for i in range(wmin, wmax + 1, step):
                     logger.debug("Starting %s job, width %s" % (t.name, i))
@@ -205,13 +202,13 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
         if len(result.finished) < len(jobs.keys()):
             logger.info("Maximum allowed running time reached, destroying remaining jobs")
             job_server.terminate()
-            result.get_remaining_stats()
+            result.submit_remaining_stats()
     ### Or the user gets impatient... ###
-    except KeyboardInterrupt, e:
+    except KeyboardInterrupt:
         # Destroy all running jobs
         logger.info("Caught interrupt, destroying all running jobs")
         job_server.terminate()
-        result.get_remaining_stats()
+        result.submit_remaining_stats()
         
     logger.info("waiting for motif statistics")
     n = 0

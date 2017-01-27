@@ -3,14 +3,12 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-
-""" Interface module for all motif programs """
-
+"""Interface module for all motif programs."""
 # Python imports
 import re
 import os
 import sys
-from subprocess import Popen, PIPE, call
+from subprocess import Popen, PIPE
 import shutil
 from tempfile import NamedTemporaryFile, mkdtemp
 import StringIO
@@ -18,7 +16,7 @@ import StringIO
 # gimme imports
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.utils import which
+from gimmemotifs.shutils import which
 
 # Necessary for when setup.py needs to import 
 # refactor at some point
@@ -27,10 +25,48 @@ try:
 except ImportError:
     pass
 
+def get_tool(name): 
+    """
+    Returns an instance of a specific tool.
 
-def locate_tool(tool, verbose=True): 
-    tool = re.sub(r'[^a-zA-Z]','',tool) 
-    m = eval(tool)() 
+    Parameters
+    ----------
+    name : str
+        Name of the tool (case-insensitive).
+
+    Returns
+    -------
+    tools : MotifProgram instance
+    """
+    tool = name.lower()
+    if tool not in __tools__:
+        raise ValueError("Tool {0} not found!\n".format(name))
+
+    t = __tools__[tool]()
+
+    if not t.is_installed():
+        sys.stderr.write("Tool {0} not installed!\n".format(tool))
+
+    if not t.is_configured():
+        sys.stderr.write("Tool {0} not configured!\n".format(tool))
+
+    return t
+
+def locate_tool(name, verbose=True): 
+    """
+    Returns the binary of a tool.
+
+    Parameters
+    ----------
+    name : str
+        Name of the tool (case-insensitive).
+
+    Returns
+    -------
+    tool_bin : str
+        Binary of tool.
+    """
+    m = get_tool(name) 
     tool_bin = which(m.cmd) 
     if tool_bin:
         if verbose:
@@ -40,6 +76,9 @@ def locate_tool(tool, verbose=True):
         print "Couldn't find {}".format(m.name)
 
 class MotifProgram(object):
+    
+    """Motif program base class."""
+
     config = MotifConfig()
     local_bin = None
 
@@ -47,22 +86,79 @@ class MotifProgram(object):
         pass
 
     def bin(self):
+        """
+        Get the command used to run the tool.
+
+        Returns
+        -------
+        command : str
+            The tool system command.
+        """
         if self.local_bin:
             return self.local_bin
         else:
             return self.config.bin(self.name)
 
     def dir(self):
+        """
+        Get the installation directory of the tool.
+
+        Returns
+        -------
+        dir : str
+            The tool directory.
+        """
         return self.config.dir(self.name)
 
     def is_configured(self):
+        """
+        Check if the tool is configured.
+        
+        Returns
+        -------
+        is_configured : bool
+            True if the tool is configured.
+        """
         return self.config.is_configured(self.name)
     
     def is_installed(self):
+        """
+        Check if the tool is installed.
+        
+        Returns
+        -------
+        is_installed : bool
+            True if the tool is installed.
+        """
         return self.is_configured() and os.access(self.bin(), os.X_OK)
 
-    def run(self, fastafile, savedir, params=None, tmp=None):
+    def run(self, fastafile, params=None, tmp=None):
+        """
+        Run the tool and predict motifs from a FASTA file.
 
+        Parameters
+        ----------
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        tmp : str, optional
+            Directory to use for creation of temporary files.
+       
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         if not self.is_configured():
             raise ValueError("%s is not configured" % self.name)
 
@@ -70,9 +166,10 @@ class MotifProgram(object):
             raise ValueError("%s is not installed or not correctly configured" % self.name)
         
         self.tmpdir = mkdtemp(prefix="{0}.".format(self.name), dir=tmp)
+        fastafile = os.path.abspath(fastafile)
  
         try:
-            return self._run_program(self.bin(), fastafile, savedir, params)
+            return self._run_program(self.bin(), fastafile, params)
         except KeyboardInterrupt:
             return ([], "Killed", "Killed")
 #        except Exception as e:
@@ -80,42 +177,88 @@ class MotifProgram(object):
 
 class XXmotif(MotifProgram):
 
+    """
+    Predict motifs using XXmotif.
+    
+    Reference: 
+    """
+
     def __init__(self):
         self.name = "XXmotif"
         self.cmd = "XXmotif"
         self.use_width = False
+        self.default_params = {
+                "single":False, 
+                "background":None, 
+                "analysis":"medium", 
+                "number":5, 
+                "width":10,
+                }
 
-    def _run_program(self, bin, fastafile, savedir="", params=None):
-        if params is None:
-            params = {}
-        
-        default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
-        default_params.update(params)
-        
-        cmd = bin
-        
-        fastafile = os.path.abspath(fastafile)
-        
-        bgfile = os.path.abspath(default_params["background"])
-        background = ""
-        if bgfile:
-            background = " --negSet {0} ".format(bgfile)
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
 
-        outfile = os.path.join(self.tmpdir, os.path.basename(fastafile.replace(".fa", ".pwm")))
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        if prm["background"]:
+            # Absolute path, just to be sure
+            prm["background"] =  os.path.abspath(prm["background"])
+            prm["background"] = " --negSet {0} ".format(
+                    prm["background"])
+        
+        prm["strand"] = ""
+        if not prm["single"]:
+            prm["strand"] = " --revcomp "
+
+        return prm 
+
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Run XXmotif and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
+        params = self._parse_params(params) 
+        
+        outfile = os.path.join(
+                self.tmpdir, 
+                os.path.basename(fastafile.replace(".fa", ".pwm")))
         
         stdout = ""
         stderr = ""
         
-        strand = ""
-        if not default_params["single"]:
-            strand = " --revcomp "
-
         cmd = "%s %s %s --localization --batch --no-graphics %s %s" % (
-            cmd,
+            bin,
             self.tmpdir, 
             fastafile,
-            background,
-            strand
+            params["background"],
+            params["strand"],
             )
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
@@ -137,48 +280,90 @@ class XXmotif(MotifProgram):
         
 class Homer(MotifProgram):
 
+    """
+    Predict motifs using Homer.
+    
+    Reference: Heinz et al, 2010; PMID: 20513432 
+    """
+
     def __init__(self):
         self.name = "Homer"
         self.cmd = "homer2"
         self.use_width = True
+        self.default_params = {
+                "single":False, 
+                "background":None, 
+                "analysis":"medium", 
+                "number":5, "width":10
+                }
 
-    def _run_program(self, bin, fastafile, savedir="", params=None):
-        
-        default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
         if params is not None: 
-            default_params.update(params)
-        
-        homer = bin
-        
-        fastafile = os.path.abspath(fastafile)
-        
+            prm.update(params)
+ 
         # Background file is essential!
-        if not default_params["background"]:
+        if not prm["background"]:
             print "Background file needed!"
             sys.exit()
         
-        bgfile = os.path.abspath(default_params["background"])
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        prm["strand"] = ""
+        if prm["single"]:
+            prm["strand"] = " -strand + "
+        
+        return prm 
+
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Run Homer and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
+        params = self._parse_params(params) 
         
         outfile = NamedTemporaryFile(
                 dir=self.tmpdir, 
-                prefix= "homer_w{}.".format(default_params["width"])
+                prefix= "homer_w{}.".format(params["width"])
                 ).name
         
-        stderr = ""
-        
-        strand = ""
-        if default_params["single"]:
-            strand = " -strand + "
-
         cmd = "%s denovo -i %s -b %s -len %s -S %s %s -o %s -p 8" % (
-            homer,
+            bin,
             fastafile,
-            bgfile,
-            default_params["width"],
-            default_params["number"],
-            strand,
+            params["background"],
+            params["width"],
+            params["number"],
+            params["strand"],
             outfile)
 
+        stderr = ""
         stdout = "Running command:\n{}\n".format(cmd)
         
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.tmpdir) 
@@ -191,48 +376,94 @@ class Homer(MotifProgram):
         if os.path.exists(outfile):
             motifs = read_motifs(open(outfile), fmt="pwm")
             for i, m in enumerate(motifs):
-                m.id = "{}_{}_{}".format(self.name, default_params["width"], i + 1)
+                m.id = "{}_{}_{}".format(self.name, params["width"], i + 1)
         
         return motifs, stdout, stderr
 
 class BioProspector(MotifProgram):
+
+    """
+    Predict motifs using BioProspector.
+    
+    Reference: 
+    """
+
     def __init__(self):
         self.name = "BioProspector"
         self.cmd = "BioProspector"
         self.use_width = True
+        self.default_params = {
+                "single":False, 
+                "background":None, 
+                "analysis":"medium", 
+                "number":5, 
+                "width":10}
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
 
-    def _run_program(self, bin, fastafile, savedir="", params=None):
-        
-        default_params = {"single":False, "background":None, "analysis":"medium", "number":5, "width":10}
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
         if params is not None: 
-            default_params.update(params)
-        
-        prospector = bin
-        
-        fastafile = os.path.abspath(fastafile)
+            prm.update(params)
         
         # Background file is essential!
-        if not default_params["background"]:
+        if not prm["background"]:
             print "Background file needed!"
             sys.exit()
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
         
-        #bgfile = os.path.abspath(default_params["background"])
+        prm["strand"] = 2
+        if prm["single"]:
+            prm["strand"] = 1
+        
+        return prm 
+
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Run BioProspector and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
+        params = self._parse_params(params)
+        
         outfile = os.path.join(self.tmpdir, "bioprospector.out")    
         
         stdout = ""
         stderr = ""
         
-        strand = 2
-        if default_params["single"]:
-            strand = 1
-
         cmd = "%s -i %s -W %s -d %s -b %s -r %s -o %s" % (
-            prospector,
+            bin,
             fastafile,
-            default_params["width"],
-            strand,
-            default_params["background"],
-            default_params["number"],
+            params["width"],
+            params["strand"],
+            params["background"],
+            params["number"],
             outfile)
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
@@ -250,6 +481,19 @@ class BioProspector(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert BioProspector output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing BioProspector output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         
         p = re.compile(r'^\d+\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)')
@@ -276,55 +520,115 @@ class BioProspector(MotifProgram):
 
 
 class Hms(MotifProgram):
+    
+    """
+    Predict motifs using HMS.
+    
+    Reference: 
+    """
+
     def __init__(self):
         self.name = "HMS"
         self.cmd = "hms"
         self.use_width = False
-    
-    def _run_program(self, bin, fastafile, savedir="", params=None):
+     
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
 
-        hms = bin
-        thetas = ["theta%s.txt" % i for i in [0,1,2,3]]
-
-        fastafile = os.path.abspath(fastafile)
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
         
-        fgfile = os.path.join(self.tmpdir, "HMS.in.fa")
-        summitfile = os.path.join(self.tmpdir, "HMS.in.summits.txt")
-        outfile = os.path.join(self.tmpdir, "thetafinal.txt")    
-    
+        return prm 
+  
+    def _prepare_files(self, fastafile):
+
         hmsdir = os.path.join(self.config.get_tools_dir(), "HMS")
-        shutil.copy(fastafile, fgfile)
+        thetas = ["theta%s.txt" % i for i in [0,1,2,3]]
         for t in thetas:
             shutil.copy(os.path.join(hmsdir, t), self.tmpdir)
+
+        summitfile = os.path.join(self.tmpdir, "HMS.in.summits.txt")
+        outfile = os.path.join(self.tmpdir, "thetafinal.txt")    
+        fgfile = os.path.join(self.tmpdir, "HMS.in.fa")
         
+        shutil.copy(fastafile, fgfile)
         fa = Fasta(fgfile)
-        out = open(summitfile, "w")
-        for seq in fa.seqs:
-            out.write("%s\n" % (len(seq) / 2))
-        out.close()
+        with open(summitfile, "w") as out:
+            for seq in fa.seqs:
+                out.write("%s\n" % (len(seq) / 2))
+        return fgfile, summitfile, outfile 
+
+    
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Run HMS and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
         
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
+        params = self._parse_params(params)
+        fgfile, summitfile, outfile = self._prepare_file(fastafile)
+                
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
         
         stdout = ""
         stderr = ""
     
-        cmd = "%s -i %s -w 21 -dna 4 -iteration 50 -chain 20 -seqprop -0.1 -strand 2 -peaklocation %s -t_dof 3 -dep 2" % (hms, fgfile, summitfile)
+        cmd = "%s -i %s -w 21 -dna 4 -iteration 50 -chain 20 -seqprop -0.1 -strand 2 -peaklocation %s -t_dof 3 -dep 2" % (bin, fgfile, summitfile)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
-        out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout,stderr = p.communicate()
         
         os.chdir(current_path)
+        
         motifs = []
         if os.path.exists(outfile):
-            f = open(outfile)
-            motifs = self.parse(f)
-            f.close()
+            with open(outfile) as f: 
+                motifs = self.parse(f)
         
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert HMS output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing HMS output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         m = [[float(x) for x in fo.readline().strip().split(" ")] for i in range(4)]
         matrix = [[m[0][i], m[1][i],m[2][i],m[3][i]] for i in range(len(m[0]))]
@@ -334,39 +638,81 @@ class Hms(MotifProgram):
         return motifs
 
 class Amd(MotifProgram):
+    
+    """
+    Predict motifs using AMD.
+
+    Reference: 
+    """
+
     def __init__(self):
         self.name = "AMD"
         self.cmd = "AMD.bin"
         self.use_width = False
+        self.default_params = {"background":None}
     
-    def _run_program(self, bin, fastafile, savedir="", params=None):
-        
-        default_params = {"background":None}
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
         if params is not None: 
-            default_params.update(params)
-        
-        amd = bin
-        
-        fastafile = os.path.abspath(fastafile)
-        
+            prm.update(params)
+ 
         # Background file is essential!
-        if not default_params["background"]:
+        if not prm["background"]:
             print "Background file needed!"
-            sys.exit(1)
+            sys.exit()
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+
+        return prm 
+
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Run AMD and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
         
-        bgfile = os.path.abspath(default_params["background"])
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         fgfile = os.path.join(self.tmpdir, "AMD.in.fa")
         outfile = fgfile + ".Matrix"    
-    
         shutil.copy(fastafile, fgfile)
-        print fgfile
+        
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
         
         stdout = ""
         stderr = ""
     
-        cmd = "%s -F %s -B %s" % (amd, fgfile, bgfile)
+        cmd = "%s -F %s -B %s" % (
+                bin, 
+                fgfile, 
+                params["background"],
+                )
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
         stdout += out
@@ -382,6 +728,19 @@ class Amd(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert AMD output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing AMD output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         
         #160:  112  CACGTGC      7.25   chr14:32308489-32308689
@@ -406,43 +765,88 @@ class Amd(MotifProgram):
         return motifs
 
 class Improbizer(MotifProgram):
+    
+    """
+    Predict motifs using Improbizer.
+
+    Reference: 
+    """
+
     def __init__(self):
         self.name = "Improbizer"
         self.cmd = "ameme"
         self.use_width = False 
+        self.default_params = {"background":None, "number":10}
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
 
-    def _run_program(self, bin, fastafile, savedir="", params=None):
-        
-        default_params = {"background":None, "number":10}
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
         if params is not None: 
-            default_params.update(params)
-        
-        ameme = bin
-        
-        fastafile = os.path.abspath(fastafile)
+            prm.update(params)
         
         # Not strictly necessary, but recommended
-        if not default_params["background"]:
+        if not params["background"]:
             print "Background file needed!"
             sys.exit()
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
         
-        bgfile = os.path.abspath(default_params["background"])
-        outfile = os.path.join(self.tmpdir, "improbizer.out.html")    
+        prm["outfile"] = os.path.join(self.tmpdir, "improbizer.out.html")    
+        return prm 
+
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Run Improbizer and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
+        params = self._parse_params(params) 
         
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
         
         stdout = ""
         stderr = ""
-        cmd = "%s good=%s bad=%s numMotifs=%s > %s" % (ameme, fastafile, bgfile, default_params["number"], outfile)
+        cmd = "%s good=%s bad=%s numMotifs=%s > %s" % (
+                bin, 
+                fastafile, 
+                params["background"],
+                params["number"],
+                params["outfile"])
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
         stdout += out
         stderr += err
         
         motifs = []
-        if os.path.exists(outfile):
-            f = open(outfile)
+        if os.path.exists(params["outfile"]):
+            f = open(params["outfile"])
             motifs = self.parse(f)
             f.close()
         
@@ -451,6 +855,19 @@ class Improbizer(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert Improbizer output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing Improbizer output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         p = re.compile(r'\d+\s+@\s+\d+\.\d+\s+sd\s+\d+\.\d+\s+(\w+)$')
 
@@ -472,27 +889,71 @@ class Improbizer(MotifProgram):
         return motifs
 
 class Trawler(MotifProgram):
+    
+    """
+    Predict motifs using Trawler.
+
+    Reference: Ettwiller, 2010; PMID: 17589518 
+    """
+
     def __init__(self):
         self.name = "trawler"
         self.cmd = "trawler.pl"
         self.use_width = False
+        self.default_params = {"single":False, "background":None}
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
 
-    def _run_program(self, bin, fastafile, savedir="", params=None):
-        
-        default_params = {"single":False, "background":None}
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
         if params is not None: 
-            default_params.update(params)
-        
-        trawler = bin
-        
-        fastafile = os.path.abspath(fastafile)
-        if not default_params["background"]:
+            prm.update(params)
+ 
+        # Background file is essential!
+        if not prm["background"]:
             print "Background file needed!"
             sys.exit()
-        bgfile = os.path.abspath(default_params["background"])
-        savedir = os.path.abspath(savedir)
         
-        #savedir = "/tmp/trawler/"
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+         
+        prm['strand'] = "double"
+        if prm["single"]:
+            prm["strand"] = "single"
+       
+        return prm 
+
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Run Trawler and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
+        params = self._parse_params(params)
 
         tmp = NamedTemporaryFile(dir=self.tmpdir, delete=False)
         shutil.copy(fastafile, tmp.name)
@@ -503,14 +964,15 @@ class Trawler(MotifProgram):
         
         stdout = ""
         stderr = ""
-        strand = "double"
-        if default_params["single"]:
-            strand = "single"
-        cmd = "%s -sample %s -background %s -directory %s -strand %s" % (trawler, fastafile, bgfile, self.tmpdir, strand)
+        cmd = "%s -sample %s -background %s -directory %s -strand %s" % (
+                bin, 
+                fastafile, 
+                params["background"], 
+                self.tmpdir, 
+                params["strand"],
+                )
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
-        out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout,stderr = p.communicate()
         
         os.chdir(current_path)
         motifs = []
@@ -531,8 +993,8 @@ class Trawler(MotifProgram):
         
         return motifs, stdout, stderr
 
-    def parse(self, fo):
-        return []
+    #def parse(self, fo):
+    #    return []
 
 def run_weeder_subset(weeder, fastafile, w, e, organism, strand):
     cmd = "%s -f %s -W %s -e %s -R 50 -O %s %s" % (weeder, fastafile, w, e, organism, strand)
@@ -541,18 +1003,61 @@ def run_weeder_subset(weeder, fastafile, w, e, organism, strand):
     return out, err
 
 class Weeder(MotifProgram):
+    
+    """
+    Predict motifs using Weeder.
+    
+    Reference: 
+    
+    """
+    
     def __init__(self):
         self.name = "Weeder"
         self.cmd = "weederTFBS.out"
         self.use_width = False
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
 
-    def _run_program(self, bin,fastafile, savedir="", params=None):
-        #try: 
-        #    from gimmemotifs.mp import pool
-        #except:
-        #    pass
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
 
+    def _run_program(self, bin,fastafile, params=None):
+        """
+        Run Weeder and predict motifs from a FASTA file.
 
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {"analysis":"small", "organism":"hg18", "single":False, "parallel":True}
         if params is not None: 
             default_params.update(params)
@@ -575,26 +1080,19 @@ class Weeder(MotifProgram):
             "sacCer2":"SC",
             "xenTro2":"XT",
             "xenTro3":"XT"}
-        if weeder_organisms.has_key(organism):
+        if organism in weeder_organisms:
             weeder_organism = weeder_organisms[organism]
         else:
             return []    
 
-        weeder = bin
-        adviser = weeder.replace("weederTFBS", "adviser")
-    
-        
+        adviser = bin.replace("weederTFBS", "adviser")
         weeder_dir = bin.replace("weederTFBS.out", "")
         if self.is_configured():
             weeder_dir = self.dir()
 
         freq_files = os.path.join(weeder_dir, "FreqFiles")
         if not os.path.exists(freq_files):
-            raise ValueError, "Can't find FreqFiles directory for Weeder"
-                
-
-        fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
+            raise ValueError("Can't find FreqFiles directory for Weeder")
 
         tmp = NamedTemporaryFile(dir=self.tmpdir)
         name = tmp.name
@@ -612,11 +1110,11 @@ class Weeder(MotifProgram):
             strand = ""
             
         if default_params["analysis"] == "xl":
-             coms = ((12,4),(10,3),(8,2),(6,1))
+            coms = ((12,4),(10,3),(8,2),(6,1))
         elif default_params["analysis"] == "large":
-             coms = ((10,3),(8,2),(6,1))
+            coms = ((10,3),(8,2),(6,1))
         elif default_params["analysis"] == "medium":
-             coms = ((10,3),(8,2),(6,1))
+            coms = ((10,3),(8,2),(6,1))
         
         # TODO: test organism
         stdout = ""
@@ -624,7 +1122,8 @@ class Weeder(MotifProgram):
         
         default_params["parallel"] = False 
         if default_params["parallel"]:
-            jobs = []
+            pass
+            #jobs = []
             #for (w,e) in coms:
             #    jobs.append(pool.apply_async(
             #        run_weeder_subset, 
@@ -638,7 +1137,7 @@ class Weeder(MotifProgram):
         else:
 
             for (w,e) in coms:
-                out,err = run_weeder_subset(weeder, fastafile, w, e, weeder_organism, strand)
+                out,err = run_weeder_subset(bin, fastafile, w, e, weeder_organism, strand)
                 stdout += out
                 stderr += err
     
@@ -664,6 +1163,19 @@ class Weeder(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert Weeder output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing Weeder output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
 
@@ -705,45 +1217,97 @@ class Weeder(MotifProgram):
         return motifs
 
 class MotifSampler(MotifProgram):
+    
+    """
+    Predict motifs using MotifSampler.
+    
+    Reference: 
+    """
+    
     def __init__(self):
         self.name = "MotifSampler"
         self.cmd = "MotifSampler"
         self.use_width = True
+        self.default_params = {
+                "width":10, 
+                "background":"", 
+                "single":False, 
+                "number":10}
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
 
-    def _run_program(self, bin, fastafile, savedir, params=None):
-        
-        default_params = {"width":10, "background":"", "single":False, "number":10}
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
         if params is not None: 
-            default_params.update(params)
-        
-        background = default_params['background']
-        width = default_params['width']
-        number = default_params['number']
-
-        if not background:
-            if default_params["organism"]:
-                org = default_params["organism"]
-                background = os.path.join(
+            prm.update(params)
+ 
+        if prm["background"]:
+            # Absolute path, just to be sure
+            prm["background"] = os.path.abspath(prm["background"])
+        else:
+            if prm.get("organism", None):
+                prm["background"] = os.path.join(
                         self.config.get_bg_dir(), 
-                        "{}.{}.bg".format(org, "MotifSampler"))
+                        "{}.{}.bg".format(
+                            prm["organism"], 
+                            "MotifSampler"))
             else:            
                 raise Exception, "No background specified for {}".format(self.name)
-
-        fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
-    
+        
+        prm["strand"] = 1
+        if prm["single"]:
+            prm["strand"] = 0
+        
         tmp = NamedTemporaryFile(dir=self.tmpdir)
-        pwmfile = tmp.name
+        prm["pwmfile"] = tmp.name
 
         tmp2  = NamedTemporaryFile(dir=self.tmpdir)
-        outfile = tmp2.name
-    
-        strand = 1
-        if default_params["single"]:
-            strand = 0
+        prm["outfile"] = tmp2.name
+ 
+        return prm 
 
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Run MotifSampler and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
+        params = self._parse_params(params)
         # TODO: test organism
-        cmd = "%s -f %s -b %s -m %s -w %s -n %s -o %s -s %s > /dev/null 2>&1" % (bin, fastafile, background, pwmfile, width, number, outfile, strand)
+        cmd = "%s -f %s -b %s -m %s -w %s -n %s -o %s -s %s > /dev/null 2>&1" % (
+                bin, 
+                fastafile, 
+                params["background"], 
+                params["pwmfile"], 
+                params["width"], 
+                params["number"], 
+                params["outfile"],
+                params["strand"],
+                )
         #print cmd
         #p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         #stdout, stderr = p.communicate()
@@ -753,14 +1317,9 @@ class MotifSampler(MotifProgram):
         p.wait()
 
         motifs = []
-        #if os.path.exists(pwmfile):
-        #    motifs = self.parse(open(pwmfile))
-        if os.path.exists(outfile):
-            motifs = self.parse_out(open(outfile))
-        
-        # remove temporary files
-        tmp.close()
-        tmp2.close()
+        if os.path.exists(params["outfile"]):
+            with open(params["outfile"]) as f:
+                motifs = self.parse_out(f)
         
         for motif in motifs:
             motif.id = "%s_%s" % (self.name, motif.id)
@@ -768,6 +1327,19 @@ class MotifSampler(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert MotifSampler output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing MotifSampler output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
 
         pwm = []
@@ -788,7 +1360,6 @@ class MotifSampler(MotifProgram):
                 pwm = []
             
         return motifs
-
 
     def parse_out(self, fo):
         motifs = []
@@ -827,20 +1398,64 @@ class MotifSampler(MotifProgram):
         return motifs
 
 class MDmodule(MotifProgram):
+    
+    """
+    Predict motifs using MDmodule.
+
+    Reference: 
+    """
+
     def __init__(self):
         self.name = "MDmodule"
         self.cmd = "MDmodule"
         self.use_width = True
+         
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
         
-    def _run_program(self, bin, fastafile, savedir, params=None):
+        return prm 
+   
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Run MDmodule and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
         
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {"width":10, "number":10}
         if params is not None: 
             default_params.update(params)
         
-        fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
-    
         new_file = os.path.join(self.tmpdir, "mdmodule_in.fa")
         shutil.copy(fastafile, new_file)
         
@@ -870,6 +1485,19 @@ class MDmodule(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert MDmodule output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing MDmodule output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
         p = re.compile(r'(\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)')
@@ -914,16 +1542,60 @@ class MDmodule(MotifProgram):
         return motifs
 
 class ChIPMunk(MotifProgram):
+    
+    """
+    Predict motifs using ChIPMunk.
+
+    Reference: 
+    """
+    
     def __init__(self):
         self.name = "ChIPMunk"
         self.cmd = "ChIPMunk.sh"
         self.use_width = True
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
 
-    def _run_program(self, bin, fastafile, savedir, params=None):
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
 
-        fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Run ChIPMunk and predict motifs from a FASTA file.
 
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         basename = "munk_in.fa"
 
         new_file = os.path.join(self.tmpdir, basename)
@@ -954,6 +1626,19 @@ class ChIPMunk(MotifProgram):
         return motifs, stdout, stderr
         
     def parse(self, fo):
+        """
+        Convert ChIPMunk output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing ChIPMunk output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         #KDIC|6.124756232026243
         #A|517.9999999999999 42.99999999999999 345.99999999999994 25.999999999999996 602.9999999999999 155.99999999999997 2.9999999999999996 91.99999999999999
         #C|5.999999999999999 4.999999999999999 2.9999999999999996 956.9999999999999 91.99999999999999 17.999999999999996 22.999999999999996 275.99999999999994
@@ -976,20 +1661,64 @@ class ChIPMunk(MotifProgram):
 
 
 class Posmo(MotifProgram):
+    
+    """
+    Predict motifs using Posmo.
+
+    Reference: 
+    """
+    
     def __init__(self):
         self.name = "Posmo"
         self.cmd = "posmo"
         self.use_width = False
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
 
-    def _run_program(self, bin, fastafile, savedir, params=None):
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
         
+        return prm 
+
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Run Posmo and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {}
         if params is not None: 
             default_params.update(params)
         
-        fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
-    
         basename = "posmo_in.fa"
 
         new_file = os.path.join(self.tmpdir, basename)
@@ -1022,6 +1751,19 @@ class Posmo(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert Posmo output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing Posmo output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
 
@@ -1040,23 +1782,65 @@ class Posmo(MotifProgram):
         
         return motifs
 
-
-
 class Gadem(MotifProgram):
+    
+    """
+    Predict motifs using GADEM.
+
+    Reference: 
+    """
+    
     def __init__(self):
         self.name = "GADEM"
         self.cmd = "gadem"
         self.use_width = False
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
 
-    def _run_program(self, bin, fastafile, savedir, params=None):
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
         
+        return prm 
+
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Run GADEM and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {}
         if params is not None: 
             default_params.update(params)
         
-        fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
-    
         new_file = os.path.join(self.tmpdir, "gadem_in.fa")
         shutil.copy(fastafile, new_file)
         
@@ -1079,6 +1863,19 @@ class Gadem(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert GADEM output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing GADEM output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
 
@@ -1121,8 +1918,49 @@ class Jaspar(MotifProgram):
         self.name = "JASPAR"
         self.cmd = "/bin/false"    
         self.use_width = False
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
 
-    def _run_program(self, bin, fastafile, savedir, params=None):
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
+
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Get enriched JASPAR motifs in a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         fname = os.path.join(self.config.get_motif_dir(), "JASPAR2010_vertebrate.pwm")
         motifs =  read_motifs(open(fname), fmt="pwm")
         for motif in motifs:
@@ -1130,19 +1968,64 @@ class Jaspar(MotifProgram):
         return motifs, "", ""
 
 class Meme(MotifProgram):
+    
+    """
+    Predict motifs using MEME.
+    
+    Reference: 
+    """
+
     def __init__(self):
         self.name = "MEME"
         self.cmd = "meme.bin"
         self.use_width = True
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
 
-    def _run_program(self, bin, fastafile, savedir, params=None):
-        #EVT = 1.0
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
+        
+        return prm 
+
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Run MEME and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {"width":10, "single":False, "number":10}
         if params is not None: 
             default_params.update(params)
         
-        fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
         tmp = NamedTemporaryFile(dir=self.tmpdir)
         tmpname = tmp.name
     
@@ -1167,6 +2050,19 @@ class Meme(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert MEME output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing MEME output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
 
@@ -1203,20 +2099,64 @@ class Meme(MotifProgram):
         return motifs
 
 class MemeW(MotifProgram):
+    
+    """
+    Predict motifs using MEME
+    
+    Reference: 
+    """
+    
     def __init__(self):
         self.name = "MEMEW"
         self.cmd = "meme.bin"
         self.use_width = False
+    
+    def _parse_params(self, params=None):
+        """
+        Parse parameters.
 
-    def _run_program(self, bin, fastafile, savedir, params=None):
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None: 
+            prm.update(params)
+ 
+        # Absolute path, just to be sure
+        prm["background"] =  os.path.abspath(prm["background"])
         
-        #EVT = 1.0
+        return prm 
+
+    def _run_program(self, bin, fastafile, params=None):
+        """
+        Run MEME and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        bin : str
+            Command used to run the tool.
+        
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+        
+        stderr : str
+            Standard error of the tool.
+        """
         default_params = {"single":False, "number":10}
         if params is not None: 
             default_params.update(params)
         
-        fastafile = os.path.abspath(fastafile)
-        savedir = os.path.abspath(savedir)
         tmp = NamedTemporaryFile(dir=self.tmpdir)
         tmpname = tmp.name
     
@@ -1240,6 +2180,19 @@ class MemeW(MotifProgram):
         return motifs, stdout, stderr
 
     def parse(self, fo):
+        """
+        Convert MEME output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing MEME output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
 
@@ -1274,3 +2227,23 @@ class MemeW(MotifProgram):
             line = fo.readline()
 
         return motifs
+
+__tools__ = {
+        "xxmotif": XXmotif,
+        "homer": Homer, 
+        "bioprospector":BioProspector,
+        "hms": Hms,
+        "amd": Amd,
+        "improbizer": Improbizer,
+        "trawler": Trawler,
+        "weeder": Weeder,
+        "motifsampler": MotifSampler,
+        "mdmodule": MDmodule,
+        "chipmunk": ChIPMunk,
+        "posmo": Posmo,
+        "gadem": Gadem,
+        "jaspar": Jaspar,
+        "meme": Meme,
+        "memew": MemeW,
+    }
+

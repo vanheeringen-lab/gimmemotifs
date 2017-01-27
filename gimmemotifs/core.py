@@ -15,7 +15,6 @@ from datetime import datetime
 from numpy import median
 from tempfile import NamedTemporaryFile
 from time import sleep
-import pickle
 
 # External imports
 from scipy.stats.mstats import rankdata

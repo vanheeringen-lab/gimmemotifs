@@ -1,10 +1,11 @@
-# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2017 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
+""" Module to calculate motif scoring metrics.
 
-""" Module to calculate statistics, such as ROC AUC and MNCP scores, 
+Includes ROC AUC, MNCP, enrichment and others, which are calculated 
 on the basis of motif scanning results.
 """
 
@@ -74,17 +75,55 @@ def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.1):
     
     y_true, y_score = values_to_labels(fg_vals, bg_vals)
     
-    precision, recall, thresholds = precision_recall_curve(y_true, y_score)
+    precision, recall, _ = precision_recall_curve(y_true, y_score)
     fdr = 1 - precision
     cutoff_index = next(i for i, x in enumerate(fdr) if x <= fdr_cutoff)
     return recall[cutoff_index]
 
 def fraction_fdr(fg_vals, bg_vals, fdr=5):
+    """
+    Computes the fraction positives at a specific FDR (default 5%).
+
+    Parameters
+    ----------
+    fg_vals : array_like
+        The list of values for the positive set.
+
+    bg_vals : array_like
+        The list of values for the negative set.
+    
+    fdr : float, optional
+        The FDR (between 0.0 and 1.0).
+    
+    Returns
+    -------
+    fraction : float
+        The fraction positives at the specified FDR.
+    """
     fg_vals = np.array(fg_vals)
     s = scoreatpercentile(bg_vals, 100 - fdr)
     return len(fg_vals[fg_vals >= s]) / float(len(fg_vals))
 
 def score_at_fdr(fg_vals, bg_vals, fdr=5):
+    """
+    Returns the motif score at a specific FDR (default 5%).
+
+    Parameters
+    ----------
+    fg_vals : array_like
+        The list of values for the positive set.
+
+    bg_vals : array_like
+        The list of values for the negative set.
+    
+    fdr : float, optional
+        The FDR (between 0.0 and 1.0).
+    
+    Returns
+    -------
+    score : float
+        The motif score at the specified FDR.
+    """
     bg_vals = np.array(bg_vals)
     return scoreatpercentile(bg_vals, 100 - fdr)
 
@@ -108,7 +147,6 @@ def enr_at_fdr(fg_vals, bg_vals, fdr=5.0):
     enrichment : float
         The enrichment at the specified FDR.
     """
-    
     pos = np.array(fg_vals)
     neg = np.array(bg_vals)
     s = scoreatpercentile(neg, 100 - fdr)
@@ -178,9 +216,9 @@ def mncp(fg_vals, bg_vals):
     fg_len = len(fg_vals)
     total_len = len(fg_vals) + len(bg_vals)
 
-    if type(fg_vals) != type(np.array([])):
+    if not isinstance(fg_vals, np.ndarray):
         fg_vals = np.array(fg_vals)
-    if type(bg_vals) != type(np.array([])):
+    if not isinstance(bg_vals, np.ndarray):
         bg_vals = np.array(bg_vals)
     
     fg_rank = stats.rankdata(fg_vals)
@@ -211,13 +249,31 @@ def roc_auc(fg_vals, bg_vals):
     score : float
         ROC AUC score
     """
-
     # Create y_labels
     y_true, y_score = values_to_labels(fg_vals, bg_vals)
     
     return roc_auc_score(y_true, y_score)
 
 def roc_auc_xlim(x_bla, y_bla, xlim=0.1):
+    """
+    Computes the ROC Area Under Curve until a certain FPR value.
+
+    Parameters
+    ----------
+    fg_vals : array_like
+        list of values for positive set
+
+    bg_vals : array_like
+        list of values for negative set
+
+    xlim : float, optional
+        FPR value
+    
+    Returns
+    -------
+    score : float
+        ROC AUC score
+    """
     x = x_bla[:]
     y = y_bla[:]
 
@@ -269,6 +325,9 @@ def roc_auc_xlim(x_bla, y_bla, xlim=0.1):
     bla = zip(stats.rankdata(x), range(len(x)))
 
     def sortfunc(x,y):
+        """
+        Local sort function. 
+        """
         res = x[0] - y[0]
         if res < 0:
             return -1
@@ -285,7 +344,7 @@ def roc_auc_xlim(x_bla, y_bla, xlim=0.1):
 
     while index < len(bla) and x[bla[index][1]] <= xlim:
 
-        (rank, i) = bla[index]
+        _, i = bla[index]
         
         auc += y[i] * (x[i] - prev_x) - ((x[i] - prev_x) * (y[i] - prev_y) / 2.0)
         prev_x = x[i]
@@ -322,7 +381,7 @@ def roc_values(fg_vals, bg_vals):
     
     y_true, y_score = values_to_labels(fg_vals, bg_vals)
     
-    fpr, tpr, thresholds = roc_curve(y_true, y_score)
+    fpr, tpr, _thresholds = roc_curve(y_true, y_score)
      
     return fpr, tpr
 
@@ -343,7 +402,6 @@ def max_fmeasure(fg_vals, bg_vals):
     f : float
         Maximum f-measure.
     """
-    
     x, y = roc_values(fg_vals, bg_vals)
     x, y = x[1:], y[1:] # don't include origin
     
