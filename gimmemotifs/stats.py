@@ -33,39 +33,46 @@ def calc_stats(motifs, fg_file, bg_file, stats=None):
         stats = rocmetrics.__all__
     
     try:
-        motifs = read_motifs(open(motifs), fmt="pwm")
+        all_motifs = read_motifs(open(motifs), fmt="pwm")
     except TypeError:
+        all_motifs = motifs
         pass
     
-    ids = [m.id for m in motifs]
-   
-    fg_total = scan_fasta_to_best_score(fg_file, motifs)
-    bg_total = scan_fasta_to_best_score(bg_file, motifs)
- 
-    jobs = []
-    result = {}
-
-    sys.stderr.write("calculating statistics\n".format(bg_file))
-    # Initialize multiprocessing pool
     ncpus = int(MotifConfig().get_default_params()["ncpus"])
-    pool = Pool(ncpus, maxtasksperchild=1000)
+    chunksize = 240
+
+    result = {}
+    for i in range(0, len(all_motifs), chunksize):
+        sys.stderr.write("{} of {}\n".format(
+            (i / chunksize) + 1, len(all_motifs) / chunksize + 1))
+        motifs = all_motifs[i:i + chunksize]
+        ids = [m.id for m in motifs]
+       
+        fg_total = scan_fasta_to_best_score(fg_file, motifs)
+        bg_total = scan_fasta_to_best_score(bg_file, motifs)
+     
+        jobs = []
     
-    for motif_id in ids:
-        result[motif_id] = {}
-        fg_vals = fg_total[motif_id]
-        bg_vals = bg_total[motif_id]
-        for s in stats:
-            func = getattr(rocmetrics, s)
-            result[motif_id][s] = None
-            j = pool.apply_async(func, 
-                    (fg_vals, bg_vals))
-            jobs.append([motif_id, s, j])
-   
-    pool.close()
-    pool.join()
-    
-    for motif_id, s, job in jobs:
-        ret = job.get() 
-        result[motif_id][s] = ret
-    
+        sys.stderr.write("calculating statistics\n".format(bg_file))
+        # Initialize multiprocessing pool
+        pool = Pool(ncpus, maxtasksperchild=1000)
+        
+        for motif_id in ids:
+            result[motif_id] = {}
+            fg_vals = fg_total[motif_id]
+            bg_vals = bg_total[motif_id]
+            for s in stats:
+                func = getattr(rocmetrics, s)
+                result[motif_id][s] = None
+                j = pool.apply_async(func, 
+                        (fg_vals, bg_vals))
+                jobs.append([motif_id, s, j])
+       
+        pool.close()
+        pool.join()
+        
+        for motif_id, s, job in jobs:
+            ret = job.get() 
+            result[motif_id][s] = ret
+        
     return result
