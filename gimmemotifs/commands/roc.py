@@ -4,25 +4,19 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-import sys
-import os
-
+"""Command line function 'roc'."""
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.stats import calc_stats
 
 def roc(args):
-    """ Calculate ROC_AUC and other metrics and optionally plot ROC curve.
-    """
-    pwmfile = args.pwmfile
-    fg_file = args.sample
-    bg_file = args.background
+    """ Calculate ROC_AUC and other metrics and optionally plot ROC curve."""
     outputfile = args.outfile
     # Default extension for image
-    if outputfile and   not outputfile.endswith(".png"):
+    if outputfile and not outputfile.endswith(".png"):
         outputfile += ".png"
     
-    motifs = read_motifs(open(pwmfile), fmt="pwm")
+    motifs = read_motifs(open(args.pwmfile), fmt="pwm")
 
     ids = []
     if args.ids:
@@ -40,13 +34,13 @@ def roc(args):
             "roc_values"
             ]
     
-    motif_stats = calc_stats(motifs, fg_file, bg_file, stats)
+    motif_stats = calc_stats(motifs, args.sample, args.background, stats)
 
     plot_x = []
     plot_y = []
     # Print the metrics
     print "Motif\tROC AUC\tMNCP\tEnr. at 5% FDR\tMax enr.\tRecall at 10% FDR"
-    for i,motif_id in enumerate(ids):
+    for motif_id in ids:
         if outputfile:
             x, y = motif_stats[motif_id]["roc_values"]
             plot_x.append(x)
