@@ -1,3 +1,4 @@
+"""Calculate motif enrichment statistics."""
 import sys
 from gimmemotifs import rocmetrics
 from gimmemotifs.scanner import scan_fasta_to_best_score
@@ -36,7 +37,6 @@ def calc_stats(motifs, fg_file, bg_file, stats=None):
         all_motifs = read_motifs(open(motifs), fmt="pwm")
     except TypeError:
         all_motifs = motifs
-        pass
     
     ncpus = int(MotifConfig().get_default_params()["ncpus"])
     chunksize = 240
@@ -53,7 +53,7 @@ def calc_stats(motifs, fg_file, bg_file, stats=None):
      
         jobs = []
     
-        sys.stderr.write("calculating statistics\n".format(bg_file))
+        sys.stderr.write("calculating statistics\n")
         # Initialize multiprocessing pool
         pool = Pool(ncpus, maxtasksperchild=1000)
         
