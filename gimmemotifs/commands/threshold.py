@@ -3,22 +3,22 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-
+"""Command line functon 'threshold'"""
 import sys
 
 from scipy.stats import scoreatpercentile
 import numpy as np
 
-from gimmemotifs.fasta import Fasta
-from gimmemotifs.motif import pwmfile_to_motifs
+from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 
 def threshold(args):
+    """Calculate motif score threshold for a given FDR."""
     if args.fdr < 0 or args.fdr > 1:
         print "Please specify a FDR between 0 and 1"
         sys.exit(1)
 
-    motifs = pwmfile_to_motifs(args.pwmfile)
+    motifs = read_motifs(open(args.pwmfile))
     
     s = Scanner()
     s.set_motifs(args.pwmfile)
@@ -30,7 +30,6 @@ def threshold(args):
     print "Motif\tScore\tCutoff"
     for i,scores in enumerate(np.array(score_table).transpose()):
         motif = motifs[i]
-        pwm = motif.pwm
         min_score = motif.pwm_min_score()
         if len(scores) > 0:
             opt_score = scoreatpercentile(scores, 100 - (100 * args.fdr))
