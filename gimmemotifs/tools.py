@@ -976,7 +976,7 @@ class Trawler(MotifProgram):
         
         os.chdir(current_path)
         motifs = []
-        out_name = [dir for dir in os.listdir(self.tmpdir) if dir.startswith("tmp")][-1]
+        out_name = [d for d in os.listdir(self.tmpdir) if d.startswith("tmp")][-1]
         out_file = os.path.join(self.tmpdir, out_name, "result", "%s.pwm" % out_name)
         stdout += "\nOutfile: {}".format(out_file)
         
@@ -995,12 +995,6 @@ class Trawler(MotifProgram):
 
     #def parse(self, fo):
     #    return []
-
-def run_weeder_subset(weeder, fastafile, w, e, organism, strand):
-    cmd = "%s -f %s -W %s -e %s -R 50 -O %s %s" % (weeder, fastafile, w, e, organism, strand)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
-    out,err = p.communicate()
-    return out, err
 
 class Weeder(MotifProgram):
     
@@ -1030,6 +1024,14 @@ class Weeder(MotifProgram):
         prm["background"] =  os.path.abspath(prm["background"])
         
         return prm 
+    
+    def _run_weeder_subset(self, weeder, fastafile, w, e, organism, strand):
+        """Command line for Weeder."""
+        cmd = "%s -f %s -W %s -e %s -R 50 -O %s %s" % (weeder, fastafile, w, e, organism, strand)
+        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+        out,err = p.communicate()
+        return out, err
+
 
     def _run_program(self, bin,fastafile, params=None):
         """
@@ -1137,7 +1139,7 @@ class Weeder(MotifProgram):
         else:
 
             for (w,e) in coms:
-                out,err = run_weeder_subset(bin, fastafile, w, e, weeder_organism, strand)
+                out,err = self._run_weeder_subset(bin, fastafile, w, e, weeder_organism, strand)
                 stdout += out
                 stderr += err
     
@@ -1255,7 +1257,7 @@ class MotifSampler(MotifProgram):
                             prm["organism"], 
                             "MotifSampler"))
             else:            
-                raise Exception, "No background specified for {}".format(self.name)
+                raise Exception("No background specified for {}".format(self.name))
         
         prm["strand"] = 1
         if prm["single"]:
@@ -1362,6 +1364,19 @@ class MotifSampler(MotifProgram):
         return motifs
 
     def parse_out(self, fo):
+        """
+        Convert MotifSampler output to motifs
+        
+        Parameters
+        ----------
+        fo : file-like
+            File object containing MotifSampler output.
+
+        Returns
+        -------
+        motifs : list
+            List of Motif instances.
+        """
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
         pseudo = 0.0 # Should be 1/sqrt(# of seqs)
@@ -1371,15 +1386,15 @@ class MotifSampler(MotifProgram):
                 pass
             elif len(line) > 1:
                 vals = line.strip().split("\t")
-                id, site = [x.strip().split(" ")[1].replace('"',"") for x in vals[8].split(";") if x]
+                m_id, site = [x.strip().split(" ")[1].replace('"',"") for x in vals[8].split(";") if x]
                 #if vals[6] == "+":
                 if site.upper().find("N") == -1:
-                    aligns.setdefault(id, []).append(site)
+                    aligns.setdefault(m_id, []).append(site)
                 #else:
                 #    print site, rc(site)
                 #    aligns.setdefault(id, []).append(rc(site))
                         
-        for id, align in aligns.items():
+        for m_id, align in aligns.items():
             #print id, len(align)
 
             width = len(align[0])
@@ -1393,7 +1408,7 @@ class MotifSampler(MotifProgram):
             m.align = align[:]
             m.pwm = pwm[:]
             m.pfm = pfm[:]
-            m.id = id
+            m.id = m_id
             motifs.append(m)    
         return motifs
 
@@ -1506,19 +1521,19 @@ class MDmodule(MotifProgram):
         pwm = []
         pfm = []
         align = []
-        id = ""
+        m_id = ""
         for line in fo.readlines():
             if line.startswith("Motif"):
-                if id:
+                if m_id:
                     motifs.append(Motif())
-                    motifs[-1].id = id
+                    motifs[-1].id = m_id
                     motifs[-1].pwm = pwm
                     motifs[-1].pfm = pfm
                     motifs[-1].align = align
                     pwm = []
                     pfm = []
                     align = []
-                id = line.split("\t")[0]
+                m_id = line.split("\t")[0]
             else: 
                 m = p.search(line)
                 if m:
@@ -1534,7 +1549,7 @@ class MDmodule(MotifProgram):
         
         if pwm:
             motifs.append(Motif())
-            motifs[-1].id = id
+            motifs[-1].id = m_id
             motifs[-1].pwm = pwm
             motifs[-1].pfm = pfm
             motifs[-1].align = align
@@ -1601,7 +1616,7 @@ class ChIPMunk(MotifProgram):
         new_file = os.path.join(self.tmpdir, basename)
         out = open(new_file, "w")
         f = Fasta(fastafile)
-        for name,seq in f.items():
+        for seq in f.seqs:
             header = " ".join(["%0.1f" % x for x in range(len(seq) / 2) + range(len(seq) / 2, 0, -1)])
             out.write(">%s\n" % header)
             out.write("%s\n" % seq)
@@ -1649,7 +1664,7 @@ class ChIPMunk(MotifProgram):
         while not line.startswith("A|"):
             line = fo.readline() 
         matrix = []
-        for i in range(4):
+        for _ in range(4):
             matrix.append([float(x) for x in line.strip().split("|")[1].split(" ")])
             line = fo.readline()
         #print matrix
@@ -1725,7 +1740,7 @@ class Posmo(MotifProgram):
         shutil.copy(fastafile, new_file)
         
         fastafile = new_file
-        pwmfile = fastafile + ".pwm"
+        #pwmfile = fastafile + ".pwm"
     
         motifs = []
         current_path = os.getcwd()
@@ -1765,7 +1780,6 @@ class Posmo(MotifProgram):
             List of Motif instances.
         """
         motifs = []
-        nucs = {"A":0,"C":1,"G":2,"T":3}
 
         lines = [fo.readline() for x in range(6)]
         while lines[0]:
@@ -1884,13 +1898,13 @@ class Gadem(MotifProgram):
             align = []
             pwm = []
             pfm = []
-            id = ""
+            m_id = ""
             line = lines[i].strip()
-            id = line[1:]
-            number = id.split("_")[0][1:]
+            m_id = line[1:]
+            number = m_id.split("_")[0][1:]
             if os.path.exists("%s.seq" % number):
                 for l in open("%s.seq" % number).readlines():
-                    if not "x" in l and not "n" in l:
+                    if "x" not in l and "n" not in l:
                         l = l.strip().upper()
                         align.append(l)
                         if not pfm:
@@ -1904,10 +1918,9 @@ class Gadem(MotifProgram):
 
 
             motifs.append(Motif(pwm))
-            motifs[-1].id = id
+            motifs[-1].id = m_id
             #motifs[-1].pwm = pwm
             if align:
-                pass
                 motifs[-1].pfm = pfm
                 motifs[-1].align = align
 
