@@ -141,26 +141,6 @@ p.add_argument("--torque",
                )
 p.set_defaults(func=commands.motifs)
 
-# gimme_max.py
-default_db = os.path.join(config.get_motif_dir(), params["motif_db"])
-p = subparsers.add_parser('maxenr')
-p.add_argument("sample", 
-               help="FASTA file", 
-               metavar="FG_FAFILE")
-p.add_argument("background", 
-               help="FASTA file with background sequences", 
-               metavar="BG_FAFILE")
-p.add_argument("-p",
-               dest="pwmfile", 
-               help="File with pwms (default: {0})".format(params["motif_db"]), 
-               default=default_db,
-               metavar="PWMFILE")
-p.add_argument("-i", 
-               dest="ids", 
-               help="Comma-seperated list of motif ids to use (default is all ids)", 
-               metavar="IDS")
-p.set_defaults(func=commands.maxenr)
-
 # closest_match.py
 p = subparsers.add_parser('match')
 p.add_argument("pwmfile", 
