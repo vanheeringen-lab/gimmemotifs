@@ -118,11 +118,14 @@ def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False,
     fa = as_fasta(inputfile, index_dir)
     
     if table:
-        scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods)
+        it = scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods)
     elif score_table:
-        scan_score_table(s, fa, motifs, scan_rc) 
+        it = scan_score_table(s, fa, motifs, scan_rc) 
     else:
-        scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods, bed)
+        it = scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods, bed)
+    
+    for row in it:
+        yield row
 
 def pwmscan(args):
     for line in command_scan(
