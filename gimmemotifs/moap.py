@@ -26,7 +26,9 @@ from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.preprocessing import scale, LabelEncoder
 
 from lightning.classification import CDClassifier
+from lightning.regression import CDRegressor
 
+import xgboost
 import pymc as pm
 
 from gimmemotifs.motif import read_motifs
@@ -34,12 +36,132 @@ from gimmemotifs.scanner import Scanner
 from gimmemotifs.mara import make_model
 from gimmemotifs.config import MotifConfig, GM_VERSION
 
-CLUSTER_METHODS = ["classic", "ks", "lightning", "rf", "mwu"]
-VALUE_METHODS = ["lasso", "mara"]
+CLUSTER_METHODS = ["classic", "ks", "lightning_c", "rf", "mwu"]
+VALUE_METHODS = ["lasso", "mara", "lightning_r", "xgb"]
 
-class LightningMoap(object):
+class XgboostRegressionMoap(object):
     def __init__(self, scale=True):
-        """Predict motif activities using lighting CDClassifier
+        """Predict motif activities using XGBoost.
+
+        Parameters
+        ----------
+        scale : boolean, optional, default True
+            If ``True``, the motif scores will be scaled 
+            before classification
+       
+        Attributes
+        ----------
+        act_ : DataFrame, shape (n_motifs, n_clusters)
+            Feature scores. 
+        """
+        
+        self.act_description = ("activity values: feature scores from"
+                               "fitted model")
+        
+        self.ncpus = MotifConfig().get_default_params().get("ncpus", 2)
+        self.scale = scale
+        
+        self.act_ = None
+    
+    def fit(self, df_X, df_y):
+        
+        if not df_y.shape[0] == df_X.shape[0]:
+            raise ValueError("number of regions is not equal")
+        
+        if self.scale:
+            # Scale motif scores
+            df_X = df_X.apply(scale)
+        
+        # Normalize across samples and features
+        y = df_y.apply(scale, 1).apply(scale, 0)
+        X = df_X.loc[y.index]
+
+        # Define model
+        xgb = xgboost.XGBRegressor(
+                n_estimators=100,
+                learning_rate=0.1,
+                nthread=self.ncpus,
+                min_child_weight=2,
+                max_depth=3,
+                subsample=0.75,
+                colsample_bytree=0.75,
+                objective='reg:linear')
+
+        sys.stderr.write("xgb: 0%")
+        sys.stderr.flush()
+        
+        self.act_ = pd.DataFrame(index=X.columns)
+        # Fit model
+        for i,col in enumerate(y.columns):
+            xgb.fit(X, y[col])
+            d = xgb.booster().get_fscore()
+            self.act_[col] = [d.get(m, 0) for m in X.columns]
+            sys.stderr.write("..{}%".format(int(float(i + 1)/ len(y.columns) * 100)))
+            sys.stderr.flush()
+        sys.stderr.write("\n")
+
+class LightningRegressionMoap(object):
+    def __init__(self, scale=True, cv=3):
+        """Predict motif activities using lightning CDRegressor 
+
+        Parameters
+        ----------
+        scale : boolean, optional, default True
+            If ``True``, the motif scores will be scaled 
+            before classification
+       
+        cv : int, optional, default 3
+            Cross-validation k-fold parameter.
+
+        Attributes
+        ----------
+        act_ : DataFrame, shape (n_motifs, n_clusters)
+            fitted coefficients
+
+        sig_ : DataFrame, shape (n_motifs,)
+            boolean values, if coefficients are higher/lower than
+            the 1%t from random permutation
+        """
+        
+        self.act_description = ("activity values: coefficients from "
+                               "fitted model")
+        
+        self.ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+        self.kfolds = cv
+        self.scale = scale
+        
+        self.act_ = None
+    
+    def fit(self, df_X, df_y):
+        
+        if self.scale:
+            # Scale motif scores
+            df_X = df_X.apply(scale)
+        
+        # Normalize across samples and features
+        y = df_y.apply(scale, 1).apply(scale, 0)
+        X = df_X.loc[y.index]
+
+        if not y.shape[0] == X.shape[0]:
+            raise ValueError("number of regions is not equal")
+        
+        # Define model
+        cd = CDRegressor(penalty="l1/l2", C=1.0/X.shape[0])
+        parameters = {
+            "alpha": [np.exp(-x) for x in np.arange(0, 8, 1/2.5)],
+        }
+        clf = GridSearchCV(cd, parameters, n_jobs=self.ncpus)
+
+        # Fit model
+        clf.fit(X.values, y.values)
+        
+        # Get coefficients
+        self.act_ = pd.DataFrame(clf.best_estimator_.coef_.T, 
+                index=X.columns, columns = y.columns)
+
+class LightningClassificationMoap(object):
+    def __init__(self, scale=True):
+        """Predict motif activities using lightning CDClassifier 
 
         Parameters
         ----------
@@ -466,7 +588,7 @@ class MaraMoap(object):
         mcmc.db.close()
 
 class LassoMoap(object):
-    def __init__(self, scale=True, kfolds=5, alpha_stepsize=1/3.0):
+    def __init__(self, scale=True, kfolds=5, alpha_stepsize=1.0):
         """Predict motif activities using Lasso MultiTask regression
 
         Parameters
@@ -478,7 +600,7 @@ class LassoMoap(object):
         kfolds : integer, optional, default 5
             number of kfolds for parameter search
         
-        alpha_stepsize : float, optional, default 0.333
+        alpha_stepsize : float, optional, default 1.0
             stepsize for use in alpha gridsearch
 
         Attributes
@@ -898,6 +1020,16 @@ def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=N
     else:
         motifs = pd.read_table(motiffile, index_col=0)   
 
+    if os.path.exists(outfile):
+        out = pd.read_table(outfile, index_col=0, comment="#")
+        ncols = df.shape[1]
+        if ncols == 1:
+            ncols = len(df.iloc[:,0].unique())
+        
+        if out.shape[0] == motifs.shape[1] and out.shape[1] == ncols:
+            sys.stderr.write("output already exists... skipping\n")
+            return out
+    
     motifs = motifs.loc[df.index]
     
     clf = None
@@ -909,8 +1041,12 @@ def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=N
         clf = RFMoap()
     if method == "lasso":
         clf = LassoMoap()
-    if method == "lightning":
-        clf = LightningMoap()
+    if method == "lightning_c":
+        clf = LightningClassificationMoap()
+    if method == "lightning_r":
+        clf = LightningRegressionMoap()
+    if method == "xgb":
+        clf = XgboostRegressionMoap()
     if method == "mara":
         clf = MaraMoap()
     if method == "more":
