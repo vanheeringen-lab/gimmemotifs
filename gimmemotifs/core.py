@@ -430,7 +430,7 @@ class GimmeMotifs(object):
 
         for cluster,members in clusters:
             cluster.trim(trim_ic)
-            cluster.to_img(os.path.join(self.imgdir,"%s.png" % cluster.id), format="PNG")
+            cluster.to_img(os.path.join(self.imgdir,"%s.png" % cluster.id), fmt="PNG")
             ids.append([cluster.id, {"src":"images/%s.png" % cluster.id},[]])
             if len(members) > 1:
                 scores = {}
@@ -449,7 +449,7 @@ class GimmeMotifs(object):
                         rc.id = motif.id
                         motif = rc
                     #print "%s\t%s" % (motif.id, add)
-                    motif.to_img(os.path.join(self.imgdir, "%s.png" % motif.id.replace(" ", "_")), format="PNG", add_left=add)
+                    motif.to_img(os.path.join(self.imgdir, "%s.png" % motif.id.replace(" ", "_")), fmt="PNG", add_left=add)
             ids[-1][2] = [dict([("src", "images/%s.png" % motif.id.replace(" ", "_")), ("alt", motif.id.replace(" ", "_"))]) for motif in members]
 
         env = jinja2.Environment(loader=jinja2.FileSystemLoader([self.config.get_template_dir()]))
@@ -586,7 +586,7 @@ class GimmeMotifs(object):
 
         motifs = read_motifs(open(pwm), fmt="pwm")
         for m,match in self.closest_match.items():
-            match[0].to_img(os.path.join(self.imgdir,"%s.png" % match[0].id), format="PNG")
+            match[0].to_img(os.path.join(self.imgdir,"%s.png" % match[0].id), fmt="PNG")
 
         sort_key = background[0]
         if "gc" in background:
@@ -690,7 +690,7 @@ class GimmeMotifs(object):
                 best_id[best_motif.id] = old_id.split("_")[2]
             num_cluster["%s_%s" % (best_motif.id, best_motif.to_consensus())] = len(singles)
             if imgdir:
-                best_motif.to_img(os.path.join(imgdir, best_motif.id), format="PNG")
+                best_motif.to_img(os.path.join(imgdir, best_motif.id), fmt="PNG")
             out.write("%s\n" % best_motif.to_pwm())
         out.close()
         return num_cluster, best_id
