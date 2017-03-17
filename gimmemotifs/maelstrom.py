@@ -200,17 +200,20 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
 
     # Create a file with the number of motif matches
     if not count_table:
-        counts = scan_to_table(infile, genome, outdir, "count",
-                pwmfile=pwmfile)
         count_table = os.path.join(outdir, "motif.count.txt.gz")
-        counts.to_csv(count_table, sep="\t", compression="gzip")
+        if not os.path.exists(count_table):
+            counts = scan_to_table(infile, genome, outdir, "count",
+                pwmfile=pwmfile)
+            counts.to_csv(count_table, sep="\t", compression="gzip")
 
     # Create a file with the score of the best motif match
     if not score_table:
-        scores = scan_to_table(infile, genome, outdir, "score",
-                pwmfile=pwmfile)
         score_table = os.path.join(outdir, "motif.score.txt.gz")
-        scores.to_csv(score_table, sep="\t", float_format="%.3f", 
+        if not os.path.exists(score_table):
+
+            scores = scan_to_table(infile, genome, outdir, "score",
+                pwmfile=pwmfile)
+            scores.to_csv(score_table, sep="\t", float_format="%.3f", 
                 compression="gzip")
 
     exps = []
@@ -220,6 +223,8 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         exps += [
                 ("mara", "count", infile),
                 ("lasso", "score", infile),
+                ("lightning_r", "score", infile),
+                ("xgb", "score", infile),
                 ]
 
         if cluster:
@@ -237,7 +242,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
                 ("rf", "score", clusterfile),
                 ("classic", "count", clusterfile),
                 ("mwu", "score", clusterfile),
-                ("lightning", "score", clusterfile),
+                ("lightning_c", "score", clusterfile),
                 ]
 
     for method, scoring, fname in exps:
