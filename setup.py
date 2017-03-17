@@ -489,7 +489,8 @@ setup (name = 'gimmemotifs',
             "scikit-learn",
             "sklearn-contrib-lightning",
             "seaborn",
-            "pysam"
+            "pysam",
+            "xgboost",
         ],
         dependency_links = [
             "https://github.com/scikit-learn-contrib/lightning/archive/master.zip"]
