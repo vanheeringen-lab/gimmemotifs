@@ -1020,7 +1020,7 @@ def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=N
     else:
         motifs = pd.read_table(motiffile, index_col=0)   
 
-    if os.path.exists(outfile):
+    if outfile and os.path.exists(outfile):
         out = pd.read_table(outfile, index_col=0, comment="#")
         ncols = df.shape[1]
         if ncols == 1:
