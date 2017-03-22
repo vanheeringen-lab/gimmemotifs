@@ -19,7 +19,13 @@ mpl.use("Agg", warn=False)
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.gridspec import GridSpec
+from matplotlib.colors import to_hex, Normalize
 from mpl_toolkits.axes_grid1 import ImageGrid
+
+from PIL import Image
+
+
+from ete3 import Tree, faces, AttrFace, TreeStyle, NodeStyle
 
 VALID_EXTENSIONS = [".png", ".pdf", ".svg", ".ps"]
 
@@ -190,7 +196,7 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, outfile, mindiff=0, min
     pfreq = np.hstack((freq, bgfreq))
     ax.pcolormesh(pfreq[ind], cmap=c2, vmin=vmin, vmax=vmax)
     
-    sm = plt.cm.ScalarMappable(cmap=c2, norm=mpl.colors.Normalize(vmin=vmin, vmax=vmax))
+    sm = plt.cm.ScalarMappable(cmap=c2, norm=Normalize(vmin=vmin, vmax=vmax))
     
     # Show percentages
     for y,row in enumerate(pfreq[ind]):
@@ -252,7 +258,7 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, outfile, mindiff=0, min
     plt.title('Enrichment (log2)')
     
     # Colorbar
-    sm = plt.cm.ScalarMappable(cmap=c1, norm=mpl.colors.Normalize(vmin=vmin, vmax=vmax))
+    sm = plt.cm.ScalarMappable(cmap=c1, norm=Normalize(vmin=vmin, vmax=vmax))
     sm._A = []
     cax = plt.subplot(gs[0,plot_order[1]])
     cb = fig.colorbar(sm, cax=cax, ticks = [vmin,0, vmax], orientation='horizontal')
@@ -271,3 +277,72 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, outfile, mindiff=0, min
     #plt.show()
     plt.savefig(outfile, dpi=300, bbox_inches='tight')
     plt.close(fig)
+
+def _tree_layout(node):
+    if node.is_leaf():
+        nameFace = AttrFace("name", fsize=24, ftype="Nimbus Sans L")
+        faces.add_face_to_node(nameFace, node, 10, position="branch-right")
+
+def _get_motif_tree(tree, data, circle=True, vmin=None, vmax=None):
+    print circle, vmin, vmax
+    t = Tree(tree)
+    # Determine cutoff for color scale
+    if not(vmin and vmax):
+        for i in range(90, 101):
+            minmax = np.percentile(data.values, i)
+            if minmax > 0:
+                break
+    if not vmin:
+        vmin = -minmax
+    if not vmax:
+        vmax = minmax
+    print vmin, vmax
+    norm = Normalize(vmin=vmin, vmax=vmax, clip=True)
+    mapper = cm.ScalarMappable(norm=norm, cmap="coolwarm")
+    
+    m = 25 / data.values.max()
+    
+    for node in t.traverse("levelorder"):
+        val = data[[l.name for l in node.get_leaves()]].values.mean()
+        style = NodeStyle()
+        style["size"] = 0
+        
+        style["hz_line_color"] = to_hex(mapper.to_rgba(val))
+        style["vt_line_color"] = to_hex(mapper.to_rgba(val))
+        
+        v = max(np.abs(m * val), 5)
+        style["vt_line_width"] = v
+        style["hz_line_width"] = v
+
+        node.set_style(style)
+    
+    ts = TreeStyle()
+
+    ts.layout_fn = _tree_layout
+    ts.show_leaf_name= False
+    ts.show_scale = False
+    ts.branch_vertical_margin = 10
+
+    if circle:
+        ts.mode = "c"
+        ts.arc_start = 180 # 0 degrees = 3 o'clock
+        ts.arc_span = 180
+    
+    return t, ts
+
+def motif_tree_plot(outfile, tree, data, circle=True, vmin=None, vmax=None, dpi=300):
+    """
+    Plot a "phylogenetic" tree 
+    """
+    # Define the tree
+    t, ts = _get_motif_tree(tree, data, circle, vmin, vmax)
+    
+    # Save image
+    t.render(outfile, tree_style=ts, w=100, dpi=dpi, units="mm");
+    
+    # Remove the bottom (empty) half of the figure
+    if circle:
+        img = Image.open(outfile)
+        size = img.size[0]
+        spacer = 50
+        img.crop((0,0,size,size/2 + spacer)).save(outfile)
