@@ -617,6 +617,8 @@ class LassoMoap(object):
         self.act_description = ("activity values: coefficients from "
                                "fitted model")
 
+        self.scale = scale
+
         # initialize attributes
         self.act_ = None 
         self.sig_ = None 
@@ -630,7 +632,11 @@ class LassoMoap(object):
     def fit(self, df_X, df_y):
         if not df_y.shape[0] == df_X.shape[0]:
             raise ValueError("number of regions is not equal")
-        
+       
+        if self.scale:
+            # Scale motif scores
+            df_X = df_X.apply(scale)
+
         idx = range(df_y.shape[0])
         y = df_y.iloc[idx]
         X = df_X.loc[y.index].values
@@ -708,7 +714,7 @@ def fit_model(data):
     # Train the model.
     return clf.fit(X, y)
 
-def eval_model(df, sets, motifs, alpha, nsample=1000, k=10, cutoff=0):
+def eval_model(df, sets, motifs, alpha, nsample=1000, k=10):
     ret = select_sets(df, sets)
     y = pd.DataFrame({"label":0}, index=df.index)
     for label, rows in enumerate(ret):
@@ -755,7 +761,7 @@ def select_sets(df, sets, threshold=1):
     abs_diff = 1 
     ret = []
     for s in sets:
-        other = [c for c in df.columns if not c in s]
+        other = [c for c in df.columns if c not in s]
         x = df[(df[s] >= threshold).any(1) & ((df[s].max(1) - df[other].max(1)) >= abs_diff)].index
         ret.append(x)
     return ret
@@ -835,7 +841,7 @@ class MoreMoap(object):
         return alpha
     
 
-    def _run_bootstrap_model(self, df, sets, motifs, nsample=1000, cutoff=0, nbootstrap=100):
+    def _run_bootstrap_model(self, df, sets, motifs, nsample=1000, nbootstrap=100):
 
         ret = select_sets(df, sets)
         y = pd.DataFrame({"label":0}, index=df.index)
