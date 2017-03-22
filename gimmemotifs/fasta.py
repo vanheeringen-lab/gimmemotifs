@@ -16,7 +16,7 @@ class Fasta(object):
 		self.ids = []
 		self.seqs = []
 		p = re.compile(r'[^abcdefghiklmnpqrstuvwyzxABCDEFGHIKLMNPQRSTUVWXYZ]')
-		if file:
+		if fname:
 			f = open(fname, "r")
 			c = f.read()
 			f.close()

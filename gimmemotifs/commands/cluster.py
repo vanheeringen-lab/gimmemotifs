@@ -44,7 +44,7 @@ def _create_images(outdir, clusters):
     sys.stderr.write("Creating images\n")
     for cluster,members in clusters:
         cluster.trim(trim_ic)
-        cluster.to_img(os.path.join(outdir,"%s.png" % cluster.id), format="PNG")
+        cluster.to_img(os.path.join(outdir,"%s.png" % cluster.id), fmt="PNG")
         ids.append([cluster.id, {"src":"%s.png" % cluster.id},[]])
         if len(members) > 1:
             scores = {}
@@ -63,7 +63,7 @@ def _create_images(outdir, clusters):
                     rc.id = motif.id
                     motif = rc
                 #print "%s\t%s" % (motif.id, add)    
-                motif.to_img(os.path.join(outdir, "%s.png" % motif.id.replace(" ", "_")), format="PNG", add_left=add)
+                motif.to_img(os.path.join(outdir, "%s.png" % motif.id.replace(" ", "_")), fmt="PNG", add_left=add)
         ids[-1][2] = [dict([("src", "%s.png" % m.id.replace(" ", "_")), ("alt", m.id.replace(" ", "_"))]) for m in members]
     return ids
 

@@ -679,11 +679,11 @@ class Motif(object):
         VALID_FORMATS = ["EPS", "GIF", "PDF", "PNG"]
         N = 1000
         fmt = fmt.upper()
-        if not format in VALID_FORMATS:
+        if not fmt in VALID_FORMATS:
             sys.stderr.write("Invalid motif format\n")
             return
         
-        if fname[-4:].upper() == (".%s" % format):
+        if fname[-4:].upper() == (".%s" % fmt):
             fname = fname[:-4]
         seqs = []
         if add_left == 0:
@@ -717,7 +717,7 @@ class Motif(object):
         cmd = makelogo.format(
                               seqlogo, 
                               f.name, 
-                              format, 
+                              fmt, 
                               height,
                               len(self) + add_left, 
                               fname)

@@ -436,8 +436,12 @@ class Scanner(object):
                 scan_rc=scan_rc)
     
             jobs = []
-            chunksize = len(scan_seqs) / n + 1 
-            for i in range(n):
+            
+            chunksize = 500
+            if len(scan_seqs) / n + 1 < chunksize:
+                chunksize = len(scan_seqs) / n + 1
+            
+            for i in range((len(scan_seqs) - 1) / chunksize + 1):
                 job = pool.apply_async(scan_func, (scan_seqs[i * chunksize:(i  + 1) * chunksize],))
                 jobs.append(job)
             
