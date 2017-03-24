@@ -15,7 +15,7 @@ except ImportError:
 import numpy as np
 
 from gimmemotifs.background import RandomGenomicFasta
-from gimmemotifs.config import MotifConfig
+from gimmemotifs.config import MotifConfig,CACHE_DIR
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.genome_index import GenomeIndex
 from gimmemotifs.c_metrics import pwmscan
@@ -300,8 +300,6 @@ class Scanner(object):
             with thresholds as created by 'gimme threshold'.
 
         """
-        CACHE_DIR = "/home/simon/.cache/gimmemotifs/"
-        
         if threshold:
             if fdr:
                 raise ValueError("Need either fdr or threshold.")

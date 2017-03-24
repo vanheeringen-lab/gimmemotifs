@@ -7,6 +7,7 @@
 """ Configuration for GimmeMotifs """
 import ConfigParser
 import sysconfig
+import xdg
 import os
 
 ### CONSTANTS ###
@@ -17,6 +18,7 @@ BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "user"]
 BG_RANK = {"user":1, "promoter":2, "gc":3, "random":4, "genomic":5}
 FASTA_EXT = [".fasta", ".fa", ".fsa"]
 
+CACHE_DIR = XDG_CACHE_HOME
 
 class MotifConfig(object):
     __shared_state = {}

@@ -491,6 +491,8 @@ setup (name = 'gimmemotifs',
             "seaborn",
             "pysam",
             "xgboost",
+            "xdg",
+            "diskcache",
         ],
         dependency_links = [
             "https://github.com/scikit-learn-contrib/lightning/archive/master.zip"]
