@@ -25,6 +25,8 @@ try:
     import numpy as np
 except ImportError:
     pass
+from cityhash import CityHash64
+import base64
 
 class Motif(object):
     
@@ -651,21 +653,63 @@ class Motif(object):
             pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in self.pwm]
             return ">%s\n%s" % (self.id, "\n".join(["\t".join(["%s" % x for x in row]) for row in pfm]))
 
-    def to_pwm(self, extra_str=""):
+    def _pwm_to_str(self, precision=4):
+        """Return string representation of pwm.
+
+        Parameters
+        ----------
+        precision : int, optional, default 4
+            Floating-point precision.
+
+        Returns
+        -------
+        pwm_string : str
+        """
+        if not self.pwm:
+            return ""
+        
+        fmt = "{{:.{:d}f}}".format(precision)
+        return "\n".join(
+                ["\t".join([fmt.format(p) for p in row])
+                for row in self.pwm]
+                )
+   
+    def hash(self):
+        """Return hash of motif.
+
+        Returns:
+        hash : str
+        """
+        return base64.b64encode(str(CityHash64(self._pwm_to_str(3))))[:8]
+
+    def to_pwm(self, precision=4, extra_str=""):
+        """Return pwm as string.
+
+        Parameters
+        ----------
+        precision : int, optional, default 4
+            Floating-point precision.
+        
+        extra_str |: str, optional
+            Extra text to include with motif id line.
+        
+        Returns
+        -------
+        motif_str : str
+            Motif formatted in PWM format.
+        """
         motif_id = self.id
+        
         if extra_str:
             motif_id += "_%s" % extra_str
-        if self.pwm:
-            return ">%s\n%s" % (
-                    motif_id, 
-                    "\n".join(
-                        ["\t".join(["%s" % x for x in row]) 
-                        for row in self.pwm]
-                        )
-                    )
-        
-        pwm = [self.iupac_pwm[char]for char in self.consensus.upper()]
-        return ">%s\n%s" % (id, "\n".join(["\t".join(["%s" % x for x in row]) for row in pwm]))
+
+        if not self.pwm:
+            self.pwm = [self.iupac_pwm[char]for char in self.consensus.upper()]
+
+        return ">%s\n%s" % (
+                motif_id, 
+                self._pwm_to_str(precision)
+            )
 
     def to_img(self, fname, fmt="EPS", add_left=0, seqlogo=None, height=6):
         """ Valid formats EPS, GIF, PDF, PNG """

@@ -14,13 +14,17 @@ except ImportError:
 
 import numpy as np
 
+from gimmemotifs.background import RandomGenomicFasta
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.genome_index import GenomeIndex
 from gimmemotifs.c_metrics import pwmscan
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.utils import parse_cutoff,get_seqs_type
+from gimmemotifs.utils import parse_cutoff,get_seqs_type,file_checksum
 from gimmemotifs.genome_index import rc
+
+from diskcache import Cache
+from scipy.stats import scoreatpercentile
 
 # only used when using cache, should not be a requirement
 try:
@@ -29,6 +33,8 @@ try:
     from cityhash import CityHash64
 except ImportError:
     pass 
+
+config = MotifConfig()
 
 def scan_fasta_to_best_score(fname, motifs):
     """Scan a FASTA file with motifs.
@@ -149,7 +155,6 @@ def scan_fa_with_motif_moods_count(fo, motifs, matrices, bg, thresholds, nreport
 
     return ret
 
-
 def calc_threshold_moods(m, c):
     m_min = MOODS.tools.min_score(m)
     m_max = MOODS.tools.max_score(m)
@@ -261,14 +266,76 @@ class Scanner(object):
             chksum = CityHash64("\n".join(sorted(self.motif_ids)))
             self.checksum[self.motif_file] = chksum
 
-    def set_threshold(self):
-        """
-        cutoff  # based on motif matrix
-        p-value # moods only
-        FDR     # based on bg file
-        """
+    def _threshold_from_seqs(self, motifs, seqs, fdr):
+        scan_motifs = [(m, m.pwm_min_score()) for m in motifs]
         
-        pass
+        table = []
+        for x in self._scan_sequences_with_motif(scan_motifs, seqs, 1, True):
+            table.append([row[0][0] for row in x])
+                
+        for (motif, _), scores in zip(scan_motifs, np.array(table).transpose()):
+            min_score = motif.pwm_min_score()
+            cutoff = 0
+            if len(scores) > 0:
+                opt_score = scoreatpercentile(scores, 100 - (100 * fdr))
+                cutoff = (opt_score - min_score) / (motif.pwm_max_score() - min_score)
+            yield  motif, cutoff
+
+
+    def set_threshold(self, fdr, genome=None, length=200, filename=None):
+        """Set motif scanning threshold based on background sequences.
+
+        Parameters
+        ----------
+        fdr : float
+            Desired FDR, between 0.0 and 1.0.
+
+        """
+        CACHE_DIR = "/home/simon/.cache/gimmemotifs/"
+        
+        if genome and filename:
+            raise ValueError("Need either genome or filename.")
+
+        if not (0.0 < float(fdr) < 1.0):
+            raise ValueError("Parameter fdr should be between 0 and 1")
+        
+        thresholds = {}
+        if filename:
+            if not os.path.exists(filename):
+                raise IOError(
+                        "File {} does not exist.".format(filename)
+                        )
+            
+            bg_hash = file_checksum(filename)
+            seqs = Fasta(filename).seqs
+        elif genome:
+            bg_hash = "{}\{}".format(genome, length)
+        else:
+            raise ValueError("Need genome or filename")
+
+        with Cache(CACHE_DIR) as cache:
+            scan_motifs = []
+            for motif in read_motifs(open(self.motifs)):
+                k = "{}|{}|{:.4f}".format(motif.hash(), bg_hash, fdr)
+           
+                threshold = cache.get(k)
+                if not threshold:
+                    scan_motifs.append(motif)
+                else:
+                    thresholds[motif.id] = threshold
+                
+            if len(scan_motifs) > 0:
+                if genome:
+                    index = os.path.join(config.get_index_dir(), genome)
+                    fa = RandomGenomicFasta(index, length, 10000)
+                    seqs = fa.seqs
+            
+                for motif, threshold in self._threshold_from_seqs(scan_motifs, seqs, fdr):
+                    k = "{}|{}|{:.4f}".format(motif.hash(), bg_hash, fdr)
+                    cache.set(k, threshold)
+                    thresholds[motif.id] = threshold
+
+        self.threshold = thresholds
 
     def set_genome(self, genome):
         """
@@ -408,7 +475,30 @@ class Scanner(object):
                                     "results, try increasing the cache size "
                                     "or disable cache")
                 yield ret
-    
+   
+
+    def _scan_sequences_with_motif(self, motifs, seqs, nreport, scan_rc):
+        n = int(MotifConfig().get_default_params()['ncpus'])
+
+        scan_func = partial(scan_seq_mult,
+            motifs=motifs,
+            nreport=nreport,
+            scan_rc=scan_rc)
+
+        jobs = []
+        
+        chunksize = 500
+        if len(seqs) / n + 1 < chunksize:
+            chunksize = len(seqs) / n + 1
+        
+        for i in range((len(seqs) - 1) / chunksize + 1):
+            job = pool.apply_async(scan_func, (seqs[i * chunksize:(i  + 1) * chunksize],))
+            jobs.append(job)
+        
+        for job in jobs:
+            for ret in job.get():
+                yield ret 
+
     def _scan_sequences(self, seqs, nreport, scan_rc, cutoff=0.95):
         
         motif_file = self.motifs
@@ -428,34 +518,17 @@ class Scanner(object):
         
         # scan the sequences that are not in the cache
         if len(scan_seqs) > 0:
-            n = int(MotifConfig().get_default_params()['ncpus'])
-            motifs = load_motifs(motif_file, cutoff)
-            scan_func = partial(scan_seq_mult,
-                motifs=motifs,
-                nreport=nreport,
-                scan_rc=scan_rc)
-    
-            jobs = []
-            
-            chunksize = 500
-            if len(scan_seqs) / n + 1 < chunksize:
-                chunksize = len(scan_seqs) / n + 1
-            
-            for i in range((len(scan_seqs) - 1) / chunksize + 1):
-                job = pool.apply_async(scan_func, (scan_seqs[i * chunksize:(i  + 1) * chunksize],))
-                jobs.append(job)
-            
             # store values in cache
             i = 0
-            for job in jobs:
-                for ret in job.get():
-                    if self.use_cache:
-                        h = hashes[scan_seqs[i]]
-                        key = str((h, motif_digest, nreport, scan_rc, cutoff))
-                        self.cache.set(key, ret)
-                    else: 
-                        yield ret
-                    i += 1
+            motifs = load_motifs(motif_file, cutoff)
+            for ret in self._scan_sequences_with_motif(motifs, seqs, nreport, scan_rc):
+               if self.use_cache:
+                   h = hashes[scan_seqs[i]]
+                   key = str((h, motif_digest, nreport, scan_rc, cutoff))
+                   self.cache.set(key, ret)
+               else: 
+                    yield ret
+               i += 1
         
         if self.use_cache:
             # return results from cache

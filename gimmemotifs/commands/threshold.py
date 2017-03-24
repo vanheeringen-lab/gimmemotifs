@@ -3,11 +3,8 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-"""Command line functon 'threshold'"""
+"""Command line function 'threshold'"""
 import sys
-
-from scipy.stats import scoreatpercentile
-import numpy as np
 
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
@@ -22,21 +19,13 @@ def threshold(args):
     
     s = Scanner()
     s.set_motifs(args.pwmfile)
-    
-    score_table = []
-    for scores in s.best_score(args.inputfile):
-        score_table.append(scores)
+    s.set_threshold(args.fdr, filename=args.inputfile)
 
     print "Motif\tScore\tCutoff"
-    for i,scores in enumerate(np.array(score_table).transpose()):
-        motif = motifs[i]
+    for motif in motifs:
         min_score = motif.pwm_min_score()
-        if len(scores) > 0:
-            opt_score = scoreatpercentile(scores, 100 - (100 * args.fdr))
-            cutoff = (opt_score - min_score) / (
-                    motif.pwm_max_score() - min_score)
-            print "{0}\t{1}\t{2}".format(
-                    motif.id, opt_score , cutoff)
-        else:
-            sys.stderr.write("Warning: no matches for {0}\n".format(motif.id))
-            
+        max_score = motif.pwm_max_score()
+        cutoff = s.threshold[motif.id]
+        opt_score = min_score + (cutoff * (max_score - min_score))
+        print "{0}\t{1}\t{2}".format(
+                motif.id, opt_score , cutoff)
