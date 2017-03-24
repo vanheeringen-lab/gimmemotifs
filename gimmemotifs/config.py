@@ -18,7 +18,7 @@ BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "user"]
 BG_RANK = {"user":1, "promoter":2, "gc":3, "random":4, "genomic":5}
 FASTA_EXT = [".fasta", ".fa", ".fsa"]
 
-CACHE_DIR = xdg.XDG_CACHE_HOME
+CACHE_DIR = os.path.join(xdg.XDG_CACHE_HOME, "gimmemotifs")
 
 class MotifConfig(object):
     __shared_state = {}
