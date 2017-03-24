@@ -25,6 +25,7 @@ from gimmemotifs.genome_index import rc,check_genome
 
 from diskcache import Cache
 from scipy.stats import scoreatpercentile
+import numpy as np
 
 # only used when using cache, should not be a requirement
 try:
@@ -82,10 +83,13 @@ def scan_sequence(seq, motifs, nreport, scan_rc):
     ret = []
     # scan for motifs
     for motif, cutoff in motifs:
-        result = pwmscan(seq, motif.pwm, cutoff, nreport, scan_rc)
-        if cutoff <= motif.pwm_min_score() and len(result) == 0:
-            result = [[motif.pwm_min_score(), 0, 1]] * nreport
-        ret.append(result)
+        if cutoff is None:
+            ret.append([])
+        else:
+            result = pwmscan(seq, motif.pwm, cutoff, nreport, scan_rc)
+            if cutoff <= motif.pwm_min_score() and len(result) == 0:
+                result = [[motif.pwm_min_score(), 0, 1]] * nreport
+            ret.append(result)
 
     # return results
     return ret
@@ -336,7 +340,7 @@ class Scanner(object):
             bg_hash = file_checksum(filename)
             seqs = Fasta(filename).seqs
         elif genome:
-            bg_hash = "{}\{}".format(genome, length)
+            bg_hash = "{}\{}".format(genome, int(length))
         else:
             raise ValueError("Need genome or filename")
 
@@ -346,15 +350,19 @@ class Scanner(object):
                 k = "{}|{}|{:.4f}".format(motif.hash(), bg_hash, fdr)
            
                 threshold = cache.get(k)
-                if not threshold:
+                if threshold is None:
                     scan_motifs.append(motif)
                 else:
-                    thresholds[motif.id] = threshold
+                    if np.isclose(threshold, motif.pwm_max_score()):
+                        thresholds[motif.id] = None
+                    else:
+                        thresholds[motif.id] = threshold
                 
             if len(scan_motifs) > 0:
+                print scan_motifs
                 if genome:
                     check_genome(genome)    
-                    sys.stderr.write("Determining threshold for fdr {} and length {} based on {}\n".format(fdr, length, genome))
+                    sys.stderr.write("Determining threshold for fdr {} and length {} based on {}\n".format(fdr, int(length), genome))
                     index = os.path.join(config.get_index_dir(), genome)
                     fa = RandomGenomicFasta(index, length, 10000)
                     seqs = fa.seqs
@@ -363,7 +371,10 @@ class Scanner(object):
                 for motif, threshold in self._threshold_from_seqs(scan_motifs, seqs, fdr):
                     k = "{}|{}|{:.4f}".format(motif.hash(), bg_hash, fdr)
                     cache.set(k, threshold)
-                    thresholds[motif.id] = threshold
+                    if np.isclose(threshold, motif.pwm_max_score()):
+                        thresholds[motif.id] = None
+                    else:
+                        thresholds[motif.id] = threshold
 
         self.threshold = thresholds
 
@@ -378,12 +389,12 @@ class Scanner(object):
             raise ValueError("index for {} does not exist".format(genome))
         self.index_dir = index_dir
     
-    def count(self, seqs, nreport=100, scan_rc=True, cutoff=0.95):
+    def count(self, seqs, nreport=100, scan_rc=True):
         """
         count the number of matches above the cutoff
         returns an iterator of lists containing integer counts
         """
-        for matches in self.scan(seqs, nreport, scan_rc, cutoff):
+        for matches in self.scan(seqs, nreport, scan_rc):
             counts = [len(m) for m in matches]
             yield counts
      

@@ -63,7 +63,7 @@ def scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalu
             yield "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
     else:
         # get iterator
-        result_it = s.count(fa, nreport, scan_rc, cutoff)
+        result_it = s.count(fa, nreport, scan_rc)
         # counts table
         for i, counts in enumerate(result_it):
             yield "{}\t{}".format(
@@ -142,9 +142,9 @@ def pwmscan(args):
         if args.genome:
             print "# FDR: {} ({})".format(args.fdr, args.genome)
         elif args.bgfile:
-            print " # FDR: {} ({})".format(args.fdr, args.bgfile)
+            print "# FDR: {} ({})".format(args.fdr, args.bgfile)
     if args.cutoff:
-        print " # Threshold: {}".format(args.cutoff)
+        print "# Threshold: {}".format(args.cutoff)
 
     for line in command_scan(
             args.inputfile, 
