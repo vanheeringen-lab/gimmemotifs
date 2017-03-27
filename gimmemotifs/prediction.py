@@ -3,7 +3,6 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-
 """ Parallel prediction of sequence motifs """
 
 # Python imports
@@ -120,7 +119,7 @@ class PredictionResult(object):
                                     callback=self.add_stats)
                 
 
-def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools=None, job_server="", ncpus=8, logger=None, max_time=None, fg_file=None, bg_file=None):
+def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools=None, job_server=None, ncpus=8, logger=None, max_time=None, fg_file=None, bg_file=None):
     if tools is None:
         tools = {}
 
@@ -171,6 +170,8 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
             "organism":organism
             }
 
+    print "starting"
+    print params
     for t in toolio:
         if t.name in tools and tools[t.name]:
             if t.use_width:
@@ -230,3 +231,26 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
             n = 0
     
     return result
+
+
+def predict_denovo_motifs(inputfile): 
+    """Predict de novo motifs using ensemble of tools.
+
+    Parameters
+    ----------
+    inputfile : str
+        FASTA or BED file with input sequences / regions. 
+
+    filter_significant : bool, optional
+        Filter for signifance
+
+    cluster : bool, optional
+        Cluster motifs.
+
+
+    Returns
+    -------
+    motifs : list of Motif instances
+        Predicted motifs.
+    """
+    pass
