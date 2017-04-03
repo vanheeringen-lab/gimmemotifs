@@ -4,6 +4,10 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 """ Module for motif activity prediction """
+def warn(*args, **kwargs):
+        pass
+import warnings
+warnings.warn = warn
 
 import os
 import sys
