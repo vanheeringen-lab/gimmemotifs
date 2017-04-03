@@ -6,6 +6,7 @@
 """ Parallel prediction of sequence motifs """
 
 # Python imports
+import os
 import sys
 import logging
 import thread
@@ -18,18 +19,18 @@ from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
 from gimmemotifs import mytmpdir
 
-try:
-    from gimmemotifs.mp import pool
-except Exception:
-    pass
 
-def _calc_motif_stats(motif, fg_fa, bg_fa):
+def _calc_motif_stats(motif, fg_fa, bg_fa, bg_name=None):
     try:
         stats = motif.stats(fg_fa, bg_fa)
     except Exception as e:
         sys.stderr.write("ERROR: {}\n".format(e))
         stats = {}
-    return motif, stats
+    
+    if not bg_name:
+        bg_name = "default"
+
+    return motif, bg_name, stats
 
 def _run_tool(job_name, t, fastafile, params):
     try:
@@ -40,7 +41,7 @@ def _run_tool(job_name, t, fastafile, params):
     return job_name, result
 
 class PredictionResult(object):
-    def __init__(self, outfile, logger=None, fg_file=None, bg_file=None, job_server=None, do_counter=True):
+    def __init__(self, outfile, logger=None, fg_file=None, background=None, job_server=None, do_counter=True):
         self.lock = thread.allocate_lock()
         self.motifs = []
         self.finished = []
@@ -51,9 +52,9 @@ class PredictionResult(object):
         self.counter = 0
         self.do_counter = do_counter
 
-        if fg_file and bg_file:
+        if fg_file and background:
             self.fg_fa = Fasta(fg_file)
-            self.bg_fa = Fasta(bg_file)
+            self.background = dict([(bg,Fasta(fname)) for bg,fname in background.items()])
             self.do_stats = True
         else:
             self.do_stats = False
@@ -89,9 +90,10 @@ class PredictionResult(object):
                 #job_id = "%s_%s" % (motif.id, motif.to_consensus())
                 if self.logger:
                     self.logger.debug("Starting stats job of motif %s" % motif.id)
-                job = self.job_server.apply_async(
+                for bg_name, bg_fa in self.background.items():
+                    job = self.job_server.apply_async(
                                     _calc_motif_stats, 
-                                    (motif, self.fg_fa, self.bg_fa), 
+                                    (motif, self.fg_fa, bg_fa, bg_name), 
                                     callback=self.add_stats
                                     )
         
@@ -101,10 +103,15 @@ class PredictionResult(object):
         self.finished.append(job)
 
     def add_stats(self, args):
-        motif, stats = args
+        motif, bg_name, stats = args
         if self.logger:
             self.logger.debug("Stats: %s %s" % (motif, stats))
-        self.stats["{}_{}".format(motif.id, motif.to_consensus())] = stats
+        
+        k = str(motif)
+        if not k in self.stats:
+            self.stats[k] = {}
+        
+        self.stats[k][bg_name] = stats
 
     def submit_remaining_stats(self):
         for motif in self.motifs:
@@ -119,7 +126,7 @@ class PredictionResult(object):
                                     callback=self.add_stats)
                 
 
-def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools=None, job_server=None, ncpus=8, logger=None, max_time=None, fg_file=None, bg_file=None):
+def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools=None, job_server=None, ncpus=8, logger=None, max_time=None, stats_fg=None, stats_bg=None):
     if tools is None:
         tools = {}
 
@@ -149,7 +156,12 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
     
     jobs = {}
     
-    result = PredictionResult(outfile, logger=logger, fg_file=fg_file, bg_file=bg_file, job_server=job_server)
+    result = PredictionResult(
+                outfile, 
+                logger=logger, 
+                fg_file=stats_fg, 
+                background=stats_bg, 
+                job_server=job_server)
     
     # Dynamically load all tools
     toolio = [x[1]() for x in inspect.getmembers(
@@ -253,4 +265,10 @@ def predict_denovo_motifs(inputfile):
     motifs : list of Motif instances
         Predicted motifs.
     """
+    pass
+
+
+try:
+    from gimmemotifs.mp import pool
+except Exception:
     pass

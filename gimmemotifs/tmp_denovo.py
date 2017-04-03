@@ -6,16 +6,41 @@
 from gimmemotifs.config import MotifConfig, BG_RANK
 from gimmemotifs import mytmpdir
 from gimmemotifs.validation import check_denovo_input
-from gimmemotifs.utils import divide_fa_file
+from gimmemotifs.utils import divide_fa_file, motif_localization
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.background import ( MarkovFasta, MatchedGcFasta,
                                     PromoterFasta, RandomGenomicFasta )
-from gimmemotifs.prediction import pp_predict_motifs
+from gimmemotifs.plot import roc_plot
+
+from gimmemotifs.rocmetrics import roc_values, roc_auc, mncp, max_fmeasure
+from tempfile import NamedTemporaryFile
+from time import sleep
 
 import os
+import sys
 import logging
 
+## for clustering
+import jinja2
+from datetime import datetime
+from gimmemotifs.motif import read_motifs
+from gimmemotifs.config import GM_VERSION
+#
 logger = logging.getLogger()
+
+def get_roc_values(motif, fg_file, bg_file):
+    try:
+        fg_result = motif.pwm_scan_score(Fasta(fg_file), cutoff=0.0, nreport=1)
+        fg_vals = [sorted(x)[-1] for x in fg_result.values()]
+
+        bg_result = motif.pwm_scan_score(Fasta(bg_file), cutoff=0.0, nreport=1)
+        bg_vals = [sorted(x)[-1] for x in bg_result.values()]
+
+        (x, y) = roc_values(fg_vals, bg_vals)
+        return None,x,y
+    except Exception,e:
+        error = e
+        return error,[],[]
 
 def parse_denovo_params(user_params=None):
     config = MotifConfig()
@@ -86,6 +111,7 @@ def predict_motifs(background, params):
     logger.info("tools: %s", 
             ", ".join([x for x in tools.keys() if tools[x]]))
 
+    print background
     bg_name = sorted(background, lambda x,y: cmp(BG_RANK[x], BG_RANK[y]))[0]
     bg_file = get_tempfile("bg.{}.fa".format(bg_name))
     logger.debug("Using bg_file %s for significance" % bg_file)
@@ -103,8 +129,8 @@ def predict_motifs(background, params):
                     None, 
                     logger=logger, 
                     max_time=params["max_time"], 
-                    fg_file=get_tempfile("validation.fa"), 
-                    bg_file=bg_file
+                    stats_fg=get_tempfile("validation.fa"), 
+                    stats_bg=background
                 )
 
     motifs = result.motifs
@@ -115,7 +141,7 @@ def predict_motifs(background, params):
         logger.info("no motifs found")
         sys.exit()
     
-    return motifs
+    return result
 
 def write_stats():
     # Write stats output to file
@@ -262,73 +288,301 @@ def create_backgrounds(background=None, genome="hg38", width=200):
                     width=width)
 
     # Get background fasta files for statistics
+    bg_info = {}
     nr_sequences = {}    
     for bg in background:
+        fname = get_tempfile("bg.{}.fa".format(bg))
         nr_sequences[bg] = create_background(
                                         bg, 
                                         get_tempfile("validation.bed"), 
                                         get_tempfile("validation.fa"), 
-                                        get_tempfile("bg.{}.fa".format(bg)), 
+                                        fname, 
                                         genome=genome, 
                                         width=width)
 
-def filter_significant_motif():
+        bg_info[bg] = fname
+    return bg_info
+
+def filter_significant_motifs(result, bg):
     # Determine significant motifs
     nsig = 0
-    f = open(self.significant_pfm, "w")
-    for motif in motifs:
-        stats = result.stats.get("%s_%s" % (motif.id, motif.to_consensus()), {})
-        if stats.get("maxenr", 0) >= 3 and stats.get("roc_auc", 0) >= 0.55 and stats.get('enr_fdr', 0) >= 2:
+    fname = get_tempfile("significant.pfm")
+    f = open(fname, "w")
+    sig_motifs = []
+    for motif in result.motifs:
+        stats = result.stats.get("%s_%s" % (motif.id, motif.to_consensus()), {}).get(bg, {}) 
+        print stats
+        #if stats.get("maxenr", 0) >= 3 and stats.get("roc_auc", 0) >= 0.55 and stats.get('enr_fdr', 0) >= 2:
+        if stats.get("roc_auc", 0) >= 0.55:
             f.write("%s\n" % motif.to_pfm())
+            sig_motifs.append(motif)
             nsig += 1
     f.close()
-    self.logger.info("%s motifs are significant", nsig)
-    self.logger.debug("written to %s", self.significant_pfm)
+    logger.info("%s motifs are significant", nsig)
+    logger.debug("written to %s", fname)
 
     # ROC metrics of significant motifs
-    for bg in background:
-        self._roc_metrics(self.significant_pfm, self.validation_fa, self.bg_file["fa"][bg], self.bg_file["roc"][bg])
+    #for bg in background:
+    #    self._roc_metrics(self.significant_pfm, self.validation_fa, self.bg_file["fa"][bg], self.bg_file["roc"][bg])
     if nsig == 0:
-        self.logger.info("no significant motifs found")
-        return
+        logger.info("no significant motifs found")
+        return []
+    
+    return sig_motifs
 
-def create_denovo_motif_report():
-    self.logger.info("creating report")
+def create_roc_plots(pwmfile, fgfa, background, name, outdir): 
+    motifs = dict([(m.id, m) for m in read_motifs(open(pwmfile), fmt="pwm")]) 
+ 
+    jobs = {} 
+    for bg,fname in background.items():
+        for m_id, m in motifs.items(): 
+            
+            k = "{}_{}".format(str(m), bg)
+            jobs[k] = pool.apply_async(
+                                            get_roc_values, 
+                                            (motifs[m_id], fgfa, fname,)
+                                            )
+ 
+    roc_img_file = os.path.join(outdir, "images", "{}_roc.{}.png") 
+ 
+    for motif in motifs.values():
+        for bg in background:
+            k = "{}_{}".format(str(motif), bg)
+            error, x, y = jobs[k].get() 
+            if error: 
+                logger.error("Error in thread: %s", error) 
+                sys.exit(1) 
+            roc_plot(roc_img_file.format(motif.id, bg), x, y) 
+
+def _create_report(pwm, background, outdir, stats=None, best_id=None, closest_match=None):
+    if stats is None:
+        stats = {}
+    if best_id is None:
+        best_id = {}
+
+    logger.debug("Creating graphical report")
+    
+    class ReportMotif:
+        pass
+
+    imgdir = os.path.join(outdir, "images")
+    motifs = read_motifs(open(pwm), fmt="pwm")
+    
+    if closest_match:
+        for m,match in self.closest_match.items():
+            match[0].to_img(os.path.join(imgdir,"%s.png" % match[0].id), fmt="PNG")
+
+    sort_key = sorted(background, lambda x,y: cmp(BG_RANK[x], BG_RANK[y]))[0]
+
+    roc_img_file = "%s_roc.%s"
+
+    # TODO: Implement different backgrounds
+    sorted_motifs = sorted(motifs,
+            cmp=lambda x,y: cmp(stats[str(y)], stats[str(x)])
+            )
+
+    report_motifs = []
+    for motif in sorted_motifs:
+        
+        rm = ReportMotif()
+        rm.id = motif.id
+        rm.id_href = {"href": "#%s" % motif.id}
+        rm.id_name = {"name": motif.id}
+        rm.img = {"src":  os.path.join("images", "%s.png" % motif.id)}
+        
+        # TODO: fix best ID
+        rm.best = "Gimme"#best_id[motif.id]
+
+        rm.consensus = motif.to_consensus()
+        rm.stars = stats[str(motif)].get("stars", 0)
+
+        rm.bg = {}
+        for bg in background:
+            rm.bg[bg] = {}
+            this_stats = stats.get(str(motif), {}).get(bg)
+            print stats.get(str(motif), 0.0)
+            # TODO: fix these stats
+            rm.bg[bg]["e"] = "%0.2f" % this_stats.get("e", 1.0)
+            rm.bg[bg]["p"] = "%0.2f" % this_stats.get("p", 1.0)
+            rm.bg[bg]["auc"] = "%0.3f" % this_stats.get("roc_auc", 0.5)
+            rm.bg[bg]["mncp"] = "%0.3f" % this_stats.get("mncp", 1.0)
+            rm.bg[bg]["roc_img"] = {"src": "images/" + os.path.basename(roc_img_file % (motif.id, bg)) + ".png"}
+            rm.bg[bg]["roc_img_link"] = {"href": "images/" + os.path.basename(roc_img_file % (motif.id, bg)) + ".png"}
+
+        rm.histogram_img = {"data":"images/%s_histogram.svg" % motif.id}
+        rm.histogram_link= {"href":"images/%s_histogram.svg" % motif.id}
+        rm.match_img = ""#{"src":  "images/%s.png" % self.closest_match[motif.id][0].id}
+        rm.match_id = ""#self.closest_match[motif.id][0].id
+        rm.match_pval = "1.0"#"%0.2e" % self.closest_match[motif.id][1]
+
+        report_motifs.append(rm)
+    total_report = os.path.join(outdir, "motif_report.html")
+
+    config = MotifConfig()
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader([config.get_template_dir()]))
+    template = env.get_template("report_template.jinja.html")
+    # TODO: title
+    result = template.render(
+                    expname="bla", 
+                    motifs=report_motifs, 
+                    inputfile="bla", 
+                    date=datetime.today().strftime("%d/%m/%Y"), 
+                    version=GM_VERSION)
+
+    f = open(total_report, "w")
+    f.write(result.encode('utf-8'))
+    f.close()
+
+def create_denovo_motif_report(pwmfile, fgfa, background, locfa, outdir, params):
+    logger.info("creating report")
 
     # ROC plots
-    for bg in background:
-        self.create_roc_plots(self.final_pwm, self.validation_fa, self.bg_file["fa"][bg], bg)
-
+    create_roc_plots(pwmfile, fgfa, background, "bla",  'bla')
+        
     # Location plots
-    self.logger.debug("Creating localization plots")
-    motifs = read_motifs(open(self.final_pwm), fmt="pwm")
+    logger.debug("Creating localization plots")
+    motifs = read_motifs(open(pwmfile), fmt="pwm")
+    
+    tmp = NamedTemporaryFile(dir=mytmpdir()).name
+    p = PredictionResult(
+            tmp, 
+            logger=logger, 
+            job_server=pool, 
+            fg_file=fgfa, 
+            background=background, 
+            do_counter=False)
+    p.add_motifs(("clustering",  (read_motifs(open(pwmfile)), "","")))
+    while len(p.stats.keys()) < len(p.motifs):
+        sleep(5)
+
+    #for mid, num in num_cluster.items():
+    #    p.stats[mid]["numcluster"] = num
+  
+    all_stats = {
+            "mncp": [2, 5, 8],
+            "roc_auc": [0.6, 0.75, 0.9],
+            "maxenr": [10, 20, 30],
+            "enr_fdr": [4, 8, 12],
+            "fraction": [0.4, 0.6, 0.8],
+            "ks_sig": [4, 7, 10],
+            "numcluster": [3, 6, 9],
+    }
+
+ 
+    for k,v in p.stats.items():
+        print k,v
+    
+    if not params:
+        params = {}
+    cutoff_fdr = params.get('cutoff_fdr', 0.9)
+    lwidth = int(params.get('lwidth', 500))
+
     for motif in motifs:
-        m = "%s_%s" % (motif.id, motif.to_consensus())
-        s = p.stats[m]
-        outfile = os.path.join(self.imgdir, "%s_histogram.svg" % motif.id)
-        motif_localization(self.location_fa, motif, lwidth, outfile, cutoff=s["cutoff_fdr"])
+        s = p.stats[str(motif)]
+        outfile = os.path.join(outdir, "images/{}_histogram.svg".format(motif.id))
+        motif_localization(locfa, motif, lwidth, outfile, cutoff=cutoff_fdr)
 
-        s["stars"] = int(mean([star(s[x], all_stats[x]) for x in all_stats.keys()]) + 0.5)
-        self.logger.debug("Motif %s: %s stars" % (m, s["stars"]))
-
-    # Calculate enrichment of final, clustered motifs
-    self.calculate_cluster_enrichment(self.final_pwm, background)
+        #s["stars"] = int(mean([star(s[x], all_stats[x]) for x in all_stats.keys()]) + 0.5)
+        #self.logger.debug("Motif %s: %s stars" % (m, s["stars"]))
 
     # Create report
-    self.print_params()
-    self._calc_report_values(self.final_pwm, background)
-    self._create_report(self.final_pwm, background, stats=p.stats, best_id=best_id)
-    self._create_text_report(self.final_pwm, background)
+    #self.print_params()
+    #self._calc_report_values(pwmfile, background)
+    _create_report(pwmfile, background, "bla", stats=p.stats)
+    #self._create_text_report(pwmfile, background)
     
-    self.logger.info("finished")
-    self.logger.info("output dir: %s", os.path.split(self.motif_report)[0])
-    self.logger.info("report: %s", os.path.split(self.motif_report)[-1])
-    #self.logger.info("Open %s in your browser to see your results." % (self.motif_report))
+    logger.info("finished")
+    # TODO: fixme
+    logger.info("output dir: %s", "bla")#os.path.split(self.motif_report)[0])
+    #logger.info("report: %s", os.path.split(self.motif_report)[-1])
 
-
-def cluster_motifs():
+def cluster_motifs_with_report(infile, outfile, outdir, threshold):
     # Cluster significant motifs
-    clusters = self._cluster_motifs(self.significant_pfm, self.cluster_pwm, self.outdir, params["cluster_threshold"])
+    
+    motifs = read_motifs(open(infile), fmt="pwm")
+
+    trim_ic = 0.2
+    clusters = []
+    if len(motifs) == 0:
+        return []
+    elif len(motifs) == 1:
+        clusters = [[motifs[0], motifs]]
+    else:
+        logger.info("clustering significant motifs.")
+        tree = cluster_motifs(
+                infile,
+                "total",
+                "wic",
+                "mean",
+                True,
+                threshold=float(threshold),
+                include_bg=True,
+                progress=False
+                )
+        clusters = tree.getResult()
+
+    ids = []
+    mc = MotifComparer()
+
+    img_dir = os.path.join(outdir, "images")
+    
+    if not os.path.exists(img_dir):
+        os.mkdir(img_dir)
+
+    for cluster,members in clusters:
+        cluster.trim(trim_ic)
+        png = "images/{}.png".format(cluster.id)
+        cluster.to_img(os.path.join(outdir, png), fmt="PNG")
+        ids.append([cluster.id, {"src":png},[]])
+        if len(members) > 1:
+            scores = {}
+            for motif in members:
+                scores[motif] =  mc.compare_motifs(cluster, motif, "total", "wic", "mean", pval=True)
+            add_pos = sorted(scores.values(),cmp=lambda x,y: cmp(x[1], y[1]))[0][1]
+            for motif in members:
+                score, pos, strand = scores[motif]
+                add = pos - add_pos
+
+                if strand in [1,"+"]:
+                    pass
+                else:
+                   rc = motif.rc()
+                   rc.id = motif.id
+                   motif = rc
+                #print "%s\t%s" % (motif.id, add)
+                png = "images/{}.png".format(cluster.id.replace(" ", "_"))
+                motif.to_img(os.path.join(outdir, png), fmt="PNG", add_left=add)
+        ids[-1][2] = [dict([("src", png), ("alt", motif.id.replace(" ", "_"))]) for motif in members]
+
+    expname = "test"
+    inputfile = "input"
+    config = MotifConfig()
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader([config.get_template_dir()]))
+    template = env.get_template("cluster_template.jinja.html")
+    result = template.render(
+                expname=expname, 
+                motifs=ids, 
+                inputfile=inputfile, 
+                date=datetime.today().strftime("%d/%m/%Y"), 
+                version=GM_VERSION)
+
+    cluster_report = os.path.join(outdir, "cluster_report.html")
+    f = open(cluster_report, "w")
+    f.write(result.encode('utf-8'))
+    f.close()
+
+    f = open(outfile, "w")
+    if len(clusters) == 1 and len(clusters[0][1]) == 1:
+        f.write("%s\n" % clusters[0][0].to_pwm())
+    else:
+        for motif in tree.get_clustered_motifs():
+            f.write("%s\n" % motif.to_pwm())
+    f.close()
+
+    logger.debug("Clustering done. See the result in %s",
+            cluster_report)
+    return clusters
+
 
     # Determine best motif in cluster
     
@@ -362,18 +616,17 @@ def score_motifs():
 
 
 
-def predict_denovo_motifs(inputfile, params=None):
+def predict_denovo_motifs(inputfile, params=None, filter_significant=True, cluster=True, create_report=True):
     """ Full analysis: from bed-file to motifs (including clustering, ROC-curves, location plots and html report) """
     logger.info("starting full motif analysis")
     logger.debug("Using temporary directory {0}".format(mytmpdir()))
 
     # Initialize parameters
     params = parse_denovo_params(params)
-   
-    print params
  
     # Check the input files
     input_type, background = check_denovo_input(inputfile, params)
+    
     
     if not os.path.exists("bla"):
         os.mkdir('bla') 
@@ -388,24 +641,45 @@ def predict_denovo_motifs(inputfile, params=None):
         sys.exit(1)
 
     # Create the background FASTA files
-    create_backgrounds(background, params["genome"], params["width"])
+    background = create_backgrounds(background, params["genome"], params["width"])
     
+    print "HOEI", background
     # Predict de novo motifs
-    motifs = predict_motifs(background, params)
+    result = predict_motifs(background, params)
+
+    # Write statistics
+    #write_stats()
+
+    bg = sorted(background, lambda x,y: cmp(BG_RANK[x], BG_RANK[y]))[0]
+    if filter_significant:
+        motifs = filter_significant_motifs(result, bg)
+    else:
+        motifs = result.motifs
+
+#    print motifs
+    
+    if cluster: 
+        clusters = cluster_motifs_with_report(
+                    get_tempfile("significant.pfm"),
+                    get_tempfile("clustered.pfm"),
+                    get_tempfile("."),
+                    0.95)
+  
+    #print motifs
+    
+    if create_report:
+        bg = dict([(b, get_tempfile("bg.{}.fa".format(b))) for b in background])
+
+        create_denovo_motif_report(
+                get_tempfile("clustered.pfm"), 
+                get_tempfile("validation.fa"), 
+                bg, 
+                get_tempfile("validation.fa"), 
+                "bla",
+                params,
+                )
     
     sys.exit()
-    # Write statistics
-    write_stats()
-
-    if filter_significant:
-        motifs = filter_significant_motifs()
-
-    if cluster: 
-        motifs = cluster_motifs()
-  
-    if create_report:
-        create_denovo_motif_report()
-
     score_motifs()
     
     if not(params["keep_intermediate"]):
@@ -417,5 +691,10 @@ def predict_denovo_motifs(inputfile, params=None):
     logger.debug("Done")
 
     return self.motif_report
-
-
+try:
+    from gimmemotifs.mp import pool
+except:
+    pass
+from gimmemotifs.comparison import MotifComparer
+from gimmemotifs.cluster import cluster_motifs
+from gimmemotifs.prediction import pp_predict_motifs,PredictionResult

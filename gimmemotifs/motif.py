@@ -151,7 +151,7 @@ class Motif(object):
         return len(self.to_consensus())
 
     def __repr__(self):
-        return "%s\t%s" % (self.id, self.to_consensus())
+        return "{}_{}".format(self.id, self.to_consensus())
 
     def information_content(self):
         ic = 0

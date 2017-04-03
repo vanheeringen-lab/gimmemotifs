@@ -60,6 +60,36 @@ def scan_fasta_to_best_score(fname, motifs):
 
     return result
 
+def scan_fasta_to_best_match(fname, motifs):
+    """Scan a FASTA file with motifs.
+
+    Scan a FASTA file and return a dictionary with the best match per motif.
+
+    Parameters
+    ----------
+    fname : str
+        Filename of a sequence file in FASTA format.
+
+    motifs : list
+        List of motif instances.
+
+    Returns
+    -------
+    result : dict
+        Dictionary with motif scanning results.
+    """
+    # Initialize scanner
+    s = Scanner()
+    s.set_motifs(motifs)
+
+    sys.stderr.write("scanning {}...\n".format(fname))
+    result = dict([(m.id, []) for m in motifs])
+    for scores in s.best_match(fname):
+        for motif,score in zip(motifs, scores):
+            result[motif.id].append(score)
+
+    return result
+
 def load_motifs(motif_file, cutoff=0.95):
     motifs = read_motifs(open(motif_file))
     d = parse_cutoff(motifs, cutoff)
@@ -298,7 +328,7 @@ class Scanner(object):
         
         count_table = [counts for counts in self.count(seqs, nreport, scan_rc, cutoff)]
         return np.sum(np.array(count_table), 0)
-
+    
     def best_score(self, seqs, scan_rc=True):
         """
         give the score of the best match of each motif in each sequence

@@ -4,7 +4,6 @@ from gimmemotifs import rocmetrics
 from gimmemotifs.scanner import scan_fasta_to_best_score
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.config import MotifConfig
-from multiprocessing import Pool
 
 def calc_stats(motifs, fg_file, bg_file, stats=None):
     """Calculate motif enrichment metrics.
@@ -48,8 +47,8 @@ def calc_stats(motifs, fg_file, bg_file, stats=None):
         motifs = all_motifs[i:i + chunksize]
         ids = [m.id for m in motifs]
        
-        fg_total = scan_fasta_to_best_score(fg_file, motifs)
-        bg_total = scan_fasta_to_best_score(bg_file, motifs)
+        fg_total = scan_fasta_to_best_match(fg_file, motifs)
+        bg_total = scan_fasta_to_best_match(bg_file, motifs)
      
         jobs = []
     
@@ -63,9 +62,18 @@ def calc_stats(motifs, fg_file, bg_file, stats=None):
             bg_vals = bg_total[motif_id]
             for s in stats:
                 func = getattr(rocmetrics, s)
+                if func.input_type == "score":
+                    fg = [x[0] for x in fg_vals]
+                    bg = [x[0] for x in bg_vals]
+                elif func.input_type == "pos":
+                    fg = [x[1] for x in fg_vals]
+                    bg = [x[1] for x in bg_vals]
+                else:
+                    raise ValueError("Unknown input_type for stats") 
+                
                 result[motif_id][s] = None
                 j = pool.apply_async(func, 
-                        (fg_vals, bg_vals))
+                        (fg, bg))
                 jobs.append([motif_id, s, j])
        
         pool.close()
@@ -76,3 +84,5 @@ def calc_stats(motifs, fg_file, bg_file, stats=None):
             result[motif_id][s] = ret
         
     return result
+
+from multiprocessing import Pool

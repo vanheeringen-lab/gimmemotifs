@@ -398,4 +398,7 @@ class MotifComparer(object):
 
 # import here is necessary as workaround
 # see: http://stackoverflow.com/questions/18947876/using-python-multiprocessing-pool-in-the-terminal-and-in-code-modules-for-django
-from gimmemotifs.mp import pool
+try:
+    from gimmemotifs.mp import pool
+except:
+    pass
