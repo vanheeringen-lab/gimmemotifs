@@ -19,14 +19,13 @@ from tempfile import NamedTemporaryFile
 
 # External imports
 from scipy import special
-from scipy.stats import kstest
-import pybedtools
 import numpy as np
 
 # gimme imports
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import plot_histogram
 from gimmemotifs.genome_index import track2fasta
+from gimmemotifs.rocmetrics import ks_pvalue
 
 lgam = special.gammaln
 
@@ -107,12 +106,6 @@ def divide_fa_file(fname, sample, rest, fraction, abs_max):
     f_rest.close()
     
     return x, len(ids[x:])    
-
-def ks_pvalue(values, l):
-    if len(values) == 0:
-        return 1.0
-    a = np.array(values, dtype="float") / l
-    return kstest(a, "uniform")[1]
 
 def write_equalwidth_bedfile(bedfile, width, outfile):
     """Read input from <bedfile>, set the width of all entries to <width> and 

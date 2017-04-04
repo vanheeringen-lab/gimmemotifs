@@ -10,10 +10,8 @@ on the basis of motif scanning results.
 """
 
 # External imports
-from scipy.stats import stats, scoreatpercentile
+from scipy.stats import stats, scoreatpercentile, kstest
 from sklearn.metrics import precision_recall_curve, roc_auc_score, roc_curve
-# TODO: move to this module
-from gimmemotifs.utils import ks_pvalue
 import numpy as np
 
 __all__ = [
@@ -26,6 +24,8 @@ __all__ = [
     "roc_auc",
     "roc_auc_xlim",
     "max_fmeasure",
+    "ks_pvalue",
+    "ks_significance",
 ]
 
 def requires_scores(f):
@@ -455,7 +455,10 @@ def ks_pvalue(fg_pos, bg_pos=None):
     p : float
         KS p-value.
     """
-    p = ks_pvalue(fg_pos, max(fg_pos))
+    if len(fg_pos) == 0:
+        return 1.0
+    a = np.array(fg_pos, dtype="float") / max(fg_pos)
+    p = kstest(a, "uniform")[1]
     return p
 
 @requires_positions

@@ -16,8 +16,7 @@ from warnings import warn
 from gimmemotifs import mytmpdir
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.rocmetrics import (mncp, roc_auc, max_enrichment, 
-        fraction_fdr, score_at_fdr, enr_at_fdr)
-from gimmemotifs.utils import ks_pvalue
+        fraction_fdr, score_at_fdr, enr_at_fdr, ks_pvalue)
 from gimmemotifs.c_metrics import pwmscan
 
 # External imports

@@ -1,7 +1,7 @@
 """Calculate motif enrichment statistics."""
 import sys
 from gimmemotifs import rocmetrics
-from gimmemotifs.scanner import scan_fasta_to_best_score
+from gimmemotifs.scanner import scan_fasta_to_best_match
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.config import MotifConfig
 
