@@ -10,7 +10,7 @@ on the basis of motif scanning results.
 """
 
 # External imports
-from scipy.stats import stats, scoreatpercentile, kstest
+from scipy.stats import stats, scoreatpercentile, kstest, fisher_exact
 from sklearn.metrics import precision_recall_curve, roc_auc_score, roc_curve
 import numpy as np
 
@@ -20,6 +20,7 @@ __all__ = [
     "score_at_fdr",
     "enr_at_fdr",
     "max_enrichment",
+    "phyper_at_fdr", 
     "mncp",
     "roc_auc",
     "roc_auc_xlim",
@@ -91,6 +92,37 @@ def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.1):
     fdr = 1 - precision
     cutoff_index = next(i for i, x in enumerate(fdr) if x <= fdr_cutoff)
     return recall[cutoff_index]
+
+@requires_scores
+def phyper_at_fdr(fg_vals, bg_vals, fdr=5):
+    """
+    Computes the hypergeometric p-value at a specific FDR (default 5%).
+
+    Parameters
+    ----------
+    fg_vals : array_like
+        The list of values for the positive set.
+
+    bg_vals : array_like
+        The list of values for the negative set.
+    
+    fdr : float, optional
+        The FDR (between 0.0 and 1.0).
+    
+    Returns
+    -------
+    fraction : float
+        The fraction positives at the specified FDR.
+    """
+    fg_vals = np.array(fg_vals)
+    s = scoreatpercentile(bg_vals, 100 - fdr)
+    
+    table = [
+            [sum(fg_vals >= s), sum(bg_vals >= s)],
+            [sum(fg_vals < s), sum(bg_vals < s)],
+            ]
+    
+    return fisher_exact(table, alternative="greater")[1]
 
 @requires_scores
 def fraction_fdr(fg_vals, bg_vals, fdr=5):

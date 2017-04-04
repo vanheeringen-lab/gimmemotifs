@@ -30,7 +30,7 @@ class TestStats(unittest.TestCase):
     def test1_stats(self):
         """ Calculate motif statistics """
         stats = calc_stats(self.motifs, self.fg_fa, self.bg_fa)
-
+        
         for f in self.stat_functions:
 			self.assertIn(f, stats.values()[0])
         
@@ -48,6 +48,9 @@ class TestStats(unittest.TestCase):
     
         self.assertGreater(stats[m1]["ks_pvalue"] , 0.01)
         self.assertLess(stats[m2]["ks_pvalue"] , 0.001)
+        
+        self.assertGreater(stats[m1]["phyper_at_fdr"] , 0.1)
+        self.assertLess(stats[m2]["phyper_at_fdr"] , 1e-16)
         
         # Only calculate specific statistic
         stats = calc_stats(self.motifs, self.fg_fa, self.bg_fa, ["roc_auc"])
