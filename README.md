@@ -21,7 +21,7 @@ $ conda config --add channels bioconda
 ```
 Now you can create a new environment for GimmeMotifs:
 
-`$ conda create -n gimme python=2.7 gimmemotifs`
+`$ conda create -n gimme python=2 gimmemotifs=0.10.0=py27_0`
 
 Before using GimmeMotifs activate the environment:
 
