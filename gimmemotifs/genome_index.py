@@ -169,6 +169,7 @@ def download_genome(genomebuild, genome_dir):
         sys.exit(1)
 
     sys.stderr.write("Unpacking\n")
+    genome_fa = os.path.basename(genome_fa)
     if genome_fa.endswith("tar.gz"):
         cmd = "tar -C {0} -xvzf {1} && rm {1}".format(genome_dir, genome_fa)
     else:
