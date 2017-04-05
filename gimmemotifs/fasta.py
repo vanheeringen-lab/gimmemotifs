@@ -111,7 +111,7 @@ class Fasta(object):
 			return False
 
 	def __str__(self):
-		return "\n".join([">%s\n%s" % (seq_id, self._format_seq(seq)) for seq_id, seq in self.items()])
+		return "%s sequences" % len(self.ids)
 
 	def writefasta(self, fname):
 		""" Write sequences to FASTA formatted file"""

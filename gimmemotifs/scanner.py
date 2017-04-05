@@ -21,6 +21,7 @@ from gimmemotifs.c_metrics import pwmscan
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import parse_cutoff,get_seqs_type
 from gimmemotifs.genome_index import rc
+from multiprocessing import Pool
 
 # only used when using cache, should not be a requirement
 try:
@@ -30,7 +31,7 @@ try:
 except ImportError:
     pass 
 
-def scan_fasta_to_best_score(fname, motifs):
+def scan_fasta_to_best_score(fname, motifs, ncpus=None):
     """Scan a FASTA file with motifs.
 
     Scan a FASTA file and return a dictionary with the best score per motif.
@@ -49,8 +50,11 @@ def scan_fasta_to_best_score(fname, motifs):
         Dictionary with motif scanning results.
     """
     # Initialize scanner
-    s = Scanner()
+    s = Scanner(ncpus=ncpus)
     s.set_motifs(motifs)
+
+    if isinstance(motifs, str) and os.path.exists(motifs):
+        motifs = read_motifs(open(motifs))
 
     sys.stderr.write("scanning {}...\n".format(fname))
     result = dict([(m.id, []) for m in motifs])
@@ -60,7 +64,7 @@ def scan_fasta_to_best_score(fname, motifs):
 
     return result
 
-def scan_fasta_to_best_match(fname, motifs):
+def scan_fasta_to_best_match(fname, motifs, ncpus=None):
     """Scan a FASTA file with motifs.
 
     Scan a FASTA file and return a dictionary with the best match per motif.
@@ -79,8 +83,11 @@ def scan_fasta_to_best_match(fname, motifs):
         Dictionary with motif scanning results.
     """
     # Initialize scanner
-    s = Scanner()
+    s = Scanner(ncpus=ncpus)
     s.set_motifs(motifs)
+    
+    if isinstance(motifs, str) and os.path.exists(motifs):
+        motifs = read_motifs(open(motifs))
 
     sys.stderr.write("scanning {}...\n".format(fname))
     result = dict([(m.id, []) for m in motifs])
@@ -224,6 +231,8 @@ def scan_it_moods(infile, motifs, cutoff, bgfile, nreport=1, scan_rc=True, pvalu
     if count:
         func = scan_fa_with_motif_moods_count
 
+
+    pool = Pool()
     for i in range(0, len(fa), chunk):
         jobs.append(pool.apply_async(
                                           func,
@@ -245,8 +254,13 @@ class Scanner(object):
     scan sequences with motifs
     """
     
-    def __init__(self):
+    def __init__(self, ncpus=None):
         self.config = MotifConfig()
+
+        if ncpus is None:
+            self.ncpus = int(MotifConfig().get_default_params()["ncpus"])
+        else:
+            self.ncpus = ncpus
 
         self.use_cache = False
         if self.config.get_default_params().get("use_cache", False):
@@ -396,7 +410,6 @@ class Scanner(object):
         
         # scan the regions that are not in the cache
         if len(scan_regions) > 0:
-            n = int(MotifConfig().get_default_params()["ncpus"])
             
             genome_index = GenomeIndex(index_dir)
            
@@ -408,25 +421,15 @@ class Scanner(object):
                 nreport=nreport,
                 scan_rc=scan_rc)
     
-            jobs = []
-            chunksize = len(scan_regions) / n + 1
-            for i in range(n):
-                job = pool.apply_async(scan_func, (scan_regions[i * chunksize:( i+ 1) * chunksize],))
-                jobs.append(job)
-            
-            # return values or store values in cache
-            i = 0
-            for job in jobs:
-                for ret in job.get():
-                    if self.use_cache:
-                        # store values in cache    
-                        region = scan_regions[i]
-                        key = str((region, index_dir, motif_digest, nreport, scan_rc, cutoff))
-                        self.cache.set(key, ret)
-                    else:
-                        #return values
-                        yield ret
-                    i += 1
+            for region, ret in self._scan_jobs(scan_func, scan_seqs):
+                # return values or store values in cache
+                if self.use_cache:
+                    # store values in cache    
+                    key = str((region, index_dir, motif_digest, nreport, scan_rc, cutoff))
+                    self.cache.set(key, ret)
+                else:
+                    #return values
+                    yield ret
     
         if self.use_cache: 
             # return results from cache
@@ -440,7 +443,6 @@ class Scanner(object):
                 yield ret
     
     def _scan_sequences(self, seqs, nreport, scan_rc, cutoff=0.95):
-        
         motif_file = self.motifs
         motif_digest = self.checksum.get(motif_file, None)
         
@@ -458,34 +460,19 @@ class Scanner(object):
         
         # scan the sequences that are not in the cache
         if len(scan_seqs) > 0:
-            n = int(MotifConfig().get_default_params()['ncpus'])
             motifs = load_motifs(motif_file, cutoff)
             scan_func = partial(scan_seq_mult,
                 motifs=motifs,
                 nreport=nreport,
                 scan_rc=scan_rc)
     
-            jobs = []
-            
-            chunksize = 500
-            if len(scan_seqs) / n + 1 < chunksize:
-                chunksize = len(scan_seqs) / n + 1
-            
-            for i in range((len(scan_seqs) - 1) / chunksize + 1):
-                job = pool.apply_async(scan_func, (scan_seqs[i * chunksize:(i  + 1) * chunksize],))
-                jobs.append(job)
-            
-            # store values in cache
-            i = 0
-            for job in jobs:
-                for ret in job.get():
-                    if self.use_cache:
-                        h = hashes[scan_seqs[i]]
-                        key = str((h, motif_digest, nreport, scan_rc, cutoff))
-                        self.cache.set(key, ret)
-                    else: 
-                        yield ret
-                    i += 1
+            for seq, ret in self._scan_jobs(scan_func, scan_seqs):
+                if self.use_cache:
+                    h = hashes[seq]
+                    key = str((h, motif_digest, nreport, scan_rc, cutoff))
+                    self.cache.set(key, ret)
+                else: 
+                    yield ret
         
         if self.use_cache:
             # return results from cache
@@ -498,8 +485,29 @@ class Scanner(object):
                                     "or disable cache")
                     
                 yield ret
+            
+    def _scan_jobs(self, scan_func, scan_seqs):
+        chunksize = 500
+        if len(scan_seqs) / self.ncpus + 1 < chunksize:
+            chunksize = len(scan_seqs) / self.ncpus + 1
+        
+        if self.ncpus > 1:
+            pool = Pool(processes=self.ncpus, maxtasksperchild=1000)
+            jobs = []
+            for i in range((len(scan_seqs) - 1) / chunksize + 1):
+                job = pool.apply_async(scan_func, (scan_seqs[i * chunksize:( i+ 1) * chunksize],))
+                jobs.append(job)
+            
+            i = 0
+            for job in jobs:
+                for ret in job.get():
+                    # store values in cache    
+                    region = scan_seqs[i]
+                    yield region, ret
+                    i += 1
+        else:
+            for i in range((len(scan_seqs) - 1) / chunksize + 1):
+                for j,ret in enumerate(scan_func(scan_seqs[i * chunksize:( i+ 1) * chunksize])):
+                    yield scan_seqs[i], ret
 
-try: 
-    from gimmemotifs.mp import pool
-except ImportError:
-    pass
+

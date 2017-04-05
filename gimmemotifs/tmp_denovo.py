@@ -691,6 +691,7 @@ def predict_denovo_motifs(inputfile, params=None, filter_significant=True, clust
     logger.debug("Done")
 
     return self.motif_report
+
 try:
     from gimmemotifs.mp import pool
 except:

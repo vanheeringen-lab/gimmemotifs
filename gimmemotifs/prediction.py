@@ -18,19 +18,20 @@ from gimmemotifs import tools as tool_classes
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
 from gimmemotifs import mytmpdir
+from multiprocessing import Pool
+from gimmemotifs.stats import calc_stats
 
-
-def _calc_motif_stats(motif, fg_fa, bg_fa, bg_name=None):
+def mp_calc_stats(motifs, fg_fa, bg_fa, bg_name=None):
     try:
-        stats = motif.stats(fg_fa, bg_fa)
+        stats = calc_stats(motifs, fg_fa, bg_fa, ncpus=1)
     except Exception as e:
         sys.stderr.write("ERROR: {}\n".format(e))
         stats = {}
-    
+
     if not bg_name:
         bg_name = "default"
 
-    return motif, bg_name, stats
+    return bg_name, stats
 
 def _run_tool(job_name, t, fastafile, params):
     try:
@@ -41,14 +42,15 @@ def _run_tool(job_name, t, fastafile, params):
     return job_name, result
 
 class PredictionResult(object):
-    def __init__(self, outfile, logger=None, fg_file=None, background=None, job_server=None, do_counter=True):
+    def __init__(self, outfile, logger=None, fg_file=None, background=None, do_counter=True):
         self.lock = thread.allocate_lock()
         self.motifs = []
         self.finished = []
         self.logger = logger
         self.stats = {}
+        self.stat_jobs = []
         self.outfile = outfile
-        self.job_server = job_server
+        self.job_server = Pool(1)
         self.counter = 0
         self.do_counter = do_counter
 
@@ -86,32 +88,37 @@ class PredictionResult(object):
             self.motifs.append(motif)
             self.lock.release()
             
-            if self.do_stats:
-                #job_id = "%s_%s" % (motif.id, motif.to_consensus())
-                if self.logger:
-                    self.logger.debug("Starting stats job of motif %s" % motif.id)
-                for bg_name, bg_fa in self.background.items():
-                    job = self.job_server.apply_async(
-                                    _calc_motif_stats, 
+        if self.do_stats:
+            #job_id = "%s_%s" % (motif.id, motif.to_consensus())
+            if self.logger:
+                self.logger.debug("Starting stats job of motif %s" % motif.id)
+            for bg_name, bg_fa in self.background.items():
+                job = self.job_server.apply_async(
+                                    mp_calc_stats, 
                                     (motif, self.fg_fa, bg_fa, bg_name), 
                                     callback=self.add_stats
                                     )
-        
+                self.stat_jobs.append(job)
         if self.logger:
             self.logger.debug("stdout %s: %s" % (job, stdout))
             self.logger.debug("stdout %s: %s" % (job, stderr))
         self.finished.append(job)
 
+    def wait_for_stats(self):
+        print "waiting"
+        for job in self.stat_jobs:
+            job.get()
+
     def add_stats(self, args):
-        motif, bg_name, stats = args
+        bg_name, stats = args
         if self.logger:
-            self.logger.debug("Stats: %s %s" % (motif, stats))
+            self.logger.debug("Stats: %s %s" % (bg_name, stats))
         
-        k = str(motif)
-        if not k in self.stats:
-            self.stats[k] = {}
+        for k in stats.keys():
+            if not k in self.stats:
+                self.stats[k] = {}
         
-        self.stats[k][bg_name] = stats
+            self.stats[k][bg_name] = stats[k]
 
     def submit_remaining_stats(self):
         for motif in self.motifs:
@@ -152,7 +159,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
         analysis = "small"
 
     if not job_server:
-        job_server = pool
+        job_server = my_pool
     
     jobs = {}
     
@@ -267,8 +274,3 @@ def predict_denovo_motifs(inputfile):
     """
     pass
 
-
-try:
-    from gimmemotifs.mp import pool
-except Exception:
-    pass
