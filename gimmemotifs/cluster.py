@@ -276,7 +276,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
                 #print "%s\t%s" % (motif.id, add)
                 png = "images/{}.png".format(motif.id.replace(" ", "_"))
                 motif.to_img(os.path.join(outdir, png), fmt="PNG", add_left=add)
-        ids[-1][2] = [dict([("src", png), ("alt", motif.id.replace(" ", "_"))]) for motif in members]
+        ids[-1][2] = [dict([("src", "images/{}.png".format(motif.id.replace(" ", "_"))), ("alt", motif.id.replace(" ", "_"))]) for motif in members]
 
     config = MotifConfig()
     env = jinja2.Environment(loader=jinja2.FileSystemLoader([config.get_template_dir()]))

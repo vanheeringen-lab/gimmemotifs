@@ -79,7 +79,7 @@ def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
             my_stats[str(motif)][bg]["best_match"] = "_".join(match[0].split("_")[:-1])
             my_stats[str(motif)][bg]["best_match_pvalue"] = match[1][-1]
    
-    write_stats(my_stats, os.path.join(outdir, "final.stats.{}.txt"))
+    write_stats(my_stats, os.path.join(outdir, "stats.{}.txt"))
 
 def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, stats, best_id=None):
     if best_id is None:

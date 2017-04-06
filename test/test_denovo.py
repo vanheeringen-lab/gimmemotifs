@@ -41,7 +41,7 @@ class TestScanner(unittest.TestCase):
         mc = MotifComparer()
         ap1_predicted = False
         for motif in predicted_motifs:
-            match = mc.get_closest_match(ap, p)
+            match = mc.get_closest_match(ap1, motif)
             if match["TGASTCA"][3] < 1e-6:
                 ap1_predicted = True
                 break
