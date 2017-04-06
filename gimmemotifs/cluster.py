@@ -6,6 +6,7 @@
 """Module for motif clustering."""
 import os
 import sys
+import logging
 
 import jinja2
 from datetime import datetime
@@ -15,6 +16,7 @@ from gimmemotifs.config import MotifConfig, GM_VERSION
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.comparison import MotifComparer
 
+logger = logging.getLogger("gimme.cluster")
 
 class MotifTree(object):
     
@@ -215,8 +217,11 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
     
     return root
 
-def cluster_motifs_with_report(infile, outfile, outdir, threshold):
+def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
     # Cluster significant motifs
+
+    if title is None:
+        title = infile
 
     motifs = read_motifs(open(infile), fmt="pwm")
 
@@ -227,7 +232,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold):
     elif len(motifs) == 1:
         clusters = [[motifs[0], motifs]]
     else:
-        #logger.info("clustering significant motifs.")
+        logger.info("clustering significant motifs.")
         tree = cluster_motifs(
                 infile,
                 "total",
@@ -269,19 +274,16 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold):
                    rc.id = motif.id
                    motif = rc
                 #print "%s\t%s" % (motif.id, add)
-                png = "images/{}.png".format(cluster.id.replace(" ", "_"))
+                png = "images/{}.png".format(motif.id.replace(" ", "_"))
                 motif.to_img(os.path.join(outdir, png), fmt="PNG", add_left=add)
         ids[-1][2] = [dict([("src", png), ("alt", motif.id.replace(" ", "_"))]) for motif in members]
 
-    expname = "test"
-    inputfile = "input"
     config = MotifConfig()
     env = jinja2.Environment(loader=jinja2.FileSystemLoader([config.get_template_dir()]))
     template = env.get_template("cluster_template.jinja.html")
     result = template.render(
-                expname=expname,
                 motifs=ids,
-                inputfile=inputfile,
+                inputfile=title,
                 date=datetime.today().strftime("%d/%m/%Y"),
                 version=GM_VERSION)
 
@@ -298,6 +300,6 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold):
             f.write("%s\n" % motif.to_pwm())
     f.close()
 
-    #logger.debug("Clustering done. See the result in %s",
-    #        cluster_report)
+    logger.debug("Clustering done. See the result in %s",
+            cluster_report)
     return clusters

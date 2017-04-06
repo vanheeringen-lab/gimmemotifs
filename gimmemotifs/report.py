@@ -9,6 +9,7 @@ from datetime import datetime
 from multiprocessing import Pool
 from tempfile import NamedTemporaryFile
 import shutil
+import logging
 
 import jinja2
 import numpy as np
@@ -19,9 +20,11 @@ from gimmemotifs.motif import read_motifs
 from gimmemotifs.config import GM_VERSION,MotifConfig,BG_RANK
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.rocmetrics import roc_values
-from gimmemotifs.stats import calc_stats, add_star
+from gimmemotifs.stats import calc_stats, add_star, write_stats
 from gimmemotifs import mytmpdir
 from gimmemotifs.utils import motif_localization
+
+logger = logging.getLogger("gimme.report")
 
 def get_roc_values(motif, fg_file, bg_file):
     try:
@@ -37,9 +40,8 @@ def get_roc_values(motif, fg_file, bg_file):
         error = e
         return error,[],[]
 
-def create_roc_plots(pwmfile, fgfa, background, name, outdir):
+def create_roc_plots(pwmfile, fgfa, background, outdir):
     motifs = dict([(m.id, m) for m in read_motifs(open(pwmfile), fmt="pwm")])
-
 
     ncpus = int(MotifConfig().get_default_params()['ncpus'])
     pool = Pool(processes=ncpus)
@@ -52,7 +54,10 @@ def create_roc_plots(pwmfile, fgfa, background, name, outdir):
                                             get_roc_values,
                                             (motifs[m_id], fgfa, fname,)
                                             )
-
+    imgdir = os.path.join(outdir, "images")
+    if not os.path.exists(imgdir):
+        os.mkdir(imgdir)
+    
     roc_img_file = os.path.join(outdir, "images", "{}_roc.{}.png")
 
     for motif in motifs.values():
@@ -60,18 +65,27 @@ def create_roc_plots(pwmfile, fgfa, background, name, outdir):
             k = "{}_{}".format(str(motif), bg)
             error, x, y = jobs[k].get()
             if error:
-                #logger.error("Error in thread: %s", error)
-                print("Error in thread: %s" % error)
+                logger.error("Error in thread: %s", error)
                 sys.exit(1)
             roc_plot(roc_img_file.format(motif.id, bg), x, y)
 
-def _create_report(pwm, background, outdir, stats=None, best_id=None, closest_match=None):
-    if stats is None:
-        stats = {}
+def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
+    my_stats = {}
+    for motif in motifs:
+        match = closest_match[motif.id]
+        my_stats[str(motif)] = {}
+        for bg in stats.values()[0].keys():
+            my_stats[str(motif)][bg] = stats[str(motif)][bg].copy()
+            my_stats[str(motif)][bg]["best_match"] = "_".join(match[0].split("_")[:-1])
+            my_stats[str(motif)][bg]["best_match_pvalue"] = match[1][-1]
+   
+    write_stats(my_stats, os.path.join(outdir, "final.stats.{}.txt"))
+
+def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, stats, best_id=None):
     if best_id is None:
         best_id = {}
 
-    #logger.debug("Creating graphical report")
+    logger.debug("Creating graphical report")
     
     class ReportMotif:
         pass
@@ -79,36 +93,28 @@ def _create_report(pwm, background, outdir, stats=None, best_id=None, closest_ma
     config = MotifConfig()
     
     imgdir = os.path.join(outdir, "images")
+    if not os.path.exists(imgdir):
+        os.mkdir(imgdir)
     motifs = read_motifs(open(pwm), fmt="pwm")
     
-    if closest_match:
-        for m,match in self.closest_match.items():
-            match[0].to_img(os.path.join(imgdir,"%s.png" % match[0].id), fmt="PNG")
-
     sort_key = sorted(background, lambda x,y: cmp(BG_RANK[x], BG_RANK[y]))[0]
 
     roc_img_file = "%s_roc.%s"
 
-    # TODO: Implement different backgrounds
-    sorted_motifs = sorted(motifs,
-            cmp=lambda x,y: cmp(stats[str(y)], stats[str(x)])
-            )
-
-    mc = MotifComparer()
-    closest_match = mc.get_closest_match(motifs)
 
     dbpwm = config.get_default_params()["motif_db"]
     pwmdir = config.get_motif_dir()
     dbmotifs = dict([(m.id, m) for m in read_motifs(open(os.path.join(pwmdir, dbpwm)))])
 
     report_motifs = []
-    for motif in sorted_motifs:
+    for motif in motifs:
         
         rm = ReportMotif()
         rm.id = motif.id
         rm.id_href = {"href": "#%s" % motif.id}
         rm.id_name = {"name": motif.id}
         rm.img = {"src":  os.path.join("images", "%s.png" % motif.id)}
+        motif.to_img(os.path.join(outdir, "images/{}.png".format(motif.id)), fmt="PNG")
         
         # TODO: fix best ID
         rm.best = "Gimme"#best_id[motif.id]
@@ -134,7 +140,7 @@ def _create_report(pwm, background, outdir, stats=None, best_id=None, closest_ma
         rm.histogram_link= {"href":"images/%s_histogram.svg" % motif.id}
         
         match_id = closest_match[motif.id][0]
-        dbmotifs[match_id].to_img(os.path.join(outdir, "images/{}png".format(match_id)), fmt="PNG")
+        dbmotifs[match_id].to_img(os.path.join(outdir, "images/{}.png".format(match_id)), fmt="PNG")
     
         rm.match_img = {"src":  "images/{}.png".format(match_id)}
         rm.match_id = closest_match[motif.id][0]
@@ -150,9 +156,8 @@ def _create_report(pwm, background, outdir, stats=None, best_id=None, closest_ma
     template = env.get_template("report_template.jinja.html")
     # TODO: title
     result = template.render(
-                    expname="bla", 
                     motifs=report_motifs, 
-                    inputfile="bla", 
+                    inputfile=inputfile, 
                     date=datetime.today().strftime("%d/%m/%Y"), 
                     version=GM_VERSION)
 
@@ -160,24 +165,27 @@ def _create_report(pwm, background, outdir, stats=None, best_id=None, closest_ma
     f.write(result.encode('utf-8'))
     f.close()
 
-def create_denovo_motif_report(pwmfile, fgfa, background, locfa, outdir, params):
-    #logger.info("creating report")
+def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outdir, params, stats=None):
+    logger.info("creating reports")
+    tmp = NamedTemporaryFile(dir=mytmpdir()).name
 
     # ROC plots
-    create_roc_plots(pwmfile, fgfa, background, "bla",  'bla')
+    create_roc_plots(pwmfile, fgfa, background, outdir)
         
     # Location plots
-    #logger.debug("Creating localization plots")
+    logger.debug("Creating localization plots")
     motifs = read_motifs(open(pwmfile), fmt="pwm")
     
-    tmp = NamedTemporaryFile(dir=mytmpdir()).name
+    mc = MotifComparer()
+    closest_match = mc.get_closest_match(motifs)
     
-    stats = {}
-    for bg, bgfa in background.items():
-        for m, s in calc_stats(motifs, fgfa, bgfa).items():
-            if not m in stats:
-                stats[m] = {}
-            stats[m][bg] = s
+    if stats is None:
+        stats = {}
+        for bg, bgfa in background.items():
+            for m, s in calc_stats(motifs, fgfa, bgfa).items():
+                if not m in stats:
+                    stats[m] = {}
+                stats[m][bg] = s
 
     stats = add_star(stats)
 
@@ -187,9 +195,14 @@ def create_denovo_motif_report(pwmfile, fgfa, background, locfa, outdir, params)
     lwidth = int(params.get('lwidth', 500))
 
     for motif in motifs:
-        s = stats[str(motif)]
+        try:
+            s = stats[str(motif)]
+        except: 
+            print str(motif)
+            print s.keys()
         outfile = os.path.join(outdir, "images/{}_histogram.svg".format(motif.id))
         motif_localization(locfa, motif, lwidth, outfile, cutoff=cutoff_fdr)
 
-    # Create report
-    _create_report(pwmfile, background, "bla", stats=stats)
+    # Create reports
+    _create_text_report(inputfile, motifs, closest_match, stats, outdir)
+    _create_graphical_report(inputfile, pwmfile, background, closest_match, outdir, stats)

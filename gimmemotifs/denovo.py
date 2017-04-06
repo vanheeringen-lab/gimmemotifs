@@ -3,6 +3,14 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
+import os
+import sys
+import logging
+import logging.handlers
+import shutil
+from tempfile import NamedTemporaryFile
+from time import sleep
+
 from gimmemotifs.config import MotifConfig, BG_RANK, parse_denovo_params
 from gimmemotifs import mytmpdir
 from gimmemotifs.validation import check_denovo_input
@@ -10,19 +18,13 @@ from gimmemotifs.utils import divide_fa_file, motif_localization
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.background import ( MarkovFasta, MatchedGcFasta,
                                     PromoterFasta, RandomGenomicFasta )
-from gimmemotifs.stats import calc_stats
+from gimmemotifs.stats import calc_stats, rank_motifs, write_stats
 from gimmemotifs.report import create_denovo_motif_report
 from gimmemotifs.motif import read_motifs
-from tempfile import NamedTemporaryFile
-from time import sleep
 
-import os
-import sys
-import logging
+logger = logging.getLogger("gimme.denovo")
 
-logger = logging.getLogger()
-
-def prepare_denovo_input_bed():
+def prepare_denovo_input_bed(inputfile, params, outdir):
     self.prepare_input_bed(inputfile, params["genome"], params["width"], params["fraction"], params["abs_max"], params["use_strand"])
 
 
@@ -33,59 +35,7 @@ def prepare_denovo_input_bed():
     extend = (lwidth - width) / 2
     genome_index.track2fasta(index_dir, self.validation_bed, self.location_fa, extend_up=extend, extend_down=extend, use_strand=params["use_strand"], ignore_missing=True)
 
-def write_stats(stats, fname):
-    # Write stats output to file
-
-    for bg in stats.values()[0].keys():
-        f = open(fname.format(bg), "w")
-        stat_keys = sorted(stats.values()[0].values()[0].keys())
-        f.write("{}\t{}\n".format("Motif", "\t".join(stat_keys)))
-    
-        for motif in stats:
-            m_stats = stats.get(str(motif), {}).get(bg)
-            if m_stats:
-                f.write("{}\t{}\n".format(
-                    "_".join(motif.split("_")[:-1]), 
-                    "\t".join([str(m_stats[k]) for k in stat_keys])
-                    ))
-            else:
-                logger.warn("No stats for motif {0}, skipping this motif!".format(motif.id))
-            #motifs.remove(motif)
-        f.close()
-
-    return
-    self.motifs_with_stats = motifs
-
-    f = open(self.ranks_file, "w")
-    tools = dict((m.id.split("_")[2],1) for m in motifs).keys()
-    f.write("Metric\tType\t%s\n" % ("\t".join(tools)))
-    for stat in ["mncp", "roc_auc", "maxenr"]:
-        best_motif = {}
-        for motif in self.motifs_with_stats:
-            d = stats.get("%s_%s" % (motif.id, motif.to_consensus()), {})
-            val = d.get(stat, None)
-            if val is None:
-                continue
-            name = motif.id.split("_")[2]
-            if val > best_motif.setdefault(name, 0):
-                best_motif[name] = val
-        if len(best_motif.keys()) > 0:
-            names = best_motif.keys()
-            vals = [best_motif[name] for name in names]
-            rank = rankdata(vals)
-            ind = [names.index(x) for x in tools]
-
-            f.write("%s\t%s\t%s\n" % (stat, "value", "\t".join([str(vals[i]) for i in ind])))
-            f.write("%s\t%s\t%s\n" % (stat, "rank", "\t".join([str(rank[i]) for i in ind])))
-    f.close()
-
-def get_tempfile(name, tmpdir=mytmpdir):
-    return "bla/{}".format(name)
-    #
-    #return os.path.join(tmpdir, "{}_{}".format(basename))
-
-
-def prepare_denovo_input_fa(inputfile, params):
+def prepare_denovo_input_fa(inputfile, params, outdir):
     """ Create all the bed- and fasta-files necessary for motif prediction and validation """
     width = int(params["width"])
     fraction = float(params["fraction"])
@@ -93,15 +43,13 @@ def prepare_denovo_input_fa(inputfile, params):
 
     logger.info("preparing input (FASTA)")
 
-    
-    pred_fa = get_tempfile("prediction.fa")
-    val_fa = get_tempfile("validation.fa")
+    pred_fa = os.path.join(outdir, "prediction.fa")
+    val_fa = os.path.join(outdir, "validation.fa")
 
     # Split inputfile in prediction and validation set
     logger.debug(
         "Splitting %s into prediction set (%s) and validation set (%s)",
         inputfile, pred_fa, val_fa)
-
 
     pred_num, val_num = divide_fa_file(inputfile, pred_fa, val_fa, fraction, abs_max)
 
@@ -161,7 +109,7 @@ def create_background(bg_type, bedfile, fafile, outfile, genome="hg18", width=20
     f.writefasta(outfile)
     return len(f)
 
-def create_backgrounds(background=None, genome="hg38", width=200):
+def create_backgrounds(outdir, background=None, genome="hg38", width=200):
     if background is None:
         background = ["random"]
         nr_sequences = {}
@@ -173,9 +121,9 @@ def create_backgrounds(background=None, genome="hg38", width=200):
         pred_bg = background[0]
     create_background(
                     pred_bg, 
-                    get_tempfile("validation.bed"), 
-                    get_tempfile("validation.fa"), 
-                    get_tempfile("prediction.bg.fa"), 
+                    os.path.join(outdir, "validation.bed"), 
+                    os.path.join(outdir, "validation.fa"), 
+                    os.path.join(outdir, "prediction.bg.fa"), 
                     genome=genome, 
                     width=width)
 
@@ -183,11 +131,11 @@ def create_backgrounds(background=None, genome="hg38", width=200):
     bg_info = {}
     nr_sequences = {}    
     for bg in background:
-        fname = get_tempfile("bg.{}.fa".format(bg))
+        fname = os.path.join(outdir, "bg.{}.fa".format(bg))
         nr_sequences[bg] = create_background(
                                         bg, 
-                                        get_tempfile("validation.bed"), 
-                                        get_tempfile("validation.fa"), 
+                                        os.path.join(outdir, "validation.bed"), 
+                                        os.path.join(outdir, "validation.fa"), 
                                         fname, 
                                         genome=genome, 
                                         width=width)
@@ -195,16 +143,15 @@ def create_backgrounds(background=None, genome="hg38", width=200):
         bg_info[bg] = fname
     return bg_info
 
-def filter_significant_motifs(result, bg):
+def filter_significant_motifs(fname, result, bg):
     # Determine significant motifs
     nsig = 0
-    fname = get_tempfile("significant.pfm")
     f = open(fname, "w")
     sig_motifs = []
     for motif in result.motifs:
         stats = result.stats.get("%s_%s" % (motif.id, motif.to_consensus()), {}).get(bg, {}) 
-        #if stats.get("maxenr", 0) >= 3 and stats.get("roc_auc", 0) >= 0.55 and stats.get('enr_fdr', 0) >= 2:
-        if stats.get("roc_auc", 0) >= 0.55:
+        if stats.get("max_enrichment", 0) >= 3 and stats.get("roc_auc", 0) >= 0.55 and stats.get('enr_at_fdr', 0) >= 1.5:
+        #if stats.get("roc_auc", 0) >= 0.55:
             f.write("%s\n" % motif.to_pfm())
             sig_motifs.append(motif)
             nsig += 1
@@ -221,118 +168,183 @@ def filter_significant_motifs(result, bg):
     
     return sig_motifs
 
-def score_clustered_motifs(motifs, stats_fg, stats_bg):
+def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, stats=None, metrics=["roc_auc", "recall_at_fdr"]):
+    # combine original and clustered motifs
+    motifs = read_motifs(open(single_pwm)) + read_motifs(open(clus_pwm))
+    motifs = dict([(str(m), m) for m in motifs])
 
-    if isinstance(motifs, str):
-        motifs = read_motifs(open(motifs))
-
-    # Stars
-    tmp = NamedTemporaryFile(dir=mytmpdir()).name
-    p = PredictionResult(tmp, fg_file=stats_fg, background=stats_bg, do_counter=False)
-    p.add_motifs(("clustering",  (motifs, "","")))
-    p.wait_for_stats()
+    # get the statistics for those motifs that were not yet checked
+    clustered_motifs = []
+    for clus,singles in clusters:
+        for motif in set([clus] + singles):
+            if str(motif) not in stats:
+                clustered_motifs.append(motifs[str(motif)])
     
-    while len(p.stats.keys()) < len(p.motifs):
-        sleep(5)
+    new_stats = {}
+    for bg, bg_fa in background.items():
+        for m,s in calc_stats(clustered_motifs, fg_fa, bg_fa).items():
+            if not m in new_stats:
+                new_stats[m] = {}
+            new_stats[m][bg] = s
+    stats.update(new_stats)
     
-    #print p.stats
-    #print "num_cluster"
-    #print num_cluster
-    #for mid, num in num_cluster.items():
-    #    for bg in p.stats[mid]:
-    #    p.stats[mid]["numcluster"] = num
+    rank = rank_motifs(stats, metrics)
 
-def best_motif_in_cluster(clusters, fg_fa, background, stats=None):
-    pass
+    # rank the motifs
+    best_motifs = []
+    for clus, singles in clusters:
+        if len(singles) > 1:
+            eval_motifs = singles
+            if clus not in motifs:
+                eval_motifs.append(clus)
+            eval_motifs = [motifs[str(e)] for e in eval_motifs]
+            best_motif = sorted(eval_motifs, lambda x,y: cmp(rank[str(y)], rank[str(x)]))[0]
+            best_motifs.append(best_motif)
+        else:
+            best_motifs.append(clus)
+        for bg in background:
+            stats[str(best_motifs[-1])][bg]["num_cluster"] = len(singles)
+
+    best_motifs = sorted(best_motifs, lambda x,y: cmp(rank[str(y)], rank[str(x)]))
+    return best_motifs
+    
+def rename_motifs(motifs, stats):
+    final_motifs = []
+    for i, motif in enumerate(motifs):
+        old = str(motif)
+        motif.id = "GimmeMotifs_{}".format(i + 1)
+        final_motifs.append(motif)
+        stats[str(motif)] = stats[old].copy()
+    return final_motifs, stats
 
 def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluster=True, create_report=True):
     """ Full analysis: from bed-file to motifs (including clustering, ROC-curves, location plots and html report) """
-    logger.info("starting full motif analysis")
-    logger.debug("Using temporary directory {0}".format(mytmpdir()))
+    # Create output directories
+    tmpdir = os.path.join(outdir, "intermediate")
+    for d in [outdir, tmpdir]: 
+        if not os.path.exists(d):
+            os.mkdir(d) 
 
+    # setup logfile
+    logger = logging.getLogger("gimme")
+    # Log to file
+    logfile = os.path.join(outdir, "gimmemotifs.log")
+    fh = logging.FileHandler(logfile, "w")
+    fh.setLevel(logging.DEBUG)
+    file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    fh.setFormatter(file_formatter)
+    logger.addHandler(fh)
+    logger = logging.getLogger("gimme.denovo.gimme_motifs")
+    
     # Initialize parameters
     params = parse_denovo_params(params)
  
     # Check the input files
     input_type, background = check_denovo_input(inputfile, params)
+   
+    logger.info("starting full motif analysis")
+    logger.debug("Using temporary directory {0}".format(mytmpdir()))
     
-    if not os.path.exists(outdir):
-        os.mkdir(outdir) 
-
+    
     # Create the necessary files for motif prediction and validation
     if input_type == "BED":
-        prepare_denovo_input_bed(inputfile, params)
+        prepare_denovo_input_bed(inputfile, params, tmpdir)
     elif input_type == "FASTA":
-        prepare_denovo_input_fa(inputfile, params)
+        prepare_denovo_input_fa(inputfile, params, tmpdir)
     else:
         logger.error("Unknown input type, shouldn't happen")
         sys.exit(1)
 
     # Create the background FASTA files
-    background = create_backgrounds(background, params["genome"], params["width"])
+    background = create_backgrounds(tmpdir, background, params["genome"], params["width"])
     
     # Predict de novo motifs
     result = predict_motifs(
-            get_tempfile("prediction.fa"),
-            get_tempfile("prediction.bg.fa"),
-            get_tempfile("all_motifs.pfm"),
+            os.path.join(tmpdir, "prediction.fa"),
+            os.path.join(tmpdir, "prediction.bg.fa"),
+            os.path.join(tmpdir, "all_motifs.pfm"),
             params=params,
-            stats_fg=get_tempfile('validation.fa'),
+            stats_fg=os.path.join(tmpdir, 'validation.fa'),
             stats_bg=background, 
             )
 
     # Write statistics
-    stats_file = get_tempfile("stats.{}.txt")
+    stats_file = os.path.join(tmpdir, "stats.{}.txt")
     write_stats(result.stats, stats_file)
 
     bg = sorted(background, lambda x,y: cmp(BG_RANK[x], BG_RANK[y]))[0]
     if filter_significant:
-        motifs = filter_significant_motifs(result, bg)
+        motifs = filter_significant_motifs(
+                os.path.join(tmpdir, "significant_motifs.pfm"),
+                result, 
+                bg)
+        if len(motifs) == 0:
+            logger.info("no significant motifs")
+            return 
+
+        pwmfile = os.path.join(tmpdir, "significant_motifs.pfm")
     else:
+        logger.info("not filtering for significance")
         motifs = result.motifs
+        pwmfile = os.path.join(tmpdir, "all_motifs.pfm")
 
     if cluster: 
         clusters = cluster_motifs_with_report(
-                    get_tempfile("significant.pfm"),
-                    get_tempfile("clustered.pfm"),
-                    get_tempfile("."),
-                    0.95)
+                    pwmfile,
+                    os.path.join(tmpdir, "clustered_motifs.pfm"),
+                    outdir,
+                    0.95,
+                    title=inputfile)
+        
         # Determine best motif in cluster
-        #num_cluster, best_id = self._determine_best_motif_in_cluster(clusters, self.final_pwm, self.validation_fa, bg_file, self.imgdir)
+        best_motifs = best_motif_in_cluster(
+                pwmfile,
+                os.path.join(tmpdir, "clustered_motifs.pfm"),
+                clusters, 
+                os.path.join(tmpdir, 'validation.fa'), 
+                background, 
+                result.stats)
         
-        score_clustered_motifs(
-                get_tempfile("clustered.pfm"),
-                stats_fg=get_tempfile("validation.fa"), 
-                stats_bg=background
-                )
-        
+        final_motifs, stats = rename_motifs(best_motifs, result.stats)
+    else:
+        logger.info("not clustering")
+        rank = rank_motifs(result.stats)
+        sorted_motifs = sorted(motifs, lambda x,y: cmp(rank[str(y)], rank[str(x)]))
+        final_motifs, stats = rename_motifs(sorted_motifs, result.stats)
+
+    with open(os.path.join(outdir, "motifs.pwm"), "w") as f:
+        for m in final_motifs:
+            f.write("{}\n".format(m.to_pwm()))
+    
     if create_report:
-        bg = dict([(b, get_tempfile("bg.{}.fa".format(b))) for b in background])
+        bg = dict([(b, os.path.join(tmpdir, "bg.{}.fa".format(b))) for b in background])
 
         create_denovo_motif_report(
-                get_tempfile("clustered.pfm"), 
-                get_tempfile("validation.fa"), 
+                inputfile, 
+                os.path.join(outdir, "motifs.pwm"), 
+                os.path.join(tmpdir, "validation.fa"), 
                 bg, 
-                get_tempfile("validation.fa"), 
-                "bla",
+                os.path.join(tmpdir, "validation.fa"), 
+                outdir,
                 params,
+                stats,
                 )
     
-    # print_params()
-    # create_text_report()
+    with open(os.path.join(outdir, "params.txt"), "w") as f:
+        for k,v in params.items():
+            f.write("{}\t{}\n".format(k,v))
+    
+    if not(params.get("keep_intermediate")):
+        logger.debug(
+            "Deleting intermediate files. "
+            "Please specifify the -k option if you want to keep these files.")
+        shutil.rmtree(tmpdir)
 
-    #if not(params["keep_intermediate"]):
-    #    logger.debug(
-    #            "Deleting intermediate files. "
-    #            "Please specifify the -k option if you want to keep these files.")
-    #    shutil.rmtree(self.tmpdir)
+    logger.info("finished")
+    logger.info("output dir: %s", outdir) 
+    logger.info("report: %s", os.path.join(outdir, "motif_report.html"))
 
-    #logger.info("finished")
-    # TODO: fixme
-    #logger.info("output dir: %s", "bla")#os.path.split(self.motif_report)[0])
-    #logger.info("report: %s", os.path.split(self.motif_report)[-1])
-
-    return self.motif_report
+    return final_motifs
 
 try:
     from gimmemotifs.mp import pool

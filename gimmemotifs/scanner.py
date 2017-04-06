@@ -3,6 +3,7 @@ import re
 import sys
 from functools import partial
 from tempfile import mkdtemp,NamedTemporaryFile
+import logging
 
 # "hidden" features, in development
 try:
@@ -31,6 +32,8 @@ try:
 except ImportError:
     pass 
 
+logger = logging.getLogger("gimme.scanner")
+
 def scan_fasta_to_best_score(fname, motifs, ncpus=None):
     """Scan a FASTA file with motifs.
 
@@ -56,7 +59,7 @@ def scan_fasta_to_best_score(fname, motifs, ncpus=None):
     if isinstance(motifs, str) and os.path.exists(motifs):
         motifs = read_motifs(open(motifs))
 
-    sys.stderr.write("scanning {}...\n".format(fname))
+    logger.debug("scanning %s...", fname)
     result = dict([(m.id, []) for m in motifs])
     for scores in s.best_score(fname):
         for motif,score in zip(motifs, scores):
@@ -89,7 +92,7 @@ def scan_fasta_to_best_match(fname, motifs, ncpus=None):
     if isinstance(motifs, str) and os.path.exists(motifs):
         motifs = read_motifs(open(motifs))
 
-    sys.stderr.write("scanning {}...\n".format(fname))
+    logger.debug("scanning %s...", fname)
     result = dict([(m.id, []) for m in motifs])
     for scores in s.best_match(fname):
         for motif,score in zip(motifs, scores):

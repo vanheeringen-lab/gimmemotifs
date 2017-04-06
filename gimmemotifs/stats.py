@@ -1,13 +1,17 @@
 """Calculate motif enrichment statistics."""
 import sys
 from multiprocessing import Pool
+import logging
 
 import numpy as np
+from scipy.stats import rankdata
 
 from gimmemotifs import rocmetrics
 from gimmemotifs.scanner import scan_fasta_to_best_match
 from gimmemotifs.motif import read_motifs, Motif
 from gimmemotifs.config import MotifConfig
+
+logger = logging.getLogger("gimme.stats")
 
 def calc_stats(motifs, fg_file, bg_file, stats=None, ncpus=None):
     """Calculate motif enrichment metrics.
@@ -51,14 +55,14 @@ def calc_stats(motifs, fg_file, bg_file, stats=None, ncpus=None):
 
     result = {}
     for i in range(0, len(all_motifs), chunksize):
-        sys.stderr.write("{} of {}\n".format(
-            (i / chunksize) + 1, len(all_motifs) / chunksize + 1))
+        logger.debug("chunk %s of %s",
+            (i / chunksize) + 1, len(all_motifs) / chunksize + 1)
         motifs = all_motifs[i:i + chunksize]
        
         fg_total = scan_fasta_to_best_match(fg_file, motifs, ncpus=ncpus)
         bg_total = scan_fasta_to_best_match(bg_file, motifs, ncpus=ncpus)
      
-        sys.stderr.write("calculating statistics\n")
+        logger.debug("calculating statistics")
         
         if ncpus == 1:
             it = _single_stats(motifs, stats, fg_total, bg_total) 
@@ -139,12 +143,52 @@ def add_star(stats):
             "enr_at_fdr": [4, 8, 12],
             "fraction_fdr": [0.4, 0.6, 0.8],
             "ks_significance": [4, 7, 10],
-            #"numcluster": [3, 6, 9],
+            "numcluster": [3, 6, 9],
     }
     
     for motif,s2 in stats.items():
         for bg, s in s2.items():
             stats[motif][bg]["stars"] = int(
-                        np.mean([star(s[x], all_stats[x]) for x in all_stats.keys()]) + 0.5
+                        np.mean([star(s[x], all_stats[x]) for x in all_stats.keys() if x in s]) + 0.5
                     )
     return stats
+
+def rank_motifs(stats, metrics=["roc_auc", "recall_at_fdr"]):
+    # Determine mean rank of motifs based on metrics 
+    rank = {}
+    combined_metrics = []
+    motif_ids = stats.keys()
+    background = stats.values()[0].keys()
+    for metric in metrics:
+        mean_metric_stats = [np.mean(
+            [stats[m][bg][metric] for bg in background]) for m in motif_ids]
+        ranked_metric_stats = rankdata(mean_metric_stats)
+        combined_metrics.append(ranked_metric_stats)
+    
+    for motif, val in zip(motif_ids, np.mean(combined_metrics, 0)):
+        rank[motif] = val
+
+    return rank
+
+def write_stats(stats, fname):
+    # Write stats output to file
+
+    for bg in stats.values()[0].keys():
+        f = open(fname.format(bg), "w")
+        stat_keys = sorted(stats.values()[0].values()[0].keys())
+        f.write("{}\t{}\n".format("Motif", "\t".join(stat_keys)))
+
+        for motif in stats:
+            m_stats = stats.get(str(motif), {}).get(bg)
+            if m_stats:
+                f.write("{}\t{}\n".format(
+                    "_".join(motif.split("_")[:-1]),
+                    "\t".join([str(m_stats[k]) for k in stat_keys])
+                    ))
+            else:
+                logger.warn("No stats for motif {0}, skipping this motif!".format(motif.id))
+            #motifs.remove(motif)
+        f.close()
+
+    return
+
