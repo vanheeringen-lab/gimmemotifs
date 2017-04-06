@@ -42,12 +42,11 @@ class TestScanner(unittest.TestCase):
         ap1_predicted = False
         for motif in predicted_motifs:
             match = mc.get_closest_match(ap1, motif)
-            if match["TGASTCA"][3] < 1e-6:
+            if match["TGASTCA"][1][3] < 1e-6:
                 ap1_predicted = True
                 break
 
         self.assertTrue(ap1_predicted)
-
 
     def tearDown(self):
         # remove output

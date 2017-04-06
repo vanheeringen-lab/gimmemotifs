@@ -51,7 +51,7 @@ class PredictionResult(object):
         self.stats = {}
         self.stat_jobs = []
         self.outfile = outfile
-        self.job_server = Pool(1)
+        self.job_server = Pool(2)
         self.counter = 0
         self.do_counter = do_counter
 
@@ -245,7 +245,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
                         logger.debug("deleting %s", motif)
                         del result.motifs[i]
                 break
-            sleep(30)
+            sleep(2)
             if len(result.stats.keys()) == last_len:
                 n += 1
             else:
