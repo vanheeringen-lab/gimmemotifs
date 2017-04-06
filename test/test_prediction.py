@@ -25,7 +25,7 @@ class TestStats(unittest.TestCase):
         motifs = read_motifs(open(self.motifs))
         p.add_motifs((0, (motifs, "", "")))
         p.wait_for_stats()        
-        self.assertEquals(1, len(p.stats))
+        self.assertEquals(2, len(p.stats))
         for stat in rocmetrics.__all__:
             self.assertIn(stat, p.stats.values()[0]["random"])
 
