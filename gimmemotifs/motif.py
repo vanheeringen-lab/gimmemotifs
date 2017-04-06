@@ -765,6 +765,36 @@ def motif_from_consensus(cons, n=12):
     return m
 
 
+def parse_motifs(motifs):
+    """Parse motifs in a variety of formats to return a list of motifs.
+
+    Parameters
+    ----------
+
+    motifs : list or str
+        Filename of motif,  list of motifs or single Motif instance.
+
+    Returns
+    -------
+
+    motifs : list
+        List of Motif instances.
+    """
+    if isinstance(motifs, str):
+        if motifs.endswith("pwm") or db.endswith("pfm"):
+            motifs = read_motifs(open(motifs), fmt="pwm")
+        elif motifs.endswith("transfac"):
+            motifs = read_motifs(open(motifs), fmt="transfac")
+        else: 
+            motifs = read_motifs(open(motifs))
+    elif isinstance(motifs, Motif):
+        motifs = [motifs]
+    else:
+        if not isinstance(motifs[0], Motif):
+            raise ValueError("Not a list of motifs")
+    
+    return motifs
+
 def read_motifs(handle, fmt="pwm"):
     """ 
     Read motifs from a stream or file-like object.

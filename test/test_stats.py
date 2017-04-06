@@ -39,8 +39,8 @@ class TestStats(unittest.TestCase):
             # Two motifs
             self.assertEquals(2, len(stats))
     
-            m1 = "T-box_M1713_1.01" # not enriched
-            m2 = "p53_Average_8"    # highly enriched
+            m1 = "T-box_M1713_1.01_CTAGGTGTGAA" # not enriched
+            m2 = "p53_Average_8_CATGyCnGGrCATGy"    # highly enriched
     
             self.assertLess(stats[m1]["roc_auc"] , 0.9)
             self.assertGreater(stats[m2]["roc_auc"] , 0.5)
@@ -65,10 +65,10 @@ class TestStats(unittest.TestCase):
     def test2_stats_single_motif(self):
         """ Calculate motif statistics """
         
-        m_id = "p53_Average_8"
+        m_id = "p53_Average_8_CATGyCnGGrCATGy"
         
         motifs = read_motifs(open(self.motifs))
-        motif = [m for m in motifs if m.id == m_id][0]
+        motif = [m for m in motifs if str(m) == m_id][0]
         
         stats = calc_stats(motif, self.fg_fa, self.bg_fa, ["roc_auc"])
         self.assertGreater(stats[m_id]["roc_auc"] , 0.9)

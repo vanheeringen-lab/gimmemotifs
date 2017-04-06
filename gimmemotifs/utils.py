@@ -29,15 +29,6 @@ from gimmemotifs.rocmetrics import ks_pvalue
 
 lgam = special.gammaln
 
-def star(stat, categories):
-    stars = 0
-    for c in sorted(categories):
-        if stat >= c:
-            stars += 1
-        else:
-            return stars
-    return stars
-
 def phyper_single(k, good, bad, N):
 
     return np.exp(lgam(good+1) - lgam(good-k+1) - lgam(k+1) + lgam(bad+1) - lgam(bad-N+k+1) - lgam(N-k+1) - lgam(bad+good+1) + lgam(bad+good-N+1) + lgam(N+1))

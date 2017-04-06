@@ -240,7 +240,7 @@ def max_enrichment(fg_vals, bg_vals, minbg=2):
             if enr > m:
                 m = enr
                 s = scores[idx[i]]
-    return m, s
+    return m
 
 @requires_scores
 def mncp(fg_vals, bg_vals):
@@ -465,9 +465,10 @@ def max_fmeasure(fg_vals, bg_vals):
     
     f = (2 * p * y) / (p + y)
     if len(f) > 0:
-        return np.nanmax(f), np.nanmax(y[f == np.nanmax(f)])
+        #return np.nanmax(f), np.nanmax(y[f == np.nanmax(f)])
+        return np.nanmax(f)
     else:
-        return None,None
+        return None
 
 @requires_positions
 def ks_pvalue(fg_pos, bg_pos=None):

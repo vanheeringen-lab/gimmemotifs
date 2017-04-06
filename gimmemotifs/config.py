@@ -17,7 +17,6 @@ BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "user"]
 BG_RANK = {"user":1, "promoter":2, "gc":3, "random":4, "genomic":5}
 FASTA_EXT = [".fasta", ".fa", ".fsa"]
 
-
 class MotifConfig(object):
     __shared_state = {}
     prefix = sysconfig.get_config_var("prefix")
@@ -158,6 +157,61 @@ class MotifConfig(object):
 
     def write(self, fo):
         self.config.write(fo)
+
+def parse_denovo_params(user_params=None):
+    """Return default GimmeMotifs parameters. 
+
+    Defaults will be replaced with parameters defined in user_params.
+
+    Parameters
+    ----------
+    user_params : dict, optional
+        User-defined parameters.
+
+    Returns
+    -------
+    params : dict
+    """
+    config = MotifConfig()
+
+    if user_params is None:
+        user_params = {}
+    params = config.get_default_params()
+    params.update(user_params)
+
+    if params.get("torque"):
+        from gimmemotifs.prediction_torque import pp_predict_motifs, PredictionResult
+        #logger.debug("Using torque")
+    else:
+        from gimmemotifs.prediction import pp_predict_motifs, PredictionResult
+        #logger.debug("Using multiprocessing")
+
+    params["background"] = [x.strip() for x in params["background"].split(",")]
+
+    #logger.debug("Parameters:")
+    #for param, value in params.items():
+    #    logger.debug("  %s: %s", param, value)
+
+    # Maximum time?
+    if params["max_time"]:
+        try:
+            params["max_time"] = float(params["max_time"])
+        except Exception:
+            #logger.debug("Could not parse max_time value, setting to no limit")
+            params["max_time"] = None
+
+        if params["max_time"] > 0:
+            #logger.debug("Time limit for motif prediction: %0.2f hours" % max_time)
+            params["max_time"] = 3600 * params["max_time"]
+            #logger.debug("Max_time in seconds %0.0f" % params["max_time"])
+        else:
+            #logger.debug("Invalid time limit for motif prediction, setting to no limit")
+            max_time = params["max_time"]
+    #else:
+            
+            #logger.debug("No time limit for motif prediction")
+
+    return params
 
 #if __name__ == "__main__":
 #    m = MotifConfig()

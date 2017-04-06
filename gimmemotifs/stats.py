@@ -1,10 +1,13 @@
 """Calculate motif enrichment statistics."""
 import sys
+from multiprocessing import Pool
+
+import numpy as np
+
 from gimmemotifs import rocmetrics
 from gimmemotifs.scanner import scan_fasta_to_best_match
 from gimmemotifs.motif import read_motifs, Motif
 from gimmemotifs.config import MotifConfig
-from multiprocessing import Pool
 
 def calc_stats(motifs, fg_file, bg_file, stats=None, ncpus=None):
     """Calculate motif enrichment metrics.
@@ -71,8 +74,8 @@ def calc_stats(motifs, fg_file, bg_file, stats=None, ncpus=None):
 def _single_stats(motifs, stats, fg_total, bg_total):
     # Initialize multiprocessing pool
     
-    ids = [m.id for m in motifs]
-    for motif_id in ids:
+    for motif in motifs:
+        motif_id = motif.id
         fg_vals = fg_total[motif_id]
         bg_vals = bg_total[motif_id]
         for s in stats:
@@ -87,15 +90,15 @@ def _single_stats(motifs, stats, fg_total, bg_total):
                 raise ValueError("Unknown input_type for stats") 
             
             ret = func(fg, bg)
-            yield motif_id, s, ret
+            yield str(motif), s, ret
 
 def _mp_stats(motifs, stats, fg_total, bg_total, ncpus):
     # Initialize multiprocessing pool
     pool = Pool(ncpus, maxtasksperchild=1000)
     
     jobs = []
-    ids = [m.id for m in motifs]
-    for motif_id in ids:
+    for motif in motifs:
+        motif_id = motif.id
         fg_vals = fg_total[motif_id]
         bg_vals = bg_total[motif_id]
         for s in stats:
@@ -111,7 +114,7 @@ def _mp_stats(motifs, stats, fg_total, bg_total, ncpus):
             
             j = pool.apply_async(func, 
                         (fg, bg))
-            jobs.append([motif_id, s, j])
+            jobs.append([str(motif), s, j])
     pool.close()
     pool.join()
     
@@ -119,3 +122,29 @@ def _mp_stats(motifs, stats, fg_total, bg_total, ncpus):
         ret = job.get() 
         yield motif_id, s, ret
 
+def star(stat, categories):
+    stars = 0
+    for c in sorted(categories):
+        if stat >= c:
+            stars += 1
+        else:
+            return stars
+    return stars
+
+def add_star(stats):
+    all_stats = {
+            "mncp": [2, 5, 8],
+            "roc_auc": [0.6, 0.75, 0.9],
+            "max_enrichment": [10, 20, 30],
+            "enr_at_fdr": [4, 8, 12],
+            "fraction_fdr": [0.4, 0.6, 0.8],
+            "ks_significance": [4, 7, 10],
+            #"numcluster": [3, 6, 9],
+    }
+    
+    for motif,s2 in stats.items():
+        for bg, s in s2.items():
+            stats[motif][bg]["stars"] = int(
+                        np.mean([star(s[x], all_stats[x]) for x in all_stats.keys()]) + 0.5
+                    )
+    return stats

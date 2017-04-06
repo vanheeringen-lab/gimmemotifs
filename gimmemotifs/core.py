@@ -25,8 +25,9 @@ import jinja2
 from gimmemotifs.config import (MotifConfig, GM_VERSION, FA_VALID_BGS,
         BED_VALID_BGS, BG_RANK)
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.utils import (divide_fa_file, divide_file, star, 
+from gimmemotifs.utils import (divide_fa_file, divide_file,  
         write_equalwidth_bedfile, gff_enrichment, motif_localization)
+from gimmemotifs.stats import star
 from gimmemotifs.background import ( MarkovFasta, MatchedGcFasta, 
                                     PromoterFasta, RandomGenomicFasta )
 from gimmemotifs.comparison import MotifComparer
