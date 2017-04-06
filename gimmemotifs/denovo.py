@@ -13,8 +13,10 @@ from time import sleep
 
 from gimmemotifs.config import MotifConfig, BG_RANK, parse_denovo_params
 from gimmemotifs import mytmpdir
+from gimmemotifs.genome_index import track2fasta
 from gimmemotifs.validation import check_denovo_input
-from gimmemotifs.utils import divide_fa_file, motif_localization
+from gimmemotifs.utils import (divide_file, divide_fa_file, motif_localization, 
+								write_equalwidth_bedfile)
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.background import ( MarkovFasta, MatchedGcFasta,
                                     PromoterFasta, RandomGenomicFasta )
@@ -25,15 +27,47 @@ from gimmemotifs.motif import read_motifs
 logger = logging.getLogger("gimme.denovo")
 
 def prepare_denovo_input_bed(inputfile, params, outdir):
-    self.prepare_input_bed(inputfile, params["genome"], params["width"], params["fraction"], params["abs_max"], params["use_strand"])
+    logger.info("preparing input (BED)")
+    
+    # Create BED file with regions of equal size
+    width = int(params["width"])
+    bedfile = os.path.join(outdir, "input.bed")
+    write_equalwidth_bedfile(inputfile, width, bedfile)
+    
+    abs_max = int(params["abs_max"])
+    fraction = float(params["fraction"])
+    pred_bedfile = os.path.join(outdir, "prediction.bed")
+    val_bedfile = os.path.join(outdir, "validation.bed")
+    # Split input into prediction and validation set
+    logger.debug(
+                "Splitting %s into prediction set (%s) and validation set (%s)",
+                bedfile, pred_bedfile, val_bedfile)
+    prediction_num, validation_num = divide_file(
+                bedfile, pred_bedfile, val_bedfile, fraction, abs_max)
 
+    config = MotifConfig()
+    index_dir = os.path.join(config.get_index_dir(), params["genome"])
+    
+    for infile in [pred_bedfile, val_bedfile]:
+        track2fasta(
+            index_dir, 
+            infile, 
+            infile.replace(".bed", ".fa"), 
+            )
 
     # Create file for location plots
-    index_dir = os.path.join(self.config.get_index_dir(), params["genome"])
     lwidth = int(params["lwidth"])
-    width = int(params["width"])
     extend = (lwidth - width) / 2
-    genome_index.track2fasta(index_dir, self.validation_bed, self.location_fa, extend_up=extend, extend_down=extend, use_strand=params["use_strand"], ignore_missing=True)
+    
+    track2fasta(
+            index_dir, 
+            val_bedfile, 
+            os.path.join(outdir, "localization.fa"), 
+            extend_up=extend, 
+            extend_down=extend, 
+            use_strand=params["use_strand"], 
+            ignore_missing=True
+            )
 
 def prepare_denovo_input_fa(inputfile, params, outdir):
     """ Create all the bed- and fasta-files necessary for motif prediction and validation """
@@ -45,6 +79,7 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
 
     pred_fa = os.path.join(outdir, "prediction.fa")
     val_fa = os.path.join(outdir, "validation.fa")
+    loc_fa = os.path.join(outdir, "localization.fa")
 
     # Split inputfile in prediction and validation set
     logger.debug(
@@ -54,15 +89,14 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
     pred_num, val_num = divide_fa_file(inputfile, pred_fa, val_fa, fraction, abs_max)
 
 #    # File for location plots
-#    self.location_fa = self.validation_fa
-#    fa = Fasta(self.location_fa)
-#    seqs = fa.seqs
-#    lwidth = len(seqs[0])
-#    all_same_width = not(False in [len(seq) == lwidth for seq in seqs])
-#    if not all_same_width:
-#        self.logger.warn(
-#                "PLEASE NOTE: FASTA file contains sequences of different lengths. "
-#                "Positional preference plots will be incorrect!")
+    shutil.copy(val_fa, loc_fa)
+    seqs = Fasta(loc_fa).seqs
+    lwidth = len(seqs[0])
+    all_same_width = not(False in [len(seq) == lwidth for seq in seqs])
+    if not all_same_width:
+        self.logger.warn(
+            "PLEASE NOTE: FASTA file contains sequences of different lengths. "
+            "Positional preference plots might be incorrect!")
 
 def create_background(bg_type, bedfile, fafile, outfile, genome="hg18", width=200, nr_times=10):
     fg = Fasta(fafile)
@@ -159,11 +193,7 @@ def filter_significant_motifs(fname, result, bg):
     logger.info("%s motifs are significant", nsig)
     logger.debug("written to %s", fname)
 
-    # ROC metrics of significant motifs
-    #for bg in background:
-    #    self._roc_metrics(self.significant_pfm, self.validation_fa, self.bg_file["fa"][bg], self.bg_file["roc"][bg])
     if nsig == 0:
-        logger.info("no significant motifs found")
         return []
     
     return sig_motifs
@@ -324,7 +354,7 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
                 os.path.join(outdir, "motifs.pwm"), 
                 os.path.join(tmpdir, "validation.fa"), 
                 bg, 
-                os.path.join(tmpdir, "validation.fa"), 
+                os.path.join(tmpdir, "localizatiom.fa"), 
                 outdir,
                 params,
                 stats,
