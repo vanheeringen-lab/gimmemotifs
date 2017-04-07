@@ -64,7 +64,7 @@ def check_denovo_input(inputfile, params):
     
     for bg in background:
         if not bg in valid_bg:
-            logger.info("Input type is {}, ignoring background type '%s'", 
+            logger.info("Input type is %s, ignoring background type '%s'", 
                             input_type, bg)
         background = [bg for bg in background if bg in valid_bg]
 

@@ -20,6 +20,7 @@ from tempfile import NamedTemporaryFile
 # External imports
 from scipy import special
 import numpy as np
+import pybedtools
 
 # gimme imports
 from gimmemotifs.fasta import Fasta

@@ -16,7 +16,7 @@ from gimmemotifs import mytmpdir
 from gimmemotifs.genome_index import track2fasta
 from gimmemotifs.validation import check_denovo_input
 from gimmemotifs.utils import (divide_file, divide_fa_file, motif_localization, 
-								write_equalwidth_bedfile)
+                                write_equalwidth_bedfile)
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.background import ( MarkovFasta, MatchedGcFasta,
                                     PromoterFasta, RandomGenomicFasta )
@@ -94,14 +94,16 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
     lwidth = len(seqs[0])
     all_same_width = not(False in [len(seq) == lwidth for seq in seqs])
     if not all_same_width:
-        self.logger.warn(
+        logger.warn(
             "PLEASE NOTE: FASTA file contains sequences of different lengths. "
             "Positional preference plots might be incorrect!")
 
 def create_background(bg_type, bedfile, fafile, outfile, genome="hg18", width=200, nr_times=10):
+    
+    config = MotifConfig()
     fg = Fasta(fafile)
     if bg_type in ["promoter", "genomic"]:
-        index_dir = os.path.join(self.config.get_index_dir(), genome)
+        index_dir = os.path.join(config.get_index_dir(), genome)
 
     if bg_type == "random":
         f = MarkovFasta(fg, k=1, n=nr_times * len(fg))
@@ -114,32 +116,32 @@ def create_background(bg_type, bedfile, fafile, outfile, genome="hg18", width=20
         f = MatchedGcFasta(fafile, genome, nr_times * len(fg))
         logger.debug("GC matched background: %s", outfile)
     elif bg_type == "promoter":
-        gene_file = os.path.join(self.config.get_gene_dir(), "%s.bed" % genome)
+        gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % genome)
 
         logger.info(
                 "Creating random promoter background (%s, using genes in %s)",
                 genome, gene_file)
         f = PromoterFasta(gene_file, index_dir, width, nr_times * len(fg))
         logger.debug("Random promoter background: %s", outfile)
-    elif bg_type == "user":
-        bg_file = self.params["user_background"]
-        if not os.path.exists(bg_file):
-            raise IOError(
-                    "User-specified background file %s does not exist!",
-                    bg_file)
-        else:
-            logger.info("Copying user-specified background file %s to %s.",
-                    bg_file, outfile)
-            f = Fasta(bg_file)
-            l = median([len(seq) for seq in fa.seqs])
-            if l < width * 0.95 or l > width * 1.05:
-                   logger.warn(
-                    "The user-specified background file %s contains sequences with a "
-                    "median length of %s, while GimmeMotifs predicts motifs in sequences "
-                    "of length %s. This will influence the statistics! It is recommended "
-                    "to use background sequences of the same length.", 
-                    bg_file, l, width)
-
+    #elif bg_type == "user":
+    #    bg_file = self.params["user_background"]
+    #    if not os.path.exists(bg_file):
+    #        raise IOError(
+    #                "User-specified background file %s does not exist!",
+    #                bg_file)
+    #    else:
+    #        logger.info("Copying user-specified background file %s to %s.",
+    #                bg_file, outfile)
+    #        f = Fasta(bg_file)
+    #        l = median([len(seq) for seq in fa.seqs])
+    #        if l < width * 0.95 or l > width * 1.05:
+    #               logger.warn(
+    #                "The user-specified background file %s contains sequences with a "
+    #                "median length of %s, while GimmeMotifs predicts motifs in sequences "
+    #                "of length %s. This will influence the statistics! It is recommended "
+    #                "to use background sequences of the same length.", 
+    #                bg_file, l, width)
+    #
     f.writefasta(outfile)
     return len(f)
 
@@ -198,7 +200,7 @@ def filter_significant_motifs(fname, result, bg):
     
     return sig_motifs
 
-def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, stats=None, metrics=["roc_auc", "recall_at_fdr"]):
+def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, stats=None, metrics=("roc_auc", "recall_at_fdr")):
     # combine original and clustered motifs
     motifs = read_motifs(open(single_pwm)) + read_motifs(open(clus_pwm))
     motifs = dict([(str(m), m) for m in motifs])

@@ -122,18 +122,18 @@ class PredictionResult(object):
         
             self.stats[motif_id][bg_name] = stats[motif_id]
 
-    def submit_remaining_stats(self):
-        for motif in self.motifs:
-            n = "%s_%s" % (motif.id, motif.to_consensus())
-            if n in  self.stats:
-                
-                logger.info("Adding %s again!" % n)
-                #job_id = "%s_%s" % (motif.id, motif.to_consensus())
-                self.job_server.apply_async(
-                                    _calc_motif_stats, 
-                                    (motif, self.fg_fa, self.bg_fa), 
-                                    callback=self.add_stats)
-                
+#    def submit_remaining_stats(self):
+#        for motif in self.motifs:
+#            n = "%s_%s" % (motif.id, motif.to_consensus())
+#            if n in  self.stats:
+#                
+#                logger.info("Adding %s again!" % n)
+#                #job_id = "%s_%s" % (motif.id, motif.to_consensus())
+#                self.job_server.apply_async(
+#                                    _calc_motif_stats, 
+#                                    (motif, self.fg_fa, self.bg_fa), 
+#                                    callback=self.add_stats)
+#                
 
 def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools=None, job_server=None, ncpus=8, max_time=None, stats_fg=None, stats_bg=None):
     if tools is None:
@@ -214,44 +214,44 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
     result.wait_for_stats()
     ### Wait until all jobs are finished or the time runs out ###
     start_time = time()    
-    try:
-        # Run until all jobs are finished
-        while len(result.finished) < len(jobs.keys()) and (not(max_time) or time() - start_time < max_time):
-            pass
-        if len(result.finished) < len(jobs.keys()):
-            logger.info("Maximum allowed running time reached, destroying remaining jobs")
-            job_server.terminate()
-            result.submit_remaining_stats()
-    ### Or the user gets impatient... ###
-    except KeyboardInterrupt:
-        # Destroy all running jobs
-        logger.info("Caught interrupt, destroying all running jobs")
-        job_server.terminate()
-        result.submit_remaining_stats()
-        
-    
-    if stats_fg and stats_bg:
-        logger.info("waiting for motif statistics")
-        n = 0
-        last_len = 0 
-       
-    
-        while len(set(result.stats.keys())) < len(set([str(m) for m in result.motifs])):
-            if n >= 30:
-                logger.debug("waited long enough")
-                logger.debug("motifs: %s, stats: %s", len(result.motifs), len(result.stats.keys()))
-                for i,motif in enumerate(result.motifs):
-                    if "{}_{}".format(motif.id, motif.to_consensus()) not in result.stats:
-                        logger.debug("deleting %s", motif)
-                        del result.motifs[i]
-                break
-            sleep(2)
-            if len(result.stats.keys()) == last_len:
-                n += 1
-            else:
-                last_len = len(result.stats.keys())
-                n = 0
-    
+#    try:
+#        # Run until all jobs are finished
+#        while len(result.finished) < len(jobs.keys()) and (not(max_time) or time() - start_time < max_time):
+#            pass
+#        if len(result.finished) < len(jobs.keys()):
+#            logger.info("Maximum allowed running time reached, destroying remaining jobs")
+#            job_server.terminate()
+#            result.submit_remaining_stats()
+#    ### Or the user gets impatient... ###
+#    except KeyboardInterrupt:
+#        # Destroy all running jobs
+#        logger.info("Caught interrupt, destroying all running jobs")
+#        job_server.terminate()
+#        result.submit_remaining_stats()
+#        
+#    
+#    if stats_fg and stats_bg:
+#        logger.info("waiting for motif statistics")
+#        n = 0
+#        last_len = 0 
+#       
+#    
+#        while len(set(result.stats.keys())) < len(set([str(m) for m in result.motifs])):
+#            if n >= 30:
+#                logger.debug("waited long enough")
+#                logger.debug("motifs: %s, stats: %s", len(result.motifs), len(result.stats.keys()))
+#                for i,motif in enumerate(result.motifs):
+#                    if "{}_{}".format(motif.id, motif.to_consensus()) not in result.stats:
+#                        logger.debug("deleting %s", motif)
+#                        del result.motifs[i]
+#                break
+#            sleep(2)
+#            if len(result.stats.keys()) == last_len:
+#                n += 1
+#            else:
+#                last_len = len(result.stats.keys())
+#                n = 0
+#    
     return result
 
 def predict_motifs(infile, bgfile, outfile, params=None, stats_fg=None, stats_bg=None):

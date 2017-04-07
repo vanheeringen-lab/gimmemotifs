@@ -424,7 +424,7 @@ class Scanner(object):
                 nreport=nreport,
                 scan_rc=scan_rc)
     
-            for region, ret in self._scan_jobs(scan_func, scan_seqs):
+            for region, ret in self._scan_jobs(scan_func, scan_regions):
                 # return values or store values in cache
                 if self.use_cache:
                     # store values in cache    

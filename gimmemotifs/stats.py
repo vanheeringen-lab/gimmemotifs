@@ -153,7 +153,7 @@ def add_star(stats):
                     )
     return stats
 
-def rank_motifs(stats, metrics=["roc_auc", "recall_at_fdr"]):
+def rank_motifs(stats, metrics=("roc_auc", "recall_at_fdr")):
     # Determine mean rank of motifs based on metrics 
     rank = {}
     combined_metrics = []
