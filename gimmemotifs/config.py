@@ -3,7 +3,6 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-
 """ Configuration for GimmeMotifs """
 import ConfigParser
 import sysconfig
@@ -21,6 +20,7 @@ BG_RANK = {"user":1, "promoter":2, "gc":3, "random":4, "genomic":5}
 FASTA_EXT = [".fasta", ".fa", ".fsa"]
 
 class MotifConfig(object):
+    """Configuration object for the gimmemotifs module."""
     __shared_state = {}
     prefix = sysconfig.get_config_var("prefix")
     config_dir = "share/gimmemotifs/gimmemotifs.cfg"
@@ -42,13 +42,13 @@ class MotifConfig(object):
             self.config = ConfigParser.ConfigParser()
             cfg = self.config.read(self.configs)
             if not cfg:
-                raise ValueError, "Configuration file not found!"
+                raise ValueError("Configuration file not found!")
         
     def bin(self, program):
         try:
             exe = self.config.get(program, "bin")
         except: 
-            raise ValueError, "No configuration found for %s" % program
+            raise ValueError("No configuration found for %s" % program)
         return exe
     
     def set_default_params(self, params):
@@ -183,10 +183,8 @@ def parse_denovo_params(user_params=None):
     params.update(user_params)
 
     if params.get("torque"):
-        from gimmemotifs.prediction_torque import pp_predict_motifs, PredictionResult
         logger.debug("Using torque")
     else:
-        from gimmemotifs.prediction import pp_predict_motifs, PredictionResult
         logger.debug("Using multiprocessing")
 
     params["background"] = [x.strip() for x in params["background"].split(",")]
@@ -198,9 +196,8 @@ def parse_denovo_params(user_params=None):
     # Maximum time?
     
     if params["max_time"]:
-        params["max_time"]
         try:
-            max_time = params["max_time"] = float(max_time)
+            max_time = params["max_time"] = float(params["max_time"])
         except Exception:
             logger.debug("Could not parse max_time value, setting to no limit")
             params["max_time"] = None
@@ -208,12 +205,12 @@ def parse_denovo_params(user_params=None):
         if params["max_time"] > 0:
             logger.debug("Time limit for motif prediction: %0.2f hours", max_time)
             params["max_time"] = 3600 * params["max_time"]
-            logger.debug("Max_time in seconds %0.0f", max_tim)
+            logger.debug("Max_time in seconds %0.0f", max_time)
         else:
             logger.debug("Invalid time limit for motif prediction, setting to no limit")
             max_time = params["max_time"]
     else:
-            logger.debug("No time limit for motif prediction")
+        logger.debug("No time limit for motif prediction")
 
     return params
 
