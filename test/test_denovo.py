@@ -8,8 +8,8 @@ import shutil
 from tempfile import mkdtemp
 from time import sleep
 
-class TestScanner(unittest.TestCase):
-    """ A test class to test scanner funcitonalitu """
+class TestDenovo(unittest.TestCase):
+    """ A test class to test gimme_motifs denovo """
 
     def setUp(self):
         self.outdir = mkdtemp()
@@ -29,7 +29,11 @@ class TestScanner(unittest.TestCase):
        
         fnames = ["motifs.pwm", "motif_report.html", "cluster_report.html",
                     "params.txt", "stats.random.txt"]
-
+        
+    
+        log = open(os.path.join(self.outdir, 'gimmemotifs.log')).read()
+        self.assertIn("clustering significant", log)
+    
         # Check if all output files are there
         for fname in fnames:
             self.assertTrue(os.path.exists(os.path.join(self.outdir, fname)))   
