@@ -28,7 +28,7 @@ logger = logging.getLogger("gimme.denovo")
 def prepare_denovo_input_bed(inputfile, params, outdir):
     """Prepare a BED file for de novo motif prediction.
 
-    All regions to same size; splt in test and validation set;
+    All regions to same size; split in test and validation set;
     converted to FASTA.
 
     Parameters
@@ -168,7 +168,7 @@ def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_tim
         f = PromoterFasta(gene_file, index_dir, width, nr_times * len(fg))
         logger.debug("Random promoter background: %s", outfile)
     #elif bg_type == "user":
-    #    bg_file = self.params["user_background"]
+    #    bg_file = params["user_background"]
     #    if not os.path.exists(bg_file):
     #        raise IOError(
     #                "User-specified background file %s does not exist!",
@@ -243,7 +243,7 @@ def create_backgrounds(outdir, background=None, genome="hg38", width=200):
     return bg_info
 
 
-def _is_significant(stats, metric=None):
+def _is_significant(stats, metrics=None):
     """Filter significant motifs based on several statistics.
     
     Parameters
@@ -301,7 +301,7 @@ def filter_significant_motifs(fname, result, bg, metrics=None):
                 f.write("%s\n" % motif.to_pfm())
                 sig_motifs.append(motif)
     
-    logger.info("%s motifs are significant", nsig)
+    logger.info("%s motifs are significant", len(sig_motifs))
     logger.debug("written to %s", fname)
     
     return sig_motifs
@@ -379,17 +379,57 @@ def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, sta
     best_motifs = sorted(best_motifs, lambda x,y: cmp(rank[str(y)], rank[str(x)]))
     return best_motifs
     
-def rename_motifs(motifs, stats):
+def rename_motifs(motifs, stats=None):
+    """Rename motifs to GimmeMotifs_1..GimmeMotifs_N.
+    
+    If stats object is passed, stats will be copied."""
     final_motifs = []
     for i, motif in enumerate(motifs):
         old = str(motif)
         motif.id = "GimmeMotifs_{}".format(i + 1)
         final_motifs.append(motif)
-        stats[str(motif)] = stats[old].copy()
-    return final_motifs, stats
+        if stats:
+            stats[str(motif)] = stats[old].copy()
+    
+    if stats:
+        return final_motifs, stats
+    else:
+        return final_motifs
 
 def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluster=True, create_report=True):
-    """ Full analysis: from bed-file to motifs (including clustering, ROC-curves, location plots and html report) """
+    """De novo motif prediction based on an ensemble of different tools.
+
+	Parameters
+	----------
+	inputfile : str
+		Filename of input. Can be either BED or FASTA.
+
+	outdir : str
+		Name of output directory.
+
+	params : dict, optional
+		Optional parameters.
+
+	filter_significant : bool, optional
+		Filter motifs for significance using the validation set.
+	
+	cluster : bool, optional
+		Cluster similar predicted (and significant) motifs.
+
+	create_report : bool, optional
+		Create output reports (both .txt and .html).
+ 
+	Returns
+	-------
+	motifs : list
+		List of predicted motifs. 	
+
+	Examples
+    --------
+
+    >>> from gimmemotifs.denovo import gimme_motifs
+    >>> gimme_motifs("input.fa", "motifs.out")
+  	"""
     # Create output directories
     tmpdir = os.path.join(outdir, "intermediate")
     for d in [outdir, tmpdir]: 
@@ -440,7 +480,7 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
             )
 
     if len(result.motifs) == 0:
-        self.logger("finished")
+        logger("finished")
         return []
     
     # Write statistics
