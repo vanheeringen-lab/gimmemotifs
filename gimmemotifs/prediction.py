@@ -90,9 +90,9 @@ class PredictionResult(object):
             f.close()
             self.motifs.append(motif)
             
-        if self.do_stats:
+        if self.do_stats and len(motifs) > 0:
             #job_id = "%s_%s" % (motif.id, motif.to_consensus())
-            logger.debug("Starting stats job of motif %s" % motif.id)
+            logger.debug("Starting stats job of %s motifs" % motifs)
             for bg_name, bg_fa in self.background.items():
                 job = self.job_server.apply_async(
                                     mp_calc_stats, 

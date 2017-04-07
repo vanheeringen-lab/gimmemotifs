@@ -354,7 +354,7 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
                 os.path.join(outdir, "motifs.pwm"), 
                 os.path.join(tmpdir, "validation.fa"), 
                 bg, 
-                os.path.join(tmpdir, "localizatiom.fa"), 
+                os.path.join(tmpdir, "localization.fa"), 
                 outdir,
                 params,
                 stats,
