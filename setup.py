@@ -471,7 +471,6 @@ setup (name = 'gimmemotifs',
             'Topic :: Scientific/Engineering :: Bio-Informatics',
             ],
         scripts=[
-            'scripts/add_organism.py',
             'scripts/track2fasta.py',
             'scripts/gimme',
             ],
