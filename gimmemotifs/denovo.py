@@ -8,15 +8,13 @@ import sys
 import logging
 import logging.handlers
 import shutil
-from tempfile import NamedTemporaryFile
-from time import sleep
 
 from gimmemotifs.config import MotifConfig, BG_RANK, parse_denovo_params
 from gimmemotifs import mytmpdir
 from gimmemotifs.genome_index import track2fasta
 from gimmemotifs.validation import check_denovo_input
-from gimmemotifs.utils import (divide_file, divide_fa_file, motif_localization, 
-                                write_equalwidth_bedfile)
+from gimmemotifs.utils import ( divide_file, divide_fa_file, 
+                                    write_equalwidth_bedfile )
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.background import ( MarkovFasta, MatchedGcFasta,
                                     PromoterFasta, RandomGenomicFasta )
@@ -27,6 +25,22 @@ from gimmemotifs.motif import read_motifs
 logger = logging.getLogger("gimme.denovo")
 
 def prepare_denovo_input_bed(inputfile, params, outdir):
+    """Prepare a BED file for de novo motif prediction.
+
+    All regions to same size; splt in test and validation set;
+    converted to FASTA.
+
+    Parameters
+    ----------
+    inputfile : str
+        BED file with input regions.
+
+    params : dict
+        Dictionary with parameters.
+
+    outdir : str
+        Output directory to save files.
+    """
     logger.info("preparing input (BED)")
     
     # Create BED file with regions of equal size
@@ -42,8 +56,7 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
     logger.debug(
                 "Splitting %s into prediction set (%s) and validation set (%s)",
                 bedfile, pred_bedfile, val_bedfile)
-    prediction_num, validation_num = divide_file(
-                bedfile, pred_bedfile, val_bedfile, fraction, abs_max)
+    divide_file(bedfile, pred_bedfile, val_bedfile, fraction, abs_max)
 
     config = MotifConfig()
     index_dir = os.path.join(config.get_index_dir(), params["genome"])
@@ -70,8 +83,11 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
             )
 
 def prepare_denovo_input_fa(inputfile, params, outdir):
-    """ Create all the bed- and fasta-files necessary for motif prediction and validation """
-    width = int(params["width"])
+    """Create all the FASTA files for de novo motif prediction and validation.
+    
+    Parameters
+    ----------
+    """
     fraction = float(params["fraction"])
     abs_max = int(params["abs_max"])
 
@@ -86,9 +102,9 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
         "Splitting %s into prediction set (%s) and validation set (%s)",
         inputfile, pred_fa, val_fa)
 
-    pred_num, val_num = divide_fa_file(inputfile, pred_fa, val_fa, fraction, abs_max)
+    divide_fa_file(inputfile, pred_fa, val_fa, fraction, abs_max)
 
-#    # File for location plots
+    # File for location plots
     shutil.copy(val_fa, loc_fa)
     seqs = Fasta(loc_fa).seqs
     lwidth = len(seqs[0])
@@ -98,7 +114,7 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
             "PLEASE NOTE: FASTA file contains sequences of different lengths. "
             "Positional preference plots might be incorrect!")
 
-def create_background(bg_type, bedfile, fafile, outfile, genome="hg18", width=200, nr_times=10):
+def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_times=10):
     
     config = MotifConfig()
     fg = Fasta(fafile)
@@ -146,6 +162,27 @@ def create_background(bg_type, bedfile, fafile, outfile, genome="hg18", width=20
     return len(f)
 
 def create_backgrounds(outdir, background=None, genome="hg38", width=200):
+    """Create different backgrounds for motif prediction and validation.
+
+    Parameters
+    ----------
+    outdir : str
+        Directory to save results.
+    
+    background : list, optional
+        Background types to create, default is 'random'.
+
+    genome : str, optional
+        Genome name (for genomic and gc backgrounds).
+
+    width : int, optional
+        Size of background regions
+
+    Returns
+    -------
+    bg_info : dict
+        Keys: background name, values: file name.
+    """
     if background is None:
         background = ["random"]
         nr_sequences = {}
@@ -157,7 +194,6 @@ def create_backgrounds(outdir, background=None, genome="hg38", width=200):
         pred_bg = background[0]
     create_background(
                     pred_bg, 
-                    os.path.join(outdir, "validation.bed"), 
                     os.path.join(outdir, "validation.fa"), 
                     os.path.join(outdir, "prediction.bg.fa"), 
                     genome=genome, 
@@ -170,7 +206,6 @@ def create_backgrounds(outdir, background=None, genome="hg38", width=200):
         fname = os.path.join(outdir, "bg.{}.fa".format(bg))
         nr_sequences[bg] = create_background(
                                         bg, 
-                                        os.path.join(outdir, "validation.bed"), 
                                         os.path.join(outdir, "validation.fa"), 
                                         fname, 
                                         genome=genome, 
@@ -179,28 +214,104 @@ def create_backgrounds(outdir, background=None, genome="hg38", width=200):
         bg_info[bg] = fname
     return bg_info
 
-def filter_significant_motifs(fname, result, bg):
-    # Determine significant motifs
-    nsig = 0
-    f = open(fname, "w")
+
+def _is_significant(stats, metric=None):
+    """Filter significant motifs based on several statistics.
+    
+    Parameters
+    ----------
+    stats : dict
+        Statistics disctionary object.
+
+    metrics : sequence
+        Metric with associated minimum values. The default is
+        (("max_enrichment", 3), ("roc_auc", 0.55), ("enr_at_fdr", 0.55))
+    
+    Returns
+    -------
+    significant : bool
+    """
+    if metrics is None:
+        metrics = (("max_enrichment", 3), ("roc_auc", 0.55), ("enr_at_fdr", 0.55))
+    
+    for stat_name, min_value in metrics:
+        if stats.get(stat_name, 0) < min_value:
+            return False
+
+    return True
+     
+def filter_significant_motifs(fname, result, bg, metrics=None):
+    """Filter significant motifs based on several statistics.
+
+    Parameters
+    ----------
+    fname : str
+        Filename of output file were significant motifs will be saved.
+
+    result : PredictionResult instance
+        Contains motifs and associated statistics.
+
+    bg : str
+        Name of background type to use.
+
+    metrics : sequence
+        Metric with associated minimum values. The default is
+        (("max_enrichment", 3), ("roc_auc", 0.55), ("enr_at_fdr", 0.55))
+
+    Returns
+    -------
+    motifs : list
+        List of Motif instances.
+    """
     sig_motifs = []
-    for motif in result.motifs:
-        stats = result.stats.get("%s_%s" % (motif.id, motif.to_consensus()), {}).get(bg, {}) 
-        if stats.get("max_enrichment", 0) >= 3 and stats.get("roc_auc", 0) >= 0.55 and stats.get('enr_at_fdr', 0) >= 1.5:
-        #if stats.get("roc_auc", 0) >= 0.55:
-            f.write("%s\n" % motif.to_pfm())
-            sig_motifs.append(motif)
-            nsig += 1
-    f.close()
+    with open(fname, "w") as f:
+        for motif in result.motifs:
+            stats = result.stats.get(
+                    "%s_%s" % (motif.id, motif.to_consensus()), {}).get(bg, {}
+                    ) 
+            if _is_significant(stats, metrics):
+                f.write("%s\n" % motif.to_pfm())
+                sig_motifs.append(motif)
+    
     logger.info("%s motifs are significant", nsig)
     logger.debug("written to %s", fname)
-
-    if nsig == 0:
-        return []
     
     return sig_motifs
 
 def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, stats=None, metrics=("roc_auc", "recall_at_fdr")):
+    """Return the best motif per cluster for a clustering results.
+
+    The motif can be either the average motif or one of the clustered motifs.
+
+    Parameters
+    ----------
+    single_pwm : str
+        Filename of motifs.
+
+    clus_pwm : str
+        Filename of motifs.
+
+    clusters : 
+        Motif clustering result.
+
+    fg_fa : str
+        Filename of FASTA file.
+
+    background : dict
+        Dictionary for background file names.
+
+    stats : dict, optional
+        If statistics are not supplied they will be computed.
+
+    metrics : sequence, optional
+        Metrics to use for motif evaluation. Default are "roc_auc" and 
+        "recall_at_fdr".
+    
+    Returns
+    -------
+    motifs : list
+        List of Motif instances.
+    """
     # combine original and clustered motifs
     motifs = read_motifs(open(single_pwm)) + read_motifs(open(clus_pwm))
     motifs = dict([(str(m), m) for m in motifs])
@@ -215,7 +326,7 @@ def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, sta
     new_stats = {}
     for bg, bg_fa in background.items():
         for m,s in calc_stats(clustered_motifs, fg_fa, bg_fa).items():
-            if not m in new_stats:
+            if m not in new_stats:
                 new_stats[m] = {}
             new_stats[m][bg] = s
     stats.update(new_stats)
@@ -275,7 +386,7 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
     input_type, background = check_denovo_input(inputfile, params)
    
     logger.info("starting full motif analysis")
-    logger.debug("Using temporary directory {0}".format(mytmpdir()))
+    logger.debug("Using temporary directory %s", mytmpdir())
     
     
     # Create the necessary files for motif prediction and validation
@@ -378,10 +489,5 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
 
     return final_motifs
 
-try:
-    from gimmemotifs.mp import pool
-except:
-    pass
-from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.cluster import cluster_motifs_with_report
-from gimmemotifs.prediction import predict_motifs,PredictionResult
+from gimmemotifs.prediction import predict_motifs
