@@ -3,6 +3,7 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
+"""De novo motif prediction."""
 import os
 import sys
 import logging
@@ -115,7 +116,34 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
             "Positional preference plots might be incorrect!")
 
 def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_times=10):
+    """Create background of a specific type.
+
+    Parameters
+    ----------
+    bg_type : str
+        Name of background type.
+
+    fafile : str
+        Name of input FASTA file.
+
+    outfile : str
+        Name of output FASTA file.
+
+    genome : str, optional
+        Genome name.
+
+    width : int, optional
+        Size of regions.
+
+    nr_times : int, optional
+        Generate this times as many background sequences as compared to 
+        input file.
     
+    Returns
+    -------
+    nr_seqs  : int
+        Number of sequences created.
+    """
     config = MotifConfig()
     fg = Fasta(fafile)
     if bg_type in ["promoter", "genomic"]:
@@ -411,6 +439,10 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
             stats_bg=background, 
             )
 
+    if len(result.motifs) == 0:
+        self.logger("finished")
+        return []
+    
     # Write statistics
     stats_file = os.path.join(tmpdir, "stats.{}.txt")
     write_stats(result.stats, stats_file)
