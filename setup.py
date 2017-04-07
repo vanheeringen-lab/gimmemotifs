@@ -303,6 +303,11 @@ class build_config(Command):
         cfg.write(f)
         f.close()
 
+        # TODO: fix this hack
+        my_cfg = open(config_file).read()
+        with open(config_file, "w") as f:
+            f.write(my_cfg.replace("/usr/share/", ""))
+
     def get_outputs(self):
         return self.outfiles or []
 
