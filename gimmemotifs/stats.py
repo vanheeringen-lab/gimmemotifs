@@ -154,7 +154,7 @@ def add_star(stats):
     return stats
 
 def rank_motifs(stats, metrics=("roc_auc", "recall_at_fdr")):
-    # Determine mean rank of motifs based on metrics 
+    """Determine mean rank of motifs based on metrics."""
     rank = {}
     combined_metrics = []
     motif_ids = stats.keys()
@@ -170,11 +170,15 @@ def rank_motifs(stats, metrics=("roc_auc", "recall_at_fdr")):
 
     return rank
 
-def write_stats(stats, fname):
+def write_stats(stats, fname, header=None):
+    """write motif statistics to text file."""
     # Write stats output to file
 
     for bg in stats.values()[0].keys():
         f = open(fname.format(bg), "w")
+        if header:
+            f.write(header)
+        
         stat_keys = sorted(stats.values()[0].values()[0].keys())
         f.write("{}\t{}\n".format("Motif", "\t".join(stat_keys)))
 

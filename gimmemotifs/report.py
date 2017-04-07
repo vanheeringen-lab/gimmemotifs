@@ -3,6 +3,7 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
+"""Reports (graphical and text) for motifs statistics."""
 import os
 import sys
 from datetime import datetime
@@ -27,6 +28,7 @@ from gimmemotifs.utils import motif_localization
 logger = logging.getLogger("gimme.report")
 
 def get_roc_values(motif, fg_file, bg_file):
+    """Calculate ROC AUC values for ROC plots."""
     try:
         fg_result = motif.pwm_scan_score(Fasta(fg_file), cutoff=0.0, nreport=1)
         fg_vals = [sorted(x)[-1] for x in fg_result.values()]
@@ -41,6 +43,7 @@ def get_roc_values(motif, fg_file, bg_file):
         return error,[],[]
 
 def create_roc_plots(pwmfile, fgfa, background, outdir):
+    """Make ROC plots for all motifs."""
     motifs = dict([(m.id, m) for m in read_motifs(open(pwmfile), fmt="pwm")])
 
     ncpus = int(MotifConfig().get_default_params()['ncpus'])
@@ -70,6 +73,7 @@ def create_roc_plots(pwmfile, fgfa, background, outdir):
             roc_plot(roc_img_file.format(motif.id, bg), x, y)
 
 def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
+    """Create text report of motifs with statistics and database match."""
     my_stats = {}
     for motif in motifs:
         match = closest_match[motif.id]
@@ -78,16 +82,21 @@ def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
             my_stats[str(motif)][bg] = stats[str(motif)][bg].copy()
             my_stats[str(motif)][bg]["best_match"] = "_".join(match[0].split("_")[:-1])
             my_stats[str(motif)][bg]["best_match_pvalue"] = match[1][-1]
-   
-    write_stats(my_stats, os.path.join(outdir, "stats.{}.txt"))
+    
+    header = "# GimmeMotifs version {}\n".format(GM_VERSION) + 
+             "# Inputfile: {}\n".format(inputfile)
+
+    write_stats(my_stats, os.path.join(outdir, "stats.{}.txt"), header=header)
 
 def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, stats, best_id=None):
+    """Create main gimme_motifs output html report."""
     if best_id is None:
         best_id = {}
 
     logger.debug("Creating graphical report")
     
-    class ReportMotif:
+    class ReportMotif(object):
+        """Placeholder for motif stats."""
         pass
 
     config = MotifConfig()
@@ -97,10 +106,7 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
         os.mkdir(imgdir)
     motifs = read_motifs(open(pwm), fmt="pwm")
     
-    sort_key = sorted(background, lambda x,y: cmp(BG_RANK[x], BG_RANK[y]))[0]
-
     roc_img_file = "%s_roc.%s"
-
 
     dbpwm = config.get_default_params()["motif_db"]
     pwmdir = config.get_motif_dir()
@@ -166,8 +172,8 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
     f.close()
 
 def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outdir, params, stats=None):
+    """Create text and graphical (.html) motif reports."""
     logger.info("creating reports")
-    tmp = NamedTemporaryFile(dir=mytmpdir()).name
 
     # ROC plots
     create_roc_plots(pwmfile, fgfa, background, outdir)
@@ -183,7 +189,7 @@ def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outd
         stats = {}
         for bg, bgfa in background.items():
             for m, s in calc_stats(motifs, fgfa, bgfa).items():
-                if not m in stats:
+                if m not in stats:
                     stats[m] = {}
                 stats[m][bg] = s
 
@@ -195,11 +201,6 @@ def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outd
     lwidth = int(params.get('lwidth', 500))
 
     for motif in motifs:
-        try:
-            s = stats[str(motif)]
-        except: 
-            print str(motif)
-            print s.keys()
         outfile = os.path.join(outdir, "images/{}_histogram.svg".format(motif.id))
         motif_localization(locfa, motif, lwidth, outfile, cutoff=cutoff_fdr)
 

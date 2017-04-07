@@ -480,7 +480,7 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
             )
 
     if len(result.motifs) == 0:
-        logger("finished")
+        logger.info("finished")
         return []
     
     # Write statistics
