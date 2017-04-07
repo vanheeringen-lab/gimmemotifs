@@ -3,10 +3,9 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-""" Parallel prediction of sequence motifs """
+"""Parallel prediction of sequence motifs """
 
 # Python imports
-import os
 import sys
 import logging
 import thread
@@ -24,6 +23,7 @@ from gimmemotifs.stats import calc_stats
 logger = logging.getLogger("gimme.prediction")
 
 def mp_calc_stats(motifs, fg_fa, bg_fa, bg_name=None):
+    """Parallel calculation of motif statistics."""
     try:
         stats = calc_stats(motifs, fg_fa, bg_fa, ncpus=1)
     except Exception as e:
@@ -36,6 +36,7 @@ def mp_calc_stats(motifs, fg_fa, bg_fa, bg_name=None):
     return bg_name, stats
 
 def _run_tool(job_name, t, fastafile, params):
+    """Parallel motif prediction."""
     try:
         result = t.run(fastafile, params, mytmpdir())
     except Exception as e:
@@ -44,6 +45,7 @@ def _run_tool(job_name, t, fastafile, params):
     return job_name, result
 
 class PredictionResult(object):
+    """Store predicted motifs and calculate statistics."""
     def __init__(self, outfile, fg_file=None, background=None, do_counter=True):
         self.lock = thread.allocate_lock()
         self.motifs = []
@@ -55,8 +57,7 @@ class PredictionResult(object):
         self.counter = 0
         self.do_counter = do_counter
 
-        f = open(outfile, "w").close()
-        
+        open(outfile, "w").close()
         
         if fg_file and background:
             self.fg_fa = Fasta(fg_file)
@@ -66,12 +67,13 @@ class PredictionResult(object):
             self.do_stats = False
 
     def add_motifs(self, args):
+        """Add motifs to the result object."""
         self.lock.acquire()
         # Callback function for motif programs
         if args is None or len(args) != 2 or len(args[1]) != 3:
             try:
                 job = args[0]
-                logger.warn("job {} failed".format(job)) 
+                logger.warn("job %s failed", job)
                 self.finished.append(job)
             except Exception:
                 logger.warn("job failed") 
@@ -79,7 +81,7 @@ class PredictionResult(object):
         
         job, (motifs, stdout, stderr) = args
 
-        logger.info("%s finished, found %s motifs" % (job, len(motifs))) 
+        logger.info("%s finished, found %s motifs", job, len(motifs))
         
         for motif in motifs:
             if self.do_counter:
@@ -92,7 +94,7 @@ class PredictionResult(object):
             
         if self.do_stats and len(motifs) > 0:
             #job_id = "%s_%s" % (motif.id, motif.to_consensus())
-            logger.debug("Starting stats job of %s motifs" % motifs)
+            logger.debug("Starting stats job of %s motifs", len(motifs))
             for bg_name, bg_fa in self.background.items():
                 job = self.job_server.apply_async(
                                     mp_calc_stats, 
@@ -101,23 +103,25 @@ class PredictionResult(object):
                                     )
                 self.stat_jobs.append(job)
         
-        logger.debug("stdout %s: %s" % (job, stdout))
-        logger.debug("stdout %s: %s" % (job, stderr))
+        logger.debug("stdout %s: %s", job, stdout)
+        logger.debug("stdout %s: %s", job, stderr)
         self.finished.append(job)
         self.lock.release()
 
     def wait_for_stats(self):
+        """Make sure all jobs are finished."""
         logging.debug("waiting for statistics to finish")
         for job in self.stat_jobs:
             job.get()
         sleep(2)
 
     def add_stats(self, args):
+        """Callback to add motif statistics."""
         bg_name, stats = args
-        logger.debug("Stats: %s %s" % (bg_name, stats))
+        logger.debug("Stats: %s %s", bg_name, stats)
         
         for motif_id in stats.keys():
-            if not motif_id in self.stats:
+            if motif_id not in self.stats:
                 self.stats[motif_id] = {}
         
             self.stats[motif_id][bg_name] = stats[motif_id]
@@ -136,6 +140,11 @@ class PredictionResult(object):
 #                
 
 def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools=None, job_server=None, ncpus=8, max_time=None, stats_fg=None, stats_bg=None):
+    """Parallel prediction of motifs.
+
+    Utility function for gimmemotifs.denovo.gimme_motifs. Probably better to 
+    use that, instead of this function directly.
+    """
     if tools is None:
         tools = {}
 
@@ -192,7 +201,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
         if t.name in tools and tools[t.name]:
             if t.use_width:
                 for i in range(wmin, wmax + 1, step):
-                    logger.debug("Starting %s job, width %s" % (t.name, i))
+                    logger.debug("Starting %s job, width %s", t.name, i)
                     job_name = "%s_width_%s" % (t.name, i)
                     my_params = params.copy()
                     my_params['width'] = i
@@ -201,19 +210,19 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
                         (job_name, t, fastafile, my_params), 
                         callback=result.add_motifs)
             else:
-                logger.debug("Starting %s job" % t.name)
+                logger.debug("Starting %s job", t.name)
                 job_name = t.name
                 jobs[job_name] = job_server.apply_async(
                         _run_tool,
                         (job_name, t, fastafile, params), 
                         callback=result.add_motifs)
         else:
-            logger.debug("Skipping %s" % t.name)
+            logger.debug("Skipping %s", t.name)
     
     logger.info("all jobs submitted")
     result.wait_for_stats()
     ### Wait until all jobs are finished or the time runs out ###
-    start_time = time()    
+#    start_time = time()    
 #    try:
 #        # Run until all jobs are finished
 #        while len(result.finished) < len(jobs.keys()) and (not(max_time) or time() - start_time < max_time):
@@ -308,5 +317,5 @@ def predict_motifs(infile, bgfile, outfile, params=None, stats_fg=None, stats_bg
 
 try:
     from gimmemotifs.mp import pool
-except:
+except ImportError as e:
     pass
