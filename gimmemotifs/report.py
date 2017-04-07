@@ -83,9 +83,9 @@ def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
             my_stats[str(motif)][bg]["best_match"] = "_".join(match[0].split("_")[:-1])
             my_stats[str(motif)][bg]["best_match_pvalue"] = match[1][-1]
     
-    header = ("# GimmeMotifs version {}\n".format(GM_VERSION)
-             "# Inputfile: {}\n".format(inputfile)
-             )
+    header = ("# GimmeMotifs version {}\n"
+             "# Inputfile: {}\n"
+             ).format(GM_VERSION, inputfile)
 
     write_stats(my_stats, os.path.join(outdir, "stats.{}.txt"), header=header)
 
