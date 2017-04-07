@@ -399,37 +399,37 @@ def rename_motifs(motifs, stats=None):
 def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluster=True, create_report=True):
     """De novo motif prediction based on an ensemble of different tools.
 
-	Parameters
-	----------
-	inputfile : str
-		Filename of input. Can be either BED or FASTA.
+    Parameters
+    ----------
+    inputfile : str
+        Filename of input. Can be either BED or FASTA.
 
-	outdir : str
-		Name of output directory.
+    outdir : str
+        Name of output directory.
 
-	params : dict, optional
-		Optional parameters.
+    params : dict, optional
+        Optional parameters.
 
-	filter_significant : bool, optional
-		Filter motifs for significance using the validation set.
-	
-	cluster : bool, optional
-		Cluster similar predicted (and significant) motifs.
+    filter_significant : bool, optional
+        Filter motifs for significance using the validation set.
+    
+    cluster : bool, optional
+        Cluster similar predicted (and significant) motifs.
 
-	create_report : bool, optional
-		Create output reports (both .txt and .html).
+    create_report : bool, optional
+        Create output reports (both .txt and .html).
  
-	Returns
-	-------
-	motifs : list
-		List of predicted motifs. 	
+    Returns
+    -------
+    motifs : list
+        List of predicted motifs.     
 
-	Examples
+    Examples
     --------
 
     >>> from gimmemotifs.denovo import gimme_motifs
     >>> gimme_motifs("input.fa", "motifs.out")
-  	"""
+    """
     # Create output directories
     tmpdir = os.path.join(outdir, "intermediate")
     for d in [outdir, tmpdir]: 
