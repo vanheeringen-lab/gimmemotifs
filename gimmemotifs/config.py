@@ -28,6 +28,7 @@ class MotifConfig(object):
         'cfg/gimmemotifs.cfg.example', 
         os.path.join('/usr', config_dir),
         os.path.join(prefix, config_dir), 
+        'build/cfg/gimmemotifs.cfg',
         os.path.expanduser('~/.gimmemotifs.cfg')
     ]
     config = None
