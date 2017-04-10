@@ -90,6 +90,36 @@ class TestMotif(unittest.TestCase):
         self.assertEquals(my_motifs, motif_ids)
         self.assertEquals(my_lens, sorted([len(m) for m in motifs]))
     
+    def test8_pwm_to_str(self):
+        pwm = [
+            [0.01, 0.01, 0.01, 0.97],
+            [0.123, 0.456, 0.222, 0.199],
+            ]
+        
+        m = Motif(pwm)
+
+        s2 = "0.01\t0.01\t0.01\t0.97\n0.12\t0.46\t0.22\t0.20"
+        s3 = "0.010\t0.010\t0.010\t0.970\n0.123\t0.456\t0.222\t0.199"
+
+        self.assertEquals(s2, m._pwm_to_str(precision=2))
+        self.assertEquals(s3, m._pwm_to_str(precision=3))
+    
+    def test8_pwm_to_str(self):
+        pwm = [
+            [0.01, 0.01, 0.01, 0.97],
+            [0.123, 0.456, 0.222, 0.199],
+            ]
+        m = Motif(pwm)
+        h = "NDUxMjYy"
+        self.assertEquals(h, m.hash())
+        
+        pwm = [
+            [0.010000, 0.010000, 0.010000, 0.970000],
+            [0.12300, 0.45600, 0.22200, 0.19900],
+            ]
+        m = Motif(pwm)
+        self.assertEquals(h, m.hash())
+
     def tearDown(self):
         pass
 

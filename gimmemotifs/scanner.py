@@ -4,6 +4,7 @@ import sys
 from functools import partial
 from tempfile import mkdtemp,NamedTemporaryFile
 import logging
+from multiprocessing import Pool
 
 # "hidden" features, in development
 try:
@@ -15,14 +16,18 @@ except ImportError:
 
 import numpy as np
 
-from gimmemotifs.config import MotifConfig
+from gimmemotifs.background import RandomGenomicFasta
+from gimmemotifs.config import MotifConfig,CACHE_DIR
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.genome_index import GenomeIndex
 from gimmemotifs.c_metrics import pwmscan
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.utils import parse_cutoff,get_seqs_type
-from gimmemotifs.genome_index import rc
-from multiprocessing import Pool
+from gimmemotifs.utils import parse_cutoff,get_seqs_type,file_checksum
+from gimmemotifs.genome_index import rc,check_genome
+
+from diskcache import Cache
+from scipy.stats import scoreatpercentile
+import numpy as np
 
 # only used when using cache, should not be a requirement
 try:
@@ -33,6 +38,7 @@ except ImportError:
     pass 
 
 logger = logging.getLogger("gimme.scanner")
+config = MotifConfig()
 
 def scan_fasta_to_best_score(fname, motifs, ncpus=None):
     """Scan a FASTA file with motifs.
@@ -55,6 +61,7 @@ def scan_fasta_to_best_score(fname, motifs, ncpus=None):
     # Initialize scanner
     s = Scanner(ncpus=ncpus)
     s.set_motifs(motifs)
+    s.set_threshold(threshold=0.0)
 
     if isinstance(motifs, str) and os.path.exists(motifs):
         motifs = read_motifs(open(motifs))
@@ -88,6 +95,7 @@ def scan_fasta_to_best_match(fname, motifs, ncpus=None):
     # Initialize scanner
     s = Scanner(ncpus=ncpus)
     s.set_motifs(motifs)
+    s.set_threshold(threshold=0.0)
     
     if isinstance(motifs, str) and os.path.exists(motifs):
         motifs = read_motifs(open(motifs))
@@ -100,25 +108,29 @@ def scan_fasta_to_best_match(fname, motifs, ncpus=None):
 
     return result
 
-def load_motifs(motif_file, cutoff=0.95):
+def parse_threshold_values(motif_file, cutoff):
     motifs = read_motifs(open(motif_file))
     d = parse_cutoff(motifs, cutoff)
-    cutoffs = []
+    threshold = {}
     for m in motifs:
-        c = m.pwm_min_score() + (m.pwm_max_score() - m.pwm_min_score()) * d[m.id]
-        cutoffs.append(c)
-    
-    return zip(motifs, cutoffs)
+        c = m.pwm_min_score() + ( 
+                    m.pwm_max_score() - m.pwm_min_score()
+                ) * d[m.id]
+        threshold[m.id] = c
+    return threshold
 
 def scan_sequence(seq, motifs, nreport, scan_rc):
     
     ret = []
     # scan for motifs
     for motif, cutoff in motifs:
-        result = pwmscan(seq, motif.pwm, cutoff, nreport, scan_rc)
-        if cutoff <= motif.pwm_min_score() and len(result) == 0:
-            result = [[motif.pwm_min_score(), 0, 1]] * nreport
-        ret.append(result)
+        if cutoff is None:
+            ret.append([])
+        else:
+            result = pwmscan(seq, motif.pwm, cutoff, nreport, scan_rc)
+            if cutoff <= motif.pwm_min_score() and len(result) == 0:
+                result = [[motif.pwm_min_score(), 0, 1]] * nreport
+            ret.append(result)
 
     # return results
     return ret
@@ -189,7 +201,6 @@ def scan_fa_with_motif_moods_count(fo, motifs, matrices, bg, thresholds, nreport
 
     return ret
 
-
 def calc_threshold_moods(m, c):
     m_min = MOODS.tools.min_score(m)
     m_max = MOODS.tools.max_score(m)
@@ -259,6 +270,7 @@ class Scanner(object):
     
     def __init__(self, ncpus=None):
         self.config = MotifConfig()
+        self.threshold = None
 
         if ncpus is None:
             self.ncpus = int(MotifConfig().get_default_params()["ncpus"])
@@ -268,7 +280,7 @@ class Scanner(object):
         self.use_cache = False
         if self.config.get_default_params().get("use_cache", False):
             self._init_cache()
-    
+            
     def _init_cache(self):
         try:
             self.cache = make_region().configure(
@@ -308,14 +320,110 @@ class Scanner(object):
             chksum = CityHash64("\n".join(sorted(self.motif_ids)))
             self.checksum[self.motif_file] = chksum
 
-    def set_threshold(self):
-        """
-        cutoff  # based on motif matrix
-        p-value # moods only
-        FDR     # based on bg file
-        """
+    def _threshold_from_seqs(self, motifs, seqs, fdr):
+        scan_motifs = [(m, m.pwm_min_score()) for m in motifs]
         
-        pass
+        table = []
+        for x in self._scan_sequences_with_motif(scan_motifs, seqs, 1, True):
+            table.append([row[0][0] for row in x])
+                
+        for (motif, _), scores in zip(scan_motifs, np.array(table).transpose()):
+            min_score = motif.pwm_min_score()
+            cutoff = 0
+            if len(scores) > 0:
+                opt_score = scoreatpercentile(scores, 100 - (100 * fdr))
+                cutoff = (opt_score - min_score) / (motif.pwm_max_score() - min_score)
+            yield motif, opt_score#cutoff
+
+
+    def set_threshold(self, fdr=None, threshold=None, genome=None, 
+                        length=200, filename=None):
+        """Set motif scanning threshold based on background sequences.
+
+        Parameters
+        ----------
+        fdr : float, optional
+            Desired FDR, between 0.0 and 1.0.
+
+        threshold : float or str, optional
+            Desired motif threshold, expressed as the fraction of the 
+            difference between minimum and maximum score of the PWM.
+            Should either be a float between 0.0 and 1.0 or a filename
+            with thresholds as created by 'gimme threshold'.
+
+        """
+        if threshold:
+            if fdr:
+                raise ValueError("Need either fdr or threshold.")
+            if genome:
+                sys.stderr.write(
+                    "Parameter genome ignored when threshold is specified.\n"
+                    "Did you want to use fdr?\n")
+            if filename:
+                sys.stderr.write(
+                    "Parameter filename ignored when threshold is specified.\n"
+                    "Did you want to use fdr?\n")
+
+        if genome and filename:
+            raise ValueError("Need either genome or filename.")
+    
+        if fdr:
+            fdr = float(fdr)
+            if not (0.0 < fdr < 1.0):
+                raise ValueError("Parameter fdr should be between 0 and 1")
+        
+        thresholds = {}
+        motifs = read_motifs(open(self.motifs))
+        
+        if threshold is not None:
+            self.threshold = parse_threshold_values(self.motifs, threshold) 
+            return
+        
+        if filename:
+            if not os.path.exists(filename):
+                raise IOError(
+                        "File {} does not exist.".format(filename)
+                        )
+            
+            bg_hash = file_checksum(filename)
+            seqs = Fasta(filename).seqs
+        elif genome:
+            bg_hash = "{}\{}".format(genome, int(length))
+        else:
+            raise ValueError("Need genome or filename")
+
+        with Cache(CACHE_DIR) as cache:
+            scan_motifs = []
+            for motif in motifs:
+                k = "{}|{}|{:.4f}".format(motif.hash(), bg_hash, fdr)
+           
+                threshold = cache.get(k)
+                if threshold is None:
+                    scan_motifs.append(motif)
+                else:
+                    if np.isclose(threshold, motif.pwm_max_score()):
+                        thresholds[motif.id] = None
+                    else:
+                        thresholds[motif.id] = threshold
+                
+            if len(scan_motifs) > 0:
+                if genome:
+                    check_genome(genome)    
+                    sys.stderr.write("Determining threshold for fdr {} and length {} based on {}\n".format(fdr, int(length), genome))
+                    index = os.path.join(config.get_index_dir(), genome)
+                    fa = RandomGenomicFasta(index, length, 10000)
+                    seqs = fa.seqs
+                else: 
+                    sys.stderr.write("Determining threshold for fdr {} based on {}\n".format(fdr, filename))
+                for motif, threshold in self._threshold_from_seqs(scan_motifs, seqs, fdr):
+                    k = "{}|{}|{:.4f}".format(motif.hash(), bg_hash, fdr)
+                    cache.set(k, threshold)
+                    if np.isclose(threshold, motif.pwm_max_score()):
+                        thresholds[motif.id] = None
+                    else:
+                        thresholds[motif.id] = threshold
+
+        self.threshold = thresholds
 
     def set_genome(self, genome):
         """
@@ -328,12 +436,12 @@ class Scanner(object):
             raise ValueError("index for {} does not exist".format(genome))
         self.index_dir = index_dir
     
-    def count(self, seqs, nreport=100, scan_rc=True, cutoff=0.95):
+    def count(self, seqs, nreport=100, scan_rc=True):
         """
         count the number of matches above the cutoff
         returns an iterator of lists containing integer counts
         """
-        for matches in self.scan(seqs, nreport, scan_rc, cutoff):
+        for matches in self.scan(seqs, nreport, scan_rc):
             counts = [len(m) for m in matches]
             yield counts
      
@@ -351,7 +459,7 @@ class Scanner(object):
         give the score of the best match of each motif in each sequence
         returns an iterator of lists containing floats
         """
-        for matches in self.scan(seqs, 1, scan_rc, cutoff=0):
+        for matches in self.scan(seqs, 1, scan_rc):
             scores = [sorted(m, lambda x,y: 
                                     cmp(y[0], x[0])
                                     )[0][0] for m in matches]
@@ -363,17 +471,25 @@ class Scanner(object):
         returns an iterator of nested lists containing tuples:
         (score, position, strand)
         """
-        for matches in self.scan(seqs, 1, scan_rc, cutoff=0):
+        for matches in self.scan(seqs, 1, scan_rc):
             top = [sorted(m, lambda x,y: 
                                     cmp(y[0], x[0])
                                     )[0] for m in matches]
             yield top
     
    
-    def scan(self, seqs, nreport=100, scan_rc=True, cutoff=0.95):
+    def scan(self, seqs, nreport=100, scan_rc=True):
         """
         scan a set of regions / sequences
         """
+
+        
+        if not self.threshold:
+            sys.stderr.write(
+                "Using default threshold of 0.95. "
+                "This is likely not optimal!\n"
+                )
+            self.set_threshold(threshold=0.95)
 
         # determine input type
         seqs_type = get_seqs_type(seqs)
@@ -384,19 +500,19 @@ class Scanner(object):
                 seqs = Fasta(seqs)
             
             it = self._scan_sequences(seqs.seqs, 
-                    nreport, scan_rc, cutoff)
+                    nreport, scan_rc)
         # regions or BED
         else:
             if seqs_type == "regionfile":
                 seqs = [l.strip() for l in open(seqs)]
             it = self._scan_regions(seqs, 
-                    nreport, scan_rc, cutoff)
+                    nreport, scan_rc)
         
         for result in it:
             yield result
 
 
-    def _scan_regions(self, regions, nreport, scan_rc, cutoff=0.95):
+    def _scan_regions(self, regions, nreport, scan_rc):
         index_dir = self.index_dir
         motif_file = self.motifs
         motif_digest = self.checksum.get(motif_file, None)
@@ -406,7 +522,7 @@ class Scanner(object):
         if self.use_cache:
             scan_regions = []
             for region in regions:
-                key = str((region, index_dir, motif_digest, nreport, scan_rc, cutoff))
+                key = str((region, index_dir, motif_digest, nreport, scan_rc))
                 ret = self.cache.get(key)
                 if ret == NO_VALUE:
                     scan_regions.append(region)
@@ -416,8 +532,7 @@ class Scanner(object):
             
             genome_index = GenomeIndex(index_dir)
            
-            motifs = load_motifs(motif_file, cutoff)
-     
+            motifs = [(m, self.threshold[m.id]) for m in read_motifs(open(self.motifs))]
             scan_func = partial(scan_region_mult,
                 genome_index=genome_index,
                 motifs=motifs,
@@ -445,7 +560,17 @@ class Scanner(object):
                                     "or disable cache")
                 yield ret
     
-    def _scan_sequences(self, seqs, nreport, scan_rc, cutoff=0.95):
+    def _scan_sequences_with_motif(self, motifs, seqs, nreport, scan_rc):
+        scan_func = partial(scan_seq_mult,
+            motifs=motifs,
+            nreport=nreport,
+            scan_rc=scan_rc)
+
+        for ret in self._scan_jobs(scan_func, seqs):
+            yield ret[1]
+
+    def _scan_sequences(self, seqs, nreport, scan_rc):
+        
         motif_file = self.motifs
         motif_digest = self.checksum.get(motif_file, None)
         
@@ -463,7 +588,7 @@ class Scanner(object):
         
         # scan the sequences that are not in the cache
         if len(scan_seqs) > 0:
-            motifs = load_motifs(motif_file, cutoff)
+            motifs = [(m, self.threshold[m.id]) for m in read_motifs(open(self.motifs))]
             scan_func = partial(scan_seq_mult,
                 motifs=motifs,
                 nreport=nreport,
@@ -476,7 +601,7 @@ class Scanner(object):
                     self.cache.set(key, ret)
                 else: 
                     yield ret
-        
+      
         if self.use_cache:
             # return results from cache
             for seq in seqs:

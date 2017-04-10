@@ -13,7 +13,7 @@ import re
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.utils import as_fasta 
 from gimmemotifs.scanner import Scanner,scan_it_moods
-from gimmemotifs.config import MotifConfig
+from gimmemotifs.config import MotifConfig,GM_VERSION
 
 MAX_CPUS = 16
 
@@ -63,7 +63,7 @@ def scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalu
             yield "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
     else:
         # get iterator
-        result_it = s.count(fa, nreport, scan_rc, cutoff)
+        result_it = s.count(fa, nreport, scan_rc)
         # counts table
         for i, counts in enumerate(result_it):
             yield "{}\t{}".format(
@@ -93,7 +93,7 @@ def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pval
                     yield format_line(fa, seq_id, motif,
                             score, pos, strand, bed=bed)
     else:
-        result_it = s.scan(fa, nreport, scan_rc, cutoff)
+        result_it = s.scan(fa, nreport, scan_rc)
         for i, result in enumerate(result_it):
             seq_id = fa.ids[i]
             for motif, matches in zip(motifs, result):
@@ -102,20 +102,23 @@ def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pval
                                score, pos, strand, bed=bed)
 
 
-def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False, 
-        scan_rc=True, table=False, score_table=False, moods=False, 
+def command_scan(inputfile, pwmfile, nreport=1, fdr=0.01, cutoff=None, 
+        bed=False, scan_rc=True, table=False, score_table=False, moods=False, 
         pvalue=None, bgfile=None, genome=None):
     motifs = pwmfile_to_motifs(pwmfile)
     
     index_dir = None
     if genome is not None:
         index_dir = os.path.join(MotifConfig().get_index_dir(), genome) 
+   
+    fa = as_fasta(inputfile, index_dir)
+    
     
     # initialize scanner
     s = Scanner()
     s.set_motifs(pwmfile)
-    
-    fa = as_fasta(inputfile, index_dir)
+    s.set_threshold(fdr=fdr, threshold=cutoff, 
+            genome=genome, length=fa.median_length(), filename=bgfile)
     
     if table:
         it = scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods)
@@ -128,18 +131,34 @@ def command_scan(inputfile, pwmfile, nreport=1, cutoff=0.9, bed=False,
         yield row
 
 def pwmscan(args):
+
+    if args.fdr is None and args.cutoff is None:
+        args.fdr = 0.01
+
+    print "# GimmeMotifs version {}".format(GM_VERSION)
+    print "# Input: {}".format(args.inputfile)
+    print "# Motifs: {}".format(args.pwmfile)
+    if args.fdr:
+        if args.genome:
+            print "# FDR: {} ({})".format(args.fdr, args.genome)
+        elif args.bgfile:
+            print "# FDR: {} ({})".format(args.fdr, args.bgfile)
+    if args.cutoff:
+        print "# Threshold: {}".format(args.cutoff)
+
     for line in command_scan(
             args.inputfile, 
             args.pwmfile, 
-            args.nreport, 
-            args.cutoff, 
-            args.bed, 
-            args.scan_rc, 
-            args.table, 
-            args.score_table,
-            args.moods,
-            args.pvalue,
-            args.bgfile,
+            nreport=args.nreport, 
+            fdr=args.fdr,
+            cutoff=args.cutoff, 
+            bed=args.bed, 
+            scan_rc=args.scan_rc, 
+            table=args.table, 
+            score_table=args.score_table,
+            moods=args.moods,
+            pvalue=args.pvalue,
+            bgfile=args.bgfile,
             genome=args.genome,
             ):
         print line

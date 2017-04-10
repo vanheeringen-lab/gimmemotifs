@@ -10,6 +10,8 @@
 import os
 import re
 import sys
+import md5
+import mmap
 import random
 import tempfile
 from math import log
@@ -528,4 +530,20 @@ def as_fasta(seqs, index_dir=None):
             track2fasta(index_dir, tmpbed.name, tmpfa.name) 
         return Fasta(tmpfa.name)
 
+def file_checksum(fname):
+    """Return md5 checksum of file.
 
+    Note: only works for files < 4GB.
+
+    Parameters
+    ----------
+    filename : str
+        File used to calculate checksum.
+
+    Returns
+    -------
+        checkum : str
+    """
+    f = open(fname, "r+")
+    size = os.path.getsize(fname)
+    return md5.md5(mmap.mmap(f.fileno(), size)).hexdigest()

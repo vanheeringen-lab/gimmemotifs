@@ -49,7 +49,11 @@ class TestUtils(unittest.TestCase):
             as_fasta(bedfile)
         
         rmtree(tmpdir)
-
+    
+    def test_checkum(self):
+        fname = "test/data/fasta/test.fa"
+        md5 = "a34798835d4110c34df45bbd8ed2f910"
+        self.assertEquals(md5, file_checksum(fname))
 
     def tearDown(self):
         pass

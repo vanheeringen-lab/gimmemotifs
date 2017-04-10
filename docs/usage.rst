@@ -3,7 +3,7 @@ Usage
 
 .. _quick-example:
 
-Quick GimmeMotifs example
+Predicting de novo motifs 
 -------------------------
 
 You can try GimmeMotifs with a small example dataset included in the
@@ -19,7 +19,7 @@ on your system):
 
     gimme motifs /usr/share/gimmemotifs/examples/TAp73alpha.fa -n p73
 
-The ``-n`` or ``–name`` option defines the name of the output directory
+The ``-n`` or ``--name`` option defines the name of the output directory
 that is created. All output files are stored in this directory.
 
 Depending on your computer you may have to wait some minutes for your
@@ -27,8 +27,8 @@ results. Once GimmeMotifs is finished you can open
 `p73/p73\_motif\_report.html <p73/p73_motif_report.html>`__ in your
 browser.
 
-GimmeMotifs example
--------------------
+Example: gimme motifs
+~~~~~~~~~~~~~~~~~~~~~
 
 This example is the same as above, except it will start from a BED file.
 This example does require you to have hg19 present and indexed. Change
@@ -40,7 +40,7 @@ system):
 
     gimme motifs /usr/share/gimmemotifs/examples/TAp73alpha.bed -n example
 
-The ``-n`` or ``–name`` option defines the name of the output directory
+The ``-n`` or ``--name`` option defines the name of the output directory
 that is created. All output files are stored in this directory.
 
 Depending on your computer you may have to wait some minutes for your
@@ -48,11 +48,11 @@ results. Once GimmeMotifs is finished you can open
 `example/example\_motif\_report.html <example/example_motif_report.html>`__
 in your browser.
 
-Using GimmeMotifs: best practices and tips
-------------------------------------------
+Best practices and tips
+~~~~~~~~~~~~~~~~~~~~~~~
 
 GimmeMotifs is multi-threaded
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++++++++++++++++++++++++++++++
 
 GimmeMotifs runs multi-threaded and uses all the CPU’s in the system.
 This means that all the programs will be run in parallel as much as
@@ -62,7 +62,7 @@ it does not make much sense to start multiple GimmeMotifs jobs at the
 same time.
 
 Running time
-~~~~~~~~~~~~
+++++++++++++
 
 The running time of GimmeMotifs greatly depends on which tools you use
 for prediction and how large the dataset is. Some of the tools might
@@ -100,7 +100,7 @@ option screws up, and GimmeMotifs will not be able to handle the result
 gracefully.
 
 Intermediate results
-~~~~~~~~~~~~~~~~~~~~
+++++++++++++++++++++
 
 GimmeMotifs produces a lot of intermediate results, such as all
 predicted motifs, fasta-files used for validation and so on. These are
@@ -108,10 +108,10 @@ deleted by default (as they can get quite large), but if you are
 interested in them, you can specify the ``-k`` option.
 
 Running on FASTA files
-~~~~~~~~~~~~~~~~~~~~~~
+++++++++++++++++++++++
 
-It is also possible to run GimmeMotifs on a FASTA file as input instead
-of a BED file. This is detected automatically if you’re inputfile
+It is possible to run GimmeMotifs on a FASTA file as input instead
+of a BED file. This is detected automatically if youir inputfile is
 correctly formatted according to FASTA specifications. In this case it
 is not possible to generate a genomic matched background, so only the
 random Markov background will be used. Please note that for best
@@ -121,7 +121,7 @@ preference plots will be wrong if sequences have different lengths. Also
 see the next section.
 
 Small input sets
-~~~~~~~~~~~~~~~~
+++++++++++++++++
 
 Keep in mind that GimmeMotifs is developed for larger datasets, where
 you have the luxury to use a large fraction of your input for
@@ -130,8 +130,8 @@ you want to run GimmeMotifs on a small input dataset, it might be
 worthwile to increase the fraction used for prediction (with the ``-f``
 parameter.
 
-Detailed options
-----------------
+Detailed options for gimme motifs
++++++++++++++++++++++++++++++++++
 
 -  INPUTFILE
 
@@ -217,3 +217,41 @@ Detailed options
    After this time, all jobs that are still running will be terminated,
    and GimmeMotifs will continue with the motifs that are predicted so
    far.
+
+Scanning for known motifs
+-------------------------
+
+You can scan for known motifs using the ``gimme scan`` tool. Input can 
+be a FASTA file, BED file or file with regions in ``chr:start-end`` format.
+By default, ``gimme scan`` uses a compendium of vertebrate motifs that is 
+included with GimmeMotifs. For instance, the following command will scan 
+the file ``TAp73alpha.fa`` for known motifs with an estimated FDR of 1% 
+based on hg38 sequences. 
+The first time, this will take a while as ``gimme scan`` will calculate
+a threshold for each motif. However, these thresholds are cached on disk and
+subsequent runs for the same FDR and genome settings will be much faster.
+
+::
+
+    $ gimme scan TAp73alpha.fa -f 0.01 -g hg38 > scan_results.gff
+    $ cut -f9 scan_results.gff | cut -f1 -d\; | sort | uniq -c | sort -n | tail
+         54 motif_name "Grainyhead_M6333_1.01" 
+         62 motif_name "Ndt80_PhoG_M1320_1.01" 
+         63 motif_name "Runt_Average_10" 
+         71 motif_name "Runt_Average_9" 
+         83 motif_name "bZIP_Average_149" 
+         92 motif_name "Unknown_M6235_1.01" 
+        100 motif_name "p53_M3568_1.01" 
+        120 motif_name "Myb_SANT_Average_7" 
+        129 motif_name "p53_Average_10" 
+        493 motif_name "p53_Average_8" 
+
+In this case, the top matches include the p53-family motif, the Runx1 motif and the AP1 motif.
+
+
+
+
+
+
+
+

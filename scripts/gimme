@@ -344,11 +344,21 @@ p.add_argument("-p", "--pwmfile",
                "(default: {0})".format(default_pwm), 
                default=default_pwm_file,
                metavar="PWMFILE")
+p.add_argument("-f", "--fdr", 
+               dest="fdr", 
+               help="FDR for motif scanning (default 0.01)", 
+               metavar="", 
+               default=None)
+p.add_argument("-B", "--bgfile", 
+               dest="bgfile", 
+               help="background file for threshold", 
+               metavar="", 
+               default=None)
 p.add_argument("-c", "--cutoff", 
                dest="cutoff", 
-               help="motif score cutoff or file with cutoffs (default 0.9)", 
+               help="motif score cutoff or file with cutoffs", 
                metavar="", 
-               default=0.9)
+               default=None)
 p.add_argument("-n", "--nreport", 
                dest="nreport", 
                help="report the N best matches", 
@@ -387,12 +397,6 @@ p.add_argument("-P", "--pvalue",
                #help="experimental: MOODS p-value cutoff", 
                metavar="", 
                type=float,
-               default=None)
-p.add_argument("-B", "--bgfile", 
-               dest="bgfile", 
-               help=argparse.SUPPRESS,
-               #help="experimental: MOODS background file", 
-               metavar="", 
                default=None)
 
 

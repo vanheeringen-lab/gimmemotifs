@@ -8,6 +8,7 @@
 import sys
 import random
 import re
+import numpy as np
 
 class Fasta(object):
 
@@ -122,3 +123,6 @@ class Fasta(object):
 
     def items(self):
         return zip(self.ids, self.seqs)
+
+    def median_length(self):
+        return np.median([len(seq) for seq in self.seqs])
