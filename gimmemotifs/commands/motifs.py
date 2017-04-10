@@ -8,7 +8,7 @@
 import sys
 import os
 
-from gimmemotifs.core import GimmeMotifs
+from gimmemotifs.denovo import gimme_motifs
 import gimmemotifs.config as cfg
 
 def motifs(args):
@@ -65,5 +65,4 @@ def motifs(args):
         "torque": args.torque,
     }
     
-    gm = GimmeMotifs(args.name)
-    gm.run_full_analysis(args.inputfile, params)
+    gimme_motifs(args.inputfile, args.name, params)

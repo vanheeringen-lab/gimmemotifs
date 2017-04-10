@@ -10,7 +10,7 @@ on the basis of motif scanning results.
 """
 
 # External imports
-from scipy.stats import stats, scoreatpercentile
+from scipy.stats import stats, scoreatpercentile, kstest, fisher_exact
 from sklearn.metrics import precision_recall_curve, roc_auc_score, roc_curve
 import numpy as np
 
@@ -20,12 +20,24 @@ __all__ = [
     "score_at_fdr",
     "enr_at_fdr",
     "max_enrichment",
+    "phyper_at_fdr", 
     "mncp",
     "roc_auc",
     "roc_auc_xlim",
     "max_fmeasure",
+    "ks_pvalue",
+    "ks_significance",
 ]
 
+def requires_scores(f):
+    f.input_type = "score"
+    return f
+
+def requires_positions(f):
+    f.input_type = "pos"
+    return f
+
+@requires_scores
 def values_to_labels(fg_vals, bg_vals):
     """
     Convert two arrays of values to an array of labels and an array of scores.
@@ -50,6 +62,7 @@ def values_to_labels(fg_vals, bg_vals):
     
     return y_true, y_score
 
+@requires_scores
 def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.1):
     """
     Computes the recall at a specific FDR (default 10%).
@@ -80,6 +93,38 @@ def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.1):
     cutoff_index = next(i for i, x in enumerate(fdr) if x <= fdr_cutoff)
     return recall[cutoff_index]
 
+@requires_scores
+def phyper_at_fdr(fg_vals, bg_vals, fdr=5):
+    """
+    Computes the hypergeometric p-value at a specific FDR (default 5%).
+
+    Parameters
+    ----------
+    fg_vals : array_like
+        The list of values for the positive set.
+
+    bg_vals : array_like
+        The list of values for the negative set.
+    
+    fdr : float, optional
+        The FDR (between 0.0 and 1.0).
+    
+    Returns
+    -------
+    fraction : float
+        The fraction positives at the specified FDR.
+    """
+    fg_vals = np.array(fg_vals)
+    s = scoreatpercentile(bg_vals, 100 - fdr)
+    
+    table = [
+            [sum(fg_vals >= s), sum(bg_vals >= s)],
+            [sum(fg_vals < s), sum(bg_vals < s)],
+            ]
+    
+    return fisher_exact(table, alternative="greater")[1]
+
+@requires_scores
 def fraction_fdr(fg_vals, bg_vals, fdr=5):
     """
     Computes the fraction positives at a specific FDR (default 5%).
@@ -104,6 +149,7 @@ def fraction_fdr(fg_vals, bg_vals, fdr=5):
     s = scoreatpercentile(bg_vals, 100 - fdr)
     return len(fg_vals[fg_vals >= s]) / float(len(fg_vals))
 
+@requires_scores
 def score_at_fdr(fg_vals, bg_vals, fdr=5):
     """
     Returns the motif score at a specific FDR (default 5%).
@@ -127,6 +173,7 @@ def score_at_fdr(fg_vals, bg_vals, fdr=5):
     bg_vals = np.array(bg_vals)
     return scoreatpercentile(bg_vals, 100 - fdr)
 
+@requires_scores
 def enr_at_fdr(fg_vals, bg_vals, fdr=5.0):
     """
     Computes the enrichment at a specific FDR (default 5%).
@@ -155,6 +202,7 @@ def enr_at_fdr(fg_vals, bg_vals, fdr=5.0):
         return float("inf")
     return len(pos[pos >= s]) / neg_matches * len(neg) / float(len(pos))
 
+@requires_scores
 def max_enrichment(fg_vals, bg_vals, minbg=2):
     """
     Computes the maximum enrichment.
@@ -192,8 +240,9 @@ def max_enrichment(fg_vals, bg_vals, minbg=2):
             if enr > m:
                 m = enr
                 s = scores[idx[i]]
-    return m, s
+    return m
 
+@requires_scores
 def mncp(fg_vals, bg_vals):
     """
     Computes the Mean Normalized Conditional Probability (MNCP).
@@ -232,6 +281,7 @@ def mncp(fg_vals, bg_vals):
     
     return np.mean(slopes)
 
+@requires_scores
 def roc_auc(fg_vals, bg_vals):
     """
     Computes the ROC Area Under Curve (ROC AUC)
@@ -254,6 +304,7 @@ def roc_auc(fg_vals, bg_vals):
     
     return roc_auc_score(y_true, y_score)
 
+@requires_scores
 def roc_auc_xlim(x_bla, y_bla, xlim=0.1):
     """
     Computes the ROC Area Under Curve until a certain FPR value.
@@ -357,6 +408,7 @@ def roc_auc_xlim(x_bla, y_bla, xlim=0.1):
  
     return auc
 
+@requires_scores
 def roc_values(fg_vals, bg_vals):
     """
     Return fpr (x) and tpr (y) of the ROC curve.
@@ -385,6 +437,7 @@ def roc_values(fg_vals, bg_vals):
      
     return fpr, tpr
 
+@requires_scores
 def max_fmeasure(fg_vals, bg_vals):
     """
     Computes the maximum F-measure.
@@ -412,6 +465,55 @@ def max_fmeasure(fg_vals, bg_vals):
     
     f = (2 * p * y) / (p + y)
     if len(f) > 0:
-        return np.nanmax(f), np.nanmax(y[f == np.nanmax(f)])
+        #return np.nanmax(f), np.nanmax(y[f == np.nanmax(f)])
+        return np.nanmax(f)
     else:
-        return None,None
+        return None
+
+@requires_positions
+def ks_pvalue(fg_pos, bg_pos=None):
+    """
+    Computes the Kolmogorov-Smirnov p-value of position distribution.
+
+    Parameters
+    ----------
+    fg_pos : array_like
+        The list of values for the positive set.
+
+    bg_pos : array_like, optional
+        The list of values for the negative set.
+    
+    Returns
+    -------
+    p : float
+        KS p-value.
+    """
+    if len(fg_pos) == 0:
+        return 1.0
+    a = np.array(fg_pos, dtype="float") / max(fg_pos)
+    p = kstest(a, "uniform")[1]
+    return p
+
+@requires_positions
+def ks_significance(fg_pos, bg_pos=None):
+    """
+    Computes the -log10 of Kolmogorov-Smirnov p-value of position distribution.
+
+    Parameters
+    ----------
+    fg_pos : array_like
+        The list of values for the positive set.
+
+    bg_pos : array_like, optional
+        The list of values for the negative set.
+    
+    Returns
+    -------
+    p : float
+        -log10(KS p-value).
+    """
+    p = ks_pvalue(fg_pos, max(fg_pos))
+    return -np.log10(p)
+    
+
+ 

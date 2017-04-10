@@ -15,9 +15,6 @@ from warnings import warn
 
 from gimmemotifs import mytmpdir
 from gimmemotifs.config import MotifConfig
-from gimmemotifs.rocmetrics import (mncp, roc_auc, max_enrichment, 
-        fraction_fdr, score_at_fdr, enr_at_fdr)
-from gimmemotifs.utils import ks_pvalue
 from gimmemotifs.c_metrics import pwmscan
 
 # External imports
@@ -151,7 +148,7 @@ class Motif(object):
         return len(self.to_consensus())
 
     def __repr__(self):
-        return "%s\t%s" % (self.id, self.to_consensus())
+        return "{}_{}".format(self.id, self.to_consensus())
 
     def information_content(self):
         ic = 0
@@ -727,56 +724,6 @@ class Motif(object):
         #if os.path.exists(f.name):
         #    os.unlink(f.name)
 
-    def stats(self, fg_fa, bg_fa, logger=None):
-        try:
-            stats = {}
-            fg_result = self.pwm_scan_all(fg_fa, cutoff=0.0, nreport=1, scan_rc=True)
-            bg_result = self.pwm_scan_all(bg_fa, cutoff=0.0, nreport=1, scan_rc=True)
-           
-            pos = []
-            for x in fg_result.values():
-                if len(x):
-                    pos.append(x[0][1])
-                else:
-                    pos.append(-100)
-
-            neg = []
-            for x in bg_result.values():
-                if len(x):
-                    neg.append(x[0][1])
-                else:
-                    neg.append(-100)
-           
-            stats["mncp"] = mncp(pos, neg)
-            stats["roc_auc"] = roc_auc(pos, neg)
-            x,y = max_enrichment(pos, neg)
-            stats["maxenr"] = x
-            stats["scoreatmaxenr"] = y
-            stats["fraction"] = fraction_fdr(pos, neg)
-            stats["score_fdr"] = score_at_fdr(pos, neg)
-            stats["enr_fdr"] = enr_at_fdr(pos, neg)
-            stats["cutoff_fdr"] = (stats["score_fdr"] - self.pwm_min_score()) / (self.pwm_max_score() - self.pwm_min_score())
-
-            pos = [v[0][0] for v in fg_result.values() if len(v)]
-            p = ks_pvalue(pos, max(pos))
-            stats["ks"] = p
-            if p > 0:
-                stats["ks_sig"] = -log(p)/log(10)
-            else:
-                stats["ks_sig"] = "Inf"
-        
-
-            return stats
-        except Exception as e:
-            #e = sys.exc_info()[0]
-            msg = "Error calculating stats of {0}, error {1}".format(self.id, str(e))
-            if logger:
-                logger.error(msg)
-            else:
-                print msg
-            raise
-
-
     def randomize(self):
         random_pfm = [[c for c in row] for row in self.pfm]
         random.shuffle(random_pfm)
@@ -817,6 +764,36 @@ def motif_from_consensus(cons, n=12):
     m.id = cons
     return m
 
+
+def parse_motifs(motifs):
+    """Parse motifs in a variety of formats to return a list of motifs.
+
+    Parameters
+    ----------
+
+    motifs : list or str
+        Filename of motif,  list of motifs or single Motif instance.
+
+    Returns
+    -------
+
+    motifs : list
+        List of Motif instances.
+    """
+    if isinstance(motifs, str):
+        if motifs.endswith("pwm") or motifs.endswith("pfm"):
+            motifs = read_motifs(open(motifs), fmt="pwm")
+        elif motifs.endswith("transfac"):
+            motifs = read_motifs(open(motifs), fmt="transfac")
+        else: 
+            motifs = read_motifs(open(motifs))
+    elif isinstance(motifs, Motif):
+        motifs = [motifs]
+    else:
+        if not isinstance(motifs[0], Motif):
+            raise ValueError("Not a list of motifs")
+    
+    return motifs
 
 def read_motifs(handle, fmt="pwm"):
     """ 

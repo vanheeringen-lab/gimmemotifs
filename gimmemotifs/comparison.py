@@ -22,6 +22,7 @@ import numpy as np
 # GimmeMotifs imports
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.c_metrics import pwmscan,score
+from gimmemotifs.motif import parse_motifs
 # pool import is at the bottom
 
 # Create random sequence
@@ -364,13 +365,54 @@ class MotifComparer(object):
         
         return scores
 
-    def get_closest_match(self, motifs, dbmotifs, match, metric, combine, parallel=True):
+    def get_closest_match(self, motifs, dbmotifs=None, match="partial", metric="wic",combine="mean", parallel=True):
+        """Return best match in database for motifs.
+
+        Parameters
+        ----------
+
+        motifs : list or str
+            Filename of motifs or list of motifs.
+
+        dbmotifs ; list or str, optional
+            Database motifs, default will be used if not specified.
+
+        match : str, optional
+
+        metric : str, optional
+
+        combine : str, optional
+
+        Returns
+        -------
+
+        closest_match : dict
+        """
+
+        if dbmotifs is None:
+            pwm = self.config.get_default_params()["motif_db"]
+            pwmdir = self.config.get_motif_dir()
+            dbmotifs = os.path.join(pwmdir, pwm)
+       
+        motifs = parse_motifs(motifs)
+        dbmotifs = parse_motifs(dbmotifs)
+
+        dbmotif_lookup = dict([(m.id, m) for m in dbmotifs])
+
         scores = self.get_all_scores(motifs, dbmotifs, match, metric, combine, parallel=parallel)
         for motif in scores:
             scores[motif] = sorted(
                     scores[motif].items(), 
                     cmp=lambda x,y: cmp(y[1][0], x[1][0])
                     )[0]
+        
+        for motif in motifs:
+            dbmotif, score = scores[motif.id]
+            pval, pos, orient = self.compare_motifs(
+                    motif, dbmotif_lookup[dbmotif], match, metric, combine, True)
+            
+            scores[motif.id] = [dbmotif, (list(score) + [pval])]
+        
         return scores
 
     def generate_score_dist(self, motifs, match, metric, combine):
@@ -398,4 +440,7 @@ class MotifComparer(object):
 
 # import here is necessary as workaround
 # see: http://stackoverflow.com/questions/18947876/using-python-multiprocessing-pool-in-the-terminal-and-in-code-modules-for-django
-from gimmemotifs.mp import pool
+try:
+    from gimmemotifs.mp import pool
+except:
+    pass

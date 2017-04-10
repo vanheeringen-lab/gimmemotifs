@@ -4,11 +4,19 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 """Module for motif clustering."""
+import os
 import sys
+import logging
+
+import jinja2
+from datetime import datetime
 
 # GimmeMotifs imports
+from gimmemotifs.config import MotifConfig, GM_VERSION
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.comparison import MotifComparer
+
+logger = logging.getLogger("gimme.cluster")
 
 class MotifTree(object):
     
@@ -208,3 +216,90 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
         node.parent.checkMerge(root, threshold)
     
     return root
+
+def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
+    # Cluster significant motifs
+
+    if title is None:
+        title = infile
+
+    motifs = read_motifs(open(infile), fmt="pwm")
+
+    trim_ic = 0.2
+    clusters = []
+    if len(motifs) == 0:
+        return []
+    elif len(motifs) == 1:
+        clusters = [[motifs[0], motifs]]
+    else:
+        logger.info("clustering significant motifs.")
+        tree = cluster_motifs(
+                infile,
+                "total",
+                "wic",
+                "mean",
+                True,
+                threshold=float(threshold),
+                include_bg=True,
+                progress=False
+                )
+        clusters = tree.getResult()
+
+    ids = []
+    mc = MotifComparer()
+
+    img_dir = os.path.join(outdir, "images")
+
+    if not os.path.exists(img_dir):
+        os.mkdir(img_dir)
+
+    for cluster,members in clusters:
+        cluster.trim(trim_ic)
+        png = "images/{}.png".format(cluster.id)
+        cluster.to_img(os.path.join(outdir, png), fmt="PNG")
+        ids.append([cluster.id, {"src":png},[]])
+        if len(members) > 1:
+            scores = {}
+            for motif in members:
+                scores[motif] =  mc.compare_motifs(cluster, motif, "total", "wic", "mean", pval=True)
+            add_pos = sorted(scores.values(),cmp=lambda x,y: cmp(x[1], y[1]))[0][1]
+            for motif in members:
+                score, pos, strand = scores[motif]
+                add = pos - add_pos
+
+                if strand in [1,"+"]:
+                    pass
+                else:
+                   rc = motif.rc()
+                   rc.id = motif.id
+                   motif = rc
+                #print "%s\t%s" % (motif.id, add)
+                png = "images/{}.png".format(motif.id.replace(" ", "_"))
+                motif.to_img(os.path.join(outdir, png), fmt="PNG", add_left=add)
+        ids[-1][2] = [dict([("src", "images/{}.png".format(motif.id.replace(" ", "_"))), ("alt", motif.id.replace(" ", "_"))]) for motif in members]
+
+    config = MotifConfig()
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader([config.get_template_dir()]))
+    template = env.get_template("cluster_template.jinja.html")
+    result = template.render(
+                motifs=ids,
+                inputfile=title,
+                date=datetime.today().strftime("%d/%m/%Y"),
+                version=GM_VERSION)
+
+    cluster_report = os.path.join(outdir, "cluster_report.html")
+    f = open(cluster_report, "w")
+    f.write(result.encode('utf-8'))
+    f.close()
+
+    f = open(outfile, "w")
+    if len(clusters) == 1 and len(clusters[0][1]) == 1:
+        f.write("%s\n" % clusters[0][0].to_pwm())
+    else:
+        for motif in tree.get_clustered_motifs():
+            f.write("%s\n" % motif.to_pwm())
+    f.close()
+
+    logger.debug("Clustering done. See the result in %s",
+            cluster_report)
+    return clusters

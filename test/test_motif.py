@@ -51,7 +51,7 @@ class TestMotif(unittest.TestCase):
         seqlogo = which("seqlogo")
         if seqlogo:    
             m = Motif(self.pfm)
-            m.to_img("test/test.png", format="png", seqlogo=seqlogo)
+            m.to_img("test/test.png", fmt="png", seqlogo=seqlogo)
             self.assert_(os.path.exists("test/test.png"))
             os.unlink("test/test.png")
         else:

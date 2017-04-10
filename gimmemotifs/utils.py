@@ -19,25 +19,16 @@ from tempfile import NamedTemporaryFile
 
 # External imports
 from scipy import special
-from scipy.stats import kstest
-import pybedtools
 import numpy as np
+import pybedtools
 
 # gimme imports
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import plot_histogram
 from gimmemotifs.genome_index import track2fasta
+from gimmemotifs.rocmetrics import ks_pvalue
 
 lgam = special.gammaln
-
-def star(stat, categories):
-    stars = 0
-    for c in sorted(categories):
-        if stat >= c:
-            stars += 1
-        else:
-            return stars
-    return stars
 
 def phyper_single(k, good, bad, N):
 
@@ -107,12 +98,6 @@ def divide_fa_file(fname, sample, rest, fraction, abs_max):
     f_rest.close()
     
     return x, len(ids[x:])    
-
-def ks_pvalue(values, l):
-    if len(values) == 0:
-        return 1.0
-    a = np.array(values, dtype="float") / l
-    return kstest(a, "uniform")[1]
 
 def write_equalwidth_bedfile(bedfile, width, outfile):
     """Read input from <bedfile>, set the width of all entries to <width> and 
@@ -496,7 +481,12 @@ def get_seqs_type(seqs):
             except:
                 pass
             try:
-                line = open(seqs).readline().strip()
+                with open(seqs) as f:
+                    for line in f.readlines():
+                        line = line.strip()
+                        if not line.startswith("#"):
+                            break
+                
                 if region_p.search(line):
                     return "regionfile"
                 else:
