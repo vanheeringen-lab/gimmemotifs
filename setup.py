@@ -269,19 +269,24 @@ class build_config(Command):
                     dir = bin.replace("ChIPMunk.sh", "")
 
                 available.append(m.name)
-                cfg.set_program(m.name, {"bin":bin, "dir":dir})
+                cfg.set_program(m.name, 
+                        {
+                            "bin":os.path.abspath(bin), 
+                            "dir":os.path.abspath(dir),
+                            }
+                        )
 
         # Weblogo
         bin = ""
-        seq_included = os.path.join(self.build_tools_dir, "seqlogo")
+        seq_included = os.path.abspath(os.path.join(self.build_tools_dir, "seqlogo"))
         if os.path.exists(seq_included):
             bin = seq_included
             dlog.info("using included version of weblogo: %s" % seq_included)
         else:
             bin = which("seqlogo")
-            dlog.info("using installed version of seqlogo: %s" % (bin))
+            dlog.info("using installed version of seqlogo: %s" % (os.path.abspath(bin)))
         if bin:
-            cfg.set_seqlogo(bin)
+            cfg.set_seqlogo(os.path.abspath(bin))
         else:
             dlog.info("couldn't find seqlogo")
         
@@ -306,7 +311,8 @@ class build_config(Command):
         # TODO: fix this hack
         my_cfg = open(config_file).read()
         with open(config_file, "w") as f:
-            f.write(my_cfg.replace("/usr/share/", ""))
+            cwd = os.getcwd()
+            f.write(my_cfg.replace("/usr/share/gimmemotifs/", cwd + "/"))
 
     def get_outputs(self):
         return self.outfiles or []
@@ -390,14 +396,14 @@ class install_config(Command):
         for program in MOTIF_CLASSES:
             m = eval(program)()
             if cfg.is_configured(m.name):
-                bin = cfg.bin(m.name).replace(self.build_tools_dir, final_tools_dir) 
+                bin = cfg.bin(m.name).replace(os.path.abspath(self.build_tools_dir), final_tools_dir) 
                 dir = cfg.dir(m.name)
                 if dir:
-                    dir = dir.replace(self.build_tools_dir, final_tools_dir)
+                    dir = dir.replace(os.path.abspath(self.build_tools_dir), final_tools_dir)
                 cfg.set_program(m.name, {"bin":bin, "dir":dir})
             
         dir = cfg.get_seqlogo()
-        dir = dir.replace(self.build_tools_dir, final_tools_dir)
+        dir = dir.replace(os.path.abspath(self.build_tools_dir), final_tools_dir)
         cfg.set_seqlogo(dir)
 
         # Use a user-specific configfile if any other installation scheme is used
