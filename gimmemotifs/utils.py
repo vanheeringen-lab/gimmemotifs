@@ -481,7 +481,12 @@ def get_seqs_type(seqs):
             except:
                 pass
             try:
-                line = open(seqs).readline().strip()
+                with open(seqs) as f:
+                    for line in f.readlines():
+                        line = line.strip()
+                        if not line.startswith("#"):
+                            break
+                
                 if region_p.search(line):
                     return "regionfile"
                 else:
