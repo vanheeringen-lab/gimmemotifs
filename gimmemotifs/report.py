@@ -176,13 +176,12 @@ def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outd
     """Create text and graphical (.html) motif reports."""
     logger.info("creating reports")
 
-    # ROC plots
-    create_roc_plots(pwmfile, fgfa, background, outdir)
-        
-    # Location plots
-    logger.debug("Creating localization plots")
     motifs = read_motifs(open(pwmfile), fmt="pwm")
     
+    # ROC plots
+    create_roc_plots(pwmfile, fgfa, background, outdir)
+    
+    # Closest match in database
     mc = MotifComparer()
     closest_match = mc.get_closest_match(motifs)
     
@@ -199,8 +198,10 @@ def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outd
     if not params:
         params = {}
     cutoff_fdr = params.get('cutoff_fdr', 0.9)
-    lwidth = int(params.get('lwidth', 500))
+    lwidth = np.median([len(seq) for seq in Fasta(locfa).seqs])
 
+    # Location plots
+    logger.debug("Creating localization plots")
     for motif in motifs:
         outfile = os.path.join(outdir, "images/{}_histogram.svg".format(motif.id))
         motif_localization(locfa, motif, lwidth, outfile, cutoff=cutoff_fdr)
