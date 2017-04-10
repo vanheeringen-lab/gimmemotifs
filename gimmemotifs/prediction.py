@@ -218,7 +218,10 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
                         callback=result.add_motifs)
         else:
             logger.debug("Skipping %s", t.name)
-    
+   
+    for job in jobs.values():
+        job.get()
+
     logger.info("all jobs submitted")
     result.wait_for_stats()
     ### Wait until all jobs are finished or the time runs out ###
