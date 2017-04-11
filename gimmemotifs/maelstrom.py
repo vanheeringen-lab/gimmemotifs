@@ -30,37 +30,7 @@ BG_LENGTH = 200
 BG_NUMBER = 10000
 FDR = 0.01
 
-def check_threshold(outdir, genome, scoring="count", pwmfile=None):
-    # gimme_motifs config, to get defaults
-    config = MotifConfig()
-    
-    threshold_file = None
-    if scoring == "count":
-        # Motif scanning threshold
-        threshold_file = os.path.join(outdir, "threshold.{}.txt".format(genome))
-        if not os.path.exists(threshold_file):
-        # Random sequences from genome
-            index_dir = os.path.join(config.get_index_dir(), genome)
-            bg_file = os.path.join(outdir, "background.{}.fa".format(genome))
-            if not os.path.exists(bg_file):
-                m = RandomGenomicFasta(index_dir, BG_LENGTH, BG_NUMBER)
-                m.writefasta(bg_file)
-    
-            if pwmfile is None:
-                pwmfile = config.get_default_params().get("motif_db")
-                pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
-            
-            cmd = "gimme threshold {} {} {} > {}".format(
-                    pwmfile,
-                    bg_file,
-                    FDR,
-                    threshold_file)
-            sp.call(cmd, shell=True)
-        return threshold_file
-
 def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
-    threshold = check_threshold(data_dir, genome, scoring, pwmfile)
-    
     config = MotifConfig()
     
     if pwmfile is None:
@@ -79,7 +49,8 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
 
     scores = []
     if scoring == "count":
-        for row in s.count(regions, cutoff=threshold):
+        s.set_threshold(fdr=FDR)
+        for row in s.count(regions):
             scores.append(row)
     else:
         for row in s.best_score(regions):
@@ -89,14 +60,12 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
     return pd.DataFrame(scores, index=df.index, columns=motif_names)
 
 def moap_with_bg(input_table, genome, data_dir, method, scoring, pwmfile=None):
-    threshold_file = check_threshold(data_dir, genome, scoring, pwmfile)
-    
     outfile = os.path.join(data_dir,"activity.{}.{}.out.txt".format(
             method,
             scoring))
 
     moap(input_table, outfile=outfile, genome=genome, method=method,
-            scoring=scoring, cutoff=threshold_file)
+            scoring=scoring, fdr=FDR)
 
 def moap_with_table(input_table, motif_table, data_dir, method, scoring):
     outfile = os.path.join(data_dir,"activity.{}.{}.out.txt".format(
@@ -104,7 +73,7 @@ def moap_with_table(input_table, motif_table, data_dir, method, scoring):
             scoring))
 
     moap(input_table, outfile=outfile, method=method, scoring=scoring, 
-            motiffile=motif_table)
+            motiffile=motif_table, fdr=FDR)
 
 def safe_join(df1, df2):     
     tmp = df1.copy()

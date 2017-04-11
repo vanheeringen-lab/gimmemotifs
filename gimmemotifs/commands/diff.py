@@ -61,18 +61,19 @@ def diff(args):
    
     s = Scanner()
     s.set_motifs(pwmfile)
+    s.set_threshold(cutoff)
 
     # Get background frequencies
     nbg = float(len(Fasta(bgfile).seqs))
     
-    bgcounts = s.total_count(bgfile, nreport=1, cutoff=cutoff) 
+    bgcounts = s.total_count(bgfile, nreport=1) 
     bgfreq = [(c + 0.01) / nbg for c in bgcounts]
     
     # Get frequences in input files
     freq = {}
     counts = {}
     for fname in infiles:
-        mcounts = s.total_count(fname, nreport=1, cutoff=cutoff) 
+        mcounts = s.total_count(fname, nreport=1) 
         n = float(len(Fasta(fname).seqs))
         counts[fname] = mcounts
         freq[fname] = [(c + 0.01) / n for c in mcounts]
