@@ -14,7 +14,9 @@ try:
 except ImportError:
     pass
 
+from diskcache import Cache
 import numpy as np
+from scipy.stats import scoreatpercentile
 
 from gimmemotifs.background import RandomGenomicFasta
 from gimmemotifs.config import MotifConfig,CACHE_DIR
@@ -25,9 +27,6 @@ from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import parse_cutoff,get_seqs_type,file_checksum
 from gimmemotifs.genome_index import rc,check_genome
 
-from diskcache import Cache
-from scipy.stats import scoreatpercentile
-import numpy as np
 
 # only used when using cache, should not be a requirement
 try:
@@ -422,7 +421,9 @@ class Scanner(object):
                         thresholds[motif.id] = None
                     else:
                         thresholds[motif.id] = threshold
-
+        
+        self.threshold_str = "{}_{}_{}_{}_{}".format(fdr, threshold, genome,
+                                        length, filename)
         self.threshold = thresholds
 
     def set_genome(self, genome):
@@ -445,13 +446,13 @@ class Scanner(object):
             counts = [len(m) for m in matches]
             yield counts
      
-    def total_count(self, seqs, nreport=100, scan_rc=True, cutoff=0.95):
+    def total_count(self, seqs, nreport=100, scan_rc=True):
         """
         count the number of matches above the cutoff
         returns an iterator of lists containing integer counts
         """
         
-        count_table = [counts for counts in self.count(seqs, nreport, scan_rc, cutoff)]
+        count_table = [counts for counts in self.count(seqs, nreport, scan_rc)]
         return np.sum(np.array(count_table), 0)
     
     def best_score(self, seqs, scan_rc=True):
@@ -543,7 +544,7 @@ class Scanner(object):
                 # return values or store values in cache
                 if self.use_cache:
                     # store values in cache    
-                    key = str((region, index_dir, motif_digest, nreport, scan_rc, cutoff))
+                    key = str((region, index_dir, motif_digest, nreport, scan_rc, self.threshold_str))
                     self.cache.set(key, ret)
                 else:
                     #return values
@@ -552,7 +553,7 @@ class Scanner(object):
         if self.use_cache: 
             # return results from cache
             for region in regions:
-                key = str((region, index_dir, motif_digest, nreport, scan_rc, cutoff))
+                key = str((region, index_dir, motif_digest, nreport, scan_rc, self.threshold_str))
                 ret = self.cache.get(key)
                 if ret == NO_VALUE or ret is None:
                     raise Exception("cache is not big enough to hold all " 
@@ -581,7 +582,7 @@ class Scanner(object):
             scan_seqs = []
         
             for seq,seq_hash in hashes.items():
-                key = str((seq_hash, motif_digest, nreport, scan_rc, cutoff))
+                key = str((seq_hash, motif_digest, nreport, scan_rc, self.threshold_str))
                 ret = self.cache.get(key)
                 if ret == NO_VALUE or ret is None:
                     scan_seqs.append(seq.upper())
@@ -597,7 +598,7 @@ class Scanner(object):
             for seq, ret in self._scan_jobs(scan_func, scan_seqs):
                 if self.use_cache:
                     h = hashes[seq]
-                    key = str((h, motif_digest, nreport, scan_rc, cutoff))
+                    key = str((h, motif_digest, nreport, scan_rc, self.threshold_str))
                     self.cache.set(key, ret)
                 else: 
                     yield ret
@@ -605,7 +606,7 @@ class Scanner(object):
         if self.use_cache:
             # return results from cache
             for seq in seqs:
-                key = str((hashes[seq.upper()], motif_digest, nreport, scan_rc, cutoff))
+                key = str((hashes[seq.upper()], motif_digest, nreport, scan_rc, self.threshold_str))
                 ret = self.cache.get(key)
                 if ret == NO_VALUE or ret is None:
                     raise Exception("cache is not big enough to hold all " 

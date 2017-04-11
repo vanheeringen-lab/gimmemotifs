@@ -922,7 +922,7 @@ class MoreMoap(object):
         print "Average fraction", np.mean(fraction)
         return coef
 
-def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=None, pwmfile=None, genome=None, cutoff=0.95):
+def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=None, pwmfile=None, genome=None, fdr=0.01):
     """ Run a single motif activity prediction algorithm.
     
     Parameters
@@ -954,8 +954,8 @@ def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=N
         Genome name, as indexed by gimme. Required when motiffile is not
         supplied
     
-    cutoff : float, optional
-        Cutoff for motif scanning
+    fdr : float, optional
+        FDR for motif scanning
     
     Returns
     -------
@@ -1020,7 +1020,8 @@ def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=N
         motif_names = [m.id for m in read_motifs(open(pwmfile))]
         scores = []
         if method == 'classic' or scoring == "count":
-            for row in s.count(list(df.index), cutoff=cutoff):
+            s.set_threshold(fdr=fdr)
+            for row in s.count(list(df.index)):
                 scores.append(row)
         else:
             for row in s.best_score(list(df.index)):
