@@ -1,6 +1,9 @@
 Tutorials
 =========
 
+While GimmeMotifs was originally developed to predict *de novo* motifs in ChIP-seq peaks, it is now a full-fledged suite of TF motif analysis tools. 
+You can still identify new motifs, but also scan for known motifs, find differential motifs in multiple sets of sequences, create sequence logos, calculate all kinds of enrichment statistics, and more!
+
 Find de novo motifs
 -------------------
 
@@ -9,22 +12,10 @@ gimme motifs
 Scan for known motifs
 ---------------------
 
-To scan for known motifs, for instance in a set of ChIP-seq peaks, you will need to do three things:
+To scan for known motifs, you will need a set op input sequences and a file with motifs. By default, `gimme scan` uses the motif database that comes included, which is based on clustered, non-redundant motifs from CIS-BP. 
+For input sequences you can use either a BED file or a FASTA file. 
+You will also need to define the genome. This is used to retrieve sequences, if you have specified a BED file, but also to determine the correct motif-specific threshold for scanning. The default is the genome that is defined in the configuration file.
 
-* Define a genomic background file
-* Set a threshold, based on the background
-* Scan!
-
-In  short:
-
-Define background::
-
-    $ gimme background hg38.random.w200.fa genomic -n 10000 -w 200 -g hg38
-
-Set threshold (1% FDR)::
-
-    $ gimme threshold <pwmfile> background hg38.random.w200.fa 0.01 > hg38.threshold.w200.fdr0.01.txt
-    
 Scan::
 
     $ gimme scan <input> -p <pwmfile> -c hg38.threshold.w200.fdr0.01.txt > result.scan.gff
