@@ -38,7 +38,7 @@ def get_roc_values(motif, fg_file, bg_file):
 
         (x, y) = roc_values(fg_vals, bg_vals)
         return None,x,y
-    except Exception,e:
+    except Exception as e:
         error = e
         return error,[],[]
 

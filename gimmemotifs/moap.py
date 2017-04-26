@@ -4,6 +4,7 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 """ Module for motif activity prediction """
+from __future__ import print_function
 def warn(*args, **kwargs):
         pass
 import warnings
@@ -788,14 +789,14 @@ class MoreMoap(object):
 
         for nclus in range(3, len(df_y.columns) + 1):
             labels = fcluster(L, nclus, 'maxclust')
-            print labels
+            print(labels)
             if max(labels) < nclus:
                 sys.stderr.write("remaining clusters are too similar")
                 break
             sets = []
             for i in range(1, nclus + 1):
                 sets.append(list(df_y.columns[labels == i]))
-            print sets
+            print(sets)
             nbootstrap = 100
             result = self._run_bootstrap_model(
                         y, sets, df_X, nsample=1000, nbootstrap=nbootstrap
@@ -809,19 +810,19 @@ class MoreMoap(object):
                 break
             
             for i in range(nclus):
-                print '***'
-                print sets
-                print result.columns[:len(sets)]
-                print '***'
+                print('***')
+                print(sets)
+                print(result.columns[:len(sets)])
+                print('***')
                 cols = result.columns[range(i,result.shape[1], nclus)]
-                print cols
+                print(cols)
                 act = result[cols].mean(1)
                 for col in df_y.columns[labels == i + 1]:
-                    print col
+                    print(col)
                     self.dfs[col][str(nclus)] = act.values
 
-            print self.dfs["NK"].shape
-            print self.dfs["NK"].columns 
+            print(self.dfs["NK"].shape)
+            print(self.dfs["NK"].columns) 
 
         self.act_ = pd.DataFrame(index=df_X.columns)
         for col in self.dfs.keys():
@@ -918,8 +919,8 @@ class MoreMoap(object):
             #counts.loc[c.index.values] += 1
             #print counts.sort("count").tail(1)
     
-        print "Average accuracy", np.mean(acc)
-        print "Average fraction", np.mean(fraction)
+        print("Average accuracy", np.mean(acc))
+        print("Average fraction", np.mean(fraction))
         return coef
 
 def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=None, pwmfile=None, genome=None, fdr=0.01):

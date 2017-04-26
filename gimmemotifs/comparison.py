@@ -7,6 +7,7 @@
 """ 
 Module to compare DNA sequence motifs (positional frequency matrices)
 """
+from __future__ import print_function
 
 # Python imports
 import sys
@@ -162,7 +163,7 @@ class MotifComparer(object):
         try:
             [1 - norm.cdf(score[0], m, s), score[1], score[2]]
         except Exception as e:
-            print "Error with score: {}\n{}".format(score, e)
+            print("Error with score: {}\n{}".format(score, e))
             return [1, np.nan, np.nan]
         return [1 - norm.cdf(score[0], m, s), score[1], score[2]]
 
@@ -186,7 +187,7 @@ class MotifComparer(object):
                 try:
                     func = getattr(distance, metric)     
                 except: 
-                    raise Exception, "Unknown metric '{}'".format(metric)
+                    raise Exception("Unknown metric '{}'".format(metric))
 
             scores = []
             for pos1,pos2 in zip(matrix1,matrix2):
@@ -196,7 +197,7 @@ class MotifComparer(object):
             elif combine == "sum":
                 return np.sum(scores)
             else:
-                raise "Unknown combine"
+                raise ValueError("Unknown combine")
 
     def max_subtotal(self, matrix1, matrix2, metric, combine):
         scores = []
@@ -355,7 +356,7 @@ class MotifComparer(object):
                 # and update the result score
                 for m1,v in result.items():
                     for m2, s in v.items():
-                        if not scores.has_key(m1):
+                        if m1 not in scores:
                             scores[m1] = {}
                         scores[m1][m2] = s
         

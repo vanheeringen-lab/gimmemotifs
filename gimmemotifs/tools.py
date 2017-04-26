@@ -4,6 +4,7 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 """Interface module for all motif programs."""
+from __future__ import print_function
 # Python imports
 import re
 import os
@@ -70,10 +71,10 @@ def locate_tool(name, verbose=True):
     tool_bin = which(m.cmd) 
     if tool_bin:
         if verbose:
-            print "Found {} in {}".format(m.name, tool_bin) 
+            print("Found {} in {}".format(m.name, tool_bin)) 
         return tool_bin 
     else: 
-        print "Couldn't find {}".format(m.name)
+        print("Couldn't find {}".format(m.name))
 
 class MotifProgram(object):
     
@@ -309,7 +310,7 @@ class Homer(MotifProgram):
  
         # Background file is essential!
         if not prm["background"]:
-            print "Background file needed!"
+            print("Background file needed!")
             sys.exit()
         
         prm["background"] =  os.path.abspath(prm["background"])
@@ -411,7 +412,7 @@ class BioProspector(MotifProgram):
         
         # Background file is essential!
         if not prm["background"]:
-            print "Background file needed!"
+            print("Background file needed!")
             sys.exit()
  
         # Absolute path, just to be sure
@@ -663,7 +664,7 @@ class Amd(MotifProgram):
  
         # Background file is essential!
         if not prm["background"]:
-            print "Background file needed!"
+            print("Background file needed!")
             sys.exit()
  
         # Absolute path, just to be sure
@@ -790,7 +791,7 @@ class Improbizer(MotifProgram):
         
         # Not strictly necessary, but recommended
         if not params["background"]:
-            print "Background file needed!"
+            print("Background file needed!")
             sys.exit()
  
         # Absolute path, just to be sure
@@ -914,7 +915,7 @@ class Trawler(MotifProgram):
  
         # Background file is essential!
         if not prm["background"]:
-            print "Background file needed!"
+            print("Background file needed!")
             sys.exit()
         
         # Absolute path, just to be sure

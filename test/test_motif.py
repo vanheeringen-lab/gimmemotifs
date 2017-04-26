@@ -1,3 +1,4 @@
+from __future__ import print_function
 import unittest
 import tempfile
 import os
@@ -55,7 +56,7 @@ class TestMotif(unittest.TestCase):
             self.assert_(os.path.exists("test/test.png"))
             os.unlink("test/test.png")
         else:
-            print "seqlogo not found, skipping."
+            print("seqlogo not found, skipping.")
 
     def test6_pcc(self):
         pfm1 = [[5,0,0,0],[0,5,0,0],[0,5,0,0],[0,0,0,5]]

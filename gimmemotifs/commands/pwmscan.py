@@ -7,6 +7,7 @@
 """
 Command line function 'scan'.
 """
+from __future__ import print_function
 import os
 import re
 
@@ -135,16 +136,16 @@ def pwmscan(args):
     if args.fdr is None and args.cutoff is None:
         args.fdr = 0.01
 
-    print "# GimmeMotifs version {}".format(GM_VERSION)
-    print "# Input: {}".format(args.inputfile)
-    print "# Motifs: {}".format(args.pwmfile)
+    print("# GimmeMotifs version {}".format(GM_VERSION))
+    print("# Input: {}".format(args.inputfile))
+    print("# Motifs: {}".format(args.pwmfile))
     if args.fdr:
         if args.genome:
-            print "# FDR: {} ({})".format(args.fdr, args.genome)
+            print("# FDR: {} ({})".format(args.fdr, args.genome))
         elif args.bgfile:
-            print "# FDR: {} ({})".format(args.fdr, args.bgfile)
+            print("# FDR: {} ({})".format(args.fdr, args.bgfile))
     if args.cutoff:
-        print "# Threshold: {}".format(args.cutoff)
+        print("# Threshold: {}".format(args.cutoff))
 
     for line in command_scan(
             args.inputfile, 
@@ -161,4 +162,4 @@ def pwmscan(args):
             bgfile=args.bgfile,
             genome=args.genome,
             ):
-        print line
+        print(line)

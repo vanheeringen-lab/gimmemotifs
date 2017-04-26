@@ -5,6 +5,7 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 
+from __future__ import print_function
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.motif import pwmfile_to_motifs, Motif 
 from gimmemotifs.plot import match_plot
@@ -16,10 +17,10 @@ def match(args):
     mc = MotifComparer()
     result = mc.get_closest_match(sample.values(), db.values(), "partial", "wic", "mean")
 
-    print "Motif\tMatch\tScore\tP-value"
+    print("Motif\tMatch\tScore\tP-value")
     for motif, match in result.items():
         pval, pos, orient = mc.compare_motifs(sample[motif], db[match[0]], "partial", "wic", "mean", pval=True)
-        print "%s\t%s\t%0.2f\t%0.3e" % (motif, match[0], match[1][0], pval)
+        print("%s\t%s\t%0.2f\t%0.3e" % (motif, match[0], match[1][0], pval))
 
     if args.img:
         plotdata = []

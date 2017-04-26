@@ -367,7 +367,7 @@ def roc_auc_xlim(x_bla, y_bla, xlim=0.1):
     y = new_y
 
     if len(x) != len(y):
-        raise "Unequal!"
+        raise ValueError("Unequal!")
 
     if not xlim:
         xlim = 1.0

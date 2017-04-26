@@ -191,8 +191,8 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
     genome_fa = os.path.join(index, "genome.fa")
 
     if not os.path.exists(genome_size) or not os.path.exists(genome_fa):
-        raise RuntimeError, "genome files not found, please re-index {} "  \
-                "with a recent version of gimme index".format(genome)
+        raise RuntimeError("genome files not found, please re-index {} "  \
+                "with a recent version of gimme index".format(genome))
 
     try:
         fa = Fasta(matchfile)

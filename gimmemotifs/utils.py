@@ -5,6 +5,7 @@
 # distribution.
 
 """ Odds and ends that for which I didn't (yet) find another place """
+from __future__ import print_function
 
 # Python imports
 import os
@@ -63,9 +64,9 @@ def divide_file(fname, sample, rest, fraction, abs_max):
     tmp.close()
 
     if stderr:
-        print "Something went wrong.\nstdout: {}\nstderr; {}".format(
+        print("Something went wrong.\nstdout: {}\nstderr; {}".format(
                 stdout,
-                stderr)
+                stderr))
         sys.exit()
 
     # Rest
@@ -119,7 +120,7 @@ def write_equalwidth_bedfile(bedfile, width, outfile):
                 try:
                     start, end = int(vals[1]), int(vals[2])
                 except ValueError:
-                    print "Error on line %s while reading %s. Is the file in BED or WIG format?" % (line_count, bedfile)
+                    print("Error on line %s while reading %s. Is the file in BED or WIG format?" % (line_count, bedfile))
                     sys.exit(1)
 
                 start = (start + end) / 2 - (width / 2)
@@ -228,7 +229,7 @@ def calc_motif_enrichment(sample, background, mtc=None, len_sample=None, len_bac
 
 
     if mtc not in [None, "Bonferroni", "Benjamini-Hochberg", "None"]:
-        raise RuntimeError, "Unknown correction: %s" % mtc
+        raise RuntimeError("Unknown correction: %s" % mtc)
 
     sig = {}
     p_value  = {}

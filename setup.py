@@ -340,7 +340,7 @@ class install_tools(Command):
         for file in self.outfiles:
             #trawler pl's
             if file.endswith("pl"):
-                os.chmod(file, 0755)
+                os.chmod(file, 0o755)
     
     def get_outputs(self):
         return self.outfiles or []
