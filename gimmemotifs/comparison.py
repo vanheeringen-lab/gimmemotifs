@@ -339,7 +339,7 @@ class MotifComparer(object):
             # Number of chunks = number of processors available
             n_cpus = int(MotifConfig().get_default_params()["ncpus"])
 
-            batch_len = len(dbmotifs) / n_cpus
+            batch_len = len(dbmotifs) // n_cpus
             if batch_len <= 0:
                 batch_len = 1
             jobs = []
@@ -432,8 +432,7 @@ class MotifComparer(object):
         for l1 in all_scores.keys():
             for l2 in all_scores.keys():
                 scores = self.get_all_scores(sorted_motifs[l1], sorted_motifs[l2], match, metric, combine)
-                scores = scores.values()
-                scores = [[y[0] for y in x.values() if y] for x in scores]
+                scores = [[y[0] for y in x.values() if y] for x in scores.values()]
                 scores = np.array(scores).ravel()
                 f.write("%s\t%s\t%s\t%s\n" % (l1, l2, np.mean(scores), np.std(scores)))
 

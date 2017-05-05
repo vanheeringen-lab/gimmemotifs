@@ -504,6 +504,7 @@ setup (name = 'gimmemotifs',
             "xdg",
             "diskcache",
             "cityhash",
+            "configparser",
         ],
         dependency_links = [
             "https://github.com/scikit-learn-contrib/lightning/archive/master.zip"]

@@ -4,7 +4,7 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 """ Configuration for GimmeMotifs """
-import ConfigParser
+import configparser
 import sysconfig
 import xdg
 import os
@@ -40,10 +40,10 @@ class MotifConfig(object):
     def __init__(self, use_config=""):
         self.__dict__ = self.__shared_state
         if use_config:
-            self.config = ConfigParser.ConfigParser()
+            self.config = configparser.ConfigParser()
             cfg = self.config.read(use_config)
         elif not self.config:
-            self.config = ConfigParser.ConfigParser()
+            self.config = configparser.ConfigParser()
             cfg = self.config.read(self.configs)
             if not cfg:
                 raise ValueError("Configuration file not found!")

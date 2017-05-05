@@ -186,13 +186,13 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
         if progress:
             progress = (1 - len(cmp_nodes) / float(total)) * 100
             sys.stderr.write('\rClustering [{0}{1}] {2}%'.format(
-                '#'*(int(progress)/10), 
-                " "*(10 - int(progress)/10), 
+                '#' * (int(progress) // 10), 
+                " " * (10 - int(progress) // 10), 
                 int(progress)))
         
         result = mc.get_all_scores(
                 [new_node.motif], 
-                cmp_nodes.keys(), 
+                list(cmp_nodes.keys()), 
                 match, 
                 metric, 
                 combine, 
