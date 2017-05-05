@@ -9,6 +9,7 @@ import sys
 import logging
 import logging.handlers
 import shutil
+from past.builtins import cmp
 
 from gimmemotifs.config import MotifConfig, BG_RANK, parse_denovo_params
 from gimmemotifs import mytmpdir
@@ -71,7 +72,7 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
 
     # Create file for location plots
     lwidth = int(params["lwidth"])
-    extend = (lwidth - width) / 2
+    extend = (lwidth - width) // 2
     
     track2fasta(
             index_dir, 
