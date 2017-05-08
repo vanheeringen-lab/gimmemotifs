@@ -32,7 +32,7 @@ from gimmemotifs.genome_index import rc,check_genome
 try:
     from dogpile.cache import make_region
     from dogpile.cache.api import NO_VALUE
-    from cityhash import CityHash64
+    import xxhash
 except ImportError:
     pass 
 
@@ -316,7 +316,7 @@ class Scanner(object):
         self.motif_ids = [m.id for m in read_motifs(open(motif_file))]
         self.checksum = {}
         if self.use_cache:
-            chksum = CityHash64("\n".join(sorted(self.motif_ids)))
+            chksum = xxhash.xxh64("\n".join(sorted(self.motif_ids))).digest()
             self.checksum[self.motif_file] = chksum
 
     def _threshold_from_seqs(self, motifs, seqs, fdr):
@@ -578,7 +578,7 @@ class Scanner(object):
         scan_seqs = seqs
         if self.use_cache:
             # determine which sequences are not in the cache 
-            hashes = dict([(s.upper(), CityHash64(s.upper())) for s in seqs])
+            hashes = dict([(s.upper(), xxhash.xxh64(s.upper()).digest()) for s in seqs])
             scan_seqs = []
         
             for seq,seq_hash in hashes.items():

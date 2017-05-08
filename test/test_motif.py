@@ -111,7 +111,7 @@ class TestMotif(unittest.TestCase):
             [0.123, 0.456, 0.222, 0.199],
             ]
         m = Motif(pwm)
-        h = "NDUxMjYy"
+        h = "1f260320cac8c26a"
         self.assertEquals(h, m.hash())
         
         pwm = [
