@@ -4,10 +4,10 @@ python:
   - "2.7"
   - "3.5"
 
-cache:
-  apt: true
-  directories:
-    - $HOME/miniconda
+#cache:
+#  apt: true
+#  directories:
+#    - $HOME/miniconda
 
 before_install:
   # install miniconda for Python dependencies
@@ -26,6 +26,7 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 
 install:
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip
   - conda install --yes python=$TRAVIS_PYTHON_VERSION future numpy scipy matplotlib=2 statsmodels pymc scikit-learn 
   - conda install --yes python=$TRAVIS_PYTHON_VERSION seaborn jinja2 bedtools pysam pybedtools ucsc-genepredtobed 
   - conda install --yes python=$TRAVIS_PYTHON_VERSION lightning r xgboost r-robustrankaggreg pillow pyyaml meme diskcache six configparser
