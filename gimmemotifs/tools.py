@@ -264,8 +264,8 @@ class XXmotif(MotifProgram):
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout += out.decode()
+        stderr += err.decode()
         
         motifs = []
         
@@ -471,15 +471,14 @@ class BioProspector(MotifProgram):
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout += out.decode()
+        stderr += err.decode()
         
         motifs = []
         
         if os.path.exists(outfile):
-            f = open(outfile)
-            motifs = self.parse(f)
-            f.close()
+            with open(outfile) as f: 
+                motifs = self.parse(f)
         
         return motifs, stdout, stderr
 
@@ -602,9 +601,6 @@ class Hms(MotifProgram):
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
         
-        stdout = ""
-        stderr = ""
-    
         cmd = "%s -i %s -w 21 -dna 4 -iteration 50 -chain 20 -seqprop -0.1 -strand 2 -peaklocation %s -t_dof 3 -dep 2" % (bin, fgfile, summitfile)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         stdout,stderr = p.communicate()
@@ -718,8 +714,8 @@ class Amd(MotifProgram):
                 )
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout += out.decode()
+        stderr += err.decode()
         
         os.chdir(current_path)
         motifs = []
@@ -844,8 +840,8 @@ class Improbizer(MotifProgram):
                 params["outfile"])
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout += out.decode()
+        stderr += err.decode()
         
         motifs = []
         if os.path.exists(params["outfile"]):
@@ -965,8 +961,6 @@ class Trawler(MotifProgram):
         current_path = os.getcwd()
         os.chdir(self.dir())
         
-        stdout = ""
-        stderr = ""
         cmd = "%s -sample %s -background %s -directory %s -strand %s" % (
                 bin, 
                 fastafile, 
@@ -984,7 +978,8 @@ class Trawler(MotifProgram):
         stdout += "\nOutfile: {}".format(out_file)
         
         if os.path.exists(out_file):
-            motifs = read_motifs(open(out_file), fmt="pwm")
+            with open(out_file) as f: 
+                motifs = read_motifs(f, fmt="pwm")
             stdout += "\nTrawler: {} motifs".format(len(motifs))
         
         # remove temporary files
@@ -1143,15 +1138,15 @@ class Weeder(MotifProgram):
 
             for (w,e) in coms:
                 out,err = self._run_weeder_subset(bin, fastafile, w, e, weeder_organism, strand)
-                stdout += out
-                stderr += err
+                stdout += out.decode()
+                stderr += err.decode()
     
         cmd = "%s %s" % (adviser, fastafile)
         #print cmd
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout += out.decode()
+        stderr += err.decode()
         
         os.chdir(current_path)
 
@@ -1759,8 +1754,8 @@ class Posmo(MotifProgram):
             cmd = "%s %s %s simi.txt 0.88 10 2 10" % (bin.replace("posmo","clusterwd"), context_file, outfile)
             p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
             out, err = p.communicate()
-            stdout += out
-            stderr += err
+            stdout += out.decode()
+            stderr += err.decode()
         
             if os.path.exists(outfile):
                 motifs += self.parse(open(outfile))
