@@ -327,7 +327,7 @@ class Motif(object):
         pwm = self.pwm
 
         strandmap = {-1:"-","-1":"-","-":"-","1":"+",1:"+","+":"+"}
-        gff_line = ("{}\tpwmscan\tmisc_feature\t{}\t{}\t{}\t{}\t.\t"
+        gff_line = ("{}\tpwmscan\tmisc_feature\t{}\t{}\t{:.3f}\t{}\t.\t"
                     "motif_name \"{}\" ; motif_instance \"{}\"\n")
         for name, seq in fa.items():
             result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
