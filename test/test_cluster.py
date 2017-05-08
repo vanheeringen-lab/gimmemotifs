@@ -24,9 +24,9 @@ class TestMotifPwm(unittest.TestCase):
         
         clusters = tree.getResult()
 
-        self.assertEquals(2, len(clusters))
-        self.assertEquals([3,2], [len(c[1]) for c 
-            in sorted(clusters, cmp=lambda x,y: cmp(len(x), len(y)))])
+        self.assertEqual(2, len(clusters))
+        self.assertEqual([3,2], [len(c[1]) for c 
+            in sorted(clusters, key=lambda x: len(x))])
 
     def tearDown(self):
         pass

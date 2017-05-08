@@ -115,7 +115,8 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
     
     # First read pfm or pfm formatted motiffile
     if type([]) != type(motifs):
-        motifs = read_motifs(open(motifs), fmt="pwm")
+        with open(motifs) as f:
+            motifs = read_motifs(f, fmt="pwm")
     
     mc = MotifComparer()
 

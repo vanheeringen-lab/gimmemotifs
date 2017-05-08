@@ -26,6 +26,19 @@ from gimmemotifs.c_metrics import pwmscan,score
 from gimmemotifs.motif import parse_motifs
 # pool import is at the bottom
 
+try: 
+    import copy_reg
+    import types
+    def _pickle_method(m):
+        if m.im_self is None:
+            return getattr, (m.im_class, m.im_func.func_name)
+        else:
+            return getattr, (m.im_self, m.im_func.func_name)
+
+    copy_reg.pickle(types.MethodType, _pickle_method)
+except:
+    pass
+
 # Create random sequence
 nucs = []
 L = 10 ** 4
@@ -35,6 +48,7 @@ RANDOM_SEQ = "".join(nucs)
 
 # Function that can be parallelized
 def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
+    
     try:
         scores = {}
         for m1 in motifs:
@@ -102,9 +116,10 @@ class MotifComparer(object):
                     self.scoredist[metric]["%s_%s" % (match, combine)] = {}
                     score_file = os.path.join(self.config.get_score_dir(), "%s_%s_%s_score_dist.txt" % (match, metric, combine))
                     if os.path.exists(score_file):
-                        for line in open(score_file):
-                            l1, l2, m, sd = line.strip().split("\t")[:4]
-                            self.scoredist[metric]["%s_%s" % (match, combine)].setdefault(int(l1), {})[int(l2)] = [float(m), float(sd)]
+                        with open(score_file) as f:
+                            for line in f:
+                                l1, l2, m, sd = line.strip().split("\t")[:4]
+                                self.scoredist[metric]["%s_%s" % (match, combine)].setdefault(int(l1), {})[int(l2)] = [float(m), float(sd)]
     
     def compare_motifs(self, m1, m2, match="total", metric="wic", combine="mean", pval=False):
 
@@ -404,8 +419,8 @@ class MotifComparer(object):
         for motif in scores:
             scores[motif] = sorted(
                     scores[motif].items(), 
-                    cmp=lambda x,y: cmp(y[1][0], x[1][0])
-                    )[0]
+                    key=lambda x:x[1][0]
+                    )[-1]
         
         for motif in motifs:
             dbmotif, score = scores[motif.id]

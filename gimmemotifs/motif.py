@@ -12,6 +12,7 @@ from math import log,sqrt
 import subprocess as sp
 from tempfile import NamedTemporaryFile
 from warnings import warn
+import six
 
 from gimmemotifs import mytmpdir
 from gimmemotifs.config import MotifConfig
@@ -824,13 +825,14 @@ def parse_motifs(motifs):
     motifs : list
         List of Motif instances.
     """
-    if isinstance(motifs, str):
-        if motifs.endswith("pwm") or motifs.endswith("pfm"):
-            motifs = read_motifs(open(motifs), fmt="pwm")
-        elif motifs.endswith("transfac"):
-            motifs = read_motifs(open(motifs), fmt="transfac")
-        else: 
-            motifs = read_motifs(open(motifs))
+    if isinstance(motifs, six.string_types):
+        with open(motifs) as f:
+            if motifs.endswith("pwm") or motifs.endswith("pfm"):
+                motifs = read_motifs(f, fmt="pwm")
+            elif motifs.endswith("transfac"):
+                motifs = read_motifs(f, fmt="transfac")
+            else: 
+                motifs = read_motifs(f)
     elif isinstance(motifs, Motif):
         motifs = [motifs]
     else:
