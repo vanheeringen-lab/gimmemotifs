@@ -26,7 +26,7 @@ def rankagg(df, method="stuart"):
     pandas.DataFrame with aggregated ranks
     """
     tmpdf = NamedTemporaryFile()
-    tmpscript = NamedTemporaryFile() 
+    tmpscript = NamedTemporaryFile(mode="w") 
     tmpranks = NamedTemporaryFile()
 
     df.to_csv(tmpdf.name, sep="\t",index=False) 

@@ -15,7 +15,8 @@ class TestRank(unittest.TestCase):
         """ Test rank aggregation """
         df = pd.read_table(self.fname, index_col=0)
         result = rankagg(df)
-        self.assertEquals("AP2", result.sort_values().index[0])
+        self.assertEqual("AP2", result.sort_values().index[0])
 
-
+if __name__ == '__main__':
+    unittest.main()
         

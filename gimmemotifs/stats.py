@@ -45,7 +45,8 @@ def calc_stats(motifs, fg_file, bg_file, stats=None, ncpus=None):
         all_motifs = [motifs]
     else:
         try:
-            all_motifs = read_motifs(open(motifs), fmt="pwm")
+            with open(motifs) as f:
+                all_motifs = read_motifs(f, fmt="pwm")
         except TypeError:
             all_motifs = motifs
     

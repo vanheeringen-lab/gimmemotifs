@@ -37,7 +37,7 @@ class TestStats(unittest.TestCase):
                 self.assertIn(f, list(stats.values())[0])
             
             # Two motifs
-            self.assertEquals(2, len(stats))
+            self.assertEqual(2, len(stats))
     
             m1 = "T-box_M1713_1.01_CTAGGTGTGAA" # not enriched
             m2 = "p53_Average_8_CATGyCnGGrCATGy"    # highly enriched
@@ -45,7 +45,7 @@ class TestStats(unittest.TestCase):
             self.assertLess(stats[m1]["roc_auc"] , 0.9)
             self.assertGreater(stats[m2]["roc_auc"] , 0.5)
     
-            self.assertEquals(stats[m1]["recall_at_fdr"] , 0.0)
+            self.assertEqual(stats[m1]["recall_at_fdr"] , 0.0)
             self.assertGreater(stats[m2]["recall_at_fdr"] , 0.8)
         
             self.assertGreater(stats[m1]["ks_pvalue"] , 0.01)
@@ -57,7 +57,7 @@ class TestStats(unittest.TestCase):
             # Only calculate specific statistic
             stats = calc_stats(self.motifs, self.fg_fa, self.bg_fa, ["roc_auc"])
             
-            self.assertEquals(1, len(stats.values()[0]))
+            self.assertEqual(1, len(list(stats.values())[0]))
             
             self.assertLess(stats[m1]["roc_auc"] , 0.9)
             self.assertGreater(stats[m2]["roc_auc"] , 0.5)
@@ -67,7 +67,8 @@ class TestStats(unittest.TestCase):
         
         m_id = "p53_Average_8_CATGyCnGGrCATGy"
         
-        motifs = read_motifs(open(self.motifs))
+        with open(self.motifs) as f:
+            motifs = read_motifs(f)
         motif = [m for m in motifs if str(m) == m_id][0]
         
         stats = calc_stats(motif, self.fg_fa, self.bg_fa, ["roc_auc"])

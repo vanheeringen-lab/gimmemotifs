@@ -42,7 +42,8 @@ def phyper(k, good, bad, N):
     return np.sum(pvalues)
 
 def divide_file(fname, sample, rest, fraction, abs_max):
-    lines = open(fname).readlines()
+    with open(fnames) as f:
+        lines = f.readlines()
     #random.seed()
     random.shuffle(lines)
 
@@ -194,31 +195,32 @@ class MotifResult(object):
 def parse_gff(gff_file):
     mr = MotifResult()
     total = 0
-    f = open(gff_file)
+    
     BUFSIZE = 10000000
-    while 1:
-        lines = f.readlines(BUFSIZE)
-        if not lines:
-            break
-        for line in lines:
-            vals = line.strip().split("\t")
-            if len(vals) == 9:
-                (seq, program, feature, start, end, score, strand, bla, extra) = vals
-        
-                (motif_name, motif_instance) = map("".strip, extra.split(";"))
-                motif_name = motif_name.split(" ")[1][1:-1]
-                motif_instance = motif_instance.split(" ")[1][1:-1]
-
-                mr.sequences[seq] = 1
-
-                if not motif_name in mr.motifs:
-                    mr.motifs[motif_name] = {}
-                if not seq in mr.motifs[motif_name]:
-                    mr.motifs[motif_name][seq] = 0
-                mr.motifs[motif_name][seq] += 1
-            else:
-                sys.stderr.write("Error parsing line in %s\n%s\n" % (gff_file, line))
-        total += len(lines)
+    with open(gff_file) as f:
+        while 1:
+            lines = f.readlines(BUFSIZE)
+            if not lines:
+                break
+            for line in lines:
+                vals = line.strip().split("\t")
+                if len(vals) == 9:
+                    (seq, program, feature, start, end, score, strand, bla, extra) = vals
+            
+                    (motif_name, motif_instance) = map(str.strip, extra.split(";"))
+                    motif_name = motif_name.split(" ")[1][1:-1]
+                    motif_instance = motif_instance.split(" ")[1][1:-1]
+    
+                    mr.sequences[seq] = 1
+    
+                    if not motif_name in mr.motifs:
+                        mr.motifs[motif_name] = {}
+                    if not seq in mr.motifs[motif_name]:
+                        mr.motifs[motif_name][seq] = 0
+                    mr.motifs[motif_name][seq] += 1
+                else:
+                    sys.stderr.write("Error parsing line in %s\n%s\n" % (gff_file, line))
+            total += len(lines)
     return mr
 
 def calc_motif_enrichment(sample, background, mtc=None, len_sample=None, len_back=None):
@@ -270,8 +272,7 @@ def calc_motif_enrichment(sample, background, mtc=None, len_sample=None, len_bac
                 if p_value[motif] > 1:
                     p_value[motif] = 1
     elif mtc == "Benjamini-Hochberg":
-        motifs = p_value.keys()
-        motifs.sort(cmp=lambda x,y: -cmp(p_value[x],p_value[y]))
+        motifs = sorted(p_value.keys(), key=lambda x: -p_value[x])
         l = len(p_value)
         c = l
         for m in motifs:
@@ -521,8 +522,9 @@ def as_fasta(seqs, index_dir=None):
         else:
 
             if ftype == "regionfile":
-                seqs = [l.strip() for l in open(seqs).readlines()]
-            tmpbed = NamedTemporaryFile()
+                with open(seqs) as f:
+                    seqs = [l.strip() for l in f.readlines()]
+            tmpbed = NamedTemporaryFile(mode="w")
             for seq in seqs:
                 vals = re.split(r'[:-]', seq)
                 tmpbed.write("{}\t{}\t{}\n".format(*vals))
