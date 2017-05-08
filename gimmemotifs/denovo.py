@@ -372,14 +372,14 @@ def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, sta
             if clus not in motifs:
                 eval_motifs.append(clus)
             eval_motifs = [motifs[str(e)] for e in eval_motifs]
-            best_motif = sorted(eval_motifs, key=lambda x: rank[str(x)])[0]
+            best_motif = sorted(eval_motifs, key=lambda x: rank[str(x)])[-1]
             best_motifs.append(best_motif)
         else:
             best_motifs.append(clus)
         for bg in background:
             stats[str(best_motifs[-1])][bg]["num_cluster"] = len(singles)
 
-    best_motifs = sorted(best_motifs, key=lambda x: rank[str(x)])
+    best_motifs = sorted(best_motifs, key=lambda x: rank[str(x)], reverse=True)
     return best_motifs
     
 def rename_motifs(motifs, stats=None):
