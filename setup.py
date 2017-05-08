@@ -508,5 +508,6 @@ setup (
             "xxhash",
             "configparser",
             "six",
+            "future",
         ],
 )
