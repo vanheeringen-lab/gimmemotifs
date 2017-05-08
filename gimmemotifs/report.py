@@ -171,11 +171,10 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
                     inputfile=inputfile, 
                     date=datetime.today().strftime("%d/%m/%Y"), 
                     version=GM_VERSION,
-                    bg_types=background)
+                    bg_types=list(background.keys()))
 
-    f = open(total_report, "w")
-    f.write(result.encode('utf-8'))
-    f.close()
+    with open(total_report, "wb") as f:
+        f.write(result.encode('utf-8'))
 
 def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outdir, params, stats=None):
     """Create text and graphical (.html) motif reports."""
