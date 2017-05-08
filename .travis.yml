@@ -4,17 +4,23 @@ python:
   - "2.7"
   - "3.5"
 
-#cache:
-#  apt: true
-#  directories:
-#    - $HOME/miniconda
+cache:
+  apt: true
+  directories:
+    - $HOME/miniconda
 
 before_install:
   # install miniconda for Python dependencies
-  - wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh
+  
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
   - chmod +x miniconda.sh
   - ./miniconda.sh -b -p $HOME/miniconda -f
   - export PATH=$HOME/miniconda/bin:$PATH
+  - conda config --set always_yes yes 
   - conda update --yes conda
   - conda config --add channels conda-forge
   - conda config --add channels defaults
@@ -26,10 +32,8 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION future numpy scipy matplotlib=2 statsmodels pymc scikit-learn 
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION seaborn jinja2 bedtools pysam pybedtools ucsc-genepredtobed 
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION lightning r xgboost r-robustrankaggreg pillow pyyaml meme diskcache six configparser
+  - conda create -n gimmemotifs python=$TRAVIS_PYTHON_VERSION pip future numpy scipy matplotlib=2 statsmodels pymc scikit-learn seaborn jinja2 bedtools pysam pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml meme diskcache six
+  - source activate gimmemotifs
   - pip install configparser
   - pip install xdg
   - pip install xxhash
