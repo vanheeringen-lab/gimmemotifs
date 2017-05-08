@@ -19,31 +19,33 @@ class TestGenomeIndex(unittest.TestCase):
         """ index a single fasta-file """
         # First fasta-file 
         fasta_file = os.path.join(self.fasta_dir, "chr1.fa")
-        self.assert_(os.path.exists(fasta_file))
+        self.assertTrue(os.path.exists(fasta_file))
         self.g._make_index(fasta_file, self.temp_file)
         # Check if index exists
-        self.assert_(os.path.exists(self.temp_file))
+        self.assertTrue(os.path.exists(self.temp_file))
         # Read index file and check length
-        index_size = len(open(self.temp_file).read())
+        with open(self.temp_file) as f:
+            index_size = len(f.read())
         self.assertEqual(index_size, 7 * len(pack(self.g.pack_char, 0)))
         
         # Second fasta-file 
         fasta_file = os.path.join(self.fasta_dir, "chr3.fa")
-        self.assert_(os.path.exists(fasta_file))
+        self.assertTrue(os.path.exists(fasta_file))
         self.g._make_index(fasta_file, self.temp_file)
         # Check if index exists
-        self.assert_(os.path.exists(self.temp_file))
+        self.assertTrue(os.path.exists(self.temp_file))
         # Read index file and check length
-        index_size = len(open(self.temp_file).read())
+        with open(self.temp_file) as f:
+            index_size = len(f.read())
         self.assertEqual(index_size, 4 * len(pack(self.g.pack_char, 0)))
 
     def test_create_index(self):
         """ index a directory of fasta-files """
         self.g.create_index(self.fasta_dir, self.index_dir)
-        self.assert_(os.path.exists(os.path.join(self.index_dir, "chr1.index")))
-        self.assert_(os.path.exists(os.path.join(self.index_dir, "chr2.index")))
-        self.assert_(os.path.exists(os.path.join(self.index_dir, "chr3.index")))
-        self.assert_(os.path.exists(os.path.join(self.index_dir, self.g.param_file)))
+        self.assertTrue(os.path.exists(os.path.join(self.index_dir, "chr1.index")))
+        self.assertTrue(os.path.exists(os.path.join(self.index_dir, "chr2.index")))
+        self.assertTrue(os.path.exists(os.path.join(self.index_dir, "chr3.index")))
+        self.assertTrue(os.path.exists(os.path.join(self.index_dir, self.g.param_file)))
 
     def test_get_sequence(self):
         """ get_sequence should correctly retrieve sequences from the index """
@@ -74,7 +76,9 @@ class TestGenomeIndex(unittest.TestCase):
         result = os.path.join(self.fasta_dir, "track2fasta_result")
         bedfile = os.path.join(self.fasta_dir, "test.bed")
         track2fasta(self.index_dir, bedfile, self.temp_file)
-        self.assertEqual(open(result).read(), open(self.temp_file).read())
+        with open(result) as f_new:
+            with open(self.temp_file) as f_ref:
+                self.assertEqual(f_new.read(), f_ref.read())
         ## Test track2fasta with extend
         #self.assertEqual(self.g.get_sequence("chr1", 2, 5, extend_up=2), "AAAACC")
         #self.assertEqual(self.g.get_sequence("chr1", 2, 5, extend_down=2), "AACCCC")
@@ -105,7 +109,7 @@ class TestGenomeIndex(unittest.TestCase):
         genome_dir = os.path.join(fadir, genome)
         index_dir = tempfile.mkdtemp(prefix="gimme.")
         get_genome(genome, fadir, index_dir)
-        self.assertEquals(17, len(glob(os.path.join(genome_dir, "*.fa*"))))
+        self.assertEqual(17, len(glob(os.path.join(genome_dir, "*.fa*"))))
         
         for d in fadir, index_dir:
             rmtree(d)

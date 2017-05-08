@@ -5,9 +5,7 @@
 # distribution.
 """ Module to index genomes for fast retrieval of sequences """
 from __future__ import print_function
-
 from struct import pack,unpack
-from string import maketrans
 from glob import glob
 import subprocess as sp
 import random
@@ -15,7 +13,11 @@ import bisect
 import sys
 import os
 from tempfile import NamedTemporaryFile
-import urllib
+try:
+    from urllib.request import urlopen, urlretrieve
+except:
+    from urllib import urlopen, urlretrieve
+
 import re
 from distutils.spawn import find_executable
 import gzip 
@@ -26,6 +28,10 @@ from gimmemotifs.shutils import find_by_ext
 from gimmemotifs.config import FASTA_EXT,MotifConfig
 from gimmemotifs.fasta import Fasta
 
+try:
+    from string import maketrans
+except:
+    maketrans = "".maketrans
 
 UCSC_GENOME_URL = "http://hgdownload.soe.ucsc.edu/goldenPath/{0}/bigZips/chromFa.tar.gz"
 ALT_UCSC_GENOME_URL = "http://hgdownload.soe.ucsc.edu/goldenPath/{0}/bigZips/{0}.fa.gz"
@@ -47,9 +53,10 @@ def create_bedtools_fa(index_dir, fasta_dir):
     genome_fa = os.path.join(index_dir, "genome.fa")
     # Create genome FASTA file for use with bedtools
     with open(genome_fa, 'w') as out:
-        for f in find_by_ext(fasta_dir, FASTA_EXT):
-            for line in open(f):
-                out.write(line)
+        for fname in find_by_ext(fasta_dir, FASTA_EXT):
+            with open(fname) as f:
+                for line in f:
+                    out.write(line)
 
     # Delete old bedtools index if it exists, otherwise bedtools will
     # give an error.
@@ -57,7 +64,7 @@ def create_bedtools_fa(index_dir, fasta_dir):
         os.unlink(genome_fa + ".fai")
     
     test_chr = g.get_chromosomes()[0]
-    tmp = NamedTemporaryFile()
+    tmp = NamedTemporaryFile(mode="w")
     tmp.write("{}\t1\t2\n".format(test_chr))
     tmp.flush()
 
@@ -71,11 +78,14 @@ def create_bedtools_fa(index_dir, fasta_dir):
 
 def check_genome_file(fname):
     if os.path.exists(fname):
-        with open(fname) as f:
+        with open(fname, "r") as f:
             for _ in range(10):
-                line = f.readline()
-                if line.find("Not Found") != -1:
-                    return False
+                try:
+                    line = f.readline()
+                    if line.find("Not Found") != -1:
+                        return False
+                except:
+                    pass
             return True
     return False
 
@@ -101,10 +111,10 @@ def download_annotation(genomebuild, gene_file):
     tmp = NamedTemporaryFile(delete=False, suffix=".gz")
 
     anno = []
-    f = urllib.request.urlopen(UCSC_GENE_URL.format(genomebuild))
+    f = urlopen(UCSC_GENE_URL.format(genomebuild))
     p = re.compile(r'\w+.Gene.txt.gz')
     for line in f.readlines():
-        m = p.search(line)
+        m = p.search(line.decode())
         if m:
             anno.append(m.group(0))
 
@@ -116,13 +126,13 @@ def download_annotation(genomebuild, gene_file):
             break
     if url:
         sys.stderr.write("Using {}\n".format(url))
-        urllib.urlretrieve(
+        urlretrieve(
                 url,
                 tmp.name
                 )
          
         with gzip.open(tmp.name) as f:
-            cols = f.readline().split("\t")
+            cols = f.readline().decode(errors='ignore').split("\t")
 
         start_col = 1
         for i,col in enumerate(cols):
@@ -153,7 +163,7 @@ def download_genome(genomebuild, genome_dir):
                 )
 
         sys.stderr.write("Trying to download {}\n".format(genome_url.format(genomebuild)))
-        urllib.request.urlretrieve(
+        urlretrieve(
                 genome_url.format(genomebuild),
                 genome_fa
                 )
@@ -257,7 +267,7 @@ class GenomeIndex(object):
     
     def _make_index(self, fasta, index):
         """ Index a single, one-sequence fasta-file"""
-        out = open(index, "w")
+        out = open(index, "wb")
         f = open(fasta)
         # Skip first line of fasta-file
         line = f.readline()
@@ -374,12 +384,13 @@ class GenomeIndex(object):
     def _read_index_file(self):
         """read the param_file, index_dir should already be set """
         param_file = os.path.join(self.index_dir, self.param_file)
-        for line in open(param_file).readlines():
-            (name, fasta_file, index_file, line_size, total_size) = line.strip().split("\t")
-            self.size[name] = int(total_size)
-            self.fasta_file[name] = fasta_file
-            self.index_file[name] = index_file
-            self.line_size[name] = int(line_size)
+        with open(param_file) as f:
+            for line in f.readlines():
+                (name, fasta_file, index_file, line_size, total_size) = line.strip().split("\t")
+                self.size[name] = int(total_size)
+                self.fasta_file[name] = fasta_file
+                self.index_file[name] = index_file
+                self.line_size[name] = int(line_size)
 
     def _read_seq_from_fasta(self, fasta, offset, nr_lines):
         """ retrieve a number of lines from a fasta file-object, starting at offset"""
@@ -443,7 +454,7 @@ class GenomeIndex(object):
         index_file = self.index_file[chr]
         line_size = self.line_size[chr]
         total_size = self.size[chr]
-        index = open(index_file)
+        index = open(index_file, "rb")
         fasta = open(fasta_file)
         
         seqs = []
@@ -494,7 +505,7 @@ class GenomeIndex(object):
                     "Invalid end {0}, greater than sequence length {1} of {2}!".format(end, total_size, chrom))
 
 
-        index = open(index_file)
+        index = open(index_file, "rb")
         fasta = open(fasta_file)
         seq = self._read(index, fasta, start, end, line_size)
         index.close()
