@@ -20,7 +20,7 @@ class TestDenovo(unittest.TestCase):
         
         gimme_motifs("test/data/denovo/input.fa", self.outdir,
             params={
-                "tools":"Homer",#,MDmodule,BioProspector", 
+                "tools":"BioProspector,Homer,MDmodule",
                 "fraction":0.5,
                 "background":"random"
                 },
