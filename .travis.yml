@@ -2,7 +2,7 @@ language: python
 
 python:
   - "2.7"
-  - "3.4"
+  - "3.5"
 
 cache:
   apt: true
@@ -30,6 +30,7 @@ install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION future numpy scipy matplotlib=2 statsmodels pymc scikit-learn 
   - conda install --yes python=$TRAVIS_PYTHON_VERSION seaborn jinja2 bedtools pysam pybedtools ucsc-genepredtobed 
   - conda install --yes python=$TRAVIS_PYTHON_VERSION lightning r xgboost r-robustrankaggreg ete3 pillow pyyaml meme diskcache six configparser
+  - pip install configparser
   - pip install xdg
   - pip install xxhash
   - python setup.py develop
