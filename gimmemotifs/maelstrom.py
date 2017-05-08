@@ -77,7 +77,7 @@ def moap_with_table(input_table, motif_table, data_dir, method, scoring):
 
 def safe_join(df1, df2):     
     tmp = df1.copy()
-    tmp["_safe_count"] = range(df1.shape[0])     
+    tmp["_safe_count"] = list(range(df1.shape[0]))
     return tmp.join(df2).sort_values("_safe_count").drop( "_safe_count", 1)
 
 def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
@@ -241,8 +241,8 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         except:
             sys.stderr.write("Activity file for {} not found!\n".format(t))
     
-    df_p = pd.DataFrame(index=dfs.values()[0].index)
-    names = dfs.values()[0].columns
+    df_p = pd.DataFrame(index=list(dfs.values())[0].index)
+    names = list(dfs.values())[0].columns
     for e in names:
         df_tmp = pd.DataFrame()
         for method,scoring,fname in exps:
@@ -261,7 +261,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
     if df.shape[1] == 1:
         mcount = df.join(pd.read_table(count_table, index_col=0))
         m_group = mcount.groupby(df.columns[0])
-        freq = (m_group.sum() / m_group.count())
+        freq = m_group.sum() / m_group.count()
         freq.to_csv(os.path.join(outdir, "motif.freq.txt"), sep="\t")
 
     if plot:

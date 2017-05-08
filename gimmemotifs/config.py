@@ -47,7 +47,6 @@ class MotifConfig(object):
             cfg = self.config.read(self.configs)
             if not cfg:
                 raise ValueError("Configuration file not found!")
-        
     def bin(self, program):
         try:
             exe = self.config.get(program, "bin")

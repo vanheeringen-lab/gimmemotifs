@@ -16,7 +16,6 @@ import sys
 import os
 from tempfile import NamedTemporaryFile
 import urllib
-import urllib2
 import re
 from distutils.spawn import find_executable
 import gzip 
@@ -102,7 +101,7 @@ def download_annotation(genomebuild, gene_file):
     tmp = NamedTemporaryFile(delete=False, suffix=".gz")
 
     anno = []
-    f = urllib2.urlopen(UCSC_GENE_URL.format(genomebuild))
+    f = urllib.request.urlopen(UCSC_GENE_URL.format(genomebuild))
     p = re.compile(r'\w+.Gene.txt.gz')
     for line in f.readlines():
         m = p.search(line)
@@ -154,7 +153,7 @@ def download_genome(genomebuild, genome_dir):
                 )
 
         sys.stderr.write("Trying to download {}\n".format(genome_url.format(genomebuild)))
-        urllib.urlretrieve(
+        urllib.request.urlretrieve(
                 genome_url.format(genomebuild),
                 genome_fa
                 )
@@ -397,11 +396,11 @@ class GenomeIndex(object):
         
     def _make_gc_windows(self, fname, fasta, window):
         f = open(fname, "w")
-        pc = float(window) / 100
+        pc = window / 100.0
         for chrom, seq in fasta.items():
             for i in range(0, len(seq), window):
                 subseq = seq[i: i + window].upper()
-                if subseq.count("N") < window / 4:
+                if subseq.count("N") < window /i/ 4:
                     gc = int((subseq.count("G") + subseq.count("C")) / pc)
                     f.write("%s\t%s\t%s\n" % (chrom, i, gc))
 
@@ -410,9 +409,9 @@ class GenomeIndex(object):
     
     def _read(self, index, fasta, start, end, line_size):
         #start = start - 1
-        start_line = int(start / line_size)  
+        start_line = start // line_size 
         size = len(pack(self.pack_char, 0))
-        nr_lines = (end - start) / line_size + 2 
+        nr_lines = (end - start) // line_size + 2 
         i_offset = size * (start_line)
         #print start
         #print start_line
@@ -507,7 +506,7 @@ class GenomeIndex(object):
 
     def get_chromosomes(self):
         """ Return all sequences in the index """
-        return self.index_file.keys()
+        return list(self.index_file.keys())
 
     def get_size(self, chrom=None):
         """ Return the sizes of all sequences in the index, or the size of chrom if specified

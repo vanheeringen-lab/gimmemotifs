@@ -12,7 +12,7 @@ import sys
 from subprocess import Popen, PIPE
 import shutil
 from tempfile import NamedTemporaryFile, mkdtemp
-import StringIO
+import io
 
 # gimme imports
 from gimmemotifs.config import MotifConfig
@@ -1618,7 +1618,7 @@ class ChIPMunk(MotifProgram):
         out = open(new_file, "w")
         f = Fasta(fastafile)
         for seq in f.seqs:
-            header = " ".join(["%0.1f" % x for x in range(len(seq) / 2) + range(len(seq) / 2, 0, -1)])
+            header = " ".join(["%0.1f" % x for x in list(range(len(seq) / 2)) + list(range(len(seq) / 2, 0, -1))])
             out.write(">%s\n" % header)
             out.write("%s\n" % seq)
         out.close()
@@ -2056,7 +2056,7 @@ class Meme(MotifProgram):
         stdout,stderr = p.communicate()
 
         motifs = []
-        motifs = self.parse(StringIO.StringIO(stdout))
+        motifs = self.parse(io.StringIO(stdout))
         
         # Delete temporary files
         tmp.close()
@@ -2097,7 +2097,7 @@ class Meme(MotifProgram):
                         if not pfm:
                             pfm = [[0 for x in range(4)] for x in range(len(l))]
                         for pos in range(len(l)):
-                            if l[pos] in nucs.keys():
+                            if l[pos] in nucs:
                                 pfm[pos][nucs[l[pos]]] += 1
                             else:
                                 for i in range(4):
@@ -2186,7 +2186,7 @@ class MemeW(MotifProgram):
         stdout,stderr = p.communicate()
 
         motifs = []
-        motifs = self.parse(StringIO.StringIO(stdout))
+        motifs = self.parse(io.StringIO(stdout))
         
         # Delete temporary files
         tmp.close()
@@ -2227,7 +2227,7 @@ class MemeW(MotifProgram):
                         if not pfm:
                             pfm = [[0 for x in range(4)] for x in range(len(l))]
                         for pos in range(len(l)):
-                            if l[pos] in nucs.keys():
+                            if l[pos] in nucs:
                                 pfm[pos][nucs[l[pos]]] += 1
                             else:
                                 for i in range(4):

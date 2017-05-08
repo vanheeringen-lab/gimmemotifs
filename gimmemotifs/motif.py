@@ -22,7 +22,7 @@ try:
     import numpy as np
 except ImportError:
     pass
-from cityhash import CityHash64
+import xxhash
 import base64
 
 class Motif(object):
@@ -677,7 +677,7 @@ class Motif(object):
         Returns:
         hash : str
         """
-        return base64.b64encode(str(CityHash64(self._pwm_to_str(3))))[:8]
+        return xxhash.xxh64(self._pwm_to_str(3)).hexdigest()
 
     def to_pwm(self, precision=4, extra_str=""):
         """Return pwm as string.

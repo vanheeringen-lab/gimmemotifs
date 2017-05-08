@@ -221,7 +221,7 @@ class LightningClassificationMoap(object):
             # Scale motif scores
             df_X = df_X.apply(scale)
         
-        idx = range(df_y.shape[0]) 
+        idx = list(range(df_y.shape[0]))
 
         y = df_y.iloc[idx]
         X = df_X.loc[y.index].values
@@ -642,7 +642,7 @@ class LassoMoap(object):
             # Scale motif scores
             df_X = df_X.apply(scale)
 
-        idx = range(df_y.shape[0])
+        idx = list(range(df_y.shape[0]))
         y = df_y.iloc[idx]
         X = df_X.loc[y.index].values
         y = y.values
@@ -814,7 +814,7 @@ class MoreMoap(object):
                 print(sets)
                 print(result.columns[:len(sets)])
                 print('***')
-                cols = result.columns[range(i,result.shape[1], nclus)]
+                cols = result.columns[list(range(i,result.shape[1], nclus))]
                 print(cols)
                 act = result[cols].mean(1)
                 for col in df_y.columns[labels == i + 1]:
