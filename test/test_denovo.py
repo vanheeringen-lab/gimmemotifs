@@ -40,7 +40,8 @@ class TestDenovo(unittest.TestCase):
             self.assertTrue(os.path.exists(os.path.join(self.outdir, fname)))   
   
         # Check if correct motif is predicted
-        predicted_motifs = read_motifs(open(os.path.join(self.outdir, "motifs.pwm")))
+        with open(os.path.join(self.outdir, "motifs.pwm")) as f:
+            predicted_motifs = read_motifs(f)
         ap1 = motif_from_consensus("TGASTCA")
 
         mc = MotifComparer()
