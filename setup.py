@@ -480,7 +480,7 @@ setup (
             'Operating System :: MacOS :: MacOS X',
             'Operating System :: POSIX :: Linux',
             'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 2 :: Only',
+            'Programming Language :: Python :: 3.5',
             'Topic :: Scientific/Engineering :: Bio-Informatics',
             ],
         scripts=[
