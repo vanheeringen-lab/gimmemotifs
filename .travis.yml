@@ -26,7 +26,7 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy matplotlib=2 statsmodels pymc scikit-learn seaborn jinja2 bedtools pysam pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg ete3 pillow pyyaml moods meme diskcache six configparser
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy matplotlib=2 statsmodels pymc scikit-learn seaborn jinja2 bedtools pysam pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg ete3 pillow pyyaml meme diskcache six configparser
   - pip install xdg
   - pip install xxhash
   - python setup.py develop
