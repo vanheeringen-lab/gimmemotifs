@@ -335,8 +335,7 @@ def roc_auc_xlim(x_bla, y_bla, xlim=0.1):
     for i in x + y:
         u[i] = 1
 
-    vals = u.keys()
-    vals.sort()
+    vals = sorted(u.keys())
     
     len_x = float(len(x))
     len_y = float(len(y))
@@ -374,20 +373,7 @@ def roc_auc_xlim(x_bla, y_bla, xlim=0.1):
 
     auc = 0.0
     bla = zip(stats.rankdata(x), range(len(x)))
-
-    def sortfunc(x,y):
-        """
-        Local sort function. 
-        """
-        res = x[0] - y[0]
-        if res < 0:
-            return -1
-        elif res > 0:
-            return 1
-        elif res == 0:
-            return y[1] - x[1]
-    
-    bla.sort(sortfunc)
+    bla = sorted(bla, key=lambda x: x[1])
     
     prev_x = x[bla[0][1]]
     prev_y = y[bla[0][1]]

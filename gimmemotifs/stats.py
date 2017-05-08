@@ -158,7 +158,7 @@ def rank_motifs(stats, metrics=("roc_auc", "recall_at_fdr")):
     rank = {}
     combined_metrics = []
     motif_ids = stats.keys()
-    background = stats.values()[0].keys()
+    background = list(stats.values())[0].keys()
     for metric in metrics:
         mean_metric_stats = [np.mean(
             [stats[m][bg][metric] for bg in background]) for m in motif_ids]
@@ -174,12 +174,12 @@ def write_stats(stats, fname, header=None):
     """write motif statistics to text file."""
     # Write stats output to file
 
-    for bg in stats.values()[0].keys():
+    for bg in list(stats.values())[0].keys():
         f = open(fname.format(bg), "w")
         if header:
             f.write(header)
         
-        stat_keys = sorted(stats.values()[0].values()[0].keys())
+        stat_keys = sorted(list(list(stats.values())[0].values())[0].keys())
         f.write("{}\t{}\n".format("Motif", "\t".join(stat_keys)))
 
         for motif in stats:

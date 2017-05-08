@@ -224,7 +224,8 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
     if title is None:
         title = infile
 
-    motifs = read_motifs(open(infile), fmt="pwm")
+    with open(infile) as f:
+        motifs = read_motifs(f, fmt="pwm")
 
     trim_ic = 0.2
     clusters = []
@@ -263,7 +264,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
             scores = {}
             for motif in members:
                 scores[motif] =  mc.compare_motifs(cluster, motif, "total", "wic", "mean", pval=True)
-            add_pos = sorted(scores.values(),cmp=lambda x,y: cmp(x[1], y[1]))[0][1]
+            add_pos = sorted(scores.values(),key=lambda x: x[1])[0][1]
             for motif in members:
                 score, pos, strand = scores[motif]
                 add = pos - add_pos
@@ -289,9 +290,8 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
                 version=GM_VERSION)
 
     cluster_report = os.path.join(outdir, "cluster_report.html")
-    f = open(cluster_report, "w")
-    f.write(result.encode('utf-8'))
-    f.close()
+    with open(cluster_report, "wb") as f:
+        f.write(result.encode('utf-8'))
 
     f = open(outfile, "w")
     if len(clusters) == 1 and len(clusters[0][1]) == 1:

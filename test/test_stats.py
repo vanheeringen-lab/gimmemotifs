@@ -34,7 +34,7 @@ class TestStats(unittest.TestCase):
             stats = calc_stats(self.motifs, self.fg_fa, self.bg_fa, ncpus=ncpus)
             
             for f in self.stat_functions:
-                self.assertIn(f, stats.values()[0])
+                self.assertIn(f, list(stats.values())[0])
             
             # Two motifs
             self.assertEquals(2, len(stats))

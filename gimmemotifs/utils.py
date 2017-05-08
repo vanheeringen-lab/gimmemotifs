@@ -11,12 +11,11 @@ from __future__ import print_function
 import os
 import re
 import sys
-import md5
+import hashlib
 import mmap
 import random
 import tempfile
 from math import log
-from string import strip
 from subprocess import Popen
 from tempfile import NamedTemporaryFile
 
@@ -206,7 +205,7 @@ def parse_gff(gff_file):
             if len(vals) == 9:
                 (seq, program, feature, start, end, score, strand, bla, extra) = vals
         
-                (motif_name, motif_instance) = map(strip, extra.split(";"))
+                (motif_name, motif_instance) = map("".strip, extra.split(";"))
                 motif_name = motif_name.split(" ")[1][1:-1]
                 motif_instance = motif_instance.split(" ")[1][1:-1]
 
@@ -545,6 +544,7 @@ def file_checksum(fname):
     -------
         checkum : str
     """
-    f = open(fname, "r+")
     size = os.path.getsize(fname)
-    return md5.md5(mmap.mmap(f.fileno(), size)).hexdigest()
+    with open(fname, "r+") as f:
+        checksum = hashlib.md5(mmap.mmap(f.fileno(), size)).hexdigest()
+    return checksum

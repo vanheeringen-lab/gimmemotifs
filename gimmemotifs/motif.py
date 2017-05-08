@@ -732,7 +732,7 @@ class Motif(object):
             seqs = ["" for i in range(N)]
         else:
             for nuc in ["A", "C", "T", "G"]:
-                seqs += [nuc * add_left for i in range(N / 4)]
+                seqs += [nuc * add_left for i in range(N // 4)]
 
         for pos in range(len(self.pwm)):
             vals = [self.pwm[pos][0] * N]
@@ -751,7 +751,7 @@ class Motif(object):
                 elif i <= vals[3]:
                     seqs[i] += "T"
     
-        f = NamedTemporaryFile(dir=mytmpdir())
+        f = NamedTemporaryFile(mode="w", dir=mytmpdir())
         for seq in seqs:
             f.write("%s\n" % seq)
         f.flush()

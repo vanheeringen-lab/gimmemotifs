@@ -20,7 +20,7 @@ class TestMotifProgram(unittest.TestCase):
         if bin and self.isInstalled(bin):
             m.local_bin = bin
             (motifs, stderr, stdout) =  m.run(self.fa)
-            self.assert_(len(motifs) > 0)
+            self.assertTrue(len(motifs) > 0)
         else:
             sys.stderr.write("Skipping meme test\n")
 
@@ -31,7 +31,7 @@ class TestMotifProgram(unittest.TestCase):
         if bin and self.isInstalled(bin):
             (motifs, stderr, stdout) =  m.run(self.fa)
             #print motifs
-            self.assert_(len(motifs) > 0)
+            self.assertTrue(len(motifs) > 0)
         else:
             sys.stderr.write("Skipping MDmodule test\n")
 
@@ -41,7 +41,7 @@ class TestMotifProgram(unittest.TestCase):
         bin = locate_tool("Weeder")
         if bin and self.isInstalled(bin):
             (motifs, stderr, stdout) =  m.run(self.fa)
-            self.assert_(len(motifs) > 0)
+            self.assertTrue(len(motifs) > 0)
         else:
             sys.stderr.write("Skipping Weeder test\n")
 
@@ -52,7 +52,7 @@ class TestMotifProgram(unittest.TestCase):
         if bin and self.isInstalled(bin):
             (motifs, stderr, stdout) =  m.run(self.fa, {"background":os.path.join(self.data_dir, "test.bg")})
             #print motifs
-            self.assert_(len(motifs) > 0)
+            self.assertTrue(len(motifs) > 0)
         else:
             sys.stderr.write("Skipping MotifSampler test\n")
 
@@ -63,7 +63,7 @@ class TestMotifProgram(unittest.TestCase):
     #    if m.is_installed():
     #        (motifs, stderr, stdout) =  m.run(self.fa, ".")
     #        #print motifs
-    #        self.assert_(len(motifs) > 0)
+    #        self.assertTrue(len(motifs) > 0)
     #    else:
     #        sys.stderr.write("Skipping gadem test\n")
 

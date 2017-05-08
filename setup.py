@@ -305,7 +305,7 @@ class build_config(Command):
         # Write (temporary) config file
         config_file = os.path.join(self.build_cfg, "%s" % CONFIG_NAME)
         dlog.info("writing (temporary) configuration file: %s" % config_file)
-        f = open(config_file, "wb")
+        f = open(config_file, "w")
         cfg.write(f)
         f.close()
 
@@ -420,7 +420,7 @@ class install_config(Command):
             dlog.info("INFO: This config has been saved as %s", old_config)
          
         dlog.info("writing configuration file %s" % config_file)
-        f =  open(config_file, "wb")
+        f =  open(config_file, "w")
         cfg.write(f)
         
     def get_outputs(self):
@@ -507,5 +507,6 @@ setup (
             "diskcache",
             "xxhash",
             "configparser",
+            "six",
         ],
 )

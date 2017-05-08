@@ -5,6 +5,7 @@ from functools import partial
 from tempfile import mkdtemp,NamedTemporaryFile
 import logging
 from multiprocessing import Pool
+import six
 
 # "hidden" features, in development
 try:
@@ -26,6 +27,20 @@ from gimmemotifs.c_metrics import pwmscan
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import parse_cutoff,get_seqs_type,file_checksum
 from gimmemotifs.genome_index import rc,check_genome
+
+try:
+    import copy_reg
+    import types
+    def _pickle_method(m):
+        if m.im_self is None:
+            return getattr, (m.im_class, m.im_func.func_name)
+        else:
+            return getattr, (m.im_self, m.im_func.func_name)
+
+    copy_reg.pickle(types.MethodType, _pickle_method)
+except:
+    pass
+
 
 
 # only used when using cache, should not be a requirement
@@ -62,8 +77,9 @@ def scan_fasta_to_best_score(fname, motifs, ncpus=None):
     s.set_motifs(motifs)
     s.set_threshold(threshold=0.0)
 
-    if isinstance(motifs, str) and os.path.exists(motifs):
-        motifs = read_motifs(open(motifs))
+    if isinstance(motifs, six.string_types) and os.path.exists(motifs):
+        with open(motifs) as f:
+            motifs = read_motifs(f)
 
     logger.debug("scanning %s...", fname)
     result = dict([(m.id, []) for m in motifs])
@@ -96,8 +112,9 @@ def scan_fasta_to_best_match(fname, motifs, ncpus=None):
     s.set_motifs(motifs)
     s.set_threshold(threshold=0.0)
     
-    if isinstance(motifs, str) and os.path.exists(motifs):
-        motifs = read_motifs(open(motifs))
+    if isinstance(motifs, six.string_types) and os.path.exists(motifs):
+        with open(motifs) as f: 
+            motifs = read_motifs(f)
 
     logger.debug("scanning %s...", fname)
     result = dict([(m.id, []) for m in motifs])
@@ -108,7 +125,8 @@ def scan_fasta_to_best_match(fname, motifs, ncpus=None):
     return result
 
 def parse_threshold_values(motif_file, cutoff):
-    motifs = read_motifs(open(motif_file))
+    with open(motif_file) as f:
+        motifs = read_motifs(f)
     d = parse_cutoff(motifs, cutoff)
     threshold = {}
     for m in motifs:
@@ -304,7 +322,7 @@ class Scanner(object):
         try:
             # Check if motifs is a list of Motif instances
             motifs[0].to_pwm()
-            tmp = NamedTemporaryFile(delete=False)
+            tmp = NamedTemporaryFile(mode="w", delete=False)
             for m in motifs:
                 tmp.write("{}\n".format(m.to_pwm()))
             tmp.close()
@@ -313,7 +331,8 @@ class Scanner(object):
             motif_file = motifs
 
         self.motifs = motif_file
-        self.motif_ids = [m.id for m in read_motifs(open(motif_file))]
+        with open(motif_file) as f:
+            self.motif_ids = [m.id for m in read_motifs(f)]
         self.checksum = {}
         if self.use_cache:
             chksum = xxhash.xxh64("\n".join(sorted(self.motif_ids))).digest()
@@ -372,7 +391,8 @@ class Scanner(object):
                 raise ValueError("Parameter fdr should be between 0 and 1")
         
         thresholds = {}
-        motifs = read_motifs(open(self.motifs))
+        with open(self.motifs) as f: 
+            motifs = read_motifs(f)
         
         if threshold is not None:
             self.threshold = parse_threshold_values(self.motifs, threshold) 
@@ -461,9 +481,7 @@ class Scanner(object):
         returns an iterator of lists containing floats
         """
         for matches in self.scan(seqs, 1, scan_rc):
-            scores = [sorted(m, lambda x,y: 
-                                    cmp(y[0], x[0])
-                                    )[0][0] for m in matches]
+            scores = [sorted(m, key=lambda x: x[0])[0][0] for m in matches]
             yield scores
  
     def best_match(self, seqs, scan_rc=True):
@@ -473,11 +491,8 @@ class Scanner(object):
         (score, position, strand)
         """
         for matches in self.scan(seqs, 1, scan_rc):
-            top = [sorted(m, lambda x,y: 
-                                    cmp(y[0], x[0])
-                                    )[0] for m in matches]
+            top = [sorted(m, key=lambda x: x[0])[0] for m in matches]
             yield top
-    
    
     def scan(self, seqs, nreport=100, scan_rc=True):
         """
@@ -589,7 +604,8 @@ class Scanner(object):
         
         # scan the sequences that are not in the cache
         if len(scan_seqs) > 0:
-            motifs = [(m, self.threshold[m.id]) for m in read_motifs(open(self.motifs))]
+            with open(self.motifs) as f:
+                motifs = [(m, self.threshold[m.id]) for m in read_motifs(f)]
             scan_func = partial(scan_seq_mult,
                 motifs=motifs,
                 nreport=nreport,
@@ -618,12 +634,12 @@ class Scanner(object):
     def _scan_jobs(self, scan_func, scan_seqs):
         chunksize = 500
         if len(scan_seqs) / self.ncpus + 1 < chunksize:
-            chunksize = len(scan_seqs) / self.ncpus + 1
+            chunksize = len(scan_seqs) // self.ncpus + 1
         
         if self.ncpus > 1:
             pool = Pool(processes=self.ncpus, maxtasksperchild=1000)
             jobs = []
-            for i in range((len(scan_seqs) - 1) / chunksize + 1):
+            for i in range((len(scan_seqs) - 1) // chunksize + 1):
                 job = pool.apply_async(scan_func, (scan_seqs[i * chunksize:( i+ 1) * chunksize],))
                 jobs.append(job)
             
@@ -635,7 +651,7 @@ class Scanner(object):
                     yield region, ret
                     i += 1
         else:
-            for i in range((len(scan_seqs) - 1) / chunksize + 1):
+            for i in range((len(scan_seqs) - 1) // chunksize + 1):
                 for j,ret in enumerate(scan_func(scan_seqs[i * chunksize:( i+ 1) * chunksize])):
                     yield scan_seqs[i], ret
 

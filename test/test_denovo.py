@@ -20,7 +20,7 @@ class TestDenovo(unittest.TestCase):
         
         gimme_motifs("test/data/denovo/input.fa", self.outdir,
             params={
-                "tools":"Homer,MDmodule,BioProspector", 
+                "tools":"Homer",#,MDmodule,BioProspector", 
                 "fraction":0.5,
                 "background":"random"
                 },
@@ -31,7 +31,8 @@ class TestDenovo(unittest.TestCase):
                     "params.txt", "stats.random.txt"]
         
     
-        log = open(os.path.join(self.outdir, 'gimmemotifs.log')).read()
+        with open(os.path.join(self.outdir, 'gimmemotifs.log')) as f:
+            log = f.read()
         self.assertIn("clustering significant", log)
     
         # Check if all output files are there

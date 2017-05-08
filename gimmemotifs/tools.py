@@ -351,6 +351,7 @@ class Homer(MotifProgram):
         params = self._parse_params(params) 
         
         outfile = NamedTemporaryFile(
+                mode="w",
                 dir=self.tmpdir, 
                 prefix= "homer_w{}.".format(params["width"])
                 ).name
@@ -369,15 +370,16 @@ class Homer(MotifProgram):
         
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.tmpdir) 
         out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout += out.decode()
+        stderr += err.decode()
         
         motifs = []
         
         if os.path.exists(outfile):
-            motifs = read_motifs(open(outfile), fmt="pwm")
-            for i, m in enumerate(motifs):
-                m.id = "{}_{}_{}".format(self.name, params["width"], i + 1)
+            with open(outfile) as f:
+                motifs = read_motifs(f, fmt="pwm")
+                for i, m in enumerate(motifs):
+                    m.id = "{}_{}_{}".format(self.name, params["width"], i + 1)
         
         return motifs, stdout, stderr
 
@@ -956,7 +958,7 @@ class Trawler(MotifProgram):
         """
         params = self._parse_params(params)
 
-        tmp = NamedTemporaryFile(dir=self.tmpdir, delete=False)
+        tmp = NamedTemporaryFile(mode="w", dir=self.tmpdir, delete=False)
         shutil.copy(fastafile, tmp.name)
         fastafile = tmp.name
     
@@ -1487,11 +1489,12 @@ class MDmodule(MotifProgram):
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         stdout,stderr = p.communicate()
         
-        stdout = "cmd: {}\n".format(cmd) + stdout 
+        stdout = "cmd: {}\n".format(cmd) + stdout.decode() 
             
         motifs = []
         if os.path.exists(pwmfile):
-            motifs = self.parse(open(pwmfile))
+            with open(pwmfile) as f:
+                motifs = self.parse(f)
         
         os.chdir(current_path)
         
@@ -2056,7 +2059,7 @@ class Meme(MotifProgram):
         stdout,stderr = p.communicate()
 
         motifs = []
-        motifs = self.parse(io.StringIO(stdout))
+        motifs = self.parse(io.StringIO(stdout.decode()))
         
         # Delete temporary files
         tmp.close()
@@ -2186,7 +2189,7 @@ class MemeW(MotifProgram):
         stdout,stderr = p.communicate()
 
         motifs = []
-        motifs = self.parse(io.StringIO(stdout))
+        motifs = self.parse(io.StringIO(stdout.decode()))
         
         # Delete temporary files
         tmp.close()

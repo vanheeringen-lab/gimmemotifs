@@ -26,7 +26,7 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 from PIL import Image
 
 
-from ete3 import Tree, faces, AttrFace, TreeStyle, NodeStyle
+#from ete3 import Tree, faces, AttrFace, TreeStyle, NodeStyle
 
 VALID_EXTENSIONS = [".png", ".pdf", ".svg", ".ps"]
 
