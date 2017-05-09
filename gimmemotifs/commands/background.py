@@ -9,6 +9,7 @@ import sys
 import os
 from gimmemotifs.fasta import Fasta
 import gimmemotifs.background as bg
+from gimmemotifs.genome_index import check_genome
 from gimmemotifs.config import MotifConfig, BG_TYPES
 from gimmemotifs.utils import number_of_seqs_in_file
 
@@ -38,10 +39,8 @@ def background(args):
     # Genome index location for creation of FASTA files
     index_dir = os.path.join(config.get_index_dir(), args.genome)
     if bg_type in ["gc", "genomic", "promoter"] and outformat == "fasta":
-        if not os.path.exists(index_dir):
-            print("Index for %s does not exist. Has the genome been indexed for use with GimmeMotifs?" % args.genome)
-            sys.exit(1)
-        
+        check_genome(args.genome)
+
     # Gene definition
     gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % args.genome)
     if bg_type in ["promoter"]:
