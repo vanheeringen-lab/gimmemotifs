@@ -58,13 +58,14 @@ DEFAULT_PARAMS = {
     "use_cache": "False",
 }
 
-MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer",  "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms", "Homer"]
+MOTIF_CLASSES = ["MDmodule", "Meme", "MemeW", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer",  "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms", "Homer", "XXmotif"]
 LONG_RUNNING = ["GADEM"]
 
 
 # Included binaries after compile
 MOTIF_BINS = {
     "MEME": "src/meme_4.6.0/src/meme.bin",
+    "MEMEW": "src/meme_4.6.0/src/meme.bin",
     "MDmodule": "src/MDmodule/MDmodule",
     "BioProspector": "src/BioProspector/BioProspector",
     "GADEM": "src/GADEM_v1.3/src/gadem",

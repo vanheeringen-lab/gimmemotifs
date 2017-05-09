@@ -1,72 +1,49 @@
 import unittest
 import tempfile
 import os
-from gimmemotifs.tools import *
+from gimmemotifs.tools import __tools__, get_tool
+from gimmemotifs.comparison import MotifComparer
+from gimmemotifs.motif import motif_from_consensus
 
 class TestMotifProgram(unittest.TestCase):
     """ A test class for motifprograms """
 
     def setUp(self):
         self.data_dir = "test/data/motifprogram"
-        self.fa = os.path.join(self.data_dir, "test.fa")
+        self.fa = os.path.join("test/data/denovo/input.fa")
+        self.bg_fa = os.path.join("test/data/denovo/random.fa")
 
     def isInstalled(self, bin):
         return os.path.exists(bin) and os.access(bin, os.X_OK)
     
-    def test_meme(self):
-        """ test meme """
-        m = Meme()
-        bin = locate_tool("Meme")
-        if bin and self.isInstalled(bin):
-            m.local_bin = bin
-            (motifs, stderr, stdout) =  m.run(self.fa)
-            self.assertTrue(len(motifs) > 0)
-        else:
-            sys.stderr.write("Skipping meme test\n")
+    def ap1_included(self, motifs):
+        ap1 = motif_from_consensus("TGASTCA")
+        mc = MotifComparer()
+        for motif in motifs:
+            match = mc.get_closest_match(ap1, motif)
+            if match["TGASTCA"][1][3] < 1e-6:
+                return True
+        return False
 
-    def test_MDmodule(self):
-        """ test MDmodule """
-        m = MDmodule()
-        bin = locate_tool("MDmodule")
-        if bin and self.isInstalled(bin):
-            (motifs, stderr, stdout) =  m.run(self.fa)
-            #print motifs
-            self.assertTrue(len(motifs) > 0)
-        else:
-            sys.stderr.write("Skipping MDmodule test\n")
-
-    def test_Weeder(self):
-        """ test Weeder """
-        m = Weeder()
-        bin = locate_tool("Weeder")
-        if bin and self.isInstalled(bin):
-            (motifs, stderr, stdout) =  m.run(self.fa)
-            self.assertTrue(len(motifs) > 0)
-        else:
-            sys.stderr.write("Skipping Weeder test\n")
-
-    def test_MotifSampler(self):
-        """ test MotifSampler """
-        m = MotifSampler()
-        bin = locate_tool("MotifSampler")
-        if bin and self.isInstalled(bin):
-            (motifs, stderr, stdout) =  m.run(self.fa, {"background":os.path.join(self.data_dir, "test.bg")})
-            #print motifs
-            self.assertTrue(len(motifs) > 0)
-        else:
-            sys.stderr.write("Skipping MotifSampler test\n")
-
-    #def test_gadem(self):
-    #    """ test gadem """
-    #    self.skipTest()
-    #    m = Gadem()
-    #    if m.is_installed():
-    #        (motifs, stderr, stdout) =  m.run(self.fa, ".")
-    #        #print motifs
-    #        self.assertTrue(len(motifs) > 0)
-    #    else:
-    #        sys.stderr.write("Skipping gadem test\n")
-
+    def test_tools(self):
+        """Test motif prediction tools."""
+        params = {
+                "background": self.bg_fa,
+                "organism": "hg38",
+                "width": 7,
+                }
+        
+        for tool_name in sorted(__tools__):
+            if tool_name in [
+                    "weeder", 
+                   ]:
+                continue
+            
+            t = get_tool(tool_name)
+            print("Testing {}...".format(t))
+            
+            (motifs, stderr, stdout) =  t.run(self.fa, params)
+            self.assertTrue(self.ap1_included(motifs))
 
     def tearDown(self):
         pass

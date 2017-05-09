@@ -36,6 +36,10 @@ dir = tools/
 bin = tools/meme.bin
 dir = tools/
 
+[MEMEW]
+bin = tools/meme.bin
+dir = tools/
+
 [MDmodule]
 bin = tools/MDmodule
 dir = tools/

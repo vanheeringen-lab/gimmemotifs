@@ -254,14 +254,14 @@ class XXmotif(MotifProgram):
         stdout = ""
         stderr = ""
         
-        cmd = "%s %s %s --localization --batch --no-graphics %s %s" % (
+        cmd = "%s %s %s --localization --batch %s %s" % (
             bin,
             self.tmpdir, 
             fastafile,
             params["background"],
             params["strand"],
             )
-
+        print(cmd)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
         stdout += out.decode()
@@ -533,6 +533,7 @@ class Hms(MotifProgram):
         self.name = "HMS"
         self.cmd = "hms"
         self.use_width = False
+        self.default_params = {"background":None}
      
     def _parse_params(self, params=None):
         """
@@ -551,7 +552,7 @@ class Hms(MotifProgram):
   
     def _prepare_files(self, fastafile):
 
-        hmsdir = os.path.join(self.config.get_tools_dir(), "HMS")
+        hmsdir = self.dir() 
         thetas = ["theta%s.txt" % i for i in [0,1,2,3]]
         for t in thetas:
             shutil.copy(os.path.join(hmsdir, t), self.tmpdir)
@@ -596,7 +597,7 @@ class Hms(MotifProgram):
             Standard error of the tool.
         """
         params = self._parse_params(params)
-        fgfile, summitfile, outfile = self._prepare_file(fastafile)
+        fgfile, summitfile, outfile = self._prepare_files(fastafile)
                 
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
@@ -662,8 +663,7 @@ class Amd(MotifProgram):
  
         # Background file is essential!
         if not prm["background"]:
-            print("Background file needed!")
-            sys.exit()
+            raise ValueError("Background file needed!")
  
         # Absolute path, just to be sure
         prm["background"] =  os.path.abspath(prm["background"])
@@ -697,6 +697,8 @@ class Amd(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
+        params = self._parse_params(params)
+
         fgfile = os.path.join(self.tmpdir, "AMD.in.fa")
         outfile = fgfile + ".Matrix"    
         shutil.copy(fastafile, fgfile)
@@ -961,34 +963,43 @@ class Trawler(MotifProgram):
         current_path = os.getcwd()
         os.chdir(self.dir())
         
-        cmd = "%s -sample %s -background %s -directory %s -strand %s" % (
-                bin, 
-                fastafile, 
-                params["background"], 
-                self.tmpdir, 
-                params["strand"],
-                )
-        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
-        stdout,stderr = p.communicate()
-        
-        os.chdir(current_path)
         motifs = []
-        out_name = [d for d in os.listdir(self.tmpdir) if d.startswith("tmp")][-1]
-        out_file = os.path.join(self.tmpdir, out_name, "result", "%s.pwm" % out_name)
-        stdout += "\nOutfile: {}".format(out_file)
+        stdout = ""
+        stderr = ""
+        for wildcard in [0,1,2]:
+            cmd = "%s -sample %s -background %s -directory %s -strand %s -wildcard %s" % (
+                    bin, 
+                    fastafile, 
+                    params["background"], 
+                    self.tmpdir, 
+                    params["strand"],
+                    wildcard,
+                    )
+            
+            p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+            out,err = p.communicate()
+            stdout += out.decode()
+            stderr += err.decode()
+    
+            os.chdir(current_path)
+            out_name = [d for d in os.listdir(self.tmpdir) if d.startswith("tmp")][-1]
+            out_file = os.path.join(self.tmpdir, out_name, "result", "%s.pwm" % out_name)
+            stdout += "\nOutfile: {}".format(out_file)
+           
+            my_motifs = []
+            if os.path.exists(out_file):
+                with open(out_file) as f: 
+                    my_motifs = read_motifs(f, fmt="pwm")
+                stdout += "\nTrawler: {} motifs".format(len(motifs))
+            
+            # remove temporary files
+            if os.path.exists(tmp.name):
+                os.unlink(tmp.name)
+            
+            for motif in my_motifs:
+                motif.id = "{}_{}_{}".format(self.name, wildcard, motif.id)
         
-        if os.path.exists(out_file):
-            with open(out_file) as f: 
-                motifs = read_motifs(f, fmt="pwm")
-            stdout += "\nTrawler: {} motifs".format(len(motifs))
-        
-        # remove temporary files
-        if os.path.exists(tmp.name):
-            os.unlink(tmp.name)
-        
-        for motif in motifs:
-            motif.id = "%s_%s" % (self.name, motif.id)
-        
+            motifs += my_motifs
         return motifs, stdout, stderr
 
     #def parse(self, fo):
@@ -1230,7 +1241,7 @@ class MotifSampler(MotifProgram):
         self.use_width = True
         self.default_params = {
                 "width":10, 
-                "background":"", 
+                "background_model":"", 
                 "single":False, 
                 "number":10}
     
@@ -1244,12 +1255,12 @@ class MotifSampler(MotifProgram):
         if params is not None: 
             prm.update(params)
  
-        if prm["background"]:
+        if prm["background_model"]:
             # Absolute path, just to be sure
-            prm["background"] = os.path.abspath(prm["background"])
+            prm["background_model"] = os.path.abspath(prm["background_model"])
         else:
             if prm.get("organism", None):
-                prm["background"] = os.path.join(
+                prm["background_model"] = os.path.join(
                         self.config.get_bg_dir(), 
                         "{}.{}.bg".format(
                             prm["organism"], 
@@ -1298,10 +1309,11 @@ class MotifSampler(MotifProgram):
         """
         params = self._parse_params(params)
         # TODO: test organism
-        cmd = "%s -f %s -b %s -m %s -w %s -n %s -o %s -s %s > /dev/null 2>&1" % (
+        #cmd = "%s -f %s -b %s -m %s -w %s -n %s -o %s -s %s > /dev/null 2>&1" % (
+        cmd = "%s -f %s -b %s -m %s -w %s -n %s -o %s -s %s" % (
                 bin, 
                 fastafile, 
-                params["background"], 
+                params["background_model"], 
                 params["pwmfile"], 
                 params["width"], 
                 params["number"], 
@@ -1309,12 +1321,12 @@ class MotifSampler(MotifProgram):
                 params["strand"],
                 )
         #print cmd
-        #p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
-        #stdout, stderr = p.communicate()
+        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+        stdout, stderr = p.communicate()
         
-        stdout,stderr = "",""
-        p = Popen(cmd, shell=True)
-        p.wait()
+        #stdout,stderr = "",""
+        #p = Popen(cmd, shell=True)
+        #p.wait()
 
         motifs = []
         if os.path.exists(params["outfile"]):
@@ -1616,7 +1628,7 @@ class ChIPMunk(MotifProgram):
         out = open(new_file, "w")
         f = Fasta(fastafile)
         for seq in f.seqs:
-            header = " ".join(["%0.1f" % x for x in list(range(len(seq) / 2)) + list(range(len(seq) / 2, 0, -1))])
+            header = " ".join(["%0.1f" % x for x in list(range(len(seq) // 2)) + list(range(len(seq) // 2, 0, -1))])
             out.write(">%s\n" % header)
             out.write("%s\n" % seq)
         out.close()
@@ -1633,7 +1645,8 @@ class ChIPMunk(MotifProgram):
 
         motifs = []
         if os.path.exists(outfile):
-            motifs = self.parse(open(outfile))
+            with open(outfile) as f:
+                motifs = self.parse(f)
         
         os.chdir(current_path)
         
@@ -1749,7 +1762,9 @@ class Posmo(MotifProgram):
             cmd = "%s 5000 %s %s 1.6 2.5 20 200" % (bin, x, fastafile)
             p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
             stdout, stderr = p.communicate()
-    
+            stdout = stdout.decode()
+            stderr = stderr.decode()
+
             context_file = fastafile.replace(basename, "context.%s.%s.txt" % (basename, x))
             cmd = "%s %s %s simi.txt 0.88 10 2 10" % (bin.replace("posmo","clusterwd"), context_file, outfile)
             p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
@@ -1758,7 +1773,8 @@ class Posmo(MotifProgram):
             stderr += err.decode()
         
             if os.path.exists(outfile):
-                motifs += self.parse(open(outfile))
+                with open(outfile) as f:
+                    motifs += self.parse(f)
         
         os.chdir(current_path)
         
@@ -1869,7 +1885,8 @@ class Gadem(MotifProgram):
             
         motifs = []
         if os.path.exists(pwmfile):
-            motifs = self.parse(open(pwmfile))
+            with open(pwmfile) as f:
+                motifs = self.parse(f)
         
         os.chdir(current_path)
         
@@ -1902,15 +1919,16 @@ class Gadem(MotifProgram):
             m_id = line[1:]
             number = m_id.split("_")[0][1:]
             if os.path.exists("%s.seq" % number):
-                for l in open("%s.seq" % number).readlines():
-                    if "x" not in l and "n" not in l:
-                        l = l.strip().upper()
-                        align.append(l)
-                        if not pfm:
-                            pfm = [[0 for x in range(4)] for x in range(len(l))]
-                        for p in range(len(l)):
-                            pfm[p][nucs[l[p]]] += 1
-
+                with open("%s.seq" % number) as f:
+                    for l in f:
+                        if "x" not in l and "n" not in l:
+                            l = l.strip().upper()
+                            align.append(l)
+                            if not pfm:
+                                pfm = [[0 for x in range(4)] for x in range(len(l))]
+                            for p in range(len(l)):
+                                pfm[p][nucs[l[p]]] += 1
+    
             m = [l.strip().split(" ")[1].split("\t") for l in lines[i + 1: i + 5]]
 
             pwm = [[float(m[x][y]) for x in range(4)] for y in range(len(m[0]))]
@@ -1974,7 +1992,9 @@ class Jaspar(MotifProgram):
             Standard error of the tool.
         """
         fname = os.path.join(self.config.get_motif_dir(), "JASPAR2010_vertebrate.pwm")
-        motifs =  read_motifs(open(fname), fmt="pwm")
+        with open(fname) as f:
+            motifs =  read_motifs(f, fmt="pwm")
+
         for motif in motifs:
             motif.id = "JASPAR_%s" % motif.id
         return motifs, "", ""
