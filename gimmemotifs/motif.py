@@ -12,6 +12,7 @@ from math import log,sqrt
 import subprocess as sp
 from tempfile import NamedTemporaryFile
 from warnings import warn
+import six
 
 from gimmemotifs import mytmpdir
 from gimmemotifs.config import MotifConfig
@@ -22,7 +23,7 @@ try:
     import numpy as np
 except ImportError:
     pass
-from cityhash import CityHash64
+import xxhash
 import base64
 
 class Motif(object):
@@ -326,7 +327,7 @@ class Motif(object):
         pwm = self.pwm
 
         strandmap = {-1:"-","-1":"-","-":"-","1":"+",1:"+","+":"+"}
-        gff_line = ("{}\tpwmscan\tmisc_feature\t{}\t{}\t{}\t{}\t.\t"
+        gff_line = ("{}\tpwmscan\tmisc_feature\t{}\t{}\t{:.3f}\t{}\t.\t"
                     "motif_name \"{}\" ; motif_instance \"{}\"\n")
         for name, seq in fa.items():
             result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
@@ -677,7 +678,7 @@ class Motif(object):
         Returns:
         hash : str
         """
-        return base64.b64encode(str(CityHash64(self._pwm_to_str(3))))[:8]
+        return xxhash.xxh64(self._pwm_to_str(3)).hexdigest()
 
     def to_pwm(self, precision=4, extra_str=""):
         """Return pwm as string.
@@ -731,7 +732,7 @@ class Motif(object):
             seqs = ["" for i in range(N)]
         else:
             for nuc in ["A", "C", "T", "G"]:
-                seqs += [nuc * add_left for i in range(N / 4)]
+                seqs += [nuc * add_left for i in range(N // 4)]
 
         for pos in range(len(self.pwm)):
             vals = [self.pwm[pos][0] * N]
@@ -750,7 +751,7 @@ class Motif(object):
                 elif i <= vals[3]:
                     seqs[i] += "T"
     
-        f = NamedTemporaryFile(dir=mytmpdir())
+        f = NamedTemporaryFile(mode="w", dir=mytmpdir())
         for seq in seqs:
             f.write("%s\n" % seq)
         f.flush()
@@ -824,13 +825,14 @@ def parse_motifs(motifs):
     motifs : list
         List of Motif instances.
     """
-    if isinstance(motifs, str):
-        if motifs.endswith("pwm") or motifs.endswith("pfm"):
-            motifs = read_motifs(open(motifs), fmt="pwm")
-        elif motifs.endswith("transfac"):
-            motifs = read_motifs(open(motifs), fmt="transfac")
-        else: 
-            motifs = read_motifs(open(motifs))
+    if isinstance(motifs, six.string_types):
+        with open(motifs) as f:
+            if motifs.endswith("pwm") or motifs.endswith("pfm"):
+                motifs = read_motifs(f, fmt="pwm")
+            elif motifs.endswith("transfac"):
+                motifs = read_motifs(f, fmt="transfac")
+            else: 
+                motifs = read_motifs(f)
     elif isinstance(motifs, Motif):
         motifs = [motifs]
     else:

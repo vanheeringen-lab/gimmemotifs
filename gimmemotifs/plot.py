@@ -4,6 +4,7 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 """ Various plotting functions """
+from __future__ import print_function
 import os
 import sys
 from tempfile import NamedTemporaryFile
@@ -25,7 +26,7 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 from PIL import Image
 
 
-from ete3 import Tree, faces, AttrFace, TreeStyle, NodeStyle
+#from ete3 import Tree, faces, AttrFace, TreeStyle, NodeStyle
 
 VALID_EXTENSIONS = [".png", ".pdf", ".svg", ".ps"]
 
@@ -149,7 +150,7 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, outfile, mindiff=0, min
     for f in filters:
         filt = np.logical_and(filt, f)
          
-        print "Filter: ", sum(filt)
+        print("Filter: ", sum(filt))
     
 
     motifs = np.array(motifs)[filt]
@@ -284,7 +285,7 @@ def _tree_layout(node):
         faces.add_face_to_node(nameFace, node, 10, position="branch-right")
 
 def _get_motif_tree(tree, data, circle=True, vmin=None, vmax=None):
-    print circle, vmin, vmax
+    print(circle, vmin, vmax)
     t = Tree(tree)
     # Determine cutoff for color scale
     if not(vmin and vmax):
@@ -296,7 +297,7 @@ def _get_motif_tree(tree, data, circle=True, vmin=None, vmax=None):
         vmin = -minmax
     if not vmax:
         vmax = minmax
-    print vmin, vmax
+    print(vmin, vmax)
     norm = Normalize(vmin=vmin, vmax=vmax, clip=True)
     mapper = cm.ScalarMappable(norm=norm, cmap="coolwarm")
     

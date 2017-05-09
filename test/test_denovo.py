@@ -20,7 +20,7 @@ class TestDenovo(unittest.TestCase):
         
         gimme_motifs("test/data/denovo/input.fa", self.outdir,
             params={
-                "tools":"Homer,MDmodule,BioProspector", 
+                "tools":"BioProspector,Homer,MDmodule",
                 "fraction":0.5,
                 "background":"random"
                 },
@@ -31,7 +31,8 @@ class TestDenovo(unittest.TestCase):
                     "params.txt", "stats.random.txt"]
         
     
-        log = open(os.path.join(self.outdir, 'gimmemotifs.log')).read()
+        with open(os.path.join(self.outdir, 'gimmemotifs.log')) as f:
+            log = f.read()
         self.assertIn("clustering significant", log)
     
         # Check if all output files are there
@@ -39,7 +40,8 @@ class TestDenovo(unittest.TestCase):
             self.assertTrue(os.path.exists(os.path.join(self.outdir, fname)))   
   
         # Check if correct motif is predicted
-        predicted_motifs = read_motifs(open(os.path.join(self.outdir, "motifs.pwm")))
+        with open(os.path.join(self.outdir, "motifs.pwm")) as f:
+            predicted_motifs = read_motifs(f)
         ap1 = motif_from_consensus("TGASTCA")
 
         mc = MotifComparer()

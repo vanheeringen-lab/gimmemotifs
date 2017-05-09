@@ -8,7 +8,7 @@
 # Python imports
 import sys
 import logging
-import thread
+import _thread
 from time import time,sleep
 import inspect
 from multiprocessing import Pool
@@ -22,12 +22,27 @@ from gimmemotifs.stats import calc_stats
 
 logger = logging.getLogger("gimme.prediction")
 
+try:
+    import copy_reg
+    import types
+    def _pickle_method(m):
+        if m.im_self is None:
+            return getattr, (m.im_class, m.im_func.func_name)
+        else:
+            return getattr, (m.im_self, m.im_func.func_name)
+
+    copy_reg.pickle(types.MethodType, _pickle_method)
+except:
+    pass
+
+
 def mp_calc_stats(motifs, fg_fa, bg_fa, bg_name=None):
     """Parallel calculation of motif statistics."""
     try:
         stats = calc_stats(motifs, fg_fa, bg_fa, ncpus=1)
     except Exception as e:
-        sys.stderr.write("ERROR: {}\n".format(e))
+        raise
+        sys.stderr.write("ERROR: {}\n".format(str(e)))
         stats = {}
 
     if not bg_name:
@@ -47,7 +62,7 @@ def _run_tool(job_name, t, fastafile, params):
 class PredictionResult(object):
     """Store predicted motifs and calculate statistics."""
     def __init__(self, outfile, fg_file=None, background=None, do_counter=True):
-        self.lock = thread.allocate_lock()
+        self.lock = _thread.allocate_lock()
         self.motifs = []
         self.finished = []
         self.stats = {}

@@ -22,7 +22,7 @@ def which(fname):
     p = sp.Popen("locate %s" % fname, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
     (stdout, stderr) = p.communicate()
     if not stderr:
-        for p in stdout.split("\n"):
+        for p in stdout.decode().split("\n"):
             if (os.path.basename(p) == fname) and (
                 os.access(p, os.X_OK)) and (
                 not os.path.isdir(p)):
@@ -38,7 +38,7 @@ def find_by_ext(dirname, ext):
             cmd = "find {0} -maxdepth 1 -name \"*\"".format(dirname) 
             p = sp.Popen(cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE) 
             stdout, _stderr = p.communicate() 
-            files = [os.path.basename(fname) for fname in stdout.splitlines()] 
+            files = [os.path.basename(fname) for fname in stdout.decode().splitlines()] 
         else: 
             raise 
      

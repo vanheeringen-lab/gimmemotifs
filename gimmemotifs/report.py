@@ -38,13 +38,14 @@ def get_roc_values(motif, fg_file, bg_file):
 
         (x, y) = roc_values(fg_vals, bg_vals)
         return None,x,y
-    except Exception,e:
+    except Exception as e:
         error = e
         return error,[],[]
 
 def create_roc_plots(pwmfile, fgfa, background, outdir):
     """Make ROC plots for all motifs."""
-    motifs = dict([(m.id, m) for m in read_motifs(open(pwmfile), fmt="pwm")])
+    with open(pwmfile) as f:
+        motifs = dict([(m.id, m) for m in read_motifs(f, fmt="pwm")])
 
     ncpus = int(MotifConfig().get_default_params()['ncpus'])
     pool = Pool(processes=ncpus)
@@ -78,7 +79,7 @@ def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
     for motif in motifs:
         match = closest_match[motif.id]
         my_stats[str(motif)] = {}
-        for bg in stats.values()[0].keys():
+        for bg in list(stats.values())[0].keys():
             my_stats[str(motif)][bg] = stats[str(motif)][bg].copy()
             my_stats[str(motif)][bg]["best_match"] = "_".join(match[0].split("_")[:-1])
             my_stats[str(motif)][bg]["best_match_pvalue"] = match[1][-1]
@@ -105,13 +106,16 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
     imgdir = os.path.join(outdir, "images")
     if not os.path.exists(imgdir):
         os.mkdir(imgdir)
-    motifs = read_motifs(open(pwm), fmt="pwm")
+    
+    with open(pwm) as f:
+        motifs = read_motifs(f, fmt="pwm")
     
     roc_img_file = "%s_roc.%s"
 
     dbpwm = config.get_default_params()["motif_db"]
     pwmdir = config.get_motif_dir()
-    dbmotifs = dict([(m.id, m) for m in read_motifs(open(os.path.join(pwmdir, dbpwm)))])
+    with open(os.path.join(pwmdir, dbpwm)) as f:
+        dbmotifs = dict([(m.id, m) for m in read_motifs(f)])
 
     report_motifs = []
     for motif in motifs:
@@ -141,7 +145,7 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
             rm.bg[bg]["auc"] = "%0.3f" % this_stats.get("roc_auc", 0.5)
             rm.bg[bg]["mncp"] = "%0.3f" % this_stats.get("mncp", 1.0)
             rm.bg[bg]["roc_img"] = {"src": "images/" + os.path.basename(roc_img_file % (motif.id, bg)) + ".png"}
-            rm.bg[bg]["roc_img_link"] = {"href": "images/" + os.path.basename(roc_img_file % (motif.id, bg)) + ".png"}
+            rm.bg[bg][u"roc_img_link"] = {u"href": "images/" + os.path.basename(roc_img_file % (motif.id, bg)) + ".png"}
 
         rm.histogram_img = {"data":"images/%s_histogram.svg" % motif.id}
         rm.histogram_link= {"href":"images/%s_histogram.svg" % motif.id}
@@ -166,17 +170,18 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
                     motifs=report_motifs, 
                     inputfile=inputfile, 
                     date=datetime.today().strftime("%d/%m/%Y"), 
-                    version=GM_VERSION)
+                    version=GM_VERSION,
+                    bg_types=list(background.keys()))
 
-    f = open(total_report, "w")
-    f.write(result.encode('utf-8'))
-    f.close()
+    with open(total_report, "wb") as f:
+        f.write(result.encode('utf-8'))
 
 def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outdir, params, stats=None):
     """Create text and graphical (.html) motif reports."""
     logger.info("creating reports")
 
-    motifs = read_motifs(open(pwmfile), fmt="pwm")
+    with open(pwmfile) as f:
+        motifs = read_motifs(f, fmt="pwm")
     
     # ROC plots
     create_roc_plots(pwmfile, fgfa, background, outdir)

@@ -477,6 +477,6 @@ if len(sys.argv) == 1:
     parser.print_help()
 else:
     if len(sys.argv) == 2:
-        print "\033[93mtype `gimme {} -h` for more details\033[0m\n".format(sys.argv[-1])
+        print("\033[93mtype `gimme {} -h` for more details\033[0m\n".format(sys.argv[-1]))
     args = parser.parse_args()
     args.func(args)

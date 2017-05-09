@@ -7,6 +7,7 @@
 """ 
 Module to compare DNA sequence motifs (positional frequency matrices)
 """
+from __future__ import print_function
 
 # Python imports
 import sys
@@ -25,6 +26,19 @@ from gimmemotifs.c_metrics import pwmscan,score
 from gimmemotifs.motif import parse_motifs
 # pool import is at the bottom
 
+try: 
+    import copy_reg
+    import types
+    def _pickle_method(m):
+        if m.im_self is None:
+            return getattr, (m.im_class, m.im_func.func_name)
+        else:
+            return getattr, (m.im_self, m.im_func.func_name)
+
+    copy_reg.pickle(types.MethodType, _pickle_method)
+except:
+    pass
+
 # Create random sequence
 nucs = []
 L = 10 ** 4
@@ -34,6 +48,7 @@ RANDOM_SEQ = "".join(nucs)
 
 # Function that can be parallelized
 def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
+    
     try:
         scores = {}
         for m1 in motifs:
@@ -101,9 +116,10 @@ class MotifComparer(object):
                     self.scoredist[metric]["%s_%s" % (match, combine)] = {}
                     score_file = os.path.join(self.config.get_score_dir(), "%s_%s_%s_score_dist.txt" % (match, metric, combine))
                     if os.path.exists(score_file):
-                        for line in open(score_file):
-                            l1, l2, m, sd = line.strip().split("\t")[:4]
-                            self.scoredist[metric]["%s_%s" % (match, combine)].setdefault(int(l1), {})[int(l2)] = [float(m), float(sd)]
+                        with open(score_file) as f:
+                            for line in f:
+                                l1, l2, m, sd = line.strip().split("\t")[:4]
+                                self.scoredist[metric]["%s_%s" % (match, combine)].setdefault(int(l1), {})[int(l2)] = [float(m), float(sd)]
     
     def compare_motifs(self, m1, m2, match="total", metric="wic", combine="mean", pval=False):
 
@@ -162,7 +178,7 @@ class MotifComparer(object):
         try:
             [1 - norm.cdf(score[0], m, s), score[1], score[2]]
         except Exception as e:
-            print "Error with score: {}\n{}".format(score, e)
+            print("Error with score: {}\n{}".format(score, e))
             return [1, np.nan, np.nan]
         return [1 - norm.cdf(score[0], m, s), score[1], score[2]]
 
@@ -186,7 +202,7 @@ class MotifComparer(object):
                 try:
                     func = getattr(distance, metric)     
                 except: 
-                    raise Exception, "Unknown metric '{}'".format(metric)
+                    raise Exception("Unknown metric '{}'".format(metric))
 
             scores = []
             for pos1,pos2 in zip(matrix1,matrix2):
@@ -196,7 +212,7 @@ class MotifComparer(object):
             elif combine == "sum":
                 return np.sum(scores)
             else:
-                raise "Unknown combine"
+                raise ValueError("Unknown combine")
 
     def max_subtotal(self, matrix1, matrix2, metric, combine):
         scores = []
@@ -338,7 +354,7 @@ class MotifComparer(object):
             # Number of chunks = number of processors available
             n_cpus = int(MotifConfig().get_default_params()["ncpus"])
 
-            batch_len = len(dbmotifs) / n_cpus
+            batch_len = len(dbmotifs) // n_cpus
             if batch_len <= 0:
                 batch_len = 1
             jobs = []
@@ -355,7 +371,7 @@ class MotifComparer(object):
                 # and update the result score
                 for m1,v in result.items():
                     for m2, s in v.items():
-                        if not scores.has_key(m1):
+                        if m1 not in scores:
                             scores[m1] = {}
                         scores[m1][m2] = s
         
@@ -403,8 +419,8 @@ class MotifComparer(object):
         for motif in scores:
             scores[motif] = sorted(
                     scores[motif].items(), 
-                    cmp=lambda x,y: cmp(y[1][0], x[1][0])
-                    )[0]
+                    key=lambda x:x[1][0]
+                    )[-1]
         
         for motif in motifs:
             dbmotif, score = scores[motif.id]
@@ -431,8 +447,7 @@ class MotifComparer(object):
         for l1 in all_scores.keys():
             for l2 in all_scores.keys():
                 scores = self.get_all_scores(sorted_motifs[l1], sorted_motifs[l2], match, metric, combine)
-                scores = scores.values()
-                scores = [[y[0] for y in x.values() if y] for x in scores]
+                scores = [[y[0] for y in x.values() if y] for x in scores.values()]
                 scores = np.array(scores).ravel()
                 f.write("%s\t%s\t%s\t%s\n" % (l1, l2, np.mean(scores), np.std(scores)))
 

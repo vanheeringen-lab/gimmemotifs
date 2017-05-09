@@ -1,7 +1,7 @@
 **/*.swp
 *egg-info/
 gimmemotifs/*.pyc
-gimmemotifs/c_metrics.so
+gimmemotifs/*.so
 test/*.pyc
 build/*
 doc/*

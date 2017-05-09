@@ -9,6 +9,7 @@ import sys
 import logging
 import logging.handlers
 import shutil
+from past.builtins import cmp
 
 from gimmemotifs.config import MotifConfig, BG_RANK, parse_denovo_params
 from gimmemotifs import mytmpdir
@@ -71,7 +72,7 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
 
     # Create file for location plots
     lwidth = int(params["lwidth"])
-    extend = (lwidth - width) / 2
+    extend = (lwidth - width) // 2
     
     track2fasta(
             index_dir, 
@@ -341,7 +342,9 @@ def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, sta
         List of Motif instances.
     """
     # combine original and clustered motifs
-    motifs = read_motifs(open(single_pwm)) + read_motifs(open(clus_pwm))
+    with open(single_pwm) as f1:
+        with open(clus_pwm) as f2:
+            motifs = read_motifs(f1) + read_motifs(f2)
     motifs = dict([(str(m), m) for m in motifs])
 
     # get the statistics for those motifs that were not yet checked
@@ -369,14 +372,14 @@ def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, sta
             if clus not in motifs:
                 eval_motifs.append(clus)
             eval_motifs = [motifs[str(e)] for e in eval_motifs]
-            best_motif = sorted(eval_motifs, lambda x,y: cmp(rank[str(y)], rank[str(x)]))[0]
+            best_motif = sorted(eval_motifs, key=lambda x: rank[str(x)])[-1]
             best_motifs.append(best_motif)
         else:
             best_motifs.append(clus)
         for bg in background:
             stats[str(best_motifs[-1])][bg]["num_cluster"] = len(singles)
 
-    best_motifs = sorted(best_motifs, lambda x,y: cmp(rank[str(y)], rank[str(x)]))
+    best_motifs = sorted(best_motifs, key=lambda x: rank[str(x)], reverse=True)
     return best_motifs
     
 def rename_motifs(motifs, stats=None):
@@ -487,7 +490,7 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
     stats_file = os.path.join(tmpdir, "stats.{}.txt")
     write_stats(result.stats, stats_file)
 
-    bg = sorted(background, lambda x,y: cmp(BG_RANK[x], BG_RANK[y]))[0]
+    bg = sorted(background, key=lambda x: BG_RANK[x])[0]
     if filter_significant:
         motifs = filter_significant_motifs(
                 os.path.join(tmpdir, "significant_motifs.pfm"),

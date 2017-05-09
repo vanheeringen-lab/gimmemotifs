@@ -24,19 +24,19 @@ class TestScanner(unittest.TestCase):
             
             s.set_threshold(threshold=0.0)
             nmatches = [len(m[0]) for m in s._scan_sequences(f.seqs, 1, False)]
-            self.assertEquals([1,1,1], nmatches)
+            self.assertEqual([1,1,1], nmatches)
 
             s.set_threshold(threshold=0.99)
             nmatches = [len(m[0]) for m in s._scan_sequences(f.seqs, 1, False)]
-            self.assertEquals([0,1,1], nmatches)
+            self.assertEqual([0,1,1], nmatches)
         
             s.set_threshold(threshold=0.99)
             nmatches = [len(m[0]) for m in s._scan_sequences(f.seqs, 10, False)]
-            self.assertEquals([0,1,2], nmatches)
+            self.assertEqual([0,1,2], nmatches)
 
             s.set_threshold(threshold=0.99)
             nmatches = [len(m[0]) for m in s._scan_sequences(f.seqs, 10, True)]
-            self.assertEquals([0,2,4], nmatches)
+            self.assertEqual([0,2,4], nmatches)
 
     def test2_scan_fasta_to_best_match(self):
         result =  scan_fasta_to_best_match(self.fa, self.motifs)

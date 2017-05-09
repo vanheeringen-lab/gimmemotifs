@@ -5,6 +5,7 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 """Command line function 'roc'."""
+from __future__ import print_function
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.stats import calc_stats
@@ -39,20 +40,20 @@ def roc(args):
     plot_x = []
     plot_y = []
     # Print the metrics
-    print "Motif\tROC AUC\tMNCP\tEnr. at 5% FDR\tMax enr.\tRecall at 10% FDR"
+    print("Motif\tROC AUC\tMNCP\tEnr. at 5% FDR\tMax enr.\tRecall at 10% FDR")
     for motif_id in ids:
         if outputfile:
             x, y = motif_stats[motif_id]["roc_values"]
             plot_x.append(x)
             plot_y.append(y)
-        print "{}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.2f}\t{:0.4f}".format(
+        print("{}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.2f}\t{:0.4f}".format(
               motif_id, 
               motif_stats[motif_id]["roc_auc"], 
               motif_stats[motif_id]["mncp"], 
               motif_stats[motif_id]["enr_at_fdr"], 
               motif_stats[motif_id]["max_enrichment"][0], 
               motif_stats[motif_id]["recall_at_fdr"],
-              )
+              ))
     
     # Plot the ROC curve
     if outputfile:

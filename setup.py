@@ -19,6 +19,7 @@ import shutil
 from stat import ST_MODE
 import time
 import inspect
+from io import open
 
 CONFIG_NAME = "gimmemotifs.cfg" 
 DESCRIPTION  = """GimmeMotifs is a motif prediction pipeline. 
@@ -30,31 +31,31 @@ try:
     import pypandoc
     long_description = pypandoc.convert('README.md', 'rst')    
 except(IOError, ImportError, RuntimeError):
-    long_description = open('README.md').read()
+    long_description = open('README.md', 'r').read()
 
 # are we in the conda build environment?
 conda_build = os.environ.get("CONDA_BUILD")
 
 DEFAULT_PARAMS = {
-    "max_time": None,
+    "max_time": "",
     "analysis": "medium",
-    "fraction": 0.2,
-    "abs_max": 1000,
-    "width": 200,
-    "lwidth": 500,
-    "pvalue": 0.001,
-    "enrichment": 1.5,
+    "fraction": "0.2",
+    "abs_max": "1000",
+    "width": "200",
+    "lwidth": "500",
+    "pvalue": "0.001",
+    "enrichment": "1.5",
     "background": "gc,random",
     "genome": "hg19",
     "tools": "MDmodule,Weeder,MotifSampler",
     "available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,MEMEW,trawler,Improbizer,BioProspector,AMD,ChIPMunk,Jaspar,Homer",
     "cluster_threshold": "0.95",
-    "use_strand": False,
-    "markov_model": 1,
+    "use_strand": "False",
+    "markov_model": "1",
     "motif_db": "gimme.vertebrate.v3.1.pwm",
-    "scan_cutoff": 0.9,
-    "ncpus": 2,
-    "use_cache": False,
+    "scan_cutoff": "0.9",
+    "ncpus": "2",
+    "use_cache": "False",
 }
 
 MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer",  "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms", "Homer"]
@@ -101,7 +102,7 @@ data_files=[
 
 
 # Fix for install_data, add share to prefix (borrowed from Dan Christiansen) 
-for platform, scheme in INSTALL_SCHEMES.iteritems():
+for platform, scheme in INSTALL_SCHEMES.items():
     if platform.startswith('unix_'):
         if scheme['data'][0] == '$' and '/' not in scheme['data']:
             scheme['data'] = os.path.join(scheme['data'], 'share')
@@ -304,7 +305,7 @@ class build_config(Command):
         # Write (temporary) config file
         config_file = os.path.join(self.build_cfg, "%s" % CONFIG_NAME)
         dlog.info("writing (temporary) configuration file: %s" % config_file)
-        f = open(config_file, "wb")
+        f = open(config_file, "w")
         cfg.write(f)
         f.close()
 
@@ -340,7 +341,7 @@ class install_tools(Command):
         for file in self.outfiles:
             #trawler pl's
             if file.endswith("pl"):
-                os.chmod(file, 0755)
+                os.chmod(file, 0o755)
     
     def get_outputs(self):
         return self.outfiles or []
@@ -419,7 +420,7 @@ class install_config(Command):
             dlog.info("INFO: This config has been saved as %s", old_config)
          
         dlog.info("writing configuration file %s" % config_file)
-        f =  open(config_file, "wb")
+        f =  open(config_file, "w")
         cfg.write(f)
         
     def get_outputs(self):
@@ -453,7 +454,8 @@ class custom_install(install):
     
 module1 = Extension('gimmemotifs.c_metrics', sources = ['gimmemotifs/c_metrics.c'])
 
-setup (name = 'gimmemotifs',
+setup (
+        name = 'gimmemotifs',
         cmdclass={"build":custom_build, 
                             "build_tools":build_tools,
                             "build_config":build_config,
@@ -464,11 +466,11 @@ setup (name = 'gimmemotifs',
         version = GM_VERSION,
         long_description = long_description,
         description = DESCRIPTION,
-        author='Simon van Heeringen',
-        author_email='simon.vanheeringen@gmail.com',
-        url='https://github.com/simonvh/gimmemotifs/',
+        author = 'Simon van Heeringen',
+        author_email = 'simon.vanheeringen@gmail.com',
+        url = 'https://github.com/simonvh/gimmemotifs/',
         download_url = 'https://github.com/simonvh/gimmemotifs/tarball/' + GM_VERSION,
-        license='MIT',
+        license = 'MIT',
         packages=['gimmemotifs', 'gimmemotifs/commands'],
         ext_modules = [module1],
         classifiers=[
@@ -478,7 +480,7 @@ setup (name = 'gimmemotifs',
             'Operating System :: MacOS :: MacOS X',
             'Operating System :: POSIX :: Linux',
             'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 2 :: Only',
+            'Programming Language :: Python :: 3.5',
             'Topic :: Scientific/Engineering :: Bio-Informatics',
             ],
         scripts=[
@@ -503,9 +505,9 @@ setup (name = 'gimmemotifs',
             "xgboost",
             "xdg",
             "diskcache",
-            "cityhash",
+            "xxhash",
+            "configparser",
+            "six",
+            "future",
         ],
-        dependency_links = [
-            "https://github.com/scikit-learn-contrib/lightning/archive/master.zip"]
-        ,
 )

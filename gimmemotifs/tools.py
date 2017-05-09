@@ -4,6 +4,7 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 """Interface module for all motif programs."""
+from __future__ import print_function
 # Python imports
 import re
 import os
@@ -11,7 +12,7 @@ import sys
 from subprocess import Popen, PIPE
 import shutil
 from tempfile import NamedTemporaryFile, mkdtemp
-import StringIO
+import io
 
 # gimme imports
 from gimmemotifs.config import MotifConfig
@@ -70,10 +71,10 @@ def locate_tool(name, verbose=True):
     tool_bin = which(m.cmd) 
     if tool_bin:
         if verbose:
-            print "Found {} in {}".format(m.name, tool_bin) 
+            print("Found {} in {}".format(m.name, tool_bin)) 
         return tool_bin 
     else: 
-        print "Couldn't find {}".format(m.name)
+        print("Couldn't find {}".format(m.name))
 
 class MotifProgram(object):
     
@@ -263,8 +264,8 @@ class XXmotif(MotifProgram):
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout += out.decode()
+        stderr += err.decode()
         
         motifs = []
         
@@ -309,7 +310,7 @@ class Homer(MotifProgram):
  
         # Background file is essential!
         if not prm["background"]:
-            print "Background file needed!"
+            print("Background file needed!")
             sys.exit()
         
         prm["background"] =  os.path.abspath(prm["background"])
@@ -350,6 +351,7 @@ class Homer(MotifProgram):
         params = self._parse_params(params) 
         
         outfile = NamedTemporaryFile(
+                mode="w",
                 dir=self.tmpdir, 
                 prefix= "homer_w{}.".format(params["width"])
                 ).name
@@ -368,15 +370,16 @@ class Homer(MotifProgram):
         
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.tmpdir) 
         out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout += out.decode()
+        stderr += err.decode()
         
         motifs = []
         
         if os.path.exists(outfile):
-            motifs = read_motifs(open(outfile), fmt="pwm")
-            for i, m in enumerate(motifs):
-                m.id = "{}_{}_{}".format(self.name, params["width"], i + 1)
+            with open(outfile) as f:
+                motifs = read_motifs(f, fmt="pwm")
+                for i, m in enumerate(motifs):
+                    m.id = "{}_{}_{}".format(self.name, params["width"], i + 1)
         
         return motifs, stdout, stderr
 
@@ -411,7 +414,7 @@ class BioProspector(MotifProgram):
         
         # Background file is essential!
         if not prm["background"]:
-            print "Background file needed!"
+            print("Background file needed!")
             sys.exit()
  
         # Absolute path, just to be sure
@@ -468,15 +471,14 @@ class BioProspector(MotifProgram):
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout += out.decode()
+        stderr += err.decode()
         
         motifs = []
         
         if os.path.exists(outfile):
-            f = open(outfile)
-            motifs = self.parse(f)
-            f.close()
+            with open(outfile) as f: 
+                motifs = self.parse(f)
         
         return motifs, stdout, stderr
 
@@ -599,9 +601,6 @@ class Hms(MotifProgram):
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
         
-        stdout = ""
-        stderr = ""
-    
         cmd = "%s -i %s -w 21 -dna 4 -iteration 50 -chain 20 -seqprop -0.1 -strand 2 -peaklocation %s -t_dof 3 -dep 2" % (bin, fgfile, summitfile)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         stdout,stderr = p.communicate()
@@ -663,7 +662,7 @@ class Amd(MotifProgram):
  
         # Background file is essential!
         if not prm["background"]:
-            print "Background file needed!"
+            print("Background file needed!")
             sys.exit()
  
         # Absolute path, just to be sure
@@ -715,8 +714,8 @@ class Amd(MotifProgram):
                 )
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout += out.decode()
+        stderr += err.decode()
         
         os.chdir(current_path)
         motifs = []
@@ -790,7 +789,7 @@ class Improbizer(MotifProgram):
         
         # Not strictly necessary, but recommended
         if not params["background"]:
-            print "Background file needed!"
+            print("Background file needed!")
             sys.exit()
  
         # Absolute path, just to be sure
@@ -841,8 +840,8 @@ class Improbizer(MotifProgram):
                 params["outfile"])
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout += out.decode()
+        stderr += err.decode()
         
         motifs = []
         if os.path.exists(params["outfile"]):
@@ -914,7 +913,7 @@ class Trawler(MotifProgram):
  
         # Background file is essential!
         if not prm["background"]:
-            print "Background file needed!"
+            print("Background file needed!")
             sys.exit()
         
         # Absolute path, just to be sure
@@ -955,15 +954,13 @@ class Trawler(MotifProgram):
         """
         params = self._parse_params(params)
 
-        tmp = NamedTemporaryFile(dir=self.tmpdir, delete=False)
+        tmp = NamedTemporaryFile(mode="w", dir=self.tmpdir, delete=False)
         shutil.copy(fastafile, tmp.name)
         fastafile = tmp.name
     
         current_path = os.getcwd()
         os.chdir(self.dir())
         
-        stdout = ""
-        stderr = ""
         cmd = "%s -sample %s -background %s -directory %s -strand %s" % (
                 bin, 
                 fastafile, 
@@ -981,7 +978,8 @@ class Trawler(MotifProgram):
         stdout += "\nOutfile: {}".format(out_file)
         
         if os.path.exists(out_file):
-            motifs = read_motifs(open(out_file), fmt="pwm")
+            with open(out_file) as f: 
+                motifs = read_motifs(f, fmt="pwm")
             stdout += "\nTrawler: {} motifs".format(len(motifs))
         
         # remove temporary files
@@ -1140,15 +1138,15 @@ class Weeder(MotifProgram):
 
             for (w,e) in coms:
                 out,err = self._run_weeder_subset(bin, fastafile, w, e, weeder_organism, strand)
-                stdout += out
-                stderr += err
+                stdout += out.decode()
+                stderr += err.decode()
     
         cmd = "%s %s" % (adviser, fastafile)
         #print cmd
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
-        stdout += out
-        stderr += err
+        stdout += out.decode()
+        stderr += err.decode()
         
         os.chdir(current_path)
 
@@ -1486,11 +1484,12 @@ class MDmodule(MotifProgram):
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         stdout,stderr = p.communicate()
         
-        stdout = "cmd: {}\n".format(cmd) + stdout 
+        stdout = "cmd: {}\n".format(cmd) + stdout.decode() 
             
         motifs = []
         if os.path.exists(pwmfile):
-            motifs = self.parse(open(pwmfile))
+            with open(pwmfile) as f:
+                motifs = self.parse(f)
         
         os.chdir(current_path)
         
@@ -1617,7 +1616,7 @@ class ChIPMunk(MotifProgram):
         out = open(new_file, "w")
         f = Fasta(fastafile)
         for seq in f.seqs:
-            header = " ".join(["%0.1f" % x for x in range(len(seq) / 2) + range(len(seq) / 2, 0, -1)])
+            header = " ".join(["%0.1f" % x for x in list(range(len(seq) / 2)) + list(range(len(seq) / 2, 0, -1))])
             out.write(">%s\n" % header)
             out.write("%s\n" % seq)
         out.close()
@@ -1755,8 +1754,8 @@ class Posmo(MotifProgram):
             cmd = "%s %s %s simi.txt 0.88 10 2 10" % (bin.replace("posmo","clusterwd"), context_file, outfile)
             p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
             out, err = p.communicate()
-            stdout += out
-            stderr += err
+            stdout += out.decode()
+            stderr += err.decode()
         
             if os.path.exists(outfile):
                 motifs += self.parse(open(outfile))
@@ -2055,7 +2054,7 @@ class Meme(MotifProgram):
         stdout,stderr = p.communicate()
 
         motifs = []
-        motifs = self.parse(StringIO.StringIO(stdout))
+        motifs = self.parse(io.StringIO(stdout.decode()))
         
         # Delete temporary files
         tmp.close()
@@ -2096,7 +2095,7 @@ class Meme(MotifProgram):
                         if not pfm:
                             pfm = [[0 for x in range(4)] for x in range(len(l))]
                         for pos in range(len(l)):
-                            if l[pos] in nucs.keys():
+                            if l[pos] in nucs:
                                 pfm[pos][nucs[l[pos]]] += 1
                             else:
                                 for i in range(4):
@@ -2185,7 +2184,7 @@ class MemeW(MotifProgram):
         stdout,stderr = p.communicate()
 
         motifs = []
-        motifs = self.parse(StringIO.StringIO(stdout))
+        motifs = self.parse(io.StringIO(stdout.decode()))
         
         # Delete temporary files
         tmp.close()
@@ -2226,7 +2225,7 @@ class MemeW(MotifProgram):
                         if not pfm:
                             pfm = [[0 for x in range(4)] for x in range(len(l))]
                         for pos in range(len(l)):
-                            if l[pos] in nucs.keys():
+                            if l[pos] in nucs:
                                 pfm[pos][nucs[l[pos]]] += 1
                             else:
                                 for i in range(4):

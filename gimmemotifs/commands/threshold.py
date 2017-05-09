@@ -4,6 +4,7 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 """Command line function 'threshold'"""
+from __future__ import print_function
 import sys
 
 from gimmemotifs.motif import read_motifs
@@ -12,7 +13,7 @@ from gimmemotifs.scanner import Scanner
 def threshold(args):
     """Calculate motif score threshold for a given FDR."""
     if args.fdr < 0 or args.fdr > 1:
-        print "Please specify a FDR between 0 and 1"
+        print("Please specify a FDR between 0 and 1")
         sys.exit(1)
 
     motifs = read_motifs(open(args.pwmfile))
@@ -21,7 +22,7 @@ def threshold(args):
     s.set_motifs(args.pwmfile)
     s.set_threshold(args.fdr, filename=args.inputfile)
 
-    print "Motif\tScore\tCutoff"
+    print("Motif\tScore\tCutoff")
     for motif in motifs:
         min_score = motif.pwm_min_score()
         max_score = motif.pwm_max_score()
@@ -29,5 +30,5 @@ def threshold(args):
         if opt_score is None:
             opt_score = motif.pwm_max_score()
         threshold = (opt_score - min_score) / (max_score - min_score)
-        print "{0}\t{1}\t{2}".format(
-                motif.id, opt_score, threshold)
+        print("{0}\t{1}\t{2}".format(
+                motif.id, opt_score, threshold))

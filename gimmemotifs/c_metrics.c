@@ -13,6 +13,12 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#if PY_MAJOR_VERSION >= 3
+    #define PyInt_FromLong PyLong_FromLong
+    #define PyString_Check PyUnicode_Check
+    #define PyString_Size PyUnicode_GET_LENGTH
+#endif
+
 
 void fill_matrix(double matrix[][4], PyObject *matrix_o) {
 	// Parse a PyObject matrix into a C array	
@@ -451,7 +457,6 @@ static PyObject * c_metrics_max_subtotal(PyObject *self, PyObject * args)
 }
 static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 {
-	PyObject *seq_o;
 	PyObject *pwm_o;
 	PyObject *cutoff_o;
 	char *seq;
@@ -462,16 +467,10 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 	int scan_rc;
 	int return_all = 0;
 
-	if (!PyArg_ParseTuple(args, "OOOii|i", &seq_o, &pwm_o, &cutoff_o, &n_report, &scan_rc, &return_all))
+	if (!PyArg_ParseTuple(args, "sOOii|i", &seq, &pwm_o, &cutoff_o, &n_report, &scan_rc, &return_all))
 		return NULL;
 	
-	// Sequence and length
-	if (!PyString_Check(seq_o))
-		return NULL;
-	seq = PyString_AsString(seq_o);
-	seq_len = PyString_Size(seq_o);
-	//Py_DECREF(seq_o);
-
+	seq_len = strlen(seq);
 
 	// Retrieve frequency matrix
 	if (!PyList_Check(pwm_o))
@@ -647,10 +646,40 @@ static PyMethodDef CoreMethods[] = {
 	{NULL, NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC
-initc_metrics(void)
-{
-	(void) Py_InitModule("c_metrics", CoreMethods);
-};
+#if PY_MAJOR_VERSION >= 3
+    static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "c_metrics",     /* m_name */
+        "This is a module",  /* m_doc */
+        -1,                  /* m_size */
+        CoreMethods,         /* m_methods */
+        NULL,                /* m_reload */
+        NULL,                /* m_traverse */
+        NULL,                /* m_clear */
+        NULL,                /* m_free */
+    };
+#endif
 
+static PyObject * moduleinit(void) {
+    PyObject *m;
+#if PY_MAJOR_VERSION >= 3
+    m = PyModule_Create(&moduledef);
+#else
+    m = Py_InitModule3("c_metrics", CoreMethods, "c_metrics_module");
+#endif
+    return m;
+}
+
+PyMODINIT_FUNC
+#if PY_MAJOR_VERSION >= 3
+    PyInit_c_metrics(void)
+    {
+	return moduleinit();
+    };
+#else
+    initc_metrics(void)
+    {
+	moduleinit();
+    };
+#endif
 

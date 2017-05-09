@@ -1,3 +1,4 @@
+from __future__ import print_function
 import unittest
 import tempfile
 import os
@@ -29,22 +30,22 @@ class TestMotif(unittest.TestCase):
         """ Creation of Motif instance """
         m = Motif()
         
-        self.assert_(type(m))
+        self.assertTrue(type(m))
 
     def test2_motif_instance_pfm(self):
         """ Creation of Motif instance from pfm"""
         m = Motif(self.pfm)
-        self.assert_(m)
+        self.assertTrue(m)
     
     def test3_motif_length(self):
         """ Motif length """
         m = Motif(self.pfm)
-        self.assertEquals(10, len(m))
+        self.assertEqual(10, len(m))
 
     def test4_motif_consensus(self):
         """ Motif length """
         m = Motif(self.pfm)
-        self.assertEquals("ACGTmskrwy", m.to_consensus())
+        self.assertEqual("ACGTmskrwy", m.to_consensus())
 
     def test5_motif_to_img(self):
         """ Motif to img """
@@ -52,10 +53,10 @@ class TestMotif(unittest.TestCase):
         if seqlogo:    
             m = Motif(self.pfm)
             m.to_img("test/test.png", fmt="png", seqlogo=seqlogo)
-            self.assert_(os.path.exists("test/test.png"))
+            self.assertTrue(os.path.exists("test/test.png"))
             os.unlink("test/test.png")
         else:
-            print "seqlogo not found, skipping."
+            print("seqlogo not found, skipping.")
 
     def test6_pcc(self):
         pfm1 = [[5,0,0,0],[0,5,0,0],[0,5,0,0],[0,0,0,5]]
@@ -64,17 +65,19 @@ class TestMotif(unittest.TestCase):
         m1 = Motif(pfm1)
         m2 = Motif(pfm2)
 
-        self.assertEquals(4, m1.max_pcc(m2)[0])
+        self.assertEqual(4, m1.max_pcc(m2)[0])
     
     def test7__read_motifs_pwm(self):
-        motifs = read_motifs(open(self.pwm2), fmt="pwm")
+        with open(self.pwm2) as f:
+            motifs = read_motifs(f, fmt="pwm")
 
         motif_ids = [m.id for m in motifs]
-        self.assertEquals(5, len(motif_ids))
-        self.assertEquals(["M1500_1.01","M5659_1.01","M5669_1.01","M5715_1.01", "M5717_1.01"], motif_ids)
+        self.assertEqual(5, len(motif_ids))
+        self.assertEqual(["M1500_1.01","M5659_1.01","M5669_1.01","M5715_1.01", "M5717_1.01"], motif_ids)
      
     def test7__read_motifs_jaspar(self):
-        motifs = read_motifs(open(self.jaspar), fmt="jaspar")
+        with open(self.jaspar) as f:
+            motifs = read_motifs(f, fmt="jaspar")
 
         my_motifs = [
                 "MA0002.2\tRUNX1",
@@ -86,9 +89,9 @@ class TestMotif(unittest.TestCase):
         my_lens = [6,6,11,11]
         
         motif_ids = [m.id for m in motifs]
-        self.assertEquals(4, len(motif_ids))
-        self.assertEquals(my_motifs, motif_ids)
-        self.assertEquals(my_lens, sorted([len(m) for m in motifs]))
+        self.assertEqual(4, len(motif_ids))
+        self.assertEqual(my_motifs, motif_ids)
+        self.assertEqual(my_lens, sorted([len(m) for m in motifs]))
     
     def test8_pwm_to_str(self):
         pwm = [
@@ -101,8 +104,8 @@ class TestMotif(unittest.TestCase):
         s2 = "0.01\t0.01\t0.01\t0.97\n0.12\t0.46\t0.22\t0.20"
         s3 = "0.010\t0.010\t0.010\t0.970\n0.123\t0.456\t0.222\t0.199"
 
-        self.assertEquals(s2, m._pwm_to_str(precision=2))
-        self.assertEquals(s3, m._pwm_to_str(precision=3))
+        self.assertEqual(s2, m._pwm_to_str(precision=2))
+        self.assertEqual(s3, m._pwm_to_str(precision=3))
     
     def test8_pwm_to_str(self):
         pwm = [
@@ -110,15 +113,15 @@ class TestMotif(unittest.TestCase):
             [0.123, 0.456, 0.222, 0.199],
             ]
         m = Motif(pwm)
-        h = "NDUxMjYy"
-        self.assertEquals(h, m.hash())
+        h = "1f260320cac8c26a"
+        self.assertEqual(h, m.hash())
         
         pwm = [
             [0.010000, 0.010000, 0.010000, 0.970000],
             [0.12300, 0.45600, 0.22200, 0.19900],
             ]
         m = Motif(pwm)
-        self.assertEquals(h, m.hash())
+        self.assertEqual(h, m.hash())
 
     def tearDown(self):
         pass
