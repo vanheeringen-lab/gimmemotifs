@@ -36,7 +36,9 @@ class TestMotifProgram(unittest.TestCase):
         for tool_name in sorted(__tools__):
             if tool_name in [
                     "weeder", 
-                   ]:
+                    "trawler",
+                    "xxmotif",
+                    ]:
                 continue
             
             t = get_tool(tool_name)
