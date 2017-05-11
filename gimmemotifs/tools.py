@@ -261,7 +261,7 @@ class XXmotif(MotifProgram):
             params["background"],
             params["strand"],
             )
-        print(cmd)
+        
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
         stdout += out.decode()
@@ -270,7 +270,8 @@ class XXmotif(MotifProgram):
         motifs = []
         
         if os.path.exists(outfile):
-            motifs = read_motifs(open(outfile), fmt="xxmotifs")
+            with open(outfile) as f:
+                motifs = read_motifs(f, fmt="xxmotif")
             for m in motifs:
                 m.id = "{0}_{1}".format(self.name, m.id)
         else:
