@@ -1639,7 +1639,16 @@ class ChIPMunk(MotifProgram):
         current_path = os.getcwd()
         os.chdir(self.dir())
         
-        cmd = "%s %s %s yes 1.0 p:%s > %s" % (bin, params["width"], params["width"], fastafile, outfile)
+        ncpus = params["ncpus"]
+       
+        # Recommended by ChIPMunk userguide
+        if ncpus > 4:
+            ncpus = 4
+        
+        cmd = "{} s:{} thread_count:{} 1>{}".format(
+                bin, fastafile, ncpus, outfile
+                )
+        
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         stdout, stderr = p.communicate()
 
