@@ -1948,7 +1948,7 @@ class Gadem(MotifProgram):
 
 
             motifs.append(Motif(pwm))
-            motifs[-1].id = m_id
+            motifs[-1].id = "{}_{}".format(self.name, m_id)
             #motifs[-1].pwm = pwm
             if align:
                 motifs[-1].pfm = pfm
