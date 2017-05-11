@@ -48,7 +48,7 @@ DEFAULT_PARAMS = {
     "background": "gc,random",
     "genome": "hg19",
     "tools": "MDmodule,Weeder,MotifSampler",
-    "available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,MEMEW,trawler,Improbizer,BioProspector,AMD,ChIPMunk,Jaspar,Homer",
+    "available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,MEMEW,trawler,Improbizer,BioProspector,AMD,ChIPMunk,Jaspar,Homer,XXmotif",
     "cluster_threshold": "0.95",
     "use_strand": "False",
     "markov_model": "1",
