@@ -1,2 +1,2 @@
 #!/bin/bash
-java -Xms512M -Xmx1G autosome.ru.ChIPMunk $@
+java -Xms512M -Xmx4G -cp chipmunk.jar ru.autosome.ChIPMunk $@
