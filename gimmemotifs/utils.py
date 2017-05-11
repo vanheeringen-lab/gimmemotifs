@@ -42,7 +42,7 @@ def phyper(k, good, bad, N):
     return np.sum(pvalues)
 
 def divide_file(fname, sample, rest, fraction, abs_max):
-    with open(fnames) as f:
+    with open(fname) as f:
         lines = f.readlines()
     #random.seed()
     random.shuffle(lines)
@@ -51,7 +51,7 @@ def divide_file(fname, sample, rest, fraction, abs_max):
     if x > abs_max:
         x = abs_max
 
-    tmp = tempfile.NamedTemporaryFile()
+    tmp = tempfile.NamedTemporaryFile(mode="w", delete=False)
 
     # Fraction as sample
     for line in lines[:x]:
@@ -123,7 +123,7 @@ def write_equalwidth_bedfile(bedfile, width, outfile):
                     print("Error on line %s while reading %s. Is the file in BED or WIG format?" % (line_count, bedfile))
                     sys.exit(1)
 
-                start = (start + end) / 2 - (width / 2)
+                start = (start + end) // 2 - (width // 2)
                 # This shifts the center, but ensures the width is identical... maybe not ideal
                 if start < 0:
                     start = 0

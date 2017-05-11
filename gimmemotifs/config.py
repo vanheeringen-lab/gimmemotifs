@@ -154,7 +154,6 @@ class MotifConfig(object):
     def get_tools_dir(self):
         return self.config.get("main", "tools")
 
-    
     def is_configured(self, program):
         return self.config.has_section(program)
     
