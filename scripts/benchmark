@@ -21,8 +21,9 @@ import shutil
 
 def obtain_bed(href):
     tmp = NamedTemporaryFile(delete=False)
-    with urlopen(href) as f:
-        tmp.write(f.read())
+    f = urlopen(href)
+    tmp.write(f.read())
+    f.close()
     tmp.flush()
     
     if href.split(".")[-1] in ["bb", "bigBed"]:
