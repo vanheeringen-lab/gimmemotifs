@@ -33,7 +33,7 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 
 install:
-  - conda install python=$TRAVIS_PYTHON_VERSION pip future numpy scipy matplotlib=2 statsmodels pymc scikit-learn seaborn jinja2 bedtools pysam pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml meme diskcache six ucsc-bigbedtobed
+  - conda install python=$TRAVIS_PYTHON_VERSION pip future numpy scipy matplotlib=2 statsmodels pymc scikit-learn seaborn jinja2 bedtools pysam pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml meme diskcache six ucsc-bigbedtobed perl-algorithm-cluster
   - pip install configparser
   - pip install xdg
   - pip install xxhash
