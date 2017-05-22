@@ -261,7 +261,7 @@ class XXmotif(MotifProgram):
             params["background"],
             params["strand"],
             )
-        print(cmd)
+        
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         out,err = p.communicate()
         stdout += out.decode()
@@ -1580,7 +1580,8 @@ class ChIPMunk(MotifProgram):
         self.name = "ChIPMunk"
         self.cmd = "ChIPMunk.sh"
         self.use_width = True
-    
+        self.default_params = {}
+
     def _parse_params(self, params=None):
         """
         Parse parameters.
@@ -1590,9 +1591,6 @@ class ChIPMunk(MotifProgram):
         prm = self.default_params.copy()
         if params is not None: 
             prm.update(params)
- 
-        # Absolute path, just to be sure
-        prm["background"] =  os.path.abspath(prm["background"])
         
         return prm 
 
@@ -1623,6 +1621,7 @@ class ChIPMunk(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
+        params = self._parse_params(params)
         basename = "munk_in.fa"
 
         new_file = os.path.join(self.tmpdir, basename)
@@ -1639,11 +1638,22 @@ class ChIPMunk(MotifProgram):
 
         current_path = os.getcwd()
         os.chdir(self.dir())
-        
-        cmd = "%s %s %s yes 1.0 p:%s > %s" % (bin, params["width"], params["width"], fastafile, outfile)
-        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+       
+        # Max recommended by ChIPMunk userguide
+        ncpus = 4
+        cmd = "{} {} {} y, 1.0 s:{} 100 10 1 {} 1>{}".format(
+                bin, 
+                params.get("width", 8),
+                params.get("width", 20),
+                fastafile, 
+                ncpus, 
+                outfile
+                )
+        p = Popen(cmd, shell=True, stderr=PIPE) 
         stdout, stderr = p.communicate()
-
+        if "RuntimeException" in stderr.decode():
+            return [], stdout, stderr
+        
         motifs = []
         if os.path.exists(outfile):
             with open(outfile) as f:
@@ -1674,6 +1684,9 @@ class ChIPMunk(MotifProgram):
         #T|134.99999999999997 7.999999999999999 19.999999999999996 9.999999999999998 287.99999999999994 776.9999999999999 12.999999999999998 616.9999999999999
         #N|999.9999999999998
         line = fo.readline()
+        if not line:
+            return []
+        
         while not line.startswith("A|"):
             line = fo.readline() 
         matrix = []
@@ -1936,7 +1949,7 @@ class Gadem(MotifProgram):
 
 
             motifs.append(Motif(pwm))
-            motifs[-1].id = m_id
+            motifs[-1].id = "{}_{}".format(self.name, m_id)
             #motifs[-1].pwm = pwm
             if align:
                 motifs[-1].pfm = pfm

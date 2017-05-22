@@ -9,7 +9,7 @@ import sys
 import logging
 import logging.handlers
 import shutil
-from past.builtins import cmp
+import numpy as np
 
 from gimmemotifs.config import MotifConfig, BG_RANK, parse_denovo_params
 from gimmemotifs import mytmpdir
@@ -116,7 +116,7 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
             "PLEASE NOTE: FASTA file contains sequences of different lengths. "
             "Positional preference plots might be incorrect!")
 
-def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_times=10):
+def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_times=10, user_background=None):
     """Create background of a specific type.
 
     Parameters
@@ -145,6 +145,7 @@ def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_tim
     nr_seqs  : int
         Number of sequences created.
     """
+    width = int(width)
     config = MotifConfig()
     fg = Fasta(fafile)
     if bg_type in ["promoter", "genomic"]:
@@ -168,29 +169,33 @@ def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_tim
                 genome, gene_file)
         f = PromoterFasta(gene_file, index_dir, width, nr_times * len(fg))
         logger.debug("Random promoter background: %s", outfile)
-    #elif bg_type == "user":
-    #    bg_file = params["user_background"]
-    #    if not os.path.exists(bg_file):
-    #        raise IOError(
-    #                "User-specified background file %s does not exist!",
-    #                bg_file)
-    #    else:
-    #        logger.info("Copying user-specified background file %s to %s.",
-    #                bg_file, outfile)
-    #        f = Fasta(bg_file)
-    #        l = median([len(seq) for seq in fa.seqs])
-    #        if l < width * 0.95 or l > width * 1.05:
-    #               logger.warn(
-    #                "The user-specified background file %s contains sequences with a "
-    #                "median length of %s, while GimmeMotifs predicts motifs in sequences "
-    #                "of length %s. This will influence the statistics! It is recommended "
-    #                "to use background sequences of the same length.", 
-    #                bg_file, l, width)
-    #
+    elif bg_type == "user":
+        bg_file = user_background
+        if not bg_file:
+            raise IOError(
+                    "Background file not specified!")
+
+        if not os.path.exists(bg_file):
+            raise IOError(
+                    "User-specified background file %s does not exist!",
+                    bg_file)
+        else:
+            logger.info("Copying user-specified background file %s to %s.",
+                    bg_file, outfile)
+            f = Fasta(bg_file)
+            l = np.median([len(seq) for seq in f.seqs])
+            if l < (width * 0.95) or l > (width * 1.05):
+                   logger.warn(
+                    "The user-specified background file %s contains sequences with a "
+                    "median length of %s, while GimmeMotifs predicts motifs in sequences "
+                    "of length %s. This will influence the statistics! It is recommended "
+                    "to use background sequences of the same length.", 
+                    bg_file, l, width)
+    
     f.writefasta(outfile)
     return len(f)
 
-def create_backgrounds(outdir, background=None, genome="hg38", width=200):
+def create_backgrounds(outdir, background=None, genome="hg38", width=200, user_background=None):
     """Create different backgrounds for motif prediction and validation.
 
     Parameters
@@ -226,7 +231,8 @@ def create_backgrounds(outdir, background=None, genome="hg38", width=200):
                     os.path.join(outdir, "validation.fa"), 
                     os.path.join(outdir, "prediction.bg.fa"), 
                     genome=genome, 
-                    width=width)
+                    width=width,
+                    user_background=user_background)
 
     # Get background fasta files for statistics
     bg_info = {}
@@ -238,7 +244,8 @@ def create_backgrounds(outdir, background=None, genome="hg38", width=200):
                                         os.path.join(outdir, "validation.fa"), 
                                         fname, 
                                         genome=genome, 
-                                        width=width)
+                                        width=width,
+                                        user_background=user_background)
 
         bg_info[bg] = fname
     return bg_info
@@ -470,7 +477,7 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
         sys.exit(1)
 
     # Create the background FASTA files
-    background = create_backgrounds(tmpdir, background, params["genome"], params["width"])
+    background = create_backgrounds(tmpdir, background, params["genome"], params["width"], params.get("user_background", None))
     
     # Predict de novo motifs
     result = predict_motifs(
@@ -527,7 +534,7 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
     else:
         logger.info("not clustering")
         rank = rank_motifs(result.stats)
-        sorted_motifs = sorted(motifs, lambda x,y: cmp(rank[str(y)], rank[str(x)]))
+        sorted_motifs = sorted(motifs, key=lambda x: rank[str(x)], reverse=True)
         final_motifs, stats = rename_motifs(sorted_motifs, result.stats)
 
     with open(os.path.join(outdir, "motifs.pwm"), "w") as f:
@@ -560,7 +567,8 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
 
     logger.info("finished")
     logger.info("output dir: %s", outdir) 
-    logger.info("report: %s", os.path.join(outdir, "motif_report.html"))
+    if cluster:
+        logger.info("report: %s", os.path.join(outdir, "motif_report.html"))
 
     return final_motifs
 
