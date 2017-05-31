@@ -36,7 +36,6 @@ import xgboost
 
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
-from gimmemotifs.mara import make_model
 from gimmemotifs.config import MotifConfig, GM_VERSION
 
 class Moap(object):
@@ -275,7 +274,7 @@ class LightningRegressionMoap(Moap):
 
 @register_predictor('LightningClassification')
 class LightningClassificationMoap(Moap):
-    def __init__(self, scale=True):
+    def __init__(self, scale=True, permute=False):
         """Predict motif activities using lightning CDClassifier 
 
         Parameters
@@ -316,7 +315,8 @@ class LightningClassificationMoap(Moap):
                 cv=self.kfolds, n_jobs=-1)
 
         self.scale = scale
-        
+        self.permute = permute
+
         self.act_ = None
         self.sig_ = None
         self.pref_table = "score"
@@ -378,32 +378,33 @@ class LightningClassificationMoap(Moap):
         self.act_.columns = l.inverse_transform(range(len(l.classes_)))
         self.act_.index = df_X.columns
         
-        # Permutations
-        sys.stderr.write("Permutations\n")
-        random_dfs = []
-        for _ in range(10):
-            y_random = np.random.permutation(y)
-            b.fit(X,y_random)
-            coeffs = np.array([e.coef_ for e in b.estimators_]).mean(axis=0)
+        if self.permute:
+            # Permutations
+            sys.stderr.write("Permutations\n")
+            random_dfs = []
+            for _ in range(10):
+                y_random = np.random.permutation(y)
+                b.fit(X,y_random)
+                coeffs = np.array([e.coef_ for e in b.estimators_]).mean(axis=0)
             
-            if len(l.classes_) == 2:
-                random_dfs.append(pd.DataFrame(np.hstack((-coeffs.T, coeffs.T))))
-            else:
-                random_dfs.append(pd.DataFrame(coeffs.T))
-        random_df = pd.concat(random_dfs)
+                if len(l.classes_) == 2:
+                    random_dfs.append(pd.DataFrame(np.hstack((-coeffs.T, coeffs.T))))
+                else:
+                    random_dfs.append(pd.DataFrame(coeffs.T))
+            random_df = pd.concat(random_dfs)
     
-        # Select cutoff based on percentile
-        high_cutoffs = random_df.quantile(0.99)
-        low_cutoffs = random_df.quantile(0.01)
+            # Select cutoff based on percentile
+            high_cutoffs = random_df.quantile(0.99)
+            low_cutoffs = random_df.quantile(0.01)
     
-        # Set significance
-        self.sig_ = pd.DataFrame(index=df_X.columns)
-        self.sig_["sig"] = False
+            # Set significance
+            self.sig_ = pd.DataFrame(index=df_X.columns)
+            self.sig_["sig"] = False
 
-        for col,c_high,c_low in zip(
-                self.act_.columns, high_cutoffs, low_cutoffs):
-            self.sig_["sig"].loc[self.act_[col] >= c_high] = True
-            self.sig_["sig"].loc[self.act_[col] <= c_low] = True
+            for col,c_high,c_low in zip(
+                    self.act_.columns, high_cutoffs, low_cutoffs):
+                self.sig_["sig"].loc[self.act_[col] >= c_high] = True
+                self.sig_["sig"].loc[self.act_[col] <= c_low] = True
 
 @register_predictor('MWU')
 class MWUMoap(Moap):
@@ -610,6 +611,7 @@ class LassoMoap(Moap):
                                "fitted model")
 
         self.scale = scale
+        self.ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
 
         # initialize attributes
         self.act_ = None 
@@ -619,7 +621,7 @@ class LassoMoap(Moap):
         parameters = {
             "alpha": [np.exp(-x) for x in np.arange(0, 10, alpha_stepsize)],
         }
-        self.clf = GridSearchCV(mtk, parameters, cv=kfolds, n_jobs=4)
+        self.clf = GridSearchCV(mtk, parameters, cv=kfolds, n_jobs=self.ncpus)
         self.pref_table = "score"
         self.supported_tables = ["score", "count"]
         self.ptype = "regression"
@@ -679,7 +681,6 @@ class LassoMoap(Moap):
             self.sig_["sig"].loc[self.act_[col] >= c_high] = True
             self.sig_["sig"].loc[self.act_[col] <= c_low] = True
 
-    
     def _get_coefs(self, X, y):
         n_samples = 0.75 * X.shape[0]
         max_samples = X.shape[0]
