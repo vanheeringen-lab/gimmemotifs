@@ -21,7 +21,7 @@ sns.set_style('white')
 
 from gimmemotifs.background import RandomGenomicFasta
 from gimmemotifs.config import MotifConfig
-from gimmemotifs.moap import moap
+from gimmemotifs.moap import moap, Moap
 from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
@@ -49,10 +49,11 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
 
     scores = []
     if scoring == "count":
-        s.set_threshold(fdr=FDR)
+        s.set_threshold(fdr=FDR, genome=genome)
         for row in s.count(regions):
             scores.append(row)
     else:
+        s.set_threshold(threshold=0.0)
         for row in s.best_score(regions):
             scores.append(row)
    
@@ -156,7 +157,7 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
         plt.savefig(os.path.join(outdir, "motif.enrichment.png"), dpi=300) 
 
 def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True, 
-        score_table=None, count_table=None):
+        score_table=None, count_table=None, methods=None):
 
     df = pd.read_table(infile, index_col=0)
     # Check for duplicates
@@ -167,6 +168,9 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
     if not os.path.exists(outdir):
         os.mkdir(outdir)
 
+    if methods is None:
+        methods = Moap.list_predictors() 
+    
     # Create a file with the number of motif matches
     if not count_table:
         count_table = os.path.join(outdir, "motif.count.txt.gz")
@@ -189,12 +193,10 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
     clusterfile = infile
     if df.shape[1] != 1:
         # More than one column
-        exps += [
-                ("mara", "count", infile),
-                ("lasso", "score", infile),
-                ("lightning_r", "score", infile),
-                ("xgb", "score", infile),
-                ]
+        for method in Moap.list_regression_predictors():
+            if method in methods:
+                m = Moap.create(method)
+                exps.append([method, m.pref_table, infile])
 
         if cluster:
             clusterfile = os.path.join(outdir,
@@ -207,12 +209,10 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
                 df_changed.loc[(df[name] - df.loc[:,df.columns != name].max(1)) > 0.5, "cluster"] = name
             df_changed.dropna().to_csv(clusterfile, sep="\t")
     if df.shape[1] == 1 or cluster:
-        exps += [
-                ("rf", "score", clusterfile),
-                ("classic", "count", clusterfile),
-                ("mwu", "score", clusterfile),
-                ("lightning_c", "score", clusterfile),
-                ]
+        for method in Moap.list_classification_predictors():
+            if method in methods:
+                m = Moap.create(method)
+                exps.append([method, m.pref_table, clusterfile])
 
     for method, scoring, fname in exps:
         try:
@@ -224,13 +224,12 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
             else:
                 moap_with_bg(fname, genome, outdir, method, scoring, pwmfile=pwmfile)
         
-        
         except Exception as e:
             sys.stderr.write(
                     "Method {} with scoring {} failed\n{}\nSkipping\n".format(
                         method, scoring, e)
                     )
-    
+            raise 
     dfs = {}
     for method, scoring,fname  in exps:
         t = "{}.{}".format(method,scoring)
@@ -241,19 +240,20 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         except:
             sys.stderr.write("Activity file for {} not found!\n".format(t))
     
-    df_p = pd.DataFrame(index=list(dfs.values())[0].index)
-    names = list(dfs.values())[0].columns
-    for e in names:
-        df_tmp = pd.DataFrame()
-        for method,scoring,fname in exps:
-            k = "{}.{}".format(method, scoring)
-            if k in dfs:
-                v = dfs[k]
-                df_tmp[k] = v.sort_values(e, ascending=False).index.values
-        
-        df_p[e] = rankagg(df_tmp)
-    df_p[names] = -np.log10(df_p[names])
-    df_p.to_csv(os.path.join(outdir, "final.out.csv"), sep="\t")
+    if len(methods) > 1:
+        df_p = pd.DataFrame(index=list(dfs.values())[0].index)
+        names = list(dfs.values())[0].columns
+        for e in names:
+            df_tmp = pd.DataFrame()
+            for method,scoring,fname in exps:
+                k = "{}.{}".format(method, scoring)
+                if k in dfs:
+                    v = dfs[k]
+                    df_tmp[k] = v.sort_values(e, ascending=False).index.values
+            
+            df_p[e] = rankagg(df_tmp)
+        df_p[names] = -np.log10(df_p[names])
+        df_p.to_csv(os.path.join(outdir, "final.out.csv"), sep="\t")
     #df_p = df_p.join(m2f)
 
     # Write motif frequency table
@@ -264,6 +264,6 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         freq = m_group.sum() / m_group.count()
         freq.to_csv(os.path.join(outdir, "motif.freq.txt"), sep="\t")
 
-    if plot:
+    if plot and len(methods) > 1:
         visualize_maelstrom(outdir, pwmfile=pwmfile)
 

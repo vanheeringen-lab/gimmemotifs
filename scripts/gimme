@@ -158,7 +158,6 @@ p.add_argument("-o",
                metavar="FILE")
 p.set_defaults(func=commands.match)
 
-# closest_match.py
 p = subparsers.add_parser('maelstrom')
 p.add_argument("inputfile", 
                help="file with regions and clusters", 
@@ -175,6 +174,12 @@ p.add_argument("-p", "--pwmfile",
                "(default: {0})".format(default_pwm), 
                default=default_pwm_file,
                metavar="PWMFILE")
+p.add_argument("-m", "--methods",
+               dest="methods",
+               help="Run with specific methods",
+               default=None,
+               metavar="NAMES")
+
 p.set_defaults(func=commands.maelstrom)
 
 # motif_roc.py and motif_roc_metrics.py

@@ -26,25 +26,126 @@ from statsmodels.sandbox.stats.multicomp import multipletests
 from sklearn.model_selection import train_test_split,GridSearchCV
 from sklearn.ensemble import BaggingClassifier,RandomForestClassifier
 from sklearn.multiclass import OneVsRestClassifier
-from sklearn.linear_model import Ridge,MultiTaskLasso
+from sklearn.linear_model import Ridge,MultiTaskLasso,BayesianRidge
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.preprocessing import scale, LabelEncoder
-
 from lightning.classification import CDClassifier
 from lightning.regression import CDRegressor
 
 import xgboost
-import pymc as pm
 
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.mara import make_model
 from gimmemotifs.config import MotifConfig, GM_VERSION
 
-CLUSTER_METHODS = ["classic", "ks", "lightning_c", "rf", "mwu"]
-VALUE_METHODS = ["lasso", "mara", "lightning_r", "xgb"]
+class Moap(object):
+    """Moap base class.
 
-class XgboostRegressionMoap(object):
+    Motif activity prediction.
+    """
+    _predictors = {}
+    name = None
+
+    @classmethod
+    def create(cls, name):
+        """Create a Moap instance based on the predictor name.
+
+        Parameters
+        ----------
+        name : str
+            Name of the predictor (eg. Xgboost, BayesianRidge, ...)
+        
+        Returns
+        -------
+        moap : Moap instance
+            moap instance.
+        """
+        try:
+            return cls._predictors[name.lower()]()
+        except KeyError:
+            raise Exception("Unknown class")
+
+    @classmethod
+    def register_predictor(cls, name):
+        """Register method to keep list of predictors."""
+        def decorator(subclass):
+            """Register as decorator function."""
+            cls._predictors[name.lower()] = subclass
+            subclass.name = name.lower()
+            return subclass
+        return decorator
+
+    @classmethod
+    def list_predictors(self):
+        """List available predictors."""
+        return list(self._predictors.keys())
+
+    @classmethod
+    def list_classification_predictors(self):
+        """List available classification predictors."""
+        preds = [self.create(x) for x in self._predictors.keys()]
+        return [x.name for x in preds if x.ptype == "classification"]
+
+    @classmethod
+    def list_regression_predictors(self):
+        """List available regression predictors."""
+        preds = [self.create(x) for x in self._predictors.keys()]
+        return [x.name for x in preds if x.ptype == "regression"]
+
+register_predictor = Moap.register_predictor
+
+@register_predictor('BayesianRidge')
+class BayesianRidgeMoap(Moap):
+    def __init__(self, scale=True):
+        """Predict motif activities using Bayesian Ridge Regression.
+
+        Parameters
+        ----------
+        scale : boolean, optional, default True
+            If ``True``, the motif scores will be scaled 
+            before classification.
+       
+        Attributes
+        ----------
+        act_ : DataFrame, shape (n_motifs, n_clusters)
+            Coefficients of the regression model. 
+        """
+        
+        self.act_description = ("activity values: coefficients of the"
+                               "regression model")
+        
+        self.ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+        self.scale = scale
+        self.act_ = None
+        self.pref_table = "score"
+        self.supported_tables = ["score", "count"]
+        self.ptype = "regression"
+
+    def fit(self, df_X, df_y):
+        
+        if not df_y.shape[0] == df_X.shape[0]:
+            raise ValueError("number of regions is not equal")
+        
+        if self.scale:
+            # Scale motif scores
+            df_X = df_X.apply(scale)
+        
+        # Normalize across samples and features
+        y = df_y.apply(scale, 1).apply(scale, 0)
+        X = df_X.loc[y.index]
+
+        # Define model
+        model = BayesianRidge()
+        self.act_ = pd.DataFrame(index=X.columns, columns=y.columns)
+        for col in y.columns:
+            sys.stderr.write("{}\n".format(col))
+            model.fit(X,y[col])
+            self.act_[col] = model.coef_
+
+
+@register_predictor('Xgboost')
+class XgboostRegressionMoap(Moap):
     def __init__(self, scale=True):
         """Predict motif activities using XGBoost.
 
@@ -63,10 +164,13 @@ class XgboostRegressionMoap(object):
         self.act_description = ("activity values: feature scores from"
                                "fitted model")
         
-        self.ncpus = MotifConfig().get_default_params().get("ncpus", 2)
+        self.ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
         self.scale = scale
         
         self.act_ = None
+        self.pref_table = "score"
+        self.supported_tables = ["score", "count"]
+        self.ptype = "regression"
     
     def fit(self, df_X, df_y):
         
@@ -98,14 +202,16 @@ class XgboostRegressionMoap(object):
         self.act_ = pd.DataFrame(index=X.columns)
         # Fit model
         for i,col in enumerate(y.columns):
-            xgb.fit(X, y[col])
+            xgb.fit(X, y[col].values)
+            sys.stderr.write("fitted\n")
             d = xgb.booster().get_fscore()
             self.act_[col] = [d.get(m, 0) for m in X.columns]
             sys.stderr.write("..{}%".format(int(float(i + 1)/ len(y.columns) * 100)))
             sys.stderr.flush()
         sys.stderr.write("\n")
 
-class LightningRegressionMoap(object):
+@register_predictor('LightningRegressor')
+class LightningRegressionMoap(Moap):
     def __init__(self, scale=True, cv=3):
         """Predict motif activities using lightning CDRegressor 
 
@@ -136,6 +242,9 @@ class LightningRegressionMoap(object):
         self.scale = scale
         
         self.act_ = None
+        self.pref_table = "score"
+        self.supported_tables = ["score", "count"]
+        self.ptype = "regression"
     
     def fit(self, df_X, df_y):
         
@@ -164,7 +273,8 @@ class LightningRegressionMoap(object):
         self.act_ = pd.DataFrame(clf.best_estimator_.coef_.T, 
                 index=X.columns, columns = y.columns)
 
-class LightningClassificationMoap(object):
+@register_predictor('LightningClassification')
+class LightningClassificationMoap(Moap):
     def __init__(self, scale=True):
         """Predict motif activities using lightning CDClassifier 
 
@@ -209,6 +319,9 @@ class LightningClassificationMoap(object):
         
         self.act_ = None
         self.sig_ = None
+        self.pref_table = "score"
+        self.supported_tables = ["score", "count"]
+        self.ptype = "classification"
 
     def fit(self, df_X, df_y):
         
@@ -292,7 +405,8 @@ class LightningClassificationMoap(object):
             self.sig_["sig"].loc[self.act_[col] >= c_high] = True
             self.sig_["sig"].loc[self.act_[col] <= c_low] = True
 
-class MWMoap(object):
+@register_predictor('MWU')
+class MWUMoap(Moap):
     def __init__(self):
         """Predict motif activities using Mann-Whitney U p-value
     
@@ -312,6 +426,9 @@ class MWMoap(object):
         self.act_ = None
         self.act_description = ("activity values: BH-corrected "
                                "-log10 Mann-Whitney U p-value")
+        self.pref_table = "score"
+        self.supported_tables = ["score"]
+        self.ptype = "classification"
     
     def fit(self, df_X, df_y):
         if not df_y.shape[0] == df_X.shape[0]:
@@ -344,52 +461,8 @@ class MWMoap(object):
         self.act_ = pd.DataFrame(-np.log10(fdr.T), 
                 columns=clusters, index=df_X.columns)
 
-class KSMoap(object):
-    def __init__(self):
-        """Predict motif activities using Kolmogorov-Smirnov p-value
-    
-        This method compares the motif score distribution of each 
-         versus the motif score distribution of all other 
-        clusters.
-        
-        Parameters
-        ----------
-       
-        Attributes
-        ----------
-        act_ : DataFrame, shape (n_motifs, n_clusters)
-            -log10 of the KS p-value, corrected for multiple
-            testing using the Benjamini-Hochberg correction
-        """
-        self.act_ = None
-        self.act_description = ("activity values: BH-corrected "
-                               "-log10 KS p-value")
-    
-    def fit(self, df_X, df_y):
-        if not df_y.shape[0] == df_X.shape[0]:
-            raise ValueError("number of regions is not equal")
-        if df_y.shape[1] != 1:
-            raise ValueError("y needs to have 1 label column")
-        
-        # calculate Kolmogorov-Smirnov p-values
-        pvals = []
-        clusters  =  df_y[df_y.columns[0]].unique()
-        for cluster in clusters:
-            pos = df_X[df_y.iloc[:,0] == cluster]
-            neg = df_X[df_y.iloc[:,0] != cluster]
-            p = [ks_2samp(pos[m], neg[m])[1] for m in pos.columns]
-            pvals.append(p)
-        
-        # correct for multipe testing
-        pvals = np.array(pvals)
-        fdr = multipletests(pvals.flatten(), 
-                method="fdr_bh")[1].reshape(pvals.shape)
-        
-        # create output DataFrame
-        self.act_ = pd.DataFrame(-np.log10(fdr.T), 
-                columns=clusters, index=df_X.columns)
-
-class ClassicMoap(object):
+@register_predictor('Hypergeom')
+class HypergeomMoap(Moap):
     def __init__(self):
         """Predict motif activities using hypergeometric p-value
 
@@ -404,7 +477,10 @@ class ClassicMoap(object):
         """
         self.act_ = None
         self.act_description = ("activity values: BH-corrected "
-                               "hypergeometric p-values")
+                                "hypergeometric p-values")
+        self.pref_table = "count"
+        self.supported_tables = ["count"]
+        self.ptype = "classification"
     
     def fit(self, df_X, df_y):
         if not df_y.shape[0] == df_X.shape[0]:
@@ -445,7 +521,8 @@ class ClassicMoap(object):
         self.act_ = pd.DataFrame(-np.log10(fdr.T), 
                 columns=clusters, index=df_X.columns)
 
-class RFMoap(object):
+@register_predictor('RF')
+class RFMoap(Moap):
     def __init__(self):
         """Predict motif activities using a random forest classifier
 
@@ -459,8 +536,12 @@ class RFMoap(object):
         
         """
         self.act_ = None
+        self.ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
         self.act_description = ("activity values: feature importances "
                                "from fitted Random Forest model")
+        self.pref_table = "score"
+        self.supported_tables = ["score", "count"]
+        self.ptype = "classification"
 
     def fit(self, df_X, df_y):
         if not df_y.shape[0] == df_X.shape[0]:
@@ -471,7 +552,7 @@ class RFMoap(object):
         le = LabelEncoder()
         y = le.fit_transform(df_y.iloc[:,0].values)
 
-        clf = RandomForestClassifier(n_estimators=100)
+        clf = RandomForestClassifier(n_estimators=100, n_jobs=self.ncpus)
         
         # Multiclass
         if len(le.classes_) > 2:
@@ -487,8 +568,7 @@ class RFMoap(object):
                 ]).T
         
         for i,c in enumerate(le.classes_):
-            
-            diff = df_X.loc[y == c].quantile(q=0.75) - df_X.loc[y != c].quantile(q=0.75)
+            diff = df_X.loc[y == i].quantile(q=0.75) - df_X.loc[y != i].quantile(q=0.75)
             sign = (diff >= 0) * 2 - 1
             importances[:,i] *= sign
         
@@ -498,101 +578,8 @@ class RFMoap(object):
                 columns=le.inverse_transform(range(len(le.classes_))),
                 index=df_X.columns)
 
-class MaraMoap(object):
-    def __init__(self, iterations=10000):
-        """Predict motif activities using a MARA-like algorithm
-
-        Bayesian regression model, fitted using MCMC
-
-        Parameters
-        ----------
-        iterations : int, optional, default 100000
-            number of iterations used in MCMC
-
-        Attributes
-        ----------
-        act_ : DataFrame, shape (n_motifs, n_clusters)
-            fitted motif activities
-        zscore_ : DataFrame, shape (n_motifs, n_clusters)
-            z-score (trace mean / trace std)
-        act_trace_mean_ : DataFrame, shape (n_motifs, n_clusters)
-            trace of the mean of the activities from the MCMC
-        act_trace_std_ : DataFrame, shape (n_motifs, n_clusters)
-            trace of the standard deviation of the activities from the MCMC
-        """
-        self.act_description = ("activity values: mean coefficient from "
-                               "fitted model")
-        
-        self.iterations = iterations
-
-        # initialize attributes
-        self.ridge_ = None
-        self.act_ = None 
-        self.act_trace_mean_ = None
-        self.act_trace_std_ = None
-        self.zscore_ = None
-
-    def fit(self, df_X, df_y):
-        if not df_y.shape[0] == df_X.shape[0]:
-            raise ValueError("number of regions is not equal")
-        
-        X = df_X.copy()
-        y = df_y.copy()
-
-        # subtract row- and column-wise mean
-        y = y - y.mean(0)
-        y = y.subtract(y.mean(1), 0)
-
-        # subtract column-wise mean
-        X = X.subtract(X.mean(1), 0)
-        
-        # ridge regression
-        sys.stderr.write("ridge regression\n")
-        clf = Ridge(alpha = 0.1, solver="svd")
-        ridge_result = []
-        for col in y.columns:
-            clf.fit(X.values, y[col].values)
-            ridge_result.append(clf.coef_.transpose())
-        
-        self.ridge_ = pd.DataFrame(ridge_result, 
-                columns=df_X.columns, index=df_y.columns).T
-        
-        # standardize the coefficients
-        self.ridge_ = self.ridge_.subtract(self.ridge_.mean(1), 0)
-        
-        # initialize empty DataFrames for result
-        self.act_ = pd.DataFrame(index=df_X.columns)
-        self.act_trace_mean_ = pd.DataFrame(index=df_X.columns)
-        self.act_trace_std_ = pd.DataFrame(index=df_X.columns)
-        self.zscore_ = pd.DataFrame(index=df_X.columns)
- 
-        # fit the activities
-        for col in df_y.columns:
-            self._fit_model(X, y, col)
-
-    def _fit_model(self, df_X, df_y, col):
-        sys.stderr.write("fitting {}\n".format(col))
-
-        model = make_model(
-                len(df_X.columns),
-                self.ridge_[col].values,
-                df_y[col].values,
-                df_X.values)
-
-        map_ = pm.MAP(model)
-        map_.fit()
-        mcmc = pm.MCMC(model)
-        mcmc.sample( self.iterations , int(self.iterations * 0.1), 10)
-        zscores = np.mean(mcmc.trace("a")[:,:], 0) / np.std(mcmc.trace("a")[:,:], 0)
-
-        self.act_[col] = mcmc.a.value
-        self.act_trace_mean_[col] = np.mean(mcmc.trace("a")[:,:], 0)
-        self.act_trace_std_[col] = np.std(mcmc.trace("a")[:,:], 0)
-        self.zscore_[col] = zscores
-        
-        mcmc.db.close()
-
-class LassoMoap(object):
+@register_predictor('Lasso')
+class LassoMoap(Moap):
     def __init__(self, scale=True, kfolds=5, alpha_stepsize=1.0):
         """Predict motif activities using Lasso MultiTask regression
 
@@ -633,6 +620,9 @@ class LassoMoap(object):
             "alpha": [np.exp(-x) for x in np.arange(0, 10, alpha_stepsize)],
         }
         self.clf = GridSearchCV(mtk, parameters, cv=kfolds, n_jobs=4)
+        self.pref_table = "score"
+        self.supported_tables = ["score", "count"]
+        self.ptype = "regression"
 
     def fit(self, df_X, df_y):
         if not df_y.shape[0] == df_X.shape[0]:
@@ -702,240 +692,19 @@ class LassoMoap(object):
         coefs = np.array(coefs).mean(axis=0)
         return coefs
 
-NCPUS=4
-
-def fit_model(data):
-    X,y,multi,alpha, C = data
-    #print "fitting {} {}".format(X.shape, y.shape)
-    # Set classifier options.
-    clf = CDClassifier(penalty="l1/l2",
-                       loss="squared_hinge",
-                       multiclass=multi,
-                       max_iter=20,
-                       alpha=alpha,
-                       C=C,
-                       tol=1e-3)
-
-    # Train the model.
-    return clf.fit(X, y)
-
-def eval_model(df, sets, motifs, alpha, nsample=1000, k=10):
-    ret = select_sets(df, sets)
-    y = pd.DataFrame({"label":0}, index=df.index)
-    for label, rows in enumerate(ret):
-        y.loc[rows] = label + 1
-    y = y[y["label"] > 0]
-    y -= 1
-
-    clf = CDClassifier(penalty="l1/l2",
-                       loss="squared_hinge",
-                       multiclass=len(sets) > 2,
-                       max_iter=20,
-                       alpha=alpha,
-                       C=1.0 / motifs.shape[0],
-                       tol=1e-3)
-
-    accs = []
-    fractions = []
-
-    for _ in np.arange(k):
-
-        idx = np.random.choice(range(y.shape[0]), nsample, replace=True)
-
-        y_pred = y.iloc[idx[:nsample * 0.8 + 1]]
-        X_pred = motifs.loc[y_pred.index].values
-        y_pred = y_pred.values.flatten()
-
-        y_test = y.iloc[idx[nsample * 0.8 + 1:]]
-        X_test = motifs.loc[y_test.index].values
-        y_test = y_test.values.flatten()
-
-        # train the model
-        clf.fit(X_pred, y_pred)
-
-        acc = clf.score(X_test, y_test)
-        fraction = clf.n_nonzero(percentage=True)
-
-        accs.append(acc)
-        fractions.append(fraction)
-
-    #print alpha, accs, fractions
-    return alpha, np.median(accs), np.median(fractions)
-
-def select_sets(df, sets, threshold=1):
-    abs_diff = 1 
-    ret = []
-    for s in sets:
-        other = [c for c in df.columns if c not in s]
-        x = df[(df[s] >= threshold).any(1) & ((df[s].max(1) - df[other].max(1)) >= abs_diff)].index
-        ret.append(x)
-    return ret
-
-class MoreMoap(object):
-    def __init__(self, scale=True):
-        """Predict motif activities using Lasso MultiTask regression
-        In development, doesn't really work consistently.
-        """
-        self.scale = scale
-
-    def fit(self, df_X, df_y):
-        
-        y = df_y.apply(scale, 0)
-        dist = pairwise_distances(y.values.T)
-        L = linkage(dist, method="ward")
-        
-        self.dfs = dict(
-                [(exp, pd.DataFrame(index=df_X.columns)) for exp in df_y.columns])
-
-        for nclus in range(3, len(df_y.columns) + 1):
-            labels = fcluster(L, nclus, 'maxclust')
-            print(labels)
-            if max(labels) < nclus:
-                sys.stderr.write("remaining clusters are too similar")
-                break
-            sets = []
-            for i in range(1, nclus + 1):
-                sets.append(list(df_y.columns[labels == i]))
-            print(sets)
-            nbootstrap = 100
-            result = self._run_bootstrap_model(
-                        y, sets, df_X, nsample=1000, nbootstrap=nbootstrap
-                        )
-            if result is None:
-                sys.stderr.write("no result for {} clusters".format(nclus))
-                continue 
-
-            if result.shape[1] < (nbootstrap * nclus) * 0.5:
-                sys.stderr.write("not enough for bootstrap\n")
-                break
-            
-            for i in range(nclus):
-                print('***')
-                print(sets)
-                print(result.columns[:len(sets)])
-                print('***')
-                cols = result.columns[list(range(i,result.shape[1], nclus))]
-                print(cols)
-                act = result[cols].mean(1)
-                for col in df_y.columns[labels == i + 1]:
-                    print(col)
-                    self.dfs[col][str(nclus)] = act.values
-
-            print(self.dfs["NK"].shape)
-            print(self.dfs["NK"].columns) 
-
-        self.act_ = pd.DataFrame(index=df_X.columns)
-        for col in self.dfs.keys():
-            self.act_[col] = self.dfs[col].mean(1)
-
-
-    def _select_alpha(self, df, sets, motifs, nsample=1000):
-        f = partial(eval_model, df, sets, motifs,
-            nsample=int(nsample * 1.25), k=5)
-    
-        pool = Pool(NCPUS)
-        alphas = [np.exp(-x) for x in np.arange(0, 10, 1/3.0)]
-        results = pool.map(f, alphas)
-        pool.close()
-        pool.join()
-    
-        results = np.array(results)
-        alpha, acc, fraction = results[np.argmax(results[:,1])]
-    
-        sys.stderr.write("alpha {}  accuracy: {}  fraction: {}\n".format(alpha, acc, fraction))
-        return alpha
-    
-
-    def _run_bootstrap_model(self, df, sets, motifs, nsample=1000, nbootstrap=100):
-
-        ret = select_sets(df, sets)
-        y = pd.DataFrame({"label":0}, index=df.index)
-        for label, rows in enumerate(ret):
-            y.loc[rows] = label + 1
-        y = y[y["label"] > 0]
-        
-        if y.shape[0] == 0:
-            sys.stderr.write("no sets with these filters\n")
-            return
-        
-        if nsample > (len(y) / 2):
-            nsample = len(y) / 2
-            sys.stderr.write("setting nsample to {}\n".format(nsample))
-        else:
-            sys.stderr.write("nsample = {}\n".format(nsample))
-    
-        coef = pd.DataFrame(index=motifs.columns)
-    
-        sys.stderr.write("Selecting alpha\n")
-        alpha = self._select_alpha(df, sets, motifs, nsample=nsample)
-    
-        acc  = []
-        fraction = []
-    
-        data = []
-    
-        sys.stderr.write("Running {} bootstraps\n".format(nbootstrap))
-        for i in range(nbootstrap):
-    
-            # Sample with replacement
-            idx = np.random.choice(range(len(y.index)), nsample)
-    
-            # Create test dataset
-            y_small = y.iloc[idx]
-            if len(np.unique(y_small)) != len(sets):
-                continue
-            
-            X_small = motifs.loc[y_small.index]
-    
-            y_small -= 1
-            y_small = y_small.values.flatten()
-    
-            X = X_small.values
-            data.append((X, y_small, len(sets) > 2, alpha, 1.0 / motifs.shape[0]))
-    
-        pool = Pool(NCPUS)
-        
-        results = pool.map(fit_model, data)
-    
-        #close the pool and wait for the work to finish 
-        pool.close()
-        pool.join()
-        for i,(clf,(X,y_small,_,_,_)) in enumerate(zip(results, data)):
-            # Accuracy
-            #print y_small.
-            acc.append(clf.score(X, y_small))
-    
-            # Percentage of selected features
-            fraction.append(clf.n_nonzero(percentage=True))
-             
-            c = clf.coef_
-            names = ["_".join(s) for s in sets]
-            d = dict(zip(names, c))
-            c = pd.DataFrame(d, index=motifs.columns).fillna(0)[names]
-            coef = coef.join(c, rsuffix=i, how="left")
-            #c = c[(abs(c) > cutoff).any(1)]
-            #c = c.join(m2f)
-    
-            #counts.loc[c.index.values] += 1
-            #print counts.sort("count").tail(1)
-    
-        print("Average accuracy", np.mean(acc))
-        print("Average fraction", np.mean(fraction))
-        return coef
-
-def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=None, pwmfile=None, genome=None, fdr=0.01):
-    """ Run a single motif activity prediction algorithm.
+def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=None, pwmfile=None, genome=None, fdr=0.01):
+    """Run a single motif activity prediction algorithm.
     
     Parameters
     ----------
-    
     inputfile : str
         File with regions (chr:start-end) in first column and either cluster 
         name in second column or a table with values.
     
     method : str, optional
-        Motif activity method to use. Any of 'classic', 'ks', 'lasso', 
-        'lightning', 'mara', 'rf'. Default is 'classic'. 
+        Motif activity method to use. Any of 'hypergeom', 'lasso', 
+        'lightningclassification', 'lightningregressor', 'bayesianridge', 
+		'rf', 'xgboost'. Default is 'hypergeom'. 
     
     scoring:  str, optional
         Either 'score' or 'count'
@@ -960,11 +729,10 @@ def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=N
     
     Returns
     -------
-    
     pandas DataFrame with motif activity
     """
 
-    if scoring not in ['score', 'count']:
+    if scoring and scoring not in ['score', 'count']:
         raise ValueError("valid values are 'score' and 'count'")
     
     config = MotifConfig()
@@ -973,16 +741,16 @@ def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=N
     
     # read data
     df = pd.read_table(inputfile, index_col=0)
+    
+    clf = Moap.create(method)
 
-    if method in CLUSTER_METHODS:
+    if clf.ptype == "classification":
         if df.shape[1] != 1:
             raise ValueError("1 column expected for {}".format(method))
     else:
         if np.dtype('object') in set(df.dtypes):
             raise ValueError(
                     "columns should all be numeric for {}".format(method))
-        if method not in VALUE_METHODS:
-            raise ValueError("method {} not valid".format(method))
 
     if motiffile is None:
         if genome is None:
@@ -1044,28 +812,6 @@ def moap(inputfile, method="classic", scoring="score", outfile=None, motiffile=N
     
     motifs = motifs.loc[df.index]
     
-    clf = None
-    if method == "ks":
-        clf = KSMoap()
-    if method == "mwu":
-        clf = MWMoap()
-    if method == "rf":
-        clf = RFMoap()
-    if method == "lasso":
-        clf = LassoMoap()
-    if method == "lightning_c":
-        clf = LightningClassificationMoap()
-    if method == "lightning_r":
-        clf = LightningRegressionMoap()
-    if method == "xgb":
-        clf = XgboostRegressionMoap()
-    if method == "mara":
-        clf = MaraMoap()
-    if method == "more":
-        clf = MoreMoap()
-    if method == "classic":
-        clf = ClassicMoap()
-
     clf.fit(motifs, df)
     
     if outfile:
