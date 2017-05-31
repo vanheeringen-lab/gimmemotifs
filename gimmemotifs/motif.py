@@ -836,10 +836,10 @@ def parse_motifs(motifs):
     elif isinstance(motifs, Motif):
         motifs = [motifs]
     else:
-        if not isinstance(motifs[0], Motif):
+        if not isinstance(list(motifs)[0], Motif):
             raise ValueError("Not a list of motifs")
     
-    return motifs
+    return list(motifs)
 
 def read_motifs(handle, fmt="pwm"):
     """ 
