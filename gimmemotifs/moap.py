@@ -199,12 +199,20 @@ class XgboostRegressionMoap(Moap):
         sys.stderr.flush()
         
         self.act_ = pd.DataFrame(index=X.columns)
+        
         # Fit model
         for i,col in enumerate(y.columns):
             xgb.fit(X, y[col].values)
-            sys.stderr.write("fitted\n")
             d = xgb.booster().get_fscore()
             self.act_[col] = [d.get(m, 0) for m in X.columns]
+            
+            for motif in self.act_.index:
+                if self.act_.loc[motif, col] != 0:
+                    high = df_y.loc[df_X[motif] >= df_X[motif].quantile(0.75), col].mean()
+                    low = df_y.loc[df_X[motif] <= df_X[motif].quantile(0.25), col].mean()
+                    if low > high:
+                        self.act_.loc[motif, col] *= -1
+            
             sys.stderr.write("..{}%".format(int(float(i + 1)/ len(y.columns) * 100)))
             sys.stderr.flush()
         sys.stderr.write("\n")
@@ -572,7 +580,6 @@ class RFMoap(Moap):
             diff = df_X.loc[y == i].quantile(q=0.75) - df_X.loc[y != i].quantile(q=0.75)
             sign = (diff >= 0) * 2 - 1
             importances[:,i] *= sign
-        
         
         # create output DataFrame
         self.act_ = pd.DataFrame(importances,
