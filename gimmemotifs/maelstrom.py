@@ -242,17 +242,19 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
     
     if len(methods) > 1:
         df_p = pd.DataFrame(index=list(dfs.values())[0].index)
+        df_negp = pd.DataFrame(index=list(dfs.values())[0].index)
         names = list(dfs.values())[0].columns
         for e in names:
-            df_tmp = pd.DataFrame()
-            for method,scoring,fname in exps:
-                k = "{}.{}".format(method, scoring)
-                if k in dfs:
-                    v = dfs[k]
-                    df_tmp[k] = v.sort_values(e, ascending=False).index.values
+            tmp_dfs = [pd.DataFrame(), pd.DataFrame()]
             
-            df_p[e] = rankagg(df_tmp)
-        df_p[names] = -np.log10(df_p[names])
+            for i,sort_order in enumerate([False, True]):
+                for method,scoring,fname in exps:
+                    k = "{}.{}".format(method, scoring)
+                    if k in dfs:
+                        v = dfs[k]
+                        tmp_dfs[i][k] = v.sort_values(e, ascending=sort_order).index.values
+            df_p[e] = -np.log10(rankagg(tmp_dfs[0])) + np.log10(rankagg(tmp_dfs[1]))
+            
         df_p.to_csv(os.path.join(outdir, "final.out.csv"), sep="\t")
     #df_p = df_p.join(m2f)
 
