@@ -72,6 +72,8 @@ def scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalu
                         "\t".join([str(x) for x in counts])
                         )
 def scan_score_table(s, fa, motifs, scan_rc):
+    
+    s.set_threshold(threshold=0.0)
     # get iterator
     result_it = s.best_score(fa, scan_rc)
     # header
@@ -80,7 +82,7 @@ def scan_score_table(s, fa, motifs, scan_rc):
     for i,scores in enumerate(result_it):
         yield "{}\t{}".format(
                     fa.ids[i], 
-                    "\t".join([str(x) for x in scores])
+                    "\t".join(["{:4f}".format(x) for x in scores])
                     )
 
 def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods, bed):
