@@ -4,6 +4,7 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """De novo motif prediction."""
+import datetime
 import os
 import sys
 import logging
@@ -440,6 +441,9 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
     >>> from gimmemotifs.denovo import gimme_motifs
     >>> gimme_motifs("input.fa", "motifs.out")
     """
+    if outdir is None:
+        outdir = "gimmemotifs_{}".format(datetime.date.today().strftime("%d_%m_%Y"))
+
     # Create output directories
     tmpdir = os.path.join(outdir, "intermediate")
     for d in [outdir, tmpdir]: 
