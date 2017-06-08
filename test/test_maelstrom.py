@@ -41,3 +41,8 @@ class TestMoap(unittest.TestCase):
         #for fname in glob(os.path.join(self.outdir, "motifs*")):
         #    os.unlink(fname)
         #os.unlink(self.outfile)
+
+if __name__ == '__main__':
+    unittest.main()
+
+
