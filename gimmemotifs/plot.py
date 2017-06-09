@@ -22,7 +22,8 @@ import matplotlib.cm as cm
 from matplotlib.gridspec import GridSpec
 from matplotlib.colors import to_hex, Normalize
 from mpl_toolkits.axes_grid1 import ImageGrid
-
+import seaborn as sns
+sns.set_style('white')
 from PIL import Image
 
 
@@ -40,18 +41,15 @@ def axes_off(ax):
 def roc_plot(outfile, plot_x, plot_y, ids=None):
     if ids is None:
         ids = []
-
    
     fig = plt.figure()
     fig.add_subplot(111, aspect="equal")
 
-    colors = [cm.Paired(256 / 11 * i) for i in range(11)]
-    
     if isinstance(plot_x[0], np.ndarray):
         for i,(x,y) in enumerate(zip(plot_x, plot_y)):
-            plt.plot(x, y, color=colors[(i * 2) % 10 + 1])
+            plt.plot(x, y)
     else:
-        plt.plot(plot_x,plot_y, color=colors[(0 * 2) % 10 + 1])
+        plt.plot(plot_x,plot_y)
     
     plt.axis([0,1,0,1])
     plt.xlabel("1 - Specificity")
@@ -68,12 +66,10 @@ def roc_plot(outfile, plot_x, plot_y, ids=None):
 
 def plot_histogram(values, outfile, xrange=None, breaks=10, title=None, xlabel=None, color=10):
     
-    colors = [cm.Paired(256 / 11 * i) for i in range(11)]
-
     plt.clf()
     try:
         # matplotlib >= 0.99
-        plt.hist(values, range=xrange, bins=breaks, color=colors[color], edgecolor="black")
+        plt.hist(values, range=xrange, bins=breaks, edgecolor="black")
     except Exception:
         plt.hist(values, range=xrange, bins=breaks)
     plt.xlim(xrange)
