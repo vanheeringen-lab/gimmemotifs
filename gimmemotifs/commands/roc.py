@@ -35,26 +35,29 @@ def roc(args):
             "roc_values"
             ]
     
-    motif_stats = calc_stats(motifs, args.sample, args.background, stats)
+    motif_stats = calc_stats(motifs, args.sample, args.background, 
+            genome=args.genome, stats=stats)
 
     plot_x = []
     plot_y = []
+    legend = []
     # Print the metrics
     print("Motif\tROC AUC\tMNCP\tEnr. at 5% FDR\tMax enr.\tRecall at 10% FDR")
-    for motif_id in ids:
+    for motif in motifs:
         if outputfile:
-            x, y = motif_stats[motif_id]["roc_values"]
+            x, y = motif_stats[str(motif)]["roc_values"]
             plot_x.append(x)
             plot_y.append(y)
+            legend.append(motif.id)
         print("{}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.2f}\t{:0.4f}".format(
-              motif_id, 
-              motif_stats[motif_id]["roc_auc"], 
-              motif_stats[motif_id]["mncp"], 
-              motif_stats[motif_id]["enr_at_fdr"], 
-              motif_stats[motif_id]["max_enrichment"][0], 
-              motif_stats[motif_id]["recall_at_fdr"],
+              motif.id, 
+              motif_stats[str(motif)]["roc_auc"], 
+              motif_stats[str(motif)]["mncp"], 
+              motif_stats[str(motif)]["enr_at_fdr"], 
+              motif_stats[str(motif)]["max_enrichment"], 
+              motif_stats[str(motif)]["recall_at_fdr"],
               ))
     
     # Plot the ROC curve
     if outputfile:
-        roc_plot(outputfile, plot_x, plot_y, ids=ids)
+        roc_plot(outputfile, plot_x, plot_y, ids=legend)

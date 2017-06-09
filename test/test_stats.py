@@ -16,9 +16,9 @@ class TestStats(unittest.TestCase):
         self.bg_fa = os.path.join(self.data_dir, "random.w200.fa")
         self.stat_functions = [
             "recall_at_fdr",
-            "fraction_fdr",
-            "score_at_fdr",
-            "enr_at_fdr",
+            "fraction_fpr",
+            "score_at_fpr",
+            "enr_at_fpr",
             "max_enrichment",
             "mncp",
             "roc_auc",
@@ -51,11 +51,11 @@ class TestStats(unittest.TestCase):
             self.assertGreater(stats[m1]["ks_pvalue"] , 0.01)
             self.assertLess(stats[m2]["ks_pvalue"] , 0.001)
             
-            self.assertGreater(stats[m1]["phyper_at_fdr"] , 0.1)
-            self.assertLess(stats[m2]["phyper_at_fdr"] , 1e-16)
+            self.assertGreater(stats[m1]["phyper_at_fpr"] , 0.1)
+            self.assertLess(stats[m2]["phyper_at_fpr"] , 1e-16)
             
             # Only calculate specific statistic
-            stats = calc_stats(self.motifs, self.fg_fa, self.bg_fa, ["roc_auc"])
+            stats = calc_stats(self.motifs, self.fg_fa, self.bg_fa, stats=["roc_auc"])
             
             self.assertEqual(1, len(list(stats.values())[0]))
             
@@ -71,7 +71,7 @@ class TestStats(unittest.TestCase):
             motifs = read_motifs(f)
         motif = [m for m in motifs if str(m) == m_id][0]
         
-        stats = calc_stats(motif, self.fg_fa, self.bg_fa, ["roc_auc"])
+        stats = calc_stats(motif, self.fg_fa, self.bg_fa, stats=["roc_auc"])
         self.assertGreater(stats[m_id]["roc_auc"] , 0.9)
     
     def tearDown(self):

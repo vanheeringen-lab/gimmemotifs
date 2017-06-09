@@ -184,15 +184,22 @@ p.set_defaults(func=commands.maelstrom)
 
 # motif_roc.py and motif_roc_metrics.py
 p = subparsers.add_parser('roc')
-p.add_argument("pwmfile", 
-               help="File with pwms", 
-               metavar="PWMFILE")
 p.add_argument("sample", 
-               help="FASTA file", 
-               metavar="FG_FAFILE")
+               help="FASTA, BED or region file", 
+               metavar="FG_FILE")
 p.add_argument("background", 
-               help="FASTA file with background sequences", 
-               metavar="BG_FAFILE")
+               help="FASTA, BED or region file with background sequences", 
+               metavar="BG_FILE")
+p.add_argument("-p",
+               dest="pwmfile",
+               help="PWM file with motifs "
+               "(default: {0})".format(default_pwm), 
+               default=default_pwm_file,
+               metavar="PWMFILE")
+p.add_argument("-g", 
+               dest="genome", 
+               help="Genome (when input files are not in FASTA format)", 
+               metavar="GENOME")
 p.add_argument("-o", 
                dest="outfile", 
                help="Name of output file with ROC plot (png, svg, ps, pdf)", 
