@@ -464,7 +464,7 @@ class MWUMoap(Moap):
         # correct for multipe testing
         pvals = np.array(pvals)
         fpr = multipletests(pvals.flatten(), 
-                method="fpr_bh")[1].reshape(pvals.shape)
+                method="fdr_bh")[1].reshape(pvals.shape)
         
         # create output DataFrame
         self.act_ = pd.DataFrame(-np.log10(fpr.T), 
@@ -524,7 +524,7 @@ class HypergeomMoap(Moap):
         # correct for multipe testing
         pvals = np.array(pvals)
         fpr = multipletests(pvals.flatten(), 
-                method="fpr_bh")[1].reshape(pvals.shape)
+                method="fdr_bh")[1].reshape(pvals.shape)
         
         # create output DataFrame
         self.act_ = pd.DataFrame(-np.log10(fpr.T), 
