@@ -25,7 +25,7 @@ from gimmemotifs.fasta import Fasta
 from gimmemotifs.genome_index import GenomeIndex
 from gimmemotifs.c_metrics import pwmscan
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.utils import parse_cutoff,get_seqs_type,file_checksum
+from gimmemotifs.utils import parse_cutoff,as_fasta,file_checksum
 from gimmemotifs.genome_index import rc,check_genome
 
 try:
@@ -54,42 +54,7 @@ except ImportError:
 logger = logging.getLogger("gimme.scanner")
 config = MotifConfig()
 
-def scan_fasta_to_best_score(fname, motifs, ncpus=None):
-    """Scan a FASTA file with motifs.
-
-    Scan a FASTA file and return a dictionary with the best score per motif.
-
-    Parameters
-    ----------
-    fname : str
-        Filename of a sequence file in FASTA format.
-
-    motifs : list
-        List of motif instances.
-
-    Returns
-    -------
-    result : dict
-        Dictionary with motif scanning results.
-    """
-    # Initialize scanner
-    s = Scanner(ncpus=ncpus)
-    s.set_motifs(motifs)
-    s.set_threshold(threshold=0.0)
-
-    if isinstance(motifs, six.string_types) and os.path.exists(motifs):
-        with open(motifs) as f:
-            motifs = read_motifs(f)
-
-    logger.debug("scanning %s...", fname)
-    result = dict([(m.id, []) for m in motifs])
-    for scores in s.best_score(fname):
-        for motif,score in zip(motifs, scores):
-            result[motif.id].append(score)
-
-    return result
-
-def scan_fasta_to_best_match(fname, motifs, ncpus=None):
+def scan_to_best_match(fname, motifs, ncpus=None, genome=None, score=False):
     """Scan a FASTA file with motifs.
 
     Scan a FASTA file and return a dictionary with the best match per motif.
@@ -111,6 +76,8 @@ def scan_fasta_to_best_match(fname, motifs, ncpus=None):
     s = Scanner(ncpus=ncpus)
     s.set_motifs(motifs)
     s.set_threshold(threshold=0.0)
+    if genome:
+        s.set_genome(genome)
     
     if isinstance(motifs, six.string_types) and os.path.exists(motifs):
         with open(motifs) as f: 
@@ -118,7 +85,11 @@ def scan_fasta_to_best_match(fname, motifs, ncpus=None):
 
     logger.debug("scanning %s...", fname)
     result = dict([(m.id, []) for m in motifs])
-    for scores in s.best_match(fname):
+    if score:
+        it = s.best_score(fname)
+    else:
+        it = s.best_match(fname)
+    for scores in it:
         for motif,score in zip(motifs, scores):
             result[motif.id].append(score)
 
@@ -288,6 +259,7 @@ class Scanner(object):
     def __init__(self, ncpus=None):
         self.config = MotifConfig()
         self.threshold = None
+        self.index_dir = None
 
         if ncpus is None:
             self.ncpus = int(MotifConfig().get_default_params()["ncpus"])
@@ -452,9 +424,15 @@ class Scanner(object):
             - converting regions to sequences
             - background for MOODS
         """
-        index_dir = os.path.join(self.config.get_index_dir(), genome)
-        if not os.path.exists(index_dir) or not os.path.isdir(index_dir):
-            raise ValueError("index for {} does not exist".format(genome))
+        if not genome:
+            return
+        
+        if os.path.exists(genome) and os.path.isdir(genome):
+            index_dir = genome
+        else:
+            index_dir = os.path.join(self.config.get_index_dir(), genome)
+            if not os.path.exists(index_dir) or not os.path.isdir(index_dir):
+                raise ValueError("index for {} does not exist".format(genome))
         self.index_dir = index_dir
     
     def count(self, seqs, nreport=100, scan_rc=True):
@@ -499,7 +477,6 @@ class Scanner(object):
         scan a set of regions / sequences
         """
 
-        
         if not self.threshold:
             sys.stderr.write(
                 "Using default threshold of 0.95. "
@@ -507,23 +484,11 @@ class Scanner(object):
                 )
             self.set_threshold(threshold=0.95)
 
-        # determine input type
-        seqs_type = get_seqs_type(seqs)
-        
-        # Fasta object
-        if seqs_type.startswith("fasta"):
-            if seqs_type.endswith("file"):
-                seqs = Fasta(seqs)
-            
-            it = self._scan_sequences(seqs.seqs, 
+        seqs = as_fasta(seqs, index_dir=self.index_dir)
+           
+        it = self._scan_sequences(seqs.seqs, 
                     nreport, scan_rc)
-        # regions or BED
-        else:
-            if seqs_type == "regionfile":
-                seqs = [l.strip() for l in open(seqs)]
-            it = self._scan_regions(seqs, 
-                    nreport, scan_rc)
-        
+       
         for result in it:
             yield result
 
@@ -548,7 +513,8 @@ class Scanner(object):
             
             genome_index = GenomeIndex(index_dir)
            
-            motifs = [(m, self.threshold[m.id]) for m in read_motifs(open(self.motifs))]
+            with open(self.motifs) as f:
+                motifs = [(m, self.threshold[m.id]) for m in read_motifs(f)]
             scan_func = partial(scan_region_mult,
                 genome_index=genome_index,
                 motifs=motifs,

@@ -116,7 +116,6 @@ def command_scan(inputfile, pwmfile, nreport=1, fdr=0.01, cutoff=None,
    
     fa = as_fasta(inputfile, index_dir)
     
-    
     # initialize scanner
     s = Scanner()
     s.set_motifs(pwmfile)

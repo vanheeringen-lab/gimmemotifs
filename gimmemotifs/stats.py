@@ -7,13 +7,13 @@ import numpy as np
 from scipy.stats import rankdata
 
 from gimmemotifs import rocmetrics
-from gimmemotifs.scanner import scan_fasta_to_best_match
+from gimmemotifs.scanner import scan_to_best_match
 from gimmemotifs.motif import read_motifs, Motif
 from gimmemotifs.config import MotifConfig
 
 logger = logging.getLogger("gimme.stats")
 
-def calc_stats(motifs, fg_file, bg_file, stats=None, ncpus=None):
+def calc_stats(motifs, fg_file, bg_file, genome=None, stats=None, ncpus=None):
     """Calculate motif enrichment metrics.
 
     Parameters
@@ -23,14 +23,20 @@ def calc_stats(motifs, fg_file, bg_file, stats=None, ncpus=None):
         single Motif instance.
 
     fg_file : str
-        Filename of a FASTA file with positive sequences.
+        Filename of a FASTA, BED or region file with positive sequences.
 
     bg_file : str
-        Filename of a FASTA file with negative sequences.
+        Filename of a FASTA, BED or region file with negative sequences.
 
+    genome : str, optional
+        Genome or index directory in case of BED/regions.
+    
     stats : dict, optional
         Names of metrics to calculate. See gimmemotifs.rocmetrics.__all__ 
         for available metrics.
+
+    ncpus : int, optional
+        Number of cores to use.
 
     Returns
     -------
@@ -60,8 +66,8 @@ def calc_stats(motifs, fg_file, bg_file, stats=None, ncpus=None):
             (i / chunksize) + 1, len(all_motifs) / chunksize + 1)
         motifs = all_motifs[i:i + chunksize]
        
-        fg_total = scan_fasta_to_best_match(fg_file, motifs, ncpus=ncpus)
-        bg_total = scan_fasta_to_best_match(bg_file, motifs, ncpus=ncpus)
+        fg_total = scan_to_best_match(fg_file, motifs, ncpus=ncpus, genome=genome)
+        bg_total = scan_to_best_match(bg_file, motifs, ncpus=ncpus, genome=genome)
      
         logger.debug("calculating statistics")
         

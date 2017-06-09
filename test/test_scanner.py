@@ -3,6 +3,7 @@ import tempfile
 import os
 from gimmemotifs.scanner import *
 from gimmemotifs.fasta import Fasta
+from gimmemotifs.genome_index import GenomeIndex
 from time import sleep
 
 class TestScanner(unittest.TestCase):
@@ -13,7 +14,15 @@ class TestScanner(unittest.TestCase):
         
         self.motifs = os.path.join(self.data_dir, "motif.pwm")
         self.fa = os.path.join(self.data_dir, "test.fa")
+        self.bed = os.path.join(self.data_dir, "test.bed")
+        self.regions = os.path.join(self.data_dir, "test.txt")
 
+        genome = "genome"
+        genome_dir = os.path.join(self.data_dir, genome)
+        genome_index = GenomeIndex()
+        self.tmpdir = tempfile.mkdtemp()
+        genome_index.create_index(genome_dir, self.tmpdir)
+    
     def test1_scan_sequences(self):
         """ Scanner """
         for ncpus in [1,2,3]:
@@ -38,18 +47,19 @@ class TestScanner(unittest.TestCase):
             nmatches = [len(m[0]) for m in s._scan_sequences(f.seqs, 10, True)]
             self.assertEqual([0,2,4], nmatches)
 
-    def test2_scan_fasta_to_best_match(self):
-        result =  scan_fasta_to_best_match(self.fa, self.motifs)
+    def test2_scan_to_best_match(self):
+        for f in self.fa, self.bed, self.regions:
+            result = scan_to_best_match(f, self.motifs, genome=self.tmpdir)
         
-        scores = [-20.08487, 9.029220, 9.029220]
-
-        self.assertIn("AP1", result)
+            scores = [-20.08487, 9.029220, 9.029220]
+    
+            self.assertIn("AP1", result)
         
-        for score,match in zip(scores, result["AP1"]):
-            self.assertAlmostEqual(score, match[0], 5)
+            for score,match in zip(scores, result["AP1"]):
+                self.assertAlmostEqual(score, match[0], 5)
 
-    def test3_scan_fasta_to_best_score(self):
-        result = scan_fasta_to_best_score(self.fa, self.motifs)
+    def test3_scan_to_best_score(self):
+        result = scan_to_best_match(self.fa, self.motifs, score=True)
         
         scores = [-20.08487, 9.029220, 9.029220]
 
