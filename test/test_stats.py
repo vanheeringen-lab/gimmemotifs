@@ -55,7 +55,7 @@ class TestStats(unittest.TestCase):
             self.assertLess(stats[m2]["phyper_at_fdr"] , 1e-16)
             
             # Only calculate specific statistic
-            stats = calc_stats(self.motifs, self.fg_fa, self.bg_fa, ["roc_auc"])
+            stats = calc_stats(self.motifs, self.fg_fa, self.bg_fa, stats=["roc_auc"])
             
             self.assertEqual(1, len(list(stats.values())[0]))
             
@@ -71,7 +71,7 @@ class TestStats(unittest.TestCase):
             motifs = read_motifs(f)
         motif = [m for m in motifs if str(m) == m_id][0]
         
-        stats = calc_stats(motif, self.fg_fa, self.bg_fa, ["roc_auc"])
+        stats = calc_stats(motif, self.fg_fa, self.bg_fa, stats=["roc_auc"])
         self.assertGreater(stats[m_id]["roc_auc"] , 0.9)
     
     def tearDown(self):
