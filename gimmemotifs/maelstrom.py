@@ -28,7 +28,7 @@ from gimmemotifs.scanner import Scanner
 
 BG_LENGTH = 200
 BG_NUMBER = 10000
-FDR = 0.01
+FPR = 0.01
 
 def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
     config = MotifConfig()
@@ -49,7 +49,7 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
 
     scores = []
     if scoring == "count":
-        s.set_threshold(fdr=FDR, genome=genome)
+        s.set_threshold(fpr=FPR, genome=genome)
         for row in s.count(regions):
             scores.append(row)
     else:
@@ -66,7 +66,7 @@ def moap_with_bg(input_table, genome, data_dir, method, scoring, pwmfile=None):
             scoring))
 
     moap(input_table, outfile=outfile, genome=genome, method=method,
-            scoring=scoring, fdr=FDR)
+            scoring=scoring, fpr=FPR)
 
 def moap_with_table(input_table, motif_table, data_dir, method, scoring):
     outfile = os.path.join(data_dir,"activity.{}.{}.out.txt".format(
@@ -74,7 +74,7 @@ def moap_with_table(input_table, motif_table, data_dir, method, scoring):
             scoring))
 
     moap(input_table, outfile=outfile, method=method, scoring=scoring, 
-            motiffile=motif_table, fdr=FDR)
+            motiffile=motif_table, fpr=FPR)
 
 def safe_join(df1, df2):     
     tmp = df1.copy()

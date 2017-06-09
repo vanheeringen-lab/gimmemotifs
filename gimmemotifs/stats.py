@@ -147,8 +147,8 @@ def add_star(stats):
             "mncp": [2, 5, 8],
             "roc_auc": [0.6, 0.75, 0.9],
             "max_enrichment": [10, 20, 30],
-            "enr_at_fdr": [4, 8, 12],
-            "fraction_fdr": [0.4, 0.6, 0.8],
+            "enr_at_fpr": [4, 8, 12],
+            "fraction_fpr": [0.4, 0.6, 0.8],
             "ks_significance": [4, 7, 10],
             "numcluster": [3, 6, 9],
     }

@@ -140,8 +140,8 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
             rm.bg[bg] = {}
             this_stats = stats.get(str(motif), {}).get(bg)
             # TODO: fix these stats
-            rm.bg[bg]["e"] = "%0.2f" % this_stats.get("enr_at_fdr", 1.0)
-            rm.bg[bg]["p"] = "%0.2f" % this_stats.get("phyper_at_fd", 1.0)
+            rm.bg[bg]["e"] = "%0.2f" % this_stats.get("enr_at_fpr", 1.0)
+            rm.bg[bg]["p"] = "%0.2f" % this_stats.get("phyper_at_fpr", 1.0)
             rm.bg[bg]["auc"] = "%0.3f" % this_stats.get("roc_auc", 0.5)
             rm.bg[bg]["mncp"] = "%0.3f" % this_stats.get("mncp", 1.0)
             rm.bg[bg]["roc_img"] = {"src": "images/" + os.path.basename(roc_img_file % (motif.id, bg)) + ".png"}
@@ -202,14 +202,14 @@ def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outd
 
     if not params:
         params = {}
-    cutoff_fdr = params.get('cutoff_fdr', 0.9)
+    cutoff_fpr = params.get('cutoff_fpr', 0.9)
     lwidth = np.median([len(seq) for seq in Fasta(locfa).seqs])
 
     # Location plots
     logger.debug("Creating localization plots")
     for motif in motifs:
         outfile = os.path.join(outdir, "images/{}_histogram.svg".format(motif.id))
-        motif_localization(locfa, motif, lwidth, outfile, cutoff=cutoff_fdr)
+        motif_localization(locfa, motif, lwidth, outfile, cutoff=cutoff_fpr)
 
     # Create reports
     _create_text_report(inputfile, motifs, closest_match, stats, outdir)

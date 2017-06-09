@@ -16,11 +16,11 @@ import numpy as np
 
 __all__ = [
     "recall_at_fdr",
-    "fraction_fdr",
-    "score_at_fdr",
-    "enr_at_fdr",
+    "fraction_fpr",
+    "score_at_fpr",
+    "enr_at_fpr",
     "max_enrichment",
-    "phyper_at_fdr", 
+    "phyper_at_fpr", 
     "mncp",
     "roc_auc",
     "roc_auc_xlim",
@@ -94,9 +94,9 @@ def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.1):
     return recall[cutoff_index]
 
 @requires_scores
-def phyper_at_fdr(fg_vals, bg_vals, fdr=5):
+def phyper_at_fpr(fg_vals, bg_vals, fpr=5):
     """
-    Computes the hypergeometric p-value at a specific FDR (default 5%).
+    Computes the hypergeometric p-value at a specific FPR (default 5%).
 
     Parameters
     ----------
@@ -106,16 +106,16 @@ def phyper_at_fdr(fg_vals, bg_vals, fdr=5):
     bg_vals : array_like
         The list of values for the negative set.
     
-    fdr : float, optional
-        The FDR (between 0.0 and 1.0).
+    fpr : float, optional
+        The FPR (between 0.0 and 1.0).
     
     Returns
     -------
     fraction : float
-        The fraction positives at the specified FDR.
+        The fraction positives at the specified FPR.
     """
     fg_vals = np.array(fg_vals)
-    s = scoreatpercentile(bg_vals, 100 - fdr)
+    s = scoreatpercentile(bg_vals, 100 - fpr)
     
     table = [
             [sum(fg_vals >= s), sum(bg_vals >= s)],
@@ -125,9 +125,9 @@ def phyper_at_fdr(fg_vals, bg_vals, fdr=5):
     return fisher_exact(table, alternative="greater")[1]
 
 @requires_scores
-def fraction_fdr(fg_vals, bg_vals, fdr=5):
+def fraction_fpr(fg_vals, bg_vals, fpr=5):
     """
-    Computes the fraction positives at a specific FDR (default 5%).
+    Computes the fraction positives at a specific FPR (default 5%).
 
     Parameters
     ----------
@@ -137,22 +137,22 @@ def fraction_fdr(fg_vals, bg_vals, fdr=5):
     bg_vals : array_like
         The list of values for the negative set.
     
-    fdr : float, optional
-        The FDR (between 0.0 and 1.0).
+    fpr : float, optional
+        The FPR (between 0.0 and 1.0).
     
     Returns
     -------
     fraction : float
-        The fraction positives at the specified FDR.
+        The fraction positives at the specified FPR.
     """
     fg_vals = np.array(fg_vals)
-    s = scoreatpercentile(bg_vals, 100 - fdr)
+    s = scoreatpercentile(bg_vals, 100 - fpr)
     return len(fg_vals[fg_vals >= s]) / float(len(fg_vals))
 
 @requires_scores
-def score_at_fdr(fg_vals, bg_vals, fdr=5):
+def score_at_fpr(fg_vals, bg_vals, fpr=5):
     """
-    Returns the motif score at a specific FDR (default 5%).
+    Returns the motif score at a specific FPR (default 5%).
 
     Parameters
     ----------
@@ -162,21 +162,21 @@ def score_at_fdr(fg_vals, bg_vals, fdr=5):
     bg_vals : array_like
         The list of values for the negative set.
     
-    fdr : float, optional
-        The FDR (between 0.0 and 1.0).
+    fpr : float, optional
+        The FPR (between 0.0 and 1.0).
     
     Returns
     -------
     score : float
-        The motif score at the specified FDR.
+        The motif score at the specified FPR.
     """
     bg_vals = np.array(bg_vals)
-    return scoreatpercentile(bg_vals, 100 - fdr)
+    return scoreatpercentile(bg_vals, 100 - fpr)
 
 @requires_scores
-def enr_at_fdr(fg_vals, bg_vals, fdr=5.0):
+def enr_at_fpr(fg_vals, bg_vals, fpr=5.0):
     """
-    Computes the enrichment at a specific FDR (default 5%).
+    Computes the enrichment at a specific FPR (default 5%).
 
     Parameters
     ----------
@@ -186,17 +186,17 @@ def enr_at_fdr(fg_vals, bg_vals, fdr=5.0):
     bg_vals : array_like
         The list of values for the negative set.
     
-    fdr : float, optional
-        The FDR in percentages.
+    fpr : float, optional
+        The FPR in percentages.
     
     Returns
     -------
     enrichment : float
-        The enrichment at the specified FDR.
+        The enrichment at the specified FPR.
     """
     pos = np.array(fg_vals)
     neg = np.array(bg_vals)
-    s = scoreatpercentile(neg, 100 - fdr)
+    s = scoreatpercentile(neg, 100 - fpr)
     neg_matches = float(len(neg[neg >= s]))
     if neg_matches == 0:
         return float("inf")

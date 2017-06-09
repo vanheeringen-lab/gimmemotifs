@@ -29,7 +29,7 @@ def roc(args):
     stats = [
             "roc_auc", 
             "mncp", 
-            "enr_at_fdr",
+            "enr_at_fpr",
             "max_enrichment", 
             "recall_at_fdr", 
             "roc_values"
@@ -50,12 +50,12 @@ def roc(args):
             plot_y.append(y)
             legend.append(motif.id)
         print("{}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.2f}\t{:0.4f}".format(
-              motif.id, 
-              motif_stats[str(motif)]["roc_auc"], 
-              motif_stats[str(motif)]["mncp"], 
-              motif_stats[str(motif)]["enr_at_fdr"], 
-              motif_stats[str(motif)]["max_enrichment"], 
-              motif_stats[str(motif)]["recall_at_fdr"],
+              motif_id, 
+              motif_stats[motif_id]["roc_auc"], 
+              motif_stats[motif_id]["mncp"], 
+              motif_stats[motif_id]["enr_at_fpr"], 
+              motif_stats[motif_id]["max_enrichment"][0], 
+              motif_stats[motif_id]["recall_at_fdr"],
               ))
     
     # Plot the ROC curve

@@ -463,11 +463,11 @@ class MWUMoap(Moap):
         
         # correct for multipe testing
         pvals = np.array(pvals)
-        fdr = multipletests(pvals.flatten(), 
+        fpr = multipletests(pvals.flatten(), 
                 method="fdr_bh")[1].reshape(pvals.shape)
         
         # create output DataFrame
-        self.act_ = pd.DataFrame(-np.log10(fdr.T), 
+        self.act_ = pd.DataFrame(-np.log10(fpr.T), 
                 columns=clusters, index=df_X.columns)
 
 @register_predictor('Hypergeom')
@@ -523,11 +523,11 @@ class HypergeomMoap(Moap):
         
         # correct for multipe testing
         pvals = np.array(pvals)
-        fdr = multipletests(pvals.flatten(), 
+        fpr = multipletests(pvals.flatten(), 
                 method="fdr_bh")[1].reshape(pvals.shape)
         
         # create output DataFrame
-        self.act_ = pd.DataFrame(-np.log10(fdr.T), 
+        self.act_ = pd.DataFrame(-np.log10(fpr.T), 
                 columns=clusters, index=df_X.columns)
 
 @register_predictor('RF')
@@ -700,7 +700,7 @@ class LassoMoap(Moap):
         coefs = np.array(coefs).mean(axis=0)
         return coefs
 
-def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=None, pwmfile=None, genome=None, fdr=0.01):
+def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=None, pwmfile=None, genome=None, fpr=0.01):
     """Run a single motif activity prediction algorithm.
     
     Parameters
@@ -732,8 +732,8 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
         Genome name, as indexed by gimme. Required when motiffile is not
         supplied
     
-    fdr : float, optional
-        FDR for motif scanning
+    fpr : float, optional
+        FPR for motif scanning
     
     Returns
     -------
@@ -797,7 +797,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
         motif_names = [m.id for m in read_motifs(open(pwmfile))]
         scores = []
         if method == 'classic' or scoring == "count":
-            s.set_threshold(fdr=fdr)
+            s.set_threshold(fpr=fpr)
             for row in s.count(list(df.index)):
                 scores.append(row)
         else:
