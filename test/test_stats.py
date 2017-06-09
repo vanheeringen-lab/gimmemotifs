@@ -16,9 +16,9 @@ class TestStats(unittest.TestCase):
         self.bg_fa = os.path.join(self.data_dir, "random.w200.fa")
         self.stat_functions = [
             "recall_at_fdr",
-            "fraction_fdr",
-            "score_at_fdr",
-            "enr_at_fdr",
+            "fraction_fpr",
+            "score_at_fpr",
+            "enr_at_fpr",
             "max_enrichment",
             "mncp",
             "roc_auc",
@@ -51,8 +51,8 @@ class TestStats(unittest.TestCase):
             self.assertGreater(stats[m1]["ks_pvalue"] , 0.01)
             self.assertLess(stats[m2]["ks_pvalue"] , 0.001)
             
-            self.assertGreater(stats[m1]["phyper_at_fdr"] , 0.1)
-            self.assertLess(stats[m2]["phyper_at_fdr"] , 1e-16)
+            self.assertGreater(stats[m1]["phyper_at_fpr"] , 0.1)
+            self.assertLess(stats[m2]["phyper_at_fpr"] , 1e-16)
             
             # Only calculate specific statistic
             stats = calc_stats(self.motifs, self.fg_fa, self.bg_fa, stats=["roc_auc"])
