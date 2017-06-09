@@ -303,10 +303,10 @@ p.add_argument("pwmfile",
 p.add_argument("inputfile",
                help="FASTA file with background sequences", 
                metavar="FAFILE")
-p.add_argument("fdr", 
-               help="Desired fdr", 
+p.add_argument("fpr", 
+               help="Desired fpr", 
                type=float, 
-               metavar="FDR")
+               metavar="FPR")
 p.set_defaults(func=commands.threshold)
 
 # motif_localization_plots.py
@@ -349,9 +349,9 @@ p.add_argument("-p", "--pwmfile",
                "(default: {0})".format(default_pwm), 
                default=default_pwm_file,
                metavar="PWMFILE")
-p.add_argument("-f", "--fdr", 
-               dest="fdr", 
-               help="FDR for motif scanning (default 0.01)", 
+p.add_argument("-f", "--fpr", 
+               dest="fpr", 
+               help="FPR for motif scanning (default 0.01)", 
                metavar="", 
                default=None)
 p.add_argument("-B", "--bgfile", 

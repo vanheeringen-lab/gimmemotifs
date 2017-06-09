@@ -11,16 +11,16 @@ from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 
 def threshold(args):
-    """Calculate motif score threshold for a given FDR."""
-    if args.fdr < 0 or args.fdr > 1:
-        print("Please specify a FDR between 0 and 1")
+    """Calculate motif score threshold for a given FPR."""
+    if args.fpr < 0 or args.fpr > 1:
+        print("Please specify a FPR between 0 and 1")
         sys.exit(1)
 
     motifs = read_motifs(open(args.pwmfile))
     
     s = Scanner()
     s.set_motifs(args.pwmfile)
-    s.set_threshold(args.fdr, filename=args.inputfile)
+    s.set_threshold(args.fpr, filename=args.inputfile)
 
     print("Motif\tScore\tCutoff")
     for motif in motifs:

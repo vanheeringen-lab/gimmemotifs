@@ -105,7 +105,7 @@ def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pval
                                score, pos, strand, bed=bed)
 
 
-def command_scan(inputfile, pwmfile, nreport=1, fdr=0.01, cutoff=None, 
+def command_scan(inputfile, pwmfile, nreport=1, fpr=0.01, cutoff=None, 
         bed=False, scan_rc=True, table=False, score_table=False, moods=False, 
         pvalue=None, bgfile=None, genome=None):
     motifs = pwmfile_to_motifs(pwmfile)
@@ -120,7 +120,7 @@ def command_scan(inputfile, pwmfile, nreport=1, fdr=0.01, cutoff=None,
     # initialize scanner
     s = Scanner()
     s.set_motifs(pwmfile)
-    s.set_threshold(fdr=fdr, threshold=cutoff, 
+    s.set_threshold(fpr=fpr, threshold=cutoff, 
             genome=genome, length=fa.median_length(), filename=bgfile)
     
     if table:
@@ -135,17 +135,17 @@ def command_scan(inputfile, pwmfile, nreport=1, fdr=0.01, cutoff=None,
 
 def pwmscan(args):
 
-    if args.fdr is None and args.cutoff is None:
-        args.fdr = 0.01
+    if args.fpr is None and args.cutoff is None:
+        args.fpr = 0.01
 
     print("# GimmeMotifs version {}".format(GM_VERSION))
     print("# Input: {}".format(args.inputfile))
     print("# Motifs: {}".format(args.pwmfile))
-    if args.fdr:
+    if args.fpr:
         if args.genome:
-            print("# FDR: {} ({})".format(args.fdr, args.genome))
+            print("# FPR: {} ({})".format(args.fpr, args.genome))
         elif args.bgfile:
-            print("# FDR: {} ({})".format(args.fdr, args.bgfile))
+            print("# FPR: {} ({})".format(args.fpr, args.bgfile))
     if args.cutoff:
         print("# Threshold: {}".format(args.cutoff))
 
@@ -153,7 +153,7 @@ def pwmscan(args):
             args.inputfile, 
             args.pwmfile, 
             nreport=args.nreport, 
-            fdr=args.fdr,
+            fpr=args.fpr,
             cutoff=args.cutoff, 
             bed=args.bed, 
             scan_rc=args.scan_rc, 

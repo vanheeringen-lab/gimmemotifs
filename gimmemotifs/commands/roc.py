@@ -29,7 +29,7 @@ def roc(args):
     stats = [
             "roc_auc", 
             "mncp", 
-            "enr_at_fdr",
+            "enr_at_fpr",
             "max_enrichment", 
             "recall_at_fdr", 
             "roc_values"
@@ -50,7 +50,7 @@ def roc(args):
               motif_id, 
               motif_stats[motif_id]["roc_auc"], 
               motif_stats[motif_id]["mncp"], 
-              motif_stats[motif_id]["enr_at_fdr"], 
+              motif_stats[motif_id]["enr_at_fpr"], 
               motif_stats[motif_id]["max_enrichment"][0], 
               motif_stats[motif_id]["recall_at_fdr"],
               ))

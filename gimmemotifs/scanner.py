@@ -41,8 +41,6 @@ try:
 except:
     pass
 
-
-
 # only used when using cache, should not be a requirement
 try:
     from dogpile.cache import make_region
@@ -338,7 +336,7 @@ class Scanner(object):
             chksum = xxhash.xxh64("\n".join(sorted(self.motif_ids))).digest()
             self.checksum[self.motif_file] = chksum
 
-    def _threshold_from_seqs(self, motifs, seqs, fdr):
+    def _threshold_from_seqs(self, motifs, seqs, fpr):
         scan_motifs = [(m, m.pwm_min_score()) for m in motifs]
         
         table = []
@@ -349,19 +347,19 @@ class Scanner(object):
             min_score = motif.pwm_min_score()
             cutoff = 0
             if len(scores) > 0:
-                opt_score = scoreatpercentile(scores, 100 - (100 * fdr))
+                opt_score = scoreatpercentile(scores, 100 - (100 * fpr))
                 cutoff = (opt_score - min_score) / (motif.pwm_max_score() - min_score)
             yield motif, opt_score#cutoff
 
 
-    def set_threshold(self, fdr=None, threshold=None, genome=None, 
+    def set_threshold(self, fpr=None, threshold=None, genome=None, 
                         length=200, filename=None):
         """Set motif scanning threshold based on background sequences.
 
         Parameters
         ----------
-        fdr : float, optional
-            Desired FDR, between 0.0 and 1.0.
+        fpr : float, optional
+            Desired FPR, between 0.0 and 1.0.
 
         threshold : float or str, optional
             Desired motif threshold, expressed as the fraction of the 
@@ -371,24 +369,24 @@ class Scanner(object):
 
         """
         if threshold:
-            if fdr:
-                raise ValueError("Need either fdr or threshold.")
+            if fpr:
+                raise ValueError("Need either fpr or threshold.")
             if genome:
                 sys.stderr.write(
                     "Parameter genome ignored when threshold is specified.\n"
-                    "Did you want to use fdr?\n")
+                    "Did you want to use fpr?\n")
             if filename:
                 sys.stderr.write(
                     "Parameter filename ignored when threshold is specified.\n"
-                    "Did you want to use fdr?\n")
+                    "Did you want to use fpr?\n")
 
         if genome and filename:
             raise ValueError("Need either genome or filename.")
     
-        if fdr:
-            fdr = float(fdr)
-            if not (0.0 < fdr < 1.0):
-                raise ValueError("Parameter fdr should be between 0 and 1")
+        if fpr:
+            fpr = float(fpr)
+            if not (0.0 < fpr < 1.0):
+                raise ValueError("Parameter fpr should be between 0 and 1")
         
         thresholds = {}
         with open(self.motifs) as f: 
@@ -414,7 +412,7 @@ class Scanner(object):
         with Cache(CACHE_DIR) as cache:
             scan_motifs = []
             for motif in motifs:
-                k = "{}|{}|{:.4f}".format(motif.hash(), bg_hash, fdr)
+                k = "{}|{}|{:.4f}".format(motif.hash(), bg_hash, fpr)
            
                 threshold = cache.get(k)
                 if threshold is None:
@@ -428,21 +426,21 @@ class Scanner(object):
             if len(scan_motifs) > 0:
                 if genome:
                     check_genome(genome)    
-                    sys.stderr.write("Determining threshold for fdr {} and length {} based on {}\n".format(fdr, int(length), genome))
+                    sys.stderr.write("Determining threshold for fpr {} and length {} based on {}\n".format(fpr, int(length), genome))
                     index = os.path.join(config.get_index_dir(), genome)
                     fa = RandomGenomicFasta(index, length, 10000)
                     seqs = fa.seqs
                 else: 
-                    sys.stderr.write("Determining threshold for fdr {} based on {}\n".format(fdr, filename))
-                for motif, threshold in self._threshold_from_seqs(scan_motifs, seqs, fdr):
-                    k = "{}|{}|{:.4f}".format(motif.hash(), bg_hash, fdr)
+                    sys.stderr.write("Determining threshold for fpr {} based on {}\n".format(fpr, filename))
+                for motif, threshold in self._threshold_from_seqs(scan_motifs, seqs, fpr):
+                    k = "{}|{}|{:.4f}".format(motif.hash(), bg_hash, fpr)
                     cache.set(k, threshold)
                     if np.isclose(threshold, motif.pwm_max_score()):
                         thresholds[motif.id] = None
                     else:
                         thresholds[motif.id] = threshold
         
-        self.threshold_str = "{}_{}_{}_{}_{}".format(fdr, threshold, genome,
+        self.threshold_str = "{}_{}_{}_{}_{}".format(fpr, threshold, genome,
                                         length, filename)
         self.threshold = thresholds
 
