@@ -262,14 +262,14 @@ def _is_significant(stats, metrics=None):
 
     metrics : sequence
         Metric with associated minimum values. The default is
-        (("max_enrichment", 3), ("roc_auc", 0.55), ("enr_at_fdr", 0.55))
+        (("max_enrichment", 3), ("roc_auc", 0.55), ("enr_at_fpr", 0.55))
     
     Returns
     -------
     significant : bool
     """
     if metrics is None:
-        metrics = (("max_enrichment", 3), ("roc_auc", 0.55), ("enr_at_fdr", 0.55))
+        metrics = (("max_enrichment", 3), ("roc_auc", 0.55), ("enr_at_fpr", 0.55))
     
     for stat_name, min_value in metrics:
         if stats.get(stat_name, 0) < min_value:
@@ -293,7 +293,7 @@ def filter_significant_motifs(fname, result, bg, metrics=None):
 
     metrics : sequence
         Metric with associated minimum values. The default is
-        (("max_enrichment", 3), ("roc_auc", 0.55), ("enr_at_fdr", 0.55))
+        (("max_enrichment", 3), ("roc_auc", 0.55), ("enr_at_f[r", 0.55))
 
     Returns
     -------
