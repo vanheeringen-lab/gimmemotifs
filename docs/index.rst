@@ -20,12 +20,23 @@ If you find it useful please cite our paper:
 Getting started
 ---------------
 
-* :ref:`Install GimmeMotifs` using bioconda on Linux or Mac. Python 2.7 and 3.x are supported.
-* Have a look at these :ref:`simple examples` to get a taste of what is possible.
-* Check out the more detailed :ref:`tutorials`.
-* Full command-line reference can be found here.
-* There's also an :ref:`API documentation`.
+* The easiest way to :ref:`install<Install GimmeMotifs>` GimmeMotifs is using bioconda_ on Linux or Mac. Python 2.7 and >=3.4 are supported.
+* Have a look at these :ref:`simple examples<simple_examples>` to get a taste of what is possible.
+* Check out the more detailed :ref:`tutorials<tutorials>`.
+* Full command-line reference can be found :ref:`here<command-line>`.
+* There's also an :ref:`API documentation<API documentation>`.
 
+Get help
+--------
+
+* First, check the :ref:`FAQ` for common issues.
+* The preferred way to get support is through the `Github issues`_ page.
+* Finally, you can reach me by mail_ or via twitter_.
+
+.. _`Github issues`: https://github.com/simonvh/gimmemotifs/issues/
+.. _bioconda: https://bioconda.github.io/
+.. _mail: simon.vanheeringen@gmail.com
+.. _twitter: https://twitter.com/svheeringen
 
 Full contents
 -------------

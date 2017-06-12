@@ -1,5 +1,7 @@
-Other scripts
-=============
+.. _`command-line`:
+
+Command-line reference
+======================
 
 In addition to ``gimme motifs`` the GimmeMotifs package contains
 several other tools that can perform the various substeps of

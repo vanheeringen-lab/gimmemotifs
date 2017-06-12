@@ -1,22 +1,42 @@
 Installation
 ============
 
-GimmeMotifs runs on Linux. Definitely not on Windows, sorry. Mac OS X
-should work in theory, but as I don’t have the means to test this, I’m
-not completely sure.
+GimmeMotifs runs on Linux. Definitely not on Windows, sorry. 
+Mac OSX should work and is included in the build test. 
+However, as I don't use it myself, unexpected issues might pop up. 
+Let me know, so I can try to fix it.
 
 .. _`Install GimmeMotifs`:
 
-The easy way to install
------------------------
+The easiest way to install
+--------------------------
 
 The most straightforward way to install GimmeMotifs is by using `conda
-<https://docs.continuum.io/anaconda>`_.
+<https://docs.continuum.io/anaconda>`_. 
+Activate the bioconda_ channel if you haven't done so already.
+
+:: 
+
+    $ conda config --add channels conda-forge
+    $ conda config --add channels defaults
+    $ conda config --add channels r
+    $ conda config --add channels bioconda
+
+Now you can install GimmeMotifs with one command. In the current environment:
 
 ::
 
-    $ conda install gimmemotifs -c bioconda -c r
+    $ conda install gimmemotifs
 
+Or create a specific environment:
+
+::
+
+    $ conda create -n gimme gimmemotifs
+    # Activate the environment before you use GimmeMotifs
+    $ source activate gimme
+
+.. _bioconda: https://bioconda.github.io/
 
 Using pip
 ---------
