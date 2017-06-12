@@ -5,7 +5,8 @@ GimmeMotifs runs on Linux. Definitely not on Windows, sorry. Mac OS X
 should work in theory, but as I don’t have the means to test this, I’m
 not completely sure.
 
-.. _`easy_install`:
+.. _`Install GimmeMotifs`:
+
 The easy way to install
 -----------------------
 
