@@ -54,7 +54,7 @@ def roc(args):
               motif_stats[str(motif)]["roc_auc"], 
               motif_stats[str(motif)]["mncp"], 
               motif_stats[str(motif)]["enr_at_fpr"], 
-              motif_stats[str(motif)]["max_enrichment"][0], 
+              motif_stats[str(motif)]["max_enrichment"], 
               motif_stats[str(motif)]["recall_at_fdr"],
               ))
     
