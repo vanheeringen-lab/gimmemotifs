@@ -18,11 +18,10 @@ from gimmemotifs.config import MotifConfig,GM_VERSION
 
 MAX_CPUS = 16
 
-def format_line(fa, seq_id, motif, score, pos, strand, bed=False): 
-    strandmap = {-1:"-",1:"+"}
-    p = re.compile(r'([^\s:]+):(\d+)-(\d+)')
+def format_line(seq, seq_id, motif, score, pos, strand, bed=False, 
+        seq_p=re.compile(r'([^\s:]+):(\d+)-(\d+)'), strandmap = {-1:"-",1:"+"}): 
     if bed:
-        m = p.search(seq_id)
+        m = seq_p.search(seq_id)
         if m:
             chrom = m.group(1)
             start = int(m.group(2))
@@ -51,7 +50,7 @@ def format_line(fa, seq_id, motif, score, pos, strand, bed=False):
             strandmap[strand], 
             ".", 
             motif.id, 
-            fa[seq_id][pos: pos + len(motif)]
+            seq[pos: pos + len(motif)]
         )
 
 def scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods):
@@ -93,15 +92,16 @@ def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pval
         for motif, d in result_it:
             for seq_id,matches in d.items():
                 for pos,score,strand in matches:
-                    yield format_line(fa, seq_id, motif,
+                    yield format_line(fa[seq_id], seq_id, motif,
                             score, pos, strand, bed=bed)
     else:
         result_it = s.scan(fa, nreport, scan_rc)
         for i, result in enumerate(result_it):
             seq_id = fa.ids[i]
+            seq = fa[seq_id]
             for motif, matches in zip(motifs, result):
                 for (score, pos, strand) in matches:
-                    yield format_line(fa, seq_id, motif, 
+                    yield format_line(seq, seq_id, motif, 
                                score, pos, strand, bed=bed)
 
 
