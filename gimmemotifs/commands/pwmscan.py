@@ -98,9 +98,10 @@ def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pval
         result_it = s.scan(fa, nreport, scan_rc)
         for i, result in enumerate(result_it):
             seq_id = fa.ids[i]
+            seq = fa[seq_id]
             for motif, matches in zip(motifs, result):
                 for (score, pos, strand) in matches:
-                    yield format_line(fa[seq_id], seq_id, motif, 
+                    yield format_line(seq, seq_id, motif, 
                                score, pos, strand, bed=bed)
 
 
