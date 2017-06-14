@@ -597,8 +597,8 @@ class Scanner(object):
                 yield ret
             
     def _scan_jobs(self, scan_func, scan_seqs):
+        batchsize = 1000
         if self.ncpus > 1:
-            batchsize = 1000
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
                 batch = scan_seqs[i * batchsize:( i+ 1) * batchsize]
                 chunksize = len(batch) // self.ncpus + 1
