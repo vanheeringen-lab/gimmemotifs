@@ -272,6 +272,8 @@ class Motif(object):
             pwm = pwm[:-1]
             self.pwm = self.pwm[:-1]
             self.pfm = self.pfm[:-1]
+        self.consensus = None 
+        return self
 
     def consensus_scan(self, fa):
         regexp = "".join(["[" + "".join(self.iupac[x.upper()]) + "]" for x in self.to_consensusv2()])
