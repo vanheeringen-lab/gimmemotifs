@@ -618,8 +618,8 @@ class Scanner(object):
                 pool.close()
                 gc.collect()
         else:
-            for i in range((len(scan_seqs) - 1) // chunksize + 1):
-                for j,ret in enumerate(scan_func(scan_seqs[i * chunksize:( i+ 1) * chunksize])):
+            for i in range((len(scan_seqs) - 1) // batchsize + 1):
+                for j,ret in enumerate(scan_func(scan_seqs[i * batchsize:( i+ 1) * chunksize])):
                     yield scan_seqs[i], ret
 
 
