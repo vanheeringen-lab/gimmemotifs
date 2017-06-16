@@ -44,10 +44,10 @@ Full contents
 .. toctree::
     :maxdepth: 2
 
-    introduction
-    included
     installation
-    configuration
-    usage
-    other_scripts
+    examples
+    tutorials
+    reference
+    api
+    faq
     acknowledgments

@@ -1,10 +1,62 @@
-Usage
-=====
 
-.. _quick-example:
+.. _`command-line`:
 
-Predicting de novo motifs 
--------------------------
+Command-line reference
+======================
+
+In addition to ``gimme motifs`` the GimmeMotifs package contains
+several other tools that can perform the various substeps of
+GimmeMotifs, as well as other useful tools. Run them to see the options.
+
+List of tools
+-------------
+
+* :ref:`gimme motifs<gimme_motifs>`
+* :ref:`gimme scan<gimme_scan>`
+* :ref:`gimme roc<gimme_roc>`
+* :ref:`gimme match<gimme_match>`
+* :ref:`gimme cluster<gimme_cluster>`
+* :ref:`gimme genome<gimme_genome>`
+* :ref:`gimme index<gimme_index>`
+* :ref:`gimme background<gimme_background>`
+* :ref:`gimme threshold<gimme_threshold>`
+* :ref:`gimme location<gimme_location>`
+* :ref:`gimme diff<gimme_diff>`
+* :ref:`gimme logo<gimme_logo>`
+
+
+Input formats
+-------------
+
+Most tools in this section take a file in PWM format as input. This is
+actually a file with Position Specific Scoring Matrices (PSSMs)
+containing *frequencies*. It looks like this:
+
+::
+
+    >motif1
+    0.3611  0.0769  0.4003  0.1664
+    0.2716  0.0283  0.5667  0.1381
+    0.6358  0.0016  0.3344  0.0330
+    0.0016  0.9859  0.0016  0.0157
+    0.8085  0.0063  0.0502  0.1397
+    >motif2
+    0.2276  0.0157  0.0330  0.7284
+    0.0031  0.0016  0.9984  0.0016
+    0.0377  0.3799  0.0016  0.5856
+    0.0816  0.7096  0.0173  0.1962
+    0.1350  0.4035  0.0675  0.3987
+
+The frequencies are seperated by tabs, and in the order A,C,G,T.
+
+
+.. _`gimme_motifs`:
+
+Command: gimme motifs
+---------------------
+
+Quick example
+~~~~~~~~~~~~~
 
 You can try GimmeMotifs with a small example dataset included in the
 examples directory, included with GimmeMotifs. This example does not
@@ -218,40 +270,167 @@ Detailed options for gimme motifs
    and GimmeMotifs will continue with the motifs that are predicted so
    far.
 
-Scanning for known motifs
--------------------------
+.. _`gimme_scan`:
 
-You can scan for known motifs using the ``gimme scan`` tool. Input can 
-be a FASTA file, BED file or file with regions in ``chr:start-end`` format.
-By default, ``gimme scan`` uses a compendium of vertebrate motifs that is 
-included with GimmeMotifs. For instance, the following command will scan 
-the file ``TAp73alpha.fa`` for known motifs with an estimated FDR of 1% 
-based on hg38 sequences. 
-The first time, this will take a while as ``gimme scan`` will calculate
-a threshold for each motif. However, these thresholds are cached on disk and
-subsequent runs for the same FDR and genome settings will be much faster.
+Command: gimme scan
+-------------------
+
+Scan a set of sequences with a set of motifs, and give the resulting
+matches in GFF or BED format. The threshold is based on the maximum and
+minimum possible score for each motif. So, 0.95 means that the score of
+a motif should be at least 95% of the (maximum score - minimum score).
+This should probably not be set much lower than 0.8, and should be
+generally at least 0.9 for good specificity. Keep in mind that the
+optimal threshold might be different for each motif!
 
 ::
 
-    $ gimme scan TAp73alpha.fa -f 0.01 -g hg38 > scan_results.gff
-    $ cut -f9 scan_results.gff | cut -f1 -d\; | sort | uniq -c | sort -n | tail
-         54 motif_name "Grainyhead_M6333_1.01" 
-         62 motif_name "Ndt80_PhoG_M1320_1.01" 
-         63 motif_name "Runt_Average_10" 
-         71 motif_name "Runt_Average_9" 
-         83 motif_name "bZIP_Average_149" 
-         92 motif_name "Unknown_M6235_1.01" 
-        100 motif_name "p53_M3568_1.01" 
-        120 motif_name "Myb_SANT_Average_7" 
-        129 motif_name "p53_Average_10" 
-        493 motif_name "p53_Average_8" 
+    -g GENOME, --genome GENOME
+                          genome version
 
-In this case, the top matches include the p53-family motif, the Runx1 motif and the AP1 motif.
+::
+
+     -p PWMFILE, --pwmfile PWMFILE
+                          PWM file with motifs (default:
+                          gimme.vertebrate.v3.1.pwm)
+
+::
+
+    -f , --fpr            FPR for motif scanning (default 0.01)
+
+::
+
+    -B , --bgfile         background file for threshold
+
+::
+
+    -c , --cutoff         motif score cutoff or file with cutoffs
+
+::
+
+    -n N, --nreport N     report the N best matches
+
+::
+
+    -r, --norc            don't scan reverse complement (- strand)
+
+::
+
+    -b, --bed             output bed format
+
+::
+
+    -t, --table           output counts in tabular format
+
+::
+  
+    -T, --score_table     output maximum score in tabular format
+  
+
+
+.. _`gimme_roc`:
+
+Command: gimme roc
+------------------
+
+Given a sample (positives, peaks) and a background file (random
+sequences, random promoters or similar), calculates several statistics
+and/or creates a ROC plot for all the motifs in an input PWM file. All
+the motifs will be plotted in the same graph, you can select one or more
+specific motifs to plot with the ``-i`` option. The statistics include
+ROC area under curve (ROC\_AUC) and Mean Normalized Conditional
+Probability (MNCP).
+
+
+.. _`gimme_match`:
+
+Command: gimme match
+--------------------
+
+Taking an input file with motifs, find the best matching file in another
+file of motifs (according to the WIC metric).
+
+.. _`gimme_cluster`:
+
+Command: gimme cluster
+----------------------
+
+Cluster a set of motifs with the WIC metric.
+
+.. _`gimme_genome`:
+
+
+.. _`gimme_index`:
+
+Command: gimme index
+--------------------
+
+Creates an index to use with GimmeMotifs.
+Use this command if your genome is not available on UCSC and you want to use it with GimmeMotifs.
+You should have a directory with FASTA files, one per chromosome.
 
 
 
 
+.. _`gimme_background`:
+
+Command: gimme background
+-------------------------
+
+Generate random sequences according to one of several methods:
+
+- ``random`` - randomly generated sequence with the same dinucleotide distribution as the input sequences according to a 1st order Markov model
+- ``genomic`` - sequences randomly chosen from the genome 
+- ``gc`` - sequences randomly chosen from the genome with the same GC% as the input sequences
+- ``promoter`` - random promoter sequences
+
+The background types ``gc`` and ``random`` need a set of input sequences
+in BED or FASTA format. If the input sequences are in BED format, the 
+genome version needs to be specified with `-g`. 
 
 
+.. _`gimme_threshold`:
+
+Command: gimme threshold
+------------------------
 
 
+.. _`gimme_location`:
+
+Command: gimme location
+-----------------------
+
+Create the positional preference plots for all the motifs in the input
+PWM file. This will give best results if all the sequences in the
+FASTA-formatted inputfile have the same length. Keep in mind that this
+only makes sense if the sequences are centered around a similar feature
+(transcription start site, highest point in a peak, etc.). The default
+threshold for motif scanning is 0.95, see ``gimme scan`` for more
+details.
+
+
+.. _`gimme_diff`:
+
+
+.. _`gimme_logo`:
+
+
+Command: gimme logo
+-------------------
+
+Convert one or more motifs in a PWM file to a sequence logo.
+You can optionally supply a PWM file, otherwise ``gimme logo`` uses the default.
+With the ``-i`` option, you can choose one or more motifs to convert.
+
+This will convert all the motifs in ``CTCF.pwm`` to a sequence logo:
+
+:: 
+
+    $ gimme logo -p CTCF.pwm
+
+
+This will create logos for ``Ets_Average_100`` and ``Ets_Average_109`` from the default database.
+
+:: 
+
+    $ gimme logo -i Ets_Average_100,Ets_Average_109

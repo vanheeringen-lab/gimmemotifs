@@ -168,7 +168,110 @@ Alternatively, ``gimme scan`` can report the score of best match, regardless of 
 Find differential motifs
 ------------------------
 
-gimme maelstrom
+The ``gimme maelstrom`` command can be used to compare two or more different experiments. 
+For instance, ChIP-seq peaks for multiple factors, ChIP-seq peaks of the same factor in different cell lines or tissues, ATAC-seq peaks or expression data.
+
+The input can be in one two possible formats. 
+In both cases the genomic location should be present as ``chrom:start-end`` in the first column.
+The first option is a two-column format and looks like this:
+
+::
+
+    loc    cluster
+    chr15:49258903-49259103    NK 
+    chr10:72370313-72370513    NK 
+    chr4:40579259-40579459    Monocytes
+    chr10:82225678-82225878    T-cells 
+    chr5:134237941-134238141    B-cells 
+    chr5:58858731-58858931    B-cells 
+    chr20:24941608-24941808    NK 
+    chr5:124203116-124203316    NK 
+    chr17:40094476-40094676    Erythroblast
+    chr17:28659327-28659527    T-cells
+
+This can be the result of a clustering analysis, for instance. 
+
+The second option looks like this:
+
+::
+
+    loc    NK    Monocytes    T-cells    B-cells
+    chr12:93507547-93507747    3.11846121722    2.52277241968    1.93320358405    0.197177179733
+    chr7:38236460-38236660    1.0980120443    0.502311376556    0.200701906431    0.190757068752
+    chr10:21357147-21357347    0.528935300354    -0.0669540487727    -1.04367733597    -0.34370315226
+    chr6:115521512-115521712    0.406247786632    -0.37661318381    -0.480209252108    -0.667499767004
+    chr2:97359808-97360008    1.50162092566    0.905358101064    0.719059595262    0.0313480230265
+    chr16:16684549-16684749    0.233838577502    -0.362675820232    -0.837804056065    -0.746483496024
+    chrX:138964544-138964744    0.330000689312    -0.29126319574    -0.686082532015    -0.777470189034
+    chr2:186923973-186924173    0.430448401897    -0.258029531121    -1.16410548462    -0.723913541425
+    chrX:113834470-113834670    0.560122313347    -0.0366707259833    -0.686082532015    -0.692926848415
+
+This is a tab-separated table, with a header describing the experiments. 
+The values can be (log-transformed) read counts, expression values or other measurements.
+
+By default, ``gimme maelstrom`` will run in ensemble mode, where it will combine the results from different classification and regression methods and statistical tests through rank aggregation.
+The only arguments necessary are the input file, the genome and an output directory.
+
+Here, we will run maelstrom on a dataset that is based on `Corces et al.`_. 
+The example file ``hg19.blood.most_variable.1k.txt`` contains normalized ATAC-seq read count data for several hematopoietic cell types: Monocytes, CD4+ and CD8+ T cells, NK cells, B cells and erythrocytes.
+This is a subset of the data and contains only the 1000 most variable peaks (highest standard deviation). 
+There is also a larger file, that contains more regions ``hg19.blood.most_variable.10k.txt`` and that will also take longer to run.
+
+:: 
+
+    $ gimme maelstrom hg19.blood.most_variable.1k.txt hg19 maelstrom.blood.1k.out
+
+There output directory contains several files:
+
+::
+   
+    $ ls maelstrom.blood.1k.out
+    activity.bayesianridge.score.out.txt            activity.xgboost.score.out.txt
+    activity.hypergeom.count.out.txt                final.out.csv
+    activity.lasso.score.out.txt                    hg19.blood.most_variable.1k.txt.cluster.txt
+    activity.lightningclassification.score.out.txt  motif.count.txt.gz
+    activity.lightningregressor.score.out.txt       motif.relevance.png
+    activity.mwu.score.out.txt                      motif.score.txt.gz
+    activity.rf.score.out.txt
+
+The two motif files, ``motif.count.txt.gz`` and ``motif.score.gz`` contain the motif scan results. 
+The ``activity.*.out.txt`` files are tables with the results of the individual methods. 
+The main result is ``final.out.csv``, which integrates all individual methods in a final score. 
+The following Python snippet will create a heatmap of the results.
+
+.. code-block:: python
+
+   import pandas as pd
+   import seaborn as sns
+   import numpy as np
+   import matplotlib.pyplot as plt
+
+   df = pd.read_table("maelstrom.blood.1k.out/final.out.csv", index_col=0)
+   m2f = pd.read_table("/home/simon/git/gimmemotifs/motif_databases/gimme.vertebrate.v3.1.motif2factors.txt", index_col=0)
+   m2f.factors = m2f.factors.str.slice(0,50)
+
+   df = df.join(m2f).set_index("factors")
+   df = df[["Mono", "CD4", "CD8", "Bcell", "Nkcell", "Ery"]]
+
+   cm = sns.clustermap(df[np.any(abs(df) >= 6, 1)], figsize=(4,15))
+   cm.fig.subplots_adjust(right=0.5)
+   plt.setp(cm.ax_heatmap.yaxis.get_majorticklabels(), rotation=0);
+
+   plt.savefig("maelstrom.blood.1k.out/heatmap.png")
+
+This will show a heatmap like this:
+
+.. image:: images/heatmap.png
+
+We see that the expected motifs for different cell types are identified. GATA/LMO2 for Erythrocytes, LEF/TCF for T cells (ie. Wnt signaling), EBF1 and PAX5 for B cells and so on. 
+The RUNX motif is only identified in CD8+ T cells and not for CD4+ T cells, which recapitulates a known mechanism in CD4- versus CD8-positive T cell differentiation.
+It is kind of tricky to get the seaborn clustermap to use reasonable dimensions by default, so play around with the figsize parameter to get it to work.
+Keep in mind that this shows only the most relevant motifs (-log10 p-value cutoff of 6), there are more relevant motifs. 
+A file with more regions, ``hg19.blood.most_variable.10k.txt`` for this example, will usually yield better results.
+
+
+
+.. _`Corces et al.`: https://dx.doi.org/10.1038/ng.3646
 
 
 Compare two sets with de novo motifs
