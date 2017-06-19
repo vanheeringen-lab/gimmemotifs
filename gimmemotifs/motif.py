@@ -272,6 +272,8 @@ class Motif(object):
             pwm = pwm[:-1]
             self.pwm = self.pwm[:-1]
             self.pfm = self.pfm[:-1]
+        self.consensus = None 
+        return self
 
     def consensus_scan(self, fa):
         regexp = "".join(["[" + "".join(self.iupac[x.upper()]) + "]" for x in self.to_consensusv2()])
@@ -610,9 +612,7 @@ class Motif(object):
         return str_out
 
     def to_consensus(self):
-        if self.consensus:
-            return self.consensus
-        else:
+        if not self.consensus:
             consensus = ""
             for row in self.pwm:
                 weights = sorted(zip(["A","C","G","T"], row), key=lambda x: x[1])
@@ -622,7 +622,9 @@ class Motif(object):
                     consensus +=  self.iupac_rev["".join(sorted([weights[-1][0], weights[-2][0]]))].lower()
                 else:
                     consensus += "n"
-            return consensus
+            self.consensus = consensus
+        
+        return self.consensus
 
     def to_consensusv2(self):
         if self.consensus:
