@@ -13,7 +13,12 @@ warnings.warn = warn
 import os
 import sys
 from functools import partial
-
+try: 
+    from itertools import izip
+except:
+    izip = zip
+import itertools
+import logging
 from multiprocessing import Pool
 
 import pandas as pd 
@@ -37,6 +42,8 @@ import xgboost
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.config import MotifConfig, GM_VERSION
+
+logger = logging.getLogger("gimme.maelstrom")
 
 class Moap(object):
     """Moap base class.
@@ -94,6 +101,14 @@ class Moap(object):
 
 register_predictor = Moap.register_predictor
 
+def br_fit(X, y):
+    model = BayesianRidge()
+    model.fit(X, y)
+    return model.coef_
+
+def br_fit_star(args):
+    return br_fit(*args)
+
 @register_predictor('BayesianRidge')
 class BayesianRidgeMoap(Moap):
     def __init__(self, scale=True):
@@ -122,26 +137,27 @@ class BayesianRidgeMoap(Moap):
         self.ptype = "regression"
 
     def fit(self, df_X, df_y):
+        logger.info("Fitting BayesianRidge")
         
         if not df_y.shape[0] == df_X.shape[0]:
             raise ValueError("number of regions is not equal")
         
         if self.scale:
+            logger.debug("Scaling motif scores")
             # Scale motif scores
             df_X = df_X.apply(scale)
         
+        logger.debug("Scaling y")
         # Normalize across samples and features
         y = df_y.apply(scale, 1).apply(scale, 0)
         X = df_X.loc[y.index]
 
-        # Define model
-        model = BayesianRidge()
-        self.act_ = pd.DataFrame(index=X.columns, columns=y.columns)
-        for col in y.columns:
-            sys.stderr.write("{}\n".format(col))
-            model.fit(X,y[col])
-            self.act_[col] = model.coef_
+        logger.debug("Fitting model")
+        pool = Pool(self.ncpus) 
+        coefs = pool.map(br_fit_star, izip(itertools.repeat(X), [y[col] for col in y.columns]))
+        logger.info("Done")
 
+        self.act_ = pd.DataFrame(coefs, columns=X.columns, index=y.columns).T
 
 @register_predictor('Xgboost')
 class XgboostRegressionMoap(Moap):
@@ -172,6 +188,7 @@ class XgboostRegressionMoap(Moap):
         self.ptype = "regression"
     
     def fit(self, df_X, df_y):
+        logger.info("Fitting XGBoostRegression")
         
         if not df_y.shape[0] == df_X.shape[0]:
             raise ValueError("number of regions is not equal")
@@ -195,8 +212,7 @@ class XgboostRegressionMoap(Moap):
                 colsample_bytree=0.75,
                 objective='reg:linear')
 
-        sys.stderr.write("xgb: 0%")
-        sys.stderr.flush()
+        logger.debug("xgb: 0%")
         
         self.act_ = pd.DataFrame(index=X.columns)
         
@@ -213,9 +229,8 @@ class XgboostRegressionMoap(Moap):
                     if low > high:
                         self.act_.loc[motif, col] *= -1
             
-            sys.stderr.write("..{}%".format(int(float(i + 1)/ len(y.columns) * 100)))
-            sys.stderr.flush()
-        sys.stderr.write("\n")
+            logger.debug("..{}%".format(int(float(i + 1)/ len(y.columns) * 100)))
+        logger.info("Done")
 
 @register_predictor('LightningRegressor')
 class LightningRegressionMoap(Moap):
@@ -254,6 +269,7 @@ class LightningRegressionMoap(Moap):
         self.ptype = "regression"
     
     def fit(self, df_X, df_y):
+        logger.info("Fitting LightningRegression")
         
         if self.scale:
             # Scale motif scores
@@ -279,6 +295,8 @@ class LightningRegressionMoap(Moap):
         # Get coefficients
         self.act_ = pd.DataFrame(clf.best_estimator_.coef_.T, 
                 index=X.columns, columns = y.columns)
+        
+        logger.info("Done")
 
 @register_predictor('LightningClassification')
 class LightningClassificationMoap(Moap):
@@ -332,6 +350,7 @@ class LightningClassificationMoap(Moap):
         self.ptype = "classification"
 
     def fit(self, df_X, df_y):
+        logger.info("Fitting LightningClassification")
         
         if not df_y.shape[0] == df_X.shape[0]:
             raise ValueError("number of regions is not equal")
@@ -355,16 +374,16 @@ class LightningClassificationMoap(Moap):
         # Split data 
         X_train,X_test,y_train,y_test = train_test_split(X,y)
 
-        sys.stderr.write("Setting parameters through cross-validation\n")
+        logger.debug("Setting parameters through cross-validation")
         # Determine best parameters based on CV
         self.clf.fit(X_train,y_train)
     
-        sys.stdout.write("Average score ({} fold CV): {}\n".format(
+        logger.debug("Average score ({} fold CV): {}".format(
                 self.kfolds,
                 self.clf.score(X_test, y_test)
                 ))
 
-        sys.stderr.write("Estimate coefficients using bootstrapping\n")
+        logger.debug("Estimate coefficients using bootstrapping")
 
         # Estimate coefficients using bootstrappig
         #b = BaggingClassifier(self.clf.best_estimator_, 
@@ -388,7 +407,7 @@ class LightningClassificationMoap(Moap):
         
         if self.permute:
             # Permutations
-            sys.stderr.write("Permutations\n")
+            logger.debug("Permutations")
             random_dfs = []
             for _ in range(10):
                 y_random = np.random.permutation(y)
@@ -413,6 +432,7 @@ class LightningClassificationMoap(Moap):
                     self.act_.columns, high_cutoffs, low_cutoffs):
                 self.sig_["sig"].loc[self.act_[col] >= c_high] = True
                 self.sig_["sig"].loc[self.act_[col] <= c_low] = True
+        logger.info("Done")
 
 @register_predictor('MWU')
 class MWUMoap(Moap):
@@ -440,6 +460,8 @@ class MWUMoap(Moap):
         self.ptype = "classification"
     
     def fit(self, df_X, df_y):
+        logger.info("Fitting MWU")
+
         if not df_y.shape[0] == df_X.shape[0]:
             raise ValueError("number of regions is not equal")
         if df_y.shape[1] != 1:
@@ -469,6 +491,8 @@ class MWUMoap(Moap):
         # create output DataFrame
         self.act_ = pd.DataFrame(-np.log10(fpr.T), 
                 columns=clusters, index=df_X.columns)
+        
+        logger.info("Done")
 
 @register_predictor('Hypergeom')
 class HypergeomMoap(Moap):
@@ -492,6 +516,7 @@ class HypergeomMoap(Moap):
         self.ptype = "classification"
     
     def fit(self, df_X, df_y):
+        logger.info("Fitting Hypergeom")
         if not df_y.shape[0] == df_X.shape[0]:
             raise ValueError("number of regions is not equal")
         if df_y.shape[1] != 1:
@@ -530,6 +555,8 @@ class HypergeomMoap(Moap):
         self.act_ = pd.DataFrame(-np.log10(fpr.T), 
                 columns=clusters, index=df_X.columns)
 
+        logger.info("Done")
+
 @register_predictor('RF')
 class RFMoap(Moap):
     def __init__(self):
@@ -553,6 +580,7 @@ class RFMoap(Moap):
         self.ptype = "classification"
 
     def fit(self, df_X, df_y):
+        logger.info("Fitting RF")
         if not df_y.shape[0] == df_X.shape[0]:
             raise ValueError("number of regions is not equal")
         if df_y.shape[1] != 1:
@@ -585,6 +613,7 @@ class RFMoap(Moap):
         self.act_ = pd.DataFrame(importances,
                 columns=le.inverse_transform(range(len(le.classes_))),
                 index=df_X.columns)
+        logger.info("Done")
 
 @register_predictor('Lasso')
 class LassoMoap(Moap):
@@ -634,6 +663,7 @@ class LassoMoap(Moap):
         self.ptype = "regression"
 
     def fit(self, df_X, df_y):
+        logger.info("Fitting Lasso")
         if not df_y.shape[0] == df_X.shape[0]:
             raise ValueError("number of regions is not equal")
        
@@ -687,6 +717,8 @@ class LassoMoap(Moap):
                 self.act_.columns, high_cutoffs, low_cutoffs):
             self.sig_["sig"].loc[self.act_[col] >= c_high] = True
             self.sig_["sig"].loc[self.act_[col] <= c_low] = True
+        
+        logger.info("Done")
 
     def _get_coefs(self, X, y):
         n_samples = 0.75 * X.shape[0]
@@ -815,7 +847,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
             ncols = len(df.iloc[:,0].unique())
         
         if out.shape[0] == motifs.shape[1] and out.shape[1] == ncols:
-            sys.stderr.write("output already exists... skipping\n")
+            logger.warn("%s output already exists... skipping", method)
             return out
     
     motifs = motifs.loc[df.index]
