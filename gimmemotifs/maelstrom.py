@@ -173,8 +173,8 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
 
     if methods is None:
         methods = Moap.list_predictors() 
-   
-    
+    methods = [m.lower() for m in methods]
+
     # Create a file with the number of motif matches
     if not count_table:
         count_table = os.path.join(outdir, "motif.count.txt.gz")
@@ -183,6 +183,8 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
             counts = scan_to_table(infile, genome, outdir, "count",
                 pwmfile=pwmfile)
             counts.to_csv(count_table, sep="\t", compression="gzip")
+        else:
+            logging.info("Counts, using: %s", count_table)
 
     # Create a file with the score of the best motif match
     if not score_table:
@@ -193,6 +195,8 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
                 pwmfile=pwmfile)
             scores.to_csv(score_table, sep="\t", float_format="%.3f", 
                 compression="gzip")
+        else:
+            logging.info("Scores, using: %s", score_table)
 
     exps = []
     clusterfile = infile
@@ -202,6 +206,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
             if method in methods:
                 m = Moap.create(method)
                 exps.append([method, m.pref_table, infile])
+                logger.debug("Adding %s", method)
 
         if cluster:
             clusterfile = os.path.join(outdir,
@@ -218,6 +223,10 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
             if method in methods:
                 m = Moap.create(method)
                 exps.append([method, m.pref_table, clusterfile])
+
+    if len(exps) == 0:
+        logger.error("No method to run.")
+        sys.exit(1)
 
     for method, scoring, fname in exps:
         try:
