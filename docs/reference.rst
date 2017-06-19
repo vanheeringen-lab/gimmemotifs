@@ -275,13 +275,55 @@ Detailed options for gimme motifs
 Command: gimme scan
 -------------------
 
-Scan a set of sequences with a set of motifs, and give the resulting
-matches in GFF or BED format. The threshold is based on the maximum and
-minimum possible score for each motif. So, 0.95 means that the score of
-a motif should be at least 95% of the (maximum score - minimum score).
-This should probably not be set much lower than 0.8, and should be
-generally at least 0.9 for good specificity. Keep in mind that the
-optimal threshold might be different for each motif!
+Scan a set of sequences with a set of motifs, and get the resulting
+matches in GFF, BED or table format. 
+If the FASTA header includes a chromosome location in ``chrom:start-end`` format, the BED output will return the genomic location of the motif match. 
+The GFF file will always have the motif location relative to the input sequence.
+
+A basic command would look like this:
+
+::
+
+    $ gimme scan peaks.bed -g hg38 -b > motifs.bed
+
+The threshold that is used for scanning can be specified in a number of ways.
+The default threshold is set to a motif-specific 1% FPR by scanning random genomic sequences.
+You can change the FPR with the ``-f`` option and/or the set of sequences that is used to determine the FPR with the ``-B`` option.
+
+For instance, this command would scan with thresholds based on 5% FPR with random genomic mouse sequences. 
+
+:: 
+
+    $ gimme scan input.fa -g mm10 -f 0.05 -b > gimme.scan.bed
+
+
+And this command would base a 0.1% FPR on the input file ``hg38.promoters.fa``:
+
+:: 
+
+    $ gimme scan input.fa -f 0.001 -B hg38.promoters.fa -b > gimme.scan.bed
+
+
+Alternatively, you can specify the theshold as a single score.
+This score is relative and is based on the maximum and minimum possible score for each motif. 
+For example, a score of 0.95 means that the score of a motif should be at least 95% of the (maximum score - minimum score).
+This should probably not be set much lower than 0.8, and should be generally at least 0.9-0.95 for good specificity. 
+Generally, as the optimal threshold might be different for each motif, the use of the FPR-based threshold is preferred.
+One reason to use a single score as threshold is when you want a match for each motif, regardless of the score. 
+This command would give one match for every motif for every sequence, regardless of the score.
+
+:: 
+
+    $ gimme scan input.bed -g hg38 -c 0 -n 1 -b > matches.bed
+
+
+Finally, ``gimme scan`` can return the scanning results in table format. 
+The ``-t`` will yield a table with number of matches, while the ``-T`` will have the score of the best match.
+
+
+Arguments
+~~~~~~~~~
+
 
 ::
 
