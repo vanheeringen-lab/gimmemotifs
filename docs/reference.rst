@@ -342,6 +342,18 @@ ROC area under curve (ROC\_AUC) and Mean Normalized Conditional
 Probability (MNCP).
 
 
+Positional arguments:
+  FG_FILE     FASTA, BED or region file
+  BG_FILE     FASTA, BED or region file with background sequences
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -p PWMFILE  PWM file with motifs (default: gimme.vertebrate.v3.1.pwm)
+  -g GENOME   Genome (when input files are not in FASTA format)
+  -o FILE     Name of output file with ROC plot (png, svg, ps, pdf)
+  -i IDS      Comma-seperated list of motif ids to plot in ROC (default is all
+              ids)
+
 .. _`gimme_match`:
 
 Command: gimme match
@@ -350,6 +362,18 @@ Command: gimme match
 Taking an input file with motifs, find the best matching file in another
 file of motifs (according to the WIC metric).
 
+
+Positional arguments:
+  PWMFILE     File with pwms
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -d DBFILE   File with pwms to match against (default:
+              gimme.vertebrate.v3.1.pwm)
+  -o FILE     Output file with graphical report (png, svg, ps, pdf)
+
+
+
 .. _`gimme_cluster`:
 
 Command: gimme cluster
@@ -357,7 +381,31 @@ Command: gimme cluster
 
 Cluster a set of motifs with the WIC metric.
 
+Command: gimme cluster
+positional arguments:
+  INPUTFILE     Inputfile (PFM format)
+  OUTDIR        Name of output directory
+
+optional arguments:
+  -h, --help    show this help message and exit
+  -s            Don't compare reverse complements of motifs
+  -t THRESHOLD  Cluster threshold
+
+
 .. _`gimme_genome`:
+
+Command: gimme genome
+---------------------
+
+positional arguments:
+  FASTADIR              Directory to place genome
+  GENOMEBUILD           UCSC genome name
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i DIR, --indexdir DIR
+                        Index dir (default
+                        /home/simon/anaconda3/share/gimmemotifs/genome_index)
 
 
 .. _`gimme_index`:
@@ -369,7 +417,15 @@ Creates an index to use with GimmeMotifs.
 Use this command if your genome is not available on UCSC and you want to use it with GimmeMotifs.
 You should have a directory with FASTA files, one per chromosome.
 
+positional arguments:
+  FASTADIR              Directory to place genome
+  GENOMEBUILD           UCSC genome name
 
+optional arguments:
+  -h, --help            show this help message and exit
+  -i DIR, --indexdir DIR
+                        Index dir (default
+                        /home/simon/anaconda3/share/gimmemotifs/genome_index)
 
 
 .. _`gimme_background`:
@@ -389,10 +445,31 @@ in BED or FASTA format. If the input sequences are in BED format, the
 genome version needs to be specified with `-g`. 
 
 
+
+positional arguments:
+  FILE        outputfile
+  TYPE        type of background sequences to generate
+              (random,genomic,gc,promoter)
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -i FILE     input sequences (BED or FASTA)
+  -f TYPE     output format (BED or FASTA
+  -l INT      length of random sequences
+  -n NUMBER   number of sequence to generate
+  -g GENOME   genome version (not for type 'random')
+  -m N        order of the Markov model (only for type 'random', default 1)
+
+
 .. _`gimme_threshold`:
 
 Command: gimme threshold
 ------------------------
+
+positional arguments:
+  PWMFILE     File with pwms
+  FAFILE      FASTA file with background sequences
+  FPR         Desired fpr
 
 
 .. _`gimme_location`:
@@ -408,8 +485,43 @@ only makes sense if the sequences are centered around a similar feature
 threshold for motif scanning is 0.95, see ``gimme scan`` for more
 details.
 
+positional arguments:
+  PWMFILE     File with pwms
+  FAFILE      Fasta formatted file
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -w WIDTH    Set width to W (default: determined from fastafile)
+  -i IDS      Comma-seperated list of motif ids to plot (default is all ids)
+  -c CUTOFF   Cutoff for motif scanning (default 0.95)
+
+
 
 .. _`gimme_diff`:
+
+
+Command: gimme diff
+-------------------
+
+positional arguments:
+  FAFILES               FASTA-formatted inputfiles OR a BED file with an
+                        identifier in the 4th column, for instance a cluster
+                        number.
+  BGFAFILE              FASTA-formatted background file
+  PWMFILE               PWM file with motifs
+  PNGFILE               outputfile (image)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c , --cutoff         motif score cutoff or file with cutoffs (default 0.9)
+  -e MINENR, --enrichment MINENR
+                        minimum enrichment in at least one of the datasets
+                        compared to background
+  -f MINFREQ, --frequency MINFREQ
+                        minimum frequency in at least one of the datasets
+  -g VERSION, --genome VERSION
+                        Genome version. Only necessary in combination with a
+                        BED file with clusters as inputfile.
 
 
 .. _`gimme_logo`:
