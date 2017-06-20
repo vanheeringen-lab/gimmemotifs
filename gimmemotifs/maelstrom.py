@@ -198,6 +198,16 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         else:
             logging.info("Scores, using: %s", score_table)
 
+    if cluster:
+        cluster = False
+        for method in methods:
+            m = Moap.create(method)
+            if m.ptype == "classification":
+                cluster = True
+                break
+        if not cluster:
+            logger.info("Skipping clustering, no classification methods")
+    
     exps = []
     clusterfile = infile
     if df.shape[1] != 1:
