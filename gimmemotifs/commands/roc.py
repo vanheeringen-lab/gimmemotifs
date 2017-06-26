@@ -42,6 +42,7 @@ def roc(args):
     plot_y = []
     legend = []
     # Print the metrics
+    print(list(motif_stats.keys())[:10])
     print("Motif\tROC AUC\tMNCP\tEnr. at 5% FDR\tMax enr.\tRecall at 10% FDR")
     for motif in motifs:
         if outputfile:
@@ -54,7 +55,7 @@ def roc(args):
               motif_stats[str(motif)]["roc_auc"], 
               motif_stats[str(motif)]["mncp"], 
               motif_stats[str(motif)]["enr_at_fpr"], 
-              motif_stats[str(motif)]["max_enrichment"], 
+              motif_stats[str(motif)]["max_enrichment"][0], 
               motif_stats[str(motif)]["recall_at_fdr"],
               ))
     

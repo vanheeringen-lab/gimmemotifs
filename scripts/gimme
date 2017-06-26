@@ -206,7 +206,7 @@ p.add_argument("-o",
                metavar="FILE")
 p.add_argument("-i", 
                dest="ids", 
-               help="Comma-seperated list of motif ids to plot in ROC (default is all ids)", 
+               help="Comma-separated list of motif ids to plot in ROC (default is all ids)", 
                metavar="IDS")
 p.set_defaults(func=commands.roc)
 
@@ -331,7 +331,7 @@ p.add_argument("-w",
                type=int)
 p.add_argument("-i", 
                dest="ids", 
-               help="Comma-seperated list of motif ids to plot (default is all ids)", 
+               help="Comma-separated list of motif ids to plot (default is all ids)", 
                metavar="IDS")
 p.add_argument("-c", 
                dest="cutoff", help="Cutoff for motif scanning (default 0.95)", 
@@ -464,7 +464,7 @@ p.add_argument("pwmfile",
                 metavar="PWMFILE")
 p.add_argument("-i", 
                dest="ids", 
-               help="Comma-seperated list of motif ids (default is all ids)", 
+               help="Comma-separated list of motif ids (default is all ids)", 
                metavar="IDS")
 p.set_defaults(func=commands.logo)
 

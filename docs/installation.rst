@@ -1,47 +1,80 @@
 Installation
 ============
 
-GimmeMotifs runs on Linux. Definitely not on Windows, sorry. Mac OS X
-should work in theory, but as I don’t have the means to test this, I’m
-not completely sure.
+GimmeMotifs runs on Linux. Definitely not on Windows, sorry. 
+Mac OSX should work and is included in the build test. 
+However, as I don't use it myself, unexpected issues might pop up. 
+Let me know, so I can try to fix it.
 
-The easy way to install
------------------------
+.. _`Install GimmeMotifs`:
 
-The most straightforward way to install GimmeMotifs is by using `conda
-<https://docs.continuum.io/anaconda>`_.
+The easiest way to install
+--------------------------
+
+The preferred way to install GimmeMotifs is by using `conda
+<https://docs.continuum.io/anaconda>`_. 
+Activate the bioconda_ channel if you haven't done so already.
+
+:: 
+
+    $ conda config --add channels conda-forge
+    $ conda config --add channels defaults
+    $ conda config --add channels r
+    $ conda config --add channels bioconda
+
+Now you can install GimmeMotifs with one command. In the current environment:
 
 ::
 
-    $ conda install gimmemotifs -c bioconda -c r
+    $ conda install gimmemotifs
+
+Or create a specific environment:
+
+::
+
+    $ conda create -n gimme gimmemotifs
+    # Activate the environment before you use GimmeMotifs
+    $ source activate gimme
 
 
-Using pip
----------
+Good. Have a look at the :ref:`configuration<configuration>` section.
 
-Installation from PyPI with `pip` is another straightforward option. 
-You will need to install some prerequisites though:
+.. _bioconda: https://bioconda.github.io/
+
+Alternative installation
+------------------------
+
+Prerequisites
++++++++++++++
+
+These are the prerequisites for a full GimmeMotifs installation.
 
 - bedtools http://bedtools.readthedocs.io
 - UCSC genePredToBed http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/genePredToBed
-- (optional) R + RobustRankAggreg
+- UCSC bigBedToBed http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bigBedToBed
+- R + RobustRankAggreg https://cran.r-project.org/web/packages/RobustRankAggreg/index.html
+- Perl + Algorithm::Cluster
 
+Using pip
++++++++++
+
+Installation from PyPI with ``pip`` is a relatively straightforward option.
 Install with pip as follows:
 
 :: 
 
     $ sudo pip install gimmemotifs
 
-Or the (unstable) master branch with the newest bells, whistles and bugs:
+Or the (unstable) develops branch with the newest bells, whistles and bugs:
 
 ::
 
-    $ sudo pip install https://github.com/simonvh/gimmemotifs/tarball/master
+    $ sudo pip install git+https://github.com/simonvh/gimmemotifs.git@develop
 
 If you don't have root access, see the option below.
 
 Using pip in a virtualenv
------------------------------
++++++++++++++++++++++++++
 
 Ubuntu prerequisites
 ~~~~~~~~~~~~~~~~~~~~
@@ -77,13 +110,15 @@ Now you can install GimmeMotifs using pip. Latest stable release:
     $ pip install gimmemotifs
 
 
-Installation packages
----------------------
-
-Installation packages for Ubuntu and Fedora are no longer supported.
-
 Installation from source
-------------------------
+++++++++++++++++++++++++
+
+Did I mention conda? 
+
+You know bioconda is amazing, right?
+
+So...
+
 
 These instructions are not up-to-date! Basically, you're on your own!
 
@@ -97,8 +132,8 @@ Start by unpacking the source archive
 
 ::
 
-    tar xvzf gimmemotifs-0.9.0.2.tar.gz
-    cd gimmemotifs-0.9.0.2
+    tar xvzf gimmemotifs-0.11.0.tar.gz
+    cd gimmemotifs-0.11.0
 
 You can build GimmeMotifs with the following command:
 
@@ -138,9 +173,191 @@ installing GimmeMotifs have not been extensively tested. Please note
 that in this case the configuration file will be created, but every user
 will have to put this configuration file in his/her home directory:
 ``~/.gimmemotifs.cfg``. The install script will also inform you of this
-during install. Please contact me if you run into problems with the
-installation. Once the installation is finished, you can try the quick
-example (section :ref:`quick-example`), or continue with the
-configuration in the next section.
+during install.  
 
 
+.. _configuration:
+
+Configuration
+-------------
+
+Genomes
++++++++
+
+You will need genome FASTA files for a lot of the tools that are included 
+with GimmeMotifs.
+
+Download from UCSC
+~~~~~~~~~~~~~~~~~~
+
+The most straightforward way to download and index a genome is to use
+the ``gimme genome`` tool.
+
+::
+
+    $ gimme genome $HOME/genomes hg19
+
+Here, the hg19 genome and accompanying gene annotation will be downloaded
+from UCSC to the directory ``$HOME/genomes/hg19``. 
+This should work for all genomes supported by UCSC. 
+
+Index a genome
+~~~~~~~~~~~~~~
+
+Alternatively, you can index a set of genome FASTA files that you already
+have locally. The FASTA files should be organized in one
+directory with *one file per chromosome or scaffold*, with the filename
+being the chromosome name with an extension of ``.fa``, ``.fsa`` or
+``.fasta``. Then you can run the following command:
+
+::
+
+    gimme index /dir/to/fasta/files/ genome_name
+
+For instance, if I wanted to index the human genome (version hg19) on my
+computer, where all fasta files are located in the directory
+``/usr/share/genome/hg19`` I would run the following command:
+
+::
+
+    gimme index /usr/share/genome/hg19/ hg19
+
+**Note: if you installed GimmeMotifs as root, the** ``gimme index`` **command
+will need to be run as root too** 
+
+Adding gene files
+~~~~~~~~~~~~~~~~~
+
+For some applications a gene file is used. This is a file containing gene
+annotation in BED12 format. It should be located in the ``gene_dir``, 
+which is defined in the configuration file (see below). 
+The file needs to be named ``<index_name>.bed``, so for instance ``hg19.bed``.
+If you used the ``gimme genome`` command, 
+annotation will be included automatically.
+
+.. _adding_subtools:
+
+Adding motif prediction tools
++++++++++++++++++++++++++++++
+
+Please note that these steps are only necessary when you have installed
+any of these tools after you have installed GimmeMotifs.
+
+Weeder
+~~~~~~
+
+After installing Weeder the following section needs to be added to the
+GimmeMotifs configuration file:
+
+::
+
+    [Weeder]
+    bin = /usr/share/Weeder/weederTFBS.out
+    dir = /usr/share/Weeder/ 
+
+All other Weeder binaries should be present in the same directory as
+``weederTFBS.out``. The directory specified by ``dir`` should contain
+the FreqFiles directory included with Weeder. In addition ``Weeder``
+should be added to the line in the ``params`` section of the
+configuration file. For instance
+
+::
+
+    tools = MDmodule,MEME,MotifSampler,trawler,Improbizer,BioProspector
+
+needs to be changed to:
+
+::
+
+    tools = MDmodule,MEME,MotifSampler,trawler,Improbizer,BioProspector,Weeder
+
+.. _MotifSampler:
+
+MotifSampler configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to use MotifSampler there is one more step that you’ll have
+to take *after* installation of GimmeMotifs. For every organism, you’ll
+need a MotifSampler background. Note that human (hg19), mouse (mm9) and
+*Xenopus* (xenTro2) background models are included, so for these
+organisms MotifSampler will work out of the box. For other organisms the
+necessary background files can be created with ``CreateBackgroundModel``
+(which is included with GimmeMotifs or can be downloaded from the same
+site as MotifSampler). The background model file needs to be saved in
+the directory ``/usr/share/gimmemotifs/MotifSampler`` and it should be
+named ``<organism_index_name>.bg``. So, for instance, if I downloaded
+the human epd background
+(``epd_homo_sapiens_499_chromgenes_non_split_3.bg``), this file should
+be saved as ``/usr/share/gimmemotifs/MotifSampler/hg19.bg``.
+
+Other configuration options
++++++++++++++++++++++++++++
+
+All of GimmeMotifs configuration is stored in
+``/usr/share/gimmemotifs/gimmemotifs.cfg`` or ``~/.gimmemotifs.cfg``. If
+the file ``~/.gimmemotifs.cfg`` exists in your home directory this will
+always have precedence over the system-wide configuration. The
+configuraton file is created at installation time with all defaults set,
+but you can always edit it afterwards. It contains two sections ``main``
+and ``params`` that take care of paths, file locations, parameter
+settings etc. Additionally, every motif tool has it’s own section. Let’s
+have a look at the options.
+
+::
+
+    [main]
+    index_dir = /usr/share/gimmemotifs/genome_index
+    template_dir = /usr/share/gimmemotifs/templates
+    seqlogo = /usr/local/bin/seqlogo
+    score_dir = /usr/share/gimmemotifs/score_dists
+    motif_databases = /usr/share/gimmemotifs/motif_databases
+    gene_dir = /usr/share/gimmemotifs/genes
+    tools_dir = /usr/share/gimmemotifs/tools
+
+-  ``index_dir`` The location of the indeces of the genome fasta-files.
+
+-  ``template_dir`` The location of the KID html templates, used to
+   generate the reports.
+
+-  ``seqlogo`` The seqlogo executable.
+
+-  ``score_dir`` To generate p-values, a pre-calculated file with mean
+   and sd of score distributions is needed. These are located here.
+
+-  ``motif_databases`` For now contains only the JASPAR motifs.
+
+-  ``gene_dir`` Directory with bed-files containing gene locations for
+   every indexed organism. This is needed to create the matched genomic
+   background.
+
+-  ``tools_dir`` Here all tools included with GimmeMotifs are stored.
+
+::
+
+    [params]
+    fraction = 0.2
+    use_strand = False
+    abs_max = 1000
+    analysis = medium
+    enrichment = 1.5
+    width = 200
+    lwidth = 500
+    genome = hg19
+    background = gc,random
+    cluster_threshold = 0.95
+    available_tools = MDmodule,MEME,Weeder,GADEM,MotifSampler,trawler,Improbizer,BioProspector,Posmo,ChIPMunk,JASPAR,AMD,HMS,Homer
+    tools = MDmodule,MEME,Weeder,MotifSampler,trawler,Improbizer,BioProspector,Posmo,ChIPMunk,JASPAR,AMD,HMS,Homer
+    pvalue = 0.001
+    max_time = None
+    ncpus = 2
+    motif_db = gimme.vertebrate.v3.1.pwm
+    scan_cutoff = 0.9
+    use_cache = False
+    markov_model = 1
+    
+
+
+This section specifies all the default GimmeMotifs parameters. Most of
+these can also be specified at the command-line when running
+GimmeMotifs, in which case they will override the parameters specified
+here.
