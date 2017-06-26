@@ -36,6 +36,9 @@ Or create a specific environment:
     # Activate the environment before you use GimmeMotifs
     $ source activate gimme
 
+
+Good. Have a look at the :ref:`configuration<configuration>` section.
+
 .. _bioconda: https://bioconda.github.io/
 
 Alternative installation
@@ -62,11 +65,11 @@ Install with pip as follows:
 
     $ sudo pip install gimmemotifs
 
-Or the (unstable) master branch with the newest bells, whistles and bugs:
+Or the (unstable) develops branch with the newest bells, whistles and bugs:
 
 ::
 
-    $ sudo pip install https://github.com/simonvh/gimmemotifs/tarball/master
+    $ sudo pip install git+https://github.com/simonvh/gimmemotifs.git@develop
 
 If you don't have root access, see the option below.
 
@@ -172,6 +175,9 @@ will have to put this configuration file in his/her home directory:
 ``~/.gimmemotifs.cfg``. The install script will also inform you of this
 during install.  
 
+
+.. _configuration:
+
 Configuration
 -------------
 
@@ -193,7 +199,7 @@ the ``gimme genome`` tool.
 
 Here, the hg19 genome and accompanying gene annotation will be downloaded
 from UCSC to the directory ``$HOME/genomes/hg19``. 
-This works for all genomes supported by UCSC. 
+This should work for all genomes supported by UCSC. 
 
 Index a genome
 ~~~~~~~~~~~~~~
@@ -210,7 +216,7 @@ being the chromosome name with an extension of ``.fa``, ``.fsa`` or
 
 For instance, if I wanted to index the human genome (version hg19) on my
 computer, where all fasta files are located in the directory
-``/usr/share/genome/`` I would run the following command:
+``/usr/share/genome/hg19`` I would run the following command:
 
 ::
 

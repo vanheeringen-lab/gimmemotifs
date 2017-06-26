@@ -376,25 +376,60 @@ Command: gimme roc
 ------------------
 
 Given a sample (positives, peaks) and a background file (random
-sequences, random promoters or similar), calculates several statistics
-and/or creates a ROC plot for all the motifs in an input PWM file. All
-the motifs will be plotted in the same graph, you can select one or more
-specific motifs to plot with the ``-i`` option. The statistics include
-ROC area under curve (ROC\_AUC) and Mean Normalized Conditional
-Probability (MNCP).
+sequences, random promoters or similar), ``gimme roc`` calculates several statistics
+and/or creates a ROC plot for motifs in an input PWM file. 
+By default, all motifs will be used in the ROC plot, you can select one or more specific motifs with the ``-i`` option. 
 
+The basic command is as follows:
+
+:: 
+
+    $ gimme roc input.fa bg.fa > statistics.txt
+
+This will use the default motif database, and writes the statistics to the file ``statistics.txt``.
+Instead of a FASTA file you can also supply a BED file or regions. 
+In this case you'll need a genome file.
+A custom ``.pwm`` file can be supplied with the ``-p`` argument.
+For instance, the following command scans the input BED files with ``custom_motifs.pwm``:
+
+:: 
+
+    $ gimme roc input.bed bg.bed -p custom_motifs.pwm -g hg38 > statistics.txt
+
+The statistics include the ROC area under curve (ROC\_AUC), 
+Mean Normalized Conditional Probability (MNCP; `Clarke & Granek, 2003`_), 
+the enrichment at 5% FPR, 
+the maximum enrichment and the recall at 10% FDR.
+
+To plot an ROC curve, add the ``-o`` argument. This will plot the ROC curve for all the motifs that SPI1 can bind.
+
+::
+
+   $ gimme roc input.fa bg.fa -i Ets_Average_110,Ets_M1778_1.01,Ets_Average_100,Ets_Average_93 -o roc.png > statistics.txt
+
+
+.. _`Clarke & Granek, 2003`: https://doi.org/10.1093/bioinformatics/19.2.212
 
 Positional arguments:
-  FG_FILE     FASTA, BED or region file
-  BG_FILE     FASTA, BED or region file with background sequences
+~~~~~~~~~~~~~~~~~~~~~
 
-optional arguments:
-  -h, --help  show this help message and exit
-  -p PWMFILE  PWM file with motifs (default: gimme.vertebrate.v3.1.pwm)
-  -g GENOME   Genome (when input files are not in FASTA format)
-  -o FILE     Name of output file with ROC plot (png, svg, ps, pdf)
-  -i IDS      Comma-seperated list of motif ids to plot in ROC (default is all
-              ids)
+:: 
+  
+    FG_FILE     FASTA, BED or region file
+    BG_FILE     FASTA, BED or region file with background sequences
+
+Optional arguments:
+~~~~~~~~~~~~~~~~~~~
+  
+::
+
+    -h, --help  show this help message and exit
+    -p PWMFILE  PWM file with motifs (default: gimme.vertebrate.v3.1.pwm)
+    -g GENOME   Genome (when input files are not in FASTA format)
+    -o FILE     Name of output file with ROC plot (png, svg, ps, pdf)
+    -i IDS      Comma-seperated list of motif ids to plot in ROC (default is all
+                ids)
+
 
 .. _`gimme_match`:
 
