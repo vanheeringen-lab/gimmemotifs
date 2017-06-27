@@ -20,9 +20,14 @@ class Mock(MagicMock):
         return MagicMock()
 
 MOCK_MODULES = [
-        'numpy', 'pandas', 'scipy', 'scipy.stats', 'scipy.cluster', 
-        'matplotlib', 'pybedtools', 
-        'statsmodels', 'pymc', 'scikit-learn', 'sklearn-contrib-lightning',
+        'numpy', 'pandas', 
+        'scipy', 'scipy.stats', 'scipy.cluster', 'scipy.spatial',
+        'matplotlib', 'pybedtools', 'matplotlib.pyplot', 'gimmemotifs.c_metrics',
+        'scipy.cluster.hierarchy', 'statsmodels.sandbox.stats.multicomp',
+        'matplotlib.cm', 'matplotlib.colors', 'matplotlib.gridspec', 'mpl_toolkits.axes_grid1',
+        'statsmodels', 'pymc', 
+        'sklearn', 'sklearn.ensemble', 'sklearn.linear_model', 'sklearn.metrics',
+        'sklearn.model_selection', 'sklearn.multiclass', 'sklearn.preprocessing', 
         'seaborn', 'pysam', 'xgboost'
         ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
