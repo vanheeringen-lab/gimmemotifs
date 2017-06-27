@@ -17,9 +17,9 @@ Activate the bioconda_ channel if you haven't done so already.
 
 :: 
 
-    $ conda config --add channels conda-forge
-    $ conda config --add channels defaults
     $ conda config --add channels r
+    $ conda config --add channels defaults
+    $ conda config --add channels conda-forge
     $ conda config --add channels bioconda
 
 Now you can install GimmeMotifs with one command. In the current environment:
@@ -289,6 +289,8 @@ named ``<organism_index_name>.bg``. So, for instance, if I downloaded
 the human epd background
 (``epd_homo_sapiens_499_chromgenes_non_split_3.bg``), this file should
 be saved as ``/usr/share/gimmemotifs/MotifSampler/hg19.bg``.
+
+.. _`other_configuration`:
 
 Other configuration options
 +++++++++++++++++++++++++++

@@ -12,6 +12,7 @@ List of tools
 -------------
 
 * :ref:`gimme motifs<gimme_motifs>`
+* :ref:`gimme maelstrom<gimme_maelstrom>`
 * :ref:`gimme scan<gimme_scan>`
 * :ref:`gimme roc<gimme_roc>`
 * :ref:`gimme match<gimme_match>`
@@ -270,6 +271,32 @@ Detailed options for gimme motifs
    and GimmeMotifs will continue with the motifs that are predicted so
    far.
 
+.. _`gimme_maelstrom`:
+
+Command: gimme maelstrom
+------------------------
+
+This command can be used to identify differential motifs between two or more data sets. See the :ref:`maelstrom tutorial<maelstrom_tutorial>` for more details.
+
+**Positional arguments:**
+
+:: 
+
+    INPUTFILE             file with regions and clusters
+    GENOME                genome
+    DIR                   output directory
+
+**Optional arguments:**
+
+::
+
+    -h, --help            show this help message and exit
+    -p PWMFILE, --pwmfile PWMFILE
+                          PWM file with motifs (default:
+                          gimme.vertebrate.v3.1.pwm)
+    -m NAMES, --methods NAMES
+                          Run with specific methods
+
 .. _`gimme_scan`:
 
 Command: gimme scan
@@ -320,55 +347,29 @@ This command would give one match for every motif for every sequence, regardless
 Finally, ``gimme scan`` can return the scanning results in table format. 
 The ``-t`` will yield a table with number of matches, while the ``-T`` will have the score of the best match.
 
+**Positional arguments:**
 
-Arguments
-~~~~~~~~~
+:: 
 
+    INPUTFILE             inputfile (FASTA, BED, regions)
+
+**Optional arguments:**
 
 ::
 
     -g GENOME, --genome GENOME
                           genome version
-
-::
-
-     -p PWMFILE, --pwmfile PWMFILE
+    -p PWMFILE, --pwmfile PWMFILE
                           PWM file with motifs (default:
                           gimme.vertebrate.v3.1.pwm)
-
-::
-
     -f , --fpr            FPR for motif scanning (default 0.01)
-
-::
-
     -B , --bgfile         background file for threshold
-
-::
-
     -c , --cutoff         motif score cutoff or file with cutoffs
-
-::
-
     -n N, --nreport N     report the N best matches
-
-::
-
     -r, --norc            don't scan reverse complement (- strand)
-
-::
-
     -b, --bed             output bed format
-
-::
-
     -t, --table           output counts in tabular format
-
-::
-  
     -T, --score_table     output maximum score in tabular format
-  
-
 
 .. _`gimme_roc`:
 
@@ -410,16 +411,14 @@ To plot an ROC curve, add the ``-o`` argument. This will plot the ROC curve for 
 
 .. _`Clarke & Granek, 2003`: https://doi.org/10.1093/bioinformatics/19.2.212
 
-Positional arguments:
-~~~~~~~~~~~~~~~~~~~~~
+**Positional arguments:**
 
 :: 
   
     FG_FILE     FASTA, BED or region file
     BG_FILE     FASTA, BED or region file with background sequences
 
-Optional arguments:
-~~~~~~~~~~~~~~~~~~~
+**Optional arguments:**
   
 ::
 
@@ -437,19 +436,28 @@ Command: gimme match
 --------------------
 
 Taking an input file with motifs, find the best matching file in another
-file of motifs (according to the WIC metric).
+file of motifs (according to the WIC metric). 
+If an ouput file is specified, a graphical output with aligned motifs will
+be created. However, this is slow for many motifs and can consume a lot of memory 
+(`see issue`_).
+It works fine for a few motifs at a time.
 
+.. _`see issue`: https://github.com/simonvh/gimmemotifs/issues/5
 
-Positional arguments:
-  PWMFILE     File with pwms
+**Positional arguments:**
 
-optional arguments:
-  -h, --help  show this help message and exit
-  -d DBFILE   File with pwms to match against (default:
-              gimme.vertebrate.v3.1.pwm)
-  -o FILE     Output file with graphical report (png, svg, ps, pdf)
+::
 
+    PWMFILE     File with input pwms
 
+**Optional arguments:**
+
+::
+
+    -h, --help  show this help message and exit
+    -d DBFILE   File with pwms to match against (default:
+                gimme.vertebrate.v3.1.pwm)
+    -o FILE     Output file with graphical report (png, svg, ps, pdf)
 
 .. _`gimme_cluster`:
 
@@ -458,15 +466,20 @@ Command: gimme cluster
 
 Cluster a set of motifs with the WIC metric.
 
-Command: gimme cluster
-positional arguments:
-  INPUTFILE     Inputfile (PFM format)
-  OUTDIR        Name of output directory
+**Positional arguments:**
 
-optional arguments:
-  -h, --help    show this help message and exit
-  -s            Don't compare reverse complements of motifs
-  -t THRESHOLD  Cluster threshold
+::
+
+    INPUTFILE     Inputfile (PFM format)
+    OUTDIR        Name of output directory
+
+**Optional arguments:**
+
+::
+
+    -h, --help    show this help message and exit
+    -s            Don't compare reverse complements of motifs
+    -t THRESHOLD  Cluster threshold
 
 
 .. _`gimme_genome`:
@@ -474,15 +487,27 @@ optional arguments:
 Command: gimme genome
 ---------------------
 
-positional arguments:
-  FASTADIR              Directory to place genome
-  GENOMEBUILD           UCSC genome name
+Retrieve a genome sequence for ``GENOMEBUILD`` and accompanying gene annotation from UCSC and index the genome for use with GimmeMotifs.
+The ``FASTADIR`` argument determines where the genome will be stored.
+Any genome supported by UCSC should work.
+Optionally, you can change the indexdir. 
+However, in this case the :ref:`configuration file<other_configuration>` should be adapted.
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -i DIR, --indexdir DIR
-                        Index dir (default
-                        /home/simon/anaconda3/share/gimmemotifs/genome_index)
+**Positional arguments:**
+
+::
+
+    FASTADIR              Directory to place genome
+    GENOMEBUILD           UCSC genome name
+
+**Optional arguments:**
+
+::
+  
+    -h, --help            show this help message and exit
+    -i DIR, --indexdir DIR
+                          Index dir (default
+                          <prefix>/share/gimmemotifs/genome_index)
 
 
 .. _`gimme_index`:
@@ -492,17 +517,24 @@ Command: gimme index
 
 Creates an index to use with GimmeMotifs.
 Use this command if your genome is not available on UCSC and you want to use it with GimmeMotifs.
-You should have a directory with FASTA files, one per chromosome.
+You should have a directory with FASTA files, **one per chromosome**. 
+*Note: this will change with a future version of GimmeMotifs.*
 
-positional arguments:
-  FASTADIR              Directory to place genome
-  GENOMEBUILD           UCSC genome name
+**Positional arguments:**
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -i DIR, --indexdir DIR
-                        Index dir (default
-                        /home/simon/anaconda3/share/gimmemotifs/genome_index)
+::
+
+    FASTADIR              Directory to place genome
+    GENOMEBUILD           UCSC genome name
+
+**Optional arguments:**
+
+::
+
+    -h, --help            show this help message and exit
+    -i DIR, --indexdir DIR
+                          Index dir (default
+                          <prefix>/share/gimmemotifs/genome_index)
 
 
 .. _`gimme_background`:
@@ -519,34 +551,53 @@ Generate random sequences according to one of several methods:
 
 The background types ``gc`` and ``random`` need a set of input sequences
 in BED or FASTA format. If the input sequences are in BED format, the 
-genome version needs to be specified with `-g`. 
+genome version needs to be specified with ``-g``. 
 
+**Positional arguments:**
 
+::
 
-positional arguments:
-  FILE        outputfile
-  TYPE        type of background sequences to generate
-              (random,genomic,gc,promoter)
+    FILE        outputfile
+    TYPE        type of background sequences to generate
+                (random,genomic,gc,promoter)
 
-optional arguments:
-  -h, --help  show this help message and exit
-  -i FILE     input sequences (BED or FASTA)
-  -f TYPE     output format (BED or FASTA
-  -l INT      length of random sequences
-  -n NUMBER   number of sequence to generate
-  -g GENOME   genome version (not for type 'random')
-  -m N        order of the Markov model (only for type 'random', default 1)
+**Optional arguments:**
 
+::
+
+    -h, --help  show this help message and exit
+    -i FILE     input sequences (BED or FASTA)
+    -f TYPE     output format (BED or FASTA
+    -l INT      length of random sequences
+    -n NUMBER   number of sequence to generate
+    -g GENOME   genome version (not for type 'random')
+    -m N        order of the Markov model (only for type 'random', default 1)
 
 .. _`gimme_threshold`:
 
 Command: gimme threshold
 ------------------------
 
-positional arguments:
-  PWMFILE     File with pwms
-  FAFILE      FASTA file with background sequences
-  FPR         Desired fpr
+Create a file with motif-specific thresholds based on a specific background file and a specific FPR. 
+The FPR should be specified as a float between 0.0 and 1.0. 
+You can use this threshold file with the ``-c`` argument of :ref:`gimme scan<gimme_scan>`.
+Note that :ref:`gimme scan<gimme_scan>` by default determines an FPR based on random genomic background sequences.
+You can use this command to create the threshold file explicitly, 
+or when you want to determine the threshold based on a different type of background.
+For instance, this command would create a file with thresholds for the motifs in ``custom.pwm`` with a FPR of 1%, 
+based on the sequences in ``promoters.fa``.
+
+:: 
+
+    $ gimme threshold custom.pwm 0.05 promoters.fa > custom.threshold.txt
+
+**Positional arguments:**
+
+::
+
+    PWMFILE     File with pwms
+    FAFILE      FASTA file with background sequences
+    FPR         Desired fpr
 
 
 .. _`gimme_location`:
@@ -562,15 +613,21 @@ only makes sense if the sequences are centered around a similar feature
 threshold for motif scanning is 0.95, see ``gimme scan`` for more
 details.
 
-positional arguments:
-  PWMFILE     File with pwms
-  FAFILE      Fasta formatted file
+**Positional arguments:**
 
-optional arguments:
-  -h, --help  show this help message and exit
-  -w WIDTH    Set width to W (default: determined from fastafile)
-  -i IDS      Comma-seperated list of motif ids to plot (default is all ids)
-  -c CUTOFF   Cutoff for motif scanning (default 0.95)
+::
+
+    PWMFILE     File with pwms
+    FAFILE      Fasta formatted file
+
+**Optional arguments:**
+
+::
+
+    -h, --help  show this help message and exit
+    -w WIDTH    Set width to W (default: determined from fastafile)
+    -i IDS      Comma-seperated list of motif ids to plot (default is all ids)
+    -c CUTOFF   Cutoff for motif scanning (default 0.95)
 
 
 
@@ -580,29 +637,63 @@ optional arguments:
 Command: gimme diff
 -------------------
 
-positional arguments:
-  FAFILES               FASTA-formatted inputfiles OR a BED file with an
-                        identifier in the 4th column, for instance a cluster
-                        number.
-  BGFAFILE              FASTA-formatted background file
-  PWMFILE               PWM file with motifs
-  PNGFILE               outputfile (image)
+This is a simple command to visualize differential motifs between different data sets.
+You are probably better of using :ref:`gimme maelstrom<gimme_maelstrom>`, however, in some cases this visualization might still be informative.
+The input consists of a number of FASTA files, separated by a comma. These are compared to a background file. 
+The last two arguments are a file with pwms and and output image. 
+The `gimme diff` command then produces two heatmaps (enrichment and frequency) of all enriched, differential motifs.
+Reported motifs are at least 3 times enriched compared to the background (change with the ``-e`` argument) and have a minimum frequency in at least one of the input data sets of 1% (change with the ``-f`` argument).
+You can specify motif threshold with the ``-c`` argument (which can be a file generated with :ref:`gimme threshold<gimme_threshold>`).
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -c , --cutoff         motif score cutoff or file with cutoffs (default 0.9)
-  -e MINENR, --enrichment MINENR
-                        minimum enrichment in at least one of the datasets
-                        compared to background
-  -f MINFREQ, --frequency MINFREQ
-                        minimum frequency in at least one of the datasets
-  -g VERSION, --genome VERSION
-                        Genome version. Only necessary in combination with a
-                        BED file with clusters as inputfile.
+For a command like this...
 
+::
+
+    $ gimme diff VEGT_specific.summit.200.fa,XBRA_specific.summit.200.fa,XEOMES_specific.summit.200.fa random.w200.fa gimme_diff_tbox.png -p tbox.pwm -f 0.01 -c threshold.0.01.txt 
+
+...the output will look like this (based on ChIP-seq peaks of T-box factors from `Gentsch et al. 2013`_):
+
+.. image:: images/gimme_diff_tbox.png
+
+The image layout is not always optimal. 
+If you want to customize the image, you can either save it as a ``.svg`` file, or use the numbers that are printed to stdout. 
+The columns are in the same order as the image, the row order may be different as these are clustered before plotting.
+
+Note that the results might differ quite a lot depending on the threshold that is chosen! 
+Compare for instance an FPR of 1% vs an FPR of 5%.
+
+.. _`Gentsch et al. 2013`: https://doi.org/10.1016/j.celrep.2013.08.012
+
+
+**Positional arguments:**
+
+::
+
+    FAFILES               FASTA-formatted inputfiles OR a BED file with an
+                          identifier in the 4th column, for instance a cluster
+                          number.
+    BGFAFILE              FASTA-formatted background file
+    PNGFILE               outputfile (image)
+
+**Optional arguments:**
+
+::
+
+    -h, --help            show this help message and exit
+    -p PWMFILE, --pwmfile PWMFILE
+                          PWM file with motifs (default:
+                          gimme.vertebrate.v3.1.pwm)
+    -c , --cutoff         motif score cutoff or file with cutoffs (default 0.9)
+    -e MINENR, --enrichment MINENR
+                          minimum enrichment in at least one of the datasets
+                          compared to background
+    -f MINFREQ, --frequency MINFREQ
+                          minimum frequency in at least one of the datasets
+    -g VERSION, --genome VERSION
+                          Genome version. Only necessary in combination with a
+                          BED file with clusters as inputfile.
 
 .. _`gimme_logo`:
-
 
 Command: gimme logo
 -------------------
