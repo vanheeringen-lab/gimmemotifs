@@ -124,7 +124,7 @@ def match_plot(plotdata, outfile):
     plt.savefig(outfile, dpi=300, bbox_inches='tight')
     plt.close(fig)
 
-def diff_plot(motifs, pwms, names, freq, counts, bgfreq, outfile, mindiff=0, minenr=3, minfreq=0.01):
+def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mindiff=0, minenr=3, minfreq=0.01):
     w_ratio = np.array([14, len(names), len(names) + 1])
     plot_order = [0,1,2]
     
@@ -135,7 +135,6 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, outfile, mindiff=0, min
     bgfreq = np.array([[x] for x in bgfreq])
     
     enr = np.log2(np.divide(freq, bgfreq))
-   
     filt = np.ones(len(enr), dtype="bool")
     filters = [
                 np.sum(enr > minenr, 1) > 0, 
@@ -146,17 +145,18 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, outfile, mindiff=0, min
     for f in filters:
         filt = np.logical_and(filt, f)
          
-        print("Filter: ", sum(filt))
-    
-
     motifs = np.array(motifs)[filt]
     freq = freq[filt]
     bgfreq = bgfreq[filt]
     enr = enr[filt]
     
+    sys.stderr
     for m,f,b,e in zip(motifs,freq,bgfreq,enr):
-        sys.stderr.write("{0}\t{1}\t{2}\t{3}\n".format(m,f,b,e))
-    
+        sys.stderr.write("{0}\t{1}\t{2}\t{3}\n".format(
+            m, 
+            "\t".join(str(x) for x in e), 
+            "\t".join(str(x) for x in f),
+            b[0]))
     
     if len(freq) == 0:
         sys.stderr.write("No enriched and/or differential motifs found.\n")

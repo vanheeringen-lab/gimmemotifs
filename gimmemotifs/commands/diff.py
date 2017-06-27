@@ -61,7 +61,7 @@ def diff(args):
    
     s = Scanner()
     s.set_motifs(pwmfile)
-    s.set_threshold(cutoff)
+    s.set_threshold(threshold=cutoff)
 
     # Get background frequencies
     nbg = float(len(Fasta(bgfile).seqs))

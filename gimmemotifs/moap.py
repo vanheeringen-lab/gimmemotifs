@@ -147,9 +147,12 @@ class BayesianRidgeMoap(Moap):
             # Scale motif scores
             df_X = df_X.apply(scale)
         
-        logger.debug("Scaling y")
+        #logger.debug("Scaling y")
+        
         # Normalize across samples and features
-        y = df_y.apply(scale, 1).apply(scale, 0)
+        #y = df_y.apply(scale, 1).apply(scale, 0)
+        y = df_y
+
         X = df_X.loc[y.index]
 
         logger.debug("Fitting model")
@@ -198,7 +201,8 @@ class XgboostRegressionMoap(Moap):
             df_X = df_X.apply(scale)
         
         # Normalize across samples and features
-        y = df_y.apply(scale, 1).apply(scale, 0)
+        #y = df_y.apply(scale, 1).apply(scale, 0)
+        y = df_y
         X = df_X.loc[y.index]
 
         # Define model
@@ -276,7 +280,8 @@ class LightningRegressionMoap(Moap):
             df_X = df_X.apply(scale)
         
         # Normalize across samples and features
-        y = df_y.apply(scale, 1).apply(scale, 0)
+        #y = df_y.apply(scale, 1).apply(scale, 0)
+        y = df_y
         X = df_X.loc[y.index]
 
         if not y.shape[0] == X.shape[0]:
@@ -744,7 +749,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
     method : str, optional
         Motif activity method to use. Any of 'hypergeom', 'lasso', 
         'lightningclassification', 'lightningregressor', 'bayesianridge', 
-		'rf', 'xgboost'. Default is 'hypergeom'. 
+        'rf', 'xgboost'. Default is 'hypergeom'. 
     
     scoring:  str, optional
         Either 'score' or 'count'
