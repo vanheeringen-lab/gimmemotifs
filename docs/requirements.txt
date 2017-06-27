@@ -1,0 +1,10 @@
+sphinx_bootstrap_theme
+configparser
+xdg
+numpydoc
+jinja2
+pyyaml >= 3.10
+diskcache
+xxhash
+six
+future
