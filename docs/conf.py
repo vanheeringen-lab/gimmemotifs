@@ -20,7 +20,8 @@ class Mock(MagicMock):
         return MagicMock()
 
 MOCK_MODULES = [
-        'numpy', 'pandas', 'scipy', 'matplotlib', 'pybedtools', 
+        'numpy', 'pandas', 'scipy', 'scipy.stats', 'scipy.cluster', 
+        'matplotlib', 'pybedtools', 
         'statsmodels', 'pymc', 'scikit-learn', 'sklearn-contrib-lightning',
         'seaborn', 'pysam', 'xgboost'
         ]
