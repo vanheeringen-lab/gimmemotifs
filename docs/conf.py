@@ -28,6 +28,7 @@ MOCK_MODULES = [
         'statsmodels', 'pymc', 
         'sklearn', 'sklearn.ensemble', 'sklearn.linear_model', 'sklearn.metrics',
         'sklearn.model_selection', 'sklearn.multiclass', 'sklearn.preprocessing', 
+        'sklearn.metrics.pairwise',
         'seaborn', 'pysam', 'xgboost'
         ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
