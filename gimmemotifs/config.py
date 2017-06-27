@@ -28,6 +28,7 @@ class MotifConfig(object):
     prefix = sysconfig.get_config_var("prefix")
     config_dir = "share/gimmemotifs/gimmemotifs.cfg"
     configs = [
+        '/home/docs/checkouts/readthedocs.org/user_builds/gimmemotifs/envs/latest/share/gimmemotifs/gimmemotifs.cfg',
         'cfg/gimmemotifs.cfg.example', 
         os.path.join('/usr', config_dir),
         os.path.join(prefix, config_dir), 
