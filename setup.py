@@ -493,7 +493,7 @@ setup (
             "setuptools >= 0.7",
             "numpy >= 1.6.0",
             "scipy >= 0.9.0",
-            "matplotlib >= 1.1.1",
+            "matplotlib >= 2",
             "jinja2",
             "pyyaml >= 3.10",
             "pybedtools",
