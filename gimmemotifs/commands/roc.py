@@ -111,7 +111,7 @@ def roc(args):
         log_pvalue = np.inf
         if motif_stats[str(motif)]["phyper_at_fpr"] > 0:
             log_pvalue = -np.log10(motif_stats[str(motif)]["phyper_at_fpr"])
-        f_out.write("{}\t{:d}\t{:d}\t{:.2e}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.2f}\t{:0.4f}\n".format(
+        f_out.write("{}\t{:d}\t{:d}\t{:.2e}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.4f}\n".format(
               motif.id, 
               motif_stats[str(motif)]["matches_at_fpr"][0], 
               motif_stats[str(motif)]["matches_at_fpr"][1], 
@@ -119,7 +119,6 @@ def roc(args):
               log_pvalue, 
               motif_stats[str(motif)]["roc_auc"], 
               motif_stats[str(motif)]["enr_at_fpr"], 
-              motif_stats[str(motif)]["max_enrichment"], 
               motif_stats[str(motif)]["recall_at_fdr"],
               ))
     f_out.close() 
