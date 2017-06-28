@@ -94,9 +94,9 @@ def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.1):
     return recall[cutoff_index]
 
 @requires_scores
-def phyper_at_fpr(fg_vals, bg_vals, fpr=5):
+def matches_at_fpr(fg_vals, bg_vals, fpr=0.01):
     """
-    Computes the hypergeometric p-value at a specific FPR (default 5%).
+    Computes the hypergeometric p-value at a specific FPR (default 1%).
 
     Parameters
     ----------
@@ -115,7 +115,33 @@ def phyper_at_fpr(fg_vals, bg_vals, fpr=5):
         The fraction positives at the specified FPR.
     """
     fg_vals = np.array(fg_vals)
-    s = scoreatpercentile(bg_vals, 100 - fpr)
+    s = scoreatpercentile(bg_vals, 100 - fpr * 100)
+    
+    return [sum(fg_vals >= s), sum(bg_vals >= s)]
+
+@requires_scores
+def phyper_at_fpr(fg_vals, bg_vals, fpr=0.01):
+    """
+    Computes the hypergeometric p-value at a specific FPR (default 1%).
+
+    Parameters
+    ----------
+    fg_vals : array_like
+        The list of values for the positive set.
+
+    bg_vals : array_like
+        The list of values for the negative set.
+    
+    fpr : float, optional
+        The FPR (between 0.0 and 1.0).
+    
+    Returns
+    -------
+    fraction : float
+        The fraction positives at the specified FPR.
+    """
+    fg_vals = np.array(fg_vals)
+    s = scoreatpercentile(bg_vals, 100 - fpr * 100)
     
     table = [
             [sum(fg_vals >= s), sum(bg_vals >= s)],
@@ -125,9 +151,9 @@ def phyper_at_fpr(fg_vals, bg_vals, fpr=5):
     return fisher_exact(table, alternative="greater")[1]
 
 @requires_scores
-def fraction_fpr(fg_vals, bg_vals, fpr=5):
+def fraction_fpr(fg_vals, bg_vals, fpr=0.01):
     """
-    Computes the fraction positives at a specific FPR (default 5%).
+    Computes the fraction positives at a specific FPR (default 1%).
 
     Parameters
     ----------
@@ -146,13 +172,13 @@ def fraction_fpr(fg_vals, bg_vals, fpr=5):
         The fraction positives at the specified FPR.
     """
     fg_vals = np.array(fg_vals)
-    s = scoreatpercentile(bg_vals, 100 - fpr)
+    s = scoreatpercentile(bg_vals, 100 - 100 * fpr)
     return len(fg_vals[fg_vals >= s]) / float(len(fg_vals))
 
 @requires_scores
-def score_at_fpr(fg_vals, bg_vals, fpr=5):
+def score_at_fpr(fg_vals, bg_vals, fpr=0.01):
     """
-    Returns the motif score at a specific FPR (default 5%).
+    Returns the motif score at a specific FPR (default 1%).
 
     Parameters
     ----------
@@ -171,12 +197,12 @@ def score_at_fpr(fg_vals, bg_vals, fpr=5):
         The motif score at the specified FPR.
     """
     bg_vals = np.array(bg_vals)
-    return scoreatpercentile(bg_vals, 100 - fpr)
+    return scoreatpercentile(bg_vals, 100 - 100 * fpr)
 
 @requires_scores
-def enr_at_fpr(fg_vals, bg_vals, fpr=5.0):
+def enr_at_fpr(fg_vals, bg_vals, fpr=0.01):
     """
-    Computes the enrichment at a specific FPR (default 5%).
+    Computes the enrichment at a specific FPR (default 1%).
 
     Parameters
     ----------
@@ -187,7 +213,7 @@ def enr_at_fpr(fg_vals, bg_vals, fpr=5.0):
         The list of values for the negative set.
     
     fpr : float, optional
-        The FPR in percentages.
+        The FPR (between 0.0 and 1.0).
     
     Returns
     -------
@@ -196,7 +222,7 @@ def enr_at_fpr(fg_vals, bg_vals, fpr=5.0):
     """
     pos = np.array(fg_vals)
     neg = np.array(bg_vals)
-    s = scoreatpercentile(neg, 100 - fpr)
+    s = scoreatpercentile(neg, 100 - fpr * 100)
     neg_matches = float(len(neg[neg >= s]))
     if neg_matches == 0:
         return float("inf")
@@ -222,21 +248,19 @@ def max_enrichment(fg_vals, bg_vals, minbg=2):
     -------
     enrichment : float
         Maximum enrichment.
-
-    score : float
-        Score at maximum enrichment.
     """
     scores = np.hstack((fg_vals, bg_vals))
     idx = np.argsort(scores)
     x = np.hstack((np.ones(len(fg_vals)), np.zeros(len(bg_vals))))
     xsort = x[idx]
-
+    l_fg = len(fg_vals)
+    l_bg = len(bg_vals)
     m = 0
     s = 0
     for i in range(len(scores), 0, -1):
-        bgcount = float(len(xsort[i:][xsort[i:] == 0]))
+        bgcount = float(len(xsort[i:][xsort[i:] == 0])) 
         if bgcount >= minbg:
-            enr = len(xsort[i:][xsort[i:] == 1]) / bgcount
+            enr = (len(xsort[i:][xsort[i:] == 1]) / l_fg) / (bgcount / l_bg)
             if enr > m:
                 m = enr
                 s = scores[idx[i]]

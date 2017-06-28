@@ -190,6 +190,10 @@ p.add_argument("sample",
 p.add_argument("background", 
                help="FASTA, BED or region file with background sequences", 
                metavar="BG_FILE")
+p.add_argument("-r",
+               dest="outdir",
+               help="output dir for graphical report",
+               )
 p.add_argument("-p",
                dest="pwmfile",
                help="PWM file with motifs "

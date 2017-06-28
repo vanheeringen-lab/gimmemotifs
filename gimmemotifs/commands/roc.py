@@ -9,6 +9,57 @@ from __future__ import print_function
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.stats import calc_stats
+import numpy as np
+import pandas as pd
+import os
+import sys
+from statsmodels.stats.multitest import multipletests
+
+def html_report(outdir, infile, pwmfile, threshold=0.01):
+    df = pd.read_table(infile, index_col=0)
+    df["corrected P-value"] = multipletests(df["P-value"], method="fdr_bh")[1]
+    
+    cols = [
+            "Logo",
+            "# matches",
+            "# matches background",
+            "P-value",
+            "log10 P-value",
+            "corrected P-value",
+            "ROC AUC",
+            "Enr. at 1% FPR",
+            "Recall at 10% FDR"
+    ]
+    
+    m2f = pwmfile.replace(".pwm", ".motif2factors.txt")
+    if os.path.exists(m2f):
+        sys.stderr.write("reading mapping\n")
+        m2f = pd.read_table(m2f, index_col=0)
+        m2f.columns = ["factors"]
+        m2f["factors"] = m2f["factors"].str.replace(",", " ")
+        df = df.join(m2f)
+        cols = ["factors"] + cols
+    
+    df = df[df["corrected P-value"] <= threshold]
+    
+    df["Logo"] = ['<img src="logos/{}.png" height=50/>'.format(x) for x in list(df.index)]
+    
+    df = df[cols]
+    if not os.path.exists(outdir + "/logos"):
+        os.makedirs(outdir + "/logos")
+    for motif in read_motifs(open(pwmfile)):
+        if motif.id in df.index:
+            motif.to_img(outdir + "/logos/{}.png".format(motif.id), fmt="PNG")
+    
+    bar_cols = [
+            "log10 P-value", "ROC AUC", "MNCP",
+            "Enr. at 1% FDR", "Max enr.", "Recall at 10% FDR"
+            ]
+       
+    with open(outdir + "/gimme.roc.report.html", "w") as f: 
+        f.write(df.sort_values("ROC AUC", ascending=False).style.bar(bar_cols).set_precision(3).render(classes="table"))
+    
+    
 
 def roc(args):
     """ Calculate ROC_AUC and other metrics and optionally plot ROC curve."""
@@ -27,12 +78,13 @@ def roc(args):
     motifs = [m for m in motifs if (m.id in ids)]
     
     stats = [
+            "phyper_at_fpr",
             "roc_auc", 
-            "mncp", 
             "enr_at_fpr",
             "max_enrichment", 
             "recall_at_fdr", 
-            "roc_values"
+            "roc_values",
+            "matches_at_fpr",
             ]
     
     motif_stats = calc_stats(motifs, args.sample, args.background, 
@@ -41,24 +93,45 @@ def roc(args):
     plot_x = []
     plot_y = []
     legend = []
+    
+    f_out = sys.stdout
+    if args.outdir:
+        if not os.path.exists(args.outdir):
+            os.makedirs(args.outdir)
+        f_out = open(args.outdir + "/gimme.roc.report.txt", "w")
+    
     # Print the metrics
-    print(list(motif_stats.keys())[:10])
-    print("Motif\tROC AUC\tMNCP\tEnr. at 5% FDR\tMax enr.\tRecall at 10% FDR")
+    f_out.write("Motif\t# matches\t# matches background\tP-value\tlog10 P-value\tROC AUC\tEnr. at 1% FPR\tRecall at 10% FDR\n")
     for motif in motifs:
         if outputfile:
             x, y = motif_stats[str(motif)]["roc_values"]
             plot_x.append(x)
             plot_y.append(y)
             legend.append(motif.id)
-        print("{}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.2f}\t{:0.4f}".format(
+        log_pvalue = np.inf
+        if motif_stats[str(motif)]["phyper_at_fpr"] > 0:
+            log_pvalue = -np.log10(motif_stats[str(motif)]["phyper_at_fpr"])
+        f_out.write("{}\t{:d}\t{:d}\t{:.2e}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.2f}\t{:0.4f}\n".format(
               motif.id, 
+              motif_stats[str(motif)]["matches_at_fpr"][0], 
+              motif_stats[str(motif)]["matches_at_fpr"][1], 
+              motif_stats[str(motif)]["phyper_at_fpr"], 
+              log_pvalue, 
               motif_stats[str(motif)]["roc_auc"], 
-              motif_stats[str(motif)]["mncp"], 
               motif_stats[str(motif)]["enr_at_fpr"], 
-              motif_stats[str(motif)]["max_enrichment"][0], 
+              motif_stats[str(motif)]["max_enrichment"], 
               motif_stats[str(motif)]["recall_at_fdr"],
               ))
+    f_out.close() 
     
+    if args.outdir:
+        html_report(
+            args.outdir,
+            args.outdir + "/gimme.roc.report.txt",
+            args.pwmfile,
+            0.01,
+            )
+
     # Plot the ROC curve
     if outputfile:
         roc_plot(outputfile, plot_x, plot_y, ids=legend)
