@@ -17,6 +17,7 @@ include motif_databases/*.README
 include score_dists/*.txt
 include templates/*.html
 include templates/*.png
+include templates/sortable/*
 recursive-include src *
 recursive-include test/data/ *
 include test/*.py

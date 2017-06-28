@@ -79,7 +79,13 @@ data_files=[
         [
             'templates/star.png', 
             'templates/report_template.jinja.html', 
-            'templates/cluster_template.jinja.html'
+            'templates/cluster_template.jinja.html',
+            ]),
+    
+    ('gimmemotifs/templates/sortable', 
+        [
+            'templates/sortable/sortable.min.js', 
+            'templates/sortable/sortable-theme-slick.css',
             ]),
     ('gimmemotifs/score_dists', ['score_dists/total_wic_mean_score_dist.txt']),
     ('gimmemotifs/genes', ['genes/hg18.bed', 'genes/hg19.bed', 'genes/xenTro2.bed', 'genes/mm9.bed']),
