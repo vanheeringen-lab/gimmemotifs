@@ -387,6 +387,16 @@ This means that for the same combination of motifs and genome, the previously ge
 
 .. _`api documentation`:
 
+Finding de novo motifs
+----------------------
+
+Motif statistics
+----------------
+
+Maelstrom
+---------
+
+
 Auto-generated
 ==============
 
