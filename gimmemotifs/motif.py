@@ -5,6 +5,7 @@
 # distribution.
 """ Core motif class """
 # Python imports
+import os
 import re
 import sys
 import random
@@ -62,6 +63,8 @@ class Motif(object):
         else:
             self.pwm = []
             self.pfm = []
+        
+        self.factors = []
         self.seqs = []
         self.consensus = ""
         self.id = ""
@@ -788,6 +791,21 @@ class Motif(object):
         m.id = "random"
         return m
 
+def default_motifs():
+    """Return list of Motif instances from default motif database."""
+    config = MotifConfig()
+    d = config.get_motif_dir()
+    m = config.get_default_params()['motif_db']
+
+    if not d or not m:
+        raise ValueError("default motif database not configured")
+
+    fname = os.path.join(d, m)
+    with open(fname) as f:
+        motifs = read_motifs(f)
+    
+    return motifs
+
 def motif_from_align(align):
     width = len(align[0])
     nucs = {"A":0,"C":1,"G":2,"T":3}
@@ -810,7 +828,6 @@ def motif_from_consensus(cons, n=12):
     m = Motif(pfm)
     m.id = cons
     return m
-
 
 def parse_motifs(motifs):
     """Parse motifs in a variety of formats to return a list of motifs.
@@ -849,16 +866,31 @@ def read_motifs(handle, fmt="pwm"):
     """
 
     if fmt.lower() == "pwm":
-        return _read_motifs_pwm(handle)
+        motifs = _read_motifs_pwm(handle)
     if fmt.lower() == "transfac":
-        return _read_motifs_transfac(handle)
+        motifs = _read_motifs_transfac(handle)
     if fmt.lower() == "xxmotif":
-        return _read_motifs_xxmotif(handle)
+        motifs = _read_motifs_xxmotif(handle)
     if fmt.lower() == "align":
-        return _read_motifs_align(handle)
+        motifs = _read_motifs_align(handle)
     if fmt.lower() == "jaspar":
-        return _read_motifs_jaspar(handle)
-
+        motifs = _read_motifs_jaspar(handle)
+    
+    if handle.name:
+        base = os.path.splitext(handle.name)[0]
+        map_file = base + ".motif2factors.txt"
+        if os.path.exists(map_file):
+            m2f = {}
+            for line in open(map_file):
+                try:
+                    motif,factors = line.strip().split("\t")
+                    m2f[motif] = factors.split(",")
+                except:
+                    pass
+            for motif in motifs:
+                if motif.id in m2f:
+                    motif.factors = m2f[motif.id]
+    return motifs
 
 def _read_motifs_pwm(handle):
     p = re.compile(r'(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)')
