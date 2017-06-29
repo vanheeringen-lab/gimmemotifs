@@ -279,7 +279,10 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
                         tmp_dfs[i][k] = v.sort_values(e, ascending=sort_order).index.values
             df_p[e] = -np.log10(rankagg(tmp_dfs[0])) + np.log10(rankagg(tmp_dfs[1]))
             
-        df_p[df.columns].to_csv(os.path.join(outdir, "final.out.csv"), sep="\t")
+        if df.shape[1] != 1:
+            df_p = df_p[df.columns]
+
+        df_p.to_csv(os.path.join(outdir, "final.out.csv"), sep="\t")
     #df_p = df_p.join(m2f)
 
     # Write motif frequency table
