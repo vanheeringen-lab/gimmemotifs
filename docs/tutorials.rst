@@ -83,6 +83,8 @@ This is what an almost perfect motif looks like, with a ROC AUC close to 1.0.
 Scan for known motifs
 ---------------------
 
+**Note:** ``gimme scan`` can be used to identify motif locations. 
+If you're just interested in identifying enriched motifs in a data set, try :ref:`gimme roc<roc>`.
 To scan for known motifs, you will need a set of input sequences and a file with motifs. 
 By default, ``gimme scan`` uses the motif database that comes included, which is based on clustered, non-redundant motifs from CIS-BP. 
 For input sequences you can use either a BED file, a FASTA file or a file with regions in ``chr:start-end`` format. 
@@ -341,21 +343,40 @@ Now we can run ``gimme roc``:
 
 :: 
 
-    $ gimme roc TAp73alpha.fa random.gc.fa > TAp73alpha.roc.txt
+    $ gimme roc TAp73alpha.fa random.gc.fa -r TAp73alpha.roc
+
+This will create an output directory with two files (and a dir with motif logos).
+
+:: 
+
+    $ ls TAp73alpha.roc
+    gimme.roc.report.html  gimme.roc.report.txt  logos
+
+The file ``gimme.roc.report.html`` is a graphical report that can be opened in your web browser. 
+It should look something like this.
+
+.. image:: images/gimme.roc.report.png
+
+The columns are sortable (click on the header) and the full list of factors that can bind to this motif can be obtained by hovering over the text.
+
+The file ``gimme.roc.report.txt`` is a text report of the same results.
+If you don't need the graphical result you can leave out the ``-r`` argument in which case the text output will be printed to ``stdout``.
 
 What's in the file?
 
 :: 
 
-    $ head -n 1 TAp73alpha.roc.txt | tr \\t \\n
+    $ head -n 1 TAp73alpha.roc/gimme.roc.report.txt | tr \\t \\n
     Motif
+    # matches
+    # matches background
+    P-value
+    log10 P-value
     ROC AUC
-    MNCP
-    Enr. at 5% FPR
-    Max enr.
+    Enr. at 1% FPR
     Recall at 10% FDR
 
-The motif ID, followed by five statistics: the ROC area under curve (AUC), Mean Normalized Conditional Probability (MNCP), the enrichment compared to background set at 5% FPR, the maximum enrichment and the recall at 10% FDR.
+The motif ID, the number of matches in the sample and in the background file, followed by five statistics: the enrichment p-value (hypergeometric/Fisher's exact), the log-transformed p-value, the ROC area under curve (AUC), the enrichment compared to background set at 1% FPR and the recall at 10% FDR.
 
 The ROC AUC is widely used, however, it might not always be the most informative.
 In situations where the background set is very large compared to the input set, it might give a more optimistic picture than warranted.
@@ -364,17 +385,17 @@ Let's sort on the last statistic:
 
 :: 
 
-    $ sort -k6g TAp73alpha.roc.txt | cut -f1,2,6 | tail
-    p53_M5923_1.01      0.666   0.1050
-    bZIP_M0304_1.01     0.621   0.1240
-    Grainyhead_Average_6        0.698   0.1720
-    Unknown_M6235_1.01  0.682   0.2330
-    bZIP_Average_149    0.620   0.2400
-    Myb_SANT_Average_7  0.592   0.2560
-    Runt_Average_9      0.709   0.3700
-    p53_M3568_1.01      0.823   0.6270
-    p53_Average_10      0.825   0.6490
-    p53_Average_8       0.918   0.8860
+    $ sort -k8g TAp73alpha.roc/gimme.roc.report.txt | cut -f1,6,8 | tail
+    bZIP_M0305_1.01     0.581   0.0820
+    SMAD_M5627_1.01     0.603   0.1440
+    Unknown_M6235_1.01  0.656   0.2350
+    Grainyhead_Average_6        0.687   0.2430
+    Myb_SANT_Average_7  0.586   0.2450
+    bZIP_Average_149    0.609   0.2520
+    Runt_Average_9      0.691   0.3670
+    p53_Average_10      0.811   0.5590
+    p53_M3568_1.01      0.816   0.6230
+    p53_Average_8       0.918   0.8820
 
 Not surprisingly, the p53 family motif is the most enriched. 
 In addition, we also get RUNX1 and AP1 motifs. 
@@ -396,3 +417,5 @@ And the Grainyhead motif, ``Grainyhead_Average_6``:
 
 The resemblance is clear. 
 This also serves as a warning to never take the results from a computational tool (including mine) at face value...
+
+
