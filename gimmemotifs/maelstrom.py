@@ -26,6 +26,7 @@ from gimmemotifs.moap import moap, Moap
 from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
+from gimmemotifs.report import maelstrom_html_report
 
 BG_LENGTH = 200
 BG_NUMBER = 10000
@@ -278,7 +279,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
                         tmp_dfs[i][k] = v.sort_values(e, ascending=sort_order).index.values
             df_p[e] = -np.log10(rankagg(tmp_dfs[0])) + np.log10(rankagg(tmp_dfs[1]))
             
-        df_p.to_csv(os.path.join(outdir, "final.out.csv"), sep="\t")
+        df_p[df.columns].to_csv(os.path.join(outdir, "final.out.csv"), sep="\t")
     #df_p = df_p.join(m2f)
 
     # Write motif frequency table
@@ -290,5 +291,11 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         freq.to_csv(os.path.join(outdir, "motif.freq.txt"), sep="\t")
 
     if plot and len(methods) > 1:
-        visualize_maelstrom(outdir, pwmfile=pwmfile)
+        logger.info("html report")
+        maelstrom_html_report(
+                outdir, 
+                os.path.join(outdir, "final.out.csv"),
+                pwmfile
+                )
+        logger.info(os.path.join(outdir, "gimme.maelstrom.report.html"))
 

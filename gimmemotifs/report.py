@@ -14,10 +14,14 @@ import logging
 
 import jinja2
 import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from matplotlib import colors
 
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.motif import read_motifs
+from gimmemotifs.motif import read_motifs,default_motifs
 from gimmemotifs.config import GM_VERSION,MotifConfig,BG_RANK
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.rocmetrics import roc_values
@@ -214,3 +218,58 @@ def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outd
     # Create reports
     _create_text_report(inputfile, motifs, closest_match, stats, outdir)
     _create_graphical_report(inputfile, pwmfile, background, closest_match, outdir, stats)
+
+def background_gradient(s, m, M, cmap='RdBu_r', low=0, high=0):
+    rng = M - m
+    norm = colors.Normalize(m - (rng * low),
+                            M + (rng * high))
+    normed = norm(s.values)
+    c = [colors.rgb2hex(x) for x in plt.cm.get_cmap(cmap)(normed)]
+    return ['background-color: %s' % color for color in c]
+
+def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
+    df = pd.read_table(infile, index_col=0)
+    df = df[np.any(abs(df) >= threshold, 1)]
+    M = max(abs(df.min().min()), df.max().max())
+    m = -M
+
+    if pwmfile:
+        with open(pwmfile) as f:
+            motifs = read_motifs(f)
+    else:
+        motifs = default_motifs()
+
+    del df.index.name
+    cols = df.columns
+    m2f = dict([(m.id,",".join(m.factors)) for m in motifs])
+
+    df["factors"] = [m2f.get(m, "") for m in df.index]
+    f = df["factors"].str.len() > 30
+    df["factors"] = '<div title="' + df["factors"] + '">' + df["factors"].str.slice(0,30)
+    df.loc[f, "factors"] += '(...)'
+    df['factors'] += '</div>'
+
+    df["logo"] = ['<img src="logos/{}.png" height=40/>'.format(x) for x in list(df.index)]
+
+    if not os.path.exists(outdir + "/logos"):
+        os.makedirs(outdir + "/logos")
+    for motif in motifs:
+        if motif.id in df.index:
+            motif.to_img(outdir + "/logos/{}.png".format(motif.id), fmt="PNG")
+
+    template_dir = MotifConfig().get_template_dir()
+    js = open(os.path.join(template_dir, "sortable/sortable.min.js"), encoding="utf-8").read()
+    css = open(os.path.join(template_dir, "sortable/sortable-theme-slick.css"), encoding="utf-8").read()
+    cm = sns.diverging_palette(240, 10, as_cmap=True)
+    df = df[["factors", "logo"] + list(cols)]
+    with open(outdir + "/gimme.maelstrom.report.html", "w", encoding="utf-8") as f:
+        f.write("<head>\n")
+        f.write("<style>{}</style>\n".format(css))
+        f.write("</head>\n")
+        f.write("<body>\n")
+
+        f.write(df.style.apply(background_gradient, low=0.7, high=0.7, m=m, M=M, subset=cols).set_precision(3).set_table_attributes("data-sortable").render().replace("data-sortable", 'class="sortable-theme-slick" data-sortable'))
+
+        f.write("<script>{}</script>\n".format(js))
+        f.write("</body>\n")
+
