@@ -24,7 +24,7 @@ Getting started
 * Have a look at these :ref:`simple examples<simple_examples>` to get a taste of what is possible.
 * Check out the more detailed :ref:`tutorials<tutorials>`.
 * Full command-line reference can be found :ref:`here<command-line>`.
-* There's also an :ref:`API documentation<API documentation>`.
+* There's also an :ref:`API documentation<api>`.
 
 Get help
 --------
