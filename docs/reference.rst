@@ -181,7 +181,7 @@ you have the luxury to use a large fraction of your input for
 validation. So, at least several hundred sequences would be optimal. If
 you want to run GimmeMotifs on a small input dataset, it might be
 worthwile to increase the fraction used for prediction (with the ``-f``
-parameter.
+argument.
 
 Detailed options for gimme motifs
 +++++++++++++++++++++++++++++++++
@@ -194,7 +194,7 @@ Detailed options for gimme motifs
    fourth column is optional, if specified it will be used by MDmodule
    to sort the features before motif prediction. GimmeMotifs will take
    the center of these features, and subsequently extend those to the
-   width specified by the ``width`` parameter (see below).
+   width specified by the ``width`` argument (see below).
 
 -  ``-n`` or ``–name``
 
@@ -388,6 +388,12 @@ The basic command is as follows:
     $ gimme roc input.fa bg.fa > statistics.txt
 
 This will use the default motif database, and writes the statistics to the file ``statistics.txt``.
+
+Most likely you'll want a graphical report. 
+Add the ``-r`` argument to supply an output directory name. 
+Once ``gimme roc`` finished, you'll find a file called ``gimme.roc.report.html`` in this directory.
+Open it in your browser to get a graphical summary of the results.
+
 Instead of a FASTA file you can also supply a BED file or regions. 
 In this case you'll need a genome file.
 A custom ``.pwm`` file can be supplied with the ``-p`` argument.
@@ -398,11 +404,9 @@ For instance, the following command scans the input BED files with ``custom_moti
     $ gimme roc input.bed bg.bed -p custom_motifs.pwm -g hg38 > statistics.txt
 
 The statistics include the ROC area under curve (ROC\_AUC), 
-Mean Normalized Conditional Probability (MNCP; `Clarke & Granek, 2003`_), 
-the enrichment at 5% FPR, 
-the maximum enrichment and the recall at 10% FDR.
+the enrichment at 1% FPR and the recall at 10% FDR.
 
-To plot an ROC curve, add the ``-o`` argument. This will plot the ROC curve for all the motifs that SPI1 can bind.
+To plot an ROC curve, add the ``-o`` argument. This command will plot the ROC curve for all the motifs that SPI1 can bind.
 
 ::
 
@@ -423,6 +427,7 @@ To plot an ROC curve, add the ``-o`` argument. This will plot the ROC curve for 
 ::
 
     -h, --help  show this help message and exit
+    -r OUTDIR   output dir for graphical report
     -p PWMFILE  PWM file with motifs (default: gimme.vertebrate.v3.1.pwm)
     -g GENOME   Genome (when input files are not in FASTA format)
     -o FILE     Name of output file with ROC plot (png, svg, ps, pdf)
