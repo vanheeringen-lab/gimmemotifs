@@ -360,7 +360,10 @@ class Scanner(object):
             fpr = float(fpr)
             if not (0.0 < fpr < 1.0):
                 raise ValueError("Parameter fpr should be between 0 and 1")
-        
+       
+        if not self.motifs:
+            raise ValueError("please run set_motifs() first")
+
         thresholds = {}
         with open(self.motifs) as f: 
             motifs = read_motifs(f)
@@ -457,6 +460,7 @@ class Scanner(object):
         give the score of the best match of each motif in each sequence
         returns an iterator of lists containing floats
         """
+        self.set_threshold(threshold=0.0)
         for matches in self.scan(seqs, 1, scan_rc):
             scores = [sorted(m, key=lambda x: x[0])[0][0] for m in matches]
             yield scores
@@ -467,6 +471,7 @@ class Scanner(object):
         returns an iterator of nested lists containing tuples:
         (score, position, strand)
         """
+        self.set_threshold(threshold=0.0)
         for matches in self.scan(seqs, 1, scan_rc):
             top = [sorted(m, key=lambda x: x[0])[0] for m in matches]
             yield top
