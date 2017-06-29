@@ -1,7 +1,15 @@
 .. _`api`:
 
-API Examples
-============
+API documentation
+=================
+
+.. toctree::
+    :maxdepth: 2
+
+    api
+
+Examples
+========
 
 Working with motifs
 -------------------
@@ -178,20 +186,209 @@ Let's say we have a FASTA file called ``test.fa`` that looks like this:
     >seq3
     TGASTCAAAAAAAAAATGASTCA
 
+Now we can use this file for scanning.
 
+.. code-block:: python
+    
+    from gimmemotifs.motif import motif_from_consensus
+    from gimmemotifs.fasta import Fasta
+    
+    f = Fasta("test.fa")
+    m = motif_from_consensus("TGAsTCA"
 
+    m.pwm_scan(f)
 
+::
+
+    {'seq1': [], 'seq2': [6, 6], 'seq3': [0, 16, 0, 16]}
+
+This return a dictionary with the sequence names as keys. 
+The value is a list with positions where the motif matches. 
+Here, as the AP1 motif is a palindrome, you see matches on both forward and reverse strand. 
+This is more clear when we use ``pwm_scan_all()`` that returns position, score and strand for every match.
+
+.. code-block:: python
+
+    m.pwm_scan_all(f)
+
+::
+
+    {'seq1': [],
+     'seq2': [(6, 9.02922042678255, 1), (6, 9.02922042678255, -1)],
+     'seq3': [(0, 8.331251500673487, 1),
+     (16, 8.331251500673487, 1),
+     (0, 8.331251500673487, -1),
+     (16, 8.331251500673487, -1)]}
+
+The number of matches to return is set to 50 by default, you can control this by setting the ``nreport`` argument. 
+Use ``scan_rc=False`` to only scan the forward orientation.
+
+.. code-block:: python
+
+    m.pwm_scan_all(f, nreport=1, scan_rc=False)
+    
+::
+
+    {'seq1': [],
+     'seq2': [(6, 9.02922042678255, 1)],
+     'seq3': [(0, 8.331251500673487, 1)]}
+
+While this functionality works, it is not very efficient. 
+To scan many motifs in potentially many sequences, use the functionality in the ``scanner`` module.
+If you only want the best match per sequence, is a utility function called ``scan_to_best_match``, otherwise, use the ``Scanner`` class.
+
+.. code-block:: python
+
+    
+    from gimmemotifs.motif import motif_from_consensus
+    from gimmemotifs.scanner import scan_to_best_match
+    
+    m1 = motif_from_consensus("TGAsTCA")
+    m1.id = "AP1"
+    m2 = motif_from_consensus("CGCG")
+    m2.id = "CG"
+    motifs = [m1, m2]
+
+    print("motif\tpos\tscore")
+    result = scan_to_best_match("test.fa", motifs)
+    for motif, matches in result.items():
+        for match in matches:
+            print("{}\t{}\t{}".format(motif, match[1], match[0]))
+    
+::
+
+    motif       pos     score
+    CG  0       -18.26379789133924
+    CG  0       5.554366880674296
+    CG  0       -7.743307225501047
+    AP1 0       -20.052563923836903
+    AP1 6       9.029486018303187
+    AP1 0       8.331550321011443
+
+The matches are in the same order as the sequences in the original file.
+
+While this function can be very useful, a ``Scanner`` instance is much more flexible. 
+You can scan different input formats (BED, FASTA, regions), and control the thresholds and output.
+
+As an example we will use the file ``Gm12878.CTCF.top500.w200.fa`` that contains 500 top CTCF peaks.
+We will get the CTCF motif and scan this file in a number of different ways.
+
+.. code-block:: python
+
+    from gimmemotifs.motif import default_motifs
+    from gimmemotifs.scanner import Scanner
+    from gimmemotifs.fasta import Fasta
+    import numpy as np
+    
+    # Input file
+    fname = "examples/Gm12878.CTCF.top500.w200.fa"
+    
+    # Select the CTCF motif from the default motif database
+    motifs = [m for m in default_motifs() if "CTCF" in m.factors]
+    
+    # Initialize the scanner
+    s = Scanner()
+    s.set_motifs(motifs)
+
+Now let's get the best score for the CTCF motif for each sequence.
+
+.. code-block:: python
+
+    scores = [r[0] for r in s.best_score("examples/Gm12878.CTCF.top500.w200.fa")]
+    print("{}\t{:.2f}\t{:.2f}\t{:.2f}".format(
+        len(scores), 
+        np.mean(scores), 
+        np.min(scores), 
+        np.max(scores)
+        ))
+    
+::
+
+    500	10.61	1.21	14.16
+
+In many cases you'll want to set a threshold. 
+In this example we'll use a 1% FPR threshold, based on scanning randomly selected sequences from the ghg38 genome.
+The first time you run this, it will take a while. 
+However, the tresholds will be cached. 
+This means that for the same combination of motifs and genome, the previously generated threshold will be used.
+
+.. code-block:: python
+
+    # Set a 1% FPR threshold based on random hg38 sequence
+    s.set_threshold(fpr=0.01, genome="hg38")
+    
+    # get the number of sequences with at least one match
+    counts = [n[0] for n in s.count("examples/Gm12878.CTCF.top500.w200.fa", nreport=1)]
+    print(counts[:10])
+
+::
+
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+.. code-block:: python
+
+    # or the grand total of number of sequences with 1 match
+    print(s.total_count("examples/Gm12878.CTCF.top500.w200.fa", nreport=1))
+
+::
+
+    [408]
+
+.. code-block:: python
+
+    # Scanner.scan() just gives all information
+    seqs = Fasta("examples/Gm12878.CTCF.top500.w200.fa")[:10]
+    for i,result in enumerate(s.scan(seqs)):
+        seqname = seqs.ids[i]
+        for m,matches in enumerate(result):
+            motif = motifs[m]
+            for score, pos, strand in matches:
+                print(seqname, motif, score, pos, strand)
+
+::
+
+    chr11:190037-190237 C2H2_ZF_Average_200_CCAsyAGrkGGCr 13.4959558370929 143 -1
+    chr11:190037-190237 C2H2_ZF_Average_200_CCAsyAGrkGGCr 10.821440417077262 22 -1
+    chr11:190037-190237 C2H2_ZF_Average_200_CCAsyAGrkGGCr 10.658439190070851 82 -1
+    chr14:106873577-106873777 C2H2_ZF_Average_200_CCAsyAGrkGGCr 14.16061638444734 120 -1
+    chr14:106873577-106873777 C2H2_ZF_Average_200_CCAsyAGrkGGCr 13.72460285196088 83 -1
+    chr14:106873577-106873777 C2H2_ZF_Average_200_CCAsyAGrkGGCr 11.450778540447134 27 -1
+    chr14:106873577-106873777 C2H2_ZF_Average_200_CCAsyAGrkGGCr 10.037330832055455 7 -1
+    chr14:106873577-106873777 C2H2_ZF_Average_200_CCAsyAGrkGGCr 8.998038360035828 159 -1
+    chr14:106873577-106873777 C2H2_ZF_Average_200_CCAsyAGrkGGCr 8.668660161058972 101 -1
+    chr14:106765204-106765404 C2H2_ZF_Average_200_CCAsyAGrkGGCr 14.16061638444734 145 -1
+    chr14:106765204-106765404 C2H2_ZF_Average_200_CCAsyAGrkGGCr 13.848270770440264 185 -1
+    chr14:106765204-106765404 C2H2_ZF_Average_200_CCAsyAGrkGGCr 13.668171128367552 165 -1
+    chr14:106765204-106765404 C2H2_ZF_Average_200_CCAsyAGrkGGCr 12.785329839873164 27 -1
+    chr14:106765204-106765404 C2H2_ZF_Average_200_CCAsyAGrkGGCr 11.886792072933595 126 -1
+    chr14:106765204-106765404 C2H2_ZF_Average_200_CCAsyAGrkGGCr 11.25063146496227 67 -1
+    chr15:22461178-22461378 C2H2_ZF_Average_200_CCAsyAGrkGGCr 14.16061638444734 28 -1
+    chr15:22461178-22461378 C2H2_ZF_Average_200_CCAsyAGrkGGCr 14.16061638444734 185 -1
+    chr15:22461178-22461378 C2H2_ZF_Average_200_CCAsyAGrkGGCr 13.261096435278661 67 -1
+    chr15:22461178-22461378 C2H2_ZF_Average_200_CCAsyAGrkGGCr 11.450778540447134 147 -1
+    chr15:22461178-22461378 C2H2_ZF_Average_200_CCAsyAGrkGGCr 11.022594547749485 126 -1
+    chr15:22461178-22461378 C2H2_ZF_Average_200_CCAsyAGrkGGCr 10.194691222675097 7 -1
+    chr14:107119996-107120196 C2H2_ZF_Average_200_CCAsyAGrkGGCr 11.886792072933595 37 -1
+    chr14:107119996-107120196 C2H2_ZF_Average_200_CCAsyAGrkGGCr 11.886792072933595 95 -1
+    chr14:107119996-107120196 C2H2_ZF_Average_200_CCAsyAGrkGGCr 11.886792072933595 153 -1
+    chr14:107119996-107120196 C2H2_ZF_Average_200_CCAsyAGrkGGCr 9.972530270193543 75 -1
+    chr14:107119996-107120196 C2H2_ZF_Average_200_CCAsyAGrkGGCr 9.949273408029276 17 -1
+    chr14:107119996-107120196 C2H2_ZF_Average_200_CCAsyAGrkGGCr 9.949273408029276 133 -1
+    chr14:107238917-107239117 C2H2_ZF_Average_200_CCAsyAGrkGGCr 14.16061638444734 92 -1
+    chr14:107238917-107239117 C2H2_ZF_Average_200_CCAsyAGrkGGCr 11.25063146496227 34 -1
+    chr14:107238917-107239117 C2H2_ZF_Average_200_CCAsyAGrkGGCr 9.246743494108388 15 -1
+    chr6:53036754-53036954 C2H2_ZF_Average_200_CCAsyAGrkGGCr 8.764279993851783 62 1
+    chr14:107147705-107147905 C2H2_ZF_Average_200_CCAsyAGrkGGCr 13.697109967765122 33 -1
+    chr14:107147705-107147905 C2H2_ZF_Average_200_CCAsyAGrkGGCr 13.204664711685334 149 -1
+    chr14:107147705-107147905 C2H2_ZF_Average_200_CCAsyAGrkGGCr 11.222131525579154 92 -1
+    chr14:107147705-107147905 C2H2_ZF_Average_200_CCAsyAGrkGGCr 11.222131525579154 130 -1
+    chr14:50328834-50329034 C2H2_ZF_Average_200_CCAsyAGrkGGCr 11.148765667117496 133 1
+    chr1:114889205-114889405 C2H2_ZF_Average_200_CCAsyAGrkGGCr 9.752478102244137 124 1
 
 .. _`api documentation`:
 
-API Documentation
-=================
-
-
-
-
-
-
+Auto-generated
+==============
 
 Prediction of de novo motifs
 ----------------------------
