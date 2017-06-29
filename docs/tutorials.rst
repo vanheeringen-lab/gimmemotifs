@@ -3,6 +3,11 @@
 Tutorials
 =========
 
+.. toctree::
+    :maxdepth: 2
+
+    tutorials
+
 While GimmeMotifs was originally developed to predict *de novo* motifs in ChIP-seq peaks, it is now a full-fledged suite of TF motif analysis tools. 
 You can still identify new motifs, but also scan for known motifs, find differential motifs in multiple sets of sequences, create sequence logos, calculate all kinds of enrichment statistics, and more!
 
@@ -230,17 +235,17 @@ There output directory contains several files:
 ::
    
     $ ls maelstrom.blood.1k.out
-    activity.bayesianridge.score.out.txt            activity.xgboost.score.out.txt
-    activity.hypergeom.count.out.txt                final.out.csv
-    activity.lasso.score.out.txt                    hg19.blood.most_variable.1k.txt.cluster.txt
-    activity.lightningclassification.score.out.txt  motif.count.txt.gz
-    activity.lightningregressor.score.out.txt       motif.relevance.png
-    activity.mwu.score.out.txt                      motif.score.txt.gz
-    activity.rf.score.out.txt
 
+    
 The two motif files, ``motif.count.txt.gz`` and ``motif.score.gz`` contain the motif scan results. 
 The ``activity.*.out.txt`` files are tables with the results of the individual methods. 
 The main result is ``final.out.csv``, which integrates all individual methods in a final score. 
+The file ``gimme.maelstrom.report.html`` contains a graphical summary of this file that can be opened in your web browser.
+
+
+.. image:: images/gimme.maelstrom.report.png
+
+
 The following Python snippet will create a heatmap of the results.
 
 .. code-block:: python
