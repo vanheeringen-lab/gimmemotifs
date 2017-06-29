@@ -61,9 +61,9 @@ def html_report(outdir, infile, pwmfile, threshold=0.01):
             "Enr. at 1% FDR", "Max enr.", "Recall at 10% FDR"
             ]
     template_dir = MotifConfig().get_template_dir()
-    js = open(os.path.join(template_dir, "sortable/sortable.min.js")).read()
-    css = open(os.path.join(template_dir, "sortable/sortable-theme-slick.css")).read()
-    with open(outdir + "/gimme.roc.report.html", "w") as f: 
+    js = open(os.path.join(template_dir, "sortable/sortable.min.js"), encoding="utf-8").read()
+    css = open(os.path.join(template_dir, "sortable/sortable-theme-slick.css"), encoding="utf-8").read()
+    with open(outdir + "/gimme.roc.report.html", "w",  encoding="utf-8") as f: 
         f.write("<head>\n")
         f.write("<style>{}</style>\n".format(css))
         f.write("</head>\n")
