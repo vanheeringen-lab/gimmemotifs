@@ -194,7 +194,7 @@ Now we can use this file for scanning.
     from gimmemotifs.fasta import Fasta
     
     f = Fasta("test.fa")
-    m = motif_from_consensus("TGAsTCA"
+    m = motif_from_consensus("TGAsTCA")
 
     m.pwm_scan(f)
 
@@ -389,6 +389,62 @@ This means that for the same combination of motifs and genome, the previously ge
 
 Finding de novo motifs
 ----------------------
+
+Let's take the ``Gm12878.CTCF.top500.w200.fa`` file as example again. 
+For a basic example we'll just use two motif finders, as they're quick to run.
+
+.. code-block:: python
+
+    from gimmemotifs.denovo import gimme_motifs
+
+    peaks = "Gm12878.CTCF.top500.w200.fa"
+    outdir = "CTCF.gimme"
+    params = {
+        "tools": "Homer,BioProspector",
+        }
+
+    motifs = gimme_motifs(peaks, outdir, params=params)
+
+::
+
+    2017-06-30 07:37:00,079 - INFO - starting full motif analysis
+    2017-06-30 07:37:00,082 - INFO - preparing input (FASTA)
+    2017-06-30 07:37:32,949 - INFO - starting motif prediction (medium)
+    2017-06-30 07:37:32,949 - INFO - tools: BioProspector, Homer
+    2017-06-30 07:37:40,540 - INFO - BioProspector_width_5 finished, found 5 motifs
+    2017-06-30 07:37:41,308 - INFO - BioProspector_width_7 finished, found 5 motifs
+    2017-06-30 07:37:41,609 - INFO - BioProspector_width_6 finished, found 5 motifs
+    2017-06-30 07:37:42,003 - INFO - BioProspector_width_8 finished, found 5 motifs
+    2017-06-30 07:37:44,054 - INFO - Homer_width_5 finished, found 5 motifs
+    2017-06-30 07:37:45,201 - INFO - Homer_width_6 finished, found 5 motifs
+    2017-06-30 07:37:48,246 - INFO - Homer_width_7 finished, found 5 motifs
+    2017-06-30 07:37:50,503 - INFO - Homer_width_8 finished, found 5 motifs
+    2017-06-30 07:37:54,649 - INFO - BioProspector_width_9 finished, found 5 motifs
+    2017-06-30 07:37:56,169 - INFO - BioProspector_width_10 finished, found 5 motifs
+    2017-06-30 07:37:56,656 - INFO - Homer_width_9 finished, found 5 motifs
+    2017-06-30 07:37:59,313 - INFO - Homer_width_10 finished, found 5 motifs
+    2017-06-30 07:37:59,314 - INFO - all jobs submitted
+    2017-06-30 07:39:21,298 - INFO - predicted 60 motifs
+    2017-06-30 07:39:21,326 - INFO - 53 motifs are significant
+    2017-06-30 07:39:21,410 - INFO - clustering significant motifs.
+    2017-06-30 07:39:47,031 - INFO - creating reports
+    2017-06-30 07:40:41,024 - INFO - finished
+    2017-06-30 07:40:41,024 - INFO - output dir: CTCF.gimme
+    2017-06-30 07:40:41,024 - INFO - report: CTCF.gimme/motif_report.html
+
+This will basically run the same pipeline as the ``gimme motifs`` command.
+All output files will be stored in ``outdir`` and ``gimme_motifs`` returns a list of Motif instances.
+If you only need the motifs but not the graphical report, you can decide to skip it by setting ``create_report`` to ``False``.
+Additionally, you can choose to skip clustering (``cluster=False``) or to skip calculation of significance (``filter_significant=False``). 
+For instance, the following command will only predict motifs and cluster them.
+
+.. code-block:: python
+
+    gimme_motifs(peaks, outdir,
+        params=params, filter_significant=False, create_report=False)
+
+All parameters for motif finding are set by the ``params`` argument. 
+
 
 Motif statistics
 ----------------
