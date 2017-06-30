@@ -235,7 +235,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
     #sys.stderr.write("{}\n".format(number))
     
     # pylint: disable=unexpected-keyword-arg
-    r = rnd.random(l=length, n=number * 15, g=genome_size).nucleotide_content(fi=genome_fa)
+    r = rnd.random(l=length, n=number * 30, g=genome_size).nucleotide_content(fi=genome_fa)
     
     features = [f[:3] + [float(f[7])] for f in r if float(f[12]) <= length * N_FRACTION]
     gc = [f[3] for f in features]
