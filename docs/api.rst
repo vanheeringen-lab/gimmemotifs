@@ -449,6 +449,75 @@ All parameters for motif finding are set by the ``params`` argument.
 Motif statistics
 ----------------
 
+With some motifs, a sample file and a background file you can calculate motif statistics.
+Let's say I wanted to know which of the p53-family motifs is most enriched in the file ``TAp73alpha.fa``. 
+
+First, we'll generate a GC%-matched genomic background. 
+Then we only select p53 motifs.
+
+.. code-block:: python
+
+    from gimmemotifs.background import MatchedGcFasta
+    from gimmemotifs.fasta import Fasta
+    from gimmemotifs.stats import calc_stats
+    from gimmemotifs.motif import default_motifs
+    
+    sample = "TAp73alpha.fa"
+    bg = MatchedGcFasta(sample, genome="hg19", number=1000)
+    
+    motifs = [m for m in default_motifs() if any(f in m.factors for f in ["TP53", "TRP53"])]
+    
+    stats = calc_stats(motifs, sample, bg)
+    
+    for k, v in stats[str(motifs[0])].items():
+        print(k,v)
+    
+
+::
+
+    score_at_fpr 6.7558591134
+    enr_at_fpr 3.4
+    phyper_at_fpr 0.000167840489482
+    roc_auc 0.6439675
+    max_enrichment 4.8
+    roc_auc_xlim 0.012257
+    ks_significance 2.34095270219
+    ks_pvalue 0.00456086584369
+    max_fmeasure 0.680672268908
+    mncp 1.25741046267
+    recall_at_fdr 0.002
+    fraction_fpr 0.034
+    
+
+A lot of statistics are generated and you will not always need all of them. 
+You can choose one or more specific metrics with the additional ``stats`` argument.
+
+
+.. code-block:: python
+
+    metrics = ["roc_auc", "recall_at_fdr"]
+    stats = calc_stats(motifs, sample, bg, stats=metrics)
+    
+    for metric in metrics:
+        for motif in motifs:
+            print("{}\t{}\t{:.2f}".format(
+                motif.id, metric, stats[str(motif)][metric]
+                ))
+    
+
+::
+
+    p53_M5923_1.01        roc_auc 0.63
+    p53_M5922_1.01 roc_auc 0.64
+    p53_Average_10  roc_auc 0.83
+    p53_Average_8   roc_auc 0.93
+    p53_M3568_1.01  roc_auc 0.83
+    p53_M5923_1.01  recall_at_fdr   0.00
+    p53_M5922_1.01  recall_at_fdr   0.00
+    p53_Average_10  recall_at_fdr   0.24
+    p53_Average_8   recall_at_fdr   0.83
+    p53_M3568_1.01  recall_at_fdr   0.42
+
 Maelstrom
 ---------
 
