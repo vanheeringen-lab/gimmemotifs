@@ -33,7 +33,7 @@ class TestDenovo(unittest.TestCase):
     
         with open(os.path.join(self.outdir, 'gimmemotifs.log')) as f:
             log = f.read()
-        self.assertIn("clustering significant", log)
+        self.assertIn("clustering", log)
     
         # Check if all output files are there
         for fname in fnames:
