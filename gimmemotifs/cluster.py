@@ -234,7 +234,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
     elif len(motifs) == 1:
         clusters = [[motifs[0], motifs]]
     else:
-        logger.info("clustering significant motifs.")
+        logger.info("clustering %d motifs.", len(motifs))
         tree = cluster_motifs(
                 infile,
                 "total",
