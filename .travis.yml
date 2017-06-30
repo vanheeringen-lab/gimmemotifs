@@ -33,7 +33,7 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 
 install:
-  - conda install python=$TRAVIS_PYTHON_VERSION pip future numpy scipy matplotlib=2 statsmodels pymc scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml meme diskcache six ucsc-bigbedtobed perl-algorithm-cluster xdg xxhash
+  - conda install python=$TRAVIS_PYTHON_VERSION pip future numpy scipy matplotlib=2 statsmodels pymc scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed perl-algorithm-cluster xdg xxhash
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then 
       conda install configparser;
     fi
