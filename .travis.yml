@@ -1,7 +1,3 @@
-os:
-  - linux
-  - osx
-
 matrix:
   allow_failures:
     - os: osx
@@ -49,9 +45,9 @@ before_install:
 
 install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      conda install python=$TRAVIS_PYTHON_VERSION pip future numpy scipy matplotlib=2 statsmodels pymc scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed perl-algorithm-cluster xdg xxhash;
+      conda install python=$TRAVIS_PYTHON_VERSION pip future numpy scipy matplotlib=2 statsmodels pymc scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed perl-algorithm-cluster xdg xxhash readline;
    else
-      conda install python=3 pip future numpy scipy matplotlib=2 statsmodels pymc scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed perl-algorithm-cluster xdg xxhash;
+      conda install python=3 pip future numpy scipy matplotlib=2 statsmodels pymc scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed perl-algorithm-cluster xdg xxhash readline;
     fi
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then 
       conda install configparser;
