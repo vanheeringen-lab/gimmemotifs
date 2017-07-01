@@ -504,7 +504,6 @@ setup (
             "pyyaml >= 3.10",
             "pybedtools",
             "statsmodels",
-            "pymc",
             "scikit-learn",
             "sklearn-contrib-lightning",
             "seaborn",
