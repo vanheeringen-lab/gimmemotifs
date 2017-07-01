@@ -16,10 +16,10 @@ python:
   - "3.5"
   - "3.6"
 
-cache:
-  apt: true
-  directories:
-    - $HOME/miniconda
+#cache:
+#  apt: true
+#  directories:
+#    - $HOME/miniconda
 
 before_install:
   # install miniconda for Python dependencies
