@@ -43,7 +43,8 @@ class TestMotifProgram(unittest.TestCase):
            
             if platform.system() == "Darwin":
                 if tool_name in [
-                    "amd", 
+                    "amd",
+                    "hms",
                     ]:
                     continue
 
