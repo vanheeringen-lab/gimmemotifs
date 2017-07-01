@@ -39,7 +39,13 @@ class TestMotifProgram(unittest.TestCase):
                     "xxmotif",
                     ]:
                 continue
-            
+           
+            if platform.system() == "Darwin":
+                if tool_name in [
+                    "amd", 
+                    ]:
+                    continue
+
             t = get_tool(tool_name)
             print("Testing {}...".format(t))
             
