@@ -1,3 +1,4 @@
+import platform
 import unittest
 import tempfile
 import os
