@@ -10,11 +10,11 @@ matrix:
   include:
     - os: osx
       language: generic
-
-python:
-  - "2.7"
-  - "3.5"
-  - "3.6"
+    - os: linux
+      python: 
+        - "2.7"
+        - "3.5"
+        - "3.6"
 
 #cache:
 #  apt: true
@@ -47,7 +47,11 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; fi
 
 install:
-  - conda install python=$TRAVIS_PYTHON_VERSION pip future numpy scipy matplotlib=2 statsmodels pymc scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed perl-algorithm-cluster xdg xxhash
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      conda install python=$TRAVIS_PYTHON_VERSION pip future numpy scipy matplotlib=2 statsmodels pymc scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed perl-algorithm-cluster xdg xxhash;
+   else
+      conda install python=3 pip future numpy scipy matplotlib=2 statsmodels pymc scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed perl-algorithm-cluster xdg xxhash;
+    fi
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then 
       conda install configparser;
     fi
