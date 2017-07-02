@@ -38,13 +38,18 @@ class TestMotifProgram(unittest.TestCase):
             if tool_name in [
                     "weeder", 
                     "xxmotif",
+                    "gadem",  # sometimes crashes on invalid pointer
                     ]:
                 continue
            
             if platform.system() == "Darwin":
+                # No support for osx
                 if tool_name in [
                     "amd",
                     "hms",
+                    "improbizer",
+                    "motifsampler",
+                    "posmo",
                     ]:
                     continue
 
