@@ -614,14 +614,14 @@ class Motif(object):
         
         return str_out
 
-    def to_consensus(self):
+    def to_consensus(self, precision=4):
         if not self.consensus:
             consensus = ""
             for row in self.pwm:
                 weights = sorted(zip(["A","C","G","T"], row), key=lambda x: x[1])
-                if weights[-1][1] >= 0.5 and weights[-1][1] > 2 * weights[-2][1]:
+                if round(weights[-1][1], precision) >= 0.5 and weights[-1][1] > 2 * weights[-2][1]:
                     consensus += weights[-1][0]
-                elif weights[-1][1] + weights[-2][1] >= 0.75:
+                elif round(weights[-1][1] + weights[-2][1], precision) >= 0.75:
                     consensus +=  self.iupac_rev["".join(sorted([weights[-1][0], weights[-2][0]]))].lower()
                 else:
                     consensus += "n"
