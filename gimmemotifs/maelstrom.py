@@ -45,23 +45,31 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
     if pwmfile is None:
         raise ValueError("no pwmfile given and no default database specified")
 
+    logger.info("reading table")
     df = pd.read_table(input_table, index_col=0)
     regions = list(df.index)
     s = Scanner()
     s.set_motifs(pwmfile)
     s.set_genome(genome)
+    nregions = len(regions)
 
     scores = []
     if scoring == "count":
+        logger.info("setting threshold")
         s.set_threshold(fpr=FPR, genome=genome)
+        logger.info("creating count table")
         for row in s.count(regions):
             scores.append(row)
+        logger.info("done")
     else:
         s.set_threshold(threshold=0.0)
+        logger.info("creating score table")
         for row in s.best_score(regions):
             scores.append(row)
+        logger.info("done")
    
     motif_names = [m.id for m in read_motifs(open(pwmfile))]
+    logger.info("creating dataframe")
     return pd.DataFrame(scores, index=df.index, columns=motif_names)
 
 def moap_with_bg(input_table, genome, data_dir, method, scoring, pwmfile=None):
@@ -180,24 +188,24 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
     if not count_table:
         count_table = os.path.join(outdir, "motif.count.txt.gz")
         if not os.path.exists(count_table):
-            logging.info("Motif scanning (counts)")
+            logger.info("Motif scanning (counts)")
             counts = scan_to_table(infile, genome, outdir, "count",
                 pwmfile=pwmfile)
             counts.to_csv(count_table, sep="\t", compression="gzip")
         else:
-            logging.info("Counts, using: %s", count_table)
+            logger.info("Counts, using: %s", count_table)
 
     # Create a file with the score of the best motif match
     if not score_table:
         score_table = os.path.join(outdir, "motif.score.txt.gz")
         if not os.path.exists(score_table):
-            logging.info("Motif scanning (scores)")
+            logger.info("Motif scanning (scores)")
             scores = scan_to_table(infile, genome, outdir, "score",
                 pwmfile=pwmfile)
             scores.to_csv(score_table, sep="\t", float_format="%.3f", 
                 compression="gzip")
         else:
-            logging.info("Scores, using: %s", score_table)
+            logger.info("Scores, using: %s", score_table)
 
     if cluster:
         cluster = False

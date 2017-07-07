@@ -67,6 +67,9 @@ class Motif(object):
         self.factors = []
         self.seqs = []
         self.consensus = ""
+        self.min_score = None
+        self.max_score = None
+        
         self.id = ""
         self.config = MotifConfig()
         self.seqlogo = self.config.get_seqlogo()
@@ -171,10 +174,13 @@ class Motif(object):
         score : float
             Minimum PWM score.
         """
-        score = 0
-        for row in self.pwm:
-            score += log(min(row) / 0.25 + 0.01)
-        return score
+        if self.min_score is None:
+            score = 0
+            for row in self.pwm:
+                score += log(min(row) / 0.25 + 0.01)
+            self.min_score = score
+        
+        return self.min_score
    
     def pwm_max_score(self):
         """
@@ -185,10 +191,13 @@ class Motif(object):
         score : float
             Maximum PWM score.
         """
-        score = 0
-        for row in self.pwm:
-            score += log(max(row) / 0.25 + 0.01)
-        return score
+        if self.max_score is None:
+            score = 0
+            for row in self.pwm:
+                score += log(max(row) / 0.25 + 0.01)
+            self.max_score = score
+        
+        return self.max_score
     
     def score_kmer(self, kmer):
         if len(kmer) != len(self.pwm):
@@ -275,7 +284,11 @@ class Motif(object):
             pwm = pwm[:-1]
             self.pwm = self.pwm[:-1]
             self.pfm = self.pfm[:-1]
+        
         self.consensus = None 
+        self.min_score = None
+        self.max_score = None
+        
         return self
 
     def consensus_scan(self, fa):
@@ -621,7 +634,7 @@ class Motif(object):
                 weights = sorted(zip(["A","C","G","T"], row), key=lambda x: x[1])
                 if round(weights[-1][1], precision) >= 0.5 and weights[-1][1] > 2 * weights[-2][1]:
                     consensus += weights[-1][0]
-                elif round(weights[-1][1] + weights[-2][1], precision) >= 0.75:
+                elif round(weights[-1][1], precision) + round(weights[-2][1], precision) >= 0.75:
                     consensus +=  self.iupac_rev["".join(sorted([weights[-1][0], weights[-2][0]]))].lower()
                 else:
                     consensus += "n"
