@@ -141,26 +141,6 @@ p.add_argument("--torque",
                )
 p.set_defaults(func=commands.motifs)
 
-# gimme_max.py
-default_db = os.path.join(config.get_motif_dir(), params["motif_db"])
-p = subparsers.add_parser('maxenr')
-p.add_argument("sample", 
-               help="FASTA file", 
-               metavar="FG_FAFILE")
-p.add_argument("background", 
-               help="FASTA file with background sequences", 
-               metavar="BG_FAFILE")
-p.add_argument("-p",
-               dest="pwmfile", 
-               help="File with pwms (default: {0})".format(params["motif_db"]), 
-               default=default_db,
-               metavar="PWMFILE")
-p.add_argument("-i", 
-               dest="ids", 
-               help="Comma-seperated list of motif ids to use (default is all ids)", 
-               metavar="IDS")
-p.set_defaults(func=commands.maxenr)
-
 # closest_match.py
 p = subparsers.add_parser('match')
 p.add_argument("pwmfile", 
@@ -178,7 +158,6 @@ p.add_argument("-o",
                metavar="FILE")
 p.set_defaults(func=commands.match)
 
-# closest_match.py
 p = subparsers.add_parser('maelstrom')
 p.add_argument("inputfile", 
                help="file with regions and clusters", 
@@ -195,26 +174,43 @@ p.add_argument("-p", "--pwmfile",
                "(default: {0})".format(default_pwm), 
                default=default_pwm_file,
                metavar="PWMFILE")
+p.add_argument("-m", "--methods",
+               dest="methods",
+               help="Run with specific methods",
+               default=None,
+               metavar="NAMES")
+
 p.set_defaults(func=commands.maelstrom)
 
 # motif_roc.py and motif_roc_metrics.py
 p = subparsers.add_parser('roc')
-p.add_argument("pwmfile", 
-               help="File with pwms", 
-               metavar="PWMFILE")
 p.add_argument("sample", 
-               help="FASTA file", 
-               metavar="FG_FAFILE")
+               help="FASTA, BED or region file", 
+               metavar="FG_FILE")
 p.add_argument("background", 
-               help="FASTA file with background sequences", 
-               metavar="BG_FAFILE")
+               help="FASTA, BED or region file with background sequences", 
+               metavar="BG_FILE")
+p.add_argument("-r",
+               dest="outdir",
+               help="output dir for graphical report",
+               )
+p.add_argument("-p",
+               dest="pwmfile",
+               help="PWM file with motifs "
+               "(default: {0})".format(default_pwm), 
+               default=default_pwm_file,
+               metavar="PWMFILE")
+p.add_argument("-g", 
+               dest="genome", 
+               help="Genome (when input files are not in FASTA format)", 
+               metavar="GENOME")
 p.add_argument("-o", 
                dest="outfile", 
                help="Name of output file with ROC plot (png, svg, ps, pdf)", 
                metavar="FILE")
 p.add_argument("-i", 
                dest="ids", 
-               help="Comma-seperated list of motif ids to plot in ROC (default is all ids)", 
+               help="Comma-separated list of motif ids to plot in ROC (default is all ids)", 
                metavar="IDS")
 p.set_defaults(func=commands.roc)
 
@@ -318,10 +314,10 @@ p.add_argument("pwmfile",
 p.add_argument("inputfile",
                help="FASTA file with background sequences", 
                metavar="FAFILE")
-p.add_argument("fdr", 
-               help="Desired fdr", 
+p.add_argument("fpr", 
+               help="Desired fpr", 
                type=float, 
-               metavar="FDR")
+               metavar="FPR")
 p.set_defaults(func=commands.threshold)
 
 # motif_localization_plots.py
@@ -339,7 +335,7 @@ p.add_argument("-w",
                type=int)
 p.add_argument("-i", 
                dest="ids", 
-               help="Comma-seperated list of motif ids to plot (default is all ids)", 
+               help="Comma-separated list of motif ids to plot (default is all ids)", 
                metavar="IDS")
 p.add_argument("-c", 
                dest="cutoff", help="Cutoff for motif scanning (default 0.95)", 
@@ -352,7 +348,7 @@ NREPORT = 1
 p = subparsers.add_parser('scan')
 p.add_argument("inputfile",
                help="inputfile (FASTA, BED, regions)", 
-               metavar="FAFILE")
+               metavar="INPUTFILE")
 p.add_argument("-g", "--genome", 
                dest="genome", 
                help="genome version", 
@@ -364,11 +360,21 @@ p.add_argument("-p", "--pwmfile",
                "(default: {0})".format(default_pwm), 
                default=default_pwm_file,
                metavar="PWMFILE")
+p.add_argument("-f", "--fpr", 
+               dest="fpr", 
+               help="FPR for motif scanning (default 0.01)", 
+               metavar="", 
+               default=None)
+p.add_argument("-B", "--bgfile", 
+               dest="bgfile", 
+               help="background file for threshold", 
+               metavar="", 
+               default=None)
 p.add_argument("-c", "--cutoff", 
                dest="cutoff", 
-               help="motif score cutoff or file with cutoffs (default 0.9)", 
+               help="motif score cutoff or file with cutoffs", 
                metavar="", 
-               default=0.9)
+               default=None)
 p.add_argument("-n", "--nreport", 
                dest="nreport", 
                help="report the N best matches", 
@@ -408,12 +414,6 @@ p.add_argument("-P", "--pvalue",
                metavar="", 
                type=float,
                default=None)
-p.add_argument("-B", "--bgfile", 
-               dest="bgfile", 
-               help=argparse.SUPPRESS,
-               #help="experimental: MOODS background file", 
-               metavar="", 
-               default=None)
 
 
 p.set_defaults(func=commands.pwmscan)
@@ -426,17 +426,15 @@ p.add_argument("inputfiles",
 p.add_argument("bgfile",
               help="FASTA-formatted background file",
               metavar="BGFAFILE")
-p.add_argument("pwmfile",
-              help="PWM file with motifs",
-              metavar="PWMFILE")
 p.add_argument("outputfile",
               help="outputfile (image)",
               metavar="PNGFILE")
-#p.add_argument("-p",
-#               dest="pwmfile", 
-#               help="File with pwms (default: {0})".format(params["motif_db"]), 
-#               default=default_db,
-#               metavar="PWMFILE")
+p.add_argument("-p", "--pwmfile",
+               dest="pwmfile",
+               help="PWM file with motifs "
+               "(default: {0})".format(default_pwm), 
+               default=default_pwm_file,
+               metavar="PWMFILE")
 p.add_argument("-c", "--cutoff",
               dest="cutoff",
               help="motif score cutoff or file with cutoffs (default 0.9)",
@@ -468,7 +466,7 @@ p.add_argument("pwmfile",
                 metavar="PWMFILE")
 p.add_argument("-i", 
                dest="ids", 
-               help="Comma-seperated list of motif ids (default is all ids)", 
+               help="Comma-separated list of motif ids (default is all ids)", 
                metavar="IDS")
 p.set_defaults(func=commands.logo)
 
@@ -493,6 +491,6 @@ if len(sys.argv) == 1:
     parser.print_help()
 else:
     if len(sys.argv) == 2:
-        print "\033[93mtype `gimme {} -h` for more details\033[0m\n".format(sys.argv[-1])
+        print("\033[93mtype `gimme {} -h` for more details\033[0m\n".format(sys.argv[-1]))
     args = parser.parse_args()
     args.func(args)

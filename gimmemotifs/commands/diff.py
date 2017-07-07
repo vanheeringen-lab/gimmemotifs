@@ -9,7 +9,7 @@ import os
 import shutil
 import numpy as np
 from gimmemotifs.config import MotifConfig
-from gimmemotifs.genome_index import *
+from gimmemotifs.genome_index import track2fasta
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.fasta import Fasta
@@ -57,22 +57,23 @@ def diff(args):
     
     pwms = dict([(m.id, m) for m in pwmfile_to_motifs(pwmfile)])
     motifs = [m for m in pwms.keys()]
-    names = [os.path.basename(os.path.splitext(f)[0]) for f in infiles]
+    names = [os.path.basename(os.path.splitext(fname)[0]) for fname in infiles]
    
     s = Scanner()
     s.set_motifs(pwmfile)
+    s.set_threshold(threshold=cutoff)
 
     # Get background frequencies
     nbg = float(len(Fasta(bgfile).seqs))
     
-    bgcounts = s.total_count(bgfile, nreport=1, cutoff=cutoff) 
+    bgcounts = s.total_count(bgfile, nreport=1) 
     bgfreq = [(c + 0.01) / nbg for c in bgcounts]
     
     # Get frequences in input files
     freq = {}
     counts = {}
     for fname in infiles:
-        mcounts = s.total_count(fname, nreport=1, cutoff=cutoff) 
+        mcounts = s.total_count(fname, nreport=1) 
         n = float(len(Fasta(fname).seqs))
         counts[fname] = mcounts
         freq[fname] = [(c + 0.01) / n for c in mcounts]

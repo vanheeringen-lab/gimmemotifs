@@ -39,7 +39,6 @@ motif_databases/jaspar.pfm
 score_dists/dic2_bg_mean_sd.txt
 score_dists/dic2_mean_sd.txt
 score_dists/total_wic_mean_score_dist.txt
-scripts/add_organism.py
 scripts/closest_motif_match.py
 scripts/create_genome_index.py
 scripts/generate_sequences.py

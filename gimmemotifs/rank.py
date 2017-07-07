@@ -4,13 +4,13 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
+"""Rank aggregation (wrapper for R RobustRankAgg)."""
 from tempfile import NamedTemporaryFile
 import subprocess as sp
 import pandas as pd
 
 def rankagg(df, method="stuart"):
-    """ Return aggregated ranks
-    Stuart ranking as implemented in the RobustRankAgg R package
+    """Return aggregated ranks as implemented in the RobustRankAgg R package.
 
     References: 
         Kolde et al., 2012, DOI: 10.1093/bioinformatics/btr709
@@ -25,9 +25,8 @@ def rankagg(df, method="stuart"):
     -------
     pandas.DataFrame with aggregated ranks
     """
-    
     tmpdf = NamedTemporaryFile()
-    tmpscript = NamedTemporaryFile() 
+    tmpscript = NamedTemporaryFile(mode="w") 
     tmpranks = NamedTemporaryFile()
 
     df.to_csv(tmpdf.name, sep="\t",index=False) 
@@ -36,13 +35,14 @@ def rankagg(df, method="stuart"):
 library(RobustRankAggreg); 
 a = read.table("{}", header=TRUE); 
 x = lapply(a, as.vector); 
-result = aggregateRanks(x, method="stuart"); 
+result = aggregateRanks(x, method="{}"); 
 result$p.adjust = p.adjust(result$Score); 
  write.table(result, file="{}", sep="\t", quote=FALSE, row.names=FALSE); 
-'''.format(tmpdf.name, tmpranks.name) 
+'''.format(tmpdf.name, method, tmpranks.name) 
     tmpscript.write(script) 
     tmpscript.flush() 
  
     p = sp.Popen(["Rscript", tmpscript.name], stdout=sp.PIPE, stderr=sp.PIPE)
-    stdout, stderr = p.communicate()
-    return pd.read_table(tmpranks.name, index_col=0)["p.adjust"] 
+    stderr, stdout = p.communicate()
+    df = pd.read_table(tmpranks.name, index_col=0)
+    return df["p.adjust"] 

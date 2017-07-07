@@ -3,41 +3,32 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-
+"""Command line function 'threshold'"""
+from __future__ import print_function
 import sys
 
-from scipy.stats import scoreatpercentile
-import numpy as np
-
-from gimmemotifs.fasta import Fasta
-from gimmemotifs.motif import pwmfile_to_motifs
+from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 
 def threshold(args):
-    if args.fdr < 0 or args.fdr > 1:
-        print "Please specify a FDR between 0 and 1"
+    """Calculate motif score threshold for a given FPR."""
+    if args.fpr < 0 or args.fpr > 1:
+        print("Please specify a FPR between 0 and 1")
         sys.exit(1)
 
-    motifs = pwmfile_to_motifs(args.pwmfile)
+    motifs = read_motifs(open(args.pwmfile))
     
     s = Scanner()
     s.set_motifs(args.pwmfile)
-    
-    score_table = []
-    for scores in s.best_score(args.inputfile):
-        score_table.append(scores)
+    s.set_threshold(args.fpr, filename=args.inputfile)
 
-    print "Motif\tScore\tCutoff"
-    for i,scores in enumerate(np.array(score_table).transpose()):
-        motif = motifs[i]
-        pwm = motif.pwm
+    print("Motif\tScore\tCutoff")
+    for motif in motifs:
         min_score = motif.pwm_min_score()
-        if len(scores) > 0:
-            opt_score = scoreatpercentile(scores, 100 - (100 * args.fdr))
-            cutoff = (opt_score - min_score) / (
-                    motif.pwm_max_score() - min_score)
-            print "{0}\t{1}\t{2}".format(
-                    motif.id, opt_score , cutoff)
-        else:
-            sys.stderr.write("Warning: no matches for {0}\n".format(motif.id))
-            
+        max_score = motif.pwm_max_score()
+        opt_score = s.threshold[motif.id]
+        if opt_score is None:
+            opt_score = motif.pwm_max_score()
+        threshold = (opt_score - min_score) / (max_score - min_score)
+        print("{0}\t{1}\t{2}".format(
+                motif.id, opt_score, threshold))

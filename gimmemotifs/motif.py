@@ -3,32 +3,49 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-
 """ Core motif class """
-
 # Python imports
+import os
 import re
 import sys
 import random
 from math import log,sqrt
-from tempfile import NamedTemporaryFile
 import subprocess as sp
+from tempfile import NamedTemporaryFile
 from warnings import warn
+import six
 
 from gimmemotifs import mytmpdir
 from gimmemotifs.config import MotifConfig
-from gimmemotifs.rocmetrics import (MNCP, ROC_AUC, max_enrichment, 
-        fraction_fdr, score_at_fdr, enr_at_fdr)
-from gimmemotifs.utils import ks_pvalue
 from gimmemotifs.c_metrics import pwmscan
 
 # External imports
 try:
     import numpy as np
-except:
+except ImportError:
     pass
+import xxhash
+import base64
 
 class Motif(object):
+    
+    """
+    Representation of a transcription factor binding motif.
+
+    Examples
+    --------
+
+    >>> motif = Motif([[0,1,0,0], [0.5,0,0,0.5], [0,0,1,0]])
+    >>> print(motif.to_pwm())
+    >
+    0   1   0   0
+    0.5 0   0   0.5
+    0   0   1   0
+    >>> print(motif.to_consensus())
+    CwG
+    
+    """
+    
     PSEUDO_PFM_COUNT = 1000 # Jaspar mean
     PSEUDO_PWM = 1e-6
 
@@ -46,8 +63,13 @@ class Motif(object):
         else:
             self.pwm = []
             self.pfm = []
+        
+        self.factors = []
         self.seqs = []
         self.consensus = ""
+        self.min_score = None
+        self.max_score = None
+        
         self.id = ""
         self.config = MotifConfig()
         self.seqlogo = self.config.get_seqlogo()
@@ -104,6 +126,14 @@ class Motif(object):
     
     
     def __getitem__(self, x):
+        """
+        Take slice of a motif and return as new Motif instance.
+
+        Returns
+        -------
+        motif : Motif instance
+            Slice of the motif.
+        """
         m = Motif()
         if self.pwm:
             m.pwm = self.pwm[x]
@@ -116,10 +146,18 @@ class Motif(object):
         return m
             
     def __len__(self):
+        """
+        Return the motif length.
+
+        Returns
+        -------
+        len : int
+            Motif length
+        """
         return len(self.to_consensus())
 
     def __repr__(self):
-        return "%s\t%s" % (self.id, self.to_consensus())
+        return "{}_{}".format(self.id, self.to_consensus())
 
     def information_content(self):
         ic = 0
@@ -128,11 +166,39 @@ class Motif(object):
         return ic
 
     def pwm_min_score(self):
-        score = 0
-        for row in self.pwm:
-            score += log(min(row) / 0.25 + 0.01)
-        return score
+        """
+        Return the minimum PWM score.
+
+        Returns
+        -------
+        score : float
+            Minimum PWM score.
+        """
+        if self.min_score is None:
+            score = 0
+            for row in self.pwm:
+                score += log(min(row) / 0.25 + 0.01)
+            self.min_score = score
+        
+        return self.min_score
    
+    def pwm_max_score(self):
+        """
+        Return the maximum PWM score.
+
+        Returns
+        -------
+        score : float
+            Maximum PWM score.
+        """
+        if self.max_score is None:
+            score = 0
+            for row in self.pwm:
+                score += log(max(row) / 0.25 + 0.01)
+            self.max_score = score
+        
+        return self.max_score
+    
     def score_kmer(self, kmer):
         if len(kmer) != len(self.pwm):
             raise Exception("incorrect k-mer length")
@@ -142,12 +208,6 @@ class Motif(object):
         for nuc, row in zip(kmer.upper(), self.pwm):
             score += log(row[d[nuc]] / 0.25 + 0.01)
 
-        return score
-
-    def pwm_max_score(self):
-        score = 0
-        for row in self.pwm:
-            score += log(max(row) / 0.25 + 0.01)
         return score
 
     def pfm_to_pwm(self, pfm, pseudo=0.001):
@@ -224,6 +284,12 @@ class Motif(object):
             pwm = pwm[:-1]
             self.pwm = self.pwm[:-1]
             self.pfm = self.pfm[:-1]
+        
+        self.consensus = None 
+        self.min_score = None
+        self.max_score = None
+        
+        return self
 
     def consensus_scan(self, fa):
         regexp = "".join(["[" + "".join(self.iupac[x.upper()]) + "]" for x in self.to_consensusv2()])
@@ -240,17 +306,16 @@ class Motif(object):
         c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff        
         pwm = self.pwm
         matches = {}
-        for id, seq in fa.items():
-            matches[id] = [] 
+        for name, seq in fa.items():
+            matches[name] = [] 
             result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
-            for _,pos,strand in result:
-                matches[id].append(pos)
+            for _,pos,_ in result:
+                matches[name].append(pos)
         return matches
     
     def pwm_scan_all(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
         c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff        
         pwm = self.pwm
-        strandmap = {"+":"+",1:"+","1":"+","-":"-",-1:"-","-1":"-"}
         matches = {}
         for name, seq in fa.items():
             matches[name] = [] 
@@ -262,12 +327,11 @@ class Motif(object):
     def pwm_scan_score(self, fa, cutoff=0, nreport=1, scan_rc=True):
         c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff        
         pwm = self.pwm
-        strandmap = {"+":"+",1:"+","1":"+","-":"-",-1:"-","-1":"-"}
         matches = {}
         for name, seq in fa.items():
             matches[name] = [] 
             result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
-            for score,pos,strand in result:
+            for score,_,_ in result:
                 matches[name].append(score)
         return matches
             
@@ -281,7 +345,7 @@ class Motif(object):
         pwm = self.pwm
 
         strandmap = {-1:"-","-1":"-","-":"-","1":"+",1:"+","+":"+"}
-        gff_line = ("{}\tpwmscan\tmisc_feature\t{}\t{}\t{}\t{}\t.\t"
+        gff_line = ("{}\tpwmscan\tmisc_feature\t{}\t{}\t{:.3f}\t{}\t.\t"
                     "motif_name \"{}\" ; motif_instance \"{}\"\n")
         for name, seq in fa.items():
             result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
@@ -459,7 +523,7 @@ class Motif(object):
         
         return score
 
-    def matrix_ic(self, pwm1, pwm2, bg=None, bg_factor=0.8):
+    def matrix_ic(self, pwm1, pwm2, bg=None):
         if bg is None:
             bg = [0.25,0.25,0.25,0.25]
         
@@ -501,10 +565,18 @@ class Motif(object):
                 elif l2 < l1:
                     pwm1_end = l2
             
-            score = np.sum((np.sum(a[pwm1_start:pwm1_end],1) + np.sum(b[pwm2_start:pwm2_end],1)) / 2 - np.sum(np.abs(a[pwm1_start:pwm1_end] - b[pwm2_start:pwm2_end]),1))
+            score = np.sum((np.sum(a[pwm1_start:pwm1_end],1) + 
+                np.sum(b[pwm2_start:pwm2_end],1)) / 2 - 
+                np.sum(
+                    np.abs(a[pwm1_start:pwm1_end] - 
+                        b[pwm2_start:pwm2_end]),1))
             scores.append([score, pos, 1])
             
-            score = np.sum((np.sum(a[pwm1_start:pwm1_end],1) + np.sum(b_rev[pwm2_start:pwm2_end],1)) / 2 - np.sum(np.abs(a[pwm1_start:pwm1_end] - b_rev[pwm2_start:pwm2_end]),1))
+            score = np.sum((np.sum(a[pwm1_start:pwm1_end],1) + 
+                np.sum(b_rev[pwm2_start:pwm2_end],1)) / 2 - 
+                np.sum(
+                    np.abs(a[pwm1_start:pwm1_end] - 
+                        b_rev[pwm2_start:pwm2_end]),1))
             scores.append([score, pos, -1])
         
         return sorted(scores, key=lambda x: x[0])[-1]
@@ -555,20 +627,20 @@ class Motif(object):
         
         return str_out
 
-    def to_consensus(self):
-        if self.consensus:
-            return self.consensus
-        else:
+    def to_consensus(self, precision=4):
+        if not self.consensus:
             consensus = ""
             for row in self.pwm:
                 weights = sorted(zip(["A","C","G","T"], row), key=lambda x: x[1])
-                if weights[-1][1] >= 0.5 and weights[-1][1] > 2 * weights[-2][1]:
+                if round(weights[-1][1], precision) >= 0.5 and weights[-1][1] > 2 * weights[-2][1]:
                     consensus += weights[-1][0]
-                elif weights[-1][1] + weights[-2][1] >= 0.75:
+                elif round(weights[-1][1], precision) + round(weights[-2][1], precision) >= 0.75:
                     consensus +=  self.iupac_rev["".join(sorted([weights[-1][0], weights[-2][0]]))].lower()
                 else:
                     consensus += "n"
-            return consensus
+            self.consensus = consensus
+        
+        return self.consensus
 
     def to_consensusv2(self):
         if self.consensus:
@@ -597,26 +669,65 @@ class Motif(object):
             pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in self.pwm]
             return ">%s\n%s" % (self.id, "\n".join(["\t".join(["%s" % x for x in row]) for row in pfm]))
 
-    def to_pwm(self, extra_str=""):
+    def _pwm_to_str(self, precision=4):
+        """Return string representation of pwm.
+
+        Parameters
+        ----------
+        precision : int, optional, default 4
+            Floating-point precision.
+
+        Returns
+        -------
+        pwm_string : str
+        """
+        if not self.pwm:
+            return ""
+        
+        fmt = "{{:.{:d}f}}".format(precision)
+        return "\n".join(
+                ["\t".join([fmt.format(p) for p in row])
+                for row in self.pwm]
+                )
+   
+    def hash(self):
+        """Return hash of motif.
+
+        Returns:
+        hash : str
+        """
+        return xxhash.xxh64(self._pwm_to_str(3)).hexdigest()
+
+    def to_pwm(self, precision=4, extra_str=""):
+        """Return pwm as string.
+
+        Parameters
+        ----------
+        precision : int, optional, default 4
+            Floating-point precision.
+        
+        extra_str |: str, optional
+            Extra text to include with motif id line.
+        
+        Returns
+        -------
+        motif_str : str
+            Motif formatted in PWM format.
+        """
         motif_id = self.id
+        
         if extra_str:
             motif_id += "_%s" % extra_str
-        if self.pwm:
-            return ">%s\n%s" % (
-                    motif_id, 
-                    "\n".join(
-                        ["\t".join(["%s" % x for x in row]) 
-                        for row in self.pwm]
-                        )
-                    )
-        
-        pseudocount = 0.8
-        nucs = ["A","C","G","T"]
 
-        pwm = [self.iupac_pwm[char]for char in self.consensus.upper()]
-        return ">%s\n%s" % (id, "\n".join(["\t".join(["%s" % x for x in row]) for row in pwm]))
+        if not self.pwm:
+            self.pwm = [self.iupac_pwm[char]for char in self.consensus.upper()]
 
-    def to_img(self, fname, format="EPS", add_left=0, seqlogo=None, height=6):
+        return ">%s\n%s" % (
+                motif_id, 
+                self._pwm_to_str(precision)
+            )
+
+    def to_img(self, fname, fmt="EPS", add_left=0, seqlogo=None, height=6):
         """ Valid formats EPS, GIF, PDF, PNG """
         if not seqlogo:
             seqlogo = self.seqlogo
@@ -627,19 +738,19 @@ class Motif(object):
         
         VALID_FORMATS = ["EPS", "GIF", "PDF", "PNG"]
         N = 1000
-        format = format.upper()
-        if not format in VALID_FORMATS:
+        fmt = fmt.upper()
+        if not fmt in VALID_FORMATS:
             sys.stderr.write("Invalid motif format\n")
             return
         
-        if fname[-4:].upper() == (".%s" % format):
+        if fname[-4:].upper() == (".%s" % fmt):
             fname = fname[:-4]
         seqs = []
         if add_left == 0:
             seqs = ["" for i in range(N)]
         else:
             for nuc in ["A", "C", "T", "G"]:
-                seqs += [nuc * add_left for i in range(N / 4)]
+                seqs += [nuc * add_left for i in range(N // 4)]
 
         for pos in range(len(self.pwm)):
             vals = [self.pwm[pos][0] * N]
@@ -658,7 +769,7 @@ class Motif(object):
                 elif i <= vals[3]:
                     seqs[i] += "T"
     
-        f = NamedTemporaryFile(dir=mytmpdir())
+        f = NamedTemporaryFile(mode="w", dir=mytmpdir())
         for seq in seqs:
             f.write("%s\n" % seq)
         f.flush()
@@ -666,7 +777,7 @@ class Motif(object):
         cmd = makelogo.format(
                               seqlogo, 
                               f.name, 
-                              format, 
+                              fmt, 
                               height,
                               len(self) + add_left, 
                               fname)
@@ -675,56 +786,6 @@ class Motif(object):
         # Delete tempfile
         #if os.path.exists(f.name):
         #    os.unlink(f.name)
-
-    def stats(self, fg_fa, bg_fa, logger=None):
-        try:
-            stats = {}
-            fg_result = self.pwm_scan_all(fg_fa, cutoff=0.0, nreport=1, scan_rc=True)
-            bg_result = self.pwm_scan_all(bg_fa, cutoff=0.0, nreport=1, scan_rc=True)
-           
-            pos = []
-            for x in fg_result.values():
-                if len(x):
-                    pos.append(x[0][1])
-                else:
-                    pos.append(-100)
-
-            neg = []
-            for x in bg_result.values():
-                if len(x):
-                    neg.append(x[0][1])
-                else:
-                    neg.append(-100)
-           
-            stats["mncp"] = MNCP(pos, neg)
-            stats["roc_auc"] = ROC_AUC(pos, neg)
-            x,y = max_enrichment(pos, neg)
-            stats["maxenr"] = x
-            stats["scoreatmaxenr"] = y
-            stats["fraction"] = fraction_fdr(pos, neg)
-            stats["score_fdr"] = score_at_fdr(pos, neg)
-            stats["enr_fdr"] = enr_at_fdr(pos, neg)
-            stats["cutoff_fdr"] = (stats["score_fdr"] - self.pwm_min_score()) / (self.pwm_max_score() - self.pwm_min_score())
-
-            pos = [x[0][0] for x in fg_result.values() if len(x)]
-            p = ks_pvalue(pos, max(pos))
-            stats["ks"] = p
-            if p > 0:
-                stats["ks_sig"] = -log(p)/log(10)
-            else:
-                stats["ks_sig"] = "Inf"
-        
-
-            return stats
-        except Exception as e:
-            #e = sys.exc_info()[0]
-            msg = "Error calculating stats of {0}, error {1}".format(self.id, str(e))
-            if logger:
-                logger.error(msg)
-            else:
-                print msg
-            raise
-
 
     def randomize(self):
         random_pfm = [[c for c in row] for row in self.pfm]
@@ -742,6 +803,21 @@ class Motif(object):
         m = Motif(pfm=random_pfm)
         m.id = "random"
         return m
+
+def default_motifs():
+    """Return list of Motif instances from default motif database."""
+    config = MotifConfig()
+    d = config.get_motif_dir()
+    m = config.get_default_params()['motif_db']
+
+    if not d or not m:
+        raise ValueError("default motif database not configured")
+
+    fname = os.path.join(d, m)
+    with open(fname) as f:
+        motifs = read_motifs(f)
+    
+    return motifs
 
 def motif_from_align(align):
     width = len(align[0])
@@ -766,6 +842,36 @@ def motif_from_consensus(cons, n=12):
     m.id = cons
     return m
 
+def parse_motifs(motifs):
+    """Parse motifs in a variety of formats to return a list of motifs.
+
+    Parameters
+    ----------
+
+    motifs : list or str
+        Filename of motif,  list of motifs or single Motif instance.
+
+    Returns
+    -------
+
+    motifs : list
+        List of Motif instances.
+    """
+    if isinstance(motifs, six.string_types):
+        with open(motifs) as f:
+            if motifs.endswith("pwm") or motifs.endswith("pfm"):
+                motifs = read_motifs(f, fmt="pwm")
+            elif motifs.endswith("transfac"):
+                motifs = read_motifs(f, fmt="transfac")
+            else: 
+                motifs = read_motifs(f)
+    elif isinstance(motifs, Motif):
+        motifs = [motifs]
+    else:
+        if not isinstance(list(motifs)[0], Motif):
+            raise ValueError("Not a list of motifs")
+    
+    return list(motifs)
 
 def read_motifs(handle, fmt="pwm"):
     """ 
@@ -773,16 +879,31 @@ def read_motifs(handle, fmt="pwm"):
     """
 
     if fmt.lower() == "pwm":
-        return _read_motifs_pwm(handle)
+        motifs = _read_motifs_pwm(handle)
     if fmt.lower() == "transfac":
-        return _read_motifs_transfac(handle)
+        motifs = _read_motifs_transfac(handle)
     if fmt.lower() == "xxmotif":
-        return _read_motifs_xxmotif(handle)
+        motifs = _read_motifs_xxmotif(handle)
     if fmt.lower() == "align":
-        return _read_motifs_align(handle)
+        motifs = _read_motifs_align(handle)
     if fmt.lower() == "jaspar":
-        return _read_motifs_jaspar(handle)
-
+        motifs = _read_motifs_jaspar(handle)
+    
+    if handle.name:
+        base = os.path.splitext(handle.name)[0]
+        map_file = base + ".motif2factors.txt"
+        if os.path.exists(map_file):
+            m2f = {}
+            for line in open(map_file):
+                try:
+                    motif,factors = line.strip().split("\t")
+                    m2f[motif] = factors.split(",")
+                except:
+                    pass
+            for motif in motifs:
+                if motif.id in m2f:
+                    motif.factors = m2f[motif.id]
+    return motifs
 
 def _read_motifs_pwm(handle):
     p = re.compile(r'(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)')

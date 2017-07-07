@@ -19,6 +19,7 @@ import shutil
 from stat import ST_MODE
 import time
 import inspect
+from io import open
 
 CONFIG_NAME = "gimmemotifs.cfg" 
 DESCRIPTION  = """GimmeMotifs is a motif prediction pipeline. 
@@ -29,41 +30,42 @@ DESCRIPTION  = """GimmeMotifs is a motif prediction pipeline.
 try:
     import pypandoc
     long_description = pypandoc.convert('README.md', 'rst')    
-except(IOError, ImportError):
-    long_description = open('README.md').read()
+except(IOError, ImportError, RuntimeError):
+    long_description = open('README.md', 'r').read()
 
 # are we in the conda build environment?
 conda_build = os.environ.get("CONDA_BUILD")
 
 DEFAULT_PARAMS = {
-    "max_time": None,
+    "max_time": "",
     "analysis": "medium",
-    "fraction": 0.2,
-    "abs_max": 1000,
-    "width": 200,
-    "lwidth": 500,
-    "pvalue": 0.001,
-    "enrichment": 1.5,
+    "fraction": "0.2",
+    "abs_max": "1000",
+    "width": "200",
+    "lwidth": "500",
+    "pvalue": "0.001",
+    "enrichment": "1.5",
     "background": "gc,random",
     "genome": "hg19",
     "tools": "MDmodule,Weeder,MotifSampler",
-    "available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,MEMEW,trawler,Improbizer,BioProspector,AMD,ChIPMunk,Jaspar,Homer",
+    "available_tools": "Weeder,MDmodule,MotifSampler,GADEM,MEME,MEMEW,trawler,Improbizer,BioProspector,AMD,ChIPMunk,Jaspar,Homer,XXmotif",
     "cluster_threshold": "0.95",
-    "use_strand": False,
-    "markov_model": 1,
+    "use_strand": "False",
+    "markov_model": "1",
     "motif_db": "gimme.vertebrate.v3.1.pwm",
-    "scan_cutoff": 0.9,
-    "ncpus": 2,
-    "use_cache": False,
+    "scan_cutoff": "0.9",
+    "ncpus": "2",
+    "use_cache": "False",
 }
 
-MOTIF_CLASSES = ["MDmodule", "Meme", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer",  "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms", "Homer"]
+MOTIF_CLASSES = ["MDmodule", "Meme", "MemeW", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer",  "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms", "Homer", "XXmotif"]
 LONG_RUNNING = ["GADEM"]
 
 
 # Included binaries after compile
 MOTIF_BINS = {
     "MEME": "src/meme_4.6.0/src/meme.bin",
+    "MEMEW": "src/meme_4.6.0/src/meme.bin",
     "MDmodule": "src/MDmodule/MDmodule",
     "BioProspector": "src/BioProspector/BioProspector",
     "GADEM": "src/GADEM_v1.3/src/gadem",
@@ -77,7 +79,13 @@ data_files=[
         [
             'templates/star.png', 
             'templates/report_template.jinja.html', 
-            'templates/cluster_template.jinja.html'
+            'templates/cluster_template.jinja.html',
+            ]),
+    
+    ('gimmemotifs/templates/sortable', 
+        [
+            'templates/sortable/sortable.min.js', 
+            'templates/sortable/sortable-theme-slick.css',
             ]),
     ('gimmemotifs/score_dists', ['score_dists/total_wic_mean_score_dist.txt']),
     ('gimmemotifs/genes', ['genes/hg18.bed', 'genes/hg19.bed', 'genes/xenTro2.bed', 'genes/mm9.bed']),
@@ -101,7 +109,7 @@ data_files=[
 
 
 # Fix for install_data, add share to prefix (borrowed from Dan Christiansen) 
-for platform, scheme in INSTALL_SCHEMES.iteritems():
+for platform, scheme in INSTALL_SCHEMES.items():
     if platform.startswith('unix_'):
         if scheme['data'][0] == '$' and '/' not in scheme['data']:
             scheme['data'] = os.path.join(scheme['data'], 'share')
@@ -269,19 +277,24 @@ class build_config(Command):
                     dir = bin.replace("ChIPMunk.sh", "")
 
                 available.append(m.name)
-                cfg.set_program(m.name, {"bin":bin, "dir":dir})
+                cfg.set_program(m.name, 
+                        {
+                            "bin":os.path.abspath(bin), 
+                            "dir":os.path.abspath(dir),
+                            }
+                        )
 
         # Weblogo
         bin = ""
-        seq_included = os.path.join(self.build_tools_dir, "seqlogo")
+        seq_included = os.path.abspath(os.path.join(self.build_tools_dir, "seqlogo"))
         if os.path.exists(seq_included):
             bin = seq_included
             dlog.info("using included version of weblogo: %s" % seq_included)
         else:
             bin = which("seqlogo")
-            dlog.info("using installed version of seqlogo: %s" % (bin))
+            dlog.info("using installed version of seqlogo: %s" % (os.path.abspath(bin)))
         if bin:
-            cfg.set_seqlogo(bin)
+            cfg.set_seqlogo(os.path.abspath(bin))
         else:
             dlog.info("couldn't find seqlogo")
         
@@ -299,9 +312,15 @@ class build_config(Command):
         # Write (temporary) config file
         config_file = os.path.join(self.build_cfg, "%s" % CONFIG_NAME)
         dlog.info("writing (temporary) configuration file: %s" % config_file)
-        f = open(config_file, "wb")
+        f = open(config_file, "w")
         cfg.write(f)
         f.close()
+
+        # TODO: fix this hack
+        my_cfg = open(config_file).read()
+        with open(config_file, "w") as f:
+            cwd = os.getcwd()
+            f.write(my_cfg.replace("/usr/share/gimmemotifs/", cwd + "/"))
 
     def get_outputs(self):
         return self.outfiles or []
@@ -329,7 +348,7 @@ class install_tools(Command):
         for file in self.outfiles:
             #trawler pl's
             if file.endswith("pl"):
-                os.chmod(file, 0755)
+                os.chmod(file, 0o755)
     
     def get_outputs(self):
         return self.outfiles or []
@@ -385,14 +404,14 @@ class install_config(Command):
         for program in MOTIF_CLASSES:
             m = eval(program)()
             if cfg.is_configured(m.name):
-                bin = cfg.bin(m.name).replace(self.build_tools_dir, final_tools_dir) 
+                bin = cfg.bin(m.name).replace(os.path.abspath(self.build_tools_dir), final_tools_dir) 
                 dir = cfg.dir(m.name)
                 if dir:
-                    dir = dir.replace(self.build_tools_dir, final_tools_dir)
+                    dir = dir.replace(os.path.abspath(self.build_tools_dir), final_tools_dir)
                 cfg.set_program(m.name, {"bin":bin, "dir":dir})
             
         dir = cfg.get_seqlogo()
-        dir = dir.replace(self.build_tools_dir, final_tools_dir)
+        dir = dir.replace(os.path.abspath(self.build_tools_dir), final_tools_dir)
         cfg.set_seqlogo(dir)
 
         # Use a user-specific configfile if any other installation scheme is used
@@ -408,7 +427,7 @@ class install_config(Command):
             dlog.info("INFO: This config has been saved as %s", old_config)
          
         dlog.info("writing configuration file %s" % config_file)
-        f =  open(config_file, "wb")
+        f =  open(config_file, "w")
         cfg.write(f)
         
     def get_outputs(self):
@@ -442,7 +461,8 @@ class custom_install(install):
     
 module1 = Extension('gimmemotifs.c_metrics', sources = ['gimmemotifs/c_metrics.c'])
 
-setup (name = 'gimmemotifs',
+setup (
+        name = 'gimmemotifs',
         cmdclass={"build":custom_build, 
                             "build_tools":build_tools,
                             "build_config":build_config,
@@ -453,11 +473,11 @@ setup (name = 'gimmemotifs',
         version = GM_VERSION,
         long_description = long_description,
         description = DESCRIPTION,
-        author='Simon van Heeringen',
-        author_email='simon.vanheeringen@gmail.com',
-        url='https://github.com/simonvh/gimmemotifs/',
+        author = 'Simon van Heeringen',
+        author_email = 'simon.vanheeringen@gmail.com',
+        url = 'https://github.com/simonvh/gimmemotifs/',
         download_url = 'https://github.com/simonvh/gimmemotifs/tarball/' + GM_VERSION,
-        license='MIT',
+        license = 'MIT',
         packages=['gimmemotifs', 'gimmemotifs/commands'],
         ext_modules = [module1],
         classifiers=[
@@ -467,11 +487,10 @@ setup (name = 'gimmemotifs',
             'Operating System :: MacOS :: MacOS X',
             'Operating System :: POSIX :: Linux',
             'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 2 :: Only',
+            'Programming Language :: Python :: 3.5',
             'Topic :: Scientific/Engineering :: Bio-Informatics',
             ],
         scripts=[
-            'scripts/add_organism.py',
             'scripts/track2fasta.py',
             'scripts/gimme',
             ],
@@ -480,18 +499,21 @@ setup (name = 'gimmemotifs',
             "setuptools >= 0.7",
             "numpy >= 1.6.0",
             "scipy >= 0.9.0",
-            "matplotlib >= 1.1.1",
+            "matplotlib >= 2",
             "jinja2",
             "pyyaml >= 3.10",
             "pybedtools",
             "statsmodels",
-            "pymc",
             "scikit-learn",
             "sklearn-contrib-lightning",
             "seaborn",
-            "pysam"
+            "pysam",
+            "xgboost",
+            "xdg",
+            "diskcache",
+            "xxhash",
+            "configparser",
+            "six",
+            "future",
         ],
-        dependency_links = [
-            "https://github.com/scikit-learn-contrib/lightning/archive/master.zip"]
-        ,
 )

@@ -5,40 +5,32 @@
 # distribution.
 
 """ Odds and ends that for which I didn't (yet) find another place """
+from __future__ import print_function
 
 # Python imports
 import os
 import re
 import sys
+import hashlib
+import mmap
 import random
 import tempfile
 from math import log
-from string import strip
 from subprocess import Popen
 from tempfile import NamedTemporaryFile
 
 # External imports
 from scipy import special
-from scipy.stats import kstest,hypergeom
-import pybedtools
 import numpy as np
+import pybedtools
 
 # gimme imports
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.shutils import which
 from gimmemotifs.plot import plot_histogram
 from gimmemotifs.genome_index import track2fasta
+from gimmemotifs.rocmetrics import ks_pvalue
 
 lgam = special.gammaln
-
-def star(stat, categories):
-    stars = 0
-    for c in sorted(categories):
-        if stat >= c:
-            stars += 1
-        else:
-            return stars
-    return stars
 
 def phyper_single(k, good, bad, N):
 
@@ -50,7 +42,8 @@ def phyper(k, good, bad, N):
     return np.sum(pvalues)
 
 def divide_file(fname, sample, rest, fraction, abs_max):
-    lines = open(fname).readlines()
+    with open(fname) as f:
+        lines = f.readlines()
     #random.seed()
     random.shuffle(lines)
 
@@ -58,7 +51,7 @@ def divide_file(fname, sample, rest, fraction, abs_max):
     if x > abs_max:
         x = abs_max
 
-    tmp = tempfile.NamedTemporaryFile()
+    tmp = tempfile.NamedTemporaryFile(mode="w", delete=False)
 
     # Fraction as sample
     for line in lines[:x]:
@@ -71,9 +64,9 @@ def divide_file(fname, sample, rest, fraction, abs_max):
     tmp.close()
 
     if stderr:
-        print "Something went wrong.\nstdout: {}\nstderr; {}".format(
+        print("Something went wrong.\nstdout: {}\nstderr; {}".format(
                 stdout,
-                stderr)
+                stderr))
         sys.exit()
 
     # Rest
@@ -109,12 +102,6 @@ def divide_fa_file(fname, sample, rest, fraction, abs_max):
     
     return x, len(ids[x:])    
 
-def ks_pvalue(values, l):
-    if len(values) == 0:
-        return 1.0
-    a = np.array(values, dtype="float") / l
-    return kstest(a, "uniform")[1]
-
 def write_equalwidth_bedfile(bedfile, width, outfile):
     """Read input from <bedfile>, set the width of all entries to <width> and 
     write the result to <outfile>.
@@ -132,11 +119,11 @@ def write_equalwidth_bedfile(bedfile, width, outfile):
                 vals = line.strip().split("\t")
                 try:
                     start, end = int(vals[1]), int(vals[2])
-                except:
-                    print "Error on line %s while reading %s. Is the file in BED or WIG format?" % (line_count, bedfile)
+                except ValueError:
+                    print("Error on line %s while reading %s. Is the file in BED or WIG format?" % (line_count, bedfile))
                     sys.exit(1)
 
-                start = (start + end) / 2 - (width / 2)
+                start = (start + end) // 2 - (width // 2)
                 # This shifts the center, but ensures the width is identical... maybe not ideal
                 if start < 0:
                     start = 0
@@ -151,10 +138,7 @@ def write_equalwidth_bedfile(bedfile, width, outfile):
     out.close()
     f.close()
 
-def get_significant_motifs(motifs, fg_fasta, bg_fasta, e_cutoff=None, p_cutoff=None, save_result=None):
-    pass
-    
-class MotifMatch:
+class MotifMatch(object):
     def __init__(self, seq, name, instance, start, end, strand, score):
         self.sequence = seq
         self.motif_name = name
@@ -164,7 +148,7 @@ class MotifMatch:
         self.strand = strand
         self.score = score
 
-class MotifResult:
+class MotifResult(object):
     def __init__(self):
         self.raw_output = ""
         self.datetime = ""
@@ -183,8 +167,8 @@ class MotifResult:
         p = re.compile(r'([\w_]+):(\d+)-(\d+)')
         
         gff_output = ""    
-        for seq, dict in self.matches.items():
-            for motif, mms in dict.items():
+        for seq, d in self.matches.items():
+            for mms in d.values():
                 for mm in mms:
                     print_seq = seq
                     (start, end) = (mm.start, mm.end)
@@ -208,34 +192,35 @@ class MotifResult:
     def seqn(self):
         return len(self.sequences.keys())
 
-def parse_gff(gff_file, lowmem=False):
+def parse_gff(gff_file):
     mr = MotifResult()
     total = 0
-    f = open(gff_file)
+    
     BUFSIZE = 10000000
-    while 1:
-        lines = f.readlines(BUFSIZE)
-        if not lines:
-            break
-        for line in lines:
-            vals = line.strip().split("\t")
-            if len(vals) == 9:
-                (seq, program, feature, start, end, score, strand, bla, extra) = vals
-        
-                (motif_name, motif_instance) = map(strip, extra.split(";"))
-                motif_name = motif_name.split(" ")[1][1:-1]
-                motif_instance = motif_instance.split(" ")[1][1:-1]
-
-                mr.sequences[seq] = 1
-
-                if not(mr.motifs.has_key(motif_name)):
-                    mr.motifs[motif_name] = {}
-                if not(mr.motifs[motif_name].has_key(seq)):
-                    mr.motifs[motif_name][seq] = 0
-                mr.motifs[motif_name][seq] += 1
-            else:
-                sys.stderr.write("Error parsing line in %s\n%s\n" % (gff_file, line))
-        total += len(lines)
+    with open(gff_file) as f:
+        while 1:
+            lines = f.readlines(BUFSIZE)
+            if not lines:
+                break
+            for line in lines:
+                vals = line.strip().split("\t")
+                if len(vals) == 9:
+                    (seq, program, feature, start, end, score, strand, bla, extra) = vals
+            
+                    (motif_name, motif_instance) = map(str.strip, extra.split(";"))
+                    motif_name = motif_name.split(" ")[1][1:-1]
+                    motif_instance = motif_instance.split(" ")[1][1:-1]
+    
+                    mr.sequences[seq] = 1
+    
+                    if not motif_name in mr.motifs:
+                        mr.motifs[motif_name] = {}
+                    if not seq in mr.motifs[motif_name]:
+                        mr.motifs[motif_name][seq] = 0
+                    mr.motifs[motif_name][seq] += 1
+                else:
+                    sys.stderr.write("Error parsing line in %s\n%s\n" % (gff_file, line))
+            total += len(lines)
     return mr
 
 def calc_motif_enrichment(sample, background, mtc=None, len_sample=None, len_back=None):
@@ -245,7 +230,7 @@ def calc_motif_enrichment(sample, background, mtc=None, len_sample=None, len_bac
 
 
     if mtc not in [None, "Bonferroni", "Benjamini-Hochberg", "None"]:
-        raise RuntimeError, "Unknown correction: %s" % mtc
+        raise RuntimeError("Unknown correction: %s" % mtc)
 
     sig = {}
     p_value  = {}
@@ -287,72 +272,15 @@ def calc_motif_enrichment(sample, background, mtc=None, len_sample=None, len_bac
                 if p_value[motif] > 1:
                     p_value[motif] = 1
     elif mtc == "Benjamini-Hochberg":
-        motifs = p_value.keys()
-        motifs.sort(cmp=lambda x,y: -cmp(p_value[x],p_value[y]))
+        motifs = sorted(p_value.keys(), key=lambda x: -p_value[x])
         l = len(p_value)
         c = l
-        for    m in motifs:
-            if  p_value[motif] != "NA":
+        for m in motifs:
+            if  p_value[m] != "NA":
                 p_value[m] = p_value[m] * l / c 
             c -= 1
 
     return (sig, p_value, n_sample, n_back)
-
-def calc_enrichment(sample, background, len_sample, len_back, mtc=None):
-    """Calculate enrichment based on hypergeometric distribution"""
-    
-    INF = "Inf"
-
-    if mtc not in [None, "Bonferroni", "Benjamini-Hochberg", "None"]:
-        raise RuntimeError, "Unknown correction: %s" % mtc
-
-    sig = {}
-    p_value  = {}
-    n_sample = {}
-    n_back = {}
-    
-    for motif in sample.keys():
-        p = "NA"
-        s = "NA"
-        q = sample[motif]
-        m = 0
-        if(background[motif]):
-            m = background[motif]
-            n = len_back - m
-            k = len_sample
-            p = phyper(q - 1, m, n, k) 
-            if p != 0:
-                s = -(log(p)/log(10))
-            else:
-                s = INF
-        else:
-            s = INF
-            p = 0.0
-
-        sig[motif] = s
-        p_value[motif] = p
-        n_sample[motif] = q
-        n_back[motif] = m
-    
-    if mtc == "Bonferroni":
-        for motif in p_value.keys():
-            if  p_value[motif] != "NA":
-                p_value[motif] = p_value[motif] * len(p_value.keys())
-                if p_value[motif] > 1:
-                    p_value[motif] = 1
-    
-    elif mtc == "Benjamini-Hochberg":
-        motifs = p_value.keys()
-        motifs.sort(cmp=lambda x,y: -cmp(p_value[x],p_value[y]))
-        l = len(p_value)
-        c = l
-        for    m in motifs:
-            if  p_value[motif] != "NA":
-                p_value[m] = p_value[m] * l / c 
-            c -= 1
-
-    return (sig, p_value, n_sample, n_back)
-
 
 def gff_enrichment(sample, background, numsample, numbackground, outfile):
     data_sample = parse_gff(sample)
@@ -404,7 +332,7 @@ def median_bed_len(bedfile):
             vals = line.split("\t")
             try:
                 l.append(int(vals[2]) - int(vals[1]))
-            except:
+            except ValueError:
                 sys.stderr.write("Error in line %s: coordinates in column 2 and 3 need to be integers!\n" % (i))
                 sys.exit(1)
     f.close()
@@ -420,7 +348,13 @@ def motif_localization(fastafile, motif, width, outfile, cutoff=0.9):
             ar += a
         matches = np.array(ar)
         p = ks_pvalue(matches, width - len(motif))
-        plot_histogram(matches - width / 2 + len(motif) / 2, outfile, xrange=(-width / 2, width / 2), breaks=21, title="%s (p=%0.2e)" % (motif.id, p), xlabel="Position")
+        plot_histogram(
+                matches - width / 2 + len(motif) / 2, 
+                outfile, 
+                xrange=(-width / 2, width / 2), 
+                breaks=21, 
+                title="%s (p=%0.2e)" % (motif.id, p), 
+                xlabel="Position")
         return motif.id, p
     else:
         return motif.id, 1.0
@@ -435,7 +369,7 @@ def parse_cutoff(motifs, cutoff, default=0.9):
         for i,line in enumerate(open(cutoff)):
             if line != "Motif\tScore\tCutoff\n":
                 try:
-                    motif,v,c = line.strip().split("\t")
+                    motif,_,c = line.strip().split("\t")
                     c = float(c)
                     cutoffs[motif] = c
                 except Exception as e:
@@ -446,7 +380,7 @@ def parse_cutoff(motifs, cutoff, default=0.9):
             cutoffs[motif.id] = float(cutoff)
     
     for motif in motifs:
-        if not cutoffs.has_key(motif.id):
+        if not motif.id in cutoffs:
             sys.stderr.write("No cutoff found for {0}, using default {1}\n".format(motif.id, default))
             cutoffs[motif.id] = default
     return cutoffs
@@ -508,13 +442,13 @@ def number_of_seqs_in_file(fname):
     try:
         fa = Fasta(fname)
         return len(fa)
-    except:
+    except Exception:
         pass
 
     try:
         bed = pybedtools.BedTool(fname)
         return len([x for x in bed])
-    except:
+    except Exception:
         pass
 
     sys.stderr.write("unknown filetype {}\n".format(fname))
@@ -545,18 +479,23 @@ def get_seqs_type(seqs):
     elif isinstance(seqs, str) or isinstance(seqs, unicode):
         if os.path.isfile(seqs):
             try:
-                f = Fasta(seqs)
+                Fasta(seqs)
                 return "fastafile"
             except:
                 pass
             try:
-                line = open(seqs).readline().strip()
+                with open(seqs) as f:
+                    for line in f.readlines():
+                        line = line.strip()
+                        if not line.startswith("#"):
+                            break
+                
                 if region_p.search(line):
                     return "regionfile"
                 else:
                     vals = line.split("\t")
                     if len(vals) >= 3:
-                        int(vals[1]), int(vals[2])
+                        _, _ = int(vals[1]), int(vals[2])
                         return "bedfile"
                 raise ValueError("unknown type")
             except:
@@ -583,8 +522,9 @@ def as_fasta(seqs, index_dir=None):
         else:
 
             if ftype == "regionfile":
-                seqs = [l.strip() for l in open(seqs).readlines()]
-            tmpbed = NamedTemporaryFile()
+                with open(seqs) as f:
+                    seqs = [l.strip() for l in f.readlines()]
+            tmpbed = NamedTemporaryFile(mode="w")
             for seq in seqs:
                 vals = re.split(r'[:-]', seq)
                 tmpbed.write("{}\t{}\t{}\n".format(*vals))
@@ -592,4 +532,21 @@ def as_fasta(seqs, index_dir=None):
             track2fasta(index_dir, tmpbed.name, tmpfa.name) 
         return Fasta(tmpfa.name)
 
+def file_checksum(fname):
+    """Return md5 checksum of file.
 
+    Note: only works for files < 4GB.
+
+    Parameters
+    ----------
+    filename : str
+        File used to calculate checksum.
+
+    Returns
+    -------
+        checkum : str
+    """
+    size = os.path.getsize(fname)
+    with open(fname, "r+") as f:
+        checksum = hashlib.md5(mmap.mmap(f.fileno(), size)).hexdigest()
+    return checksum

@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
 <head>
-<title>Gimme Motifs report</title>	
+<title>Gimme Motifs report</title>  
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <!--
 <link rel="stylesheet" type="text/css" href="style.css" media="screen" /> 
@@ -81,7 +81,7 @@ line-height: 50px;
 font-weight: 100;
 font-size: 12px;
 text-align: center;
-color: #ffffff;	
+color: #ffffff;  
 }
 #footer p { color: #fff; text-align:right; padding-right: 20px; font-size: 8px;}
 #footer a { color: #fff; text-decoration: none; }
@@ -132,9 +132,9 @@ padding: 0px 0 5px 20px;
 }
 
 #sidebar p {
-	padding: 0px 0 5px 20px;
-	font-size: 10px;
-	color: #555555;
+  padding: 0px 0 5px 20px;
+  font-size: 10px;
+  color: #555555;
 }
 #sidebar ul li {
     padding: 2px 0 2px 2px;
@@ -149,44 +149,44 @@ padding: 0px 0 5px 20px;
 <div id="page">
 
 <div id="header">
-	<h1><a href="#">GimmeMotifs v{{version}}</a></h1>
-	<h2>Result: {{inputfile}} ({{date}})</h2>
+  <h1><a href="#">GimmeMotifs v{{version}}</a></h1>
+  <h2>Result: {{inputfile}} ({{date}})</h2>
 </div>
 
 <div id="wrapper">
 
 <div id="content">
-	{% for motif in motifs %}
-	
-	<a id="{{motif.id}}">
-					<h2>{{motif.id}} ({{motif.best}})</h2>
-	</a>
+  {% for motif in motifs %}
+  
+  <a id="{{motif.id}}">
+          <h2>{{motif.id}} ({{motif.best}})</h2>
+  </a>
 
-	<h3>Motif and consensus</h3>
-	<table>
-  	<tr>
-		 	<td>
-							<img height="180" src="{{motif.img['src']}}"/>
-			</td>
-			<td>
-			  <table>
-					<tr>
-				    <td align="center">
-										<img height="60" src="{{motif.match_img['src']}}"/>
-						</td>
-					</tr>
-					<tr>
-									<td align="center">{{motif.match_id}}</td>
-					</tr>
-					<tr>
-									<td align="center">{{motif.match_pval}}</td>
-					</tr>
-				</table>
-			</td>
-		</tr>
+  <h3>Motif and consensus</h3>
+  <table>
+    <tr>
+       <td>
+              <img height="180" src="{{motif.img['src']}}"/>
+      </td>
+      <td>
+        <table>
+          <tr>
+            <td align="center">
+                    <img height="60" src="{{motif.match_img['src']}}"/>
+            </td>
+          </tr>
+          <tr>
+                  <td align="center">{{motif.match_id}}</td>
+          </tr>
+          <tr>
+                  <td align="center">{{motif.match_pval}}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
 
 <tr>
-				<th align="center">{{motif.consensus}}</th>
+        <th align="center">{{motif.consensus}}</th>
 <th>
 Database match 
 </th>
@@ -197,46 +197,44 @@ Database match
 <br/>
 <h3>Significance and enrichment</h3>
 
-{% set bg_types = motif.bg.keys() %}
-
 <table>
-	{% for i in range(0, motif.bg.keys()|length, 2) %}
-	<tr>
-		<td>
-			<table>
-				<tr>
-								{% for j in range(2) %}
-								<td>
-									{% if i + j < motif.bg.keys()|length %}
+  {% for i in range(0, motif.bg.keys()|length, 2) %}
+  <tr>
+    <td>
+      <table>
+        <tr>
+                {% for j in range(2) %}
+                <td>
+                  {% if i + j < motif.bg.keys()|length %}
 
-											<a href="{{motif.bg[bg_types[i + j]]['roc_img_link']['href']}}">
-															
-															<img width="380" src="{{motif.bg[bg_types[i+j]]['roc_img']['src']}}"/>
-											</a>
-											{% endif %}
-					
-		
-		</td>
-					{% endfor %}	
-			</tr>
-				<tr>
-								{% for j in range(2) %}
-					<td align="center">
-									{% if i + j < motif.bg.keys()|length %}
-						<table>
-										<tr><th colspan="2" align="left">{{ bg_types[i + j] }}</th></tr>
-										<tr><td>enrichment</td><td>{{motif.bg[bg_types[i + j]]['e']}}</td></tr>
-										<tr><td>p-value</td><td>{{motif.bg[bg_types[i + j]]['p']}}</td></tr>
-										<tr><td>ROC_AUC</td><td>{{motif.bg[bg_types[i + j]]['auc']}}</td></tr>
-										<tr><td>MNCP</td><td>{{motif.bg[bg_types[i + j]]['mncp']}}</td></tr>
-						</table>
-						{% endif %}
-					</td>
-					{% endfor %}
-				</tr>
-			</table>
-		</td>
-	</tr>
+                      <a href="{{motif.bg[bg_types[i + j]]['roc_img_link']['href']}}">
+                              
+                              <img width="380" src="{{motif.bg[bg_types[i+j]]['roc_img']['src']}}"/>
+                      </a>
+                      {% endif %}
+          
+    
+    </td>
+          {% endfor %}  
+      </tr>
+        <tr>
+                {% for j in range(2) %}
+          <td align="center">
+                  {% if i + j < motif.bg.keys()|length %}
+            <table>
+                    <tr><th colspan="2" align="left">{{ bg_types[i + j] }}</th></tr>
+                    <tr><td>enrichment</td><td>{{motif.bg[bg_types[i + j]]['e']}}</td></tr>
+                    <tr><td>p-value</td><td>{{motif.bg[bg_types[i + j]]['p']}}</td></tr>
+                    <tr><td>ROC_AUC</td><td>{{motif.bg[bg_types[i + j]]['auc']}}</td></tr>
+                    <tr><td>MNCP</td><td>{{motif.bg[bg_types[i + j]]['mncp']}}</td></tr>
+            </table>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+      </table>
+    </td>
+  </tr>
   {% endfor %}
 </table>
 
@@ -255,17 +253,16 @@ Database match
 
 <h2>Result Files</h2>
 <ul>
-				<li><a href="{{expname}}_motif_report.html">Results</a></li> 
-				<li><a href="{{expname}}_motif_report.tsv">Results (.tsv)</a></li> 
-				<li><a href="{{expname}}_cluster_report.html">Cluster report</a></li> 
-				<li><a href="{{expname}}_motifs.pwm">Weight matrices</a></li>
-				<li><a href="{{expname}}_params.txt">Parameters</a></li>
-<li><a href="gimme_motifs.log">Log</a></li>
+        <li><a href="motif_report.html">Results</a></li> 
+        <li><a href="cluster_report.html">Cluster report</a></li> 
+        <li><a href="motifs.pwm">Weight matrices</a></li>
+        <li><a href="params.txt">Parameters</a></li>
+        <li><a href="gimmemotifs.log">Log</a></li>
 </ul>
 
 <h2>Identified Motifs</h2>
 <ul>
-				{% for motif in motifs %}
+        {% for motif in motifs %}
 <li>
 <a href="{{motif.id_href['href']}}">{{motif.id}}</a>
 {% for i in range(motif.stars|int) %}
@@ -291,7 +288,7 @@ Database match
 
 </div>
 
-		
+    
 </body>
 
 </html>

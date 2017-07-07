@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
@@ -8,8 +9,9 @@ import sys
 import os
 from gimmemotifs.fasta import Fasta
 import gimmemotifs.background as bg
+from gimmemotifs.genome_index import check_genome
 from gimmemotifs.config import MotifConfig, BG_TYPES
-from gimmemotifs.utils import *
+from gimmemotifs.utils import number_of_seqs_in_file
 
 def background(args):
 
@@ -19,16 +21,16 @@ def background(args):
     outformat = args.outformat.lower()
     length = args.length
 
-    if not bg_type in BG_TYPES:
-        print "The argument 'type' should be one of: %s" % (",".join(BG_TYPES))
+    if bg_type not in BG_TYPES:
+        print("The argument 'type' should be one of: %s" % (",".join(BG_TYPES)))
         sys.exit(1)
 
     if outformat == "bed" and bg_type == "random":
-        print "Random background can only be generated in FASTA format!"
+        print("Random background can only be generated in FASTA format!")
         sys.exit(1)
         
     if bg_type == "gc" and not inputfile:
-        print "need a FASTA formatted input file for background gc"
+        print("need a FASTA formatted input file for background gc")
         sys.exit(1)
     
     # GimmeMotifs configuration for file and directory locations
@@ -37,15 +39,13 @@ def background(args):
     # Genome index location for creation of FASTA files
     index_dir = os.path.join(config.get_index_dir(), args.genome)
     if bg_type in ["gc", "genomic", "promoter"] and outformat == "fasta":
-        if not os.path.exists(index_dir):
-            print "Index for %s does not exist. Has the genome been indexed for use with GimmeMotifs?" % args.genome
-            sys.exit(1)
-        
+        check_genome(args.genome)
+
     # Gene definition
     gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % args.genome)
     if bg_type in ["promoter"]:
         if not os.path.exists(gene_file):
-            print "Can't find gene definition for %s (%s). See GimmeMotifs documentation on how to add gene files." % (args.genome, gene_file)
+            print("Can't find gene definition for %s (%s). See GimmeMotifs documentation on how to add gene files." % (args.genome, gene_file))
             sys.exit(1)
     
     # Number of sequences

@@ -5,10 +5,11 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 
+from __future__ import print_function
 import sys
 import os
 
-from gimmemotifs.core import GimmeMotifs
+from gimmemotifs.denovo import gimme_motifs
 import gimmemotifs.config as cfg
 
 def motifs(args):
@@ -16,16 +17,16 @@ def motifs(args):
     params = config.get_default_params()
 
     if not os.path.exists(args.inputfile):
-        print "File %s does not exist!" % args.inputfile
+        print("File %s does not exist!" % args.inputfile)
         sys.exit(1)
     
     background = [x.strip() for x in args.background.split(",")]
     for bg in background:
         if not bg in (cfg.FA_VALID_BGS + cfg.BED_VALID_BGS):
-            print "Invalid value for background argument"
+            print("Invalid value for background argument")
             sys.exit(1)
         if "user" in bg and not args.user_background:
-            print "Please specify a background file to use"
+            print("Please specify a background file to use")
             sys.exit(1)
     
     if args.lwidth < args.width:
@@ -38,13 +39,13 @@ def motifs(args):
     
     for tool in tools.keys():
         if tool not in available_tools:
-            print "Sorry, motif prediction tool %s is not supported" % (tool)
+            print("Sorry, motif prediction tool %s is not supported" % (tool))
             sys.exit(1)
     
     if "promoter" in background:
         gene_file = os.path.join(config.get_gene_dir(), args.genome)
         if not os.path.exists(gene_file):
-            print "gene annotation for %s is missing, can't do background 'promoter'" % args.genome
+            print("gene annotation for %s is missing, can't do background 'promoter'" % args.genome)
             sys.exit(1)
     
     params = {
@@ -65,5 +66,4 @@ def motifs(args):
         "torque": args.torque,
     }
     
-    gm = GimmeMotifs(args.name)
-    gm.run_full_analysis(args.inputfile, params)
+    gimme_motifs(args.inputfile, args.name, params)

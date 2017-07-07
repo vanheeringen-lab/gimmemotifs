@@ -3,20 +3,24 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-
-""" 
-Module for clustering of DNA sequence motifs (positional frequency matrices)
-"""
-
+"""Module for motif clustering."""
+import os
 import sys
+import logging
+
+import jinja2
+from datetime import datetime
 
 # GimmeMotifs imports
+from gimmemotifs.config import MotifConfig, GM_VERSION
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.comparison import MotifComparer
-from gimmemotifs.config import MotifConfig
 
-class MotifTree:
-    """ class MotifTree used by cluster_motifs"""
+logger = logging.getLogger("gimme.cluster")
+
+class MotifTree(object):
+    
+    """Class MotifTree used by cluster_motifs"""
     
     def __init__(self, motif):
         self.motif = motif
@@ -111,7 +115,8 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
     
     # First read pfm or pfm formatted motiffile
     if type([]) != type(motifs):
-        motifs = read_motifs(open(motifs), fmt="pwm")
+        with open(motifs) as f:
+            motifs = read_motifs(f, fmt="pwm")
     
     mc = MotifComparer()
 
@@ -153,7 +158,7 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
         l = sorted(scores.keys(), key=lambda x: scores[x][0])
         i = -1
         (n1, n2) = l[i]
-        while not n1 in cluster_nodes or not n2 in cluster_nodes:
+        while n1 not in cluster_nodes or n2 not in cluster_nodes:
             i -= 1
             (n1,n2) = l[i]
         
@@ -166,7 +171,7 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
         
         new_node = MotifTree(ave_motif)
         if pval:
-             new_node.maxscore = 1 - mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
+            new_node.maxscore = 1 - mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
         else:
             new_node.maxscore = mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
             
@@ -182,13 +187,13 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
         if progress:
             progress = (1 - len(cmp_nodes) / float(total)) * 100
             sys.stderr.write('\rClustering [{0}{1}] {2}%'.format(
-                '#'*(int(progress)/10), 
-                " "*(10 - int(progress)/10), 
+                '#' * (int(progress) // 10), 
+                " " * (10 - int(progress) // 10), 
                 int(progress)))
         
         result = mc.get_all_scores(
                 [new_node.motif], 
-                cmp_nodes.keys(), 
+                list(cmp_nodes.keys()), 
                 match, 
                 metric, 
                 combine, 
@@ -209,6 +214,93 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
         sys.stderr.write("\n") 
     root = nodes[-1]
     for node in [node for node in nodes if not node.left]:
-         node.parent.checkMerge(root, threshold)
+        node.parent.checkMerge(root, threshold)
     
     return root
+
+def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
+    # Cluster significant motifs
+
+    if title is None:
+        title = infile
+
+    with open(infile) as f:
+        motifs = read_motifs(f, fmt="pwm")
+
+    trim_ic = 0.2
+    clusters = []
+    if len(motifs) == 0:
+        return []
+    elif len(motifs) == 1:
+        clusters = [[motifs[0], motifs]]
+    else:
+        logger.info("clustering %d motifs.", len(motifs))
+        tree = cluster_motifs(
+                infile,
+                "total",
+                "wic",
+                "mean",
+                True,
+                threshold=float(threshold),
+                include_bg=True,
+                progress=False
+                )
+        clusters = tree.getResult()
+
+    ids = []
+    mc = MotifComparer()
+
+    img_dir = os.path.join(outdir, "images")
+
+    if not os.path.exists(img_dir):
+        os.mkdir(img_dir)
+
+    for cluster,members in clusters:
+        cluster.trim(trim_ic)
+        png = "images/{}.png".format(cluster.id)
+        cluster.to_img(os.path.join(outdir, png), fmt="PNG")
+        ids.append([cluster.id, {"src":png},[]])
+        if len(members) > 1:
+            scores = {}
+            for motif in members:
+                scores[motif] =  mc.compare_motifs(cluster, motif, "total", "wic", "mean", pval=True)
+            add_pos = sorted(scores.values(),key=lambda x: x[1])[0][1]
+            for motif in members:
+                score, pos, strand = scores[motif]
+                add = pos - add_pos
+
+                if strand in [1,"+"]:
+                    pass
+                else:
+                   rc = motif.rc()
+                   rc.id = motif.id
+                   motif = rc
+                #print "%s\t%s" % (motif.id, add)
+                png = "images/{}.png".format(motif.id.replace(" ", "_"))
+                motif.to_img(os.path.join(outdir, png), fmt="PNG", add_left=add)
+        ids[-1][2] = [dict([("src", "images/{}.png".format(motif.id.replace(" ", "_"))), ("alt", motif.id.replace(" ", "_"))]) for motif in members]
+
+    config = MotifConfig()
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader([config.get_template_dir()]))
+    template = env.get_template("cluster_template.jinja.html")
+    result = template.render(
+                motifs=ids,
+                inputfile=title,
+                date=datetime.today().strftime("%d/%m/%Y"),
+                version=GM_VERSION)
+
+    cluster_report = os.path.join(outdir, "cluster_report.html")
+    with open(cluster_report, "wb") as f:
+        f.write(result.encode('utf-8'))
+
+    f = open(outfile, "w")
+    if len(clusters) == 1 and len(clusters[0][1]) == 1:
+        f.write("%s\n" % clusters[0][0].to_pwm())
+    else:
+        for motif in tree.get_clustered_motifs():
+            f.write("%s\n" % motif.to_pwm())
+    f.close()
+
+    logger.debug("Clustering done. See the result in %s",
+            cluster_report)
+    return clusters

@@ -12,7 +12,8 @@ class TestMotifPwm(unittest.TestCase):
     def setUp(self):
         self.data_dir = "test/data/pwmscan"
         
-        self.motif = read_motifs(open(os.path.join(self.data_dir, "TATA.pwm")), fmt="pwm")[0]
+        with open(os.path.join(self.data_dir, "TATA.pwm")) as f:
+            self.motif = read_motifs(f, fmt="pwm")[0]
         self.prom = Fasta(os.path.join(self.data_dir, "promoters.fa"))
         self.prom_gff = os.path.join(self.data_dir, "promoters_result.gff")
         self.random = Fasta(os.path.join(self.data_dir, "random_sequences.fa"))
@@ -25,31 +26,32 @@ class TestMotifPwm(unittest.TestCase):
         result = self.motif.pwm_scan(self.prom, nreport=1)
 
         # Every sequence should have a TATA match
-        self.assertEquals(len(result.keys()), len(self.prom.items()))
+        self.assertEqual(len(result), len(self.prom))
 
     def test2_pwm_scan_to_gff(self):
         """ Scan a FASTA file with PWM of motif, and produce GFF """
         
         self.motif.pwm_scan_to_gff(self.prom, self.tmp)
-        for line in open(self.tmp):
-            vals = line.strip().split("\t")
-            self.assertEquals(9, len(vals))
-            self.assertTrue(int(vals[3]) > 0)
-            self.assertTrue(int(vals[4]) > 0)
-            self.assertTrue(float(vals[5]) > 5.25)
-            self.assertTrue(float(vals[5]) < 9.06)
-            self.assertIn(vals[6], ["+", "-"])
+        with open(self.tmp) as f:
+            for line in f:
+                vals = line.strip().split("\t")
+                self.assertEqual(9, len(vals))
+                self.assertTrue(int(vals[3]) > 0)
+                self.assertTrue(int(vals[4]) > 0)
+                self.assertTrue(float(vals[5]) > 5.25)
+                self.assertTrue(float(vals[5]) < 9.06)
+                self.assertIn(vals[6], ["+", "-"])
 
     def test3_gff_enrichment(self):
         """ Test gff_enrichment """
         self.motif.pwm_scan_to_gff(self.random, self.random_gff)
         gff_enrichment(self.prom_gff, self.random_gff, 316, 3160, self.tmp)
-        f = open(self.tmp)
-        f.readline() # Header
-        vals = f.readline().strip().split("\t")
-        self.assertEquals(vals[0], "TATA-box")
-        self.assertLess(float(vals[2]), 1e-60)
-        self.assertGreater(float(vals[5]), 1.5)
+        with open(self.tmp) as f:
+            f.readline() # Header
+            vals = f.readline().strip().split("\t")
+            self.assertEqual(vals[0], "TATA-box")
+            self.assertLess(float(vals[2]), 1e-60)
+            self.assertGreater(float(vals[5]), 1.5)
 
     def tearDown(self):
         pass

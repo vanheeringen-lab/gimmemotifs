@@ -4,6 +4,7 @@
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
 """ Various plotting functions """
+from __future__ import print_function
 import os
 import sys
 from tempfile import NamedTemporaryFile
@@ -19,7 +20,14 @@ mpl.use("Agg", warn=False)
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.gridspec import GridSpec
+from matplotlib.colors import to_hex, Normalize
 from mpl_toolkits.axes_grid1 import ImageGrid
+import seaborn as sns
+sns.set_style('white')
+from PIL import Image
+
+
+#from ete3 import Tree, faces, AttrFace, TreeStyle, NodeStyle
 
 VALID_EXTENSIONS = [".png", ".pdf", ".svg", ".ps"]
 
@@ -33,25 +41,22 @@ def axes_off(ax):
 def roc_plot(outfile, plot_x, plot_y, ids=None):
     if ids is None:
         ids = []
-
    
     fig = plt.figure()
     fig.add_subplot(111, aspect="equal")
 
-    colors = [cm.Paired(256 / 11 * i) for i in range(11)]
-    
-    if type(plot_x[0]) == type(np.array([])):
+    if isinstance(plot_x[0], np.ndarray):
         for i,(x,y) in enumerate(zip(plot_x, plot_y)):
-            plt.plot(x, y, color=colors[(i * 2) % 10 + 1])
+            plt.plot(x, y)
     else:
-        plt.plot(plot_x,plot_y, color=colors[(0 * 2) % 10 + 1])
+        plt.plot(plot_x,plot_y)
     
     plt.axis([0,1,0,1])
     plt.xlabel("1 - Specificity")
     plt.ylabel("Sensitivity")
 
     if len(ids) > 0:
-         plt.legend(ids, loc=(1.03,0.2))
+        plt.legend(ids, loc=(1.03,0.2))
 
     if not os.path.splitext(outfile)[-1] in VALID_EXTENSIONS:
         outfile += ".png"
@@ -61,13 +66,11 @@ def roc_plot(outfile, plot_x, plot_y, ids=None):
 
 def plot_histogram(values, outfile, xrange=None, breaks=10, title=None, xlabel=None, color=10):
     
-    colors = [cm.Paired(256 / 11 * i) for i in range(11)]
-
     plt.clf()
     try:
         # matplotlib >= 0.99
-        plt.hist(values, range=xrange, bins=breaks, color=colors[color], edgecolor="black")
-    except:
+        plt.hist(values, range=xrange, bins=breaks, edgecolor="black")
+    except Exception:
         plt.hist(values, range=xrange, bins=breaks)
     plt.xlim(xrange)
 
@@ -105,10 +108,10 @@ def match_plot(plotdata, outfile):
             axes_off(grid[j])
 
         tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
-        motif.to_img(tmp.name, format="PNG", height=6)
+        motif.to_img(tmp.name, fmt="PNG", height=6)
         grid[0].imshow(plt.imread(tmp.name), interpolation="none")
         tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
-        dbmotif.to_img(tmp.name, format="PNG")
+        dbmotif.to_img(tmp.name, fmt="PNG")
         grid[1].imshow(plt.imread(tmp.name), interpolation="none")
 
         ax = plt.subplot(nrows, ncols, i * 2 + 2)
@@ -132,7 +135,6 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
     bgfreq = np.array([[x] for x in bgfreq])
     
     enr = np.log2(np.divide(freq, bgfreq))
-   
     filt = np.ones(len(enr), dtype="bool")
     filters = [
                 np.sum(enr > minenr, 1) > 0, 
@@ -143,17 +145,18 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
     for f in filters:
         filt = np.logical_and(filt, f)
          
-        print "Filter: ", sum(filt)
-    
-
     motifs = np.array(motifs)[filt]
     freq = freq[filt]
     bgfreq = bgfreq[filt]
     enr = enr[filt]
     
+    sys.stderr
     for m,f,b,e in zip(motifs,freq,bgfreq,enr):
-        sys.stderr.write("{0}\t{1}\t{2}\t{3}\n".format(m,f,b,e))
-    
+        sys.stderr.write("{0}\t{1}\t{2}\t{3}\n".format(
+            m, 
+            "\t".join(str(x) for x in e), 
+            "\t".join(str(x) for x in f),
+            b[0]))
     
     if len(freq) == 0:
         sys.stderr.write("No enriched and/or differential motifs found.\n")
@@ -190,7 +193,7 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
     pfreq = np.hstack((freq, bgfreq))
     ax.pcolormesh(pfreq[ind], cmap=c2, vmin=vmin, vmax=vmax)
     
-    sm = plt.cm.ScalarMappable(cmap=c2, norm=mpl.colors.Normalize(vmin=vmin, vmax=vmax))
+    sm = plt.cm.ScalarMappable(cmap=c2, norm=Normalize(vmin=vmin, vmax=vmax))
     
     # Show percentages
     for y,row in enumerate(pfreq[ind]):
@@ -215,6 +218,7 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
     plt.title('Frequency')
     
     # Colorbar
+    # pylint: disable=protected-access
     sm._A = []
     cax = plt.subplot(gs[0,plot_order[2]])
     cb = fig.colorbar(sm, cax=cax, ticks = [0, 0.3], orientation='horizontal')
@@ -251,7 +255,7 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
     plt.title('Enrichment (log2)')
     
     # Colorbar
-    sm = plt.cm.ScalarMappable(cmap=c1, norm=mpl.colors.Normalize(vmin=vmin, vmax=vmax))
+    sm = plt.cm.ScalarMappable(cmap=c1, norm=Normalize(vmin=vmin, vmax=vmax))
     sm._A = []
     cax = plt.subplot(gs[0,plot_order[1]])
     cb = fig.colorbar(sm, cax=cax, ticks = [vmin,0, vmax], orientation='horizontal')
@@ -264,9 +268,78 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
         ax = plt.subplot(gs[i + nbar, plot_order[0]]) 
         axes_off(ax)
         tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
-        pwms[motif].to_img(tmp.name, format="PNG", height=6)
+        pwms[motif].to_img(tmp.name, fmt="PNG", height=6)
         ax.imshow(plt.imread(tmp.name), interpolation="none")
     
     #plt.show()
     plt.savefig(outfile, dpi=300, bbox_inches='tight')
     plt.close(fig)
+
+def _tree_layout(node):
+    if node.is_leaf():
+        nameFace = AttrFace("name", fsize=24, ftype="Nimbus Sans L")
+        faces.add_face_to_node(nameFace, node, 10, position="branch-right")
+
+def _get_motif_tree(tree, data, circle=True, vmin=None, vmax=None):
+    print(circle, vmin, vmax)
+    t = Tree(tree)
+    # Determine cutoff for color scale
+    if not(vmin and vmax):
+        for i in range(90, 101):
+            minmax = np.percentile(data.values, i)
+            if minmax > 0:
+                break
+    if not vmin:
+        vmin = -minmax
+    if not vmax:
+        vmax = minmax
+    print(vmin, vmax)
+    norm = Normalize(vmin=vmin, vmax=vmax, clip=True)
+    mapper = cm.ScalarMappable(norm=norm, cmap="coolwarm")
+    
+    m = 25 / data.values.max()
+    
+    for node in t.traverse("levelorder"):
+        val = data[[l.name for l in node.get_leaves()]].values.mean()
+        style = NodeStyle()
+        style["size"] = 0
+        
+        style["hz_line_color"] = to_hex(mapper.to_rgba(val))
+        style["vt_line_color"] = to_hex(mapper.to_rgba(val))
+        
+        v = max(np.abs(m * val), 5)
+        style["vt_line_width"] = v
+        style["hz_line_width"] = v
+
+        node.set_style(style)
+    
+    ts = TreeStyle()
+
+    ts.layout_fn = _tree_layout
+    ts.show_leaf_name= False
+    ts.show_scale = False
+    ts.branch_vertical_margin = 10
+
+    if circle:
+        ts.mode = "c"
+        ts.arc_start = 180 # 0 degrees = 3 o'clock
+        ts.arc_span = 180
+    
+    return t, ts
+
+def motif_tree_plot(outfile, tree, data, circle=True, vmin=None, vmax=None, dpi=300):
+    """
+    Plot a "phylogenetic" tree 
+    """
+    # Define the tree
+    t, ts = _get_motif_tree(tree, data, circle, vmin, vmax)
+    
+    # Save image
+    t.render(outfile, tree_style=ts, w=100, dpi=dpi, units="mm");
+    
+    # Remove the bottom (empty) half of the figure
+    if circle:
+        img = Image.open(outfile)
+        size = img.size[0]
+        spacer = 50
+        img.crop((0,0,size,size/2 + spacer)).save(outfile)

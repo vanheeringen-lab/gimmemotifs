@@ -6,12 +6,8 @@
 # distribution.
 
 import sys
-import os
-
 from yaml import load
-
-import gimmemotifs.config as cfg
-from gimmemotifs.tools import *
+from gimmemotifs.tools import get_tool
 
 def prediction(args):
     tool = args.tool
@@ -19,26 +15,13 @@ def prediction(args):
     outfile = args.outfile
     paramfile = args.paramfile
 
-    try:
-        g = dict([(k.lower(),v) for k,v in globals().items()])
-        klass = g[tool.lower()]
-    except:
-        sys.stderr.write("Tool {0} not found!\n".format(tool))
-        raise
-    
-    t = klass()
+    t = get_tool(tool)
 
-    if not t.is_installed():
-        sys.stderr.write("Tool {0} not installed!\n".format(tool))
-        
-    if not t.is_configured():
-        sys.stderr.write("Tool {0} not configured!\n".format(tool))
-   
     params = {}
     if paramfile:
         params = load(open(paramfile))
 
-    (motifs, stdout, stderr) = t.run(infile, ".", params)
+    (motifs, stdout, stderr) = t.run(infile, params)
 
     sys.stderr.write(stderr)
     sys.stdout.write(stdout)

@@ -7,11 +7,11 @@
 """ 
 Module to compare DNA sequence motifs (positional frequency matrices)
 """
+from __future__ import print_function
 
 # Python imports
 import sys
 import os
-from time import sleep
 import random
 import logging
 
@@ -21,10 +21,23 @@ from scipy.spatial import distance
 import numpy as np
 
 # GimmeMotifs imports
-from gimmemotifs.motif import *
-from gimmemotifs.config import *
+from gimmemotifs.config import MotifConfig
 from gimmemotifs.c_metrics import pwmscan,score
+from gimmemotifs.motif import parse_motifs
 # pool import is at the bottom
+
+try: 
+    import copy_reg
+    import types
+    def _pickle_method(m):
+        if m.im_self is None:
+            return getattr, (m.im_class, m.im_func.func_name)
+        else:
+            return getattr, (m.im_self, m.im_func.func_name)
+
+    copy_reg.pickle(types.MethodType, _pickle_method)
+except:
+    pass
 
 # Create random sequence
 nucs = []
@@ -33,17 +46,9 @@ for i in range(L):
     nucs.append(random.choice(['A', 'C', 'T', 'G']))
 RANDOM_SEQ = "".join(nucs)
 
-# Try to import the fisim code, if it present
-try:
-    fisim_dir = "/usr/share/gimmemotifs/includes/fisim"
-    if os.path.exists(fisim_dir):
-        sys.path.append(fisim_dir)
-        import fisim.Motif
-except ImportError:
-    pass
-
 # Function that can be parallelized
 def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
+    
     try:
         scores = {}
         for m1 in motifs:
@@ -93,10 +98,10 @@ def seqcor(m1, m2, seq=None):
     return max(c)
 
 
-class MotifComparer:
+class MotifComparer(object):
     def __init__(self):
         self.config = MotifConfig()
-        self.metrics = ["pcc", "ed", "distance", "wic", "fisim"]
+        self.metrics = ["pcc", "ed", "distance", "wic"]
         self.combine = ["mean", "sum"]
         self._load_scores()
         # Create a parallel python job server, to use for fast motif comparison
@@ -111,15 +116,14 @@ class MotifComparer:
                     self.scoredist[metric]["%s_%s" % (match, combine)] = {}
                     score_file = os.path.join(self.config.get_score_dir(), "%s_%s_%s_score_dist.txt" % (match, metric, combine))
                     if os.path.exists(score_file):
-                        for line in open(score_file):
-                            l1, l2, m, sd = line.strip().split("\t")[:4]
-                            self.scoredist[metric]["%s_%s" % (match, combine)].setdefault(int(l1), {})[int(l2)] = [float(m), float(sd)]
+                        with open(score_file) as f:
+                            for line in f:
+                                l1, l2, m, sd = line.strip().split("\t")[:4]
+                                self.scoredist[metric]["%s_%s" % (match, combine)].setdefault(int(l1), {})[int(l2)] = [float(m), float(sd)]
     
     def compare_motifs(self, m1, m2, match="total", metric="wic", combine="mean", pval=False):
 
-        if metric == "fisim":
-            return self.fisim(m1, m2)
-        elif metric == "seqcor":
+        if metric == "seqcor":
             return seqcor(m1, m2)
         elif match == "partial":
             if pval:
@@ -173,32 +177,14 @@ class MotifComparer:
         
         try:
             [1 - norm.cdf(score[0], m, s), score[1], score[2]]
-        except:
-            print "HOEI: {0}".format(score)
+        except Exception as e:
+            print("Error with score: {}\n{}".format(score, e))
             return [1, np.nan, np.nan]
         return [1 - norm.cdf(score[0], m, s), score[1], score[2]]
 
-    def fisim(self, m1, m2):
-        try:
-            m1 = m1.pfm
-            m2 = m2.pfm
-        except:
-            pass
-        
-        fm1 = fisim.Motif.Motif(matrix=np.array(m1))
-        fm2 = fisim.Motif.Motif(matrix=np.array(m2))
-        score = fm1.fisim(fm2)
-        if score[2]:
-            return (score[0], score[1], 1)
-        else:
-            return (score[0], score[1], -1)
-
     def score_matrices(self, matrix1, matrix2, metric, combine):
         if metric in self.metrics and combine in self.combine:
-            if metric == "fisim":
-                s = self.fisim(matrix1, matrix2)[0]
-            else:
-               s = score(matrix1, matrix2, metric, combine)
+            s = score(matrix1, matrix2, metric, combine)
             
             if s != s:
                 return None
@@ -216,7 +202,7 @@ class MotifComparer:
                 try:
                     func = getattr(distance, metric)     
                 except: 
-                    raise Exception, "Unknown metric '{}'".format(metric)
+                    raise Exception("Unknown metric '{}'".format(metric))
 
             scores = []
             for pos1,pos2 in zip(matrix1,matrix2):
@@ -226,7 +212,7 @@ class MotifComparer:
             elif combine == "sum":
                 return np.sum(scores)
             else:
-                raise "Unknown combine"
+                raise ValueError("Unknown combine")
 
     def max_subtotal(self, matrix1, matrix2, metric, combine):
         scores = []
@@ -304,15 +290,15 @@ class MotifComparer:
         p2 = pwm2[:]
     
         if pos < 1:
-            p1 = [bg for x in range(-pos)] + p1
+            p1 = [bg for _ in range(-pos)] + p1
         else:
-            p2 = [bg for x in range(pos)] + p2
+            p2 = [bg for _ in range(pos)] + p2
     
         diff = len(p1) - len(p2)
         if diff > 0:
-            p2 += [bg for x in range(diff)]
+            p2 += [bg for _ in range(diff)]
         elif diff < 0:
-            p1 += [bg for x in range(-diff)]
+            p1 += [bg for _ in range(-diff)]
     
         return p1,p2
     
@@ -341,11 +327,11 @@ class MotifComparer:
         if pos < 0:
             p2 = p2[-pos:]
         else:
-            p2 = [bg for x in range(pos)] + p2
+            p2 = [bg for _ in range(pos)] + p2
             
         diff = len(p1) - len(p2)
         if diff > 0:
-            p2 += [bg for x in range(diff)]
+            p2 += [bg for _ in range(diff)]
         elif diff < 0:
             p2 = p2[:len(p1)]
         return p1,p2
@@ -368,7 +354,7 @@ class MotifComparer:
             # Number of chunks = number of processors available
             n_cpus = int(MotifConfig().get_default_params()["ncpus"])
 
-            batch_len = len(dbmotifs) / n_cpus
+            batch_len = len(dbmotifs) // n_cpus
             if batch_len <= 0:
                 batch_len = 1
             jobs = []
@@ -384,11 +370,10 @@ class MotifComparer:
                 result = job.get()
                 # and update the result score
                 for m1,v in result.items():
-                    for m2, score in v.items():
-                        if not scores.has_key(m1):
+                    for m2, s in v.items():
+                        if m1 not in scores:
                             scores[m1] = {}
-
-                        scores [m1][m2] = score
+                        scores[m1][m2] = s
         
         else:
             # Do the whole thing at once if we don't want parallel
@@ -396,10 +381,54 @@ class MotifComparer:
         
         return scores
 
-    def get_closest_match(self, motifs, dbmotifs, match, metric, combine, parallel=True):
+    def get_closest_match(self, motifs, dbmotifs=None, match="partial", metric="wic",combine="mean", parallel=True):
+        """Return best match in database for motifs.
+
+        Parameters
+        ----------
+
+        motifs : list or str
+            Filename of motifs or list of motifs.
+
+        dbmotifs ; list or str, optional
+            Database motifs, default will be used if not specified.
+
+        match : str, optional
+
+        metric : str, optional
+
+        combine : str, optional
+
+        Returns
+        -------
+
+        closest_match : dict
+        """
+
+        if dbmotifs is None:
+            pwm = self.config.get_default_params()["motif_db"]
+            pwmdir = self.config.get_motif_dir()
+            dbmotifs = os.path.join(pwmdir, pwm)
+       
+        motifs = parse_motifs(motifs)
+        dbmotifs = parse_motifs(dbmotifs)
+
+        dbmotif_lookup = dict([(m.id, m) for m in dbmotifs])
+
         scores = self.get_all_scores(motifs, dbmotifs, match, metric, combine, parallel=parallel)
-        for motif, matches in scores.items():
-            scores[motif] = sorted(scores[motif].items(), cmp=lambda x,y: cmp(y[1][0], x[1][0]))[0]
+        for motif in scores:
+            scores[motif] = sorted(
+                    scores[motif].items(), 
+                    key=lambda x:x[1][0]
+                    )[-1]
+        
+        for motif in motifs:
+            dbmotif, score = scores[motif.id]
+            pval, pos, orient = self.compare_motifs(
+                    motif, dbmotif_lookup[dbmotif], match, metric, combine, True)
+            
+            scores[motif.id] = [dbmotif, (list(score) + [pval])]
+        
         return scores
 
     def generate_score_dist(self, motifs, match, metric, combine):
@@ -418,8 +447,7 @@ class MotifComparer:
         for l1 in all_scores.keys():
             for l2 in all_scores.keys():
                 scores = self.get_all_scores(sorted_motifs[l1], sorted_motifs[l2], match, metric, combine)
-                scores = scores.values()
-                scores = [[y[0] for y in x.values() if y] for x in scores]
+                scores = [[y[0] for y in x.values() if y] for x in scores.values()]
                 scores = np.array(scores).ravel()
                 f.write("%s\t%s\t%s\t%s\n" % (l1, l2, np.mean(scores), np.std(scores)))
 
@@ -427,4 +455,7 @@ class MotifComparer:
 
 # import here is necessary as workaround
 # see: http://stackoverflow.com/questions/18947876/using-python-multiprocessing-pool-in-the-terminal-and-in-code-modules-for-django
-from gimmemotifs.mp import pool
+try:
+    from gimmemotifs.mp import pool
+except:
+    pass

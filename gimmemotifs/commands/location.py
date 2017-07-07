@@ -3,15 +3,26 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
+"""
+Command line tool 'location'.
 
+Creates a histogram of motif matches relative to sequence center.
+"""
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.utils import motif_localization
 from gimmemotifs.mp import pool
-import sys
 import os
 
 def location(args):
+    """
+    Creates histrogram of motif location.
+
+    Parameters
+    ----------
+    args : argparse object
+        Command line arguments.
+    """
     fastafile = args.fastafile
     pwmfile = args.pwmfile
 

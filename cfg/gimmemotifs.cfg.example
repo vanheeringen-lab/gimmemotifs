@@ -26,7 +26,6 @@ pvalue = 0.001
 max_time = None
 ncpus = 12
 motif_db = gimme.vertebrate.v3.1.pwm
-scan_cutoff = 0.9
 use_cache = False
 
 [AMD]
@@ -34,6 +33,10 @@ bin = tools/AMD.bin
 dir = tools/
 
 [MEME]
+bin = tools/meme.bin
+dir = tools/
+
+[MEMEW]
 bin = tools/meme.bin
 dir = tools/
 

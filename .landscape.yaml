@@ -1,3 +1,9 @@
+doc-warnings: true
 ignore-paths:
   - src/
   - gimmemotifs/prediction_torque.py
+
+pylint:
+  disable:
+    - too-many-locals
+    - too-many-arguments

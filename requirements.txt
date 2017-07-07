@@ -1,0 +1,20 @@
+sphinx_bootstrap_theme
+configparser
+xdg
+numpydoc
+numpy >= 1.6.0
+scipy >= 0.9.0
+matplotlib >= 2
+jinja2
+pyyaml >= 3.10
+pybedtools
+statsmodels
+scikit-learn
+sklearn-contrib-lightning
+seaborn
+pysam
+xgboost
+diskcache
+xxhash
+six
+future

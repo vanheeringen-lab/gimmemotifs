@@ -3,29 +3,36 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-
 """ Configuration for GimmeMotifs """
-import ConfigParser
+import configparser
 import sysconfig
+import xdg
 import os
+import logging
+
+logger = logging.getLogger("gimme.config")
 
 ### CONSTANTS ###
-GM_VERSION = "0.10.0b6"
+GM_VERSION = "0.11.0-beta"
 BG_TYPES = ["random", "genomic", "gc", "promoter"]
 FA_VALID_BGS = ["random", "promoter", "gc", "user", "genomic"]
 BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "user"]
 BG_RANK = {"user":1, "promoter":2, "gc":3, "random":4, "genomic":5}
 FASTA_EXT = [".fasta", ".fa", ".fsa"]
 
+CACHE_DIR = os.path.join(xdg.XDG_CACHE_HOME, "gimmemotifs")
 
-class MotifConfig:
+class MotifConfig(object):
+    """Configuration object for the gimmemotifs module."""
     __shared_state = {}
     prefix = sysconfig.get_config_var("prefix")
     config_dir = "share/gimmemotifs/gimmemotifs.cfg"
     configs = [
+        '/home/docs/checkouts/readthedocs.org/user_builds/gimmemotifs/envs/latest/share/gimmemotifs/gimmemotifs.cfg',
         'cfg/gimmemotifs.cfg.example', 
         os.path.join('/usr', config_dir),
         os.path.join(prefix, config_dir), 
+        'build/cfg/gimmemotifs.cfg',
         os.path.expanduser('~/.gimmemotifs.cfg')
     ]
     config = None
@@ -34,20 +41,19 @@ class MotifConfig:
     def __init__(self, use_config=""):
         self.__dict__ = self.__shared_state
         if use_config:
-            self.config = ConfigParser.ConfigParser()
+            self.config = configparser.ConfigParser()
             cfg = self.config.read(use_config)
         elif not self.config:
-            self.config = ConfigParser.ConfigParser()
+            self.config = configparser.ConfigParser()
             cfg = self.config.read(self.configs)
             if not cfg:
-                raise ValueError, "Configuration file not found!"
-        
+                raise ValueError("Configuration file not found!")
     def bin(self, program):
         try:
-            bin = self.config.get(program, "bin")
+            exe = self.config.get(program, "bin")
         except: 
-            raise ValueError, "No configuration found for %s" % program
-        return bin
+            raise ValueError("No configuration found for %s" % program)
+        return exe
     
     def set_default_params(self, params):
         if not self.config.has_section("params"):
@@ -64,9 +70,9 @@ class MotifConfig:
 
     def get_seqlogo(self):
         try:
-            bin = self.config.get("main", "seqlogo")
-            return bin
-        except:
+            exe = self.config.get("main", "seqlogo")
+            return exe
+        except Exception:
             return None
 
     def dir(self, program):
@@ -74,12 +80,12 @@ class MotifConfig:
             if self.config.has_option(program, "dir"):
                 try: 
                     return self.config.get(program, "dir")
-                except:
+                except Exception:
                     return None
             else:
                 return os.path.dirname(self.bin(program))
         else:
-            raise ValueError, "No configuration found for %s" % program
+            raise ValueError("No configuration found for %s" % program)
     
     def set_program(self, program, d):
         if not self.config.has_section(program):
@@ -104,10 +110,10 @@ class MotifConfig:
     def get_score_dir(self):
         return self.config.get("main", "score_dir")
 
-    def set_seqlogo(self, bin):
+    def set_seqlogo(self, exe):
         if not self.config.has_section("main"):
             self.config.add_section("main")
-        self.config.set("main", "seqlogo",bin)
+        self.config.set("main", "seqlogo", exe)
 
     def set_index_dir(self, path):
         if not self.config.has_section("main"):
@@ -149,7 +155,6 @@ class MotifConfig:
     def get_tools_dir(self):
         return self.config.get("main", "tools")
 
-    
     def is_configured(self, program):
         return self.config.has_section(program)
     
@@ -158,6 +163,59 @@ class MotifConfig:
 
     def write(self, fo):
         self.config.write(fo)
+
+def parse_denovo_params(user_params=None):
+    """Return default GimmeMotifs parameters. 
+
+    Defaults will be replaced with parameters defined in user_params.
+
+    Parameters
+    ----------
+    user_params : dict, optional
+        User-defined parameters.
+
+    Returns
+    -------
+    params : dict
+    """
+    config = MotifConfig()
+
+    if user_params is None:
+        user_params = {}
+    params = config.get_default_params()
+    params.update(user_params)
+
+    if params.get("torque"):
+        logger.debug("Using torque")
+    else:
+        logger.debug("Using multiprocessing")
+
+    params["background"] = [x.strip() for x in params["background"].split(",")]
+
+    logger.debug("Parameters:")
+    for param, value in params.items():
+        logger.debug("  %s: %s", param, value)
+
+    # Maximum time?
+    
+    if params["max_time"]:
+        try:
+            max_time = params["max_time"] = float(params["max_time"])
+        except Exception:
+            logger.debug("Could not parse max_time value, setting to no limit")
+            params["max_time"] = None
+
+        if params["max_time"] > 0:
+            logger.debug("Time limit for motif prediction: %0.2f hours", max_time)
+            params["max_time"] = 3600 * params["max_time"]
+            logger.debug("Max_time in seconds %0.0f", max_time)
+        else:
+            logger.debug("Invalid time limit for motif prediction, setting to no limit")
+            max_time = params["max_time"]
+    else:
+        logger.debug("No time limit for motif prediction")
+
+    return params
 
 #if __name__ == "__main__":
 #    m = MotifConfig()

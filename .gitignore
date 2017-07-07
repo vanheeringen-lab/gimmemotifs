@@ -1,7 +1,7 @@
 **/*.swp
 *egg-info/
 gimmemotifs/*.pyc
-gimmemotifs/c_metrics.so
+gimmemotifs/*.so
 test/*.pyc
 build/*
 doc/*
@@ -19,7 +19,8 @@ website/**/*
 
 test/data/maelstrom/activity*
 test/data/maelstrom/final*
-
+test/data/maelstrom/*png
+test/data/maelstrom/motif.freq.txt
 tmp/*
 
 src/meme_4.6.0
