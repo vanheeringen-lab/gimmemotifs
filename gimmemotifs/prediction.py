@@ -8,7 +8,10 @@
 # Python imports
 import sys
 import logging
-import _thread
+try:
+    import _thread as thread
+except ImportError:
+    import thread
 from time import time,sleep
 import inspect
 from multiprocessing import Pool
@@ -62,7 +65,7 @@ def _run_tool(job_name, t, fastafile, params):
 class PredictionResult(object):
     """Store predicted motifs and calculate statistics."""
     def __init__(self, outfile, fg_file=None, background=None, do_counter=True):
-        self.lock = _thread.allocate_lock()
+        self.lock = thread.allocate_lock()
         self.motifs = []
         self.finished = []
         self.stats = {}

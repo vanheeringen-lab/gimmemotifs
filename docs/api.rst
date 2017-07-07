@@ -525,6 +525,8 @@ Maelstrom
 Auto-generated
 ==============
 
+This part of the API documentation is not yet complete.
+
 Prediction of de novo motifs
 ----------------------------
 

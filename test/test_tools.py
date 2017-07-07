@@ -1,3 +1,4 @@
+import platform
 import unittest
 import tempfile
 import os
@@ -37,9 +38,25 @@ class TestMotifProgram(unittest.TestCase):
             if tool_name in [
                     "weeder", 
                     "xxmotif",
+                    "gadem",  # sometimes crashes on invalid pointer
+                    "trawler", # not consistent
+                    "jaspar", 
                     ]:
                 continue
-            
+           
+            if platform.system() == "Darwin":
+                # No support for osx
+                if tool_name in [
+                    "amd",
+                    "hms",
+                    "improbizer",
+                    "motifsampler",
+                    "posmo",
+                    "meme", # until the bioconda package is fixed
+                    "memew", # until the bioconda package is fixed
+                    ]:
+                    continue
+
             t = get_tool(tool_name)
             print("Testing {}...".format(t))
             

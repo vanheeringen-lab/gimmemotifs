@@ -462,7 +462,7 @@ class Scanner(object):
         """
         self.set_threshold(threshold=0.0)
         for matches in self.scan(seqs, 1, scan_rc):
-            scores = [sorted(m, key=lambda x: x[0])[0][0] for m in matches]
+            scores = [sorted(m, key=lambda x: x[0])[0][0] for m in matches if len(m) > 0]
             yield scores
  
     def best_match(self, seqs, scan_rc=True):
@@ -602,7 +602,7 @@ class Scanner(object):
                 yield ret
             
     def _scan_jobs(self, scan_func, scan_seqs):
-        batchsize = 1000
+        batchsize = 5000
         if self.ncpus > 1:
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
                 batch = scan_seqs[i * batchsize:( i+ 1) * batchsize]

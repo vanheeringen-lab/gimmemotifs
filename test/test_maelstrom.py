@@ -26,6 +26,7 @@ class TestMoap(unittest.TestCase):
                 score_table=self.score_table, count_table=self.count_table,
                 plot=False)
         df = pd.read_table(self.outfile, index_col=0, comment="#")
+        print(df.shape)
         self.assertEquals((623, 4), df.shape)
 
         for fname in glob(os.path.join(self.outdir, "activity*")):

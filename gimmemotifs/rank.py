@@ -43,5 +43,6 @@ result$p.adjust = p.adjust(result$Score);
     tmpscript.flush() 
  
     p = sp.Popen(["Rscript", tmpscript.name], stdout=sp.PIPE, stderr=sp.PIPE)
-    p.communicate()
-    return pd.read_table(tmpranks.name, index_col=0)["p.adjust"] 
+    stderr, stdout = p.communicate()
+    df = pd.read_table(tmpranks.name, index_col=0)
+    return df["p.adjust"] 
