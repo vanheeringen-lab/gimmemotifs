@@ -12,17 +12,17 @@ While GimmeMotifs was originally developed to predict *de novo* motifs in ChIP-s
 You can still identify new motifs, but also scan for known motifs, find differential motifs in multiple sets of sequences, create sequence logos, calculate all kinds of enrichment statistics, and more!
 
 For this tutorial I'll assume you use bioconda. 
-Create an environment with all the necessary dependencies.
+If you haven't already done so, install GimmeMotifs.
 
 :: 
 
-    $ conda create -n gimme_tutorial gimmemotifs ucsc-bigbedtobed
+    $ conda create -n gimme python=3 gimmemotifs
 
 And activate it!
 
 :: 
     
-    $ source activate gimme_tutorial
+    $ source activate gimme
 
 To locate the example files mentioned in the tutorial, locate the ``examples/`` directory of your GimmeMotifs installation. When using conda:
 
@@ -30,8 +30,16 @@ To locate the example files mentioned in the tutorial, locate the ``examples/`` 
 
     $  echo `conda info | grep default | awk '{print $4}'`/share/gimmemotifs/examples
     /home/simon/anaconda3/share/gimmemotifs/examples
-    $ ls /home/simon/anaconda3/share/gimmemotifs/examples
-    TAp73alpha.bed  TAp73alpha.fa
+
+
+Alternatively, the example data is also available from figshare_ and you can download it from there.
+
+::
+
+    $ curl -L -o gimme.example_data.tgz https://ndownloader.figshare.com/files/8834965
+    $ tar xvzf gimme.example_data.tgz
+
+.. _`figshare`: https://doi.org/10.6084/m9.figshare.5182897.v1
 
 Find de novo motifs
 -------------------
