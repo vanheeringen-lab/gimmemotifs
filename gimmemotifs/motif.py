@@ -943,7 +943,7 @@ def _read_motifs_pwm(handle):
     return motifs
 
 def _read_motifs_jaspar(handle):
-    p = re.compile("([ACGT])\s*\[?(.+)\]?")
+    p = re.compile("([ACGT])\s*\[?([^\]]+)\]?")
     motifs = []
     motif_id = ""
     pwm = {}
