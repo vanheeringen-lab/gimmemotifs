@@ -1029,8 +1029,9 @@ class Weeder(MotifProgram):
     
     def __init__(self):
         self.name = "Weeder"
-        self.cmd = "weederTFBS.out"
+        self.cmd = "weeder2"
         self.use_width = False
+        self.default_params = {"organism":"hg19", "single":False}
     
     def _parse_params(self, params=None):
         """
@@ -1047,14 +1048,6 @@ class Weeder(MotifProgram):
         
         return prm 
     
-    def _run_weeder_subset(self, weeder, fastafile, w, e, organism, strand):
-        """Command line for Weeder."""
-        cmd = "%s -f %s -W %s -e %s -R 50 -O %s %s" % (weeder, fastafile, w, e, organism, strand)
-        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
-        out,err = p.communicate()
-        return out, err
-
-
     def _run_program(self, bin,fastafile, params=None):
         """
         Run Weeder and predict motifs from a FASTA file.
@@ -1082,41 +1075,25 @@ class Weeder(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
-        default_params = {"analysis":"small", "organism":"hg18", "single":False, "parallel":True}
-        if params is not None: 
-            default_params.update(params)
+        params = self._parse_params(params)
         
-        organism = default_params["organism"]
-        weeder_organism = ""
+        organism = params["organism"]
         weeder_organisms = {
             "hg18":"HS",
             "hg19":"HS",
+            "hg38":"HS",
             "mm9":"MM",
-            "rn4":"RN",
+            "mm10":"MM",
             "dm3":"DM",
-            "fr2": "FR",
-            "danRer6": "DR",
-            "danRer7": "DR",
-            "galGal3": "GG",
-            "ce3": "CE",
-            "anoGam1": "AG",
+            "dm5":"DM",
+            "dm6":"DM",
             "yeast":"SC",
             "sacCer2":"SC",
-            "xenTro2":"XT",
-            "xenTro3":"XT"}
-        if organism in weeder_organisms:
-            weeder_organism = weeder_organisms[organism]
-        else:
-            return []    
-
-        adviser = bin.replace("weederTFBS", "adviser")
-        weeder_dir = bin.replace("weederTFBS.out", "")
-        if self.is_configured():
-            weeder_dir = self.dir()
-
-        freq_files = os.path.join(weeder_dir, "FreqFiles")
-        if not os.path.exists(freq_files):
-            raise ValueError("Can't find FreqFiles directory for Weeder")
+            "sacCer3":"SC",
+            "TAIR10":"AT",
+            "TAIR11":"AT",
+            }
+        weeder_organism = weeder_organisms.get(organism, "HS")
 
         tmp = NamedTemporaryFile(dir=self.tmpdir)
         name = tmp.name
@@ -1124,63 +1101,30 @@ class Weeder(MotifProgram):
         shutil.copy(fastafile, name)
         fastafile = name
     
-        current_path = os.getcwd()
-        os.chdir(weeder_dir)
+        cmd = "{} -f {} -O".format(
+                self.cmd, 
+                fastafile,
+                weeder_organism,
+                )
         
-        coms = ((8,2),(6,1))
-
-        strand = "-S"
-        if default_params["single"]:
-            strand = ""
-            
-        if default_params["analysis"] == "xl":
-            coms = ((12,4),(10,3),(8,2),(6,1))
-        elif default_params["analysis"] == "large":
-            coms = ((10,3),(8,2),(6,1))
-        elif default_params["analysis"] == "medium":
-            coms = ((10,3),(8,2),(6,1))
+        if params["single"]:
+            cmd += " -ss"
         
-        # TODO: test organism
-        stdout = ""
-        stderr = ""
-        
-        default_params["parallel"] = False 
-        if default_params["parallel"]:
-            pass
-            #jobs = []
-            #for (w,e) in coms:
-            #    jobs.append(pool.apply_async(
-            #        run_weeder_subset, 
-            #        (weeder, fastafile, w, e, weeder_organism, strand,)
-            #        ))
-
-            #for job in jobs:
-            #    out,err = job.get()
-            #    stdout += out
-            #    stderr += err
-        else:
-
-            for (w,e) in coms:
-                out,err = self._run_weeder_subset(bin, fastafile, w, e, weeder_organism, strand)
-                stdout += out.decode()
-                stderr += err.decode()
-    
-        cmd = "%s %s" % (adviser, fastafile)
         #print cmd
-        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+        stdout, stderr = "", ""
+        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.tmpdir) 
         out,err = p.communicate()
         stdout += out.decode()
         stderr += err.decode()
-        
-        os.chdir(current_path)
+        print(self.tmpdir)
 
         motifs = []
-        if os.path.exists(fastafile + ".wee"):
-            f = open(fastafile + ".wee")
+        if os.path.exists(fastafile + ".matrix.w2"):
+            f = open(fastafile + ".matrix.w2")
             motifs = self.parse(f)
             f.close()
         
-        for ext in [".wee", ".html", ".mix", ""]:
+        for ext in [".w2", ".matrix.w2" ]:
             if os.path.exists(fastafile + ext):
                 os.unlink(fastafile + ext)
 
@@ -1200,45 +1144,7 @@ class Weeder(MotifProgram):
         motifs : list
             List of Motif instances.
         """
-        motifs = []
-        nucs = {"A":0,"C":1,"G":2,"T":3}
-
-        p = re.compile(r'(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)')
-        pa = re.compile(r'(\s*\d+\s+.\s+([ACGT]+)\s+.+\))')
-        pwm = []
-        align = []
-        c = 1
-        for line in fo.readlines():
-            m = p.search(line)
-            if m:
-                pwm.append([int(m.group(x)) for x in [2,3,4,5]])
-            
-            m = pa.search(line)
-            if m:
-                align.append(m.group(2))
-
-            elif line.startswith("===="):
-                motifs.append(Motif())
-                #total = float(pwm[0][0] + pwm[0][1] + pwm[0][2] + pwm[0][3])
-                #motifs[-1].pwm = [[x / total for x in row] for row in pwm]
-                motifs[-1].id = "Weeder_%s" % c
-                motifs[-1].align= align[:]
-                
-                width = len(align[0])
-                pfm =  [[0 for x in range(4)] for x in range(width)]
-                for row in align:
-                    for i in range(len(row)):
-                        pfm[i][nucs[row[i]]] += 1
-                total = float(len(align)) 
-                pwm = [[((x)/total) for x in row] for row in pfm]
-                motifs[-1].pwm = pwm[:]
-                motifs[-1].pfm = pfm[:]
-                
-                align = []
-                c += 1
-                pwm = []
-                    
-        return motifs
+        return read_motifs(fo, fmt="jaspar")
 
 class MotifSampler(MotifProgram):
     
