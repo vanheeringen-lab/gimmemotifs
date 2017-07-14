@@ -36,10 +36,7 @@ class TestMotifProgram(unittest.TestCase):
         
         for tool_name in sorted(__tools__):
             if tool_name in [
-                    #"weeder", 
-                    "xxmotif",
                     "gadem",  # sometimes crashes on invalid pointer
-                    #"trawler", # not consistent
                     "jaspar", 
                     ]:
                 continue
