@@ -1116,7 +1116,6 @@ class Weeder(MotifProgram):
         out,err = p.communicate()
         stdout += out.decode()
         stderr += err.decode()
-        print(self.tmpdir)
 
         motifs = []
         if os.path.exists(fastafile + ".matrix.w2"):
