@@ -13,6 +13,7 @@ from subprocess import Popen, PIPE
 import shutil
 from tempfile import NamedTemporaryFile, mkdtemp
 import io
+import glob
 
 # gimme imports
 from gimmemotifs.config import MotifConfig
@@ -900,7 +901,7 @@ class Trawler(MotifProgram):
 
     def __init__(self):
         self.name = "trawler"
-        self.cmd = "trawler.pl"
+        self.cmd = "trawler"
         self.use_width = False
         self.default_params = {"single":False, "background":None}
     
@@ -983,28 +984,29 @@ class Trawler(MotifProgram):
             stderr += err.decode()
     
             os.chdir(current_path)
-            out_name = [d for d in os.listdir(self.tmpdir) if d.startswith("tmp")][-1]
-            out_file = os.path.join(self.tmpdir, out_name, "result", "%s.pwm" % out_name)
-            stdout += "\nOutfile: {}".format(out_file)
+            pwmfiles = glob.glob("{}/tmp*/result/*pwm")
+            if len(pwmfiles) > 0:
+                out_file = pwmfiles[0]
+                stdout += "\nOutfile: {}".format(out_file)
            
-            my_motifs = []
-            if os.path.exists(out_file):
-                with open(out_file) as f: 
-                    my_motifs = read_motifs(f, fmt="pwm")
-                stdout += "\nTrawler: {} motifs".format(len(motifs))
+                my_motifs = []
+                if os.path.exists(out_file):
+                    with open(out_file) as f: 
+                        my_motifs = read_motifs(f, fmt="pwm")
+                    stdout += "\nTrawler: {} motifs".format(len(motifs))
             
-            # remove temporary files
-            if os.path.exists(tmp.name):
-                os.unlink(tmp.name)
+                # remove temporary files
+                if os.path.exists(tmp.name):
+                    os.unlink(tmp.name)
             
-            for motif in my_motifs:
-                motif.id = "{}_{}_{}".format(self.name, wildcard, motif.id)
-        
-            motifs += my_motifs
-        return motifs, stdout, stderr
+                for motif in my_motifs:
+                    motif.id = "{}_{}_{}".format(self.name, wildcard, motif.id)
+            
+                motifs += my_motifs
+            else:
+                stderr += "\nNo outfile found"
 
-    #def parse(self, fo):
-    #    return []
+        return motifs, stdout, stderr
 
 class Weeder(MotifProgram):
     

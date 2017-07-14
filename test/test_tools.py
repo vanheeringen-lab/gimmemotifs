@@ -39,7 +39,7 @@ class TestMotifProgram(unittest.TestCase):
                     "weeder", 
                     "xxmotif",
                     "gadem",  # sometimes crashes on invalid pointer
-                    "trawler", # not consistent
+                    #"trawler", # not consistent
                     "jaspar", 
                     ]:
                 continue
