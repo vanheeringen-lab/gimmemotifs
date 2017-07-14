@@ -235,61 +235,6 @@ The file needs to be named ``<index_name>.bed``, so for instance ``hg19.bed``.
 If you used the ``gimme genome`` command, 
 annotation will be included automatically.
 
-.. _adding_subtools:
-
-Adding motif prediction tools
-+++++++++++++++++++++++++++++
-
-Please note that these steps are only necessary when you have installed
-any of these tools after you have installed GimmeMotifs.
-
-Weeder
-~~~~~~
-
-After installing Weeder the following section needs to be added to the
-GimmeMotifs configuration file:
-
-::
-
-    [Weeder]
-    bin = /usr/share/Weeder/weederTFBS.out
-    dir = /usr/share/Weeder/ 
-
-All other Weeder binaries should be present in the same directory as
-``weederTFBS.out``. The directory specified by ``dir`` should contain
-the FreqFiles directory included with Weeder. In addition ``Weeder``
-should be added to the line in the ``params`` section of the
-configuration file. For instance
-
-::
-
-    tools = MDmodule,MEME,MotifSampler,trawler,Improbizer,BioProspector
-
-needs to be changed to:
-
-::
-
-    tools = MDmodule,MEME,MotifSampler,trawler,Improbizer,BioProspector,Weeder
-
-.. _MotifSampler:
-
-MotifSampler configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you want to use MotifSampler there is one more step that you’ll have
-to take *after* installation of GimmeMotifs. For every organism, you’ll
-need a MotifSampler background. Note that human (hg19), mouse (mm9) and
-*Xenopus* (xenTro2) background models are included, so for these
-organisms MotifSampler will work out of the box. For other organisms the
-necessary background files can be created with ``CreateBackgroundModel``
-(which is included with GimmeMotifs or can be downloaded from the same
-site as MotifSampler). The background model file needs to be saved in
-the directory ``/usr/share/gimmemotifs/MotifSampler`` and it should be
-named ``<organism_index_name>.bg``. So, for instance, if I downloaded
-the human epd background
-(``epd_homo_sapiens_499_chromgenes_non_split_3.bg``), this file should
-be saved as ``/usr/share/gimmemotifs/MotifSampler/hg19.bg``.
-
 .. _`other_configuration`:
 
 Other configuration options
@@ -357,9 +302,23 @@ have a look at the options.
     use_cache = False
     markov_model = 1
     
-
-
 This section specifies all the default GimmeMotifs parameters. Most of
 these can also be specified at the command-line when running
 GimmeMotifs, in which case they will override the parameters specified
+
+Configuration of MotifSampler
++++++++++++++++++++++++++++++
+
+If you want to use MotifSampler there is one more step that you'll have
+to take *after* installation of GimmeMotifs. For every organism, you will
+need a MotifSampler background. Note that human (hg19, hg38) and mouse (mm9, mm10) background models are included, so for these
+organisms MotifSampler will work out of the box. For other organisms the
+necessary background files can be created with ``CreateBackgroundModel``
+(which is included with GimmeMotifs or can be downloaded from the same
+site as MotifSampler). The background model file needs to be saved in
+the directory ``/usr/share/gimmemotifs/MotifSampler`` and it should be
+named ``<organism_index_name>.bg``. So, for instance, if I downloaded
+the human epd background
+(``epd_homo_sapiens_499_chromgenes_non_split_3.bg``), this file should
+be saved as ``/usr/share/gimmemotifs/MotifSampler/hg19.bg``.
 here.
