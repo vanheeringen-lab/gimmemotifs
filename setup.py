@@ -170,13 +170,6 @@ class build_tools(Command):
                 shutil.rmtree(os.path.join(self.build_tools_dir, "HMS"))
             shutil.copytree("src/HMS", os.path.join(self.build_tools_dir, "HMS"))
 
-        # Copy trawler
-        if os.path.exists("src/trawler_standalone-1.2"):
-            dlog.info("building trawler")
-            if os.path.exists(os.path.join(self.build_tools_dir, "trawler")):
-                shutil.rmtree(os.path.join(self.build_tools_dir, "trawler"))
-            shutil.copytree("src/trawler_standalone-1.2", os.path.join(self.build_tools_dir, "trawler"))
-
         if self.machine == "x86_64":
             post_fix = "_x86_64"
         else:
@@ -233,8 +226,6 @@ class build_config(Command):
             cmd = m.cmd
             
             ### ugly, fixme :)
-            if cmd == "trawler.pl":
-                cmd = "trawler/bin/trawler.pl"
             if cmd == "ChIPMunk.sh":
                 cmd = "ChIPMunk/ChIPMunk.sh"
             if cmd == "hms":
@@ -249,8 +240,6 @@ class build_config(Command):
                 dlog.info("using included version of %s: %s" % (program, bin))
             else:
                 ### ugly, fixme :)
-                if cmd == "trawler/bin/trawler.pl":
-                    cmd = "trawler.pl"
                 if     cmd == "ChIPMunk/ChIPMunk.sh":
                     cmd = "ChIPMunk.sh"
                 if cmd == "HMS/hms":
@@ -271,8 +260,6 @@ class build_config(Command):
                     dir = bin.replace("weederTFBS.out","")
                 elif program == "Meme":
                     dir = bin.replace("bin/meme.bin", "").replace("meme.bin", "")
-                elif program == "Trawler":
-                    dir = bin.replace("bin/trawler.pl", "")
                 elif program == "ChIPMunk":
                     dir = bin.replace("ChIPMunk.sh", "")
 
