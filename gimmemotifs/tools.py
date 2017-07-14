@@ -534,7 +534,7 @@ class Hms(MotifProgram):
     def __init__(self):
         self.name = "HMS"
         self.cmd = "hms"
-        self.use_width = False
+        self.use_width = True
         self.default_params = {"background":None}
      
     def _parse_params(self, params=None):
@@ -599,12 +599,22 @@ class Hms(MotifProgram):
             Standard error of the tool.
         """
         params = self._parse_params(params)
+        
+        default_params = {"width":10}
+        if params is not None: 
+            default_params.update(params)
+        
         fgfile, summitfile, outfile = self._prepare_files(fastafile)
                 
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
         
-        cmd = "%s -i %s -w 21 -dna 4 -iteration 50 -chain 20 -seqprop -0.1 -strand 2 -peaklocation %s -t_dof 3 -dep 2" % (bin, fgfile, summitfile)
+        cmd = "{} -i {} -w {} -dna 4 -iteration 50 -chain 20 -seqprop -0.1 -strand 2 -peaklocation {} -t_dof 3 -dep 2".format(
+                bin, 
+                fgfile, 
+                params['width'], 
+                summitfile)
+
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
         stdout,stderr = p.communicate()
         
