@@ -994,11 +994,11 @@ class Trawler(MotifProgram):
             stderr += err.decode()
     
             os.chdir(current_path)
-            pwmfiles = glob.glob("{}/tmp*/result/*pwm")
+            pwmfiles = glob.glob("{}/tmp*/result/*pwm".format(self.tmpdir))
             if len(pwmfiles) > 0:
                 out_file = pwmfiles[0]
                 stdout += "\nOutfile: {}".format(out_file)
-           
+                 
                 my_motifs = []
                 if os.path.exists(out_file):
                     with open(out_file) as f: 
