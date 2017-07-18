@@ -624,6 +624,8 @@ class Hms(MotifProgram):
         if os.path.exists(outfile):
             with open(outfile) as f: 
                 motifs = self.parse(f)
+                for i,m in enumerate(motifs):
+                    m.id = "HMS_w{}_{}".format(params['width'], i + 1)
         
         return motifs, stdout, stderr
 
@@ -1003,6 +1005,8 @@ class Trawler(MotifProgram):
                 if os.path.exists(out_file):
                     with open(out_file) as f: 
                         my_motifs = read_motifs(f, fmt="pwm")
+                    for m in motifs:
+                        m.id = "{}_{}".format(self.name, m.id)
                     stdout += "\nTrawler: {} motifs".format(len(motifs))
             
                 # remove temporary files
@@ -1122,6 +1126,9 @@ class Weeder(MotifProgram):
             f = open(fastafile + ".matrix.w2")
             motifs = self.parse(f)
             f.close()
+        
+        for m in motifs:
+            m.id = "{}_{}".format(self.name, m.id.split("\t")[0])
         
         for ext in [".w2", ".matrix.w2" ]:
             if os.path.exists(fastafile + ext):
@@ -2116,7 +2123,7 @@ class MemeW(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
-        default_params = {"single":False, "number":10}
+        default_params = {"single":False, "number":5}
         if params is not None: 
             default_params.update(params)
         

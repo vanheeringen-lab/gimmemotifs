@@ -68,10 +68,8 @@ MOTIF_BINS = {
     "MEMEW": "src/meme_4.6.0/src/meme.bin",
     "MDmodule": "src/MDmodule/MDmodule",
     "BioProspector": "src/BioProspector/BioProspector",
-    "GADEM": "src/GADEM_v1.3/src/gadem",
     "Posmo": "src/posmo/posmo",
     "AMD": "src/AMD/AMD.bin",
-    "Homer": "src/homer/bin/homer2",
 }
 
 data_files=[
