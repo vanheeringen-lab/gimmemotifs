@@ -38,6 +38,7 @@ class TestMotifProgram(unittest.TestCase):
             if tool_name in [
                     "gadem",  # sometimes crashes on invalid pointer
                     "jaspar", 
+                    "xxmotif", # takes too long 
                     ]:
                 continue
            
