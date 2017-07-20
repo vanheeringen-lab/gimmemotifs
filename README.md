@@ -6,6 +6,8 @@
 [![Code Health](https://landscape.io/github/simonvh/gimmemotifs/master/landscape.svg?style=flat)](https://landscape.io/github/simonvh/gimmemotifs/master)
 [![Documentation Status](https://readthedocs.org/projects/gimmemotifs/badge/?version=stable)](http://gimmemotifs.readthedocs.io/en/stable/?badge=stable)
 
+[![DOI](https://zenodo.org/badge/676678.svg)](https://zenodo.org/badge/latestdoi/676678)
+
 Suite of motif tools, including a motif prediction pipeline for ChIP-seq experiments.
 
 See [full GimmeMotifs documentation](http://gimmemotifs.readthedocs.org/) for detailed installation instructions and usage examples.
@@ -23,13 +25,32 @@ $ conda config --add channels conda-forge
 $ conda config --add channels bioconda
 ```
 
-Now you can create a new environment for GimmeMotifs:
+Normally, you would be able to install GimmeMotifs with one command:
 
-`$ conda create -n gimme python=3 gimmemotifs=0.11.0b0`
+`$ conda create -n gimme gimmemotifs`
 
-Before using GimmeMotifs activate the environment:
+However, due to an issue with the bioconda build system, I can't release the
+current stable version on bioconda. Until that is fixed, you can install it as 
+follows:
 
-`$ source activate gimme`
+```
+# Create an environment called gimme with all dependencies
+$ conda create -n gimme python=3 pip future numpy scipy matplotlib=2 \
+statsmodels scikit-learn seaborn jinja2 bedtools pybedtools \
+ucsc-genepredtobed lightning xgboost r-robustrankaggreg pillow pyyaml \
+diskcache six ucsc-bigbedtobed xdg xxhash readline ghostscript homer \
+gadem trawler weeder xxmotif
+
+# Activate the environment
+$ source activate gimme
+
+# Install gimmemotifs
+$ pip install git+https://github.com/simonvh/gimmemotifs.git@0.11.0
+```
+
+Python 3 is the preferred version, however, GimmeMotifs also supports Python 2. 
+Don't forget to activate the environment with `source activate gimme` whenever
+you want to use GimmeMotifs.
 
 ## Quick start
 
@@ -51,11 +72,13 @@ Alternatively, you can index a genome directory with chromosome FASTA files on y
 
 `$ gimme motifs my_peaks.bed -g hg38 -n my_motifs`
 
-## Frequently Asked Questions (FAQ)
+## Help 
 
-#### I get the following error: "Invalid value for background argument".
-
-Currently, this is a bug in the default configuration file. Run `gimme motifs` with the additional argument `-b gc,random`. 
-
+* Check the [FAQ](http://gimmemotifs.readthedocs.io/en/master/faq.html#faq) for
+  common issues.
+* The preferred way to get support is through the Github
+  [issues](https://github.com/simonvh/gimmemotifs/issues/) page
+* Finally, you can reach me by [mail](simon.vanheeringen@gmail.com) or
+  [Twitter](https://twitter.com/svheeringen).
 
 

@@ -214,33 +214,39 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
             "single":single, 
             "organism":organism
             }
-
-    for t in toolio:
+    
+    # Tools that don't use a specified width usually take longer
+    # ie. GADEM, XXmotif, MEME
+    # Start these first.
+    for t in [tool for tool in toolio if not tool.use_width]:
         if t.name in tools and tools[t.name]:
-            if t.use_width:
-                for i in range(wmin, wmax + 1, step):
-                    logger.debug("Starting %s job, width %s", t.name, i)
-                    job_name = "%s_width_%s" % (t.name, i)
-                    my_params = params.copy()
-                    my_params['width'] = i
-                    jobs[job_name] = job_server.apply_async(
-                        _run_tool,
-                        (job_name, t, fastafile, my_params), 
-                        callback=result.add_motifs)
-            else:
-                logger.debug("Starting %s job", t.name)
-                job_name = t.name
-                jobs[job_name] = job_server.apply_async(
+            logger.debug("Starting %s job", t.name)
+            job_name = t.name
+            jobs[job_name] = job_server.apply_async(
                         _run_tool,
                         (job_name, t, fastafile, params), 
                         callback=result.add_motifs)
         else:
             logger.debug("Skipping %s", t.name)
-   
+
+    for t in [tool for tool in toolio if tool.use_width]:
+        if t.name in tools and tools[t.name]:
+            for i in range(wmin, wmax + 1, step):
+                logger.debug("Starting %s job, width %s", t.name, i)
+                job_name = "%s_width_%s" % (t.name, i)
+                my_params = params.copy()
+                my_params['width'] = i
+                jobs[job_name] = job_server.apply_async(
+                    _run_tool,
+                    (job_name, t, fastafile, my_params), 
+                    callback=result.add_motifs)
+        else:
+            logger.debug("Skipping %s", t.name)
+    
+    logger.info("all jobs submitted")
     for job in jobs.values():
         job.get()
 
-    logger.info("all jobs submitted")
     result.wait_for_stats()
     ### Wait until all jobs are finished or the time runs out ###
 #    start_time = time()    
