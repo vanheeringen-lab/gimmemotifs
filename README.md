@@ -32,16 +32,20 @@ Normally, you would be able to install GimmeMotifs with one command:
 `$ conda install gimmemotifs`
 
 However, due to an issue with the bioconda build system, I can't release the
-current stable version on bioconda. You can install it as follows:
+current stable version on bioconda. Until that is fixes, you can install it as 
+follows:
 
 ```
 # Create an environment called gimme with all dependencies
-$ conda create -n gimme python=3 pip future numpy scipy matplotlib=2 statsmodels 
-scikit-learn seaborn jinja2 bedtools pybedtools ucsc-genepredtobed lightning 
-xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed xdg 
-xxhash readline ghostscript homer gadem trawler weeder xxmotif
+$ conda create -n gimme python=3 pip future numpy scipy matplotlib=2 \
+statsmodels scikit-learn seaborn jinja2 bedtools pybedtools \
+ucsc-genepredtobed lightning xgboost r-robustrankaggreg pillow pyyaml \
+diskcache six ucsc-bigbedtobed xdg xxhash readline ghostscript homer \
+gadem trawler weeder xxmotif
+
 # Activate the environment
 $ source activate gimme
+
 # Install gimmemotifs
 $ pip install git+https://github.com/simonvh/gimmemotifs.git@release-0.11.0
 ```
