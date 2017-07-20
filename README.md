@@ -32,7 +32,7 @@ Normally, you would be able to install GimmeMotifs with one command:
 `$ conda install gimmemotifs`
 
 However, due to an issue with the bioconda build system, I can't release the
-current stable version on bioconda. Until that is fixes, you can install it as 
+current stable version on bioconda. Until that is fixed, you can install it as 
 follows:
 
 ```
@@ -47,8 +47,12 @@ gadem trawler weeder xxmotif
 $ source activate gimme
 
 # Install gimmemotifs
-$ pip install git+https://github.com/simonvh/gimmemotifs.git@release-0.11.0
+$ pip install git+https://github.com/simonvh/gimmemotifs.git@0.11.0
 ```
+
+Python 3 is the preferred version, however, GimmeMotifs also supports Python 2. 
+Don't forget to activate the environment with `source activate gimme` whenever
+you want to use GimmeMotifs.
 
 ## Quick start
 
@@ -70,11 +74,13 @@ Alternatively, you can index a genome directory with chromosome FASTA files on y
 
 `$ gimme motifs my_peaks.bed -g hg38 -n my_motifs`
 
-## Frequently Asked Questions (FAQ)
+## Help 
 
-#### I get the following error: "Invalid value for background argument".
-
-Currently, this is a bug in the default configuration file. Run `gimme motifs` with the additional argument `-b gc,random`. 
-
+* Check the [FAQ](http://gimmemotifs.readthedocs.io/en/master/faq.html#faq) for
+  common issues.
+* The preferred way to get support is through the Github
+  [issues](https://github.com/simonvh/gimmemotifs/issues/) page
+* Finally, you can reach me by [mail](simon.vanheeringen@gmail.com) or
+  [Twitter](https://twitter.com/svheeringen).
 
 
