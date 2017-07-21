@@ -193,7 +193,6 @@ def download_genome(genomebuild, genome_dir):
         cmd = "tar -C {0} -xvzf {1} && rm {1}".format(genome_dir, genome_fa)
     elif genome_fa.endswith(".zip"):
         cmd = "unzip {0}".format(genome_fa)
-        os.unlink(genome_fa)
     else:
         cmd = "gunzip {0}".format(genome_fa)
 
@@ -207,6 +206,10 @@ def download_genome(genomebuild, genome_dir):
                 f.write(">{}\n{}\n".format(n,s))
 
         os.unlink(fa_files[0])
+
+    genome_fa = os.path.join(genome_dir, genome_fa)
+    if os.path.exists(genome_fa):
+        os.unlink(genome_fa)
 
 def get_genome(genomebuild, fastadir, indexdir=None):
 
