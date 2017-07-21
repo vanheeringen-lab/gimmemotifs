@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger("gimme.config")
 
 ### CONSTANTS ###
-GM_VERSION = "0.11.0-beta"
+GM_VERSION = "0.11.1b0"
 BG_TYPES = ["random", "genomic", "gc", "promoter"]
 FA_VALID_BGS = ["random", "promoter", "gc", "user", "genomic"]
 BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "user"]

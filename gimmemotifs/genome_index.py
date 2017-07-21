@@ -33,8 +33,13 @@ try:
 except:
     maketrans = "".maketrans
 
-UCSC_GENOME_URL = "http://hgdownload.soe.ucsc.edu/goldenPath/{0}/bigZips/chromFa.tar.gz"
-ALT_UCSC_GENOME_URL = "http://hgdownload.soe.ucsc.edu/goldenPath/{0}/bigZips/{0}.fa.gz"
+UCSC_GENOME_URLS = [
+        "http://hgdownload.soe.ucsc.edu/goldenPath/{0}/bigZips/chromFa.tar.gz",
+        "http://hgdownload.soe.ucsc.edu/goldenPath/{0}/bigZips/{0}.fa.gz",
+        "http://hgdownload.soe.ucsc.edu/goldenPath/{0}/bigZips/chromFa.zip",
+        "http://hgdownload.soe.ucsc.edu/goldenPath/{0}/bigZips/{0}.zip",
+        ]
+
 UCSC_GENE_URL = "http://hgdownload.cse.ucsc.edu/goldenPath/{}/database/"
 ANNOS = ["knownGene.txt.gz", "ensGene.txt.gz", "refGene.txt.gz"]
 
@@ -153,7 +158,7 @@ def download_annotation(genomebuild, gene_file):
 def download_genome(genomebuild, genome_dir): 
     # download genome based on URL + genomebuild
     sys.stderr.write("Downloading {} genome\n".format(genomebuild))
-    for genome_url in [UCSC_GENOME_URL, ALT_UCSC_GENOME_URL]:
+    for genome_url in UCSC_GENOME_URLS:
 
         remote = genome_url.format(genomebuild)
 
@@ -163,16 +168,20 @@ def download_genome(genomebuild, genome_dir):
                 )
 
         sys.stderr.write("Trying to download {}\n".format(genome_url.format(genomebuild)))
-        urlretrieve(
+        
+        try:
+            urlretrieve(
                 genome_url.format(genomebuild),
                 genome_fa
                 )
 
-        if not check_genome_file(genome_fa):
-            os.unlink(genome_fa)
-            continue
+            if not check_genome_file(genome_fa):
+                os.unlink(genome_fa)
+                continue
 
-        break
+            break
+        except:
+            pass
 
     if not check_genome_file(genome_fa):
         sys.stderr.write("Failed to download genome\n")
@@ -182,6 +191,9 @@ def download_genome(genomebuild, genome_dir):
     genome_fa = os.path.basename(genome_fa)
     if genome_fa.endswith("tar.gz"):
         cmd = "tar -C {0} -xvzf {1} && rm {1}".format(genome_dir, genome_fa)
+    if genome_fa.endswith(".zip"):
+        cmd = "unzip {0}".format(genome_fa)
+        os.unlink(genome_fa)
     else:
         cmd = "gunzip {0}".format(genome_fa)
 
