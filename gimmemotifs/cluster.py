@@ -162,54 +162,55 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
             i -= 1
             (n1,n2) = l[i]
         
-        (score, pos, orientation) = scores[(n1,n2)]
-        ave_motif = n1.motif.average_motifs(n2.motif, pos, orientation, include_bg=include_bg)
-        
-        ave_motif.trim(edge_ic_cutoff)
-        ave_motif.id = "Average_%s" % ave_count
-        ave_count += 1
-        
-        new_node = MotifTree(ave_motif)
-        if pval:
-            new_node.maxscore = 1 - mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
-        else:
-            new_node.maxscore = mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
+        if len(n1.motif) > 0 and len(n2.motif) > 0:
+            (score, pos, orientation) = scores[(n1,n2)]
+            ave_motif = n1.motif.average_motifs(n2.motif, pos, orientation, include_bg=include_bg)
             
-        new_node.mergescore = score
-        #print "%s + %s = %s with score %s" % (n1.motif.id, n2.motif.id, ave_motif.id, score)
-        n1.parent = new_node
-        n2.parent = new_node
-        new_node.left = n1
-        new_node.right = n2
-        
-        cmp_nodes = dict([(node.motif, node) for node in nodes if not node.parent])
-        
-        if progress:
-            progress = (1 - len(cmp_nodes) / float(total)) * 100
-            sys.stderr.write('\rClustering [{0}{1}] {2}%'.format(
-                '#' * (int(progress) // 10), 
-                " " * (10 - int(progress) // 10), 
-                int(progress)))
-        
-        result = mc.get_all_scores(
-                [new_node.motif], 
-                list(cmp_nodes.keys()), 
-                match, 
-                metric, 
-                combine, 
-                pval, 
-                parallel=True)
-        
-        for motif, n in cmp_nodes.items():
-            x = result[new_node.motif.id][motif.id]
+            ave_motif.trim(edge_ic_cutoff)
+            ave_motif.id = "Average_%s" % ave_count
+            ave_count += 1
+            
+            new_node = MotifTree(ave_motif)
             if pval:
-                x = [1 - x[0]] + x[1:]
-            scores[(new_node, n)] = x
-        
-        nodes.append(new_node)
-
-        cluster_nodes = [node for node in nodes if not node.parent]
-     
+                new_node.maxscore = 1 - mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
+            else:
+                new_node.maxscore = mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
+                
+            new_node.mergescore = score
+            #print "%s + %s = %s with score %s" % (n1.motif.id, n2.motif.id, ave_motif.id, score)
+            n1.parent = new_node
+            n2.parent = new_node
+            new_node.left = n1
+            new_node.right = n2
+            
+            cmp_nodes = dict([(node.motif, node) for node in nodes if not node.parent])
+            
+            if progress:
+                progress = (1 - len(cmp_nodes) / float(total)) * 100
+                sys.stderr.write('\rClustering [{0}{1}] {2}%'.format(
+                    '#' * (int(progress) // 10), 
+                    " " * (10 - int(progress) // 10), 
+                    int(progress)))
+            
+            result = mc.get_all_scores(
+                    [new_node.motif], 
+                    list(cmp_nodes.keys()), 
+                    match, 
+                    metric, 
+                    combine, 
+                    pval, 
+                    parallel=True)
+            
+            for motif, n in cmp_nodes.items():
+                x = result[new_node.motif.id][motif.id]
+                if pval:
+                    x = [1 - x[0]] + x[1:]
+                scores[(new_node, n)] = x
+            
+            nodes.append(new_node)
+    
+            cluster_nodes = [node for node in nodes if not node.parent]
+         
     if progress:
         sys.stderr.write("\n") 
     root = nodes[-1]
