@@ -13,7 +13,7 @@ from datetime import datetime
 
 # GimmeMotifs imports
 from gimmemotifs.config import MotifConfig, GM_VERSION
-from gimmemotifs.motif import read_motifs
+from gimmemotifs.motif import read_motifs,Motif
 from gimmemotifs.comparison import MotifComparer
 
 logger = logging.getLogger("gimme.cluster")
@@ -167,6 +167,11 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
             ave_motif = n1.motif.average_motifs(n2.motif, pos, orientation, include_bg=include_bg)
             
             ave_motif.trim(edge_ic_cutoff)
+            
+            # Check if the motif is not empty
+            if len(ave_motif) == 0:
+                ave_motif = Motif([[0.25,0.25,0.25,0.25]])
+
             ave_motif.id = "Average_%s" % ave_count
             ave_count += 1
             
@@ -209,7 +214,7 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
             
             nodes.append(new_node)
     
-            cluster_nodes = [node for node in nodes if not node.parent]
+        cluster_nodes = [node for node in nodes if not node.parent]
          
     if progress:
         sys.stderr.write("\n") 
