@@ -45,7 +45,7 @@ gadem trawler weeder xxmotif
 $ source activate gimme
 
 # Install gimmemotifs
-$ pip install git+https://github.com/simonvh/gimmemotifs.git@0.11.0
+$ pip install https://github.com/simonvh/gimmemotifs/releases/download/0.11.1/gimmemotifs-0.11.1.tar.gz
 ```
 
 Python 3 is the preferred version, however, GimmeMotifs also supports Python 2. 
