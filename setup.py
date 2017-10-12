@@ -380,7 +380,6 @@ class install_config(Command):
         cfg.set_template_dir(os.path.join(data_dir, 'gimmemotifs/templates'))
         cfg.set_gene_dir(os.path.join(data_dir, 'gimmemotifs/genes'))
         cfg.set_score_dir(os.path.join(data_dir, 'gimmemotifs/score_dists'))
-        cfg.set_index_dir(os.path.join(data_dir, 'gimmemotifs/genome_index'))
         cfg.set_motif_dir(os.path.join(data_dir, 'gimmemotifs/motif_databases'))
         cfg.set_bg_dir(os.path.join(data_dir, 'gimmemotifs/bg'))
         cfg.set_tools_dir(os.path.join(data_dir, 'gimmemotifs/tools'))

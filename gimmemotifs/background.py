@@ -24,15 +24,14 @@ from random import choice
 # External imports
 import numpy as np
 import pybedtools
+from genomepy import Genome
 
 # GimmeMotifs imports
 from gimmemotifs import mytmpdir
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.genome_index import track2fasta,get_random_sequences
-from gimmemotifs.config import MotifConfig
 
-def create_random_genomic_bedfile(out, index_dir, length, n):
-    features = get_random_sequences(index_dir, n, length)
+def create_random_genomic_bedfile(out, genome, length, n):
+    features = Genome(genome).get_random_sequences(n, length)
 
     # Write result to bedfile
     tmp = open(out, "w")
@@ -185,11 +184,8 @@ class MarkovFasta(Fasta):
 def matched_gc_bedfile(bedfile, matchfile, genome, number):
     N_FRACTION = 0.1
     
-    config = MotifConfig()
-    index = os.path.join(config.get_index_dir(), genome)
-    
-    genome_size = os.path.join(index, "genome.size")
-    genome_fa = os.path.join(index, "genome.fa")
+    genome_fa = Genome(genome).filename
+    genome_size = os.path.join(genome_fa, ".sizes")
 
     if not os.path.exists(genome_size) or not os.path.exists(genome_fa):
         raise RuntimeError("genome files not found, please re-index {} "  \
@@ -271,9 +267,6 @@ class MatchedGcFasta(Fasta):
     
     """
     def __init__(self, matchfile, genome="hg19", number=None):
-        config = MotifConfig()
-        index = os.path.join(config.get_index_dir(), genome)
-
         # Create temporary files
         tmpbed = NamedTemporaryFile(dir=mytmpdir()).name
         tmpfasta = NamedTemporaryFile(dir=mytmpdir()).name
@@ -282,7 +275,7 @@ class MatchedGcFasta(Fasta):
         matched_gc_bedfile(tmpbed, matchfile, genome, number)
         
         # Convert track to fasta
-        track2fasta(index, tmpbed, tmpfasta)
+        Genome(genome).track2fasta(tmpbed, fastafile=tmpfasta)
 
         # Initialize super Fasta object
         Fasta.__init__(self, tmpfasta)
@@ -305,7 +298,7 @@ class PromoterFasta(Fasta):
     Returns a Fasta object
     
     """
-    def __init__(self, genefile, index="/usr/share/gimmemotifs/genome_index/hg18", length=None, n=None):
+    def __init__(self, genefile, genome, length=None, n=None):
         length = int(length)
 
         # Create temporary files
@@ -316,7 +309,7 @@ class PromoterFasta(Fasta):
         create_promoter_bedfile(tmpbed, genefile, length, n)
         
         # Convert track to fasta
-        track2fasta(index, tmpbed, tmpfasta, use_strand=True)
+        Genome(genome).track2fasta(tmpbed, fastafile=tmpfasta, stranded=True)
 
         # Initialize super Fasta object
         Fasta.__init__(self, tmpfasta)
@@ -336,7 +329,7 @@ class RandomGenomicFasta(Fasta):
     Returns a Fasta object
     
     """
-    def __init__(self, index="/usr/share/gimmemotifs/genome_index/hg18", length=None, n=None):
+    def __init__(self, genome, length=None, n=None):
         length = int(length)
 
         # Create temporary files
@@ -344,10 +337,10 @@ class RandomGenomicFasta(Fasta):
         tmpfasta = NamedTemporaryFile(dir=mytmpdir()).name
         
         # Create bed-file with coordinates of random sequences
-        create_random_genomic_bedfile(tmpbed, index, length, n)
+        create_random_genomic_bedfile(tmpbed, genome, length, n)
         
         # Convert track to fasta
-        track2fasta(index, tmpbed, tmpfasta, use_strand=True)
+        Genome(genome).track2fasta(tmpbed, fastafile=tmpfasta, stranded=True)
 
         # Initialize super Fasta object
         Fasta.__init__(self, tmpfasta)

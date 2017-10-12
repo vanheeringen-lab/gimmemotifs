@@ -3,7 +3,7 @@ import tempfile
 import os
 from gimmemotifs.utils import *
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.genome_index import GenomeIndex
+from genomepy import Genome
 from tempfile import mkdtemp
 from shutil import rmtree
 
@@ -29,8 +29,7 @@ class TestUtils(unittest.TestCase):
         """ convert bed, regions, etc to Fasta """
         tmpdir = mkdtemp()
 
-        g = GenomeIndex()
-        g.create_index(self.genome_dir, tmpdir)
+        g = Genome("genome", genome_dir=self.genome_dir)
 
         fafile = os.path.join(self.datadir, "test.fa")
         fa = Fasta(fafile)
@@ -42,9 +41,9 @@ class TestUtils(unittest.TestCase):
         self.assertTrue(isinstance(as_fasta(fa), Fasta))
         self.assertTrue(isinstance(as_fasta(fafile), Fasta))
 
-        self.assertTrue(isinstance(as_fasta(bedfile, tmpdir), Fasta))
-        self.assertTrue(isinstance(as_fasta(regionfile, tmpdir), Fasta))
-        self.assertTrue(isinstance(as_fasta(regions, tmpdir), Fasta))
+        self.assertTrue(isinstance(as_fasta(bedfile, g), Fasta))
+        self.assertTrue(isinstance(as_fasta(regionfile, g), Fasta))
+        self.assertTrue(isinstance(as_fasta(regions, g), Fasta))
         
         with self.assertRaises(ValueError):
             as_fasta(bedfile)

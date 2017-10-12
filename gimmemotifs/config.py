@@ -115,14 +115,6 @@ class MotifConfig(object):
             self.config.add_section("main")
         self.config.set("main", "seqlogo", exe)
 
-    def set_index_dir(self, path):
-        if not self.config.has_section("main"):
-            self.config.add_section("main")
-        self.config.set("main", "index_dir", path)
-
-    def get_index_dir(self):
-        return self.config.get("main", "index_dir")
-
     def set_motif_dir(self, path):
         if not self.config.has_section("main"):
             self.config.add_section("main")

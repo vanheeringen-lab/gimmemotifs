@@ -23,11 +23,11 @@ from tempfile import NamedTemporaryFile
 from scipy import special
 import numpy as np
 import pybedtools
+from genomepy import Genome
 
 # gimme imports
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import plot_histogram
-from gimmemotifs.genome_index import track2fasta
 from gimmemotifs.rocmetrics import ks_pvalue
 
 lgam = special.gammaln
@@ -505,31 +505,20 @@ def get_seqs_type(seqs):
     else:
         raise ValueError("unknown type {}".format(type(seqs).__name__))
 
-def as_fasta(seqs, index_dir=None):
+def as_fasta(seqs, genome=None):
     ftype = get_seqs_type(seqs)
     if ftype == "fasta":
         return seqs
     elif ftype == "fastafile":
         return Fasta(seqs)
     else:
-        if index_dir is None:
-            raise ValueError("need index_dir / genome to convert to FASTA")
+        if genome is None:
+            raise ValueError("need genome to convert to FASTA")
 
         tmpfa = NamedTemporaryFile()
-        
-        if ftype == "bedfile":
-            track2fasta(index_dir, seqs, tmpfa.name) 
-        else:
-
-            if ftype == "regionfile":
-                with open(seqs) as f:
-                    seqs = [l.strip() for l in f.readlines()]
-            tmpbed = NamedTemporaryFile(mode="w")
-            for seq in seqs:
-                vals = re.split(r'[:-]', seq)
-                tmpbed.write("{}\t{}\t{}\n".format(*vals))
-            tmpbed.flush()
-            track2fasta(index_dir, tmpbed.name, tmpfa.name) 
+        if type(genome) == type(""):
+            genome = Genome(genome)
+        genome.track2fasta(seqs, tmpfa.name) 
         return Fasta(tmpfa.name)
 
 def file_checksum(fname):
