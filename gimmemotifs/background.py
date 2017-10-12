@@ -184,13 +184,8 @@ class MarkovFasta(Fasta):
 def matched_gc_bedfile(bedfile, matchfile, genome, number):
     N_FRACTION = 0.1
     
-    genome_fa = Genome(genome).filename
-    genome_size = os.path.join(genome_fa, ".sizes")
-
-    if not os.path.exists(genome_size) or not os.path.exists(genome_fa):
-        raise RuntimeError("genome files not found, please re-index {} "  \
-                "with a recent version of gimme index".format(genome))
-
+    g = Genome(genome)
+    genome_fa = g.filename
     try:
         fa = Fasta(matchfile)
         gc = [(seq.upper().count("C") + seq.upper().count("G")) / len(seq) for seq in fa.seqs]
@@ -230,8 +225,20 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
     #sys.stderr.write("Generating sequences\n")
     #sys.stderr.write("{}\n".format(number))
     
+    # Create a file with chromosome sizes if it doesn't exist yet
+    genome_size = genome_fa + ".sizes"
+    del_size = False
+    if not os.path.exists(genome_size):
+        genome_size = NamedTemporaryFile().name
+        del_size = True
+        with open(genome_size, "w") as f:
+            for seqname in g.keys():
+                f.write("{}\t{}\n".format(seqname, len(g[seqname])))
+   
     # pylint: disable=unexpected-keyword-arg
     r = rnd.random(l=length, n=number * 30, g=genome_size).nucleotide_content(fi=genome_fa)
+    if del_size:
+        os.unlink(genome_size)
     
     features = [f[:3] + [float(f[7])] for f in r if float(f[12]) <= length * N_FRACTION]
     gc = [f[3] for f in features]

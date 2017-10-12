@@ -64,7 +64,7 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
 
     config = MotifConfig()
    
-    genome = Genome(genome)
+    genome = Genome(params["genome"])
     for infile in [pred_bedfile, val_bedfile]:
         genome.track2fasta(
             infile, 
@@ -81,7 +81,6 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
             extend_up=extend, 
             extend_down=extend, 
             stranded=params["use_strand"], 
-            ignore_missing=True
             )
 
 def prepare_denovo_input_fa(inputfile, params, outdir):

@@ -241,11 +241,6 @@ p.add_argument("fastadir",
 p.add_argument("genomebuild",
                help="UCSC genome name",
                metavar="GENOMEBUILD")
-p.add_argument("-i", "--indexdir",
-               dest="indexdir",
-               help="Index dir (default %s)" % default_index,
-               metavar="DIR",
-               default=default_index)
 p.set_defaults(func=commands.genome)
 
 # generate_background_sequences.py
