@@ -76,7 +76,7 @@ genome_dir: /data/genomes
 
 To download a genome from UCSC:
 
-`$ genompy install hg38 UCSC`
+`$ genomepy install hg38 UCSC`
 
 Now you can specify this genome for GimmeMotifs by name.
 
@@ -85,6 +85,9 @@ Now you can specify this genome for GimmeMotifs by name.
 
 ## Help 
 
+
+* Full documentation:
+  [http://gimmemotifs.readthedocs.io/]http://gimmemotifs.readthedocs.io/().
 * Check the [FAQ](http://gimmemotifs.readthedocs.io/en/master/faq.html#faq) for
   common issues.
 * The preferred way to get support is through the Github
