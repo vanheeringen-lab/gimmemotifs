@@ -87,7 +87,7 @@ Now you can specify this genome for GimmeMotifs by name.
 
 
 * Full documentation:
-  [http://gimmemotifs.readthedocs.io/]http://gimmemotifs.readthedocs.io/().
+  [http://gimmemotifs.readthedocs.io/](http://gimmemotifs.readthedocs.io/).
 * Check the [FAQ](http://gimmemotifs.readthedocs.io/en/master/faq.html#faq) for
   common issues.
 * The preferred way to get support is through the Github
