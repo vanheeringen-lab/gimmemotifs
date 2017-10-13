@@ -211,53 +211,35 @@ Genomes
 You will need genome FASTA files for a lot of the tools that are included 
 with GimmeMotifs.
 
-Download from UCSC
-~~~~~~~~~~~~~~~~~~
+Download genomes automatically
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The most straightforward way to download and index a genome is to use
-the ``gimme genome`` tool.
+the ``genomepy`` tool, which is installed with GimmeMotifs.
 
 ::
 
-    $ gimme genome $HOME/genomes hg19
+    $ genomepy install hg19 UCSC --annotation
 
 Here, the hg19 genome and accompanying gene annotation will be downloaded
-from UCSC to the directory ``$HOME/genomes/hg19``. 
-This should work for all genomes supported by UCSC. 
-
-Index a genome
-~~~~~~~~~~~~~~
-
-Alternatively, you can index a set of genome FASTA files that you already
-have locally. The FASTA files should be organized in one
-directory with *one file per chromosome or scaffold*, with the filename
-being the chromosome name with an extension of ``.fa``, ``.fsa`` or
-``.fasta``. Then you can run the following command:
+from UCSC to the directory ``~/.local/share/genomes/hg19``. 
+You can change this default location by creating/editing the file ``~/.config/genomepy/genomepy.yaml`` and change the following line:
 
 ::
 
-    gimme index /dir/to/fasta/files/ genome_name
+    genome_dir: /data/genomes
 
-For instance, if I wanted to index the human genome (version hg19) on my
-computer, where all fasta files are located in the directory
-``/usr/share/genome/hg19`` I would run the following command:
-
-::
-
-    gimme index /usr/share/genome/hg19/ hg19
-
-**Note: if you installed GimmeMotifs as root, the** ``gimme index`` **command
-will need to be run as root too** 
+Pleas note: it is no longer necessary to index a genome.
 
 Adding gene files
 ~~~~~~~~~~~~~~~~~
+
+Note: If you used the ``genomepy`` command, annotation will be included automatically.
 
 For some applications a gene file is used. This is a file containing gene
 annotation in BED12 format. It should be located in the ``gene_dir``, 
 which is defined in the configuration file (see below). 
 The file needs to be named ``<index_name>.bed``, so for instance ``hg19.bed``.
-If you used the ``gimme genome`` command, 
-annotation will be included automatically.
 
 .. _`other_configuration`:
 
@@ -277,7 +259,6 @@ have a look at the options.
 ::
 
     [main]
-    index_dir = /usr/share/gimmemotifs/genome_index
     template_dir = /usr/share/gimmemotifs/templates
     seqlogo = /usr/local/bin/seqlogo
     score_dir = /usr/share/gimmemotifs/score_dists
@@ -285,9 +266,7 @@ have a look at the options.
     gene_dir = /usr/share/gimmemotifs/genes
     tools_dir = /usr/share/gimmemotifs/tools
 
--  ``index_dir`` The location of the indeces of the genome fasta-files.
-
--  ``template_dir`` The location of the KID html templates, used to
+-  ``template_dir`` The location of the jinja2 html templates, used to
    generate the reports.
 
 -  ``seqlogo`` The seqlogo executable.
@@ -297,9 +276,8 @@ have a look at the options.
 
 -  ``motif_databases`` For now contains only the JASPAR motifs.
 
--  ``gene_dir`` Directory with bed-files containing gene locations for
-   every indexed organism. This is needed to create the matched genomic
-   background.
+-  ``gene_dir`` Directory with bed-files containing gene locations.
+   This is needed to create promoter background sequences.
 
 -  ``tools_dir`` Here all tools included with GimmeMotifs are stored.
 
