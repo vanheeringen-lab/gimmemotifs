@@ -41,12 +41,18 @@ def background(args):
         Genome(args.genome)
 
     # Gene definition
-    gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % args.genome)
+    fname = Genome(args.genome).filename
+    gene_file = fname.replace(".fa", ".annotation.bed.gz")
+    if not gene_file:
+        gene_file = os.path.join(config.get_gene_dir(), "{}.bed".format(args.genome))
+    
     if bg_type in ["promoter"]:
         if not os.path.exists(gene_file):
-            print("Can't find gene definition for %s (%s). See GimmeMotifs documentation on how to add gene files." % (args.genome, gene_file))
+            print("Could not find a gene file for genome {}".format(args.genome))
+            print("Did you use the --annotation flag for genomepy?")
+            print("Alternatively make sure there is a file called {}.bed in {}".format(args.genome, config.get_gene_dir()))
             sys.exit(1)
-    
+
     # Number of sequences
     number = None
     if args.number:

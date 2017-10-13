@@ -14,6 +14,7 @@ similar genomic distribution as the input.
 from __future__ import division
 
 # Python imports
+import gzip
 import os
 import random
 import re
@@ -43,9 +44,13 @@ def create_promoter_bedfile(out, genefile, length, n):
     strand_map = {"+":True, "-":False, 1:True, -1:False, "1":True, "-1":False}
 
     features = []
-    
-    for line in open(genefile):
-        if not line.startswith("track"):
+    if genefile.endswith(".gz"):
+        fin = gzip.open(genefile, "rt")
+    else:
+        fin = open(genefile)
+
+    for line in fin:
+        if not line.startswith("track") or line.startswith("#"):
             (chrom, start, end, _name, score, strand) = line[:-1].split("\t")[:6]
             start, end = int(start), int(end)
             strand= strand_map[strand]
@@ -54,7 +59,7 @@ def create_promoter_bedfile(out, genefile, length, n):
                     features.append([chrom, start - length, start, strand])
             else:
                 features.append([chrom, end, end + length, strand])
-
+    fin.close()
     
     if n < len(features):
         features = random.sample(features, n)

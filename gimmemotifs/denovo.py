@@ -159,7 +159,15 @@ def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_tim
         f = MatchedGcFasta(fafile, genome, nr_times * len(fg))
         logger.debug("GC matched background: %s", outfile)
     elif bg_type == "promoter":
-        gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % genome)
+        fname = Genome(genome).filename
+        gene_file = fname.replace(".fa", ".annotation.bed.gz")
+        if not gene_file:
+            gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % genome)
+        if not os.path.exists(gene_file):
+            print("Could not find a gene file for genome {}")
+            print("Did you use the --annotation flag for genomepy?")
+            print("Alternatively make sure there is a file called {}.bed in {}".format(genome, config.get_gene_dir()))
+            raise ValueError()
 
         logger.info(
                 "Creating random promoter background (%s, using genes in %s)",
