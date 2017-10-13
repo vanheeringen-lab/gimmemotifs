@@ -49,7 +49,7 @@ install:
    else
       conda install python=3 pip future numpy scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed xdg xxhash readline ghostscript homer gadem trawler weeder xxmotif;
     fi
-  - pip install git+https://github.com/simonvh/genomepy.git@feature/track2fasta
+  - pip install genomepy==0.4.0 
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then 
       conda install configparser;
     fi
