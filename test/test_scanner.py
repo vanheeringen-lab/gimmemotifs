@@ -7,7 +7,7 @@ from gimmemotifs.genome_index import GenomeIndex
 from time import sleep
 
 class TestScanner(unittest.TestCase):
-    """ A test class to test scanner funcitonalitu """
+    """ A test class to test scanner funcitonality """
 
     def setUp(self):
         self.data_dir = "test/data/scanner"
@@ -17,11 +17,7 @@ class TestScanner(unittest.TestCase):
         self.bed = os.path.join(self.data_dir, "test.bed")
         self.regions = os.path.join(self.data_dir, "test.txt")
 
-        genome = "genome"
-        genome_dir = os.path.join(self.data_dir, genome)
-        genome_index = GenomeIndex()
         self.tmpdir = tempfile.mkdtemp()
-        genome_index.create_index(genome_dir, self.tmpdir)
     
     def test1_scan_sequences(self):
         """ Scanner """
@@ -48,8 +44,10 @@ class TestScanner(unittest.TestCase):
             self.assertEqual([0,2,4], nmatches)
 
     def test2_scan_to_best_match(self):
+        genome = os.path.join(self.data_dir, "genome.fa")
+
         for f in self.fa, self.bed, self.regions:
-            result = scan_to_best_match(f, self.motifs, genome=self.tmpdir)
+            result = scan_to_best_match(f, self.motifs, genome=genome)
         
             scores = [-20.08487, 9.029220, 9.029220]
     

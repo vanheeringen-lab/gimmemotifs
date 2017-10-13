@@ -28,7 +28,6 @@ commands:
     match       find motif matches in database
     cluster     cluster similar motifs
     genome      download genome and genes from UCSC
-    index       index a genome
     background  create a background file
     threshold   calculate motif scan threshold
     location    motif location histograms
@@ -234,22 +233,6 @@ p.add_argument("-t",
                type=float)
 p.set_defaults(func=commands.cluster)
 
-# create_genome_index.py
-default_index = config.get_index_dir()
-p = subparsers.add_parser('index')
-p.add_argument("fastadir", 
-               help="Directory containing fastafiles", 
-               metavar="FASTADIR")
-p.add_argument("indexname", 
-               help="Name of index", 
-               metavar="INDEXNAME")
-p.add_argument("-i", "--indexdir", 
-               dest="indexdir", 
-               help="Index dir (default %s)" % default_index, 
-               metavar="DIR", 
-               default=default_index)
-p.set_defaults(func=commands.index)
-
 # gimme genome
 p = subparsers.add_parser('genome')
 p.add_argument("fastadir",
@@ -258,11 +241,6 @@ p.add_argument("fastadir",
 p.add_argument("genomebuild",
                help="UCSC genome name",
                metavar="GENOMEBUILD")
-p.add_argument("-i", "--indexdir",
-               dest="indexdir",
-               help="Index dir (default %s)" % default_index,
-               metavar="DIR",
-               default=default_index)
 p.set_defaults(func=commands.genome)
 
 # generate_background_sequences.py

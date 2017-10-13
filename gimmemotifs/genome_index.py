@@ -23,6 +23,7 @@ from distutils.spawn import find_executable
 import gzip 
 
 import pybedtools
+from genomepy import Genome
 
 from gimmemotifs.shutils import find_by_ext
 from gimmemotifs.config import FASTA_EXT,MotifConfig
@@ -556,93 +557,93 @@ def rc(seq):
     d = maketrans("actgACTG","tgacTGAC")
     return seq[::-1].translate(d)
 
-def track2fasta(index_dir, bedfile, fastafile, extend_up=0, extend_down=0, use_strand=False, ignore_missing=False):
-    """ Convert a bedfile to a fastafile, given a certain index """
-    g = GenomeIndex(index_dir)
-    
-    BUFSIZE = 10000
-    bed = open(bedfile)
-    lines = bed.readlines(BUFSIZE)
-    line_count = 0
-    features = []
-    chr_features = {}
-    while lines:
-        for line in lines:
-            line_count += 1
-            if not line.startswith("#") and not line.startswith("track"):
-                vals = line.strip().split("\t")
-                try:
-                    start, end = int(vals[1]), int(vals[2])
-                except ValueError:
-                    print("Error on line %s while reading %s. Is the file in BED or WIG format?" % (line_count, bedfile))
-                    sys.exit(1)
-                strand = "+"
-                if use_strand:
-                    try:
-                        strand = vals[5]
-                    except IndexError:
-                        strand = "+"
-                chrom = vals[0]
-                val = "" 
-                if len(vals) > 3:
-                    val = vals[3]
-                if len(vals) == 12:
-                    # BED12
-                    blockSizes = [int(x) for x in vals[10].strip(",").split(",")]
-                    blockStarts = [int(x) for x in vals[11].strip(",").split(",")]
-                    chr_features.setdefault(chrom,[]).append([])
-                    for estart,esize in zip(blockStarts, blockSizes):
-                        chr_features[chrom][-1].append([start + estart, 
-                                                        start + estart + esize,
-                                                        val,
-                                                        strand
-                                                       ])
-
-                else:
-                    chr_features.setdefault(chrom,[]).append([[start,end,val,strand]])    
-                features.append([chrom, len(chr_features[chrom]) - 1])
-        lines = bed.readlines(BUFSIZE)
-    bed.close()
-    
-    seqs = {}
-    for chrom,feats in chr_features.items():
-        try: 
-            size = g.get_size(chrom)
-        except KeyError as e:
-            if ignore_missing:
-                sys.stderr.write("skipping {}: {}\n".format(chrom, str(e)))
-                continue
-            else:
-                raise
-
-        feats = [f for f in feats if len(f) > 0] 
-        for f in feats:
-            f[0][0] -= extend_up
-            if f[0][0] < 0:
-                f[0][0] = 0
-            f[-1][1] += extend_down
-            if f[-1][1] > size:
-                f[-1][1] = size
- 
-        coords = [[[x[0], x[1]] for x in f] for f in feats]
-        all_seqs = g.get_sequences(chrom, coords)
-       
-        gene_ext_coords = [[f[0][0], f[-1][1], f[0][2], f[0][3]] for f in feats]
-        
-        for (ext_start, ext_end, val, strand), (seq), i in zip(gene_ext_coords, all_seqs, range(len(feats))):
-            seqs[(chrom,i)] = [seq, ext_start, ext_end, val, strand]
-    
-    out = open(fastafile, "w")
-    for chrom, i in features:
-        if (chrom, i) in seqs:
-            seq, ext_start, ext_end, val, strand = seqs[(chrom, i)]
-            if use_strand and strand == "-":
-                seq = rc(seq)
-            if val:
-                out.write(">%s:%s-%s %s\n%s\n" % (chrom, ext_start, ext_end, val, seq))
-            else:
-                out.write(">%s:%s-%s\n%s\n" % (chrom, ext_start, ext_end, seq))
-    out.close()
+#def track2fasta(name, bedfile, fastafile, extend_up=0, extend_down=0, use_strand=False, ignore_missing=False):
+#    """ Convert a bedfile to a fastafile, given a certain index """
+#    g = genome(name)
+#    
+#    BUFSIZE = 10000
+#    bed = open(bedfile)
+#    lines = bed.readlines(BUFSIZE)
+#    line_count = 0
+#    features = []
+#    chr_features = {}
+#    while lines:
+#        for line in lines:
+#            line_count += 1
+#            if not line.startswith("#") and not line.startswith("track"):
+#                vals = line.strip().split("\t")
+#                try:
+#                    start, end = int(vals[1]), int(vals[2])
+#                except ValueError:
+#                    print("Error on line %s while reading %s. Is the file in BED or WIG format?" % (line_count, bedfile))
+#                    sys.exit(1)
+#                strand = "+"
+#                if use_strand:
+#                    try:
+#                        strand = vals[5]
+#                    except IndexError:
+#                        strand = "+"
+#                chrom = vals[0]
+#                val = "" 
+#                if len(vals) > 3:
+#                    val = vals[3]
+#                if len(vals) == 12:
+#                    # BED12
+#                    blockSizes = [int(x) for x in vals[10].strip(",").split(",")]
+#                    blockStarts = [int(x) for x in vals[11].strip(",").split(",")]
+#                    chr_features.setdefault(chrom,[]).append([])
+#                    for estart,esize in zip(blockStarts, blockSizes):
+#                        chr_features[chrom][-1].append([start + estart, 
+#                                                        start + estart + esize,
+#                                                        val,
+#                                                        strand
+#                                                       ])
+#
+#                else:
+#                    chr_features.setdefault(chrom,[]).append([[start,end,val,strand]])    
+#                features.append([chrom, len(chr_features[chrom]) - 1])
+#        lines = bed.readlines(BUFSIZE)
+#    bed.close()
+#    
+#    seqs = {}
+#    for chrom,feats in chr_features.items():
+#        try: 
+#            size = g.get_size(chrom)
+#        except KeyError as e:
+#            if ignore_missing:
+#                sys.stderr.write("skipping {}: {}\n".format(chrom, str(e)))
+#                continue
+#            else:
+#                raise
+#
+#        feats = [f for f in feats if len(f) > 0] 
+#        for f in feats:
+#            f[0][0] -= extend_up
+#            if f[0][0] < 0:
+#                f[0][0] = 0
+#            f[-1][1] += extend_down
+#            if f[-1][1] > size:
+#                f[-1][1] = size
+# 
+#        coords = [[[x[0], x[1]] for x in f] for f in feats]
+#        all_seqs = g.get_sequences(chrom, coords)
+#       
+#        gene_ext_coords = [[f[0][0], f[-1][1], f[0][2], f[0][3]] for f in feats]
+#        
+#        for (ext_start, ext_end, val, strand), (seq), i in zip(gene_ext_coords, all_seqs, range(len(feats))):
+#            seqs[(chrom,i)] = [seq, ext_start, ext_end, val, strand]
+#    
+#    out = open(fastafile, "w")
+#    for chrom, i in features:
+#        if (chrom, i) in seqs:
+#            seq, ext_start, ext_end, val, strand = seqs[(chrom, i)]
+#            if use_strand and strand == "-":
+#                seq = rc(seq)
+#            if val:
+#                out.write(">%s:%s-%s %s\n%s\n" % (chrom, ext_start, ext_end, val, seq))
+#            else:
+#                out.write(">%s:%s-%s\n%s\n" % (chrom, ext_start, ext_end, seq))
+#    out.close()
 
 def _weighted_selection(l, n):
     """

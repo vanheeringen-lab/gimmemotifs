@@ -56,26 +56,38 @@ you want to use GimmeMotifs.
 
 ## Quick start
 
+### Predict some motifs:
+
+`$ gimme motifs my_peaks.bed -g /data/genomes/hg38/hg38.fa -n my_motifs`
+
 ### Download a genome
 
-Create a directory to store genome files.
+The example above assumes that you have the hg38 genome in
+`/data/genomes/hg38/hg38.fa`. 
+GimmeMotifs can also use genomes installed by
+[genomepy](http://github.com/simonvh/genomepy).
 
-`$ mkdir $HOME/genomes/`
+You can configure the directory where genomepy stores genomes by editing
+`~/.config/genomepy/genomepy.yaml`
 
-To download and index a genome (all UCSC-supported genomes):
+``` 
+genome_dir: /data/genomes
+``` 
 
-`$ gimme genome $HOME/genomes/ hg38`
+To download a genome from UCSC:
 
-Alternatively, you can index a genome directory with chromosome FASTA files on your computer.
+`$ genomepy install hg38 UCSC --annotation`
 
-`$ gimme index /usr/share/genomes/hg19 hg19`
-
-### Predict some motifs:
+Now you can specify this genome for GimmeMotifs by name.
 
 `$ gimme motifs my_peaks.bed -g hg38 -n my_motifs`
 
+
 ## Help 
 
+
+* Full documentation:
+  [http://gimmemotifs.readthedocs.io/](http://gimmemotifs.readthedocs.io/).
 * Check the [FAQ](http://gimmemotifs.readthedocs.io/en/master/faq.html#faq) for
   common issues.
 * The preferred way to get support is through the Github

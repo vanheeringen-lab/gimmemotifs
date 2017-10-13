@@ -9,7 +9,7 @@ import sys
 import os
 from gimmemotifs.fasta import Fasta
 import gimmemotifs.background as bg
-from gimmemotifs.genome_index import check_genome
+from genomepy import Genome
 from gimmemotifs.config import MotifConfig, BG_TYPES
 from gimmemotifs.utils import number_of_seqs_in_file
 
@@ -37,17 +37,22 @@ def background(args):
     config = MotifConfig()
         
     # Genome index location for creation of FASTA files
-    index_dir = os.path.join(config.get_index_dir(), args.genome)
     if bg_type in ["gc", "genomic", "promoter"] and outformat == "fasta":
-        check_genome(args.genome)
+        Genome(args.genome)
 
     # Gene definition
-    gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % args.genome)
+    fname = Genome(args.genome).filename
+    gene_file = fname.replace(".fa", ".annotation.bed.gz")
+    if not gene_file:
+        gene_file = os.path.join(config.get_gene_dir(), "{}.bed".format(args.genome))
+    
     if bg_type in ["promoter"]:
         if not os.path.exists(gene_file):
-            print("Can't find gene definition for %s (%s). See GimmeMotifs documentation on how to add gene files." % (args.genome, gene_file))
+            print("Could not find a gene file for genome {}".format(args.genome))
+            print("Did you use the --annotation flag for genomepy?")
+            print("Alternatively make sure there is a file called {}.bed in {}".format(args.genome, config.get_gene_dir()))
             sys.exit(1)
-    
+
     # Number of sequences
     number = None
     if args.number:
@@ -70,14 +75,14 @@ def background(args):
             bg.matched_gc_bedfile(out, inputfile, args.genome, number)
     elif bg_type == "promoter":
         if outformat in ["fasta", "fa"]:
-            m = bg.PromoterFasta(gene_file, index_dir, length=length, n=number)
+            m = bg.PromoterFasta(gene_file, args.genome, length=length, n=number)
             m.writefasta(out)
         else:
             bg.create_promoter_bedfile(out, gene_file, length, number)
     elif bg_type == "genomic":
         if outformat in ["fasta", "fa"]:
-            m = bg.RandomGenomicFasta(index_dir, length, number)
+            m = bg.RandomGenomicFasta(args.genome, length, number)
             m.writefasta(out)
         else:
-            bg.create_random_genomic_bedfile(out, index_dir, length, number)
+            bg.create_random_genomic_bedfile(out, args.genome, length, number)
         

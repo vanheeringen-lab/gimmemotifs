@@ -14,7 +14,7 @@ import re
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.utils import as_fasta 
 from gimmemotifs.scanner import Scanner,scan_it_moods
-from gimmemotifs.config import MotifConfig,GM_VERSION
+from gimmemotifs.config import GM_VERSION
 
 MAX_CPUS = 16
 
@@ -110,11 +110,7 @@ def command_scan(inputfile, pwmfile, nreport=1, fpr=0.01, cutoff=None,
         pvalue=None, bgfile=None, genome=None):
     motifs = pwmfile_to_motifs(pwmfile)
     
-    index_dir = None
-    if genome is not None:
-        index_dir = os.path.join(MotifConfig().get_index_dir(), genome) 
-   
-    fa = as_fasta(inputfile, index_dir)
+    fa = as_fasta(inputfile, genome)
     
     # initialize scanner
     s = Scanner()
