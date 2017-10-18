@@ -229,7 +229,7 @@ You can change this default location by creating/editing the file ``~/.config/ge
 
     genome_dir: /data/genomes
 
-Pleas note: it is no longer necessary to index a genome.
+Please note: in contrast to earlier versions of GimmeMotifs it is no longer necessary to index a genome.
 
 Adding gene files
 ~~~~~~~~~~~~~~~~~
