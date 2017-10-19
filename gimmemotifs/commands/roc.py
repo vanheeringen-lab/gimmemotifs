@@ -58,8 +58,8 @@ def html_report(outdir, infile, pwmfile, threshold=0.01):
             motif.to_img(outdir + "/logos/{}.png".format(motif.id), fmt="PNG")
     
     bar_cols = [
-            "log10 P-value", "ROC AUC", "MNCP",
-            "Enr. at 1% FDR", "Max enr.", "Recall at 10% FDR"
+            "log10 P-value", "ROC AUC", "PR AUC", "MNCP",
+            "Enr. at 1% FPR", "Max enr.", "Recall at 10% FDR"
             ]
     template_dir = MotifConfig().get_template_dir()
     js = open(os.path.join(template_dir, "sortable/sortable.min.js"), encoding="utf-8").read()
