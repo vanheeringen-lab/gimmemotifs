@@ -16,7 +16,7 @@ For documentation on the development version see [here](http://gimmemotifs.readt
 
 ## Easy installation
 
-The most straightforward way to install GimmeMotifs is via [conda](https://docs.continuum.io/anaconda/) using the [bioconda](https://bioconda.github.io/) channel. If you have not used bioconda yet, first set up the necessary channels (in this order):
+The most straightforward way to install GimmeMotifs is via [conda](https://docs.continuum.io/anaconda/) using the [bioconda](https://bioconda.github.io/) channel. If you have not used bioconda before, first set up the necessary channels (in this order). You only have to do this once.
 
 ```
 $ conda config --add channels r
@@ -25,27 +25,14 @@ $ conda config --add channels conda-forge
 $ conda config --add channels bioconda
 ```
 
-Normally, you would be able to install GimmeMotifs with one command:
-
-`$ conda create -n gimme gimmemotifs`
-
-However, due to an issue with the bioconda build system, I can't release the
-current stable version on bioconda. Until that is fixed, you can install it as 
-follows:
+You can install GimmeMotifs with one command:
 
 ```
 # Create an environment called gimme with all dependencies
-$ conda create -n gimme python=3 pip future numpy scipy matplotlib=2 \
-statsmodels scikit-learn seaborn jinja2 bedtools pybedtools \
-ucsc-genepredtobed lightning xgboost r-robustrankaggreg pillow pyyaml \
-diskcache six ucsc-bigbedtobed xdg xxhash readline ghostscript homer \
-gadem trawler weeder xxmotif
+$ conda create -n gimme python=3 gimmemotifs
 
 # Activate the environment
 $ source activate gimme
-
-# Install gimmemotifs
-$ pip install git+https://github.com/simonvh/gimmemotifs@0.11.1
 ```
 
 Python 3 is the preferred version, however, GimmeMotifs also supports Python 2. 
