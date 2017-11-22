@@ -23,7 +23,4 @@ def maelstrom(args):
     if methods:
         methods = [x.strip() for x in methods.split(",")]
 
-    # check if the genome exists and is indexed
-    check_genome(genome)
-                
     run_maelstrom(infile, genome, outdir, pwmfile, methods=methods)

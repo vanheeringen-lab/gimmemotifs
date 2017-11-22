@@ -785,7 +785,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
     m2f = None
     
     # read data
-    df = pd.read_table(inputfile, index_col=0)
+    df = pd.read_table(inputfile, index_col=0, comment="#")
     
     clf = Moap.create(method)
 
@@ -821,7 +821,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
         base = os.path.splitext(pwmfile)[0]
         map_file = base + ".motif2factors.txt"
         if os.path.exists(map_file):
-            m2f = pd.read_table(map_file, index_col=0)
+            m2f = pd.read_table(map_file, index_col=0, comment="#")
 
         # initialize scanner
         s = Scanner()
@@ -843,7 +843,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
 
         motifs = pd.DataFrame(scores, index=df.index, columns=motif_names)
     else:
-        motifs = pd.read_table(motiffile, index_col=0)   
+        motifs = pd.read_table(motiffile, index_col=0, comment="#")   
 
     if outfile and os.path.exists(outfile):
         out = pd.read_table(outfile, index_col=0, comment="#")

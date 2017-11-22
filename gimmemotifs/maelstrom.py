@@ -46,7 +46,7 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
         raise ValueError("no pwmfile given and no default database specified")
 
     logger.info("reading table")
-    df = pd.read_table(input_table, index_col=0)
+    df = pd.read_table(input_table, index_col=0, comment="#")
     regions = list(df.index)
     s = Scanner()
     s.set_motifs(pwmfile)
@@ -110,7 +110,7 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
         m2f = pd.DataFrame({"factors": motifs}, index=motifs)
 
     sig_fname = os.path.join(outdir, "final.out.csv")
-    df_sig = pd.read_table(sig_fname, index_col=0)
+    df_sig = pd.read_table(sig_fname, index_col=0, comment="#")
     f = np.any(df_sig >= sig_cutoff, 1)
     vis = df_sig[f]
     if vis.shape[0] == 0:
@@ -140,7 +140,7 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
    
     freq_fname = os.path.join(outdir, "motif.freq.txt")
     if os.path.exists(freq_fname):
-        df_freq = pd.read_table(freq_fname, index_col=0) 
+        df_freq = pd.read_table(freq_fname, index_col=0, comment="#") 
         df_freq = df_freq.T
         vis_freq = df_freq.loc[vis.iloc[idx].index]
         vis_freq = safe_join(vis_freq, m2f).set_index("factors")
@@ -171,7 +171,7 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
 def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True, 
         score_table=None, count_table=None, methods=None):
     logger.info("Starting maelstrom")
-    df = pd.read_table(infile, index_col=0)
+    df = pd.read_table(infile, index_col=0, comment="#")
     # Check for duplicates
     if df.index.duplicated(keep=False).any():
         raise ValueError("Input file contains duplicate regions! "
@@ -296,7 +296,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
     # Write motif frequency table
     
     if df.shape[1] == 1:
-        mcount = df.join(pd.read_table(count_table, index_col=0))
+        mcount = df.join(pd.read_table(count_table, index_col=0, comment="#"))
         m_group = mcount.groupby(df.columns[0])
         freq = m_group.sum() / m_group.count()
         freq.to_csv(os.path.join(outdir, "motif.freq.txt"), sep="\t")
