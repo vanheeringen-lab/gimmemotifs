@@ -539,3 +539,15 @@ def file_checksum(fname):
     with open(fname, "r+") as f:
         checksum = hashlib.md5(mmap.mmap(f.fileno(), size)).hexdigest()
     return checksum
+
+def join_max(a, l, sep="", suffix=""):
+    lengths = [len(x) for x in a]
+    total = 0
+    for i,size in enumerate(lengths + [0]):
+        if total > (l - len(suffix)):
+            return sep.join(a[:i - 1]) + suffix
+        if i > 0:
+            total += 1
+        total += size
+    return sep.join(a)
+

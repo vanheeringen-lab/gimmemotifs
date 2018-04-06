@@ -55,6 +55,21 @@ class TestUtils(unittest.TestCase):
         md5 = "a34798835d4110c34df45bbd8ed2f910"
         self.assertEqual(md5, file_checksum(fname))
 
+    def test_join_max(self):
+        size_in = range(25)
+        size_out = [
+                0,
+                1,1,1,
+                4,4,4,4,
+                8,8,8,8,8,
+                13,13,13,13,13,
+                18,18,18,18,18,18,18
+                ]
+        a =  ["1", "22", "333", '4444', '5555']
+
+        for s_in, s_out in zip(size_in, size_out):
+            self.assertEqual(len(join_max(a, s_in, ",")), s_out)
+    
     def tearDown(self):
         pass
 

@@ -3,8 +3,10 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
+import glob
 import os
 import subprocess as sp
+import shutil
 import sys
 from tempfile import NamedTemporaryFile
 import logging
@@ -27,6 +29,7 @@ from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.report import maelstrom_html_report
+from gimmemotifs.utils import join_max
 
 BG_LENGTH = 200
 BG_NUMBER = 10000
@@ -184,6 +187,14 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         methods = Moap.list_predictors() 
     methods = [m.lower() for m in methods]
 
+    shutil.copyfile(infile, os.path.join(outdir, "input.table.txt"))
+
+    if pwmfile:
+        shutil.copy2(pwmfile, outdir)
+        mapfile = pwmfile.replace(".pwm", ".motif2factors.txt")
+        if os.path.exists(mapfile):
+            shutil.copy2(mapfile, outdir)
+    
     # Create a file with the number of motif matches
     if not count_table:
         count_table = os.path.join(outdir, "motif.count.txt.gz")
@@ -310,3 +321,176 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
                 )
         logger.info(os.path.join(outdir, "gimme.maelstrom.report.html"))
 
+class MaelstromResult():
+    """Class for working with maelstrom output."""
+    
+    def __init__(self, outdir):
+        """Initialize a MaelstromResult object from a maelstrom output 
+        directory.
+        
+        Parameters
+        ----------
+        outdir : str
+            Name of a maelstrom output directory.
+        
+        See Also
+        --------
+        maelstrom.run_maelstrom : Run a maelstrom analysis.
+        """    
+        if not os.path.exists(outdir):
+            raise FileNotFoundError("No such directory: " + outdir)
+            
+        # Load motifs
+        pwmfile = glob.glob(os.path.join(outdir, "*.pwm"))[0]
+        with open(pwmfile) as fin:
+            self.motifs = {m.id: m for m in read_motifs(fin)}
+        
+        self.activity = {}
+        # Read individual activity files
+        for fname in glob.glob(os.path.join(outdir, "activity*txt")):
+            #print()
+            _, name, mtype, _, _ = os.path.split(fname)[-1].split(".")
+            self.activity["{}.{}".format(name, mtype)] = pd.read_table(
+                fname, comment="#", index_col=0)
+        
+        # Read rank aggregation
+        self.result = pd.read_table(
+            os.path.join(outdir, "final.out.csv"), 
+            comment="#", index_col=0
+        )
+        
+        # Read motif results
+        self.scores = pd.read_table(
+            os.path.join(outdir, "motif.score.txt.gz"), 
+            index_col=0
+        )
+        self.counts = pd.read_table(
+            os.path.join(outdir, "motif.count.txt.gz"), 
+            index_col=0
+        )
+        self.freq = pd.read_table(
+            os.path.join(outdir, "motif.freq.txt"), 
+            index_col=0
+        )
+        
+        # Read original input file
+        self.input = pd.read_table(
+            os.path.join(outdir, "input.table.txt"), 
+            index_col=0
+        )
+        if self.input.shape[1] == 1:
+            self.input.columns = ["cluster"]
+    
+    def plot_heatmap(self, kind="final", min_freq=0.01, threshold=2, name=True, max_len=50, aspect=1, **kwargs):
+        """Plot clustered heatmap of predicted motif activity.
+        
+        Parameters
+        ----------
+        kind : str, optional
+            Which data type to use for plotting. Default is 'final', which will plot the 
+            result of the rang aggregation. Other options are 'freq' for the motif frequencies,
+            or any of the individual activities such as 'rf.score'.
+            
+        min_freq : float, optional
+            Minimum frequency of motif occurrence.
+            
+        threshold : float, optional
+            Minimum activity (absolute) of the rank aggregation result. 
+        
+        name : bool, optional
+            Use factor names instead of motif names for plotting.
+        
+        max_len : int, optional
+            Truncate the list of factors to this maximum length.
+            
+        aspect : int, optional
+            Aspect ratio for tweaking the plot.
+            
+        kwargs : other keyword arguments
+            All other keyword arguments are passed to sns.clustermap
+
+        Returns
+        -------
+        cg : ClusterGrid
+            A seaborn ClusterGrid instance.
+        """
+        
+        filt = np.any(np.abs(self.result) >= threshold, 1) & np.any(np.abs(self.freq.T) >= min_freq, 1)
+        
+        idx = self.result[filt].index
+        
+        cmap = "RdBu_r" 
+        if kind == "final":
+            data = self.result
+        elif kind == "freq":
+            data = self.freq.T
+            cmap = "Reds"
+        elif kind in self.activity:
+            data = self.activity[dtype]
+            if kind in ["hypergeom.count", "mwu.score"]:
+                cmap = "Reds"
+        else:
+            raise ValueError("Unknown dtype")
+        
+        #print(data.head())
+        #plt.figure(
+        m = data.loc[idx]
+        if name:
+            m["factors"] = [join_max(self.motifs[n].factors, max_len, ",", suffix=",(...)") for n in m.index]
+            m = m.set_index("factors")
+        h,w = m.shape
+        cg = sns.clustermap(m, cmap=cmap, col_cluster=False, 
+                            figsize=(2 + w * 0.5 * aspect, 0.5 * h), linewidths=1,
+                           **kwargs)
+        cg.ax_col_dendrogram.set_visible(False)
+        plt.setp(cg.ax_heatmap.yaxis.get_majorticklabels(), rotation=0);
+        return cg
+        
+        
+    def plot_scores(self, motifs, name=True, max_len=50):
+        """Create motif scores boxplot of different clusters.
+        Motifs can be specified as either motif or factor names.
+        The motif scores will be scaled and plotted as z-scores.
+        
+        Parameters
+        ----------
+        motifs : iterable or str
+            List of motif or factor names.
+        
+        name : bool, optional
+            Use factor names instead of motif names for plotting.
+        
+        max_len : int, optional
+            Truncate the list of factors to this maximum length.
+        
+        Returns
+        -------
+        
+        g : FacetGrid
+            Returns the seaborn FacetGrid object with the plot.
+        """
+        if self.input.shape[1] != 1:
+            raise ValueError("Can't make a categorical plot with real-valued data")
+        
+        if type("") == type(motifs):
+            motifs = [motifs]
+            
+        plot_motifs = []
+        for motif in motifs:
+            if motif in self.motifs:
+                plot_motifs.append(motif)
+            else:
+                for m in self.motifs.values():
+                    if motif in m.factors:
+                        plot_motifs.append(m.id)
+        
+        data = self.scores[plot_motifs].apply(scale, axis=0)
+        if name:
+            data = data.T
+            data["factors"] = [join_max(self.motifs[n].factors, max_len, ",", suffix=",(...)") for n in plot_motifs]
+            data = data.set_index("factors").T
+        
+        data = pd.melt(self.input.join(data), id_vars=["cluster"])
+        data.columns = ["cluster", "motif", "z-score"]
+        g = sns.factorplot(data=data, y="motif", x="z-score", hue="cluster", kind="box", aspect=2)
+        return g
