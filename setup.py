@@ -499,5 +499,6 @@ setup (
             "six",
             "future",
             "genomepy",
-        ],
+            "tqdm",
+            ],
 )
