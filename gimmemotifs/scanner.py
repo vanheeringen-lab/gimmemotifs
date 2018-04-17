@@ -5,7 +5,7 @@ import gc
 from functools import partial
 from tempfile import mkdtemp,NamedTemporaryFile
 import logging
-from multiprocessing import Pool
+import multiprocessing as mp
 import six
 
 # "hidden" features, in development
@@ -263,6 +263,9 @@ class Scanner(object):
             self.ncpus = int(MotifConfig().get_default_params()["ncpus"])
         else:
             self.ncpus = ncpus
+        
+        ctx = mp.get_context('spawn')
+        self.pool = ctx.Pool(processes=self.ncpus)
 
         self.use_cache = False
         if self.config.get_default_params().get("use_cache", False):
@@ -597,15 +600,14 @@ class Scanner(object):
                 yield ret
             
     def _scan_jobs(self, scan_func, scan_seqs):
-        batchsize = 5000
+        batchsize = 1000
         if self.ncpus > 1:
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
                 batch = scan_seqs[i * batchsize:( i+ 1) * batchsize]
                 chunksize = len(batch) // self.ncpus + 1
-                pool = Pool(processes=self.ncpus)
                 jobs = []
                 for j in range((len(batch) - 1) // chunksize + 1):
-                    job = pool.apply_async(
+                    job = self.pool.apply_async(
                             scan_func, 
                             (batch[j * chunksize:(j + 1) * chunksize],)
                             )
@@ -615,8 +617,6 @@ class Scanner(object):
                     for ret in job.get():
                         region = batch[k]
                         yield region, ret
-                pool.close()
-                gc.collect()
         else:
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
                 for j,ret in enumerate(scan_func(scan_seqs[i * batchsize:( i+ 1) * batchsize])):
