@@ -49,8 +49,14 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
         raise ValueError("no pwmfile given and no default database specified")
 
     logger.info("reading table")
-    df = pd.read_table(input_table, index_col=0, comment="#")
-    regions = list(df.index)
+    if input_table.endswith("feather"):
+        df = pd.read_feather(input_table)
+        idx = df.iloc[:,0].values
+    else:
+        df = pd.read_table(input_table, index_col=0, comment="#")
+        idx = df.index
+    
+    regions = list(idx)
     s = Scanner()
     s.set_motifs(pwmfile)
     s.set_genome(genome)
@@ -73,7 +79,7 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
    
     motif_names = [m.id for m in read_motifs(open(pwmfile))]
     logger.info("creating dataframe")
-    return pd.DataFrame(scores, index=df.index, columns=motif_names)
+    return pd.DataFrame(scores, index=idx, columns=motif_names)
 
 def moap_with_bg(input_table, genome, data_dir, method, scoring, pwmfile=None):
     outfile = os.path.join(data_dir,"activity.{}.{}.out.txt".format(
@@ -174,7 +180,12 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
 def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True, 
         score_table=None, count_table=None, methods=None):
     logger.info("Starting maelstrom")
-    df = pd.read_table(infile, index_col=0, comment="#")
+    if infile.endswith("feather"):
+        df = pd.read_feather(infile)
+        df = df.set_index(df.columns[0])
+    else:
+        df = pd.read_table(infile, index_col=0, comment="#")
+    
     # Check for duplicates
     if df.index.duplicated(keep=False).any():
         raise ValueError("Input file contains duplicate regions! "
@@ -188,6 +199,13 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
     methods = [m.lower() for m in methods]
 
     shutil.copyfile(infile, os.path.join(outdir, "input.table.txt"))
+    
+    config = MotifConfig()
+    # Default pwmfile
+    if pwmfile is None:
+        pwmfile = config.get_default_params().get("motif_db", None)
+        if pwmfile is not None:
+            pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
 
     if pwmfile:
         shutil.copy2(pwmfile, outdir)
@@ -368,18 +386,23 @@ class MaelstromResult():
             os.path.join(outdir, "motif.count.txt.gz"), 
             index_col=0
         )
-        self.freq = pd.read_table(
-            os.path.join(outdir, "motif.freq.txt"), 
-            index_col=0
-        )
+        fname = os.path.join(outdir, "motif.freq.txt")
+        if os.path.exists(fname):
+            self.freq = pd.read_table(
+                fname, 
+                index_col=0
+            )
         
         # Read original input file
-        self.input = pd.read_table(
-            os.path.join(outdir, "input.table.txt"), 
-            index_col=0
-        )
-        if self.input.shape[1] == 1:
-            self.input.columns = ["cluster"]
+        try:
+            self.input = pd.read_table(
+                os.path.join(outdir, "input.table.txt"), 
+                index_col=0
+            )
+            if self.input.shape[1] == 1:
+                self.input.columns = ["cluster"]
+        except:
+            pass
     
     def plot_heatmap(self, kind="final", min_freq=0.01, threshold=2, name=True, max_len=50, aspect=1, **kwargs):
         """Plot clustered heatmap of predicted motif activity.
