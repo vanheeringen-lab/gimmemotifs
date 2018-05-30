@@ -10,6 +10,7 @@ import shutil
 import sys
 from tempfile import NamedTemporaryFile
 import logging
+from functools import partial
 
 import numpy as np
 import pandas as pd
@@ -30,6 +31,8 @@ from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.report import maelstrom_html_report
 from gimmemotifs.utils import join_max
+
+from multiprocessing import Pool
 
 BG_LENGTH = 200
 BG_NUMBER = 10000
@@ -177,6 +180,35 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
         plt.tight_layout()
         plt.savefig(os.path.join(outdir, "motif.enrichment.png"), dpi=300) 
 
+def _rank_agg_column(exps, dfs, e):
+    tmp_dfs = [pd.DataFrame(), pd.DataFrame()]
+        
+    for i,sort_order in enumerate([False, True]):
+        for method,scoring,fname in exps:
+            k = "{}.{}".format(method, scoring)
+            if k in dfs:
+                v = dfs[k]
+                tmp_dfs[i][k] = v.sort_values(e, ascending=sort_order).index.values
+    return -np.log10(rankagg(tmp_dfs[0])) + np.log10(rankagg(tmp_dfs[1]))
+
+def df_rank_aggregation(df, dfs, exps):
+    df_p = pd.DataFrame(index=list(dfs.values())[0].index)
+    df_negp = pd.DataFrame(index=list(dfs.values())[0].index)
+    names = list(dfs.values())[0].columns
+    pool = Pool(16)
+    func = partial(_rank_agg_column, exps, dfs)
+    ret = pool.map(func, names)
+    pool.close()
+    pool.join()
+    
+    for e, result in zip(names, ret):
+        df_p[e] = result
+        
+    if df.shape[1] != 1:
+        df_p = df_p[df.columns]
+
+    return df_p
+
 def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True, 
         score_table=None, count_table=None, methods=None):
     logger.info("Starting maelstrom")
@@ -300,25 +332,9 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         except:
             logging.warn("Activity file for {} not found!\n".format(t))
    
-    logger.info("Rank aggregation")
     if len(methods) > 1:
-        df_p = pd.DataFrame(index=list(dfs.values())[0].index)
-        df_negp = pd.DataFrame(index=list(dfs.values())[0].index)
-        names = list(dfs.values())[0].columns
-        for e in names:
-            tmp_dfs = [pd.DataFrame(), pd.DataFrame()]
-            
-            for i,sort_order in enumerate([False, True]):
-                for method,scoring,fname in exps:
-                    k = "{}.{}".format(method, scoring)
-                    if k in dfs:
-                        v = dfs[k]
-                        tmp_dfs[i][k] = v.sort_values(e, ascending=sort_order).index.values
-            df_p[e] = -np.log10(rankagg(tmp_dfs[0])) + np.log10(rankagg(tmp_dfs[1]))
-            
-        if df.shape[1] != 1:
-            df_p = df_p[df.columns]
-
+        logger.info("Rank aggregation")
+        df_p = df_rank_aggregation(df, dfs, exps)
         df_p.to_csv(os.path.join(outdir, "final.out.csv"), sep="\t")
     #df_p = df_p.join(m2f)
 

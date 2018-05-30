@@ -12,6 +12,7 @@ warnings.warn = warn
 
 import os
 import sys
+import shutil
 from functools import partial
 try: 
     from itertools import izip
@@ -273,7 +274,7 @@ class LightningRegressionMoap(Moap):
         self.supported_tables = ["score", "count"]
         self.ptype = "regression"
     
-    def fit(self, df_X, df_y, batch_size=100, shuffle=True):
+    def fit(self, df_X, df_y, batch_size=50, shuffle=True, tmpdir=None):
         logger.info("Fitting LightningRegression")
         
         if self.scale:
@@ -297,23 +298,43 @@ class LightningRegressionMoap(Moap):
 
         nsplits = int(y.shape[1] / batch_size)
         if shuffle:         
-            idx = list(y.sample(y.shape[1], axis=1).columns)     
+            idx = list(y.sample(y.shape[1], axis=1, random_state=42).columns)     
         else:         
             idx = list(y.columns)
 
+        if tmpdir:
+            if not os.path.exists(tmpdir):
+                os.mkdir(tmpdir)
+
         coefs = pd.DataFrame(index=X.columns)
-        for i in tqdm(range(0, len(idx), batch_size)):
+        start_i = 0
+        if tmpdir:
+            for i in range(0, len(idx), batch_size):
+                fname = os.path.join(tmpdir, "{}.feather".format(i))
+                if os.path.exists(fname) and os.path.exists(fname + ".done"):
+                    
+                    tmp = pd.read_feather(fname)
+                    tmp = tmp.set_index(tmp.columns[0])
+                    coefs = coefs.join(tmp)
+                else:
+                    logger.info("Resuming at batch {}".format(i))
+                    start_i = i
+                    break
+
+        for i in tqdm(range(start_i, len(idx), batch_size)):
             split_y = y[idx[i:i+batch_size]]         
             
             # Fit model         
             clf.fit(X.values, split_y.values)                  
             tmp = pd.DataFrame(clf.best_estimator_.coef_.T,                     
                     index=X.columns, columns = split_y.columns)                  
+            if tmpdir:
+                fname = os.path.join(tmpdir, "{}.feather".format(i))
+                tmp.reset_index().rename(columns=str).to_feather(fname)
+                # Make sure we don't read corrupted files
+                open(fname + ".done", "a").close()
             # Get coefficients               
             coefs = coefs.join(tmp)         
-        
-        # Fit model
-        clf.fit(X.values, y.values)
         
         # Get coefficients
         self.act_ = coefs[y.columns] 
@@ -878,7 +899,13 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
     
     motifs = motifs.loc[df.index]
     
-    clf.fit(motifs, df)
+    if method == "lightningregressor":
+        outdir = os.path.dirname(outfile)
+        tmpname = os.path.join(outdir, ".lightning.tmp")
+        clf.fit(motifs, df, tmpdir=tmpname)
+        shutil.rmtree(tmpname)
+    else:
+        clf.fit(motifs, df)
     
     if outfile:
         with open(outfile, "w") as f:
