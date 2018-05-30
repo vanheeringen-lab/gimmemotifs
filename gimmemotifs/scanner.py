@@ -264,8 +264,9 @@ class Scanner(object):
         else:
             self.ncpus = ncpus
         
-        ctx = mp.get_context('spawn')
-        self.pool = ctx.Pool(processes=self.ncpus)
+        if ncpus > 1:
+            ctx = mp.get_context('spawn')
+            self.pool = ctx.Pool(processes=self.ncpus)
 
         self.use_cache = False
         if self.config.get_default_params().get("use_cache", False):
