@@ -265,8 +265,11 @@ class Scanner(object):
             self.ncpus = ncpus
         
         if self.ncpus > 1:
-            ctx = mp.get_context('spawn')
-            self.pool = ctx.Pool(processes=self.ncpus)
+            try:
+                ctx = mp.get_context('spawn')
+                self.pool = ctx.Pool(processes=self.ncpus)
+            except AttributeError:
+                self.pool = mp.Pool(processes=self.ncpus)
 
         self.use_cache = False
         if self.config.get_default_params().get("use_cache", False):
