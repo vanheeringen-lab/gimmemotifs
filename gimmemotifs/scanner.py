@@ -264,7 +264,7 @@ class Scanner(object):
         else:
             self.ncpus = ncpus
         
-        if ncpus > 1:
+        if self.ncpus > 1:
             ctx = mp.get_context('spawn')
             self.pool = ctx.Pool(processes=self.ncpus)
 
