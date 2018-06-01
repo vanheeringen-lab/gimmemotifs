@@ -73,6 +73,12 @@ if __name__ == "__main__":
                    help="Genome version (%s)" % (params["genome"]),
                    metavar="VERSION", 
                    default=params["genome"])
+    p.add_argument("-N", "--nthreads", 
+                   dest="ncpus", 
+                   help="Number of threads (default %s)" % (params["ncpus"]),
+                   metavar="INT", 
+                   type=int,
+                   default=int(params["ncpus"]))
     p.add_argument("-s", "--singlestrand", 
                    dest="single", 
                    help="Only predict motifs for single + strand (default is both)", 
@@ -179,7 +185,13 @@ if __name__ == "__main__":
                    help="Run with specific methods",
                    default=None,
                    metavar="NAMES")
-    
+    p.add_argument("-N", "--nthreads", 
+                   dest="ncpus", 
+                   help="Number of threads (default %s)" % (params["ncpus"]),
+                   metavar="INT", 
+                   type=int,
+                   default=int(params["ncpus"]))
+
     p.set_defaults(func=commands.maelstrom)
     
     # motif_roc.py and motif_roc_metrics.py
@@ -212,6 +224,14 @@ if __name__ == "__main__":
                    dest="ids", 
                    help="Comma-separated list of motif ids to plot in ROC (default is all ids)", 
                    metavar="IDS")
+    p.add_argument("-N", "--nthreads", 
+                   dest="ncpus", 
+                   help="Number of threads (default %s)" % (params["ncpus"]),
+                   metavar="INT", 
+                   type=int,
+                   default=int(params["ncpus"]))
+
+ 
     p.set_defaults(func=commands.roc)
     
     # motif_cluster.py
@@ -232,6 +252,13 @@ if __name__ == "__main__":
                    help="Cluster threshold", 
                    default=0.95, 
                    type=float)
+    p.add_argument("-N", "--nthreads", 
+                   dest="ncpus", 
+                   help="Number of threads (default %s)" % (params["ncpus"]),
+                   metavar="INT", 
+                   type=int,
+                   default=int(params["ncpus"]))
+    
     p.set_defaults(func=commands.cluster)
     
     # gimme genome
@@ -380,6 +407,12 @@ if __name__ == "__main__":
                    help="output maximum score in tabular format", 
                    action="store_true",
                    default=False)
+    p.add_argument("-N", "--nthreads", 
+                   dest="ncpus", 
+                   help="Number of threads (default %s)" % (params["ncpus"]),
+                   metavar="INT", 
+                   type=int,
+                   default=int(params["ncpus"]))
     p.add_argument("-M", "--do_MOODS",
                    dest="moods", 
                    help=argparse.SUPPRESS,

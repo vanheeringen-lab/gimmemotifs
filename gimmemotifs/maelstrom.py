@@ -40,7 +40,7 @@ FPR = 0.01
 
 logger = logging.getLogger("gimme.maelstrom")
 
-def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
+def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None, ncpus=None):
     config = MotifConfig()
     
     if pwmfile is None:
@@ -60,7 +60,7 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
         idx = df.index
     
     regions = list(idx)
-    s = Scanner()
+    s = Scanner(ncpus=ncpus)
     s.set_motifs(pwmfile)
     s.set_genome(genome)
     nregions = len(regions)
@@ -84,21 +84,21 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None):
     logger.info("creating dataframe")
     return pd.DataFrame(scores, index=idx, columns=motif_names)
 
-def moap_with_bg(input_table, genome, data_dir, method, scoring, pwmfile=None):
+def moap_with_bg(input_table, genome, data_dir, method, scoring, pwmfile=None, ncpus=None):
     outfile = os.path.join(data_dir,"activity.{}.{}.out.txt".format(
             method,
             scoring))
 
     moap(input_table, outfile=outfile, genome=genome, method=method,
-            scoring=scoring, fpr=FPR)
+            scoring=scoring, fpr=FPR, ncpus=ncpus)
 
-def moap_with_table(input_table, motif_table, data_dir, method, scoring):
+def moap_with_table(input_table, motif_table, data_dir, method, scoring, ncpus=None):
     outfile = os.path.join(data_dir,"activity.{}.{}.out.txt".format(
             method,
             scoring))
 
     moap(input_table, outfile=outfile, method=method, scoring=scoring, 
-            motiffile=motif_table, fpr=FPR)
+            motiffile=motif_table, fpr=FPR, ncpus=ncpus)
 
 def safe_join(df1, df2):     
     tmp = df1.copy()
@@ -210,7 +210,7 @@ def df_rank_aggregation(df, dfs, exps):
     return df_p
 
 def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True, 
-        score_table=None, count_table=None, methods=None):
+        score_table=None, count_table=None, methods=None, ncpus=None):
     logger.info("Starting maelstrom")
     if infile.endswith("feather"):
         df = pd.read_feather(infile)
@@ -251,7 +251,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         if not os.path.exists(count_table):
             logger.info("Motif scanning (counts)")
             counts = scan_to_table(infile, genome, outdir, "count",
-                pwmfile=pwmfile)
+                pwmfile=pwmfile, ncpus=ncpus)
             counts.to_csv(count_table, sep="\t", compression="gzip")
         else:
             logger.info("Counts, using: %s", count_table)
@@ -262,7 +262,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         if not os.path.exists(score_table):
             logger.info("Motif scanning (scores)")
             scores = scan_to_table(infile, genome, outdir, "score",
-                pwmfile=pwmfile)
+                pwmfile=pwmfile, ncpus=ncpus)
             scores.to_csv(score_table, sep="\t", float_format="%.3f", 
                 compression="gzip")
         else:
@@ -311,11 +311,11 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
     for method, scoring, fname in exps:
         try:
             if scoring == "count" and count_table:
-                moap_with_table(fname, count_table, outdir, method, scoring)
+                moap_with_table(fname, count_table, outdir, method, scoring, ncpus=ncpus)
             elif scoring == "score" and score_table:
-                moap_with_table(fname, score_table, outdir, method, scoring)
+                moap_with_table(fname, score_table, outdir, method, scoring, ncpus=ncpus)
             else:
-                moap_with_bg(fname, genome, outdir, method, scoring, pwmfile=pwmfile)
+                moap_with_bg(fname, genome, outdir, method, scoring, pwmfile=pwmfile, ncpus=ncpus)
         
         except Exception as e:
             logger.warn("Method %s with scoring %s failed", method, scoring)
