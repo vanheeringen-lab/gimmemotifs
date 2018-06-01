@@ -12,6 +12,7 @@ warnings.warn = warn
 
 import os
 import sys
+import shutil
 from functools import partial
 try: 
     from itertools import izip
@@ -26,6 +27,7 @@ import numpy as np
 from scipy.stats import ks_2samp, hypergeom,mannwhitneyu
 from scipy.cluster.hierarchy import linkage, fcluster
 from statsmodels.sandbox.stats.multicomp import multipletests
+from tqdm import tqdm
 
 # scikit-learn
 from sklearn.model_selection import train_test_split,GridSearchCV
@@ -157,7 +159,7 @@ class BayesianRidgeMoap(Moap):
 
         logger.debug("Fitting model")
         pool = Pool(self.ncpus) 
-        coefs = pool.map(br_fit_star, izip(itertools.repeat(X), [y[col] for col in y.columns]))
+        coefs = [x for x in tqdm(pool.imap(br_fit_star, izip(itertools.repeat(X), [y[col] for col in y.columns])), total=len(y.columns))]
         logger.info("Done")
 
         self.act_ = pd.DataFrame(coefs, columns=X.columns, index=y.columns).T
@@ -221,9 +223,9 @@ class XgboostRegressionMoap(Moap):
         self.act_ = pd.DataFrame(index=X.columns)
         
         # Fit model
-        for i,col in enumerate(y.columns):
+        for i,col in enumerate(tqdm(y.columns)):
             xgb.fit(X, y[col].values)
-            d = xgb.booster().get_fscore()
+            d = xgb.get_booster().get_fscore()
             self.act_[col] = [d.get(m, 0) for m in X.columns]
             
             for motif in self.act_.index:
@@ -272,7 +274,7 @@ class LightningRegressionMoap(Moap):
         self.supported_tables = ["score", "count"]
         self.ptype = "regression"
     
-    def fit(self, df_X, df_y):
+    def fit(self, df_X, df_y, batch_size=50, shuffle=True, tmpdir=None):
         logger.info("Fitting LightningRegression")
         
         if self.scale:
@@ -294,12 +296,48 @@ class LightningRegressionMoap(Moap):
         }
         clf = GridSearchCV(cd, parameters, n_jobs=self.ncpus)
 
-        # Fit model
-        clf.fit(X.values, y.values)
+        nsplits = int(y.shape[1] / batch_size)
+        if shuffle:         
+            idx = list(y.sample(y.shape[1], axis=1, random_state=42).columns)     
+        else:         
+            idx = list(y.columns)
+
+        if tmpdir:
+            if not os.path.exists(tmpdir):
+                os.mkdir(tmpdir)
+
+        coefs = pd.DataFrame(index=X.columns)
+        start_i = 0
+        if tmpdir:
+            for i in range(0, len(idx), batch_size):
+                fname = os.path.join(tmpdir, "{}.feather".format(i))
+                if os.path.exists(fname) and os.path.exists(fname + ".done"):
+                    
+                    tmp = pd.read_feather(fname)
+                    tmp = tmp.set_index(tmp.columns[0])
+                    coefs = coefs.join(tmp)
+                else:
+                    logger.info("Resuming at batch {}".format(i))
+                    start_i = i
+                    break
+
+        for i in tqdm(range(start_i, len(idx), batch_size)):
+            split_y = y[idx[i:i+batch_size]]         
+            
+            # Fit model         
+            clf.fit(X.values, split_y.values)                  
+            tmp = pd.DataFrame(clf.best_estimator_.coef_.T,                     
+                    index=X.columns, columns = split_y.columns)                  
+            if tmpdir:
+                fname = os.path.join(tmpdir, "{}.feather".format(i))
+                tmp.reset_index().rename(columns=str).to_feather(fname)
+                # Make sure we don't read corrupted files
+                open(fname + ".done", "a").close()
+            # Get coefficients               
+            coefs = coefs.join(tmp)         
         
         # Get coefficients
-        self.act_ = pd.DataFrame(clf.best_estimator_.coef_.T, 
-                index=X.columns, columns = y.columns)
+        self.act_ = coefs[y.columns] 
         
         logger.info("Done")
 
@@ -784,8 +822,12 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
 
     m2f = None
     
-    # read data
-    df = pd.read_table(inputfile, index_col=0, comment="#")
+    if inputfile.endswith("feather"):
+        df = pd.read_feather(inputfile)
+        df = df.set_index(df.columns[0])
+    else:
+        # read data
+        df = pd.read_table(inputfile, index_col=0, comment="#")
     
     clf = Moap.create(method)
 
@@ -857,7 +899,13 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
     
     motifs = motifs.loc[df.index]
     
-    clf.fit(motifs, df)
+    if method == "lightningregressor":
+        outdir = os.path.dirname(outfile)
+        tmpname = os.path.join(outdir, ".lightning.tmp")
+        clf.fit(motifs, df, tmpdir=tmpname)
+        shutil.rmtree(tmpname)
+    else:
+        clf.fit(motifs, df)
     
     if outfile:
         with open(outfile, "w") as f:

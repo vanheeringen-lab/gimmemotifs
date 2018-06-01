@@ -523,7 +523,10 @@ def ks_significance(fg_pos, bg_pos=None):
         -log10(KS p-value).
     """
     p = ks_pvalue(fg_pos, max(fg_pos))
-    return -np.log10(p)
+    if p > 0:
+        return -np.log10(p)
+    else:
+        return np.inf
     
 
  
