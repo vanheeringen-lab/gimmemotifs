@@ -271,7 +271,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
     if cluster:
         cluster = False
         for method in methods:
-            m = Moap.create(method)
+            m = Moap.create(method, ncpus=ncpus)
             if m.ptype == "classification":
                 cluster = True
                 break
@@ -284,7 +284,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         # More than one column
         for method in Moap.list_regression_predictors():
             if method in methods:
-                m = Moap.create(method)
+                m = Moap.create(method, ncpus=ncpus)
                 exps.append([method, m.pref_table, infile])
                 logger.debug("Adding %s", method)
 
@@ -301,7 +301,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
     if df.shape[1] == 1 or cluster:
         for method in Moap.list_classification_predictors():
             if method in methods:
-                m = Moap.create(method)
+                m = Moap.create(method, ncpus=ncpus)
                 exps.append([method, m.pref_table, clusterfile])
 
     if len(exps) == 0:

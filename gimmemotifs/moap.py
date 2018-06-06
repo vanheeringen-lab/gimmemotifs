@@ -72,6 +72,7 @@ class Moap(object):
         moap : Moap instance
             moap instance.
         """
+        print("{} {}".format(name, ncpus))
         try:
             return cls._predictors[name.lower()](ncpus=ncpus)
         except KeyError:
@@ -865,7 +866,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
         # read data
         df = pd.read_table(inputfile, index_col=0, comment="#")
     
-    clf = Moap.create(method)
+    clf = Moap.create(method, ncpus=ncpus)
 
     if clf.ptype == "classification":
         if df.shape[1] != 1:
