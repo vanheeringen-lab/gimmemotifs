@@ -107,13 +107,14 @@ def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pval
 
 def command_scan(inputfile, pwmfile, nreport=1, fpr=0.01, cutoff=None, 
         bed=False, scan_rc=True, table=False, score_table=False, moods=False, 
-        pvalue=None, bgfile=None, genome=None):
+        pvalue=None, bgfile=None, genome=None, ncpus=None):
     motifs = pwmfile_to_motifs(pwmfile)
     
     fa = as_fasta(inputfile, genome)
     
     # initialize scanner
-    s = Scanner()
+    s = Scanner(ncpus=ncpus)
+        
     s.set_motifs(pwmfile)
     if not score_table:
         s.set_threshold(fpr=fpr, threshold=cutoff, 
@@ -159,5 +160,6 @@ def pwmscan(args):
             pvalue=args.pvalue,
             bgfile=args.bgfile,
             genome=args.genome,
+            ncpus=args.ncpus,
             ):
         print(line)

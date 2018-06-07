@@ -56,7 +56,7 @@ class Moap(object):
     name = None
 
     @classmethod
-    def create(cls, name):
+    def create(cls, name, ncpus=None):
         """Create a Moap instance based on the predictor name.
 
         Parameters
@@ -64,13 +64,16 @@ class Moap(object):
         name : str
             Name of the predictor (eg. Xgboost, BayesianRidge, ...)
         
+        ncpus : int, optional
+            Number of threads. Default is the number specified in the config.
+        
         Returns
         -------
         moap : Moap instance
             moap instance.
         """
         try:
-            return cls._predictors[name.lower()]()
+            return cls._predictors[name.lower()](ncpus=ncpus)
         except KeyError:
             raise Exception("Unknown class")
 
@@ -113,7 +116,7 @@ def br_fit_star(args):
 
 @register_predictor('BayesianRidge')
 class BayesianRidgeMoap(Moap):
-    def __init__(self, scale=True):
+    def __init__(self, scale=True, ncpus=None):
         """Predict motif activities using Bayesian Ridge Regression.
 
         Parameters
@@ -121,7 +124,10 @@ class BayesianRidgeMoap(Moap):
         scale : boolean, optional, default True
             If ``True``, the motif scores will be scaled 
             before classification.
-       
+        
+        ncpus : int, optional
+            Number of threads. Default is the number specified in the config.
+
         Attributes
         ----------
         act_ : DataFrame, shape (n_motifs, n_clusters)
@@ -131,7 +137,9 @@ class BayesianRidgeMoap(Moap):
         self.act_description = ("activity values: coefficients of the"
                                "regression model")
         
-        self.ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+        if ncpus is None:
+            ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+        self.ncpus = ncpus
         self.scale = scale
         self.act_ = None
         self.pref_table = "score"
@@ -166,7 +174,7 @@ class BayesianRidgeMoap(Moap):
 
 @register_predictor('Xgboost')
 class XgboostRegressionMoap(Moap):
-    def __init__(self, scale=True):
+    def __init__(self, scale=True, ncpus=None):
         """Predict motif activities using XGBoost.
 
         Parameters
@@ -174,6 +182,9 @@ class XgboostRegressionMoap(Moap):
         scale : boolean, optional, default True
             If ``True``, the motif scores will be scaled 
             before classification
+        
+        ncpus : int, optional
+            Number of threads. Default is the number specified in the config.
        
         Attributes
         ----------
@@ -184,7 +195,9 @@ class XgboostRegressionMoap(Moap):
         self.act_description = ("activity values: feature scores from"
                                "fitted model")
         
-        self.ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+        if ncpus is None:
+            ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+        self.ncpus = ncpus
         self.scale = scale
         
         self.act_ = None
@@ -240,7 +253,7 @@ class XgboostRegressionMoap(Moap):
 
 @register_predictor('LightningRegressor')
 class LightningRegressionMoap(Moap):
-    def __init__(self, scale=True, cv=3):
+    def __init__(self, scale=True, cv=3, ncpus=None):
         """Predict motif activities using lightning CDRegressor 
 
         Parameters
@@ -251,6 +264,9 @@ class LightningRegressionMoap(Moap):
        
         cv : int, optional, default 3
             Cross-validation k-fold parameter.
+        
+        ncpus : int, optional
+            Number of threads. Default is the number specified in the config.
 
         Attributes
         ----------
@@ -265,7 +281,9 @@ class LightningRegressionMoap(Moap):
         self.act_description = ("activity values: coefficients from "
                                "fitted model")
         
-        self.ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+        if ncpus is None:
+            ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+        self.ncpus = ncpus
         self.kfolds = cv
         self.scale = scale
         
@@ -343,7 +361,7 @@ class LightningRegressionMoap(Moap):
 
 @register_predictor('LightningClassification')
 class LightningClassificationMoap(Moap):
-    def __init__(self, scale=True, permute=False):
+    def __init__(self, scale=True, permute=False, ncpus=None):
         """Predict motif activities using lightning CDClassifier 
 
         Parameters
@@ -351,6 +369,9 @@ class LightningClassificationMoap(Moap):
         scale : boolean, optional, default True
             If ``True``, the motif scores will be scaled 
             before classification
+        
+        ncpus : int, optional
+            Number of threads. Default is the number specified in the config.
        
         Attributes
         ----------
@@ -380,8 +401,11 @@ class LightningClassificationMoap(Moap):
 
         self.kfolds = 10
         
+        if ncpus is None:
+            ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+
         self.clf = GridSearchCV(self.cdc, self.parameters, 
-                cv=self.kfolds, n_jobs=-1)
+                cv=self.kfolds, n_jobs=ncpus)
 
         self.scale = scale
         self.permute = permute
@@ -479,7 +503,7 @@ class LightningClassificationMoap(Moap):
 
 @register_predictor('MWU')
 class MWUMoap(Moap):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """Predict motif activities using Mann-Whitney U p-value
     
         This method compares the motif score distribution of each 
@@ -539,7 +563,7 @@ class MWUMoap(Moap):
 
 @register_predictor('Hypergeom')
 class HypergeomMoap(Moap):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """Predict motif activities using hypergeometric p-value
 
         Parameters
@@ -602,12 +626,14 @@ class HypergeomMoap(Moap):
 
 @register_predictor('RF')
 class RFMoap(Moap):
-    def __init__(self):
+    def __init__(self, ncpus=None):
         """Predict motif activities using a random forest classifier
 
         Parameters
         ----------
-       
+        ncpus : int, optional
+            Number of threads. Default is the number specified in the config.
+
         Attributes
         ----------
         act_ : DataFrame, shape (n_motifs, n_clusters)
@@ -615,7 +641,9 @@ class RFMoap(Moap):
         
         """
         self.act_ = None
-        self.ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+        if ncpus is None:
+            ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+        self.ncpus = ncpus
         self.act_description = ("activity values: feature importances "
                                "from fitted Random Forest model")
         self.pref_table = "score"
@@ -660,7 +688,7 @@ class RFMoap(Moap):
 
 @register_predictor('Lasso')
 class LassoMoap(Moap):
-    def __init__(self, scale=True, kfolds=5, alpha_stepsize=1.0):
+    def __init__(self, scale=True, kfolds=5, alpha_stepsize=1.0, ncpus=None):
         """Predict motif activities using Lasso MultiTask regression
 
         Parameters
@@ -668,13 +696,16 @@ class LassoMoap(Moap):
         scale : boolean, optional, default True
             If ``True``, the motif scores will be scaled 
             before classification
- 
+     
         kfolds : integer, optional, default 5
             number of kfolds for parameter search
         
         alpha_stepsize : float, optional, default 1.0
             stepsize for use in alpha gridsearch
 
+        ncpus : int, optional
+            Number of threads. Default is the number specified in the config.
+        
         Attributes
         ----------
         act_ : DataFrame, shape (n_motifs, n_clusters)
@@ -690,7 +721,9 @@ class LassoMoap(Moap):
                                "fitted model")
 
         self.scale = scale
-        self.ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+        if ncpus is None:
+            ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+        self.ncpus = ncpus
 
         # initialize attributes
         self.act_ = None 
@@ -775,13 +808,13 @@ class LassoMoap(Moap):
         coefs = np.array(coefs).mean(axis=0)
         return coefs
 
-def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=None, pwmfile=None, genome=None, fpr=0.01):
+def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=None, pwmfile=None, genome=None, fpr=0.01, ncpus=None):
     """Run a single motif activity prediction algorithm.
     
     Parameters
     ----------
     inputfile : str
-        File with regions (chr:start-end) in first column and either cluster 
+        :1File with regions (chr:start-end) in first column and either cluster 
         name in second column or a table with values.
     
     method : str, optional
@@ -810,6 +843,9 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
     fpr : float, optional
         FPR for motif scanning
     
+    ncpus : int, optional
+        Number of threads to use. Default is the number specified in the config.
+    
     Returns
     -------
     pandas DataFrame with motif activity
@@ -829,7 +865,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
         # read data
         df = pd.read_table(inputfile, index_col=0, comment="#")
     
-    clf = Moap.create(method)
+    clf = Moap.create(method, ncpus=ncpus)
 
     if clf.ptype == "classification":
         if df.shape[1] != 1:
@@ -866,7 +902,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
             m2f = pd.read_table(map_file, index_col=0, comment="#")
 
         # initialize scanner
-        s = Scanner()
+        s = Scanner(ncpus=ncpus)
         sys.stderr.write(pwmfile + "\n")
         s.set_motifs(pwmfile)
         s.set_genome(genome)

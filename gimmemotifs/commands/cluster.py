@@ -73,12 +73,14 @@ def cluster(args):
     if not os.path.exists(outdir):
         os.mkdir(outdir)
 
+    ncpus = args.ncpus
+    
     clusters = []
     motifs = pwmfile_to_motifs(args.inputfile)
     if len(motifs) == 1:
         clusters = [[motifs[0], motifs]]
     else:
-        tree = cluster_motifs(args.inputfile, "total", "wic", "mean", True, threshold=args.threshold, include_bg=True)
+        tree = cluster_motifs(args.inputfile, "total", "wic", "mean", True, threshold=args.threshold, include_bg=True, ncpus=ncpus)
         clusters = tree.getResult()
     
     ids = _create_images(outdir, clusters) 

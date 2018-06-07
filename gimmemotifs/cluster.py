@@ -79,7 +79,7 @@ class MotifTree(object):
         else:
             return [self.motif]
 
-def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=True, threshold=0.95, trim_edges=False, edge_ic_cutoff=0.2, include_bg=True, progress=True):
+def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=True, threshold=0.95, trim_edges=False, edge_ic_cutoff=0.2, include_bg=True, progress=True, ncpus=None):
     """ 
     Clusters a set of sequence motifs. Required arg 'motifs' is a file containing
     positional frequency matrices or an array with motifs.
@@ -135,7 +135,7 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
     
     if progress:
         sys.stderr.write("Calculating initial scores\n")
-    result = mc.get_all_scores(motifs, motifs, match, metric, combine, pval, parallel=True)
+    result = mc.get_all_scores(motifs, motifs, match, metric, combine, pval, parallel=True, ncpus=ncpus)
     
     for m1, other_motifs in result.items():
         for m2, score in other_motifs.items():
