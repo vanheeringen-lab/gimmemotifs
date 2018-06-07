@@ -72,7 +72,6 @@ class Moap(object):
         moap : Moap instance
             moap instance.
         """
-        print("{} {}".format(name, ncpus))
         try:
             return cls._predictors[name.lower()](ncpus=ncpus)
         except KeyError:
