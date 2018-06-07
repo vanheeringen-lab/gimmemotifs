@@ -17,7 +17,6 @@ List of tools
 * :ref:`gimme roc<gimme_roc>`
 * :ref:`gimme match<gimme_match>`
 * :ref:`gimme cluster<gimme_cluster>`
-* :ref:`gimme genome<gimme_genome>`
 * :ref:`gimme index<gimme_index>`
 * :ref:`gimme background<gimme_background>`
 * :ref:`gimme threshold<gimme_threshold>`
@@ -485,35 +484,6 @@ Cluster a set of motifs with the WIC metric.
     -h, --help    show this help message and exit
     -s            Don't compare reverse complements of motifs
     -t THRESHOLD  Cluster threshold
-
-
-.. _`gimme_genome`:
-
-Command: gimme genome
----------------------
-
-Retrieve a genome sequence for ``GENOMEBUILD`` and accompanying gene annotation from UCSC and index the genome for use with GimmeMotifs.
-The ``FASTADIR`` argument determines where the genome will be stored.
-Any genome supported by UCSC should work.
-Optionally, you can change the indexdir. 
-However, in this case the :ref:`configuration file<other_configuration>` should be adapted.
-
-**Positional arguments:**
-
-::
-
-    FASTADIR              Directory to place genome
-    GENOMEBUILD           UCSC genome name
-
-**Optional arguments:**
-
-::
-  
-    -h, --help            show this help message and exit
-    -i DIR, --indexdir DIR
-                          Index dir (default
-                          <prefix>/share/gimmemotifs/genome_index)
-
 
 .. _`gimme_index`:
 
