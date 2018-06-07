@@ -9,6 +9,7 @@ import sys
 import argparse
 from gimmemotifs.config import MotifConfig, BG_TYPES, GM_VERSION, BED_VALID_BGS
 from  gimmemotifs import commands
+from gimmemotifs.utils import check_genome
 
 if __name__ == "__main__":
     
@@ -505,4 +506,13 @@ if __name__ == "__main__":
         if len(sys.argv) == 2:
             print("\033[93mtype `gimme {} -h` for more details\033[0m\n".format(sys.argv[-1]))
         args = parser.parse_args()
+        
+        if hasattr(args, "genome"):
+            if args.genome is not None:
+                if not check_genome(args.genome):
+                    print("Genome not found. Have you installed your genome with genomepy?")
+                    print("See https://github.com/simonvh/genomepy for details.")
+                    print("Alternatively, you can specify a FASTA file.")
+                    exit(1)
+        
         args.func(args)

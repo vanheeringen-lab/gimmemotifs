@@ -551,3 +551,21 @@ def join_max(a, l, sep="", suffix=""):
         total += size
     return sep.join(a)
 
+def check_genome(genome):
+    """Check if genome is a valid FASTA file or genomepy genome genome.
+
+    Parameters
+    ----------
+    genome : str
+        Genome name or file to check.
+
+    Returns
+    -------
+    is_genome : bool
+    """
+    try:
+        Genome(genome)
+        return True
+    except Exception as e:
+        pass
+    return False
