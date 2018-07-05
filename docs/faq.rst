@@ -3,6 +3,18 @@
 FAQ
 ===
 
+I have upgraded GimmeMotifs and now it doesn't find my genome
+-------------------------------------------------------------
+
+The genome index in GimmeMotifs has changed, see upgrade_genome_.
+
+
+I cannot run gimme index anymore
+--------------------------------
+
+The genome index in GimmeMotifs has changed, see upgrade_genome_.
+
+
 I get 'RuntimeError: Invalid DISPLAY variable'
 ----------------------------------------------
 

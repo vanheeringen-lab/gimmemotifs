@@ -63,7 +63,20 @@ you want to use GimmeMotifs.
 
 Installation successful? Good. Have a look at the :ref:`configuration<configuration>` section.
 
+.. _`upgrade_genome`:
+
+Important note on upgrading from 0.11.1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The way genomes are installed and used has been changed from 0.11.1 to 0.12.0. 
+Basically, we have switched to the faidx index used and supported by many other tools. 
+This means that the old (<=0.11.1) GimmeMotifs index cannot be used by GimmeMotifs 0.12.0 and higher. 
+You can re-install genomes using genomepy_, which is now the preferred tool genome management for GimmeMotifs.
+However, because of this change you can now also directly supply a genome FASTA instead of a genome name. 
+Pre-indexing is not required anymore.
+
 .. _bioconda: https://bioconda.github.io/
+.. _genomepy: https://github.com/simonvh/genomepy
 
 Alternative installation
 ------------------------
