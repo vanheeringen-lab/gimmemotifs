@@ -22,16 +22,10 @@ import inspect
 from io import open
 
 CONFIG_NAME = "gimmemotifs.cfg" 
-DESCRIPTION  = """GimmeMotifs is a motif prediction pipeline. 
-"""
+DESCRIPTION  = "GimmeMotifs is a motif prediction pipeline."
 
-# trick to get rst file for PyPi, see:
-# http://stackoverflow.com/questions/26737222/pypi-description-markdown-doesnt-work/26737672#26737672
-try:
-    import pypandoc
-    long_description = pypandoc.convert('README.md', 'rst')    
-except(IOError, ImportError, RuntimeError):
-    long_description = open('README.md', 'r').read()
+with open('README.md', encoding='utf-8') as f:
+    long_description = f.read().strip("\n")
 
 # are we in the conda build environment?
 conda_build = os.environ.get("CONDA_BUILD")
@@ -455,6 +449,7 @@ setup (
                             },
         version = GM_VERSION,
         long_description = long_description,
+        long_description_content_type = 'text/markdown',
         description = DESCRIPTION,
         author = 'Simon van Heeringen',
         author_email = 'simon.vanheeringen@gmail.com',
