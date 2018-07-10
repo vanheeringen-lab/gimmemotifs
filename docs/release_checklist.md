@@ -39,10 +39,11 @@ $ twine upload -r testpypi dist/gimmemotifs-${version}.tar.gz
 
 ```
 $ git flow release finish ${version}
-```
 
+```
 7. Upload to PyPi.
 $ python setup.py sdist
 $ twine upload dist/gimmemotifs-${version}.tar.gz
+```
 
 8. Create bioconda package
