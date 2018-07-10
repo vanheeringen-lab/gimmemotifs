@@ -26,6 +26,7 @@ $ python run_tests.py
 ```
 5. Upload to pypi testing server
 
+```
 # Check for warnings or errors
 $ python setup.py check -r -s
 # Create distribution
@@ -33,3 +34,15 @@ $ python setup.py sdist
 # Upload to pypi testing server
 $ twine upload -r testpypi dist/gimmemotifs-${version}.tar.gz
 ``` 
+
+6. Finish release
+
+```
+$ git flow release finish ${version}
+```
+
+7. Upload to PyPi.
+$ python setup.py sdist
+$ twine upload dist/gimmemotifs-${version}.tar.gz
+
+8. Create bioconda package
