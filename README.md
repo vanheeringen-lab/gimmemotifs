@@ -34,7 +34,8 @@ You can now install GimmeMotifs with one command:
 $ conda create -n gimme python=3 gimmemotifs
 
 # Activate the environment
-$ source activate gimme
+$ conda activate gimme
+```
 
 Python 3 is the preferred version, however, GimmeMotifs also supports Python 2. 
 Don't forget to activate the environment with `source activate gimme` whenever you want to use GimmeMotifs.
