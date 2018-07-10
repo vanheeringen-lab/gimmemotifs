@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## [0.12.0] - 2018-07-10
 
+**Please note:** the way GimmeMotifs uses genome FASTA files has changed in a
+major way. It is no longer necessary to index genomes. GimmeMotifs now uses the
+`faidx` index. You can use [genomepy](http://github.com/simonvh/genomepy) to
+manage your genomes.
+
 ### Added
 
 - Helpful message when the genome cannot be found.
