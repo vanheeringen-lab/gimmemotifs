@@ -1,9 +1,8 @@
 include README.md
 include MANIFEST
-include NEWS
 include INSTALL
 include COPYING
-include ChangeLog
+include CHANGELOG.md
 include run_tests.py
 include compile_externals.py
 include cfg/gimmemotifs.cfg.example
