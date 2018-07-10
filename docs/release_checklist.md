@@ -39,9 +39,11 @@ $ twine upload -r testpypi dist/gimmemotifs-${version}.tar.gz
 
 ```
 $ git flow release finish ${version}
+```
+
+7. Upload to PyPi.
 
 ```
-7. Upload to PyPi.
 $ python setup.py sdist
 $ twine upload dist/gimmemotifs-${version}.tar.gz
 ```
