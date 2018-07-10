@@ -18,6 +18,7 @@ manage your genomes.
 
 ### Added
 
+- Release checklist (for developer use).
 - Helpful message when the genome cannot be found.
 - Added a `-N/--nthreads` option to command-line tools to specify the number of
   threads independent from the config file.
@@ -41,6 +42,7 @@ manage your genomes.
 
 ### Fixed
 
+- Upload with correct description to PyPi.
 - Fixed warning of `ks_pvalue` when `p == 0`.
 - Fixed issue with nested multiprocessing pools.
 - Fix numpy version because of DeprecationWarning in sklearn.
