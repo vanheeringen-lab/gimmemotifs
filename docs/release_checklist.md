@@ -48,4 +48,9 @@ $ python setup.py sdist
 $ twine upload dist/gimmemotifs-${version}.tar.gz
 ```
 
+8. Finalize the release on Github.
+
+Create a release. Download the tarball and then edit the release and attach the
+tarball as binary. 
+
 8. Create bioconda package
