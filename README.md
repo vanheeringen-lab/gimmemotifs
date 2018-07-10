@@ -16,7 +16,9 @@ For documentation on the development version see [here](http://gimmemotifs.readt
 
 ## Easy installation
 
-The most straightforward way to install GimmeMotifs is via [conda](https://docs.continuum.io/anaconda/) using the [bioconda](https://bioconda.github.io/) channel. If you have not used bioconda before, first set up the necessary channels (in this order). You only have to do this once.
+The most straightforward way to install GimmeMotifs is via [conda](https://docs.continuum.io/anaconda/) using the [bioconda](https://bioconda.github.io/) channel.
+
+If you have not used bioconda before, first set up the necessary channels (in this order!). You only have to do this once.
 
 ```
 $ conda config --add channels r
@@ -25,7 +27,7 @@ $ conda config --add channels conda-forge
 $ conda config --add channels bioconda
 ```
 
-You can install GimmeMotifs with one command:
+You can now install GimmeMotifs with one command:
 
 ```
 # Create an environment called gimme with all dependencies
@@ -33,34 +35,44 @@ $ conda create -n gimme python=3 gimmemotifs
 
 # Activate the environment
 $ source activate gimme
-```
 
 Python 3 is the preferred version, however, GimmeMotifs also supports Python 2. 
-Don't forget to activate the environment with `source activate gimme` whenever
-you want to use GimmeMotifs.
+Don't forget to activate the environment with `source activate gimme` whenever you want to use GimmeMotifs.
 
 ## Quick start
 
+### Predict some motifs:
+
+`$ gimme motifs my_peaks.bed -g /data/genomes/hg38/hg38.fa -n my_motifs`
+
 ### Download a genome
 
-Create a directory to store genome files.
+The example above assumes that you have the hg38 genome in
+`/data/genomes/hg38/hg38.fa`. 
+GimmeMotifs can also use genomes installed by
+[genomepy](http://github.com/simonvh/genomepy).
 
-`$ mkdir $HOME/genomes/`
+You can configure the directory where genomepy stores genomes by editing
+`~/.config/genomepy/genomepy.yaml`
 
-To download and index a genome (all UCSC-supported genomes):
+``` 
+genome_dir: /data/genomes
+``` 
 
-`$ gimme genome $HOME/genomes/ hg38`
+To download a genome from UCSC:
 
-Alternatively, you can index a genome directory with chromosome FASTA files on your computer.
+`$ genomepy install hg38 UCSC --annotation`
 
-`$ gimme index /usr/share/genomes/hg19 hg19`
-
-### Predict some motifs:
+Now you can specify this genome for GimmeMotifs by name.
 
 `$ gimme motifs my_peaks.bed -g hg38 -n my_motifs`
 
+
 ## Help 
 
+
+* Full documentation:
+  [http://gimmemotifs.readthedocs.io/](http://gimmemotifs.readthedocs.io/).
 * Check the [FAQ](http://gimmemotifs.readthedocs.io/en/master/faq.html#faq) for
   common issues.
 * The preferred way to get support is through the Github

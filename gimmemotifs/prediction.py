@@ -64,14 +64,17 @@ def _run_tool(job_name, t, fastafile, params):
 
 class PredictionResult(object):
     """Store predicted motifs and calculate statistics."""
-    def __init__(self, outfile, fg_file=None, background=None, do_counter=True):
+    def __init__(self, outfile, fg_file=None, background=None, do_counter=True, job_server=None):
         self.lock = thread.allocate_lock()
         self.motifs = []
         self.finished = []
         self.stats = {}
         self.stat_jobs = []
         self.outfile = outfile
-        self.job_server = Pool(2)
+        if job_server:
+            self.job_server = job_server
+        else:
+            self.job_server = Pool(2)
         self.counter = 0
         self.do_counter = do_counter
 
@@ -194,7 +197,9 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
     result = PredictionResult(
                 outfile, 
                 fg_file=stats_fg, 
-                background=stats_bg)
+                background=stats_bg,
+                job_server=job_server,
+                )
     
     # Dynamically load all tools
     toolio = [x[1]() for x in inspect.getmembers(

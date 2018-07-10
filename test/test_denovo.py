@@ -48,7 +48,6 @@ class TestDenovo(unittest.TestCase):
         ap1_predicted = False
         for motif in predicted_motifs:
             match = mc.get_closest_match(ap1, motif)
-            print(match)
             if match["TGASTCA"][1][3] < 1e-5:
                 ap1_predicted = True
                 break
@@ -57,7 +56,8 @@ class TestDenovo(unittest.TestCase):
 
     def tearDown(self):
         # remove output
-        shutil.rmtree(self.outdir) 
+        #shutil.rmtree(self.outdir) 
+        pass
 
 if __name__ == '__main__':
     unittest.main()

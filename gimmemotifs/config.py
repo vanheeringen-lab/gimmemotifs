@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger("gimme.config")
 
 ### CONSTANTS ###
-GM_VERSION = "0.11.1"
+GM_VERSION = "0.12.0"
 BG_TYPES = ["random", "genomic", "gc", "promoter"]
 FA_VALID_BGS = ["random", "promoter", "gc", "user", "genomic"]
 BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "user"]
@@ -114,14 +114,6 @@ class MotifConfig(object):
         if not self.config.has_section("main"):
             self.config.add_section("main")
         self.config.set("main", "seqlogo", exe)
-
-    def set_index_dir(self, path):
-        if not self.config.has_section("main"):
-            self.config.add_section("main")
-        self.config.set("main", "index_dir", path)
-
-    def get_index_dir(self):
-        return self.config.get("main", "index_dir")
 
     def set_motif_dir(self, path):
         if not self.config.has_section("main"):

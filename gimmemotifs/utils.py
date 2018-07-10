@@ -23,11 +23,11 @@ from tempfile import NamedTemporaryFile
 from scipy import special
 import numpy as np
 import pybedtools
+from genomepy import Genome
 
 # gimme imports
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import plot_histogram
-from gimmemotifs.genome_index import track2fasta
 from gimmemotifs.rocmetrics import ks_pvalue
 
 lgam = special.gammaln
@@ -505,31 +505,20 @@ def get_seqs_type(seqs):
     else:
         raise ValueError("unknown type {}".format(type(seqs).__name__))
 
-def as_fasta(seqs, index_dir=None):
+def as_fasta(seqs, genome=None):
     ftype = get_seqs_type(seqs)
     if ftype == "fasta":
         return seqs
     elif ftype == "fastafile":
         return Fasta(seqs)
     else:
-        if index_dir is None:
-            raise ValueError("need index_dir / genome to convert to FASTA")
+        if genome is None:
+            raise ValueError("need genome to convert to FASTA")
 
         tmpfa = NamedTemporaryFile()
-        
-        if ftype == "bedfile":
-            track2fasta(index_dir, seqs, tmpfa.name) 
-        else:
-
-            if ftype == "regionfile":
-                with open(seqs) as f:
-                    seqs = [l.strip() for l in f.readlines()]
-            tmpbed = NamedTemporaryFile(mode="w")
-            for seq in seqs:
-                vals = re.split(r'[:-]', seq)
-                tmpbed.write("{}\t{}\t{}\n".format(*vals))
-            tmpbed.flush()
-            track2fasta(index_dir, tmpbed.name, tmpfa.name) 
+        if type(genome) == type(""):
+            genome = Genome(genome)
+        genome.track2fasta(seqs, tmpfa.name) 
         return Fasta(tmpfa.name)
 
 def file_checksum(fname):
@@ -550,3 +539,33 @@ def file_checksum(fname):
     with open(fname, "r+") as f:
         checksum = hashlib.md5(mmap.mmap(f.fileno(), size)).hexdigest()
     return checksum
+
+def join_max(a, l, sep="", suffix=""):
+    lengths = [len(x) for x in a]
+    total = 0
+    for i,size in enumerate(lengths + [0]):
+        if total > (l - len(suffix)):
+            return sep.join(a[:i - 1]) + suffix
+        if i > 0:
+            total += 1
+        total += size
+    return sep.join(a)
+
+def check_genome(genome):
+    """Check if genome is a valid FASTA file or genomepy genome genome.
+
+    Parameters
+    ----------
+    genome : str
+        Genome name or file to check.
+
+    Returns
+    -------
+    is_genome : bool
+    """
+    try:
+        Genome(genome)
+        return True
+    except Exception as e:
+        pass
+    return False

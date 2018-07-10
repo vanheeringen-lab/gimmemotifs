@@ -12,9 +12,10 @@ import logging.handlers
 import shutil
 import numpy as np
 
+from genomepy import Genome
+
 from gimmemotifs.config import MotifConfig, BG_RANK, parse_denovo_params
 from gimmemotifs import mytmpdir
-from gimmemotifs.genome_index import track2fasta
 from gimmemotifs.validation import check_denovo_input
 from gimmemotifs.utils import ( divide_file, divide_fa_file, 
                                     write_equalwidth_bedfile )
@@ -62,11 +63,10 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
     divide_file(bedfile, pred_bedfile, val_bedfile, fraction, abs_max)
 
     config = MotifConfig()
-    index_dir = os.path.join(config.get_index_dir(), params["genome"])
-    
+   
+    genome = Genome(params["genome"])
     for infile in [pred_bedfile, val_bedfile]:
-        track2fasta(
-            index_dir, 
+        genome.track2fasta(
             infile, 
             infile.replace(".bed", ".fa"), 
             )
@@ -75,14 +75,12 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
     lwidth = int(params["lwidth"])
     extend = (lwidth - width) // 2
     
-    track2fasta(
-            index_dir, 
+    genome.track2fasta(
             val_bedfile, 
             os.path.join(outdir, "localization.fa"), 
             extend_up=extend, 
             extend_down=extend, 
-            use_strand=params["use_strand"], 
-            ignore_missing=True
+            stranded=params["use_strand"], 
             )
 
 def prepare_denovo_input_fa(inputfile, params, outdir):
@@ -149,26 +147,32 @@ def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_tim
     width = int(width)
     config = MotifConfig()
     fg = Fasta(fafile)
-    if bg_type in ["promoter", "genomic"]:
-        index_dir = os.path.join(config.get_index_dir(), genome)
 
     if bg_type == "random":
         f = MarkovFasta(fg, k=1, n=nr_times * len(fg))
         logger.debug("Random background: %s", outfile)
     elif bg_type == "genomic":
         logger.debug("Creating genomic background")
-        f = RandomGenomicFasta(index_dir, width, nr_times * len(fg))
+        f = RandomGenomicFasta(genome, width, nr_times * len(fg))
     elif bg_type == "gc":
         logger.debug("Creating GC matched background")
         f = MatchedGcFasta(fafile, genome, nr_times * len(fg))
         logger.debug("GC matched background: %s", outfile)
     elif bg_type == "promoter":
-        gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % genome)
+        fname = Genome(genome).filename
+        gene_file = fname.replace(".fa", ".annotation.bed.gz")
+        if not gene_file:
+            gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % genome)
+        if not os.path.exists(gene_file):
+            print("Could not find a gene file for genome {}")
+            print("Did you use the --annotation flag for genomepy?")
+            print("Alternatively make sure there is a file called {}.bed in {}".format(genome, config.get_gene_dir()))
+            raise ValueError()
 
         logger.info(
                 "Creating random promoter background (%s, using genes in %s)",
                 genome, gene_file)
-        f = PromoterFasta(gene_file, index_dir, width, nr_times * len(fg))
+        f = PromoterFasta(gene_file, genome, width, nr_times * len(fg))
         logger.debug("Random promoter background: %s", outfile)
     elif bg_type == "user":
         bg_file = user_background

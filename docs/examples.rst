@@ -6,21 +6,11 @@ Simple examples
 Install a genome
 ----------------
 
-Any genome on UCSC can be installed automatically using ``gimme genome``.
-
-Install the hg38 genome in the directory ``~/genomes``:
+Any genome on UCSC, Ensembl or NCBI can be installed automatically using `genomepy<http://github.com/simonvh/genomepy>`_. The `genomepy` command tools comes installed with gimmemotifs. For instance, to download the hg38 genome from UCSC:
 
 ::
 
-    $ gimme genome ~/genomes/ hg38
-
-
-Install the mm10 genome in the directory ``/data/genomes``:
-
-::
-
-    $ gimme genome /data/genomes mm10
-
+    $ genomepy install hg38 UCSC --annotation
 
 Predict de novo motifs
 ----------------------

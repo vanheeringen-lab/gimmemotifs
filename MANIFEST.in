@@ -1,16 +1,14 @@
 include README.md
 include MANIFEST
-include NEWS
 include INSTALL
 include COPYING
-include ChangeLog
+include CHANGELOG.md
 include run_tests.py
 include compile_externals.py
 include cfg/gimmemotifs.cfg.example
 include examples/TAp73alpha.bed
 include examples/TAp73alpha.fa
 include genes/*.bed
-include genome_index/README.txt
 include motif_databases/*.pwm
 include motif_databases/*.txt
 include motif_databases/*.README

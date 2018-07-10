@@ -4,9 +4,8 @@ import logging
 
 logger = logging.getLogger()
 
-
+from genomepy import Genome
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.genome_index import check_genome
 from gimmemotifs.config import (MotifConfig, FA_VALID_BGS, BED_VALID_BGS)
 # import logger
 
@@ -58,7 +57,7 @@ def check_denovo_input(inputfile, params):
     elif input_type == "BED":
         valid_bg = BED_VALID_BGS    
         if "genomic" in background:
-            check_genome(genome)
+            Genome(genome)
         # is it a valid bed-file etc.
         check_bed_file(inputfile)    # bed-specific
     

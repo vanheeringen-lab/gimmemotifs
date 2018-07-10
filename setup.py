@@ -22,16 +22,10 @@ import inspect
 from io import open
 
 CONFIG_NAME = "gimmemotifs.cfg" 
-DESCRIPTION  = """GimmeMotifs is a motif prediction pipeline. 
-"""
+DESCRIPTION  = "GimmeMotifs is a motif prediction pipeline."
 
-# trick to get rst file for PyPi, see:
-# http://stackoverflow.com/questions/26737222/pypi-description-markdown-doesnt-work/26737672#26737672
-try:
-    import pypandoc
-    long_description = pypandoc.convert('README.md', 'rst')    
-except(IOError, ImportError, RuntimeError):
-    long_description = open('README.md', 'r').read()
+with open('README.md', encoding='utf-8') as f:
+    long_description = f.read().strip("\n")
 
 # are we in the conda build environment?
 conda_build = os.environ.get("CONDA_BUILD")
@@ -102,7 +96,6 @@ data_files=[
                                     ]),
 #    ('gimmemotifs/doc', ['doc/gimmemotifs_manual.pdf','doc/gimmemotifs_manual.html']),
     ('gimmemotifs/examples', ['examples/TAp73alpha.bed','examples/TAp73alpha.fa']),
-    ('gimmemotifs/genome_index', ['genome_index/README.txt'])
 ]
 
 
@@ -380,7 +373,6 @@ class install_config(Command):
         cfg.set_template_dir(os.path.join(data_dir, 'gimmemotifs/templates'))
         cfg.set_gene_dir(os.path.join(data_dir, 'gimmemotifs/genes'))
         cfg.set_score_dir(os.path.join(data_dir, 'gimmemotifs/score_dists'))
-        cfg.set_index_dir(os.path.join(data_dir, 'gimmemotifs/genome_index'))
         cfg.set_motif_dir(os.path.join(data_dir, 'gimmemotifs/motif_databases'))
         cfg.set_bg_dir(os.path.join(data_dir, 'gimmemotifs/bg'))
         cfg.set_tools_dir(os.path.join(data_dir, 'gimmemotifs/tools'))
@@ -457,6 +449,7 @@ setup (
                             },
         version = GM_VERSION,
         long_description = long_description,
+        long_description_content_type = 'text/markdown',
         description = DESCRIPTION,
         author = 'Simon van Heeringen',
         author_email = 'simon.vanheeringen@gmail.com',
@@ -482,7 +475,7 @@ setup (
         data_files=data_files,
         install_requires = [
             "setuptools >= 0.7",
-            "numpy >= 1.6.0",
+            "numpy <= 1.13.3",
             "scipy >= 0.9.0",
             "matplotlib >= 2",
             "jinja2",
@@ -493,12 +486,14 @@ setup (
             "sklearn-contrib-lightning",
             "seaborn",
             "pysam",
-            "xgboost",
+            "xgboost >= 0.71",
             "xdg",
             "diskcache",
             "xxhash",
             "configparser",
             "six",
             "future",
-        ],
+            "genomepy",
+            "tqdm",
+            ],
 )
