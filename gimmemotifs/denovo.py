@@ -7,6 +7,7 @@
 import datetime
 import os
 import sys
+import re
 import logging
 import logging.handlers
 import shutil
@@ -27,6 +28,54 @@ from gimmemotifs.report import create_denovo_motif_report
 from gimmemotifs.motif import read_motifs
 
 logger = logging.getLogger("gimme.denovo")
+
+def prepare_denovo_input_narrowpeak(inputfile, params, outdir):
+    """Prepare a narrowPeak file for de novo motif prediction.
+
+    All regions to same size; split in test and validation set;
+    converted to FASTA.
+
+    Parameters
+    ----------
+    inputfile : str
+        BED file with input regions.
+
+    params : dict
+        Dictionary with parameters.
+
+    outdir : str
+        Output directory to save files.
+    """
+
+    bedfile = os.path.join(outdir, "input.from.narrowpeak.bed")
+    p = re.compile(r'^(#|track|browser)')
+    width = int(params["width"])
+    logger.info("preparing input (narrowPeak to BED, width %s)", width)
+    warn_no_summit = True
+    with open(bedfile, "w") as f_out:
+        with open(inputfile) as f_in:
+            for line in f_in:
+                if p.search(line):
+                    continue
+                vals = line.strip().split("\t")
+                start, end = int(vals[1]), int(vals[2])
+                summit = int(vals[9])
+                if summit == -1:
+                    if warn_no_summit:
+                        logger.warn("No summit present in narrowPeak file, using the peak center.")
+                        warn_no_summit = False
+                    summit = (end - start) // 2
+
+                start = start + summit - (width // 2)
+                end = start + width
+                f_out.write("{}\t{}\t{}\t{}\n".format(
+                    vals[0],
+                    start,
+                    end,
+                    vals[6]
+                    ))
+    
+    prepare_denovo_input_bed(bedfile, params, outdir)
 
 def prepare_denovo_input_bed(inputfile, params, outdir):
     """Prepare a BED file for de novo motif prediction.
@@ -417,7 +466,7 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
     Parameters
     ----------
     inputfile : str
-        Filename of input. Can be either BED or FASTA.
+        Filename of input. Can be either BED, narrowPeak or FASTA.
 
     outdir : str
         Name of output directory.
@@ -476,12 +525,15 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
     
     
     # Create the necessary files for motif prediction and validation
-    if input_type == "BED":
+    if input_type == "bed":
         prepare_denovo_input_bed(inputfile, params, tmpdir)
-    elif input_type == "FASTA":
+    elif input_type == "narrowpeak":
+        prepare_denovo_input_narrowpeak(inputfile, params, tmpdir)
+    elif input_type == "fasta":
         prepare_denovo_input_fa(inputfile, params, tmpdir)
     else:
-        logger.error("Unknown input type, shouldn't happen")
+        
+        logger.error("Unknown input file.")
         sys.exit(1)
 
     # Create the background FASTA files

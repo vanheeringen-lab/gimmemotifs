@@ -7,6 +7,7 @@ logger = logging.getLogger()
 from genomepy import Genome
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.config import (MotifConfig, FA_VALID_BGS, BED_VALID_BGS)
+from gimmemotifs.utils import determine_file_type
 # import logger
 
 def check_bed_file(fname):
@@ -38,28 +39,22 @@ def check_bed_file(fname):
 
 
 def check_denovo_input(inputfile, params):
-
+    """
+    Check if an input file is valid, which means BED, narrowPeak or FASTA
+    """
     genome = params["genome"]
     background = params["background"]
     
-    input_type = "BED"
-    # If we can load it as fasta then it is a fasta, yeh?
-    try:
-        Fasta(inputfile)
-        logger.debug("Inputfile is a FASTA file")
-        input_type = "FASTA"
-    except Exception:
-        # Leave it to BED
-        pass
-
-    if input_type == "FASTA":
+    input_type = determine_file_type(inputfile)
+    
+    if input_type == "fasta":
         valid_bg = FA_VALID_BGS    
-    elif input_type == "BED":
+    elif input_type in ["bed", "narrowpeak"]:
         valid_bg = BED_VALID_BGS    
         if "genomic" in background:
             Genome(genome)
         # is it a valid bed-file etc.
-        check_bed_file(inputfile)    # bed-specific
+        check_bed_file(inputfile)    # bed-specific, will also work for narrowPeak
     
     for bg in background:
         if not bg in valid_bg:

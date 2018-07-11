@@ -53,7 +53,7 @@ if __name__ == "__main__":
     # gimme_motifs.py
     p = subparsers.add_parser('motifs')
     p.add_argument("inputfile", 
-                   help="Inputfile in BED or FASTA format", 
+                   help="Inputfile in BED, narrowPeak or FASTA format", 
                    metavar="INPUTFILE")
     p.add_argument("-k", "--keepintermediate", 
                    dest="keep_intermediate", 
