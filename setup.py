@@ -475,7 +475,7 @@ setup (
         data_files=data_files,
         install_requires = [
             "setuptools >= 0.7",
-            "numpy <= 1.13.3",
+            "numpy",
             "scipy >= 0.9.0",
             "matplotlib >= 2",
             "jinja2",

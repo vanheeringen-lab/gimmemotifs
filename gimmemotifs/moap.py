@@ -45,7 +45,11 @@ from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.config import MotifConfig, GM_VERSION
 
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 logger = logging.getLogger("gimme.maelstrom")
+
 
 class Moap(object):
     """Moap base class.
