@@ -29,6 +29,7 @@ def html_report(outdir, infile, pwmfile, threshold=0.01):
             "log10 P-value",
             "corrected P-value",
             "ROC AUC",
+            "PR AUC",
             "Enr. at 1% FPR",
             "Recall at 10% FDR"
     ]
@@ -94,6 +95,7 @@ def roc(args):
     stats = [
             "phyper_at_fpr",
             "roc_auc", 
+            "pr_auc",
             "enr_at_fpr",
             "max_enrichment", 
             "recall_at_fdr", 
@@ -115,7 +117,7 @@ def roc(args):
         f_out = open(args.outdir + "/gimme.roc.report.txt", "w")
     
     # Print the metrics
-    f_out.write("Motif\t# matches\t# matches background\tP-value\tlog10 P-value\tROC AUC\tEnr. at 1% FPR\tRecall at 10% FDR\n")
+    f_out.write("Motif\t# matches\t# matches background\tP-value\tlog10 P-value\tROC AUC\tPR AUC\tEnr. at 1% FPR\tRecall at 10% FDR\n")
     for motif in motifs:
         if outputfile:
             x, y = motif_stats[str(motif)]["roc_values"]
@@ -125,13 +127,14 @@ def roc(args):
         log_pvalue = np.inf
         if motif_stats[str(motif)]["phyper_at_fpr"] > 0:
             log_pvalue = -np.log10(motif_stats[str(motif)]["phyper_at_fpr"])
-        f_out.write("{}\t{:d}\t{:d}\t{:.2e}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.4f}\n".format(
+        f_out.write("{}\t{:d}\t{:d}\t{:.2e}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.4f}\n".format(
               motif.id, 
               motif_stats[str(motif)]["matches_at_fpr"][0], 
               motif_stats[str(motif)]["matches_at_fpr"][1], 
               motif_stats[str(motif)]["phyper_at_fpr"], 
               log_pvalue, 
               motif_stats[str(motif)]["roc_auc"], 
+              motif_stats[str(motif)]["pr_auc"], 
               motif_stats[str(motif)]["enr_at_fpr"], 
               motif_stats[str(motif)]["recall_at_fdr"],
               ))
