@@ -5,7 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-## Changed
+### Added
+
+- Added precision-recall AUC to stats and `gimme roc`.
+- `gimme motifs` now supports narrowPeak input.
+- Updated documentation with an explanation of the score that `gimme maelstrom` reports.
+
+### Changed
 
 - Dropped support for Python 2.
 
