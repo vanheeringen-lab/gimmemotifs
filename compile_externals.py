@@ -8,7 +8,7 @@ def compile_simple(name, src_dir="src"):
     
     if not os.path.exists(path):
         return
-    print(path) 
+    
     try:
         Popen("gcc", stdout=PIPE, stderr=PIPE).communicate()
     except Exception:
@@ -51,7 +51,7 @@ def compile_all(prefix=None, src_dir="src"):
     sys.stderr.flush()
     result = compile_simple("MDmodule", src_dir=src_dir)
     print_result(result)
-   
+    
     # We don't need to compile MEME for conda
     if not conda_build:
        sys.stderr.write("compiling MEME")
