@@ -8,7 +8,9 @@ import configparser
 import sysconfig
 import xdg
 import os
+import sys
 import logging
+import pkg_resources
 
 logger = logging.getLogger("gimme.config")
 
@@ -21,19 +23,23 @@ BG_RANK = {"user":1, "promoter":2, "gc":3, "random":4, "genomic":5}
 FASTA_EXT = [".fasta", ".fa", ".fsa"]
 
 CACHE_DIR = os.path.join(xdg.XDG_CACHE_HOME, "gimmemotifs")
+CONFIG_DIR = os.path.join(xdg.XDG_CONFIG_HOME, "gimmemotifs")
 
 class MotifConfig(object):
     """Configuration object for the gimmemotifs module."""
     __shared_state = {}
+    
     prefix = sysconfig.get_config_var("prefix")
+    
+    # Default config that is installed with GimmeMotifs
+    default_config = pkg_resources.resource_filename(
+            'data', 'cfg/gimmemotifs.default.cfg')
+    
+    user_config = os.path.join(CONFIG_DIR, "gimmemotifs.cfg")
+
     config_dir = "share/gimmemotifs/gimmemotifs.cfg"
     configs = [
-        '/home/docs/checkouts/readthedocs.org/user_builds/gimmemotifs/envs/latest/share/gimmemotifs/gimmemotifs.cfg',
-        'cfg/gimmemotifs.cfg.example', 
-        os.path.join('/usr', config_dir),
-        os.path.join(prefix, config_dir), 
-        'build/cfg/gimmemotifs.cfg',
-        os.path.expanduser('~/.gimmemotifs.cfg')
+        user_config,
     ]
     config = None
     TOOL_SECTION = "tools"
@@ -47,7 +53,108 @@ class MotifConfig(object):
             self.config = configparser.ConfigParser()
             cfg = self.config.read(self.configs)
             if not cfg:
+                self.create_default_config()
+                sys.exit()
+                
+                
                 raise ValueError("Configuration file not found!")
+    
+    def create_default_config(self):
+        print(self.default_config)
+        print("Creating new config")
+        cfg = self.config.read(self.default_config)
+        print(cfg)
+
+        self.set_template_dir(pkg_resources.resource_filename(
+            'data', 'templates'))
+        self.set_score_dir(pkg_resources.resource_filename(
+            'data', 'score_dir'))
+        self.set_gene_dir(pkg_resources.resource_filename(
+            'data', 'gene_dir'))
+        self.set_motif_dir(pkg_resources.resource_filename(
+            'data', 'motif_databases'))
+        self.set_bg_dir(pkg_resources.resource_filename(
+            'data', 'bg'))
+        self.set_seqlogo(pkg_resources.resource_filename(
+            'data', 'tools/seqlogo'))
+        self.set_tools_dir(pkg_resources.resource_filename(
+            'data', 'tools'))
+        
+        for program in MOTIF_CLASSES:
+            # Get class
+            m = eval(program)()
+            cmd = m.cmd
+
+            ### ugly, fixme :)
+            if cmd == "ChIPMunk.sh":
+                cmd = "ChIPMunk/ChIPMunk.sh"
+            if cmd == "hms":
+                cmd = "HMS/hms"
+
+            bin = ""
+            if cmd == "/bin/false":
+                # motif db
+                bin = "/bin/false"
+            elif os.path.exists(os.path.join(self.build_tools_dir, cmd)):
+                bin = os.path.join(self.build_tools_dir, cmd)
+                dlog.info("using included version of %s: %s" % (program, bin))
+            else:
+                ### ugly, fixme :)
+                if     cmd == "ChIPMunk/ChIPMunk.sh":
+                    cmd = "ChIPMunk.sh"
+                if cmd == "HMS/hms":
+                    cmd = "hms"
+
+                if program in MOTIF_BINS.keys():
+                    dlog.info("could not find compiled version of %s" % program)
+                bin = which(cmd)
+                if bin:
+                    dlog.info("using installed version of %s: %s" % (program, bin))
+                else:
+                    dlog.info("not found: %s" % program)
+ 
+            ### Some more ugly stuff
+            if bin:
+                dir = bin.replace(m.cmd,"")
+                if program == "Weeder":
+                    dir = bin.replace("weederTFBS.out","")
+                elif program == "Meme":
+                    dir = bin.replace("bin/meme.bin", "").replace("meme.bin", "")
+                elif program == "ChIPMunk":
+                    dir = bin.replace("ChIPMunk.sh", "")
+
+                available.append(m.name)
+                cfg.set_program(m.name,
+                        {
+                            "bin":os.path.abspath(bin),
+                            "dir":os.path.abspath(dir),
+                            }
+                        )
+
+        # Weblogo
+        bin = ""
+        seq_included = os.path.abspath(os.path.join(self.build_tools_dir, "seqlogo"))
+        if os.path.exists(seq_included):
+            bin = seq_included
+            dlog.info("using included version of weblogo: %s" % seq_included)
+        else:
+            bin = which("seqlogo")
+            dlog.info("using installed version of seqlogo: %s" % (os.path.abspath(bin)))
+        if bin:
+            cfg.set_seqlogo(os.path.abspath(bin))
+        else:
+            dlog.info("couldn't find seqlogo")
+
+        # Set the available tools in the config file
+        DEFAULT_PARAMS["available_tools"] = ",".join(available)
+        DEFAULT_PARAMS["tools"] = ",".join(available)
+        cfg.set_default_params(DEFAULT_PARAMS)
+
+        if not os.path.exists(CONFIG_DIR):
+            os.mkdir(CONFIG_DIR)
+        with open(self.user_config, "w") as f:
+            self.config.write(f)
+
     def bin(self, program):
         try:
             exe = self.config.get(program, "bin")

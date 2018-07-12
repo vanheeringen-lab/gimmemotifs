@@ -1,23 +1,15 @@
 include README.md
-include MANIFEST
 include INSTALL
 include COPYING
 include CHANGELOG.md
 include run_tests.py
 include compile_externals.py
-include cfg/gimmemotifs.cfg.example
-include data/examples/TAp73alpha.bed
-include data/examples/TAp73alpha.fa
-include data/motif_databases/*.pwm
-include data/motif_databases/*.txt
-include data/motif_databases/*.README
-include data/score_dists/*.txt
-include data/templates/*.html
-include data/templates/*.png
-include data/templates/sortable/*
-include data/bg/*.bg
-include data/cfg/*
 recursive-include src *
 recursive-include test/data/ *
 include test/*.py
 include test/data/*/*
+include scripts/gimme
+
+recursive-exclude data/examples/ *
+include data/examples/TAp73alpha.bed
+include data/examples/TAp73alpha.fa

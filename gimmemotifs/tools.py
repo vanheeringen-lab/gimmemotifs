@@ -27,6 +27,8 @@ try:
 except ImportError:
     pass
 
+MOTIF_CLASSES = ["MDmodule", "Meme", "MemeW", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer",  "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms", "Homer", "XXmotif"]
+
 def get_tool(name): 
     """
     Returns an instance of a specific tool.
