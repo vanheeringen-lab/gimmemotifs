@@ -58,7 +58,7 @@ def html_report(outdir, infile, pwmfile, threshold=0.01):
             motif.to_img(outdir + "/logos/{}.png".format(motif.id), fmt="PNG")
     
     bar_cols = [
-            "log10 P-value", "ROC AUC", "MNCP",
+            "log10 P-value", "ROC AUC", "PR AUC", "MNCP",
             "Enr. at 1% FDR", "Max enr.", "Recall at 10% FDR"
             ]
     template_dir = MotifConfig().get_template_dir()
@@ -104,7 +104,7 @@ def roc(args):
             ]
     
     motif_stats = calc_stats(motifs, args.sample, args.background, 
-            genome=args.genome, stats=stats)
+            genome=args.genome, stats=stats, ncpus=args.ncpus)
 
     plot_x = []
     plot_y = []
