@@ -3,6 +3,11 @@
 FAQ
 ===
 
+I get motifs that have differential scores in gimme maelstrom, however, the number is not different across clusters
+-------------------------------------------------------------------------------------------------------------------
+
+The different methods use different ways to rank the motifs. The hypergeometric test is the only one that uses motif counts. All the other methods use the PWM logodds score of the best match. While the counts may not be different across clusters, the scores most likely are.
+
 I have upgraded GimmeMotifs and now it doesn't find my genome
 -------------------------------------------------------------
 

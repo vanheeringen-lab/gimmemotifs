@@ -246,8 +246,13 @@ There output directory contains several files:
 The two motif files, ``motif.count.txt.gz`` and ``motif.score.gz`` contain the motif scan results. 
 The ``activity.*.out.txt`` files are tables with the results of the individual methods. 
 The main result is ``final.out.csv``, which integrates all individual methods in a final score. 
-The file ``gimme.maelstrom.report.html`` contains a graphical summary of this file that can be opened in your web browser.
+This score represents the combined result of multiple methods.
+The individual results from different methods are ranked from high-scoring motif to low-scoring motif
+and then aggregated using the rank aggregation method from `Kolde, 2012<https://www.ncbi.nlm.nih.gov/pubmed/22247279>`_.
+The score that is shown is the -log10(p-value), where the p-value (from the rank aggregation) is corrected for multiple testing.
+This procedure is then repeated with the ranking reversed. These are shown as negative values.
 
+The file ``gimme.maelstrom.report.html`` contains a graphical summary of this file that can be opened in your web browser.
 
 .. image:: images/gimme.maelstrom.report.png
 
