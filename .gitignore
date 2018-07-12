@@ -10,9 +10,9 @@ doc/*
 !doc/*.txt
 !doc/*.md
 docs/_build/*
-examples/*
-!examples/*.bed
-!examples/*.fa
+data/examples/*
+!data/examples/*.bed
+!data/examples/*.fa
 *.pyc
 dist/*
 website/**/*

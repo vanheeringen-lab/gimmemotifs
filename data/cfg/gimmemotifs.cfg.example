@@ -1,0 +1,77 @@
+[main]
+index_dir = genome_index
+bg = bg
+template_dir = templates
+score_dir = score_dists
+gene_dir = genes
+motif_databases = motif_databases
+seqlogo = tools/seqlogo
+tools = tools
+
+[params]
+fraction = 0.2
+use_strand = False
+abs_max = 1000
+analysis = medium
+enrichment = 1.5
+width = 200
+lwidth = 500
+genome = hg18
+background = gc,random
+cluster_threshold = 0.95
+scan_cutoff = 0.9
+available_tools = MDmodule,MEME,Weeder,GADEM,MotifSampler,trawler,Improbizer,BioProspector,Posmo,ChIPMunk,AMD,Jaspar,Homer
+tools = MDmodule,MEME,Weeder,MotifSampler,trawler,Improbizer,BioProspector,Posmo,ChIPMunk,AMD,Jaspar,Homer
+pvalue = 0.001
+max_time = None
+ncpus = 12
+motif_db = gimme.vertebrate.v3.1.pwm
+use_cache = False
+
+[AMD]
+bin = tools/AMD.bin
+dir = tools/
+
+[MEME]
+bin = tools/meme.bin
+dir = tools/
+
+[MEMEW]
+bin = tools/meme.bin
+dir = tools/
+
+[MDmodule]
+bin = tools/MDmodule
+dir = tools/
+
+[Improbizer]
+bin = /usr/local/bin/ameme
+dir = /usr/local/bin/
+
+[MotifSampler]
+bin = /usr/local/bin/MotifSampler
+dir = /usr/local/bin/
+
+[GADEM]
+bin = tools/gadem
+dir = tools/
+
+[trawler]
+bin = tools/trawler/bin/trawler.pl
+dir = tools/trawler/
+
+[Weeder]
+bin = /usr/share/Weeder/weederTFBS.out
+dir = /usr/share/Weeder/
+
+[BioProspector]
+bin = tools/BioProspector
+dir = tools/
+
+[ChIPMunk]
+bin = tools/ChIPMunk/ChIPMunk.sh
+dir = tools/ChIPMunk/
+
+[Homer]
+bin = tools/homer2
+dir = tools/
