@@ -6,9 +6,6 @@ matrix:
       language: generic
     - os: linux
       language: python
-      python: "2.7"
-    - os: linux
-      language: python
       python: "3.5"
     - os: linux
       language: python
@@ -21,11 +18,7 @@ matrix:
 before_install:
   # install miniconda for Python dependencies
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-        wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-      else
-        wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-      fi
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     else
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
     fi
@@ -48,9 +41,6 @@ install:
       conda install python=$TRAVIS_PYTHON_VERSION pip future "numpy<1.14" scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed xdg xxhash readline ghostscript homer gadem trawler weeder xxmotif tqdm genomepy;
    else
       conda install python=3 pip future "numpy<1.14" scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed xdg xxhash readline ghostscript homer gadem trawler weeder xxmotif tqdm genomepy;
-    fi
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then 
-      conda install configparser;
     fi
   - python setup.py build
 #  - pip install nose coverage
