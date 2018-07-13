@@ -38,9 +38,7 @@ Or create a specific environment:
     # Activate the environment before you use GimmeMotifs
     $ conda activate gimme
 
-Python 3 is the preferred version, however, GimmeMotifs also supports Python 2.
-Don't forget to activate the environment with ``source activate gimme`` whenever
-you want to use GimmeMotifs.
+GimmeMotifs only supports Python 3. Don't forget to activate the environment with ``source activate gimme`` whenever you want to use GimmeMotifs.
 
 Installation successful? Good. Have a look at the :ref:`configuration<configuration>` section.
 
