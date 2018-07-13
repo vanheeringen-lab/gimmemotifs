@@ -326,7 +326,7 @@ def predict_motifs(infile, bgfile, outfile, params=None, stats_fg=None, stats_bg
                     infile, 
                     outfile, 
                     analysis, 
-                    params["genome"], 
+                    params.get("genome", None), 
                     params["use_strand"], 
                     bgfile, 
                     tools, 

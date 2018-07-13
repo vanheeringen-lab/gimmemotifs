@@ -82,6 +82,7 @@ class MotifConfig(object):
                 exe = self.config.get(m, "bin")
                 mdir = self.config.get(m, "dir")
                 tool_dir = os.path.join(self.package_dir, mdir)
+                print(tool_dir)
                 cmd = os.path.join(tool_dir, exe)
                 if which(cmd):
                     logger.info("Using included version of %s.", m)
@@ -116,6 +117,14 @@ class MotifConfig(object):
     def bin(self, program):
         try:
             exe = self.config.get(program, "bin")
+            if not os.path.exists(exe):
+                mdir = self.config.get(program, "dir")
+                if not os.path.exists(mdir):
+                    mdir = os.path.join(
+                            self.package_dir,
+                            mdir)
+                exe = os.path.join(mdir, exe)
+
         except: 
             raise ValueError("No configuration found for %s" % program)
         return exe
@@ -146,7 +155,13 @@ class MotifConfig(object):
         if self.config.has_section(program):
             if self.config.has_option(program, "dir"):
                 try: 
-                    return self.config.get(program, "dir")
+                    mdir = self.config.get(program, "dir")
+                    if not os.path.exists(mdir):
+                        mdir = os.path.join(
+                                self.package_dir,
+                                mdir
+                                )
+                    return mdir
                 except Exception:
                     return None
             else:

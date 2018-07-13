@@ -542,7 +542,13 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
         sys.exit(1)
 
     # Create the background FASTA files
-    background = create_backgrounds(tmpdir, background, params["genome"], params["width"], params.get("user_background", None))
+    background = create_backgrounds(
+            tmpdir, 
+            background, 
+            params.get("genome", None), 
+            params["width"], 
+            params.get("user_background", None)
+            )
     
     # Predict de novo motifs
     result = predict_motifs(
