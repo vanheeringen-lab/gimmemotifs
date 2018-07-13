@@ -18,6 +18,7 @@ import glob
 # gimme imports
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.shutils import which
+from gimmemotifs import included_tools
 
 # Necessary for when setup.py needs to import 
 # refactor at some point
@@ -26,6 +27,8 @@ try:
     from gimmemotifs.fasta import Fasta
 except ImportError:
     pass
+
+MOTIF_CLASSES = ["MDmodule", "Meme", "MemeW", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer",  "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms", "Homer", "XXmotif"]
 
 def get_tool(name): 
     """

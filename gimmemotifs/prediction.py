@@ -160,7 +160,7 @@ class PredictionResult(object):
 #                                    callback=self.add_stats)
 #                
 
-def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools=None, job_server=None, ncpus=8, max_time=None, stats_fg=None, stats_bg=None):
+def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools=None, job_server=None, ncpus=8, max_time=-1, stats_fg=None, stats_bg=None):
     """Parallel prediction of motifs.
 
     Utility function for gimmemotifs.denovo.gimme_motifs. Probably better to 
@@ -326,7 +326,7 @@ def predict_motifs(infile, bgfile, outfile, params=None, stats_fg=None, stats_bg
                     infile, 
                     outfile, 
                     analysis, 
-                    params["genome"], 
+                    params.get("genome", None), 
                     params["use_strand"], 
                     bgfile, 
                     tools, 

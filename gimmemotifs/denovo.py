@@ -197,6 +197,11 @@ def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_tim
     config = MotifConfig()
     fg = Fasta(fafile)
 
+    if bg_type in ["genomic", "gc"]:
+        if not genome:
+            logger.error("Need a genome to create background")
+            sys.exit(1)
+    
     if bg_type == "random":
         f = MarkovFasta(fg, k=1, n=nr_times * len(fg))
         logger.debug("Random background: %s", outfile)
@@ -537,7 +542,13 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
         sys.exit(1)
 
     # Create the background FASTA files
-    background = create_backgrounds(tmpdir, background, params["genome"], params["width"], params.get("user_background", None))
+    background = create_backgrounds(
+            tmpdir, 
+            background, 
+            params.get("genome", None), 
+            params["width"], 
+            params.get("user_background", None)
+            )
     
     # Predict de novo motifs
     result = predict_motifs(

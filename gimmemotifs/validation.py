@@ -42,7 +42,6 @@ def check_denovo_input(inputfile, params):
     """
     Check if an input file is valid, which means BED, narrowPeak or FASTA
     """
-    genome = params["genome"]
     background = params["background"]
     
     input_type = determine_file_type(inputfile)
@@ -50,8 +49,9 @@ def check_denovo_input(inputfile, params):
     if input_type == "fasta":
         valid_bg = FA_VALID_BGS    
     elif input_type in ["bed", "narrowpeak"]:
+        genome = params["genome"]
         valid_bg = BED_VALID_BGS    
-        if "genomic" in background:
+        if "genomic" in background or "gc" in background:
             Genome(genome)
         # is it a valid bed-file etc.
         check_bed_file(inputfile)    # bed-specific, will also work for narrowPeak

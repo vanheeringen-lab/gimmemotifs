@@ -22,11 +22,11 @@ from matplotlib import colors
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import read_motifs,default_motifs
-from gimmemotifs.config import GM_VERSION,MotifConfig,BG_RANK
+from gimmemotifs.config import MotifConfig,BG_RANK
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.rocmetrics import roc_values
 from gimmemotifs.stats import calc_stats, add_star, write_stats
-from gimmemotifs import mytmpdir
+from gimmemotifs import mytmpdir, __version__
 from gimmemotifs.utils import motif_localization
 
 logger = logging.getLogger("gimme.report")
@@ -104,7 +104,7 @@ def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
     
     header = ("# GimmeMotifs version {}\n"
              "# Inputfile: {}\n"
-             ).format(GM_VERSION, inputfile)
+             ).format(__version__, inputfile)
 
     write_stats(my_stats, os.path.join(outdir, "stats.{}.txt"), header=header)
 
@@ -189,7 +189,7 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
                     motifs=report_motifs, 
                     inputfile=inputfile, 
                     date=datetime.today().strftime("%d/%m/%Y"), 
-                    version=GM_VERSION,
+                    version=__version__,
                     bg_types=list(background.keys()))
 
     with open(total_report, "wb") as f:
