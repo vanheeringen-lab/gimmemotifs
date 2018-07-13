@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 from setuptools import Extension, Command
 from distutils.command.build import build
 from setuptools.command.install import install
+import distutils.command.install as orig
 
 import os
 import glob
@@ -83,7 +84,7 @@ class custom_install(install):
  
     def run(self):
         self.run_command('build_tools')
-        self.do_egg_install()
+        orig.install.run(self)
 
 setup (
         name = 'gimmemotifs',
