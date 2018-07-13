@@ -31,14 +31,19 @@ MOTIF_BINS = {
     "AMD": ["src/AMD/AMD.bin"],
 }
 
-class build_tools(Command):
+
+cmdclass = versioneer.get_cmdclass()
+my_build_py = cmdclass["build_py"]
+class build_tools(my_build_py):
     user_options = []
     
     def initialize_options(self):
+        my_build_py.initialize_options(self)
         self.build_base = None
         self.build_lib = None
 
     def finalize_options(self):
+        my_build_py.finalize_options(self)
         self.set_undefined_options('build',('build_base', 'build_base'))
         self.set_undefined_options('build',('build_lib', 'build_lib'))
 
@@ -79,13 +84,9 @@ class build_tools(Command):
                 self.copy_tree("src/weblogo", 
                         os.path.join(target_dir, "weblogo"))
 
-build.sub_commands += [
-            ('build_tools', lambda self: True),
-            ]
+        my_build_py.run(self)
 
-
-cmdclass = versioneer.get_cmdclass()
-cmdclass["build_tools"] = build_tools
+cmdclass["build_py"] = build_tools
 
 setup (
         name = 'gimmemotifs',
