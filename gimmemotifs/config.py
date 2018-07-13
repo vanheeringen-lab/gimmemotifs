@@ -17,7 +17,6 @@ from gimmemotifs.shutils import which
 logger = logging.getLogger("gimme.config")
 
 ### CONSTANTS ###
-GM_VERSION = "0.12.0"
 BG_TYPES = ["random", "genomic", "gc", "promoter"]
 FA_VALID_BGS = ["random", "promoter", "gc", "user", "genomic"]
 BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "user"]

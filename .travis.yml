@@ -54,6 +54,7 @@ install:
       conda install configparser;
     fi
   - python setup.py develop
+  - python setup.py build_tools
   - python setup.py build
 #  - pip install nose coverage
 #  - pip install coveralls

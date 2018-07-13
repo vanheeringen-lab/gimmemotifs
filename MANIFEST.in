@@ -14,3 +14,5 @@ graft data/
 recursive-exclude data/examples/ *
 include data/examples/TAp73alpha.bed
 include data/examples/TAp73alpha.fa
+include versioneer.py
+include gimmemotifs/_version.py

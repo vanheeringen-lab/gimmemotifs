@@ -22,3 +22,7 @@ sh = logging.StreamHandler()
 sh.setLevel(logging.INFO)
 sh.setFormatter(screen_formatter)
 logger.addHandler(sh)
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions

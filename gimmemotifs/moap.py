@@ -41,9 +41,10 @@ from lightning.regression import CDRegressor
 
 import xgboost
 
+from gimmemotifs import __version__
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
-from gimmemotifs.config import MotifConfig, GM_VERSION
+from gimmemotifs.config import MotifConfig
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -949,7 +950,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
     
     if outfile:
         with open(outfile, "w") as f:
-            f.write("# maelstrom - GimmeMotifs version {}\n".format(GM_VERSION))
+            f.write("# maelstrom - GimmeMotifs version {}\n".format(__version__))
             f.write("# method: {} with motif {}\n".format(method, scoring))
             if genome:
                 f.write("# genome: {}\n".format(genome))

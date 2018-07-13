@@ -7,12 +7,12 @@
 import os
 import sys
 import argparse
-from gimmemotifs.config import MotifConfig, BG_TYPES, GM_VERSION, BED_VALID_BGS
-from  gimmemotifs import commands
+from gimmemotifs.config import MotifConfig, BG_TYPES, BED_VALID_BGS
+from  gimmemotifs import commands, __version__
 from gimmemotifs.utils import check_genome
 
 if __name__ == "__main__":
-    
+
     config = MotifConfig()
     params = config.get_default_params()
     default_pwm_file = os.path.join(config.get_motif_dir(), params["motif_db"])
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     
     description = """
     GimmeMotifs v{0}
-    """.format(GM_VERSION)
+    """.format(__version__)
     
     epilog = """   
     commands:

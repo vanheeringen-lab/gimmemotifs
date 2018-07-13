@@ -9,8 +9,7 @@ import glob
 import sys
 from io import open
 from compile_externals import compile_all
-
-GM_VERSION = "0.12.1"
+import versioneer
 
 CONFIG_NAME = "gimmemotifs.cfg" 
 DESCRIPTION  = "GimmeMotifs is a motif prediction pipeline."
@@ -33,6 +32,8 @@ MOTIF_BINS = {
 }
 
 class build_tools(Command):
+    user_options = []
+    
     def initialize_options(self):
         self.build_base = None
         self.build_lib = None
@@ -82,22 +83,20 @@ build.sub_commands += [
             ('build_tools', lambda self: True),
             ]
 
-class custom_install(install):
- 
-    def run(self):
-        self.run_command('build_tools')
-        orig.install.run(self)
+
+cmdclass = versioneer.get_cmdclass()
+cmdclass["build_tools"] = build_tools
 
 setup (
         name = 'gimmemotifs',
-        version = GM_VERSION,
+        version = versioneer.get_version(),
         long_description = long_description,
         long_description_content_type = 'text/markdown',
         description = DESCRIPTION,
         author = 'Simon van Heeringen',
         author_email = 'simon.vanheeringen@gmail.com',
         url = 'https://github.com/simonvh/gimmemotifs/',
-        download_url = 'https://github.com/simonvh/gimmemotifs/tarball/' + GM_VERSION,
+        download_url = 'https://github.com/simonvh/gimmemotifs/tarball/' + versioneer.get_version(),
         license = 'MIT',
         packages=find_packages(),
         scripts=[
@@ -106,10 +105,7 @@ setup (
             ],
         include_package_data = True,
         ext_modules = [module1],
-        cmdclass = {
-            "install":custom_install,
-            "build_tools":build_tools,
-            },
+        cmdclass = cmdclass,
         classifiers=[
             'Development Status :: 4 - Beta',
             'Intended Audience :: Science/Research',
