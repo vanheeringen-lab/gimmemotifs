@@ -14,7 +14,7 @@ import re
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.utils import as_fasta 
 from gimmemotifs.scanner import Scanner,scan_it_moods
-from gimmemotifs.config import GM_VERSION
+from gimmemotifs import __version__
 
 MAX_CPUS = 16
 
@@ -135,7 +135,7 @@ def pwmscan(args):
     if args.fpr is None and args.cutoff is None:
         args.fpr = 0.01
 
-    print("# GimmeMotifs version {}".format(GM_VERSION))
+    print("# GimmeMotifs version {}".format(__version__))
     print("# Input: {}".format(args.inputfile))
     print("# Motifs: {}".format(args.pwmfile))
     if args.fpr:
