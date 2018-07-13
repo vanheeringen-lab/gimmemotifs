@@ -81,7 +81,6 @@ class MotifConfig(object):
                 exe = self.config.get(m, "bin")
                 mdir = self.config.get(m, "dir")
                 tool_dir = os.path.join(self.package_dir, mdir)
-                print(tool_dir)
                 cmd = os.path.join(tool_dir, exe)
                 if which(cmd):
                     logger.info("Using included version of %s.", m)
