@@ -24,12 +24,12 @@ conda_build = os.environ.get("CONDA_BUILD")
 module1 = Extension('gimmemotifs.c_metrics', sources = ['gimmemotifs/c_metrics.c'])
 
 MOTIF_BINS = {
-    "MEME": "src/meme_4.6.0/src/meme.bin",
-    "MEMEW": "src/meme_4.6.0/src/meme.bin",
-    "MDmodule": "src/MDmodule/MDmodule",
-    "BioProspector": "src/BioProspector/BioProspector",
-    "Posmo": "src/posmo/posmo",
-    "AMD": "src/AMD/AMD.bin",
+    "MEME": ["src/meme_4.6.0/src/meme.bin"],
+    "MEMEW": ["src/meme_4.6.0/src/meme.bin"],
+    "MDmodule": ["src/MDmodule/MDmodule"],
+    "BioProspector": ["src/BioProspector/BioProspector"],
+    "Posmo": ["src/posmo/posmo", "src/posmo/clusterwd"],
+    "AMD": ["src/AMD/AMD.bin"],
 }
 
 class build_tools(Command):
@@ -52,9 +52,10 @@ class build_tools(Command):
             
             compile_all(src_dir=src_dir)
 
-            for exe in MOTIF_BINS.values():
-                if os.path.exists(exe):
-                    self.copy_file(exe, target_dir)
+            for exes in MOTIF_BINS.values():
+                for exe in exes:
+                    if os.path.exists(exe):
+                        self.copy_file(exe, target_dir)
             
             self.copy_tree(
                     os.path.join(src_dir,  "ChIPMunk"), 
