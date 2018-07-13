@@ -63,6 +63,9 @@ class build_tools(my_build_py):
                 for exe in exes:
                     if os.path.exists(exe):
                         self.copy_file(exe, target_dir)
+                    exe = os.path.join(self.build_base, exe)
+                    if os.path.exists(exe):
+                        self.copy_file(exe, target_dir)
             
             self.copy_tree(
                     os.path.join(src_dir,  "ChIPMunk"), 
