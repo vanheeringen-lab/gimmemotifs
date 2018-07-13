@@ -4,6 +4,7 @@ from distutils.command.build import build
 from setuptools.command.install import install
 
 import os
+import glob
 import sys
 from io import open
 from compile_externals import compile_all
@@ -69,7 +70,11 @@ class build_tools(Command):
             self.copy_file(
                     os.path.join(src_dir,"Improbizer/ameme_x86_64"), 
                     os.path.join(target_dir, "ameme"))
-        
+       
+            if os.path.exists("src/weblogo"):
+                self.copy_tree("src/weblogo", 
+                        os.path.join(target_dir, "weblogo"))
+
 build.sub_commands += [
             ('build_tools', lambda self: True),
             ]
