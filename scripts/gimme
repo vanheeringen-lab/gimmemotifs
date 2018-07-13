@@ -71,9 +71,9 @@ if __name__ == "__main__":
                    default=params["analysis"])
     p.add_argument("-g", "--genome", 
                    dest="genome", 
-                   help="Genome version (%s)" % (params["genome"]),
-                   metavar="VERSION", 
-                   default=params["genome"])
+                   help="Genome",
+                   metavar="GENOME", 
+                   default=None)
     p.add_argument("-N", "--nthreads", 
                    dest="ncpus", 
                    help="Number of threads (default %s)" % (params["ncpus"]),
@@ -262,16 +262,6 @@ if __name__ == "__main__":
     
     p.set_defaults(func=commands.cluster)
     
-    # gimme genome
-    p = subparsers.add_parser('genome')
-    p.add_argument("fastadir",
-                   help="Directory to place genome",
-                   metavar="FASTADIR")
-    p.add_argument("genomebuild",
-                   help="UCSC genome name",
-                   metavar="GENOMEBUILD")
-    p.set_defaults(func=commands.genome)
-    
     # generate_background_sequences.py
     p = subparsers.add_parser('background')
     p.add_argument("outputfile", 
@@ -304,7 +294,7 @@ if __name__ == "__main__":
     p.add_argument("-g", 
                    dest="genome", help="genome version (not for type 'random')", 
                    metavar="GENOME", 
-                   default="hg19")
+                  )
     p.add_argument("-m", 
                    dest="markov_order", 
                    help="order of the Markov model (only for type 'random', default 1)", 
@@ -358,7 +348,7 @@ if __name__ == "__main__":
                    metavar="INPUTFILE")
     p.add_argument("-g", "--genome", 
                    dest="genome", 
-                   help="genome version", 
+                   help="Genome", 
                    metavar="GENOME", 
                     default=None)
     p.add_argument("-p", "--pwmfile",
@@ -467,8 +457,8 @@ if __name__ == "__main__":
                   default=0.01)
     p.add_argument("-g", "--genome",
                    dest="genome", 
-                   help="Genome version. Only necessary in combination with a BED file with clusters as inputfile.",
-                   metavar="VERSION", 
+                   help="Genome; only necessary in combination with a BED file with clusters as inputfile.",
+                   metavar="GENOME", 
                    )
     p.set_defaults(func=commands.diff)
     

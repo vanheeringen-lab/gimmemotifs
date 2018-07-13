@@ -18,6 +18,7 @@ import glob
 # gimme imports
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.shutils import which
+from gimmemotifs import included_tools
 
 # Necessary for when setup.py needs to import 
 # refactor at some point

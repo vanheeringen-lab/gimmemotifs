@@ -11,6 +11,8 @@ import os
 import sys
 import logging
 import pkg_resources
+import inspect
+from gimmemotifs.shutils import which
 
 logger = logging.getLogger("gimme.config")
 
@@ -25,6 +27,9 @@ FASTA_EXT = [".fasta", ".fa", ".fsa"]
 CACHE_DIR = os.path.join(xdg.XDG_CACHE_HOME, "gimmemotifs")
 CONFIG_DIR = os.path.join(xdg.XDG_CONFIG_HOME, "gimmemotifs")
 
+MOTIF_CLASSES = ["MDmodule", "MEME", "MEMEW", "Weeder", "GADEM", "MotifSampler", "Trawler", "Improbizer",  "BioProspector", "Posmo", "ChIPMunk", "AMD", "HMS", "Homer", "XXmotif"]
+
+
 class MotifConfig(object):
     """Configuration object for the gimmemotifs module."""
     __shared_state = {}
@@ -35,7 +40,14 @@ class MotifConfig(object):
     default_config = pkg_resources.resource_filename(
             'data', 'cfg/gimmemotifs.default.cfg')
     
+    # 
+    package_dir = os.path.dirname(
+            os.path.abspath(
+                inspect.getfile(inspect.currentframe())
+                ))
+        
     user_config = os.path.join(CONFIG_DIR, "gimmemotifs.cfg")
+
 
     config_dir = "share/gimmemotifs/gimmemotifs.cfg"
     configs = [
@@ -53,108 +65,54 @@ class MotifConfig(object):
             self.config = configparser.ConfigParser()
             cfg = self.config.read(self.configs)
             if not cfg:
+                logger.info("No config found.")
                 self.create_default_config()
-                sys.exit()
-                
-                
-                raise ValueError("Configuration file not found!")
+                cfg = self.config.read(self.configs)
+            if not cfg:
+                raise ValueError("Configuration file not found,"
+                                "could not create it!")
     
     def create_default_config(self):
-        print(self.default_config)
-        print("Creating new config")
-        cfg = self.config.read(self.default_config)
-        print(cfg)
-
-        self.set_template_dir(pkg_resources.resource_filename(
-            'data', 'templates'))
-        self.set_score_dir(pkg_resources.resource_filename(
-            'data', 'score_dir'))
-        self.set_gene_dir(pkg_resources.resource_filename(
-            'data', 'gene_dir'))
-        self.set_motif_dir(pkg_resources.resource_filename(
-            'data', 'motif_databases'))
-        self.set_bg_dir(pkg_resources.resource_filename(
-            'data', 'bg'))
-        self.set_seqlogo(pkg_resources.resource_filename(
-            'data', 'tools/seqlogo'))
-        self.set_tools_dir(pkg_resources.resource_filename(
-            'data', 'tools'))
+        logger.info("Creating new config.")
         
-        for program in MOTIF_CLASSES:
-            # Get class
-            m = eval(program)()
-            cmd = m.cmd
-
-            ### ugly, fixme :)
-            if cmd == "ChIPMunk.sh":
-                cmd = "ChIPMunk/ChIPMunk.sh"
-            if cmd == "hms":
-                cmd = "HMS/hms"
-
-            bin = ""
-            if cmd == "/bin/false":
-                # motif db
-                bin = "/bin/false"
-            elif os.path.exists(os.path.join(self.build_tools_dir, cmd)):
-                bin = os.path.join(self.build_tools_dir, cmd)
-                dlog.info("using included version of %s: %s" % (program, bin))
-            else:
-                ### ugly, fixme :)
-                if     cmd == "ChIPMunk/ChIPMunk.sh":
-                    cmd = "ChIPMunk.sh"
-                if cmd == "HMS/hms":
-                    cmd = "hms"
-
-                if program in MOTIF_BINS.keys():
-                    dlog.info("could not find compiled version of %s" % program)
-                bin = which(cmd)
-                if bin:
-                    dlog.info("using installed version of %s: %s" % (program, bin))
+        available_tools = []
+        cfg = self.config.read(self.default_config)
+        for m in MOTIF_CLASSES:
+            try:
+                exe = self.config.get(m, "bin")
+                mdir = self.config.get(m, "dir")
+                tool_dir = os.path.join(self.package_dir, mdir)
+                cmd = os.path.join(tool_dir, exe)
+                if which(cmd):
+                    logger.info("Using included version of %s.", m)
+                    available_tools.append(m)
                 else:
-                    dlog.info("not found: %s" % program)
- 
-            ### Some more ugly stuff
-            if bin:
-                dir = bin.replace(m.cmd,"")
-                if program == "Weeder":
-                    dir = bin.replace("weederTFBS.out","")
-                elif program == "Meme":
-                    dir = bin.replace("bin/meme.bin", "").replace("meme.bin", "")
-                elif program == "ChIPMunk":
-                    dir = bin.replace("ChIPMunk.sh", "")
+                    cmd = which(exe)
+                    if cmd:
+                        logger.info("Using system version of %s.", m)
+                        self.set_program(m, 
+                                {
+                                    "bin":cmd, 
+                                    "dir":os.path.dirname(cmd)
+                                    }
+                                )
+                        available_tools.append(m)
+                    else:
+                        logger.warn("%s not found. To include it you will have to install it.", m)
 
-                available.append(m.name)
-                cfg.set_program(m.name,
-                        {
-                            "bin":os.path.abspath(bin),
-                            "dir":os.path.abspath(dir),
-                            }
-                        )
-
-        # Weblogo
-        bin = ""
-        seq_included = os.path.abspath(os.path.join(self.build_tools_dir, "seqlogo"))
-        if os.path.exists(seq_included):
-            bin = seq_included
-            dlog.info("using included version of weblogo: %s" % seq_included)
-        else:
-            bin = which("seqlogo")
-            dlog.info("using installed version of seqlogo: %s" % (os.path.abspath(bin)))
-        if bin:
-            cfg.set_seqlogo(os.path.abspath(bin))
-        else:
-            dlog.info("couldn't find seqlogo")
-
-        # Set the available tools in the config file
-        DEFAULT_PARAMS["available_tools"] = ",".join(available)
-        DEFAULT_PARAMS["tools"] = ",".join(available)
-        cfg.set_default_params(DEFAULT_PARAMS)
+            except configparser.NoSectionError:
+                logger.warn("{} not in config".format(m))
+         
+        params = self.get_default_params()
+        params['available_tools'] = ",".join(available_tools)
+        self.set_default_params(params)
 
         if not os.path.exists(CONFIG_DIR):
             os.mkdir(CONFIG_DIR)
         with open(self.user_config, "w") as f:
             self.config.write(f)
-
+        logger.info("Configuration file: %s", self.user_config)
+    
     def bin(self, program):
         try:
             exe = self.config.get(program, "bin")
@@ -167,7 +125,7 @@ class MotifConfig(object):
             self.config.add_section("params")
 
         for k,v in params.items():
-            self.config.set("params", k, v)
+            self.config.set("params", k, str(v))
     
     def get_default_params(self):
         d = dict(self.config.items("params"))
@@ -178,6 +136,8 @@ class MotifConfig(object):
     def get_seqlogo(self):
         try:
             exe = self.config.get("main", "seqlogo")
+            if not os.path.exists(exe):
+                exe = os.path.join(self.package_dir, exe)
             return exe
         except Exception:
             return None
@@ -201,13 +161,20 @@ class MotifConfig(object):
         for par,value in d.items():
             self.config.set(program, par, value)
 
+    def get_data_dir(self, ddir):
+        my_dir = self.config.get("main", ddir)
+        if not os.path.exists(my_dir):
+            my_dir = pkg_resources.resource_filename(
+                'data', my_dir)
+        return my_dir
+
     def set_template_dir(self, path):
         if not self.config.has_section("main"):
             self.config.add_section("main")
         self.config.set("main", "template_dir", path)
-
+    
     def get_template_dir(self):
-        return self.config.get("main", "template_dir")
+        return self.get_data_dir("template_dir")
 
     def set_score_dir(self, path):
         if not self.config.has_section("main"):
@@ -215,7 +182,7 @@ class MotifConfig(object):
         self.config.set("main", "score_dir", path)
 
     def get_score_dir(self):
-        return self.config.get("main", "score_dir")
+        return self.get_data_dir("score_dir")
 
     def set_seqlogo(self, exe):
         if not self.config.has_section("main"):
@@ -228,7 +195,7 @@ class MotifConfig(object):
         self.config.set("main", "motif_databases", path)
 
     def get_motif_dir(self):
-        return self.config.get("main", "motif_databases")
+        return self.get_data_dir("motif_databases")
 
     def set_gene_dir(self, path):
         if not self.config.has_section("main"):
@@ -236,7 +203,7 @@ class MotifConfig(object):
         self.config.set("main", "gene_dir", path)
 
     def get_gene_dir(self):
-        return self.config.get("main", "gene_dir")
+        return self.get_data_dir("gene_dir")
     
     def set_bg_dir(self, path):
         if not self.config.has_section("main"):
@@ -244,7 +211,7 @@ class MotifConfig(object):
         self.config.set("main", "bg", path)
 
     def get_bg_dir(self):
-        return self.config.get("main", "bg")
+        return self.get_data_dir("bg")
 
     def set_tools_dir(self, path):
         if not self.config.has_section("main"):
@@ -302,15 +269,12 @@ def parse_denovo_params(user_params=None):
             max_time = params["max_time"] = float(params["max_time"])
         except Exception:
             logger.debug("Could not parse max_time value, setting to no limit")
-            params["max_time"] = None
+            params["max_time"] = -1
 
-        if params["max_time"] > 0:
-            logger.debug("Time limit for motif prediction: %0.2f hours", max_time)
-            params["max_time"] = 3600 * params["max_time"]
-            logger.debug("Max_time in seconds %0.0f", max_time)
-        else:
-            logger.debug("Invalid time limit for motif prediction, setting to no limit")
-            max_time = params["max_time"]
+    if params["max_time"] > 0:
+        logger.debug("Time limit for motif prediction: %0.2f hours", max_time)
+        params["max_time"] = 3600 * params["max_time"]
+        logger.debug("Max_time in seconds %0.0f", max_time)
     else:
         logger.debug("No time limit for motif prediction")
 

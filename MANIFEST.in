@@ -10,6 +10,7 @@ include test/*.py
 include test/data/*/*
 include scripts/gimme
 
+graft data/
 recursive-exclude data/examples/ *
 include data/examples/TAp73alpha.bed
 include data/examples/TAp73alpha.fa
