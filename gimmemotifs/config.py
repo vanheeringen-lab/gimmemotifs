@@ -107,7 +107,7 @@ class MotifConfig(object):
         self.set_default_params(params)
 
         if not os.path.exists(CONFIG_DIR):
-            os.mkdir(CONFIG_DIR)
+            os.makedirs(path, exist_ok=True)
         with open(self.user_config, "w") as f:
             self.config.write(f)
         logger.info("Configuration file: %s", self.user_config)
