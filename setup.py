@@ -45,6 +45,7 @@ class build_tools(Command):
         if not self.dry_run:
             src_dir = os.path.join(self.build_base, "src")
             target_dir = os.path.join(self.build_lib, 'gimmemotifs/included_tools')
+        #package_data={'gimmemotifs.data':['data/cfg/*']},
             
             self.copy_tree("src/", src_dir)
             # mkpath is a distutils helper to create directories
@@ -103,7 +104,6 @@ setup (
             'scripts/track2fasta.py',
             'scripts/gimme',
             ],
-        #package_data={'gimmemotifs.data':['data/cfg/*']},
         include_package_data = True,
         ext_modules = [module1],
         cmdclass = {
@@ -113,7 +113,7 @@ setup (
         classifiers=[
             'Development Status :: 4 - Beta',
             'Intended Audience :: Science/Research',
-            #'License :: OSI Approved :: MIT License',
+            'License :: OSI Approved :: MIT License',
             'Operating System :: MacOS :: MacOS X',
             'Operating System :: POSIX :: Linux',
             'Programming Language :: Python :: 2.7',
