@@ -117,8 +117,13 @@ def command_scan(inputfile, pwmfile, nreport=1, fpr=0.01, cutoff=None,
         
     s.set_motifs(pwmfile)
     if not score_table:
-        s.set_threshold(fpr=fpr, threshold=cutoff, 
-            genome=genome, length=fa.median_length(), filename=bgfile)
+        if cutoff:
+            s.set_threshold(fpr=fpr, threshold=cutoff, 
+                genome=None, length=fa.median_length(), filename=bgfile)
+        else:
+            s.set_threshold(fpr=fpr, threshold=cutoff, 
+                genome=genome, length=fa.median_length(), filename=bgfile)
+
     
     if table:
         it = scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods)
