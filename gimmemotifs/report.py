@@ -16,8 +16,6 @@ import jinja2
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
-from matplotlib import colors
 
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.fasta import Fasta
@@ -234,14 +232,6 @@ def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outd
     # Create reports
     _create_text_report(inputfile, motifs, closest_match, stats, outdir)
     _create_graphical_report(inputfile, pwmfile, background, closest_match, outdir, stats)
-
-def background_gradient(s, m, M, cmap='RdBu_r', low=0, high=0):
-    rng = M - m
-    norm = colors.Normalize(m - (rng * low),
-                            M + (rng * high))
-    normed = norm(s.values)
-    c = [colors.rgb2hex(x) for x in plt.cm.get_cmap(cmap)(normed)]
-    return ['background-color: %s' % color for color in c]
 
 def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
     df = pd.read_table(infile, index_col=0)
