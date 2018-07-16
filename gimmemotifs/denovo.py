@@ -285,9 +285,10 @@ def create_backgrounds(outdir, background=None, genome="hg38", width=200, user_b
         pred_bg = "gc"
     else:
         pred_bg = background[0]
+    
     create_background(
                     pred_bg, 
-                    os.path.join(outdir, "validation.fa"), 
+                    os.path.join(outdir, "prediction.fa"), 
                     os.path.join(outdir, "prediction.bg.fa"), 
                     genome=genome, 
                     width=width,
