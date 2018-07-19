@@ -7,7 +7,7 @@ from glob import glob
 if __name__ == "__main__":
     def get_tests():
         start_dir = os.path.join(os.path.dirname(__file__), "test")
-        return unittest.TestLoader().discover(start_dir, pattern="test_to*.py")
+        return unittest.TestLoader().discover(start_dir, pattern="test_*.py")
 
     libdirs = glob('build/lib.*')
     if len(libdirs) > 0:
