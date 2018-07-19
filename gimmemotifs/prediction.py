@@ -189,8 +189,10 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
         sys.stderr.write("Setting analysis xs to small")
         analysis = "small"
 
+    
     if not job_server:
-        job_server = pool
+        n_cpus = int(config.get_default_params()["ncpus"])
+        job_server = Pool(processes=n_cpus, maxtasksperchild=1000) 
     
     jobs = {}
     
@@ -346,8 +348,3 @@ def predict_motifs(infile, bgfile, outfile, params=None, stats_fg=None, stats_bg
         result.motifs = []
     
     return result
-
-try:
-    from gimmemotifs.mp import pool
-except ImportError as e:
-    pass
