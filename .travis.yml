@@ -33,9 +33,9 @@ before_install:
   - conda config --add channels bioconda
   - conda info -a
   # if matplotlib functionality is tested
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok )& fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok )& fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then ( ulimit -n 2048 )& fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ulimit -S -n 20480; ulimit -a; fi
 install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
       conda install python=$TRAVIS_PYTHON_VERSION pip future "numpy<1.14" scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed xdg xxhash readline ghostscript homer gadem trawler weeder xxmotif tqdm genomepy ncurses;
