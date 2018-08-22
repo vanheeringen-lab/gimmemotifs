@@ -2,7 +2,7 @@ import unittest
 import tempfile
 import os
 import pandas as pd
-from gimmemotifs.rank import rankagg, native_rankagg
+from gimmemotifs.rank import rankagg
 
 class TestRank(unittest.TestCase):
     """ A test class to test rank aggregation """
@@ -19,18 +19,10 @@ class TestRank(unittest.TestCase):
         result = rankagg(df)
         self.assertEqual("AP2", result.sort_values().index[0])
 
-    def test1_rankagg(self):
-        """ Test rank aggregation """
+    def test2_rankagg(self):
+        """ Test Python implementation of rank aggregation """
         df = pd.read_table(self.rank_in, index_col=0)
         result = rankagg(df).values
-        ref = pd.read_table(self.rank_out, index_col=0)["p.adjust"].values
-        for v1, v2 in zip(ref, result):
-            self.assertAlmostEqual(v1, v2)
-
-    def test1_rankagg(self):
-        """ Test implementation of rank aggregation """
-        df = pd.read_table(self.rank_in, index_col=0)
-        result = native_rankagg(df).values
         ref = pd.read_table(self.rank_out, index_col=0)["p.adjust"].values
         for v1, v2 in zip(ref, result):
             self.assertAlmostEqual(v1, v2)

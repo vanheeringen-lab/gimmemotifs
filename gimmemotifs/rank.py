@@ -1,10 +1,10 @@
 #!/usr/bin/python
-# Copyright (c) 2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2016-2018 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-"""Rank aggregation (wrapper for R RobustRankAgg)."""
+"""Rank aggregation (includes wrapper for R RobustRankAgg)."""
 from tempfile import NamedTemporaryFile
 import subprocess as sp
 import pandas as pd
@@ -12,8 +12,10 @@ import numpy as np
 from scipy.misc import factorial
 from statsmodels.sandbox.stats.multicomp import multipletests
 
-def rankagg(df, method="stuart"):
+def rankagg_R(df, method="stuart"):
     """Return aggregated ranks as implemented in the RobustRankAgg R package.
+
+    This function is now deprecated.
 
     References: 
         Kolde et al., 2012, DOI: 10.1093/bioinformatics/btr709
@@ -66,10 +68,10 @@ def qStuart(r):
 
     return(factorial(N) * v[N])
 
-def native_rankagg(df, method="stuart"):
+def rankagg(df, method="stuart"):
     """Return aggregated ranks.
 
-    Implementation is a ported from the RobustRankAggreg R package
+    Implementation is ported from the RobustRankAggreg R package
     
     References: 
         Kolde et al., 2012, DOI: 10.1093/bioinformatics/btr709
