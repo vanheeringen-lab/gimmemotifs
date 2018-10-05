@@ -454,8 +454,204 @@ static PyObject * c_metrics_max_subtotal(PyObject *self, PyObject * args)
 	i = index_at_max(scores, nr_matches * 2);
 	return Py_BuildValue("fii", scores[i], positions[i], orients[i]);
 	
-
 }
+
+static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
+{
+	
+        PyObject *pwm_o;
+        PyObject *cutoff_o;
+        char *seq;
+        int seq_len;
+        int n_report;
+        int pwm_len;
+        int i, j;
+        int scan_rc;
+        int return_all = 0;
+
+        if (!PyArg_ParseTuple(args, "sOOii|i", &seq, &pwm_o, &cutoff_o, &n_report, &scan_rc, &return_all))
+                return NULL;
+
+        seq_len = strlen(seq);
+
+        // Retrieve frequency matrix
+        if (!PyList_Check(pwm_o))
+                return NULL;
+
+        // Weight matrices
+        pwm_len = PyList_Size(pwm_o);
+        double pwm[pwm_len][4];
+        fill_matrix(pwm, pwm_o);
+        //Py_DECREF(pwm_o);
+
+        // Cutoff for every spacer length
+        double cutoff;
+        cutoff = PyFloat_AsDouble(cutoff_o);
+
+        // Scan sequence
+        int j_max = seq_len - pwm_len + 1;
+        double score_matrix[j_max];
+        double rc_score_matrix[j_max];
+        double score, rc_score;
+
+        if (j_max < 0) { j_max = 0;}
+        int m;
+	int c;
+	double pwm_min = -50;	
+	for (j = 0; j < j_max; j++) {
+		score = 0;
+		rc_score = 0;
+		for (m = 0; m < pwm_len; m++) {
+			switch(seq[j + m]) {
+                                case 'A':
+                                        score += pwm[m][0];
+                                        rc_score += pwm[pwm_len - m - 1][3];
+                                        break;
+                                case 'C':
+                                        score += pwm[m][1];
+                                        rc_score += pwm[pwm_len - m - 1][2];
+                                        break;
+                                case 'G':
+                                        score += pwm[m][2];
+                                        rc_score += pwm[pwm_len - m - 1][1];
+                                        break;
+                                case 'T':
+                                        score += pwm[m][3];
+                                        rc_score += pwm[pwm_len - m - 1][0];
+                                        break;
+				case 'N':
+					pwm_min = pwm[m][0];
+					for (c = 1; c < 4; c++) {
+						if (pwm[m][c] < pwm_min) {
+							pwm_min = pwm[m][c];
+						}
+					}
+					score += pwm_min;
+					rc_score += pwm_min; 
+					break;
+			}
+		
+		}
+		score_matrix[j] = score;
+		rc_score_matrix[j] = rc_score;
+	}
+	
+	if (return_all) {
+		PyObject *return_list = PyList_New(j_max);
+
+		for (j = 0; j < j_max; j++) {
+    			PyList_SetItem(return_list, j, PyFloat_FromDouble(score_matrix[j]));
+		}
+	    	return return_list;
+	}
+
+	// Initialize matrices of n_report highest scores and corresponding positions + strands
+	double maxScores[n_report];
+	double maxPos[n_report];
+	int maxStrand[n_report];
+	for (j = 0; j < n_report; j++) {
+		maxScores[j] = -100;
+		maxPos[j] = -1;
+		maxStrand[j] = 1;
+	}
+	PyObject*  return_list = PyList_New(0);
+
+
+
+	int p,q;
+	PyObject *x;
+	for (j = 0; j < j_max; j++) {
+		score = score_matrix[j];
+		if (n_report > 0) {
+			if (score >= cutoff) {
+				p = n_report - 1;
+				while ((p >= 0) && (score > maxScores[p])) {
+					p--;
+				}
+				if (p < (n_report-1)) {
+					for (q = n_report - 1; q > (p + 1); q--) {
+						maxScores[q] = maxScores[q - 1];
+						maxPos[q] = maxPos[q - 1];
+						maxStrand[q] = maxStrand[q - 1];
+					}
+					maxScores[p + 1] = score;
+					maxPos[p + 1] = j;
+					maxStrand[p + 1] = 1;
+				}
+			}
+		}
+		else {
+			if (score >= cutoff) {
+				PyObject* row = PyList_New(0);
+				x = PyFloat_FromDouble(score);
+				PyList_Append(row, x); Py_DECREF(x);
+				x = PyInt_FromLong((long) j);
+				PyList_Append(row, x); Py_DECREF(x);
+				x = PyInt_FromLong((long) 1);
+				PyList_Append(row, x); Py_DECREF(x);
+				PyList_Append(return_list, row);
+				Py_DECREF(row);
+			}
+		}
+	}
+
+	if (scan_rc) {
+		for (j = 0; j < j_max; j++) {
+			score = rc_score_matrix[j];
+			if (n_report > 0) {
+				if (score >= cutoff) {
+					p = n_report - 1;
+					while ((p >= 0) && (score > maxScores[p])) {
+						p--;
+					}
+					if (p < (n_report-1)) {
+						for (q = n_report - 1; q > (p + 1); q--) {
+							maxScores[q] = maxScores[q - 1];
+							maxPos[q] = maxPos[q - 1];
+							maxStrand[q] = maxStrand[q - 1];
+						}
+						maxScores[p + 1] = score;
+						maxPos[p + 1] = j;
+						maxStrand[p + 1] = -1;
+					}
+				}
+			}
+			else {
+				if (score >= cutoff) {
+					PyObject* row = PyList_New(0);
+					x = PyFloat_FromDouble(score);
+					PyList_Append(row, x); Py_DECREF(x);
+					x = PyInt_FromLong((long) j);
+					PyList_Append(row, x); Py_DECREF(x);
+					x =  PyInt_FromLong((long) 1);
+					PyList_Append(row, x); Py_DECREF(x);
+					PyList_Append(return_list, row);
+					Py_DECREF(row);
+				}
+			}
+		}
+	}
+
+	for (i = 0; i < n_report; i++) {
+		if (maxPos[i] > - 1) {
+			PyObject* row = PyList_New(0);
+			x = PyFloat_FromDouble(maxScores[i]);
+			PyList_Append(row, x);  Py_DECREF(x);
+			x = PyInt_FromLong((long)maxPos[i]);
+			PyList_Append(row, x); Py_DECREF(x);
+			x = PyInt_FromLong((long)maxStrand[i]);
+			PyList_Append(row, x); Py_DECREF(x);
+			PyList_Append(return_list, row);
+			Py_DECREF(row);
+		}
+	}
+
+	return return_list;
+}
+
+
+
+
 static PyObject * c_metrics_pfmscan(PyObject *self, PyObject * args)
 {
 	
@@ -664,6 +860,7 @@ static PyMethodDef CoreMethods[] = {
 	{"score", c_metrics_score, METH_VARARGS,"Test"},
 	{"c_max_subtotal", c_metrics_max_subtotal, METH_VARARGS,"Test"},
 	{"pfmscan", c_metrics_pfmscan, METH_VARARGS,"Test"},
+	{"pwmscan", c_metrics_pwmscan, METH_VARARGS,"Test"},
 	{NULL, NULL, NULL, 0, NULL}
 };
 

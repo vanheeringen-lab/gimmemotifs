@@ -24,7 +24,7 @@ from scipy.stats import scoreatpercentile
 from gimmemotifs.background import RandomGenomicFasta
 from gimmemotifs.config import MotifConfig,CACHE_DIR
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.c_metrics import pfmscan
+from gimmemotifs.c_metrics import pwmscan
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import parse_cutoff,as_fasta,file_checksum
 
@@ -113,7 +113,7 @@ def scan_sequence(seq, motifs, nreport, scan_rc):
         if cutoff is None:
             ret.append([])
         else:
-            result = pfmscan(seq, motif.pwm, cutoff, nreport, scan_rc)
+            result = pwmscan(seq, motif.logodds, cutoff, nreport, scan_rc)
             if cutoff <= motif.pwm_min_score() and len(result) == 0:
                 result = [[motif.pwm_min_score(), 0, 1]] * nreport
             ret.append(result)
