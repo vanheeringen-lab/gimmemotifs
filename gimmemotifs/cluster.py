@@ -12,9 +12,10 @@ import jinja2
 from datetime import datetime
 
 # GimmeMotifs imports
-from gimmemotifs.config import MotifConfig, GM_VERSION
-from gimmemotifs.motif import read_motifs
+from gimmemotifs.config import MotifConfig
+from gimmemotifs.motif import read_motifs,Motif
 from gimmemotifs.comparison import MotifComparer
+from gimmemotifs import __version__
 
 logger = logging.getLogger("gimme.cluster")
 
@@ -79,7 +80,7 @@ class MotifTree(object):
         else:
             return [self.motif]
 
-def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=True, threshold=0.95, trim_edges=False, edge_ic_cutoff=0.2, include_bg=True, progress=True):
+def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=True, threshold=0.95, trim_edges=False, edge_ic_cutoff=0.2, include_bg=True, progress=True, ncpus=None):
     """ 
     Clusters a set of sequence motifs. Required arg 'motifs' is a file containing
     positional frequency matrices or an array with motifs.
@@ -135,7 +136,7 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
     
     if progress:
         sys.stderr.write("Calculating initial scores\n")
-    result = mc.get_all_scores(motifs, motifs, match, metric, combine, pval, parallel=True)
+    result = mc.get_all_scores(motifs, motifs, match, metric, combine, pval, parallel=True, ncpus=ncpus)
     
     for m1, other_motifs in result.items():
         for m2, score in other_motifs.items():
@@ -162,54 +163,60 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
             i -= 1
             (n1,n2) = l[i]
         
-        (score, pos, orientation) = scores[(n1,n2)]
-        ave_motif = n1.motif.average_motifs(n2.motif, pos, orientation, include_bg=include_bg)
-        
-        ave_motif.trim(edge_ic_cutoff)
-        ave_motif.id = "Average_%s" % ave_count
-        ave_count += 1
-        
-        new_node = MotifTree(ave_motif)
-        if pval:
-            new_node.maxscore = 1 - mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
-        else:
-            new_node.maxscore = mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
+        if len(n1.motif) > 0 and len(n2.motif) > 0:
+            (score, pos, orientation) = scores[(n1,n2)]
+            ave_motif = n1.motif.average_motifs(n2.motif, pos, orientation, include_bg=include_bg)
             
-        new_node.mergescore = score
-        #print "%s + %s = %s with score %s" % (n1.motif.id, n2.motif.id, ave_motif.id, score)
-        n1.parent = new_node
-        n2.parent = new_node
-        new_node.left = n1
-        new_node.right = n2
-        
-        cmp_nodes = dict([(node.motif, node) for node in nodes if not node.parent])
-        
-        if progress:
-            progress = (1 - len(cmp_nodes) / float(total)) * 100
-            sys.stderr.write('\rClustering [{0}{1}] {2}%'.format(
-                '#' * (int(progress) // 10), 
-                " " * (10 - int(progress) // 10), 
-                int(progress)))
-        
-        result = mc.get_all_scores(
-                [new_node.motif], 
-                list(cmp_nodes.keys()), 
-                match, 
-                metric, 
-                combine, 
-                pval, 
-                parallel=True)
-        
-        for motif, n in cmp_nodes.items():
-            x = result[new_node.motif.id][motif.id]
-            if pval:
-                x = [1 - x[0]] + x[1:]
-            scores[(new_node, n)] = x
-        
-        nodes.append(new_node)
+            ave_motif.trim(edge_ic_cutoff)
+            
+            # Check if the motif is not empty
+            if len(ave_motif) == 0:
+                ave_motif = Motif([[0.25,0.25,0.25,0.25]])
 
+            ave_motif.id = "Average_%s" % ave_count
+            ave_count += 1
+            
+            new_node = MotifTree(ave_motif)
+            if pval:
+                new_node.maxscore = 1 - mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
+            else:
+                new_node.maxscore = mc.compare_motifs(new_node.motif, new_node.motif, match, metric, combine, pval)[0]
+                
+            new_node.mergescore = score
+            #print "%s + %s = %s with score %s" % (n1.motif.id, n2.motif.id, ave_motif.id, score)
+            n1.parent = new_node
+            n2.parent = new_node
+            new_node.left = n1
+            new_node.right = n2
+            
+            cmp_nodes = dict([(node.motif, node) for node in nodes if not node.parent])
+            
+            if progress:
+                progress = (1 - len(cmp_nodes) / float(total)) * 100
+                sys.stderr.write('\rClustering [{0}{1}] {2}%'.format(
+                    '#' * (int(progress) // 10), 
+                    " " * (10 - int(progress) // 10), 
+                    int(progress)))
+            
+            result = mc.get_all_scores(
+                    [new_node.motif], 
+                    list(cmp_nodes.keys()), 
+                    match, 
+                    metric, 
+                    combine, 
+                    pval, 
+                    parallel=True)
+            
+            for motif, n in cmp_nodes.items():
+                x = result[new_node.motif.id][motif.id]
+                if pval:
+                    x = [1 - x[0]] + x[1:]
+                scores[(new_node, n)] = x
+            
+            nodes.append(new_node)
+    
         cluster_nodes = [node for node in nodes if not node.parent]
-     
+         
     if progress:
         sys.stderr.write("\n") 
     root = nodes[-1]
@@ -287,7 +294,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
                 motifs=ids,
                 inputfile=title,
                 date=datetime.today().strftime("%d/%m/%Y"),
-                version=GM_VERSION)
+                version=__version__)
 
     cluster_report = os.path.join(outdir, "cluster_report.html")
     with open(cluster_report, "wb") as f:

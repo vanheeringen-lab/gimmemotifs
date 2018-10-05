@@ -17,7 +17,7 @@ import six
 
 from gimmemotifs import mytmpdir
 from gimmemotifs.config import MotifConfig
-from gimmemotifs.c_metrics import pwmscan
+from gimmemotifs.c_metrics import pfmscan
 
 # External imports
 try:
@@ -308,7 +308,7 @@ class Motif(object):
         matches = {}
         for name, seq in fa.items():
             matches[name] = [] 
-            result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
+            result = pfmscan(seq.upper(), pwm, c, nreport, scan_rc)
             for _,pos,_ in result:
                 matches[name].append(pos)
         return matches
@@ -319,7 +319,7 @@ class Motif(object):
         matches = {}
         for name, seq in fa.items():
             matches[name] = [] 
-            result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
+            result = pfmscan(seq.upper(), pwm, c, nreport, scan_rc)
             for score,pos,strand in result:
                 matches[name].append((pos,score,strand))
         return matches
@@ -330,7 +330,7 @@ class Motif(object):
         matches = {}
         for name, seq in fa.items():
             matches[name] = [] 
-            result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
+            result = pfmscan(seq.upper(), pwm, c, nreport, scan_rc)
             for score,_,_ in result:
                 matches[name].append(score)
         return matches
@@ -345,10 +345,10 @@ class Motif(object):
         pwm = self.pwm
 
         strandmap = {-1:"-","-1":"-","-":"-","1":"+",1:"+","+":"+"}
-        gff_line = ("{}\tpwmscan\tmisc_feature\t{}\t{}\t{:.3f}\t{}\t.\t"
+        gff_line = ("{}\tpfmscan\tmisc_feature\t{}\t{}\t{:.3f}\t{}\t.\t"
                     "motif_name \"{}\" ; motif_instance \"{}\"\n")
         for name, seq in fa.items():
-            result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
+            result = pfmscan(seq.upper(), pwm, c, nreport, scan_rc)
             for score, pos, strand in result:
                 out.write(gff_line.format( 
                     name, 

@@ -20,7 +20,7 @@ mpl.use("Agg", warn=False)
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.gridspec import GridSpec
-from matplotlib.colors import to_hex, Normalize
+from matplotlib.colors import to_hex, Normalize, rgb2hex
 from mpl_toolkits.axes_grid1 import ImageGrid
 import seaborn as sns
 sns.set_style('white')
@@ -37,6 +37,14 @@ def axes_off(ax):
     ax.set_frame_on(False)
     ax.axes.get_yaxis().set_visible(False)
     ax.axes.get_xaxis().set_visible(False)
+
+def background_gradient(s, m, M, cmap='RdBu_r', low=0, high=0):
+    rng = M - m
+    norm = Normalize(m - (rng * low),
+                     M + (rng * high))
+    normed = norm(s.values)
+    c = [rgb2hex(x) for x in plt.cm.get_cmap(cmap)(normed)]
+    return ['background-color: %s' % color for color in c]
 
 def roc_plot(outfile, plot_x, plot_y, ids=None):
     if ids is None:

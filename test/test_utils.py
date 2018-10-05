@@ -1,9 +1,10 @@
 import unittest
 import tempfile
 import os
+import glob
 from gimmemotifs.utils import *
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.genome_index import GenomeIndex
+from genomepy import Genome
 from tempfile import mkdtemp
 from shutil import rmtree
 
@@ -29,8 +30,7 @@ class TestUtils(unittest.TestCase):
         """ convert bed, regions, etc to Fasta """
         tmpdir = mkdtemp()
 
-        g = GenomeIndex()
-        g.create_index(self.genome_dir, tmpdir)
+        g = Genome("genome", genome_dir=self.genome_dir)
 
         fafile = os.path.join(self.datadir, "test.fa")
         fa = Fasta(fafile)
@@ -42,9 +42,9 @@ class TestUtils(unittest.TestCase):
         self.assertTrue(isinstance(as_fasta(fa), Fasta))
         self.assertTrue(isinstance(as_fasta(fafile), Fasta))
 
-        self.assertTrue(isinstance(as_fasta(bedfile, tmpdir), Fasta))
-        self.assertTrue(isinstance(as_fasta(regionfile, tmpdir), Fasta))
-        self.assertTrue(isinstance(as_fasta(regions, tmpdir), Fasta))
+        self.assertTrue(isinstance(as_fasta(bedfile, g), Fasta))
+        self.assertTrue(isinstance(as_fasta(regionfile, g), Fasta))
+        self.assertTrue(isinstance(as_fasta(regions, g), Fasta))
         
         with self.assertRaises(ValueError):
             as_fasta(bedfile)
@@ -55,6 +55,26 @@ class TestUtils(unittest.TestCase):
         fname = "test/data/fasta/test.fa"
         md5 = "a34798835d4110c34df45bbd8ed2f910"
         self.assertEqual(md5, file_checksum(fname))
+
+    def test_join_max(self):
+        size_in = range(25)
+        size_out = [
+                0,
+                1,1,1,
+                4,4,4,4,
+                8,8,8,8,8,
+                13,13,13,13,13,
+                18,18,18,18,18,18,18
+                ]
+        a =  ["1", "22", "333", '4444', '5555']
+
+        for s_in, s_out in zip(size_in, size_out):
+            self.assertEqual(len(join_max(a, s_in, ",")), s_out)
+   
+    def test_detect_filetype(self):
+        for fname in glob.glob("test/data/filetype/*"):
+            ftype = os.path.basename(fname).split(".")[0]
+            self.assertEqual(ftype, determine_file_type(fname))
 
     def tearDown(self):
         pass

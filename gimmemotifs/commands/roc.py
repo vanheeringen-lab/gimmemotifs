@@ -69,8 +69,10 @@ def html_report(outdir, infile, pwmfile, threshold=0.01):
         f.write("<style>{}</style>\n".format(css))
         f.write("</head>\n")
         f.write("<body>\n")
-        f.write(df.sort_values("ROC AUC", ascending=False).style.bar(bar_cols).set_precision(3).set_table_attributes("data-sortable").render().replace("data-sortable", 'class="sortable-theme-slick" data-sortable'))
-    
+        if df.shape[0] > 0: 
+            f.write(df.sort_values("ROC AUC", ascending=False).style.bar(bar_cols).set_precision(3).set_table_attributes("data-sortable").render().replace("data-sortable", 'class="sortable-theme-slick" data-sortable'))
+        else:
+            f.write("No enriched motifs found.")
         f.write("<script>{}</script>\n".format(js))
         f.write("</body>\n")
 
@@ -102,7 +104,7 @@ def roc(args):
             ]
     
     motif_stats = calc_stats(motifs, args.sample, args.background, 
-            genome=args.genome, stats=stats)
+            genome=args.genome, stats=stats, ncpus=args.ncpus)
 
     plot_x = []
     plot_y = []

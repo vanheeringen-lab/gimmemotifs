@@ -18,6 +18,7 @@ import glob
 # gimme imports
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.shutils import which
+from gimmemotifs import included_tools
 
 # Necessary for when setup.py needs to import 
 # refactor at some point
@@ -26,6 +27,8 @@ try:
     from gimmemotifs.fasta import Fasta
 except ImportError:
     pass
+
+MOTIF_CLASSES = ["MDmodule", "Meme", "MemeW", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer",  "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms", "Homer", "XXmotif"]
 
 def get_tool(name): 
     """
@@ -1552,7 +1555,7 @@ class ChIPMunk(MotifProgram):
         out = open(new_file, "w")
         f = Fasta(fastafile)
         for seq in f.seqs:
-            header = " ".join(["%0.1f" % x for x in list(range(len(seq) // 2)) + list(range(len(seq) // 2, 0, -1))])
+            header = len(seq) // 2
             out.write(">%s\n" % header)
             out.write("%s\n" % seq)
         out.close()
@@ -1563,25 +1566,33 @@ class ChIPMunk(MotifProgram):
         current_path = os.getcwd()
         os.chdir(self.dir())
        
+        motifs = []
         # Max recommended by ChIPMunk userguide
         ncpus = 4
-        cmd = "{} {} {} y, 1.0 s:{} 100 10 1 {} 1>{}".format(
+        stdout = ""
+        stderr = ""
+        for zoops_factor in ["oops", 0.0, 0.5, 1.0]:
+            cmd = "{} {} {} y {} m:{} 100 10 1 {} 1>{}".format(
                 bin, 
                 params.get("width", 8),
                 params.get("width", 20),
+                zoops_factor, 
                 fastafile, 
                 ncpus, 
                 outfile
                 )
-        p = Popen(cmd, shell=True, stderr=PIPE) 
-        stdout, stderr = p.communicate()
-        if "RuntimeException" in stderr.decode():
-            return [], stdout, stderr
+            print("command: ", cmd)
+            p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
+            std = p.communicate()
+            stdout = stdout + std[0].decode()
+            stderr = stderr + std[1].decode()
+
+            if "RuntimeException" in stderr:
+                return [], stdout, stderr
         
-        motifs = []
-        if os.path.exists(outfile):
-            with open(outfile) as f:
-                motifs = self.parse(f)
+            if os.path.exists(outfile):
+                with open(outfile) as f:
+                    motifs += self.parse(f)
         
         os.chdir(current_path)
         

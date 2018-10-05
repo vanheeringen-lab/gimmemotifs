@@ -7,14 +7,16 @@
 import datetime
 import os
 import sys
+import re
 import logging
 import logging.handlers
 import shutil
 import numpy as np
 
+from genomepy import Genome
+
 from gimmemotifs.config import MotifConfig, BG_RANK, parse_denovo_params
 from gimmemotifs import mytmpdir
-from gimmemotifs.genome_index import track2fasta
 from gimmemotifs.validation import check_denovo_input
 from gimmemotifs.utils import ( divide_file, divide_fa_file, 
                                     write_equalwidth_bedfile )
@@ -26,6 +28,54 @@ from gimmemotifs.report import create_denovo_motif_report
 from gimmemotifs.motif import read_motifs
 
 logger = logging.getLogger("gimme.denovo")
+
+def prepare_denovo_input_narrowpeak(inputfile, params, outdir):
+    """Prepare a narrowPeak file for de novo motif prediction.
+
+    All regions to same size; split in test and validation set;
+    converted to FASTA.
+
+    Parameters
+    ----------
+    inputfile : str
+        BED file with input regions.
+
+    params : dict
+        Dictionary with parameters.
+
+    outdir : str
+        Output directory to save files.
+    """
+
+    bedfile = os.path.join(outdir, "input.from.narrowpeak.bed")
+    p = re.compile(r'^(#|track|browser)')
+    width = int(params["width"])
+    logger.info("preparing input (narrowPeak to BED, width %s)", width)
+    warn_no_summit = True
+    with open(bedfile, "w") as f_out:
+        with open(inputfile) as f_in:
+            for line in f_in:
+                if p.search(line):
+                    continue
+                vals = line.strip().split("\t")
+                start, end = int(vals[1]), int(vals[2])
+                summit = int(vals[9])
+                if summit == -1:
+                    if warn_no_summit:
+                        logger.warn("No summit present in narrowPeak file, using the peak center.")
+                        warn_no_summit = False
+                    summit = (end - start) // 2
+
+                start = start + summit - (width // 2)
+                end = start + width
+                f_out.write("{}\t{}\t{}\t{}\n".format(
+                    vals[0],
+                    start,
+                    end,
+                    vals[6]
+                    ))
+    
+    prepare_denovo_input_bed(bedfile, params, outdir)
 
 def prepare_denovo_input_bed(inputfile, params, outdir):
     """Prepare a BED file for de novo motif prediction.
@@ -62,11 +112,10 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
     divide_file(bedfile, pred_bedfile, val_bedfile, fraction, abs_max)
 
     config = MotifConfig()
-    index_dir = os.path.join(config.get_index_dir(), params["genome"])
-    
+   
+    genome = Genome(params["genome"])
     for infile in [pred_bedfile, val_bedfile]:
-        track2fasta(
-            index_dir, 
+        genome.track2fasta(
             infile, 
             infile.replace(".bed", ".fa"), 
             )
@@ -75,14 +124,12 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
     lwidth = int(params["lwidth"])
     extend = (lwidth - width) // 2
     
-    track2fasta(
-            index_dir, 
+    genome.track2fasta(
             val_bedfile, 
             os.path.join(outdir, "localization.fa"), 
             extend_up=extend, 
             extend_down=extend, 
-            use_strand=params["use_strand"], 
-            ignore_missing=True
+            stranded=params["use_strand"], 
             )
 
 def prepare_denovo_input_fa(inputfile, params, outdir):
@@ -149,26 +196,37 @@ def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_tim
     width = int(width)
     config = MotifConfig()
     fg = Fasta(fafile)
-    if bg_type in ["promoter", "genomic"]:
-        index_dir = os.path.join(config.get_index_dir(), genome)
 
+    if bg_type in ["genomic", "gc"]:
+        if not genome:
+            logger.error("Need a genome to create background")
+            sys.exit(1)
+    
     if bg_type == "random":
         f = MarkovFasta(fg, k=1, n=nr_times * len(fg))
         logger.debug("Random background: %s", outfile)
     elif bg_type == "genomic":
         logger.debug("Creating genomic background")
-        f = RandomGenomicFasta(index_dir, width, nr_times * len(fg))
+        f = RandomGenomicFasta(genome, width, nr_times * len(fg))
     elif bg_type == "gc":
         logger.debug("Creating GC matched background")
         f = MatchedGcFasta(fafile, genome, nr_times * len(fg))
         logger.debug("GC matched background: %s", outfile)
     elif bg_type == "promoter":
-        gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % genome)
+        fname = Genome(genome).filename
+        gene_file = fname.replace(".fa", ".annotation.bed.gz")
+        if not gene_file:
+            gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % genome)
+        if not os.path.exists(gene_file):
+            print("Could not find a gene file for genome {}")
+            print("Did you use the --annotation flag for genomepy?")
+            print("Alternatively make sure there is a file called {}.bed in {}".format(genome, config.get_gene_dir()))
+            raise ValueError()
 
         logger.info(
                 "Creating random promoter background (%s, using genes in %s)",
                 genome, gene_file)
-        f = PromoterFasta(gene_file, index_dir, width, nr_times * len(fg))
+        f = PromoterFasta(gene_file, genome, width, nr_times * len(fg))
         logger.debug("Random promoter background: %s", outfile)
     elif bg_type == "user":
         bg_file = user_background
@@ -227,9 +285,10 @@ def create_backgrounds(outdir, background=None, genome="hg38", width=200, user_b
         pred_bg = "gc"
     else:
         pred_bg = background[0]
+    
     create_background(
                     pred_bg, 
-                    os.path.join(outdir, "validation.fa"), 
+                    os.path.join(outdir, "prediction.fa"), 
                     os.path.join(outdir, "prediction.bg.fa"), 
                     genome=genome, 
                     width=width,
@@ -413,7 +472,7 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
     Parameters
     ----------
     inputfile : str
-        Filename of input. Can be either BED or FASTA.
+        Filename of input. Can be either BED, narrowPeak or FASTA.
 
     outdir : str
         Name of output directory.
@@ -472,16 +531,25 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
     
     
     # Create the necessary files for motif prediction and validation
-    if input_type == "BED":
+    if input_type == "bed":
         prepare_denovo_input_bed(inputfile, params, tmpdir)
-    elif input_type == "FASTA":
+    elif input_type == "narrowpeak":
+        prepare_denovo_input_narrowpeak(inputfile, params, tmpdir)
+    elif input_type == "fasta":
         prepare_denovo_input_fa(inputfile, params, tmpdir)
     else:
-        logger.error("Unknown input type, shouldn't happen")
+        
+        logger.error("Unknown input file.")
         sys.exit(1)
 
     # Create the background FASTA files
-    background = create_backgrounds(tmpdir, background, params["genome"], params["width"], params.get("user_background", None))
+    background = create_backgrounds(
+            tmpdir, 
+            background, 
+            params.get("genome", None), 
+            params["width"], 
+            params.get("user_background", None)
+            )
     
     # Predict de novo motifs
     result = predict_motifs(

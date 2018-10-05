@@ -3,8 +3,8 @@ import os
 from subprocess import Popen,PIPE
 from distutils import log
 
-def compile_simple(name):
-    path = "src/%s" % name
+def compile_simple(name, src_dir="src"):
+    path = os.path.join(src_dir, "%s" % name)
     
     if not os.path.exists(path):
         return
@@ -18,8 +18,8 @@ def compile_simple(name):
     if os.path.exists(os.path.join(path, name)):
         return True
 
-def compile_configmake(name, binary, configure=True):
-    path = "src/%s" % name
+def compile_configmake(name, binary, configure=True, src_dir="src"):
+    path = os.path.join(src_dir, "%s" % name)
 
     if not os.path.exists(path):
         return
@@ -38,22 +38,25 @@ def print_result(result):
     else:
         log.info("... ok")
     
-def compile_all(prefix=None):
+def compile_all(prefix=None, src_dir="src"):
     # are we in the conda build environment?
     conda_build = os.environ.get("CONDA_BUILD")
     
     sys.stderr.write("compiling BioProspector")
-    result = compile_simple("BioProspector")
+    sys.stderr.flush()
+    result = compile_simple("BioProspector", src_dir=src_dir)
     print_result(result)
 
     sys.stderr.write("compiling MDmodule")
-    result = compile_simple("MDmodule")
+    sys.stderr.flush()
+    result = compile_simple("MDmodule", src_dir=src_dir)
     print_result(result)
     
     # We don't need to compile MEME for conda
     if not conda_build:
        sys.stderr.write("compiling MEME")
-       result = compile_configmake("meme_4.6.0", "src/meme.bin")
+       sys.stderr.flush()
+       result = compile_configmake("meme_4.6.0", "src/meme.bin", src_dir=src_dir)
        print_result(result)
     
     return

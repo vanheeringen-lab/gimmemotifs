@@ -23,11 +23,11 @@ from tempfile import NamedTemporaryFile
 from scipy import special
 import numpy as np
 import pybedtools
+from genomepy import Genome
 
 # gimme imports
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import plot_histogram
-from gimmemotifs.genome_index import track2fasta
 from gimmemotifs.rocmetrics import ks_pvalue
 
 lgam = special.gammaln
@@ -454,6 +454,76 @@ def number_of_seqs_in_file(fname):
     sys.stderr.write("unknown filetype {}\n".format(fname))
     sys.exit(1)
 
+def determine_file_type(fname):
+    """
+    Detect file type.
+
+    The following file types are supported:
+    BED, narrowPeak, FASTA, list of chr:start-end regions
+    If the extension is bed, fa, fasta or narrowPeak, we will believe this
+    without checking!
+
+    Parameters
+    ----------
+    fname : str
+        File name.
+
+    Returns
+    -------
+    filetype : str
+        Filename in lower-case.
+    """
+    if not (isinstance(fname, str) or isinstance(fname, unicode)):
+        raise ValueError("{} is not a file name!", fname)
+
+    if not os.path.isfile(fname):
+        raise ValueError("{} is not a file!", fname)
+
+    ext = os.path.splitext(fname)[1].lower()
+    if ext in ["bed"]:
+        return "bed"
+    elif ext in ["fa", "fasta"]:
+        return "fasta"
+    elif ext in ["narrowpeak"]:
+        return "narrowpeak"
+
+    try:
+        Fasta(fname)
+        return "fasta"
+    except:
+        pass
+    # Read first line that is not a comment or an UCSC-specific line
+    p = re.compile(r'^(#|track|browser)') 
+    with open(fname) as f:
+        for line in f.readlines():
+            line = line.strip()
+            if not p.search(line):
+                break
+    region_p = re.compile(r'^(.+):(\d+)-(\d+)$')
+    if region_p.search(line):
+        return "region"
+    else:
+        vals = line.split("\t")
+        if len(vals) >= 3:
+            try:
+                _, _ = int(vals[1]), int(vals[2])
+            except ValueError:
+                return "unknown"
+            
+            if len(vals) == 10:
+                try: 
+                    _, _ = int(vals[4]), int(vals[9])
+                    return "narrowpeak"
+                except ValueError:
+                    # As far as I know there is no 10-column BED format
+                    return "unknown"
+                    pass
+            return "bed"
+    
+    # Catch-all
+    return "unknown"
+
+
 def get_seqs_type(seqs):
     """
     automagically determine input type
@@ -464,7 +534,6 @@ def get_seqs_type(seqs):
         - region file
         - BED file
     """
-
     region_p = re.compile(r'^(.+):(\d+)-(\d+)$')
     if isinstance(seqs, Fasta):
         return "fasta"
@@ -478,58 +547,32 @@ def get_seqs_type(seqs):
                 raise ValueError("unknown region type")
     elif isinstance(seqs, str) or isinstance(seqs, unicode):
         if os.path.isfile(seqs):
-            try:
-                Fasta(seqs)
-                return "fastafile"
-            except:
-                pass
-            try:
-                with open(seqs) as f:
-                    for line in f.readlines():
-                        line = line.strip()
-                        if not line.startswith("#"):
-                            break
-                
-                if region_p.search(line):
-                    return "regionfile"
-                else:
-                    vals = line.split("\t")
-                    if len(vals) >= 3:
-                        _, _ = int(vals[1]), int(vals[2])
-                        return "bedfile"
+            ftype = determine_file_type(seqs)
+            if ftype == "unknown":
                 raise ValueError("unknown type")
-            except:
-                raise ValueError("unknown type")
+            elif ftype == "narrowpeak":
+                raise ValueError("narrowPeak not yet supported in this function")
+            else:
+                return ftype + "file"
         else:
             raise ValueError("no file found with name {}".format(seqs))
     else:
         raise ValueError("unknown type {}".format(type(seqs).__name__))
 
-def as_fasta(seqs, index_dir=None):
+def as_fasta(seqs, genome=None):
     ftype = get_seqs_type(seqs)
     if ftype == "fasta":
         return seqs
     elif ftype == "fastafile":
         return Fasta(seqs)
     else:
-        if index_dir is None:
-            raise ValueError("need index_dir / genome to convert to FASTA")
+        if genome is None:
+            raise ValueError("need genome to convert to FASTA")
 
         tmpfa = NamedTemporaryFile()
-        
-        if ftype == "bedfile":
-            track2fasta(index_dir, seqs, tmpfa.name) 
-        else:
-
-            if ftype == "regionfile":
-                with open(seqs) as f:
-                    seqs = [l.strip() for l in f.readlines()]
-            tmpbed = NamedTemporaryFile(mode="w")
-            for seq in seqs:
-                vals = re.split(r'[:-]', seq)
-                tmpbed.write("{}\t{}\t{}\n".format(*vals))
-            tmpbed.flush()
-            track2fasta(index_dir, tmpbed.name, tmpfa.name) 
+        if type(genome) == type(""):
+            genome = Genome(genome)
+        genome.track2fasta(seqs, tmpfa.name) 
         return Fasta(tmpfa.name)
 
 def file_checksum(fname):
@@ -550,3 +593,33 @@ def file_checksum(fname):
     with open(fname, "r+") as f:
         checksum = hashlib.md5(mmap.mmap(f.fileno(), size)).hexdigest()
     return checksum
+
+def join_max(a, l, sep="", suffix=""):
+    lengths = [len(x) for x in a]
+    total = 0
+    for i,size in enumerate(lengths + [0]):
+        if total > (l - len(suffix)):
+            return sep.join(a[:i - 1]) + suffix
+        if i > 0:
+            total += 1
+        total += size
+    return sep.join(a)
+
+def check_genome(genome):
+    """Check if genome is a valid FASTA file or genomepy genome genome.
+
+    Parameters
+    ----------
+    genome : str
+        Genome name or file to check.
+
+    Returns
+    -------
+    is_genome : bool
+    """
+    try:
+        Genome(genome)
+        return True
+    except Exception as e:
+        pass
+    return False

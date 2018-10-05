@@ -17,7 +17,6 @@ List of tools
 * :ref:`gimme roc<gimme_roc>`
 * :ref:`gimme match<gimme_match>`
 * :ref:`gimme cluster<gimme_cluster>`
-* :ref:`gimme genome<gimme_genome>`
 * :ref:`gimme index<gimme_index>`
 * :ref:`gimme background<gimme_background>`
 * :ref:`gimme threshold<gimme_threshold>`
@@ -297,6 +296,12 @@ This command can be used to identify differential motifs between two or more dat
     -m NAMES, --methods NAMES
                           Run with specific methods
 
+The output scores of `gimme maelstrom` represents the combined result of multiple methods. 
+The individual results from different methods are ranked from high-scoring motif to low-scoring motif
+and then aggregated using the rank aggregation method from `Kolde, 2012<https://www.ncbi.nlm.nih.gov/pubmed/22247279>`_. 
+The score that is shown is the -log10(p-value), where the p-value (from the rank aggregation) is corrected for multiple testing.
+This procedure is then repeated with the ranking reversed. These are shown as negative values.
+
 .. _`gimme_scan`:
 
 Command: gimme scan
@@ -485,35 +490,6 @@ Cluster a set of motifs with the WIC metric.
     -h, --help    show this help message and exit
     -s            Don't compare reverse complements of motifs
     -t THRESHOLD  Cluster threshold
-
-
-.. _`gimme_genome`:
-
-Command: gimme genome
----------------------
-
-Retrieve a genome sequence for ``GENOMEBUILD`` and accompanying gene annotation from UCSC and index the genome for use with GimmeMotifs.
-The ``FASTADIR`` argument determines where the genome will be stored.
-Any genome supported by UCSC should work.
-Optionally, you can change the indexdir. 
-However, in this case the :ref:`configuration file<other_configuration>` should be adapted.
-
-**Positional arguments:**
-
-::
-
-    FASTADIR              Directory to place genome
-    GENOMEBUILD           UCSC genome name
-
-**Optional arguments:**
-
-::
-  
-    -h, --help            show this help message and exit
-    -i DIR, --indexdir DIR
-                          Index dir (default
-                          <prefix>/share/gimmemotifs/genome_index)
-
 
 .. _`gimme_index`:
 

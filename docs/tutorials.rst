@@ -68,14 +68,12 @@ Note the top 500 peaks are just for the tutorial.
 Normally you would use a much larger sample (or all peaks) as input for ``gimme motifs``.
 
 Now, the ENCODE peak coordinates are based on hg19 so we need to install the hg19 genome.
-For a UCSC genome, this is just a matter of running ``gimme genome``.
+For a UCSC genome, this is just a matter of running ``genomepy``.
 
 :: 
     
-    $ gimme genome /data/genomes/ hg19
+    $ genomepy install hg19 UCSC --annotation
 
-I store my genomes in ``/data/genomes`` but you can use any directory you like. 
-Also see the section on :ref:`installing genomes<Installing genomes>` below.
 This will take some time. 
 The genome sequence will be downloaded and indexed, ready for use with GimmeMotifs.
 
@@ -248,8 +246,13 @@ There output directory contains several files:
 The two motif files, ``motif.count.txt.gz`` and ``motif.score.gz`` contain the motif scan results. 
 The ``activity.*.out.txt`` files are tables with the results of the individual methods. 
 The main result is ``final.out.csv``, which integrates all individual methods in a final score. 
-The file ``gimme.maelstrom.report.html`` contains a graphical summary of this file that can be opened in your web browser.
+This score represents the combined result of multiple methods.
+The individual results from different methods are ranked from high-scoring motif to low-scoring motif
+and then aggregated using the rank aggregation method from `Kolde, 2012<https://www.ncbi.nlm.nih.gov/pubmed/22247279>`_.
+The score that is shown is the -log10(p-value), where the p-value (from the rank aggregation) is corrected for multiple testing.
+This procedure is then repeated with the ranking reversed. These are shown as negative values.
 
+The file ``gimme.maelstrom.report.html`` contains a graphical summary of this file that can be opened in your web browser.
 
 .. image:: images/gimme.maelstrom.report.png
 
@@ -299,42 +302,6 @@ gimme motifs
 combine: gimme cluster
 
 scan
-
-.. _`Installing genomes`:
-
-Installing genomes
-------------------
-
-To use most of the functionality of GimmeMotifs you will need to install a genome. 
-Is your genome of interest on UCSC? Then you're in luck. If not, don't despair. 
-It's still pretty easy, just a few more steps.
-
-Installing from UCSC: ::
-
-    $ gimme genome /data/genomes/ hg38 
-    
-This will do several things. First, the `FASTADIR` argument, `/data/genomes` in the example above,
-determines where the genome FASTA files will be stored. Be aware that this is the genome `root`
-directory. A subdirectory with the genome name will be created here.
-The second argument specifies the UCSC genome build. 
-In this case, `hg38` is the latest version of the human genome on UCSC.
-All the genomes that the UCSC Genome Browser supports sohuld be installable in this way. 
-Just a few more examples:
-
-Install the Drosophila genome, in a subdir of my home directory: ::
-
-    $ gimme genome ~/genomes sacCer3
-    
-Install the zebrafish genome, in the current directory: ::
-
-    $ gimme genome . danRer7
-    
-
-Installing a non-UCSC genome: 
-
-* Download the FASTA file
-* Create a directory with one sequence per file
-* gimme index
 
 .. _roc:
 

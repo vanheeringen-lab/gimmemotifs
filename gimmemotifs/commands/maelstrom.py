@@ -16,14 +16,12 @@ def maelstrom(args):
     outdir = args.outdir
     pwmfile = args.pwmfile
     methods = args.methods
-
+    ncpus = args.ncpus
+    
     if not os.path.exists(infile):
         raise ValueError("file {} does not exist".format(infile))
 
     if methods:
         methods = [x.strip() for x in methods.split(",")]
 
-    # check if the genome exists and is indexed
-    check_genome(genome)
-                
-    run_maelstrom(infile, genome, outdir, pwmfile, methods=methods)
+    run_maelstrom(infile, genome, outdir, pwmfile, methods=methods, ncpus=ncpus)

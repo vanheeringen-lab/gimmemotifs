@@ -15,7 +15,8 @@ def which(fname):
     else:
         path = os.environ["PATH"]
 
-    for p in [os.path.join(x, fname) for x in path.split(os.pathsep)]:
+    for p in [fname] + [os.path.join(x, fname) for x in path.split(os.pathsep)]:
+        p = os.path.abspath(p)
         if os.access(p, os.X_OK) and not os.path.isdir(p):
             return p
 

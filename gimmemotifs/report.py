@@ -16,33 +16,39 @@ import jinja2
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
-from matplotlib import colors
 
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import read_motifs,default_motifs
-from gimmemotifs.config import GM_VERSION,MotifConfig,BG_RANK
+from gimmemotifs.config import MotifConfig,BG_RANK
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.rocmetrics import roc_values
 from gimmemotifs.stats import calc_stats, add_star, write_stats
-from gimmemotifs import mytmpdir
+from gimmemotifs import mytmpdir, __version__
 from gimmemotifs.utils import motif_localization
 
 logger = logging.getLogger("gimme.report")
 
 def get_roc_values(motif, fg_file, bg_file):
     """Calculate ROC AUC values for ROC plots."""
+    #print(calc_stats(motif, fg_file, bg_file, stats=["roc_values"], ncpus=1))
+    #["roc_values"])
+    
     try:
-        fg_result = motif.pwm_scan_score(Fasta(fg_file), cutoff=0.0, nreport=1)
-        fg_vals = [sorted(x)[-1] for x in fg_result.values()]
+#        fg_result = motif.pwm_scan_score(Fasta(fg_file), cutoff=0.0, nreport=1)
+#        fg_vals = [sorted(x)[-1] for x in fg_result.values()]
+#
+#        bg_result = motif.pwm_scan_score(Fasta(bg_file), cutoff=0.0, nreport=1)
+#        bg_vals = [sorted(x)[-1] for x in bg_result.values()]
 
-        bg_result = motif.pwm_scan_score(Fasta(bg_file), cutoff=0.0, nreport=1)
-        bg_vals = [sorted(x)[-1] for x in bg_result.values()]
-
-        (x, y) = roc_values(fg_vals, bg_vals)
+#        (x, y) = roc_values(fg_vals, bg_vals)
+        stats = calc_stats(motif, fg_file, bg_file, stats=["roc_values"], ncpus=1)
+        (x,y) = list(stats.values())[0]["roc_values"]
         return None,x,y
     except Exception as e:
+        print(motif)
+        print(motif.id)
+        raise
         error = e
         return error,[],[]
 
@@ -74,6 +80,7 @@ def create_roc_plots(pwmfile, fgfa, background, outdir):
             error, x, y = jobs[k].get()
             if error:
                 logger.error("Error in thread: %s", error)
+                logger.error("Motif: %s", motif)
                 sys.exit(1)
             roc_plot(roc_img_file.format(motif.id, bg), x, y)
 
@@ -95,7 +102,7 @@ def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
     
     header = ("# GimmeMotifs version {}\n"
              "# Inputfile: {}\n"
-             ).format(GM_VERSION, inputfile)
+             ).format(__version__, inputfile)
 
     write_stats(my_stats, os.path.join(outdir, "stats.{}.txt"), header=header)
 
@@ -167,6 +174,7 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
         rm.match_pval = "%0.2e" % closest_match[motif.id][1][-1]
 
         report_motifs.append(rm)
+    
     total_report = os.path.join(outdir, "motif_report.html")
 
     star_img = os.path.join(config.get_template_dir(), "star.png")
@@ -179,7 +187,7 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
                     motifs=report_motifs, 
                     inputfile=inputfile, 
                     date=datetime.today().strftime("%d/%m/%Y"), 
-                    version=GM_VERSION,
+                    version=__version__,
                     bg_types=list(background.keys()))
 
     with open(total_report, "wb") as f:
@@ -217,20 +225,13 @@ def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outd
     # Location plots
     logger.debug("Creating localization plots")
     for motif in motifs:
+        logger.debug("  {} {}".format(motif.id, motif))
         outfile = os.path.join(outdir, "images/{}_histogram.svg".format(motif.id))
         motif_localization(locfa, motif, lwidth, outfile, cutoff=cutoff_fpr)
 
     # Create reports
     _create_text_report(inputfile, motifs, closest_match, stats, outdir)
     _create_graphical_report(inputfile, pwmfile, background, closest_match, outdir, stats)
-
-def background_gradient(s, m, M, cmap='RdBu_r', low=0, high=0):
-    rng = M - m
-    norm = colors.Normalize(m - (rng * low),
-                            M + (rng * high))
-    normed = norm(s.values)
-    c = [colors.rgb2hex(x) for x in plt.cm.get_cmap(cmap)(normed)]
-    return ['background-color: %s' % color for color in c]
 
 def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
     df = pd.read_table(infile, index_col=0)

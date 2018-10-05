@@ -14,7 +14,7 @@ import re
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.utils import as_fasta 
 from gimmemotifs.scanner import Scanner,scan_it_moods
-from gimmemotifs.config import MotifConfig,GM_VERSION
+from gimmemotifs import __version__
 
 MAX_CPUS = 16
 
@@ -107,21 +107,23 @@ def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pval
 
 def command_scan(inputfile, pwmfile, nreport=1, fpr=0.01, cutoff=None, 
         bed=False, scan_rc=True, table=False, score_table=False, moods=False, 
-        pvalue=None, bgfile=None, genome=None):
+        pvalue=None, bgfile=None, genome=None, ncpus=None):
     motifs = pwmfile_to_motifs(pwmfile)
     
-    index_dir = None
-    if genome is not None:
-        index_dir = os.path.join(MotifConfig().get_index_dir(), genome) 
-   
-    fa = as_fasta(inputfile, index_dir)
+    fa = as_fasta(inputfile, genome)
     
     # initialize scanner
-    s = Scanner()
+    s = Scanner(ncpus=ncpus)
+        
     s.set_motifs(pwmfile)
     if not score_table:
-        s.set_threshold(fpr=fpr, threshold=cutoff, 
-            genome=genome, length=fa.median_length(), filename=bgfile)
+        if cutoff:
+            s.set_threshold(fpr=fpr, threshold=cutoff, 
+                genome=None, length=fa.median_length(), filename=bgfile)
+        else:
+            s.set_threshold(fpr=fpr, threshold=cutoff, 
+                genome=genome, length=fa.median_length(), filename=bgfile)
+
     
     if table:
         it = scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods)
@@ -138,7 +140,7 @@ def pwmscan(args):
     if args.fpr is None and args.cutoff is None:
         args.fpr = 0.01
 
-    print("# GimmeMotifs version {}".format(GM_VERSION))
+    print("# GimmeMotifs version {}".format(__version__))
     print("# Input: {}".format(args.inputfile))
     print("# Motifs: {}".format(args.pwmfile))
     if args.fpr:
@@ -163,5 +165,6 @@ def pwmscan(args):
             pvalue=args.pvalue,
             bgfile=args.bgfile,
             genome=args.genome,
+            ncpus=args.ncpus,
             ):
         print(line)

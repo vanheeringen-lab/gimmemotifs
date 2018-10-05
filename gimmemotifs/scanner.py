@@ -5,7 +5,7 @@ import gc
 from functools import partial
 from tempfile import mkdtemp,NamedTemporaryFile
 import logging
-from multiprocessing import Pool
+import multiprocessing as mp
 import six
 
 # "hidden" features, in development
@@ -16,6 +16,7 @@ try:
 except ImportError:
     pass
 
+from genomepy import Genome
 from diskcache import Cache
 import numpy as np
 from scipy.stats import scoreatpercentile
@@ -23,11 +24,9 @@ from scipy.stats import scoreatpercentile
 from gimmemotifs.background import RandomGenomicFasta
 from gimmemotifs.config import MotifConfig,CACHE_DIR
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.genome_index import GenomeIndex
-from gimmemotifs.c_metrics import pwmscan
+from gimmemotifs.c_metrics import pfmscan
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import parse_cutoff,as_fasta,file_checksum
-from gimmemotifs.genome_index import rc,check_genome
 
 try:
     import copy_reg
@@ -114,7 +113,7 @@ def scan_sequence(seq, motifs, nreport, scan_rc):
         if cutoff is None:
             ret.append([])
         else:
-            result = pwmscan(seq, motif.pwm, cutoff, nreport, scan_rc)
+            result = pfmscan(seq, motif.pwm, cutoff, nreport, scan_rc)
             if cutoff <= motif.pwm_min_score() and len(result) == 0:
                 result = [[motif.pwm_min_score(), 0, 1]] * nreport
             ret.append(result)
@@ -122,11 +121,11 @@ def scan_sequence(seq, motifs, nreport, scan_rc):
     # return results
     return ret
 
-def scan_region(region, genome_index, motifs, nreport, scan_rc):
+def scan_region(region, genome, motifs, nreport, scan_rc):
     
     # retrieve sequence
     chrom,start,end = re.split(r'[:-]', region)
-    seq = genome_index.get_sequence(chrom, int(start), int(end)).upper()
+    seq = genome[chrom][int(start): int(end)].seq.upper()
     
     return scan_sequence(seq, motifs, nreport, scan_rc)
 
@@ -137,10 +136,10 @@ def scan_seq_mult(seqs, motifs, nreport, scan_rc):
         ret.append(result)
     return ret
 
-def scan_region_mult(regions, genome_index, motifs, nreport, scan_rc):
+def scan_region_mult(regions, genome, motifs, nreport, scan_rc):
     ret = []
     for region in regions:
-        result = scan_region(region, genome_index, motifs, nreport, scan_rc)
+        result = scan_region(region, genome, motifs, nreport, scan_rc)
         ret.append(result)
     return ret
 
@@ -258,12 +257,19 @@ class Scanner(object):
     def __init__(self, ncpus=None):
         self.config = MotifConfig()
         self.threshold = None
-        self.index_dir = None
+        self.genome = None
 
         if ncpus is None:
             self.ncpus = int(MotifConfig().get_default_params()["ncpus"])
         else:
             self.ncpus = ncpus
+        
+        if self.ncpus > 1:
+            #try:
+            #    ctx = mp.get_context('spawn')
+            #    self.pool = ctx.Pool(processes=self.ncpus)
+            #except AttributeError:
+            self.pool = mp.Pool(processes=self.ncpus)
 
         self.use_cache = False
         if self.config.get_default_params().get("use_cache", False):
@@ -395,16 +401,17 @@ class Scanner(object):
                     scan_motifs.append(motif)
                 else:
                     if np.isclose(threshold, motif.pwm_max_score()):
-                        thresholds[motif.id] = None
+                        thresholds[motif.id] = None 
+                    elif np.isclose(threshold, motif.pwm_min_score()):
+                        thresholds[motif.id] = 0.0
                     else:
                         thresholds[motif.id] = threshold
                 
             if len(scan_motifs) > 0:
                 if genome:
-                    check_genome(genome)    
+                    Genome(genome)    
                     sys.stderr.write("Determining threshold for fpr {} and length {} based on {}\n".format(fpr, int(length), genome))
-                    index = os.path.join(config.get_index_dir(), genome)
-                    fa = RandomGenomicFasta(index, length, 10000)
+                    fa = RandomGenomicFasta(genome, length, 10000)
                     seqs = fa.seqs
                 else: 
                     sys.stderr.write("Determining threshold for fpr {} based on {}\n".format(fpr, filename))
@@ -413,9 +420,10 @@ class Scanner(object):
                     cache.set(k, threshold)
                     if np.isclose(threshold, motif.pwm_max_score()):
                         thresholds[motif.id] = None
+                    elif np.isclose(threshold, motif.pwm_min_score()):
+                        thresholds[motif.id] = 0.0
                     else:
                         thresholds[motif.id] = threshold
-        
         self.threshold_str = "{}_{}_{}_{}_{}".format(fpr, threshold, genome,
                                         length, filename)
         self.threshold = thresholds
@@ -429,13 +437,10 @@ class Scanner(object):
         if not genome:
             return
         
-        if os.path.exists(genome) and os.path.isdir(genome):
-            index_dir = genome
-        else:
-            index_dir = os.path.join(self.config.get_index_dir(), genome)
-            if not os.path.exists(index_dir) or not os.path.isdir(index_dir):
-                raise ValueError("index for {} does not exist".format(genome))
-        self.index_dir = index_dir
+        # raises error if checks fail
+        Genome(genome)
+
+        self.genome = genome
     
     def count(self, seqs, nreport=100, scan_rc=True):
         """
@@ -488,7 +493,7 @@ class Scanner(object):
                 )
             self.set_threshold(threshold=0.95)
 
-        seqs = as_fasta(seqs, index_dir=self.index_dir)
+        seqs = as_fasta(seqs, genome=self.genome)
            
         it = self._scan_sequences(seqs.seqs, 
                     nreport, scan_rc)
@@ -498,7 +503,7 @@ class Scanner(object):
 
 
     def _scan_regions(self, regions, nreport, scan_rc):
-        index_dir = self.index_dir
+        genome = self.genome
         motif_file = self.motifs
         motif_digest = self.checksum.get(motif_file, None)
 
@@ -507,7 +512,7 @@ class Scanner(object):
         if self.use_cache:
             scan_regions = []
             for region in regions:
-                key = str((region, index_dir, motif_digest, nreport, scan_rc))
+                key = str((region, genome, motif_digest, nreport, scan_rc))
                 ret = self.cache.get(key)
                 if ret == NO_VALUE:
                     scan_regions.append(region)
@@ -515,12 +520,12 @@ class Scanner(object):
         # scan the regions that are not in the cache
         if len(scan_regions) > 0:
             
-            genome_index = GenomeIndex(index_dir)
+            g = Genome(genome)
            
             with open(self.motifs) as f:
                 motifs = [(m, self.threshold[m.id]) for m in read_motifs(f)]
             scan_func = partial(scan_region_mult,
-                genome_index=genome_index,
+                genome=g,
                 motifs=motifs,
                 nreport=nreport,
                 scan_rc=scan_rc)
@@ -529,7 +534,7 @@ class Scanner(object):
                 # return values or store values in cache
                 if self.use_cache:
                     # store values in cache    
-                    key = str((region, index_dir, motif_digest, nreport, scan_rc, self.threshold_str))
+                    key = str((region, genome, motif_digest, nreport, scan_rc, self.threshold_str))
                     self.cache.set(key, ret)
                 else:
                     #return values
@@ -538,7 +543,7 @@ class Scanner(object):
         if self.use_cache: 
             # return results from cache
             for region in regions:
-                key = str((region, index_dir, motif_digest, nreport, scan_rc, self.threshold_str))
+                key = str((region, genome, motif_digest, nreport, scan_rc, self.threshold_str))
                 ret = self.cache.get(key)
                 if ret == NO_VALUE or ret is None:
                     raise Exception("cache is not big enough to hold all " 
@@ -602,15 +607,14 @@ class Scanner(object):
                 yield ret
             
     def _scan_jobs(self, scan_func, scan_seqs):
-        batchsize = 5000
+        batchsize = 1000
         if self.ncpus > 1:
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
                 batch = scan_seqs[i * batchsize:( i+ 1) * batchsize]
                 chunksize = len(batch) // self.ncpus + 1
-                pool = Pool(processes=self.ncpus)
                 jobs = []
                 for j in range((len(batch) - 1) // chunksize + 1):
-                    job = pool.apply_async(
+                    job = self.pool.apply_async(
                             scan_func, 
                             (batch[j * chunksize:(j + 1) * chunksize],)
                             )
@@ -620,8 +624,6 @@ class Scanner(object):
                     for ret in job.get():
                         region = batch[k]
                         yield region, ret
-                pool.close()
-                gc.collect()
         else:
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
                 for j,ret in enumerate(scan_func(scan_seqs[i * batchsize:( i+ 1) * batchsize])):

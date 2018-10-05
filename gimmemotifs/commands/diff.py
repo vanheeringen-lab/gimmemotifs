@@ -8,8 +8,8 @@ import sys
 import os
 import shutil
 import numpy as np
-from gimmemotifs.config import MotifConfig
-from gimmemotifs.genome_index import track2fasta
+from genomepy import Genome
+
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.motif import pwmfile_to_motifs
 from gimmemotifs.fasta import Fasta
@@ -42,9 +42,6 @@ def diff(args):
         
         infiles = []
         
-        config = MotifConfig()
-        index_dir = config.get_index_dir()
-
         for cluster,regions in clusters.items():
             sys.stderr.write("Creating FASTA file for {0}\n".format(cluster))
             inbed = os.path.join(tmpdir, "{0}.bed".format(cluster))
@@ -52,7 +49,7 @@ def diff(args):
             with open(inbed, "w") as f:
                 for vals in regions:
                     f.write("{0}\t{1}\t{2}\n".format(*vals))
-            track2fasta(os.path.join(index_dir, genome), inbed, outfa)
+            Genome(genome).track2fasta(inbed, outfa)
             infiles.append(outfa)
     
     pwms = dict([(m.id, m) for m in pwmfile_to_motifs(pwmfile)])

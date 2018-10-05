@@ -31,7 +31,7 @@ def calc_stats(motifs, fg_file, bg_file, genome=None, stats=None, ncpus=None):
     genome : str, optional
         Genome or index directory in case of BED/regions.
     
-    stats : dict, optional
+    stats : list, optional
         Names of metrics to calculate. See gimmemotifs.rocmetrics.__all__ 
         for available metrics.
 

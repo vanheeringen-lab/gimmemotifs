@@ -1,26 +1,18 @@
 include README.md
-include MANIFEST
-include NEWS
 include INSTALL
 include COPYING
-include ChangeLog
+include CHANGELOG.md
 include run_tests.py
 include compile_externals.py
-include cfg/gimmemotifs.cfg.example
-include examples/TAp73alpha.bed
-include examples/TAp73alpha.fa
-include genes/*.bed
-include genome_index/README.txt
-include motif_databases/*.pwm
-include motif_databases/*.txt
-include motif_databases/*.README
-include score_dists/*.txt
-include templates/*.html
-include templates/*.png
-include templates/sortable/*
 recursive-include src *
 recursive-include test/data/ *
 include test/*.py
 include test/data/*/*
-include bg/*.bg
+include scripts/gimme
 
+graft data/
+recursive-exclude data/examples/ *
+include data/examples/TAp73alpha.bed
+include data/examples/TAp73alpha.fa
+include versioneer.py
+include gimmemotifs/_version.py

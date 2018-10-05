@@ -10,17 +10,23 @@ doc/*
 !doc/*.txt
 !doc/*.md
 docs/_build/*
-examples/*
-!examples/*.bed
-!examples/*.fa
+data/examples/*
+!data/examples/*.bed
+!data/examples/*.fa
 *.pyc
 dist/*
 website/**/*
+.eggs/
+.pytest_cache/
 
 test/data/maelstrom/activity*
 test/data/maelstrom/final*
 test/data/maelstrom/*png
 test/data/maelstrom/motif.freq.txt
+test/data/maelstrom/gimme.vertebrate.v3.1.motif2factors.txt
+test/data/maelstrom/gimme.vertebrate.v3.1.pwm
+test/data/maelstrom/input.table.txt
+
 tmp/*
 
 src/meme_4.6.0

@@ -21,7 +21,7 @@ def _write_report(outdir, ids, tree, clusters):
     result = template.render(motifs=ids)
 
     with open(os.path.join(outdir, "cluster_report.html"), "w") as f:
-        f.write(result.encode('utf-8'))
+        f.write(result)
 
     f = open(os.path.join(outdir, "cluster_key.txt"), "w")
     for motif_id in ids:
@@ -50,7 +50,7 @@ def _create_images(outdir, clusters):
             scores = {}
             for motif in members:
                 scores[motif] =  mc.compare_motifs(cluster, motif, "total", "wic", "mean", pval=True)    
-            add_pos = sorted(scores.values(),cmp=lambda x,y: cmp(x[1], y[1]))[0][1]
+            add_pos = sorted(scores.values(), key=lambda x: x[1])[0][1]
             for motif in members:
                 _, pos, strand = scores[motif]
                 add = pos - add_pos
@@ -73,12 +73,14 @@ def cluster(args):
     if not os.path.exists(outdir):
         os.mkdir(outdir)
 
+    ncpus = args.ncpus
+    
     clusters = []
     motifs = pwmfile_to_motifs(args.inputfile)
     if len(motifs) == 1:
         clusters = [[motifs[0], motifs]]
     else:
-        tree = cluster_motifs(args.inputfile, "total", "wic", "mean", True, threshold=args.threshold, include_bg=True)
+        tree = cluster_motifs(args.inputfile, "total", "wic", "mean", True, threshold=args.threshold, include_bg=True, ncpus=ncpus)
         clusters = tree.getResult()
     
     ids = _create_images(outdir, clusters) 

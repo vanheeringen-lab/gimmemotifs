@@ -22,7 +22,7 @@ import numpy as np
 
 # GimmeMotifs imports
 from gimmemotifs.config import MotifConfig
-from gimmemotifs.c_metrics import pwmscan,score
+from gimmemotifs.c_metrics import pfmscan,score
 from gimmemotifs.motif import parse_motifs
 # pool import is at the bottom
 
@@ -84,8 +84,8 @@ def seqcor(m1, m2, seq=None):
         seq = RANDOM_SEQ
     
     # Scan random sequence
-    result1 = pwmscan(seq, m1.pwm, m1.pwm_min_score(), len(seq), False, True)
-    result2 = pwmscan(seq, m2.pwm, m2.pwm_min_score(), len(seq), False, True)
+    result1 = pfmscan(seq, m1.pwm, m1.pwm_min_score(), len(seq), False, True)
+    result2 = pfmscan(seq, m2.pwm, m2.pwm_min_score(), len(seq), False, True)
     result1 = np.array(result1)
     result2 = np.array(result2)
     
@@ -336,7 +336,7 @@ class MotifComparer(object):
             p2 = p2[:len(p1)]
         return p1,p2
 
-    def get_all_scores(self, motifs, dbmotifs, match, metric, combine, pval=False, parallel=True, trim=None):
+    def get_all_scores(self, motifs, dbmotifs, match, metric, combine, pval=False, parallel=True, trim=None, ncpus=None):
     
             
         # trim motifs first, if specified
@@ -352,9 +352,12 @@ class MotifComparer(object):
         if parallel:    
             # Divide the job into big chunks, to keep parallel overhead to minimum
             # Number of chunks = number of processors available
-            n_cpus = int(MotifConfig().get_default_params()["ncpus"])
+            if ncpus is None:
+                ncpus = int(MotifConfig().get_default_params()["ncpus"])
 
-            batch_len = len(dbmotifs) // n_cpus
+            pool = Pool(processes=ncpus, maxtasksperchild=1000)
+ 
+            batch_len = len(dbmotifs) // ncpus
             if batch_len <= 0:
                 batch_len = 1
             jobs = []
@@ -365,6 +368,7 @@ class MotifComparer(object):
                     args=(self, motifs, dbmotifs[i: i + batch_len], match, metric, combine, pval))
                 jobs.append(p)
             
+            pool.close()
             for job in jobs:
                 # Get the job result
                 result = job.get()
@@ -375,13 +379,14 @@ class MotifComparer(object):
                             scores[m1] = {}
                         scores[m1][m2] = s
         
+            pool.join()
         else:
             # Do the whole thing at once if we don't want parallel
             scores = _get_all_scores(self, motifs, dbmotifs, match, metric, combine, pval)
         
         return scores
 
-    def get_closest_match(self, motifs, dbmotifs=None, match="partial", metric="wic",combine="mean", parallel=True):
+    def get_closest_match(self, motifs, dbmotifs=None, match="partial", metric="wic",combine="mean", parallel=True, ncpus=None):
         """Return best match in database for motifs.
 
         Parameters
@@ -399,6 +404,9 @@ class MotifComparer(object):
 
         combine : str, optional
 
+        ncpus : int, optional
+            Number of threads to use.
+
         Returns
         -------
 
@@ -415,7 +423,7 @@ class MotifComparer(object):
 
         dbmotif_lookup = dict([(m.id, m) for m in dbmotifs])
 
-        scores = self.get_all_scores(motifs, dbmotifs, match, metric, combine, parallel=parallel)
+        scores = self.get_all_scores(motifs, dbmotifs, match, metric, combine, parallel=parallel, ncpus=ncpus)
         for motif in scores:
             scores[motif] = sorted(
                     scores[motif].items(), 
@@ -456,6 +464,6 @@ class MotifComparer(object):
 # import here is necessary as workaround
 # see: http://stackoverflow.com/questions/18947876/using-python-multiprocessing-pool-in-the-terminal-and-in-code-modules-for-django
 try:
-    from gimmemotifs.mp import pool
+    from multiprocessing import Pool
 except:
     pass
