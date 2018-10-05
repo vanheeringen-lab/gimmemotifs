@@ -401,7 +401,9 @@ class Scanner(object):
                     scan_motifs.append(motif)
                 else:
                     if np.isclose(threshold, motif.pwm_max_score()):
-                        thresholds[motif.id] = None
+                        thresholds[motif.id] = None 
+                    elif np.isclose(threshold, motif.pwm_min_score()):
+                        thresholds[motif.id] = 0.0
                     else:
                         thresholds[motif.id] = threshold
                 
@@ -418,9 +420,10 @@ class Scanner(object):
                     cache.set(k, threshold)
                     if np.isclose(threshold, motif.pwm_max_score()):
                         thresholds[motif.id] = None
+                    elif np.isclose(threshold, motif.pwm_min_score()):
+                        thresholds[motif.id] = 0.0
                     else:
                         thresholds[motif.id] = threshold
-        
         self.threshold_str = "{}_{}_{}_{}_{}".format(fpr, threshold, genome,
                                         length, filename)
         self.threshold = thresholds

@@ -13,6 +13,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+
 #if PY_MAJOR_VERSION >= 3
     #define PyInt_FromLong PyLong_FromLong
     #define PyString_Check PyUnicode_Check
@@ -496,6 +497,7 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 	int m;
 	double g = 0.25;
 	double z = 0.01;
+	double pwm_min = 0.0;
 	for (j = 0; j < j_max; j++) {
 		score = 0;
 		rc_score = 0;
@@ -516,6 +518,16 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 				case 'T': 
 					score += log(pwm[m][3] / g + z);
 					rc_score += log(pwm[pwm_len - m - 1][0] / g + z); 
+					break;
+				case 'N':
+					pwm_min = pwm[m][0];
+					for (int c = 1; c < 4; c++) {
+						if (pwm[m][c] < pwm_min) {
+							pwm_min = pwm[m][c];
+						}
+					}
+					score += log(pwm_min / g + z);
+					rc_score += log(pwm_min / g + z); 
 					break;
 			}
 		
