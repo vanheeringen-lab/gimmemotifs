@@ -409,9 +409,7 @@ def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, sta
         List of Motif instances.
     """
     # combine original and clustered motifs
-    with open(single_pwm) as f1:
-        with open(clus_pwm) as f2:
-            motifs = read_motifs(f1) + read_motifs(f2)
+    motifs = read_motifs(single_pwm) + read_motifs(clus_pwm)
     motifs = dict([(str(m), m) for m in motifs])
 
     # get the statistics for those motifs that were not yet checked

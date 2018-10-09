@@ -54,9 +54,7 @@ def get_roc_values(motif, fg_file, bg_file):
 
 def create_roc_plots(pwmfile, fgfa, background, outdir):
     """Make ROC plots for all motifs."""
-    with open(pwmfile) as f:
-        motifs = dict([(m.id, m) for m in read_motifs(f, fmt="pwm")])
-
+    motifs = read_motifs(pwmfile, fmt="pwm", as_dict=True)
     ncpus = int(MotifConfig().get_default_params()['ncpus'])
     pool = Pool(processes=ncpus)
     jobs = {}
@@ -123,16 +121,15 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
     if not os.path.exists(imgdir):
         os.mkdir(imgdir)
     
-    with open(pwm) as f:
-        motifs = read_motifs(f, fmt="pwm")
+    motifs = read_motifs(pwm, fmt="pwm")
     
     roc_img_file = "%s_roc.%s"
 
     dbpwm = config.get_default_params()["motif_db"]
     pwmdir = config.get_motif_dir()
-    with open(os.path.join(pwmdir, dbpwm)) as f:
-        dbmotifs = dict([(m.id, m) for m in read_motifs(f)])
 
+    dbmotifs = read_motifs(os.path.join(pwmdir, dbpwm), as_dict=True)
+    
     report_motifs = []
     for motif in motifs:
         
@@ -197,8 +194,7 @@ def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outd
     """Create text and graphical (.html) motif reports."""
     logger.info("creating reports")
 
-    with open(pwmfile) as f:
-        motifs = read_motifs(f, fmt="pwm")
+    motifs = read_motifs(pwmfile, fmt="pwm")
     
     # ROC plots
     create_roc_plots(pwmfile, fgfa, background, outdir)
@@ -239,11 +235,7 @@ def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
     M = max(abs(df.min().min()), df.max().max())
     m = -M
 
-    if pwmfile:
-        with open(pwmfile) as f:
-            motifs = read_motifs(f)
-    else:
-        motifs = default_motifs()
+    motifs = read_motifs(pwmfile)
 
     del df.index.name
     cols = df.columns

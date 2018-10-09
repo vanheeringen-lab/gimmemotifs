@@ -896,7 +896,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
             raise ValueError("{} does not exist".format(pwmfile))
 
         try:
-            motifs = read_motifs(open(pwmfile))
+            motifs = read_motifs(pwmfile)
         except:
             sys.stderr.write("can't read motifs from {}".format(pwmfile))
             raise
@@ -914,7 +914,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
 
         # scan for motifs
         sys.stderr.write("scanning for motifs\n")
-        motif_names = [m.id for m in read_motifs(open(pwmfile))]
+        motif_names = [m.id for m in read_motifs(pwmfile)]
         scores = []
         if method == 'classic' or scoring == "count":
             s.set_threshold(fpr=fpr)

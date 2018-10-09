@@ -116,8 +116,7 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
     
     # First read pfm or pfm formatted motiffile
     if type([]) != type(motifs):
-        with open(motifs) as f:
-            motifs = read_motifs(f, fmt="pwm")
+        motifs = read_motifs(motifs, fmt="pwm")
     
     mc = MotifComparer()
 
@@ -231,8 +230,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
     if title is None:
         title = infile
 
-    with open(infile) as f:
-        motifs = read_motifs(f, fmt="pwm")
+    motifs = read_motifs(infile, fmt="pwm")
 
     trim_ic = 0.2
     clusters = []

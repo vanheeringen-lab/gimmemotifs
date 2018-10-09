@@ -274,8 +274,7 @@ class XXmotif(MotifProgram):
         motifs = []
         
         if os.path.exists(outfile):
-            with open(outfile) as f:
-                motifs = read_motifs(f, fmt="xxmotif")
+            motifs = read_motifs(outfile, fmt="xxmotif")
             for m in motifs:
                 m.id = "{0}_{1}".format(self.name, m.id)
         else:
@@ -381,10 +380,9 @@ class Homer(MotifProgram):
         motifs = []
         
         if os.path.exists(outfile):
-            with open(outfile) as f:
-                motifs = read_motifs(f, fmt="pwm")
-                for i, m in enumerate(motifs):
-                    m.id = "{}_{}_{}".format(self.name, params["width"], i + 1)
+            motifs = read_motifs(outfile, fmt="pwm")
+            for i, m in enumerate(motifs):
+                m.id = "{}_{}_{}".format(self.name, params["width"], i + 1)
         
         return motifs, stdout, stderr
 
@@ -1006,8 +1004,7 @@ class Trawler(MotifProgram):
                  
                 my_motifs = []
                 if os.path.exists(out_file):
-                    with open(out_file) as f: 
-                        my_motifs = read_motifs(f, fmt="pwm")
+                    my_motifs = read_motifs(out_file, fmt="pwm")
                     for m in motifs:
                         m.id = "{}_{}".format(self.name, m.id)
                     stdout += "\nTrawler: {} motifs".format(len(motifs))
@@ -1941,8 +1938,7 @@ class Jaspar(MotifProgram):
             Standard error of the tool.
         """
         fname = os.path.join(self.config.get_motif_dir(), "JASPAR2010_vertebrate.pwm")
-        with open(fname) as f:
-            motifs =  read_motifs(f, fmt="pwm")
+        motifs = read_motifs(fname, fmt="pwm")
 
         for motif in motifs:
             motif.id = "JASPAR_%s" % motif.id

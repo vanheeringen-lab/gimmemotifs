@@ -80,7 +80,7 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None, ncpus=No
             scores.append(row)
         logger.info("done")
    
-    motif_names = [m.id for m in read_motifs(open(pwmfile))]
+    motif_names = [m.id for m in read_motifs(pwmfile)]
     logger.info("creating dataframe")
     return pd.DataFrame(scores, index=idx, columns=motif_names)
 
@@ -118,7 +118,7 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
         m2f = pd.read_csv(mapfile, sep="\t", names=["motif","factors"], index_col=0) 
         m2f["factors"] = m2f["factors"].str[:50]
     else:
-        motifs = [m.id for m in read_motifs(open(pwmfile))]
+        motifs = [m.id for m in read_motifs(pwmfile)]
         m2f = pd.DataFrame({"factors": motifs}, index=motifs)
 
     sig_fname = os.path.join(outdir, "final.out.csv")

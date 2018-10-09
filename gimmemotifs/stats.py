@@ -51,8 +51,7 @@ def calc_stats(motifs, fg_file, bg_file, genome=None, stats=None, ncpus=None):
         all_motifs = [motifs]
     else:
         try:
-            with open(motifs) as f:
-                all_motifs = read_motifs(f, fmt="pwm")
+            all_motifs = read_motifs(motifs, fmt="pwm")
         except TypeError:
             all_motifs = motifs
     
