@@ -45,6 +45,7 @@ Full contents
     :maxdepth: 2
 
     installation
+    overview
     examples
     tutorials
     reference
