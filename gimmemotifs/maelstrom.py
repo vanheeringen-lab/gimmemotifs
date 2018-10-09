@@ -233,11 +233,17 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
     shutil.copyfile(infile, os.path.join(outdir, "input.table.txt"))
     
     config = MotifConfig()
+    motif_dir = config.get_motif_dir()
     # Default pwmfile
     if pwmfile is None:
         pwmfile = config.get_default_params().get("motif_db", None)
-        if pwmfile is not None:
-            pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
+    
+    if pwmfile is not None and not os.path.exists(pwmfile):
+        checkfile = os.path.join(motif_dir, pwmfile)
+        if not os.path.exists(checkfile):
+            checkfile += ".pwm"
+        if os.path.exists(checkfile):
+            pwmfile = checkfile
 
     if pwmfile:
         shutil.copy2(pwmfile, outdir)
