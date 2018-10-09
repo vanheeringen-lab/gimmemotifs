@@ -876,11 +876,22 @@ def parse_motifs(motifs):
     
     return list(motifs)
 
-def read_motifs(handle, fmt="pwm"):
+def _read_motifs_from_filehandle(handle, fmt):
     """ 
-    Read motifs from a stream or file-like object.
-    """
+    Read motifs from a file-like object.
 
+    Parameters
+    ----------
+    handle : file-like object
+        Motifs.
+    fmt : string, optional
+        Motif format, can be 'pwm', 'transfac', 'xxmotif', 'jaspar' or 'align'.
+    
+    Returns
+    -------
+    motifs : list
+        List of Motif instances. 
+    """
     if fmt.lower() == "pwm":
         motifs = _read_motifs_pwm(handle)
     if fmt.lower() == "transfac":
@@ -908,6 +919,59 @@ def read_motifs(handle, fmt="pwm"):
                     motif.factors = m2f[motif.id]
     return motifs
 
+
+def read_motifs(infile=None, fmt="pwm", as_dict=False):
+    """ 
+    Read motifs from a file or stream or file-like object.
+
+    Parameters
+    ----------
+    infile : string or file-like object, optional
+        Motif database, filename of motif file or file-like object. If infile 
+        is not specified the default motifs as specified in the config file 
+        will be returned.
+
+    fmt : string, optional
+        Motif format, can be 'pwm', 'transfac', 'xxmotif', 'jaspar' or 'align'.
+    
+    as_dict : boolean, optional
+        Return motifs as a dictionary with motif_id, motif pairs.
+    
+    Returns
+    -------
+    motifs : list
+        List of Motif instances. If as_dict is set to True, motifs is a 
+        dictionary.
+    """
+    config = MotifConfig()
+    
+    if infile is None: 
+        infile = config.get_default_params().get("motif_db", None)
+        if infile is None:
+            raise ValueError("No motif file was given and no default "
+                    "database specified in the config file.")
+    
+    if isinstance(infile, six.string_types):
+        if not os.path.exists(infile):
+            motif_dir = config.get_motif_dir()
+            checkfile = os.path.join(motif_dir, infile)
+            if os.path.exists(checkfile):
+                infile = checkfile
+            elif os.path.exists(checkfile + ".pwm"):
+                infile = checkfile + ".pwm"
+            else:
+                raise ValueError("Motif file {} not found".format(infile))
+        
+        with open(infile) as f:
+            motifs = _read_motifs_from_filehandle(f, fmt)
+    else:
+        motifs = _read_motifs_from_filehandle(infile, fmt)
+
+    if as_dict:
+        motifs = {m.id:m for m in motifs}
+
+    return motifs
+        
 def _read_motifs_pwm(handle):
     p = re.compile(r'(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)')
     motifs = []
@@ -959,13 +1023,17 @@ def _read_motifs_jaspar(handle):
             motif_id = line[1:]
         if line[0] in "ACGT":
             m = p.search(line)
-            nuc = m.group(1)
-            counts = re.split(r'\s+', m.group(2).strip())
-            pwm[nuc] = [float(x) for x in counts]
-            if nuc == "T":
-                motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
-                motif.id = motif_id
-                motifs.append(motif)
+            try:
+                nuc = m.group(1)
+                counts = re.split(r'\s+', m.group(2).strip())
+                pwm[nuc] = [float(x) for x in counts]
+                if nuc == "T":
+                    motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
+                    motif.id = motif_id
+                    motifs.append(motif)
+            except:
+                raise ValueError("Can't parse line\n" + line)
+    
     if motif_id and motifs[-1].id != motif_id:
         motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
         motif.id = motif_id

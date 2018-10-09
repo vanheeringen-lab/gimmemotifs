@@ -77,9 +77,8 @@ def scan_to_best_match(fname, motifs, ncpus=None, genome=None, score=False):
     if genome:
         s.set_genome(genome)
     
-    if isinstance(motifs, six.string_types) and os.path.exists(motifs):
-        with open(motifs) as f: 
-            motifs = read_motifs(f)
+    if isinstance(motifs, six.string_types):
+        motifs = read_motifs(motifs)
 
     logger.debug("scanning %s...", fname)
     result = dict([(m.id, []) for m in motifs])
@@ -94,8 +93,7 @@ def scan_to_best_match(fname, motifs, ncpus=None, genome=None, score=False):
     return result
 
 def parse_threshold_values(motif_file, cutoff):
-    with open(motif_file) as f:
-        motifs = read_motifs(f)
+    motifs = read_motifs(motif_file)
     d = parse_cutoff(motifs, cutoff)
     threshold = {}
     for m in motifs:
@@ -308,8 +306,7 @@ class Scanner(object):
             motif_file = motifs
 
         self.motifs = motif_file
-        with open(motif_file) as f:
-            self.motif_ids = [m.id for m in read_motifs(f)]
+        self.motif_ids = [m.id for m in read_motifs(motif_file)]
         self.checksum = {}
         if self.use_cache:
             chksum = xxhash.xxh64("\n".join(sorted(self.motif_ids))).digest()
@@ -371,8 +368,7 @@ class Scanner(object):
             raise ValueError("please run set_motifs() first")
 
         thresholds = {}
-        with open(self.motifs) as f: 
-            motifs = read_motifs(f)
+        motifs = read_motifs(self.motifs)
         
         if threshold is not None:
             self.threshold = parse_threshold_values(self.motifs, threshold) 
@@ -522,8 +518,7 @@ class Scanner(object):
             
             g = Genome(genome)
            
-            with open(self.motifs) as f:
-                motifs = [(m, self.threshold[m.id]) for m in read_motifs(f)]
+            motifs = [(m, self.threshold[m.id]) for m in read_motifs(self.motifs)]
             scan_func = partial(scan_region_mult,
                 genome=g,
                 motifs=motifs,
@@ -579,8 +574,7 @@ class Scanner(object):
         
         # scan the sequences that are not in the cache
         if len(scan_seqs) > 0:
-            with open(self.motifs) as f:
-                motifs = [(m, self.threshold[m.id]) for m in read_motifs(f)]
+            motifs = [(m, self.threshold[m.id]) for m in read_motifs(self.motifs)]
             scan_func = partial(scan_seq_mult,
                 motifs=motifs,
                 nreport=nreport,

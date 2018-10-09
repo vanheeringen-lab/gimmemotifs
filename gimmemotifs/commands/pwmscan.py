@@ -11,7 +11,7 @@ from __future__ import print_function
 import os
 import re
 
-from gimmemotifs.motif import pwmfile_to_motifs
+from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import as_fasta 
 from gimmemotifs.scanner import Scanner,scan_it_moods
 from gimmemotifs import __version__
@@ -108,7 +108,7 @@ def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pval
 def command_scan(inputfile, pwmfile, nreport=1, fpr=0.01, cutoff=None, 
         bed=False, scan_rc=True, table=False, score_table=False, moods=False, 
         pvalue=None, bgfile=None, genome=None, ncpus=None):
-    motifs = pwmfile_to_motifs(pwmfile)
+    motifs = read_motifs(pwmfile)
     
     fa = as_fasta(inputfile, genome)
     

@@ -137,6 +137,17 @@ class TestMotif(unittest.TestCase):
         m = Motif(pwm)
         np.testing.assert_almost_equal(logodds, np.array(m.logodds), decimal=5)
 
+    def test10_read_motifs(self):
+        
+        # Read motifs from file
+        motifs = read_motifs(self.pwm2, fmt="pwm")
+        self.assertEqual(5, len(motifs))
+        
+        # Read motifs from file as dictionary
+        motifs = read_motifs(self.pwm2, fmt="pwm", as_dict=True)
+        self.assertEqual(5, len(motifs))
+        self.assertEqual(type({}), type(motifs))
+
     def tearDown(self):
         pass
 
