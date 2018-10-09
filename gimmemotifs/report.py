@@ -266,7 +266,7 @@ def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
         f.write("</head>\n")
         f.write("<body>\n")
 
-        f.write(df.style.apply(background_gradient, low=0.7, high=0.7, m=m, M=M, subset=cols).set_precision(3).set_table_attributes("data-sortable").render().replace("data-sortable", 'class="sortable-theme-slick" data-sortable'))
+        f.write(df.style.background_gradient(low=0.7, high=0.7, cmap="RdBu_r", subset=cols).set_precision(3).set_table_attributes("data-sortable").render().replace("data-sortable", 'class="sortable-theme-slick" data-sortable'))
 
         f.write("<script>{}</script>\n".format(js))
         f.write("</body>\n")
