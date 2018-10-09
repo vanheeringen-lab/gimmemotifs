@@ -160,7 +160,7 @@ class BayesianRidgeMoap(Moap):
         if self.scale:
             logger.debug("Scaling motif scores")
             # Scale motif scores
-            df_X = df_X.apply(scale)
+            df_X[:] = scale(df_X, axis=0)
         
         #logger.debug("Scaling y")
         
@@ -218,7 +218,7 @@ class XgboostRegressionMoap(Moap):
         
         if self.scale:
             # Scale motif scores
-            df_X = df_X.apply(scale)
+            df_X[:] = scale(df_X, axis=0)
         
         # Normalize across samples and features
         #y = df_y.apply(scale, 1).apply(scale, 0)
@@ -302,7 +302,7 @@ class LightningRegressionMoap(Moap):
         
         if self.scale:
             # Scale motif scores
-            df_X = df_X.apply(scale)
+            df_X[:] = scale(df_X, axis=0)
         
         # Normalize across samples and features
         #y = df_y.apply(scale, 1).apply(scale, 0)
@@ -431,7 +431,7 @@ class LightningClassificationMoap(Moap):
         
         if self.scale:
             # Scale motif scores
-            df_X = df_X.apply(scale)
+            df_X[:] = scale(df_X, axis=0)
         
         idx = list(range(df_y.shape[0]))
 
@@ -750,7 +750,7 @@ class LassoMoap(Moap):
        
         if self.scale:
             # Scale motif scores
-            df_X = df_X.apply(scale)
+            df_X[:] = scale(df_X, axis=0)
 
         idx = list(range(df_y.shape[0]))
         y = df_y.iloc[idx]

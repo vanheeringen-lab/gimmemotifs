@@ -291,7 +291,8 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         if cluster:
             clusterfile = os.path.join(outdir,
                     os.path.basename(infile) + ".cluster.txt")
-            df = df.apply(scale, 0)
+            
+            df[:] = scale(df, axis=0)
             names = df.columns
             df_changed = pd.DataFrame(index=df.index)
             df_changed["cluster"] = np.nan
@@ -523,7 +524,8 @@ class MaelstromResult():
                     if motif in m.factors:
                         plot_motifs.append(m.id)
         
-        data = self.scores[plot_motifs].apply(scale, axis=0)
+        data = self.scores[plot_motifs]
+        data[:] = data.scale(data, axix=0)
         if name:
             data = data.T
             data["factors"] = [join_max(self.motifs[n].factors, max_len, ",", suffix=",(...)") for n in plot_motifs]
