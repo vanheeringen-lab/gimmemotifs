@@ -5,14 +5,26 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## Added
+
+- Multiple other motif databases (JASPAR, HOMER, HOCOMOCO).
+
 ## Changed
 
+- Improved efficiency of motif scanning (>10X speed improvement).
+- Removed dependency on R for rank aggregation.
 - Dropped support for Python 2.
 - Use versioneer for versioning.
 - Removed the default genome in config file.
 - Config file is now independent from GimmeMotifs version and will be created by
   default on first use.
 - Simplified setup.py script.
+- Updated parameters for ChIPMunk motif finder.
+
+## Fixed 
+
+- Fixed `scale` for newer `pandas`/`sklearn` combo
+
 
 ## [0.12.0] - 2018-07-10
 

@@ -50,10 +50,10 @@ def calc_stats(motifs, fg_file, bg_file, genome=None, stats=None, ncpus=None):
     if isinstance(motifs, Motif):
         all_motifs = [motifs]
     else:
-        try:
-            all_motifs = read_motifs(motifs, fmt="pwm")
-        except TypeError:
+        if type([]) == type(motifs):
             all_motifs = motifs
+        else:
+            all_motifs = read_motifs(motifs, fmt="pwm")
     
     if ncpus is None:
         ncpus = int(MotifConfig().get_default_params()["ncpus"])
