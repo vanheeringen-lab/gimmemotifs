@@ -9,6 +9,8 @@ recursive-include test/data/ *
 include test/*.py
 include test/data/*/*
 include scripts/gimme
+include scripts/coverage_table
+include scripts/combine_peaks
 
 graft data/
 recursive-exclude data/examples/ *

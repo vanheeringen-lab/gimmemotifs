@@ -106,6 +106,8 @@ setup (
         scripts=[
             'scripts/track2fasta.py',
             'scripts/gimme',
+            'scripts/combine_peaks',
+            'scripts/coverage_table',
             ],
         include_package_data = True,
         ext_modules = [module1],
