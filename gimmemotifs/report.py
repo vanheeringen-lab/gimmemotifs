@@ -260,14 +260,30 @@ def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
     css = open(os.path.join(template_dir, "sortable/sortable-theme-slick.css"), encoding="utf-8").read()
     cm = sns.diverging_palette(240, 10, as_cmap=True)
     df = df[["factors", "logo"] + list(cols)]
+    
+    df_styled = df.style
+    absmax = np.max((abs(df[cols].max().max()), abs(df[cols].min().min())))
+    target = absmax * 1.75
+
+    for col in cols:
+        smin = df[col].min()
+        smax = df[col].max()
+        diff = smax - smin
+        low = abs((-target - smin) / diff)
+        high = (target - smax) / diff
+        df_styled = df_styled.background_gradient(cmap='RdBu_r', low=low, high=high, subset=[col])
+    
+    df_styled = df_styled.set_precision(3)
+    df_styled = df_styled.set_table_attributes("data-sortable")
+    df_styled = df_styled.render()
+    df_styled = df_styled.replace("data-sortable", 'class="sortable-theme-slick" data-sortable')
+
     with open(outdir + "/gimme.maelstrom.report.html", "w", encoding="utf-8") as f:
         f.write("<head>\n")
         f.write("<style>{}</style>\n".format(css))
         f.write("</head>\n")
         f.write("<body>\n")
-
-        f.write(df.style.background_gradient(low=0.7, high=0.7, cmap="RdBu_r", subset=cols).set_precision(3).set_table_attributes("data-sortable").render().replace("data-sortable", 'class="sortable-theme-slick" data-sortable'))
-
+        f.write(df_styled)
         f.write("<script>{}</script>\n".format(js))
         f.write("</body>\n")
 
