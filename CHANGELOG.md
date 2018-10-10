@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ## Added
 
 - Multiple other motif databases (JASPAR, HOMER, HOCOMOCO).
+- Helper script to combine peaks (summit files from MACS2)
+- Helper script to create coverage table (similar to bedtools multicov)
 
 ## Changed
 
@@ -24,7 +26,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ## Fixed 
 
 - Fixed `scale` for newer `pandas`/`sklearn` combo
-
+- FIxed bug related to backgroundgradient with new pandas
 
 ## [0.12.0] - 2018-07-10
 
