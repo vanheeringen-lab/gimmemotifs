@@ -9,6 +9,7 @@ import sys
 from datetime import datetime
 from multiprocessing import Pool
 from tempfile import NamedTemporaryFile
+import re
 import shutil
 import logging
 
@@ -247,7 +248,7 @@ def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
     df.loc[f, "factors"] += '(...)'
     df['factors'] += '</div>'
 
-    df["logo"] = ['<img src="logos/{}.png" height=40/>'.format(re.sub('[()/]', '_', x) for x in list(df.index)]
+    df["logo"] = ['<img src="logos/{}.png" height=40/>'.format(re.sub('[()/]', '_', x)) for x in list(df.index)]
 
     if not os.path.exists(outdir + "/logos"):
         os.makedirs(outdir + "/logos")
