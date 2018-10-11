@@ -247,13 +247,13 @@ def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
     df.loc[f, "factors"] += '(...)'
     df['factors'] += '</div>'
 
-    df["logo"] = ['<img src="logos/{}.png" height=40/>'.format(x) for x in list(df.index)]
+    df["logo"] = ['<img src="logos/{}.png" height=40/>'.format(re.sub('[()/]', '_', x) for x in list(df.index)]
 
     if not os.path.exists(outdir + "/logos"):
         os.makedirs(outdir + "/logos")
     for motif in motifs:
         if motif.id in df.index:
-            motif.to_img(outdir + "/logos/{}.png".format(motif.id), fmt="PNG")
+            motif.to_img(outdir + "/logos/{}.png".format(re.sub('[()/]', '_',motif.id)), fmt="PNG")
 
     template_dir = MotifConfig().get_template_dir()
     js = open(os.path.join(template_dir, "sortable/sortable.min.js"), encoding="utf-8").read()
