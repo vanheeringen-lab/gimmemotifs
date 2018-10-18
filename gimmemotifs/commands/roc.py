@@ -9,10 +9,11 @@ from __future__ import print_function
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.stats import calc_stats
-from gimmemotifs.config import MotifConfig
+from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 import numpy as np
 import pandas as pd
 import os
+import re
 import sys
 from statsmodels.stats.multitest import multipletests
 
@@ -33,29 +34,34 @@ def html_report(outdir, infile, pwmfile, threshold=0.01):
             "Enr. at 1% FPR",
             "Recall at 10% FDR"
     ]
+   
     
-    m2f = pwmfile.replace(".pwm", ".motif2factors.txt")
-    if os.path.exists(m2f):
-        sys.stderr.write("reading mapping\n")
-        m2f = pd.read_table(m2f, index_col=0)
-        m2f.columns = ["factors"]
-        f = m2f["factors"].str.len() > 30        
-        m2f["factors"] = '<div title="' + m2f["factors"] + '">' + m2f["factors"].str.slice(0,30) 
-        m2f.loc[f, "factors"] += '(...)'
-        m2f['factors'] += '</div>'
+    motifs = read_motifs(pwmfile)
+    idx = [motif.id for motif in motifs]
+    direct = [",".join(motif.factors[DIRECT_NAME]) for motif in motifs]
+    indirect = [",".join(motif.factors[INDIRECT_NAME]) for motif in motifs]
+    m2f = pd.DataFrame({DIRECT_NAME:direct, INDIRECT_NAME:indirect}, index=idx)
+
+    factor_cols = [DIRECT_NAME, INDIRECT_NAME]
+    if True:
+        for factor_col in factor_cols:
+            f = m2f[factor_col].str.len() > 30        
+            m2f[factor_col] = '<div title="' + m2f[factor_col] + '">' + m2f[factor_col].str.slice(0,30) 
+            m2f.loc[f, factor_col] += '(...)'
+            m2f[factor_col] += '</div>'
         df = df.join(m2f)
-        cols = ["factors"] + cols
+        cols = factor_cols + cols
     
     df = df[df["corrected P-value"] <= threshold]
     
-    df["Logo"] = ['<img src="logos/{}.png" height=40/>'.format(x) for x in list(df.index)]
+    df["Logo"] = ['<img src="logos/{}.png" height=40/>'.format(re.sub('[^-_\w]+', '_', x)) for x in list(df.index)]
     
     df = df[cols]
     if not os.path.exists(outdir + "/logos"):
         os.makedirs(outdir + "/logos")
-    for motif in read_motifs(open(pwmfile)):
+    for motif in motifs:
         if motif.id in df.index:
-            motif.to_img(outdir + "/logos/{}.png".format(motif.id), fmt="PNG")
+            motif.to_img(outdir + "/logos/{}.png".format(re.sub('[^-_\w]+', '_', motif.id)), fmt="PNG")
     
     bar_cols = [
             "log10 P-value", "ROC AUC", "PR AUC", "MNCP",
@@ -83,7 +89,7 @@ def roc(args):
     if outputfile and not outputfile.endswith(".png"):
         outputfile += ".png"
     
-    motifs = read_motifs(open(args.pwmfile), fmt="pwm")
+    motifs = read_motifs(args.pwmfile, fmt="pwm")
 
     ids = []
     if args.ids:

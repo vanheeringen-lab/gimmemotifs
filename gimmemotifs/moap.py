@@ -45,6 +45,7 @@ from gimmemotifs import __version__
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.config import MotifConfig
+from gimmemotifs.utils import pwmfile_location
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -813,7 +814,8 @@ class LassoMoap(Moap):
         coefs = np.array(coefs).mean(axis=0)
         return coefs
 
-def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=None, pwmfile=None, genome=None, fpr=0.01, ncpus=None):
+def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=None, pwmfile=None, genome=None, fpr=0.01, ncpus=None,
+        subsample=None):
     """Run a single motif activity prediction algorithm.
     
     Parameters
@@ -861,8 +863,6 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
     
     config = MotifConfig()
 
-    m2f = None
-    
     if inputfile.endswith("feather"):
         df = pd.read_feather(inputfile)
         df = df.set_index(df.columns[0])
@@ -883,28 +883,13 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
     if motiffile is None:
         if genome is None:
             raise ValueError("need a genome")
-        # check pwmfile
-        if pwmfile is None:
-            pwmfile = config.get_default_params().get("motif_db", None)
-            if pwmfile is not None:
-                pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
         
-        if pwmfile is None:
-            raise ValueError("no pwmfile given and no default database specified")
-
-        if not os.path.exists(pwmfile):
-            raise ValueError("{} does not exist".format(pwmfile))
-
+        pwmfile = pwmfile_location(pwmfile)
         try:
             motifs = read_motifs(pwmfile)
         except:
             sys.stderr.write("can't read motifs from {}".format(pwmfile))
             raise
-
-        base = os.path.splitext(pwmfile)[0]
-        map_file = base + ".motif2factors.txt"
-        if os.path.exists(map_file):
-            m2f = pd.read_table(map_file, index_col=0, comment="#")
 
         # initialize scanner
         s = Scanner(ncpus=ncpus)
@@ -937,6 +922,11 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
         if out.shape[0] == motifs.shape[1] and out.shape[1] == ncols:
             logger.warn("%s output already exists... skipping", method)
             return out
+    
+    if subsample is not None:
+        n = int(subsample * df.shape[0])
+        logger.debug("Subsampling %d regions", n)
+        df = df.sample(n)
     
     motifs = motifs.loc[df.index]
     

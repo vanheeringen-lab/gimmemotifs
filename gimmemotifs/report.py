@@ -21,7 +21,7 @@ import seaborn as sns
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import read_motifs,default_motifs
-from gimmemotifs.config import MotifConfig,BG_RANK
+from gimmemotifs.config import MotifConfig,BG_RANK,DIRECT_NAME,INDIRECT_NAME
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.rocmetrics import roc_values
 from gimmemotifs.stats import calc_stats, add_star, write_stats
@@ -240,13 +240,21 @@ def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
 
     del df.index.name
     cols = df.columns
-    m2f = dict([(m.id,",".join(m.factors)) for m in motifs])
+    
+    motifs = read_motifs(pwmfile)
+    idx = [motif.id for motif in motifs]
+    direct = [",".join(motif.factors[DIRECT_NAME]) for motif in motifs]
+    indirect = [",".join(motif.factors[INDIRECT_NAME]) for motif in motifs]
+    m2f = pd.DataFrame({DIRECT_NAME:direct, INDIRECT_NAME:indirect}, index=idx)
 
-    df["factors"] = [m2f.get(m, "") for m in df.index]
-    f = df["factors"].str.len() > 30
-    df["factors"] = '<div title="' + df["factors"] + '">' + df["factors"].str.slice(0,30)
-    df.loc[f, "factors"] += '(...)'
-    df['factors'] += '</div>'
+    factor_cols = [DIRECT_NAME, INDIRECT_NAME]
+    if True:
+        for factor_col in factor_cols:
+            f = m2f[factor_col].str.len() > 30
+            m2f[factor_col] = '<div title="' + m2f[factor_col] + '">' + m2f[factor_col].str.slice(0,30)
+            m2f.loc[f, factor_col] += '(...)'
+            m2f[factor_col] += '</div>'
+        df = df.join(m2f)
 
     df["logo"] = ['<img src="logos/{}.png" height=40/>'.format(re.sub('[()/]', '_', x)) for x in list(df.index)]
 
@@ -260,7 +268,7 @@ def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
     js = open(os.path.join(template_dir, "sortable/sortable.min.js"), encoding="utf-8").read()
     css = open(os.path.join(template_dir, "sortable/sortable-theme-slick.css"), encoding="utf-8").read()
     cm = sns.diverging_palette(240, 10, as_cmap=True)
-    df = df[["factors", "logo"] + list(cols)]
+    df = df[factor_cols + ["logo"] + list(cols)]
     
     df_styled = df.style
     absmax = np.max((abs(df[cols].max().max()), abs(df[cols].min().min())))

@@ -62,7 +62,7 @@ def calc_stats(motifs, fg_file, bg_file, genome=None, stats=None, ncpus=None):
     result = {}
     for i in range(0, len(all_motifs), chunksize):
         logger.debug("chunk %s of %s",
-            (i / chunksize) + 1, len(all_motifs) / chunksize + 1)
+            (i / chunksize) + 1, len(all_motifs) // chunksize + 1)
         motifs = all_motifs[i:i + chunksize]
        
         fg_total = scan_to_best_match(fg_file, motifs, ncpus=ncpus, genome=genome)

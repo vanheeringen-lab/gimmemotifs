@@ -5,6 +5,7 @@
 # distribution.
 import glob
 import os
+import re
 import subprocess as sp
 import shutil
 import sys
@@ -30,7 +31,7 @@ from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.report import maelstrom_html_report
-from gimmemotifs.utils import join_max
+from gimmemotifs.utils import join_max, pwmfile_location
 
 from multiprocessing import Pool
 
@@ -232,22 +233,11 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
 
     shutil.copyfile(infile, os.path.join(outdir, "input.table.txt"))
     
-    config = MotifConfig()
-    motif_dir = config.get_motif_dir()
-    # Default pwmfile
-    if pwmfile is None:
-        pwmfile = config.get_default_params().get("motif_db", None)
-    
-    if pwmfile is not None and not os.path.exists(pwmfile):
-        checkfile = os.path.join(motif_dir, pwmfile)
-        if not os.path.exists(checkfile):
-            checkfile += ".pwm"
-        if os.path.exists(checkfile):
-            pwmfile = checkfile
-
+    # Copy the motif informatuon
+    pwmfile = pwmfile_location(pwmfile) 
     if pwmfile:
         shutil.copy2(pwmfile, outdir)
-        mapfile = pwmfile.replace(".pwm", ".motif2factors.txt")
+        mapfile = re.sub(".p[fw]m$", ".motif2factors.txt", pwmfile)
         if os.path.exists(mapfile):
             shutil.copy2(mapfile, outdir)
     

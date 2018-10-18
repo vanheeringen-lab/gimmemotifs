@@ -14,6 +14,7 @@ import sys
 import hashlib
 import mmap
 import random
+import six
 import tempfile
 from math import log
 import requests
@@ -30,9 +31,34 @@ from genomepy import Genome
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import plot_histogram
 from gimmemotifs.rocmetrics import ks_pvalue
+from gimmemotifs.config import MotifConfig
 
 lgam = special.gammaln
 
+def pwmfile_location(infile):
+    config = MotifConfig()
+
+    if infile is None:
+        infile = config.get_default_params().get("motif_db", None)
+        if infile is None:
+            raise ValueError("No motif file was given and no default "
+                    "database specified in the config file.")
+
+    if isinstance(infile, six.string_types):
+        if not os.path.exists(infile):
+            motif_dir = config.get_motif_dir()
+            checkfile = os.path.join(motif_dir, infile)
+            if os.path.exists(checkfile):
+                infile = checkfile
+            else:
+                for ext in ['.pfm', '.pwm']:
+                    if os.path.exists(checkfile + ext):
+                        infile = checkfile + ext
+                    break
+            if not os.path.exists(infile):
+                raise ValueError("Motif file {} not found".format(infile))
+
+    return infile
 
 def get_jaspar_motif_info(motif_id):
     query_url = "http://jaspar.genereg.net/api/v1/matrix/{}?format=json"

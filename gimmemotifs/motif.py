@@ -16,8 +16,9 @@ from warnings import warn
 import six
 
 from gimmemotifs import mytmpdir
-from gimmemotifs.config import MotifConfig
+from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 from gimmemotifs.c_metrics import pfmscan
+from gimmemotifs.utils import pwmfile_location
 
 # External imports
 try:
@@ -67,7 +68,7 @@ class Motif(object):
             self.pwm = []
             self.pfm = []
         
-        self.factors = []
+        self.factors = {DIRECT_NAME:[], INDIRECT_NAME:[]}
         self.seqs = []
         self.consensus = ""
         self.min_score = None
@@ -907,16 +908,25 @@ def _read_motifs_from_filehandle(handle, fmt):
         base = os.path.splitext(handle.name)[0]
         map_file = base + ".motif2factors.txt"
         if os.path.exists(map_file):
-            m2f = {}
+            m2f_direct = {}
+            m2f_indirect = {}
             for line in open(map_file):
                 try:
-                    motif,factors = line.strip().split("\t")
-                    m2f[motif] = factors.split(",")
+                    motif,*factor_info = line.strip().split("\t")
+                    if len(factor_info) == 1:
+                        m2f_direct[motif] = factor_info[0].split(",")
+                    elif len(factor_info) == 3:
+                        if factor_info[2] == "Y":
+                            m2f_direct[motif] = m2f_direct.get(motif, []) + [factor_info[0]]
+                        else:
+                            m2f_indirect[motif] = m2f_indirect.get(motif, []) + [factor_info[0]]
                 except:
                     pass
             for motif in motifs:
-                if motif.id in m2f:
-                    motif.factors = m2f[motif.id]
+                if motif.id in m2f_direct:
+                    motif.factors[DIRECT_NAME] = m2f_direct[motif.id]
+                if motif.id in m2f_indirect:
+                    motif.factors[INDIRECT_NAME] = m2f_indirect[motif.id]
     return motifs
 
 
@@ -943,25 +953,8 @@ def read_motifs(infile=None, fmt="pwm", as_dict=False):
         List of Motif instances. If as_dict is set to True, motifs is a 
         dictionary.
     """
-    config = MotifConfig()
-    
-    if infile is None: 
-        infile = config.get_default_params().get("motif_db", None)
-        if infile is None:
-            raise ValueError("No motif file was given and no default "
-                    "database specified in the config file.")
-    
-    if isinstance(infile, six.string_types):
-        if not os.path.exists(infile):
-            motif_dir = config.get_motif_dir()
-            checkfile = os.path.join(motif_dir, infile)
-            if os.path.exists(checkfile):
-                infile = checkfile
-            elif os.path.exists(checkfile + ".pwm"):
-                infile = checkfile + ".pwm"
-            else:
-                raise ValueError("Motif file {} not found".format(infile))
-        
+    if infile is None or isinstance(infile, six.string_types): 
+        infile = pwmfile_location(infile)
         with open(infile) as f:
             motifs = _read_motifs_from_filehandle(f, fmt)
     else:
