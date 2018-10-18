@@ -16,6 +16,7 @@ import mmap
 import random
 import tempfile
 from math import log
+import requests
 from subprocess import Popen
 from tempfile import NamedTemporaryFile
 
@@ -31,6 +32,17 @@ from gimmemotifs.plot import plot_histogram
 from gimmemotifs.rocmetrics import ks_pvalue
 
 lgam = special.gammaln
+
+
+def get_jaspar_motif_info(motif_id):
+    query_url = "http://jaspar.genereg.net/api/v1/matrix/{}?format=json"
+    result = requests.get(query_url.format(motif_id))
+ 
+    if not result.ok:
+      r.raise_for_status()
+      sys.exit()
+ 
+    return result.json()
 
 def phyper_single(k, good, bad, N):
 
