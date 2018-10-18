@@ -22,6 +22,8 @@ FA_VALID_BGS = ["random", "promoter", "gc", "user", "genomic"]
 BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "user"]
 BG_RANK = {"user":1, "promoter":2, "gc":3, "random":4, "genomic":5}
 FASTA_EXT = [".fasta", ".fa", ".fsa"]
+DIRECT_NAME = "direct"
+INDIRECT_NAME = "indirect"
 
 CACHE_DIR = os.path.join(xdg.XDG_CACHE_HOME, "gimmemotifs")
 CONFIG_DIR = os.path.join(xdg.XDG_CONFIG_HOME, "gimmemotifs")
