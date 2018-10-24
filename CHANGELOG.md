@@ -25,6 +25,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Fixed 
 
+- Improved the speed of `gimme roc`.
+- Fixed memory leak of `gimme roc`.
 - Fixed `scale` for newer `pandas`/`sklearn` combo
 - FIxed bug related to backgroundgradient with new pandas
 
