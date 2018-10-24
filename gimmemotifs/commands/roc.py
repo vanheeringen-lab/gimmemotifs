@@ -8,7 +8,7 @@
 from __future__ import print_function
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.plot import roc_plot
-from gimmemotifs.stats import calc_stats
+from gimmemotifs.stats import calc_stats_iterator
 from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 import numpy as np
 import pandas as pd
@@ -65,7 +65,7 @@ def html_report(outdir, infile, pwmfile, threshold=0.01):
     
     bar_cols = [
             "log10 P-value", "ROC AUC", "PR AUC", "MNCP",
-            "Enr. at 1% FPR", "Max enr.", "Recall at 10% FDR"
+            "Enr. at 1% FPR", "Recall at 10% FDR"
             ]
     template_dir = MotifConfig().get_template_dir()
     js = open(os.path.join(template_dir, "sortable/sortable.min.js"), encoding="utf-8").read()
@@ -103,15 +103,11 @@ def roc(args):
             "roc_auc", 
             "pr_auc", 
             "enr_at_fpr",
-            "max_enrichment", 
             "recall_at_fdr", 
             "roc_values",
             "matches_at_fpr",
             ]
     
-    motif_stats = calc_stats(motifs, args.sample, args.background, 
-            genome=args.genome, stats=stats, ncpus=args.ncpus)
-
     plot_x = []
     plot_y = []
     legend = []
@@ -124,26 +120,32 @@ def roc(args):
     
     # Print the metrics
     f_out.write("Motif\t# matches\t# matches background\tP-value\tlog10 P-value\tROC AUC\tPR AUC\tEnr. at 1% FPR\tRecall at 10% FDR\n")
-    for motif in motifs:
-        if outputfile:
-            x, y = motif_stats[str(motif)]["roc_values"]
-            plot_x.append(x)
-            plot_y.append(y)
-            legend.append(motif.id)
-        log_pvalue = np.inf
-        if motif_stats[str(motif)]["phyper_at_fpr"] > 0:
-            log_pvalue = -np.log10(motif_stats[str(motif)]["phyper_at_fpr"])
-        f_out.write("{}\t{:d}\t{:d}\t{:.2e}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.4f}\n".format(
-              motif.id, 
-              motif_stats[str(motif)]["matches_at_fpr"][0], 
-              motif_stats[str(motif)]["matches_at_fpr"][1], 
-              motif_stats[str(motif)]["phyper_at_fpr"], 
-              log_pvalue, 
-              motif_stats[str(motif)]["roc_auc"], 
-              motif_stats[str(motif)]["pr_auc"], 
-              motif_stats[str(motif)]["enr_at_fpr"], 
-              motif_stats[str(motif)]["recall_at_fdr"],
-              ))
+    
+    
+    for motif_stats in calc_stats_iterator(motifs, args.sample, args.background, 
+            genome=args.genome, stats=stats, ncpus=args.ncpus):
+    
+        for motif in motifs:
+            if str(motif) in motif_stats:
+                if outputfile:
+                    x, y = motif_stats[str(motif)]["roc_values"]
+                    plot_x.append(x)
+                    plot_y.append(y)
+                    legend.append(motif.id)
+                log_pvalue = np.inf
+                if motif_stats[str(motif)]["phyper_at_fpr"] > 0:
+                    log_pvalue = -np.log10(motif_stats[str(motif)]["phyper_at_fpr"])
+                f_out.write("{}\t{:d}\t{:d}\t{:.2e}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.4f}\n".format(
+                      motif.id, 
+                      motif_stats[str(motif)]["matches_at_fpr"][0], 
+                      motif_stats[str(motif)]["matches_at_fpr"][1], 
+                      motif_stats[str(motif)]["phyper_at_fpr"], 
+                      log_pvalue, 
+                      motif_stats[str(motif)]["roc_auc"], 
+                      motif_stats[str(motif)]["pr_auc"], 
+                      motif_stats[str(motif)]["enr_at_fpr"], 
+                      motif_stats[str(motif)]["recall_at_fdr"],
+                      ))
     f_out.close() 
     
     if args.outdir:

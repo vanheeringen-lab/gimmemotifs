@@ -90,6 +90,9 @@ def scan_to_best_match(fname, motifs, ncpus=None, genome=None, score=False):
         for motif,score in zip(motifs, scores):
             result[motif.id].append(score)
 
+    # Close the pool and reclaim memory
+    del s
+    
     return result
 
 def parse_threshold_values(motif_file, cutoff):
@@ -272,7 +275,12 @@ class Scanner(object):
         self.use_cache = False
         if self.config.get_default_params().get("use_cache", False):
             self._init_cache()
-            
+    
+    def __del__(self):
+        # Close the pool because of memory leak
+        if hasattr(self, 'pool'):
+            self.pool.close()
+
     def _init_cache(self):
         try:
             self.cache = make_region().configure(
@@ -474,8 +482,7 @@ class Scanner(object):
         """
         self.set_threshold(threshold=0.0)
         for matches in self.scan(seqs, 1, scan_rc):
-            top = [sorted(m, key=lambda x: x[0])[0] for m in matches]
-            yield top
+            yield [m[0] for m in matches]
    
     def scan(self, seqs, nreport=100, scan_rc=True):
         """
