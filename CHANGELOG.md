@@ -26,6 +26,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Fixed 
 
+- Fixed the seqcor similarity metric to use a non-random sequence and to also take
+  the reverse complement of motif 2 into account.
 - Improved the speed of `gimme roc`.
 - Fixed memory leak of `gimme roc`.
 - Fixed `scale` for newer `pandas`/`sklearn` combo
