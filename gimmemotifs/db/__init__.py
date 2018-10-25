@@ -1,4 +1,5 @@
 """Motif databases."""
+import glob 
 import os
 from urllib.request import urlopen, urlretrieve
 import re
@@ -6,6 +7,7 @@ import time
 import tarfile
 import shutil
 from tempfile import mkdtemp
+import zipfile
 
 import pandas as pd
 
@@ -404,5 +406,65 @@ class ImageMotifDb(MotifDb):
                     anno[motif] = anno.get(motif, []) + [[factor, status, "N"]]
         shutil.rmtree(tmpdir)
         return anno
+
+
+@register_db('cis-bp')
+class ImageMotifDb(MotifDb):
+    """
+    IMAGE
+    """
+    VERSION = "1.02"
+    BASE = "http://cisbp.ccbr.utoronto.ca/data/{}/DataFiles/Bulk_downloads/EntireDataset/".format(VERSION)
+    ANNO_URL = BASE + "/TF_Information_all_motifs.txt.zip"
+    URL = BASE + "/PWMs.zip"
+    NAME = "CIS-BP.pfm"
+
+    def download(self, outdir=DEFAULT_OUT):
+        tmpdir = mkdtemp()
+        file_tmp = urlretrieve(self.URL, filename=None)[0]
+        
+        with zipfile.ZipFile(file_tmp,"r") as zip_ref:
+            zip_ref.extractall(tmpdir)
+        
+        motifs = []
+        for fname in glob.glob(os.path.join(tmpdir, "pwms/*")):
+            m_id = os.path.splitext(os.path.basename(fname))[0]
+            for m in read_motifs(fname, fmt="transfac"):
+                if len(m) > 0:
+                    m.id = m_id
+                    motifs.append(m)
+        outfile = os.path.join(outdir, self.NAME)
+        with open(outfile, "w") as f:
+            print("# CIS-BP motif database (v{})".format(self.VERSION), file=f)
+            print("# Retrieved from: {}".format(self.URL), file=f)
+            print("# Date: {}".format(self.date), file=f)
+            for motif in motifs:
+                print(motif.to_pwm(), file=f)
+        
+        shutil.rmtree(tmpdir)
+
+        motifs = read_motifs(outfile)
+        anno = self.annotate_factors(motifs)
+        self.create_annotation(os.path.join(outdir, self.NAME), anno)  
+ 
+    def annotate_factors(self, motifs):
+        anno = {}
+        df = pd.read_table(self.ANNO_URL)
+        df = df.loc[
+                df["TF_Species"].isin(["Homo_sapiens", "Mus_musculus"]) & (df["TF_Status"] != "N"), 
+                ["Motif_ID", "TF_Name", "MSource_Type", "TF_Status"]
+            ]
+        df["TF_Status"] = df["TF_Status"].str.replace("D", "Y").str.replace("I", "N")
+        df["MSource_Type"] = df["MSource_Type"].str.replace("HocoMoco", "ChIP-seq")
+        df = df.drop_duplicates()
+        df = df.set_index("Motif_ID")
+        df.columns = ["Factor", "Evidence", "Curated"]
+        df = df.loc[df.index.intersection([m.id for m in motifs])].dropna()
+        
+        for m_id,row in df.iterrows():       
+            anno[m_id] = anno.get(m_id, []) + [row]
+        
+        return anno
+
 
 
