@@ -7,7 +7,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Added
 
-- Multiple other motif databases (JASPAR, HOMER, HOCOMOCO).
+- Multiple other motif databases (JASPAR, HOMER, HOCOMOCO, CIS-BP, ENCODE,
+  Factorbook, SwissRegulon, IMAGE).
 - Helper script to combine peaks (summit files from MACS2)
 - Helper script to create coverage table (similar to bedtools multicov)
 
