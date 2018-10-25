@@ -11,7 +11,7 @@ class TestMotifDatabases(unittest.TestCase):
         """Test motif db list"""
 
         l = sorted(MotifDb.list_databases())
-        expected = ['encode', 'factorbook', 'hocomoco', 'homer', 'image', 'jaspar', 'swissregulon']
+        expected = ['cis-bp', 'encode', 'factorbook', 'hocomoco', 'homer', 'image', 'jaspar', 'swissregulon']
         self.assertEqual(l, expected)
         
         
