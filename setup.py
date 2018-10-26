@@ -130,7 +130,7 @@ setup (
             "jinja2",
             "pyyaml >= 3.10",
             "pybedtools",
-            "statsmodels",
+            #"statsmodels",
             #"scikit-learn",
             #"sklearn-contrib-lightning",
             "seaborn",
@@ -143,7 +143,7 @@ setup (
             "six",
             "future",
             "genomepy",
-            "tqdm",
+            #"tqdm",
             #"pillow",
             ],
 )
