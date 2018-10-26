@@ -409,9 +409,9 @@ class ImageMotifDb(MotifDb):
 
 
 @register_db('cis-bp')
-class ImageMotifDb(MotifDb):
+class CisbpMotifDb(MotifDb):
     """
-    IMAGE
+    CIS-BP 1.02
     """
     VERSION = "1.02"
     BASE = "http://cisbp.ccbr.utoronto.ca/data/{}/DataFiles/Bulk_downloads/EntireDataset/".format(VERSION)
@@ -465,6 +465,41 @@ class ImageMotifDb(MotifDb):
             anno[m_id] = anno.get(m_id, []) + [row]
         
         return anno
+
+@register_db('rsat')
+class RsatMotifDb(MotifDb):
+    """
+    RSAT clustered motifs 
+    """
+    URL= "http://pedagogix-tagc.univ-mrs.fr/rsat/data/published_data/Castro_2016_matrix-clustering/Application_4/{}/cor0.8_Ncor0.65/All_{}_motifs_cluster_root_motifs.tf"
+    NAME = "RSAT_{}.pfm"
+
+    def download(self, outdir=DEFAULT_OUT):
+        for tax in ["insects", "plants", "vertebrates"]:
+            tax_ = tax
+            if not tax.endswith("es"):
+                tax_ = tax[:-1]
+            url = self.URL.format(tax.capitalize(), tax_)
+            print(url)
+            name = self.NAME.format(tax)
+            
+            file_tmp = urlretrieve(url, filename=None)[0]
+            motifs = read_motifs(file_tmp, fmt="transfac")
+            outfile = os.path.join(outdir, name)
+            with open(outfile, "w") as f:
+                print("# RSAT non-redundant {} motif database".format(tax), file=f)
+                print("# Retrieved from: {}".format(url), file=f)
+                print("# Date: {}".format(self.date), file=f)
+                for motif in motifs:
+                    print(motif.to_pwm(), file=f)
+            
+            anno = self.annotate_factors(motifs)
+            self.create_annotation(os.path.join(outdir, self.NAME.format(tax)), anno)  
+     
+    def annotate_factors(self, motifs):
+        anno = {}
+        return anno
+
 
 
 
