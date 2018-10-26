@@ -26,3 +26,4 @@ dependencies:
   - genomepy
   - tqdm
   - pillow
+  - sphinx_bootstrap_theme
