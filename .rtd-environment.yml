@@ -27,3 +27,4 @@ dependencies:
   - tqdm
   - pillow
   - sphinx_bootstrap_theme
+  - numpydoc
