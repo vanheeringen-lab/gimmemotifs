@@ -144,6 +144,6 @@ setup (
             "future",
             "genomepy",
             "tqdm",
-            "pillow",
+            #"pillow",
             ],
 )
