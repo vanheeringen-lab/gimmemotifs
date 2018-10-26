@@ -131,7 +131,7 @@ setup (
             "pyyaml >= 3.10",
             "pybedtools",
             "statsmodels",
-            "scikit-learn",
+            #"scikit-learn",
             #"sklearn-contrib-lightning",
             "seaborn",
             "pysam",
