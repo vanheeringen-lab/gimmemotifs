@@ -29,6 +29,7 @@ MOCK_MODULES = [
         'sklearn', 'sklearn.ensemble', 'sklearn.linear_model', 'sklearn.metrics',
         'sklearn.model_selection', 'sklearn.multiclass', 'sklearn.preprocessing', 
         'lightning.classification','lightning.regression',
+        'lightning', 'sklearn-contrib-lightning',
         'sklearn.metrics.pairwise',
         'seaborn', 'pysam', 'xgboost'
         ]
