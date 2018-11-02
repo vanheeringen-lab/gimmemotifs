@@ -63,7 +63,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'GimmeMotifs'
-copyright = u'2017, Simon van Heeringen, licensed under CC BY 4.0'
+copyright = u'2018, Simon van Heeringen, licensed under CC BY 4.0'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
