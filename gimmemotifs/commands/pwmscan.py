@@ -84,7 +84,7 @@ def scan_score_table(s, fa, motifs, scan_rc, normalize=False):
                     "\t".join(["{:4f}".format(x) for x in scores])
                     )
 
-def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods, bed):
+def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods, bed, normalize):
     
     table = False
     if moods:
@@ -114,20 +114,16 @@ def command_scan(inputfile, pwmfile, nreport=1, fpr=0.01, cutoff=None,
     
     # initialize scanner
     s = Scanner(ncpus=ncpus)
-        
     s.set_motifs(pwmfile)
     
-    
-    s.set_meanstd("sacCer3")
-    
+    if genome or bgfile:
+        s.set_background(genome=genome, fname=bgfile, length=fa.median_length())
+
     if not score_table:
         if cutoff:
-            s.set_threshold(fpr=fpr, threshold=cutoff, 
-                genome=None, length=fa.median_length(), filename=bgfile)
+            s.set_threshold(fpr=fpr, threshold=cutoff)
         else:
-            s.set_threshold(fpr=fpr, threshold=cutoff, 
-                genome=genome, length=fa.median_length(), filename=bgfile)
-
+            s.set_threshold(fpr=fpr, threshold=cutoff)
     
     if table:
         it = scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods)

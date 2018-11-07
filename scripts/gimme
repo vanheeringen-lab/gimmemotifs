@@ -399,7 +399,7 @@ if __name__ == "__main__":
                    action="store_true",
                    default=False)
     p.add_argument("-z", "--zscore",
-                   dest="zcore", 
+                   dest="zscore", 
                    help="convert pfm logodds score to z-score", 
                    action="store_true",
                    default=False)
