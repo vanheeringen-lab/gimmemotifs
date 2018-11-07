@@ -64,12 +64,14 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None, ncpus=No
     s = Scanner(ncpus=ncpus)
     s.set_motifs(pwmfile)
     s.set_genome(genome)
+    s.set_background(genome=genome)
+    
     nregions = len(regions)
 
     scores = []
     if scoring == "count":
         logger.info("setting threshold")
-        s.set_threshold(fpr=FPR, genome=genome)
+        s.set_threshold(fpr=FPR)
         logger.info("creating count table")
         for row in s.count(regions):
             scores.append(row)
@@ -77,7 +79,7 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None, ncpus=No
     else:
         s.set_threshold(threshold=0.0)
         logger.info("creating score table")
-        for row in s.best_score(regions):
+        for row in s.best_score(regions, normalize=True):
             scores.append(row)
         logger.info("done")
    
