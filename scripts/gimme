@@ -398,6 +398,11 @@ if __name__ == "__main__":
                    help="output maximum score in tabular format", 
                    action="store_true",
                    default=False)
+    p.add_argument("-z", "--zscore",
+                   dest="zcore", 
+                   help="convert pfm logodds score to z-score", 
+                   action="store_true",
+                   default=False)
     p.add_argument("-N", "--nthreads", 
                    dest="ncpus", 
                    help="Number of threads (default %s)" % (params["ncpus"]),

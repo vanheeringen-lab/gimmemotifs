@@ -259,6 +259,7 @@ class Scanner(object):
         self.config = MotifConfig()
         self.threshold = None
         self.genome = None
+        self.meanstd = {}
 
         if ncpus is None:
             self.ncpus = int(MotifConfig().get_default_params()["ncpus"])
@@ -320,6 +321,17 @@ class Scanner(object):
             chksum = xxhash.xxh64("\n".join(sorted(self.motif_ids))).digest()
             self.checksum[self.motif_file] = chksum
 
+    def _meanstd_from_seqs(self, motifs, seqs):
+        scan_motifs = [(m, m.pwm_min_score()) for m in motifs]
+        
+        table = []
+        for x in self._scan_sequences_with_motif(scan_motifs, seqs, 1, True):
+            table.append([row[0][0] for row in x])
+                
+        for (motif, _), scores in zip(scan_motifs, np.array(table).transpose()):
+            yield motif, np.mean(scores), np.std(scores)#cutoff
+
+
     def _threshold_from_seqs(self, motifs, seqs, fpr):
         scan_motifs = [(m, m.pwm_min_score()) for m in motifs]
         
@@ -336,6 +348,55 @@ class Scanner(object):
             yield motif, opt_score#cutoff
 
 
+    def set_meanstd(self, genome=None, length=200, filename=None):
+
+        if genome and filename:
+            raise ValueError("Need either genome or filename.")
+
+        if not self.motifs:
+            raise ValueError("please run set_motifs() first")
+        
+        if filename:
+            if not os.path.exists(filename):
+                raise IOError(
+                        "File {} does not exist.".format(filename)
+                        )
+            
+            bg_hash = file_checksum(filename)
+            seqs = Fasta(filename).seqs
+        elif genome:
+            bg_hash = "{}\{}".format(genome, int(length))
+        else:
+            raise ValueError("Need genome or filename")
+
+
+        motifs = read_motifs(self.motifs)
+        with Cache(CACHE_DIR) as cache:
+            scan_motifs = []
+            for motif in motifs:
+                k = "{}|{}".format(motif.hash(), bg_hash)
+           
+                results = cache.get(k)
+                if results is None:
+                    scan_motifs.append(motif)
+                else:
+                    self.meanstd[motif.id] = results 
+        
+            if len(scan_motifs) > 0:
+                if genome:
+                    Genome(genome)    
+                    sys.stderr.write("Determining mean and std for length {} based on {}\n".format(int(length), genome))
+                    fa = RandomGenomicFasta(genome, length, 100)
+                    seqs = fa.seqs
+                else: 
+                    sys.stderr.write("Determining mean and std based on {}\n".format(filename))
+                
+                for motif, mean, std in self._meanstd_from_seqs(scan_motifs, seqs):
+                    k = "{}|{}".format(motif.hash(), bg_hash)
+                    cache.set(k, [mean, std])
+                    self.meanstd[motif.id] = results 
+
+    
     def set_threshold(self, fpr=None, threshold=None, genome=None, 
                         length=200, filename=None):
         """Set motif scanning threshold based on background sequences.
@@ -410,16 +471,17 @@ class Scanner(object):
                         thresholds[motif.id] = 0.0
                     else:
                         thresholds[motif.id] = threshold
-                
+                    
+                    self.meanstd[motif.id] = [m_mean, m_std]
             if len(scan_motifs) > 0:
                 if genome:
                     Genome(genome)    
                     sys.stderr.write("Determining threshold for fpr {} and length {} based on {}\n".format(fpr, int(length), genome))
-                    fa = RandomGenomicFasta(genome, length, 10000)
+                    fa = RandomGenomicFasta(genome, length, 100)
                     seqs = fa.seqs
                 else: 
                     sys.stderr.write("Determining threshold for fpr {} based on {}\n".format(fpr, filename))
-                for motif, threshold in self._threshold_from_seqs(scan_motifs, seqs, fpr):
+                for motif in self._threshold_from_seqs(scan_motifs, seqs, fpr):
                     k = "{}|{}|{:.4f}".format(motif.hash(), bg_hash, fpr)
                     cache.set(k, threshold)
                     if np.isclose(threshold, motif.pwm_max_score()):
@@ -464,14 +526,18 @@ class Scanner(object):
         count_table = [counts for counts in self.count(seqs, nreport, scan_rc)]
         return np.sum(np.array(count_table), 0)
     
-    def best_score(self, seqs, scan_rc=True):
+    def best_score(self, seqs, scan_rc=True, normalize=False):
         """
         give the score of the best match of each motif in each sequence
         returns an iterator of lists containing floats
         """
         self.set_threshold(threshold=0.0)
-        for matches in self.scan(seqs, 1, scan_rc):
-            scores = [sorted(m, key=lambda x: x[0])[0][0] for m in matches if len(m) > 0]
+
+        for motif, matches in zip(self.motif_ids, self.scan(seqs, 1, scan_rc)):
+            scores = np.array([sorted(m, key=lambda x: x[0])[0][0] for m in matches if len(m) > 0])
+            if normalize:
+                m_mean, m_std = self.meanstd[motif]
+                scores = (scores - m_mean) / m_std
             yield scores
  
     def best_match(self, seqs, scan_rc=True):
@@ -484,7 +550,7 @@ class Scanner(object):
         for matches in self.scan(seqs, 1, scan_rc):
             yield [m[0] for m in matches]
    
-    def scan(self, seqs, nreport=100, scan_rc=True):
+    def scan(self, seqs, nreport=100, scan_rc=True, normalize=False):
         """
         scan a set of regions / sequences
         """
