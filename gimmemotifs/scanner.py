@@ -375,7 +375,7 @@ class Scanner(object):
                     cache.set(k, [mean, std])
                     self.meanstd[motif.id] = results 
     
-    def set_background(self, fname=None, genome=None, length=200, nseq=100):
+    def set_background(self, fname=None, genome=None, length=200, nseq=10000):
         """Set the background to use for FPR and z-score calculations.
 
         Background can be specified either as a genome name or as the 
