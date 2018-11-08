@@ -396,11 +396,13 @@ class Scanner(object):
         nseq : int, optional
             Number of genomic sequences to retrieve.
         """
+        length = int(length)
+
         if genome and fname:
             raise ValueError("Need either genome or filename for background.")
 
         if fname:
-            if not os.path.exist(fname):
+            if not os.path.exists(fname):
                 raise IOError("Background file {} does not exist!".format(fname))
 
             self.background = Fasta(fname)
@@ -417,8 +419,13 @@ class Scanner(object):
         
         
         logger.info("Using background: genome {} with length {}".format(genome, length))
-        self.background = RandomGenomicFasta(genome, length, nseq)
-        self.background_hash = "{}\{}".format(genome, int(length))
+        with Cache(CACHE_DIR) as cache:
+            self.background_hash = "{}\{}".format(genome, int(length))
+            fa = cache.get(self.background_hash)
+            if not fa:
+                fa = RandomGenomicFasta(genome, length, nseq)
+                cache.set(self.background_hash, fa)
+        self.background = fa
     
     def set_threshold(self, fpr=None, threshold=None):
         """Set motif scanning threshold based on background sequences.
