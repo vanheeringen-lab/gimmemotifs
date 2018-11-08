@@ -6,11 +6,14 @@ Simple examples
 Install a genome
 ----------------
 
-Any genome on UCSC, Ensembl or NCBI can be installed automatically using `genomepy<http://github.com/simonvh/genomepy>`_. The `genomepy` command tools comes installed with gimmemotifs. For instance, to download the hg38 genome from UCSC:
+Any genome on UCSC, Ensembl or NCBI can be installed automatically using genomepy_. The `genomepy` command tool comes installed with gimmemotifs. For instance, to download the hg38 genome from UCSC:
 
 ::
 
     $ genomepy install hg38 UCSC --annotation
+
+
+.. _genomepy: https://github.com/simonvh/genomepy
 
 Predict de novo motifs
 ----------------------
@@ -39,7 +42,7 @@ Compare motifs between data sets
 
 The output scores of `gimme maelstrom` represents the combined result of multiple methods. 
 The individual results from different methods are ranked from high-scoring motif to low-scoring motif
-and then aggregated using the rank aggregation method from `Kolde, 2012<https://www.ncbi.nlm.nih.gov/pubmed/22247279>`_. 
+and then aggregated using rank aggregation. 
 The score that is shown is the -log10(p-value), where the p-value (from the rank aggregation) is corrected for multiple testing. 
 This procedure is then repeated with the ranking reversed. These are shown as negative values.
 

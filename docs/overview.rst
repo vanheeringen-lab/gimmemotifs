@@ -11,7 +11,7 @@ By default GimmeMotifs uses a non-redundant, clustered database of known vertebr
 In addition, many other motif databases come included with GimmeMotifs:
 
 * `CIS-BP` - All motifs from the `CIS-BP database`_ (version 1.02).
-* `ENCODE` - `ENCODE`_ motifs from Kheradpour & Kellis (2013).
+* `ENCODE` - `ENCODE`_ motifs from `Kheradpour & Kellis (2013)`_.
 * `factorbook` - All non-redundant motifs from `Factorbook`_.
 * `HOCOMOCOv11_HUMAN` - All human motifs from HOCOMOCO_ version 11.
 * `HOCOMOCOv11_MOUSE` - All mouse motifs from HOCOMOCO_ version 11.
@@ -38,8 +38,8 @@ or
 
     $ gimme roc TAp73alpha.fa bg.fa -p HOMER -r roc.report
 
-
-.. _`Madsen et al. (2018)`: https://doi.org/10.1101/gr.227231.117
+.. _`Kheradpour & Kellis (2013)`: https://dx.doi.org/10.1093/nar/gkt1249 
+.. _`Madsen et al. (2018)`: https://dx.doi.org/10.1101/gr.227231.117
 .. _`Factorbook`: http://www.factorbook.org/human/chipseq/tf/
 .. _`ENCODE`: http://compbio.mit.edu/encode-motifs/
 .. _`CIS-BP database`: http://cisbp.ccbr.utoronto.ca/
