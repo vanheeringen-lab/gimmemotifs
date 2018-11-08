@@ -406,7 +406,7 @@ class Scanner(object):
                 raise IOError("Background file {} does not exist!".format(fname))
 
             self.background = Fasta(fname)
-            self.background_hash = file_checksum(filename)
+            self.background_hash = file_checksum(fname)
             return
         
         if not genome:
