@@ -373,7 +373,7 @@ class Scanner(object):
                 for motif, mean, std in self._meanstd_from_seqs(scan_motifs, seqs):
                     k = "{}|{}".format(motif.hash(), self.background_hash)
                     cache.set(k, [mean, std])
-                    self.meanstd[motif.id] = results 
+                    self.meanstd[motif.id] = mean, std
     
     def set_background(self, fname=None, genome=None, length=200, nseq=10000):
         """Set the background to use for FPR and z-score calculations.
