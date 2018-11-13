@@ -4,6 +4,7 @@ import glob
 import os
 import sys
 from tempfile import NamedTemporaryFile 
+from io import StringIO
 
 import genomepy
 from gimmemotifs import __version__
@@ -39,6 +40,12 @@ def combine_peaks(peaks, genome, window, scale_value):
     summits : pandas.DataFrame
         DataFrame with summits.
     """
+    try:
+        g = genomepy.Genome(genome)
+        genome = g.props['sizes']['sizes']
+    except: 
+        pass
+    
     # Read MACS2 summit files
     header = ["chrom", "start", "end", "name", "value"]
     dfs = [pd.read_table(f, names=header) for f in peaks]
@@ -123,5 +130,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     df = combine_peaks(args.peaks, args.genome, args.window, args.scale)
-    df.to_csv(sys.stdout, sep="\t", index=False, header=False)
+    output = StringIO()
+    df.to_csv(output, sep="\t", index=False, header=False)
+    output.seek(0)
+    print(output.read())
 
