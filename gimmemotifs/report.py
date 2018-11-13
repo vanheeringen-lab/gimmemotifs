@@ -92,12 +92,14 @@ def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
         for bg in list(stats.values())[0].keys():
             if str(motif) not in stats:
                 logger.error("####")
-                for s in stats.keys():
+                logger.error("{} not found".format(str(motif)))
+                for s in sorted(stats.keys()):
                     logger.error(s)
                 logger.error("####")
-            my_stats[str(motif)][bg] = stats[str(motif)][bg].copy()
-            my_stats[str(motif)][bg]["best_match"] = "_".join(match[0].split("_")[:-1])
-            my_stats[str(motif)][bg]["best_match_pvalue"] = match[1][-1]
+            else:
+                my_stats[str(motif)][bg] = stats[str(motif)][bg].copy()
+                my_stats[str(motif)][bg]["best_match"] = "_".join(match[0].split("_")[:-1])
+                my_stats[str(motif)][bg]["best_match_pvalue"] = match[1][-1]
     
     header = ("# GimmeMotifs version {}\n"
              "# Inputfile: {}\n"

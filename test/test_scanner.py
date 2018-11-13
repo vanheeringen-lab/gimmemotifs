@@ -70,7 +70,8 @@ class TestScanner(unittest.TestCase):
         s.set_motifs("test/data/pwms/motifs.pwm")
         
         fname = "test/data/scan/scan_test_regions.fa"
-        s.set_threshold(fpr=0.02, filename=fname)
+        s.set_background(fname=fname)
+        s.set_threshold(fpr=0.02)
 
     def tearDown(self):
         pass

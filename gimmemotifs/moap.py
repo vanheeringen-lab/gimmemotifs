@@ -896,6 +896,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
         sys.stderr.write(pwmfile + "\n")
         s.set_motifs(pwmfile)
         s.set_genome(genome)
+        s.set_background(genome=genome)
 
         # scan for motifs
         sys.stderr.write("scanning for motifs\n")
@@ -906,7 +907,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
             for row in s.count(list(df.index)):
                 scores.append(row)
         else:
-            for row in s.best_score(list(df.index)):
+            for row in s.best_score(list(df.index), normalize=True):
                 scores.append(row)
 
         motifs = pd.DataFrame(scores, index=df.index, columns=motif_names)

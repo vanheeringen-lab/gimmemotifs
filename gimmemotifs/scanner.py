@@ -259,6 +259,8 @@ class Scanner(object):
         self.config = MotifConfig()
         self.threshold = None
         self.genome = None
+        self.background = None
+        self.meanstd = {}
 
         if ncpus is None:
             self.ncpus = int(MotifConfig().get_default_params()["ncpus"])
@@ -320,6 +322,17 @@ class Scanner(object):
             chksum = xxhash.xxh64("\n".join(sorted(self.motif_ids))).digest()
             self.checksum[self.motif_file] = chksum
 
+    def _meanstd_from_seqs(self, motifs, seqs):
+        scan_motifs = [(m, m.pwm_min_score()) for m in motifs]
+        
+        table = []
+        for x in self._scan_sequences_with_motif(scan_motifs, seqs, 1, True):
+            table.append([row[0][0] for row in x])
+                
+        for (motif, _), scores in zip(scan_motifs, np.array(table).transpose()):
+            yield motif, np.mean(scores), np.std(scores)#cutoff
+
+
     def _threshold_from_seqs(self, motifs, seqs, fpr):
         scan_motifs = [(m, m.pwm_min_score()) for m in motifs]
         
@@ -336,8 +349,85 @@ class Scanner(object):
             yield motif, opt_score#cutoff
 
 
-    def set_threshold(self, fpr=None, threshold=None, genome=None, 
-                        length=200, filename=None):
+    def set_meanstd(self):
+
+        if not self.background:
+            self.set_background()
+
+        seqs = self.background.seqs
+
+        motifs = read_motifs(self.motifs)
+        with Cache(CACHE_DIR) as cache:
+            scan_motifs = []
+            for motif in motifs:
+                k = "{}|{}".format(motif.hash(), self.background_hash)
+           
+                results = cache.get(k)
+                if results is None:
+                    scan_motifs.append(motif)
+                else:
+                    self.meanstd[motif.id] = results 
+        
+            if len(scan_motifs) > 0:
+                logger.info("Determining mean and stddev for motifs.") 
+                for motif, mean, std in self._meanstd_from_seqs(scan_motifs, seqs):
+                    k = "{}|{}".format(motif.hash(), self.background_hash)
+                    cache.set(k, [mean, std])
+                    self.meanstd[motif.id] = mean, std
+    
+    def set_background(self, fname=None, genome=None, length=200, nseq=10000):
+        """Set the background to use for FPR and z-score calculations.
+
+        Background can be specified either as a genome name or as the 
+        name of a FASTA file.
+        
+        Parameters
+        ----------
+        fname : str, optional
+            Name of FASTA file to use as background.
+
+        genome : str, optional
+            Name of genome to use to retrieve random sequences.
+
+        length : int, optional
+            Length of genomic sequences to retrieve. The default
+            is 200.
+
+        nseq : int, optional
+            Number of genomic sequences to retrieve.
+        """
+        length = int(length)
+
+        if genome and fname:
+            raise ValueError("Need either genome or filename for background.")
+
+        if fname:
+            if not os.path.exists(fname):
+                raise IOError("Background file {} does not exist!".format(fname))
+
+            self.background = Fasta(fname)
+            self.background_hash = file_checksum(fname)
+            return
+        
+        if not genome:
+            if self.genome:
+                logger.info("Using default background: genome {} with length {}".format(
+                    genome, length))
+                genome = self.genome
+            else:
+                raise ValueError("Need either genome or filename for background.")
+        
+        
+        logger.info("Using background: genome {} with length {}".format(genome, length))
+        with Cache(CACHE_DIR) as cache:
+            self.background_hash = "{}\{}".format(genome, int(length))
+            fa = cache.get(self.background_hash)
+            if not fa:
+                fa = RandomGenomicFasta(genome, length, nseq)
+                cache.set(self.background_hash, fa)
+        self.background = fa
+    
+    def set_threshold(self, fpr=None, threshold=None):
         """Set motif scanning threshold based on background sequences.
 
         Parameters
@@ -352,20 +442,8 @@ class Scanner(object):
             with thresholds as created by 'gimme threshold'.
 
         """
-        if threshold:
-            if fpr:
-                raise ValueError("Need either fpr or threshold.")
-            if genome:
-                sys.stderr.write(
-                    "Parameter genome ignored when threshold is specified.\n"
-                    "Did you want to use fpr?\n")
-            if filename:
-                sys.stderr.write(
-                    "Parameter filename ignored when threshold is specified.\n"
-                    "Did you want to use fpr?\n")
-
-        if genome and filename:
-            raise ValueError("Need either genome or filename.")
+        if threshold and fpr:
+            raise ValueError("Need either fpr or threshold.")
     
         if fpr:
             fpr = float(fpr)
@@ -382,23 +460,18 @@ class Scanner(object):
             self.threshold = parse_threshold_values(self.motifs, threshold) 
             return
         
-        if filename:
-            if not os.path.exists(filename):
-                raise IOError(
-                        "File {} does not exist.".format(filename)
-                        )
-            
-            bg_hash = file_checksum(filename)
-            seqs = Fasta(filename).seqs
-        elif genome:
-            bg_hash = "{}\{}".format(genome, int(length))
-        else:
-            raise ValueError("Need genome or filename")
+        if not self.background:
+            try:
+                self.set_background()
+            except:
+                raise ValueError("please run set_background() first")
+        
+        seqs = self.background.seqs
 
         with Cache(CACHE_DIR) as cache:
             scan_motifs = []
             for motif in motifs:
-                k = "{}|{}|{:.4f}".format(motif.hash(), bg_hash, fpr)
+                k = "{}|{}|{:.4f}".format(motif.hash(), self.background_hash, fpr)
            
                 threshold = cache.get(k)
                 if threshold is None:
@@ -410,17 +483,11 @@ class Scanner(object):
                         thresholds[motif.id] = 0.0
                     else:
                         thresholds[motif.id] = threshold
-                
+                    
             if len(scan_motifs) > 0:
-                if genome:
-                    Genome(genome)    
-                    sys.stderr.write("Determining threshold for fpr {} and length {} based on {}\n".format(fpr, int(length), genome))
-                    fa = RandomGenomicFasta(genome, length, 10000)
-                    seqs = fa.seqs
-                else: 
-                    sys.stderr.write("Determining threshold for fpr {} based on {}\n".format(fpr, filename))
+                logger.info("Determining FPR-based threshold")
                 for motif, threshold in self._threshold_from_seqs(scan_motifs, seqs, fpr):
-                    k = "{}|{}|{:.4f}".format(motif.hash(), bg_hash, fpr)
+                    k = "{}|{}|{:.4f}".format(motif.hash(), self.background_hash, fpr)
                     cache.set(k, threshold)
                     if np.isclose(threshold, motif.pwm_max_score()):
                         thresholds[motif.id] = None
@@ -428,8 +495,7 @@ class Scanner(object):
                         thresholds[motif.id] = 0.0
                     else:
                         thresholds[motif.id] = threshold
-        self.threshold_str = "{}_{}_{}_{}_{}".format(fpr, threshold, genome,
-                                        length, filename)
+        self.threshold_str = "{}_{}_{}".format(fpr, threshold, self.background_hash)
         self.threshold = thresholds
 
     def set_genome(self, genome):
@@ -464,14 +530,20 @@ class Scanner(object):
         count_table = [counts for counts in self.count(seqs, nreport, scan_rc)]
         return np.sum(np.array(count_table), 0)
     
-    def best_score(self, seqs, scan_rc=True):
+    def best_score(self, seqs, scan_rc=True, normalize=False):
         """
         give the score of the best match of each motif in each sequence
         returns an iterator of lists containing floats
         """
         self.set_threshold(threshold=0.0)
-        for matches in self.scan(seqs, 1, scan_rc):
-            scores = [sorted(m, key=lambda x: x[0])[0][0] for m in matches if len(m) > 0]
+        if normalize and len(self.meanstd) == 0:
+            self.set_meanstd()
+
+        for motif, matches in zip(self.motif_ids, self.scan(seqs, 1, scan_rc)):
+            scores = np.array([sorted(m, key=lambda x: x[0])[0][0] for m in matches if len(m) > 0])
+            if normalize:
+                m_mean, m_std = self.meanstd[motif]
+                scores = (scores - m_mean) / m_std
             yield scores
  
     def best_match(self, seqs, scan_rc=True):
@@ -484,7 +556,7 @@ class Scanner(object):
         for matches in self.scan(seqs, 1, scan_rc):
             yield [m[0] for m in matches]
    
-    def scan(self, seqs, nreport=100, scan_rc=True):
+    def scan(self, seqs, nreport=100, scan_rc=True, normalize=False):
         """
         scan a set of regions / sequences
         """
@@ -501,8 +573,23 @@ class Scanner(object):
         it = self._scan_sequences(seqs.seqs, 
                     nreport, scan_rc)
        
+        if normalize:
+            if len(self.meanstd) == 0:
+                self.set_meanstd()
+            mean_std = [self.meanstd.get(m_id) for m_id in self.motif_ids]
+            means = [x[0] for x in  mean_std]
+            stds = [x[1] for x in  mean_std]
+
+
         for result in it:
-            yield result
+            if normalize:
+                zresult = [] 
+                for i,mrow in enumerate(result):
+                    mrow = [((x[0] - means[i]) / stds[i], x[1], x[2]) for x in mrow]
+                    zresult.append(mrow)
+                yield zresult
+            else:
+                yield result
 
 
     def _scan_regions(self, regions, nreport, scan_rc):
