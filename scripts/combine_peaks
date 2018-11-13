@@ -124,7 +124,7 @@ if __name__ == "__main__":
     exit = False
     for fname in args.peaks:
         if not os.path.exists(fname):
-            print("File {} does not exist!".format(fname))
+            print("File {} does not exist!".format(fname), file=sys.stderr)
             exit = True
     if exit:
         sys.exit(1)
