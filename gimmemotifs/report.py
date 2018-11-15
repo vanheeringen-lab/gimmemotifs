@@ -245,8 +245,8 @@ def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
     
     motifs = read_motifs(pwmfile)
     idx = [motif.id for motif in motifs]
-    direct = [",".join(motif.factors[DIRECT_NAME]) for motif in motifs]
-    indirect = [",".join(motif.factors[INDIRECT_NAME]) for motif in motifs]
+    direct = [",".join(sorted(set([x.upper() for x in motif.factors[DIRECT_NAME]]))) for motif in motifs]
+    indirect = [",".join(sorted(set([x.upper() for x in motif.factors[INDIRECT_NAME]]))) for motif in motifs]
     m2f = pd.DataFrame({DIRECT_NAME:direct, INDIRECT_NAME:indirect}, index=idx)
 
     factor_cols = [DIRECT_NAME, INDIRECT_NAME]
