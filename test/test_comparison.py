@@ -20,7 +20,7 @@ class TestComparison(unittest.TestCase):
         self.assertIn('TATA-box', ret)
         
         match = ret['TATA-box']
-        self.assertEqual('TBP_Average_1', match[0])
+        self.assertEqual('GM.5.0.TBP.0001', match[0])
         
         scores = match[1]
         self.assertAlmostEqual(-0.3276, scores[0], 4)
