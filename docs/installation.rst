@@ -1,10 +1,12 @@
 Installation
 ============
 
-GimmeMotifs runs on Linux. Definitely not on Windows, sorry. 
+GimmeMotifs runs on Linux. On Windows 10 it will run fine using the `Windows Subsystem for Linux`_.
 Mac OSX should work and is included in the build test. 
 However, as I don't use it myself, unexpected issues might pop up. 
 Let me know, so I can try to fix it.
+
+.. _`Windows Subsystem for Linux`: https://docs.microsoft.com/en-us/windows/wsl/install-win10
 
 .. _`Install GimmeMotifs`:
 
@@ -18,10 +20,9 @@ You only have to do this once.
 
 :: 
 
-    $ conda config --add channels r
     $ conda config --add channels defaults
-    $ conda config --add channels conda-forge
     $ conda config --add channels bioconda
+    $ conda config --add channels conda-forge
 
 You can install GimmeMotifs with one command. In the current environment:
 

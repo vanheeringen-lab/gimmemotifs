@@ -5,15 +5,20 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-## Added
+## [0.13.0] - 2018-11-19
+
+### Added
 
 - Multiple other motif databases (JASPAR, HOMER, HOCOMOCO, CIS-BP, ENCODE,
   Factorbook, SwissRegulon, IMAGE).
 - Helper script to combine peaks (summit files from MACS2)
 - Helper script to create coverage table (similar to bedtools multicov)
 - Option to report z-score normalized motif scores.
+- Added precision-recall AUC to stats and `gimme roc`.
+- `gimme motifs` now supports narrowPeak input.
+- Updated documentation with an explanation of the score that `gimme maelstrom` reports.
 
-## Changed
+### Changed
 
 - The `maelstrom` tools now use z-score normalized motif scores.
 - Improved efficiency of motif scanning (>10X speed improvement).
@@ -26,7 +31,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Simplified setup.py script.
 - Updated parameters for ChIPMunk motif finder.
 
-## Fixed 
+### Fixed 
 
 - Fixed the seqcor similarity metric to use a non-random sequence and to also take
   the reverse complement of motif 2 into account.
