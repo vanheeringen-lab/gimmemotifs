@@ -27,7 +27,6 @@ sns.set_style('white')
 from PIL import Image
 
 
-#from ete3 import Tree, faces, AttrFace, TreeStyle, NodeStyle
 
 VALID_EXTENSIONS = [".png", ".pdf", ".svg", ".ps"]
 
@@ -284,13 +283,25 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
     plt.close(fig)
 
 def _tree_layout(node):
+    try:
+        from ete3 import AttrFace, faces
+    except ImportError:
+        print("Please install ete3 to use this functionality")
+        sys.exit(1)
+
     if node.is_leaf():
         nameFace = AttrFace("name", fsize=24, ftype="Nimbus Sans L")
         faces.add_face_to_node(nameFace, node, 10, position="branch-right")
 
 def _get_motif_tree(tree, data, circle=True, vmin=None, vmax=None):
-    print(circle, vmin, vmax)
+    try:
+        from ete3 import Tree, NodeStyle, TreeStyle
+    except ImportError:
+        print("Please install ete3 to use this functionality")
+        sys.exit(1)
+
     t = Tree(tree)
+    
     # Determine cutoff for color scale
     if not(vmin and vmax):
         for i in range(90, 101):
@@ -301,9 +312,9 @@ def _get_motif_tree(tree, data, circle=True, vmin=None, vmax=None):
         vmin = -minmax
     if not vmax:
         vmax = minmax
-    print(vmin, vmax)
+    
     norm = Normalize(vmin=vmin, vmax=vmax, clip=True)
-    mapper = cm.ScalarMappable(norm=norm, cmap="coolwarm")
+    mapper = cm.ScalarMappable(norm=norm, cmap="RdBu_r")
     
     m = 25 / data.values.max()
     
@@ -339,6 +350,12 @@ def motif_tree_plot(outfile, tree, data, circle=True, vmin=None, vmax=None, dpi=
     """
     Plot a "phylogenetic" tree 
     """
+    try:
+        from ete3 import Tree, faces, AttrFace, TreeStyle, NodeStyle
+    except ImportError:
+        print("Please install ete3 to use this functionality")
+        sys.exit(1)
+
     # Define the tree
     t, ts = _get_motif_tree(tree, data, circle, vmin, vmax)
     
