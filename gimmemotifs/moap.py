@@ -694,7 +694,7 @@ class RFMoap(Moap):
 
 @register_predictor('Lasso')
 class LassoMoap(Moap):
-    def __init__(self, scale=True, kfolds=5, alpha_stepsize=1.0, ncpus=None):
+    def __init__(self, scale=True, kfolds=4, alpha_stepsize=1.0, ncpus=None):
         """Predict motif activities using Lasso MultiTask regression
 
         Parameters
@@ -744,7 +744,7 @@ class LassoMoap(Moap):
         self.supported_tables = ["score", "count"]
         self.ptype = "regression"
 
-    def fit(self, df_X, df_y):
+    def fit(self, df_X, df_y, permute=False):
         logger.info("Fitting Lasso")
         if not df_y.shape[0] == df_X.shape[0]:
             raise ValueError("number of regions is not equal")
@@ -758,18 +758,6 @@ class LassoMoap(Moap):
         X = df_X.loc[y.index].values
         y = y.values
        
-        X_train,X_test,y_train,y_test = train_test_split(X,y)
-        sys.stderr.write("set alpha through cross-validation\n")
-        # Determine best parameters based on CV
-        self.clf.fit(X_train, y_train)
-        
-        sys.stdout.write("average score ({} fold CV): {}\n".format(
-                    self.kfolds,
-                    self.clf.score(X_test, y_test)
-                    ))
-
-        sys.stderr.write("Estimate coefficients using bootstrapping\n")
-
         # fit coefficients
         coefs = self._get_coefs(X, y)
         self.act_ = pd.DataFrame(coefs.T)
@@ -778,31 +766,43 @@ class LassoMoap(Moap):
         self.act_.columns = df_y.columns
         self.act_.index = df_X.columns
 
-        # Permutations
-        sys.stderr.write("permutations\n")
-        random_dfs = []
-        for _ in range(10):
-            y_random = y[np.random.permutation(range(y.shape[0]))]
-            coefs = self._get_coefs(X, y_random)
-            random_dfs.append(pd.DataFrame(coefs.T))
-        random_df = pd.concat(random_dfs)
-
-        # Select cutoff based on percentile
-        high_cutoffs = random_df.quantile(0.99)
-        low_cutoffs = random_df.quantile(0.01)
-        
-        # Set significance
-        self.sig_ = pd.DataFrame(index=df_X.columns)
-        self.sig_["sig"] = False
-
-        for col,c_high,c_low in zip(
-                self.act_.columns, high_cutoffs, low_cutoffs):
-            self.sig_["sig"].loc[self.act_[col] >= c_high] = True
-            self.sig_["sig"].loc[self.act_[col] <= c_low] = True
-        
+        if permute:
+            # Permutations
+            logger.info("permutations\n")
+            random_dfs = []
+            for _ in range(10):
+                y_random = y[np.random.permutation(range(y.shape[0]))]
+                coefs = self._get_coefs(X, y_random)
+                random_dfs.append(pd.DataFrame(coefs.T))
+            random_df = pd.concat(random_dfs)
+    
+            # Select cutoff based on percentile
+            high_cutoffs = random_df.quantile(0.99)
+            low_cutoffs = random_df.quantile(0.01)
+            
+            # Set significance
+            self.sig_ = pd.DataFrame(index=df_X.columns)
+            self.sig_["sig"] = False
+    
+            for col,c_high,c_low in zip(
+                    self.act_.columns, high_cutoffs, low_cutoffs):
+                self.sig_["sig"].loc[self.act_[col] >= c_high] = True
+                self.sig_["sig"].loc[self.act_[col] <= c_low] = True
+            
         logger.info("Done")
 
     def _get_coefs(self, X, y):
+        logger.info("set alpha through cross-validation\n")
+        # Determine best parameters based on CV
+        self.clf.fit(X, y)
+        
+        logger.debug("average score ({} fold CV): {}".format(
+                    self.kfolds,
+                    self.clf.best_score_
+                    ))
+
+        logger.info("Estimate coefficients using bootstrapping\n")
+
         n_samples = 0.75 * X.shape[0]
         max_samples = X.shape[0]
         m = self.clf.best_estimator_

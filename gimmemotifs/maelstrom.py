@@ -212,7 +212,7 @@ def df_rank_aggregation(df, dfs, exps):
 
     return df_p
 
-def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True, 
+def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=False, 
         score_table=None, count_table=None, methods=None, ncpus=None):
     logger.info("Starting maelstrom")
     if infile.endswith("feather"):
