@@ -9,12 +9,12 @@ if __name__ == "__main__":
         start_dir = os.path.join(os.path.dirname(__file__), "test")
         return unittest.TestLoader().discover(start_dir, pattern="test_*.py")
 
-    #libdirs = glob('build/lib.*')
-    #if len(libdirs) > 0:
-    #    p = [os.path.abspath(os.path.join(
-    #        os.path.dirname(sys.argv[0]), libdirs[0])
-    #        ), "test"]
-    #    sys.path = p + sys.path
+    libdirs = glob('build/lib.*')
+    if len(libdirs) > 0:
+        p = [os.path.abspath(os.path.join(
+            os.path.dirname(sys.argv[0]), libdirs[0])
+            ), "test"]
+        sys.path = p + sys.path
 
     suite = unittest.TestSuite()
 

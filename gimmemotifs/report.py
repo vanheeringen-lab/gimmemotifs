@@ -9,6 +9,7 @@ import sys
 from datetime import datetime
 from multiprocessing import Pool
 from tempfile import NamedTemporaryFile
+import re
 import shutil
 import logging
 
@@ -16,17 +17,15 @@ import jinja2
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
-from matplotlib import colors
 
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import read_motifs,default_motifs
-from gimmemotifs.config import GM_VERSION,MotifConfig,BG_RANK
+from gimmemotifs.config import MotifConfig,BG_RANK,DIRECT_NAME,INDIRECT_NAME
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.rocmetrics import roc_values
 from gimmemotifs.stats import calc_stats, add_star, write_stats
-from gimmemotifs import mytmpdir
+from gimmemotifs import mytmpdir, __version__
 from gimmemotifs.utils import motif_localization
 
 logger = logging.getLogger("gimme.report")
@@ -56,9 +55,7 @@ def get_roc_values(motif, fg_file, bg_file):
 
 def create_roc_plots(pwmfile, fgfa, background, outdir):
     """Make ROC plots for all motifs."""
-    with open(pwmfile) as f:
-        motifs = dict([(m.id, m) for m in read_motifs(f, fmt="pwm")])
-
+    motifs = read_motifs(pwmfile, fmt="pwm", as_dict=True)
     ncpus = int(MotifConfig().get_default_params()['ncpus'])
     pool = Pool(processes=ncpus)
     jobs = {}
@@ -95,16 +92,18 @@ def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
         for bg in list(stats.values())[0].keys():
             if str(motif) not in stats:
                 logger.error("####")
-                for s in stats.keys():
+                logger.error("{} not found".format(str(motif)))
+                for s in sorted(stats.keys()):
                     logger.error(s)
                 logger.error("####")
-            my_stats[str(motif)][bg] = stats[str(motif)][bg].copy()
-            my_stats[str(motif)][bg]["best_match"] = "_".join(match[0].split("_")[:-1])
-            my_stats[str(motif)][bg]["best_match_pvalue"] = match[1][-1]
+            else:
+                my_stats[str(motif)][bg] = stats[str(motif)][bg].copy()
+                my_stats[str(motif)][bg]["best_match"] = "_".join(match[0].split("_")[:-1])
+                my_stats[str(motif)][bg]["best_match_pvalue"] = match[1][-1]
     
     header = ("# GimmeMotifs version {}\n"
              "# Inputfile: {}\n"
-             ).format(GM_VERSION, inputfile)
+             ).format(__version__, inputfile)
 
     write_stats(my_stats, os.path.join(outdir, "stats.{}.txt"), header=header)
 
@@ -125,16 +124,15 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
     if not os.path.exists(imgdir):
         os.mkdir(imgdir)
     
-    with open(pwm) as f:
-        motifs = read_motifs(f, fmt="pwm")
+    motifs = read_motifs(pwm, fmt="pwm")
     
     roc_img_file = "%s_roc.%s"
 
     dbpwm = config.get_default_params()["motif_db"]
     pwmdir = config.get_motif_dir()
-    with open(os.path.join(pwmdir, dbpwm)) as f:
-        dbmotifs = dict([(m.id, m) for m in read_motifs(f)])
 
+    dbmotifs = read_motifs(os.path.join(pwmdir, dbpwm), as_dict=True)
+    
     report_motifs = []
     for motif in motifs:
         
@@ -189,7 +187,7 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
                     motifs=report_motifs, 
                     inputfile=inputfile, 
                     date=datetime.today().strftime("%d/%m/%Y"), 
-                    version=GM_VERSION,
+                    version=__version__,
                     bg_types=list(background.keys()))
 
     with open(total_report, "wb") as f:
@@ -199,8 +197,7 @@ def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outd
     """Create text and graphical (.html) motif reports."""
     logger.info("creating reports")
 
-    with open(pwmfile) as f:
-        motifs = read_motifs(f, fmt="pwm")
+    motifs = read_motifs(pwmfile, fmt="pwm")
     
     # ROC plots
     create_roc_plots(pwmfile, fgfa, background, outdir)
@@ -235,57 +232,69 @@ def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outd
     _create_text_report(inputfile, motifs, closest_match, stats, outdir)
     _create_graphical_report(inputfile, pwmfile, background, closest_match, outdir, stats)
 
-def background_gradient(s, m, M, cmap='RdBu_r', low=0, high=0):
-    rng = M - m
-    norm = colors.Normalize(m - (rng * low),
-                            M + (rng * high))
-    normed = norm(s.values)
-    c = [colors.rgb2hex(x) for x in plt.cm.get_cmap(cmap)(normed)]
-    return ['background-color: %s' % color for color in c]
-
 def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
     df = pd.read_table(infile, index_col=0)
     df = df[np.any(abs(df) >= threshold, 1)]
     M = max(abs(df.min().min()), df.max().max())
     m = -M
 
-    if pwmfile:
-        with open(pwmfile) as f:
-            motifs = read_motifs(f)
-    else:
-        motifs = default_motifs()
+    motifs = read_motifs(pwmfile)
 
     del df.index.name
     cols = df.columns
-    m2f = dict([(m.id,",".join(m.factors)) for m in motifs])
+    
+    motifs = read_motifs(pwmfile)
+    idx = [motif.id for motif in motifs]
+    direct = [",".join(sorted(set([x.upper() for x in motif.factors[DIRECT_NAME]]))) for motif in motifs]
+    indirect = [",".join(sorted(set([x.upper() for x in motif.factors[INDIRECT_NAME]]))) for motif in motifs]
+    m2f = pd.DataFrame({DIRECT_NAME:direct, INDIRECT_NAME:indirect}, index=idx)
 
-    df["factors"] = [m2f.get(m, "") for m in df.index]
-    f = df["factors"].str.len() > 30
-    df["factors"] = '<div title="' + df["factors"] + '">' + df["factors"].str.slice(0,30)
-    df.loc[f, "factors"] += '(...)'
-    df['factors'] += '</div>'
+    factor_cols = [DIRECT_NAME, INDIRECT_NAME]
+    if True:
+        for factor_col in factor_cols:
+            f = m2f[factor_col].str.len() > 30
+            m2f[factor_col] = '<div title="' + m2f[factor_col] + '">' + m2f[factor_col].str.slice(0,30)
+            m2f.loc[f, factor_col] += '(...)'
+            m2f[factor_col] += '</div>'
+        df = df.join(m2f)
 
-    df["logo"] = ['<img src="logos/{}.png" height=40/>'.format(x) for x in list(df.index)]
+    df["logo"] = ['<img src="logos/{}.png" height=40/>'.format(re.sub('[()/]', '_', x)) for x in list(df.index)]
 
     if not os.path.exists(outdir + "/logos"):
         os.makedirs(outdir + "/logos")
     for motif in motifs:
         if motif.id in df.index:
-            motif.to_img(outdir + "/logos/{}.png".format(motif.id), fmt="PNG")
+            motif.to_img(outdir + "/logos/{}.png".format(re.sub('[()/]', '_',motif.id)), fmt="PNG")
 
     template_dir = MotifConfig().get_template_dir()
     js = open(os.path.join(template_dir, "sortable/sortable.min.js"), encoding="utf-8").read()
     css = open(os.path.join(template_dir, "sortable/sortable-theme-slick.css"), encoding="utf-8").read()
     cm = sns.diverging_palette(240, 10, as_cmap=True)
-    df = df[["factors", "logo"] + list(cols)]
+    df = df[factor_cols + ["logo"] + list(cols)]
+    
+    df_styled = df.style
+    absmax = np.max((abs(df[cols].max().max()), abs(df[cols].min().min())))
+    target = absmax * 1.75
+
+    for col in cols:
+        smin = df[col].min()
+        smax = df[col].max()
+        diff = smax - smin
+        low = abs((-target - smin) / diff)
+        high = (target - smax) / diff
+        df_styled = df_styled.background_gradient(cmap='RdBu_r', low=low, high=high, subset=[col])
+    
+    df_styled = df_styled.set_precision(3)
+    df_styled = df_styled.set_table_attributes("data-sortable")
+    df_styled = df_styled.render()
+    df_styled = df_styled.replace("data-sortable", 'class="sortable-theme-slick" data-sortable')
+
     with open(outdir + "/gimme.maelstrom.report.html", "w", encoding="utf-8") as f:
         f.write("<head>\n")
         f.write("<style>{}</style>\n".format(css))
         f.write("</head>\n")
         f.write("<body>\n")
-
-        f.write(df.style.apply(background_gradient, low=0.7, high=0.7, m=m, M=M, subset=cols).set_precision(3).set_table_attributes("data-sortable").render().replace("data-sortable", 'class="sortable-theme-slick" data-sortable'))
-
+        f.write(df_styled)
         f.write("<script>{}</script>\n".format(js))
         f.write("</body>\n")
 

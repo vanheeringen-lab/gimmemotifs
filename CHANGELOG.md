@@ -5,15 +5,40 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.13.0] - 2018-11-19
+
 ### Added
 
+- Multiple other motif databases (JASPAR, HOMER, HOCOMOCO, CIS-BP, ENCODE,
+  Factorbook, SwissRegulon, IMAGE).
+- Helper script to combine peaks (summit files from MACS2)
+- Helper script to create coverage table (similar to bedtools multicov)
+- Option to report z-score normalized motif scores.
 - Added precision-recall AUC to stats and `gimme roc`.
 - `gimme motifs` now supports narrowPeak input.
 - Updated documentation with an explanation of the score that `gimme maelstrom` reports.
 
 ### Changed
 
+- The `maelstrom` tools now use z-score normalized motif scores.
+- Improved efficiency of motif scanning (>10X speed improvement).
+- Removed dependency on R for rank aggregation.
 - Dropped support for Python 2.
+- Use versioneer for versioning.
+- Removed the default genome in config file.
+- Config file is now independent from GimmeMotifs version and will be created by
+  default on first use.
+- Simplified setup.py script.
+- Updated parameters for ChIPMunk motif finder.
+
+### Fixed 
+
+- Fixed the seqcor similarity metric to use a non-random sequence and to also take
+  the reverse complement of motif 2 into account.
+- Improved the speed of `gimme roc`.
+- Fixed memory leak of `gimme roc`.
+- Fixed `scale` for newer `pandas`/`sklearn` combo
+- FIxed bug related to backgroundgradient with new pandas
 
 ## [0.12.0] - 2018-07-10
 

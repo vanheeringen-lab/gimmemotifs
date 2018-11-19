@@ -5,6 +5,7 @@
 # distribution.
 import glob
 import os
+import re
 import subprocess as sp
 import shutil
 import sys
@@ -30,7 +31,7 @@ from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.report import maelstrom_html_report
-from gimmemotifs.utils import join_max
+from gimmemotifs.utils import join_max, pwmfile_location
 
 from multiprocessing import Pool
 
@@ -63,12 +64,14 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None, ncpus=No
     s = Scanner(ncpus=ncpus)
     s.set_motifs(pwmfile)
     s.set_genome(genome)
+    s.set_background(genome=genome)
+    
     nregions = len(regions)
 
     scores = []
     if scoring == "count":
         logger.info("setting threshold")
-        s.set_threshold(fpr=FPR, genome=genome)
+        s.set_threshold(fpr=FPR)
         logger.info("creating count table")
         for row in s.count(regions):
             scores.append(row)
@@ -76,11 +79,11 @@ def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None, ncpus=No
     else:
         s.set_threshold(threshold=0.0)
         logger.info("creating score table")
-        for row in s.best_score(regions):
+        for row in s.best_score(regions, normalize=True):
             scores.append(row)
         logger.info("done")
    
-    motif_names = [m.id for m in read_motifs(open(pwmfile))]
+    motif_names = [m.id for m in read_motifs(pwmfile)]
     logger.info("creating dataframe")
     return pd.DataFrame(scores, index=idx, columns=motif_names)
 
@@ -118,7 +121,7 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
         m2f = pd.read_csv(mapfile, sep="\t", names=["motif","factors"], index_col=0) 
         m2f["factors"] = m2f["factors"].str[:50]
     else:
-        motifs = [m.id for m in read_motifs(open(pwmfile))]
+        motifs = [m.id for m in read_motifs(pwmfile)]
         m2f = pd.DataFrame({"factors": motifs}, index=motifs)
 
     sig_fname = os.path.join(outdir, "final.out.csv")
@@ -209,7 +212,7 @@ def df_rank_aggregation(df, dfs, exps):
 
     return df_p
 
-def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True, 
+def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=False, 
         score_table=None, count_table=None, methods=None, ncpus=None):
     logger.info("Starting maelstrom")
     if infile.endswith("feather"):
@@ -232,16 +235,11 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
 
     shutil.copyfile(infile, os.path.join(outdir, "input.table.txt"))
     
-    config = MotifConfig()
-    # Default pwmfile
-    if pwmfile is None:
-        pwmfile = config.get_default_params().get("motif_db", None)
-        if pwmfile is not None:
-            pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
-
+    # Copy the motif informatuon
+    pwmfile = pwmfile_location(pwmfile) 
     if pwmfile:
         shutil.copy2(pwmfile, outdir)
-        mapfile = pwmfile.replace(".pwm", ".motif2factors.txt")
+        mapfile = re.sub(".p[fw]m$", ".motif2factors.txt", pwmfile)
         if os.path.exists(mapfile):
             shutil.copy2(mapfile, outdir)
     
@@ -291,7 +289,8 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=True,
         if cluster:
             clusterfile = os.path.join(outdir,
                     os.path.basename(infile) + ".cluster.txt")
-            df = df.apply(scale, 0)
+            
+            df[:] = scale(df, axis=0)
             names = df.columns
             df_changed = pd.DataFrame(index=df.index)
             df_changed["cluster"] = np.nan
@@ -523,7 +522,8 @@ class MaelstromResult():
                     if motif in m.factors:
                         plot_motifs.append(m.id)
         
-        data = self.scores[plot_motifs].apply(scale, axis=0)
+        data = self.scores[plot_motifs]
+        data[:] = data.scale(data, axix=0)
         if name:
             data = data.T
             data["factors"] = [join_max(self.motifs[n].factors, max_len, ",", suffix=",(...)") for n in plot_motifs]

@@ -21,10 +21,9 @@ The most straightforward way to install GimmeMotifs is via [conda](https://docs.
 If you have not used bioconda before, first set up the necessary channels (in this order!). You only have to do this once.
 
 ```
-$ conda config --add channels r
 $ conda config --add channels defaults
-$ conda config --add channels conda-forge
 $ conda config --add channels bioconda
+$ conda config --add channels conda-forge
 ```
 
 You can now install GimmeMotifs with one command:

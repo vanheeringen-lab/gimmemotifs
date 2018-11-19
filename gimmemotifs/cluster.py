@@ -12,9 +12,10 @@ import jinja2
 from datetime import datetime
 
 # GimmeMotifs imports
-from gimmemotifs.config import MotifConfig, GM_VERSION
+from gimmemotifs.config import MotifConfig
 from gimmemotifs.motif import read_motifs,Motif
 from gimmemotifs.comparison import MotifComparer
+from gimmemotifs import __version__
 
 logger = logging.getLogger("gimme.cluster")
 
@@ -115,8 +116,7 @@ def cluster_motifs(motifs, match="total", metric="wic", combine="mean", pval=Tru
     
     # First read pfm or pfm formatted motiffile
     if type([]) != type(motifs):
-        with open(motifs) as f:
-            motifs = read_motifs(f, fmt="pwm")
+        motifs = read_motifs(motifs, fmt="pwm")
     
     mc = MotifComparer()
 
@@ -230,8 +230,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
     if title is None:
         title = infile
 
-    with open(infile) as f:
-        motifs = read_motifs(f, fmt="pwm")
+    motifs = read_motifs(infile, fmt="pwm")
 
     trim_ic = 0.2
     clusters = []
@@ -293,7 +292,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
                 motifs=ids,
                 inputfile=title,
                 date=datetime.today().strftime("%d/%m/%Y"),
-                version=GM_VERSION)
+                version=__version__)
 
     cluster_report = os.path.join(outdir, "cluster_report.html")
     with open(cluster_report, "wb") as f:

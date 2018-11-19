@@ -1,6 +1,7 @@
 import unittest
 import tempfile
 import os
+import glob
 from gimmemotifs.utils import *
 from gimmemotifs.fasta import Fasta
 from genomepy import Genome
@@ -69,7 +70,12 @@ class TestUtils(unittest.TestCase):
 
         for s_in, s_out in zip(size_in, size_out):
             self.assertEqual(len(join_max(a, s_in, ",")), s_out)
-    
+   
+    def test_detect_filetype(self):
+        for fname in glob.glob("test/data/filetype/*"):
+            ftype = os.path.basename(fname).split(".")[0]
+            self.assertEqual(ftype, determine_file_type(fname))
+
     def tearDown(self):
         pass
 

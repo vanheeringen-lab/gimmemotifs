@@ -16,8 +16,9 @@ from warnings import warn
 import six
 
 from gimmemotifs import mytmpdir
-from gimmemotifs.config import MotifConfig
-from gimmemotifs.c_metrics import pwmscan
+from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
+from gimmemotifs.c_metrics import pfmscan
+from gimmemotifs.utils import pwmfile_location
 
 # External imports
 try:
@@ -48,6 +49,8 @@ class Motif(object):
     
     PSEUDO_PFM_COUNT = 1000 # Jaspar mean
     PSEUDO_PWM = 1e-6
+    G = 0.25
+    Z = 0.01
 
     def __init__(self, pfm=None):
         if pfm is None:
@@ -60,11 +63,12 @@ class Motif(object):
             else:
                 self.pwm = [list(x) for x in pfm]
                 self.pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in pfm]
+            self.logodds = [[np.log(n / self.G + self.Z) for n in col] for col in self.pwm]
         else:
             self.pwm = []
             self.pfm = []
         
-        self.factors = []
+        self.factors = {DIRECT_NAME:[], INDIRECT_NAME:[]}
         self.seqs = []
         self.consensus = ""
         self.min_score = None
@@ -308,7 +312,7 @@ class Motif(object):
         matches = {}
         for name, seq in fa.items():
             matches[name] = [] 
-            result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
+            result = pfmscan(seq.upper(), pwm, c, nreport, scan_rc)
             for _,pos,_ in result:
                 matches[name].append(pos)
         return matches
@@ -319,7 +323,7 @@ class Motif(object):
         matches = {}
         for name, seq in fa.items():
             matches[name] = [] 
-            result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
+            result = pfmscan(seq.upper(), pwm, c, nreport, scan_rc)
             for score,pos,strand in result:
                 matches[name].append((pos,score,strand))
         return matches
@@ -330,7 +334,7 @@ class Motif(object):
         matches = {}
         for name, seq in fa.items():
             matches[name] = [] 
-            result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
+            result = pfmscan(seq.upper(), pwm, c, nreport, scan_rc)
             for score,_,_ in result:
                 matches[name].append(score)
         return matches
@@ -345,10 +349,10 @@ class Motif(object):
         pwm = self.pwm
 
         strandmap = {-1:"-","-1":"-","-":"-","1":"+",1:"+","+":"+"}
-        gff_line = ("{}\tpwmscan\tmisc_feature\t{}\t{}\t{:.3f}\t{}\t.\t"
+        gff_line = ("{}\tpfmscan\tmisc_feature\t{}\t{}\t{:.3f}\t{}\t.\t"
                     "motif_name \"{}\" ; motif_instance \"{}\"\n")
         for name, seq in fa.items():
-            result = pwmscan(seq.upper(), pwm, c, nreport, scan_rc)
+            result = pfmscan(seq.upper(), pwm, c, nreport, scan_rc)
             for score, pos, strand in result:
                 out.write(gff_line.format( 
                     name, 
@@ -873,11 +877,22 @@ def parse_motifs(motifs):
     
     return list(motifs)
 
-def read_motifs(handle, fmt="pwm"):
+def _read_motifs_from_filehandle(handle, fmt):
     """ 
-    Read motifs from a stream or file-like object.
-    """
+    Read motifs from a file-like object.
 
+    Parameters
+    ----------
+    handle : file-like object
+        Motifs.
+    fmt : string, optional
+        Motif format, can be 'pwm', 'transfac', 'xxmotif', 'jaspar' or 'align'.
+    
+    Returns
+    -------
+    motifs : list
+        List of Motif instances. 
+    """
     if fmt.lower() == "pwm":
         motifs = _read_motifs_pwm(handle)
     if fmt.lower() == "transfac":
@@ -893,18 +908,63 @@ def read_motifs(handle, fmt="pwm"):
         base = os.path.splitext(handle.name)[0]
         map_file = base + ".motif2factors.txt"
         if os.path.exists(map_file):
-            m2f = {}
+            m2f_direct = {}
+            m2f_indirect = {}
             for line in open(map_file):
                 try:
-                    motif,factors = line.strip().split("\t")
-                    m2f[motif] = factors.split(",")
+                    motif,*factor_info = line.strip().split("\t")
+                    if len(factor_info) == 1:
+                        m2f_direct[motif] = factor_info[0].split(",")
+                    elif len(factor_info) == 3:
+                        if factor_info[2] == "Y":
+                            m2f_direct[motif] = m2f_direct.get(motif, []) + [factor_info[0]]
+                        else:
+                            m2f_indirect[motif] = m2f_indirect.get(motif, []) + [factor_info[0]]
                 except:
                     pass
             for motif in motifs:
-                if motif.id in m2f:
-                    motif.factors = m2f[motif.id]
+                if motif.id in m2f_direct:
+                    motif.factors[DIRECT_NAME] = m2f_direct[motif.id]
+                if motif.id in m2f_indirect:
+                    motif.factors[INDIRECT_NAME] = m2f_indirect[motif.id]
     return motifs
 
+
+def read_motifs(infile=None, fmt="pwm", as_dict=False):
+    """ 
+    Read motifs from a file or stream or file-like object.
+
+    Parameters
+    ----------
+    infile : string or file-like object, optional
+        Motif database, filename of motif file or file-like object. If infile 
+        is not specified the default motifs as specified in the config file 
+        will be returned.
+
+    fmt : string, optional
+        Motif format, can be 'pwm', 'transfac', 'xxmotif', 'jaspar' or 'align'.
+    
+    as_dict : boolean, optional
+        Return motifs as a dictionary with motif_id, motif pairs.
+    
+    Returns
+    -------
+    motifs : list
+        List of Motif instances. If as_dict is set to True, motifs is a 
+        dictionary.
+    """
+    if infile is None or isinstance(infile, six.string_types): 
+        infile = pwmfile_location(infile)
+        with open(infile) as f:
+            motifs = _read_motifs_from_filehandle(f, fmt)
+    else:
+        motifs = _read_motifs_from_filehandle(infile, fmt)
+
+    if as_dict:
+        motifs = {m.id:m for m in motifs}
+
+    return motifs
+        
 def _read_motifs_pwm(handle):
     p = re.compile(r'(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)')
     motifs = []
@@ -956,13 +1016,17 @@ def _read_motifs_jaspar(handle):
             motif_id = line[1:]
         if line[0] in "ACGT":
             m = p.search(line)
-            nuc = m.group(1)
-            counts = re.split(r'\s+', m.group(2).strip())
-            pwm[nuc] = [float(x) for x in counts]
-            if nuc == "T":
-                motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
-                motif.id = motif_id
-                motifs.append(motif)
+            try:
+                nuc = m.group(1)
+                counts = re.split(r'\s+', m.group(2).strip())
+                pwm[nuc] = [float(x) for x in counts]
+                if nuc == "T":
+                    motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
+                    motif.id = motif_id
+                    motifs.append(motif)
+            except:
+                raise ValueError("Can't parse line\n" + line)
+    
     if motif_id and motifs[-1].id != motif_id:
         motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
         motif.id = motif_id

@@ -20,13 +20,13 @@ class TestComparison(unittest.TestCase):
         self.assertIn('TATA-box', ret)
         
         match = ret['TATA-box']
-        self.assertEqual('TBP_Average_1', match[0])
+        self.assertEqual('GM.5.0.TBP.0001', match[0])
         
         scores = match[1]
-        self.assertAlmostEqual(-0.3276, scores[0], 4)
-        self.assertEqual(-1, scores[1])
+        self.assertAlmostEqual(-0.1041, scores[0], 4)
+        self.assertEqual(0, scores[1])
         self.assertEqual(1, scores[2])
-        self.assertAlmostEqual(4.134e-7, scores[3])
+        self.assertAlmostEqual(3.1666e-8, scores[3])
 
     def tearDown(self):
         pass

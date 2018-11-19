@@ -11,7 +11,7 @@ on the basis of motif scanning results.
 
 # External imports
 from scipy.stats import stats, scoreatpercentile, kstest, fisher_exact
-from sklearn.metrics import precision_recall_curve, roc_auc_score, roc_curve
+from sklearn.metrics import precision_recall_curve, roc_auc_score, roc_curve, average_precision_score
 import numpy as np
 
 __all__ = [
@@ -24,6 +24,7 @@ __all__ = [
     "mncp",
     "roc_auc",
     "roc_auc_xlim",
+    "pr_auc",
     "max_fmeasure",
     "ks_pvalue",
     "ks_significance",
@@ -306,6 +307,29 @@ def mncp(fg_vals, bg_vals):
     return np.mean(slopes)
 
 @requires_scores
+def pr_auc(fg_vals, bg_vals):
+    """
+    Computes the Precision-Recall Area Under Curve (PR AUC)
+
+    Parameters
+    ----------
+    fg_vals : array_like
+        list of values for positive set
+
+    bg_vals : array_like
+        list of values for negative set
+    
+    Returns
+    -------
+    score : float
+        PR AUC score
+    """
+    # Create y_labels
+    y_true, y_score = values_to_labels(fg_vals, bg_vals)
+    
+    return average_precision_score(y_true, y_score)
+
+@requires_scores
 def roc_auc(fg_vals, bg_vals):
     """
     Computes the ROC Area Under Curve (ROC AUC)
@@ -327,6 +351,7 @@ def roc_auc(fg_vals, bg_vals):
     y_true, y_score = values_to_labels(fg_vals, bg_vals)
     
     return roc_auc_score(y_true, y_score)
+
 
 @requires_scores
 def roc_auc_xlim(x_bla, y_bla, xlim=0.1):

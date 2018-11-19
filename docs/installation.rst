@@ -1,10 +1,12 @@
 Installation
 ============
 
-GimmeMotifs runs on Linux. Definitely not on Windows, sorry. 
+GimmeMotifs runs on Linux. On Windows 10 it will run fine using the `Windows Subsystem for Linux`_.
 Mac OSX should work and is included in the build test. 
 However, as I don't use it myself, unexpected issues might pop up. 
 Let me know, so I can try to fix it.
+
+.. _`Windows Subsystem for Linux`: https://docs.microsoft.com/en-us/windows/wsl/install-win10
 
 .. _`Install GimmeMotifs`:
 
@@ -18,10 +20,9 @@ You only have to do this once.
 
 :: 
 
-    $ conda config --add channels r
     $ conda config --add channels defaults
-    $ conda config --add channels conda-forge
     $ conda config --add channels bioconda
+    $ conda config --add channels conda-forge
 
 You can install GimmeMotifs with one command. In the current environment:
 
@@ -38,9 +39,7 @@ Or create a specific environment:
     # Activate the environment before you use GimmeMotifs
     $ conda activate gimme
 
-Python 3 is the preferred version, however, GimmeMotifs also supports Python 2.
-Don't forget to activate the environment with ``source activate gimme`` whenever
-you want to use GimmeMotifs.
+GimmeMotifs only supports Python 3. Don't forget to activate the environment with ``source activate gimme`` whenever you want to use GimmeMotifs.
 
 Installation successful? Good. Have a look at the :ref:`configuration<configuration>` section.
 
@@ -172,27 +171,22 @@ privileges required):
 
     sudo python setup.py install
 
-During installation GimmeMotifs will try to locate the tools you have
+On first run GimmeMotifs will try to locate the tools you have
 installed. If you have recently installed them, running an ``updatedb``
 will be necessary. Using this option GimmeMotifs will create a
 configuration file, the default is:
 
 ::
 
-    /usr/share/gimmemotifs/gimmemotifs.cfg
+    ~/.config/gimmemotifs/gimmemotifs.cfg
 
-This is a system-wide configuration that can be used by all users.
+This is a personal configuration file.
 
 It is also possible to run the ``setup.py install`` command with the
-``–prefix``, ``–home``, or ``–install-data`` options, to install in
+``--prefix``, ``--home``, or ``--install-data`` options, to install in
 GimmeMotifs in a different location (for instance, in your own home
 directory). This should be fine, however, these alternative methods of
-installing GimmeMotifs have not been extensively tested. Please note
-that in this case the configuration file will be created, but every user
-will have to put this configuration file in his/her home directory:
-``~/.gimmemotifs.cfg``. The install script will also inform you of this
-during install.  
-
+installing GimmeMotifs have not been extensively tested. 
 
 .. _configuration:
 
@@ -241,13 +235,11 @@ Other configuration options
 +++++++++++++++++++++++++++
 
 All of GimmeMotifs configuration is stored in
-``/usr/share/gimmemotifs/gimmemotifs.cfg`` or ``~/.gimmemotifs.cfg``. If
-the file ``~/.gimmemotifs.cfg`` exists in your home directory this will
-always have precedence over the system-wide configuration. The
-configuraton file is created at installation time with all defaults set,
+``~/.config/gimmemotifs/gimmemotifs.cfg``. The
+configuraton file is created at first run with  all defaults set,
 but you can always edit it afterwards. It contains two sections ``main``
 and ``params`` that take care of paths, file locations, parameter
-settings etc. Additionally, every motif tool has it’s own section. Let’s
+settings etc. Additionally, every motif tool has it's own section. Let's
 have a look at the options.
 
 ::

@@ -1,0 +1,137 @@
+Motif	Factor	Evidence	Curated
+MA0010.1_br	br	COMPILED	Y
+MA0011.1_br(var.2)	br	COMPILED	Y
+MA0012.1_br(var.3)	br	COMPILED	Y
+MA0013.1_br(var.4)	br	COMPILED	Y
+MA0015.1_Cf2	Cf2	SELEX	Y
+MA0016.1_usp	usp	SELEX	Y
+MA0022.1_dl	dl	SELEX	Y
+MA0023.1_dl(var.2)	dl	SELEX	Y
+MA0026.1_Eip74EF	Eip74EF	SELEX	Y
+MA0049.1_hb	hb	COMPILED	Y
+MA0085.1_Su(H)	Su	COMPILED	Y
+MA0126.1_ovo	ovo	SELEX	Y
+MA0165.1_Abd-B	Abd-B	bacterial 1-hybrid	Y
+MA0166.1_Antp	Antp	bacterial 1-hybrid	Y
+MA0167.1_Awh	Awh	bacterial 1-hybrid	Y
+MA0168.1_B-H1	B-H1	bacterial 1-hybrid	Y
+MA0169.1_B-H2	B-H2	bacterial 1-hybrid	Y
+MA0170.1_C15	C15	bacterial 1-hybrid	Y
+MA0171.1_CG11085	CG11085	bacterial 1-hybrid	Y
+MA0172.1_CG11294	CG11294	bacterial 1-hybrid	Y
+MA0173.1_CG11617	CG11617	bacterial 1-hybrid	Y
+MA0174.1_Dbx	Dbx	bacterial 1-hybrid	Y
+MA0175.1_lms	lms	bacterial 1-hybrid	Y
+MA0176.1_CG15696-RA	CG15696-RA	bacterial 1-hybrid	Y
+MA0177.1_CG18599	CG18599	bacterial 1-hybrid	Y
+MA0178.1_CG32105	CG32105	bacterial 1-hybrid	Y
+MA0179.1_CG32532	CG32532	bacterial 1-hybrid	Y
+MA0180.1_Vsx2	Vsx2	bacterial 1-hybrid	Y
+MA0181.1_Vsx1	Vsx1	bacterial 1-hybrid	Y
+MA0182.1_CG4328-RA	CG4328-RA	bacterial 1-hybrid	Y
+MA0183.1_HHEX	HHEX	bacterial 1-hybrid	Y
+MA0184.1_CG9876	CG9876	bacterial 1-hybrid	Y
+MA0185.1_Deaf1	Deaf1	DNaseI footprinting	Y
+MA0186.1_Dfd	Dfd	bacterial 1-hybrid	Y
+MA0187.1_Dll	Dll	bacterial 1-hybrid	Y
+MA0188.1_Dr	Dr	bacterial 1-hybrid	Y
+MA0189.1_E5	E5	bacterial 1-hybrid	Y
+MA0190.1_Gsc	Gsc	bacterial 1-hybrid	Y
+MA0191.1_HGTX	HGTX	bacterial 1-hybrid	Y
+MA0192.1_Hmx	Hmx	bacterial 1-hybrid	Y
+MA0193.1_schlank	schlank	bacterial 1-hybrid	Y
+MA0194.1_Lim1	Lim1	bacterial 1-hybrid	Y
+MA0195.1_Lim3	Lim3	bacterial 1-hybrid	Y
+MA0196.1_NK7.1	NK7.1	bacterial 1-hybrid	Y
+MA0198.1_OdsH	OdsH	bacterial 1-hybrid	Y
+MA0199.1_Optix	Optix	bacterial 1-hybrid	Y
+MA0200.1_Pph13	Pph13	bacterial 1-hybrid	Y
+MA0201.1_Ptx1	Ptx1	bacterial 1-hybrid	Y
+MA0202.1_Rx	Rx	bacterial 1-hybrid	Y
+MA0203.1_Scr	Scr	bacterial 1-hybrid	Y
+MA0204.1_Six4	Six4	bacterial 1-hybrid	Y
+MA0205.1_Trl	Trl	DNaseI footprinting	Y
+MA0206.1_abd-A	abd-A	bacterial 1-hybrid	Y
+MA0207.1_achi	achi	bacterial 1-hybrid	Y
+MA0208.1_al	al	bacterial 1-hybrid	Y
+MA0209.1_ap	ap	bacterial 1-hybrid	Y
+MA0210.1_ara	ara	bacterial 1-hybrid	Y
+MA0211.1_bap	bap	bacterial 1-hybrid	Y
+MA0212.1_bcd	bcd	bacterial 1-hybrid	Y
+MA0213.1_brk	brk	DNaseI footprinting	Y
+MA0214.1_bsh	bsh	bacterial 1-hybrid	Y
+MA0215.1_btn	btn	bacterial 1-hybrid	Y
+MA0217.1_caup	caup	bacterial 1-hybrid	Y
+MA0218.1_ct	ct	bacterial 1-hybrid	Y
+MA0219.1_ems	ems	bacterial 1-hybrid	Y
+MA0220.1_en	en	bacterial 1-hybrid	Y
+MA0221.1_eve	eve	bacterial 1-hybrid	Y
+MA0222.1_exd	exd	bacterial 1-hybrid	Y
+MA0224.1_exex	exex	bacterial 1-hybrid	Y
+MA0225.1_ftz	ftz	bacterial 1-hybrid	Y
+MA0226.1_hbn	hbn	bacterial 1-hybrid	Y
+MA0227.1_hth	hth	bacterial 1-hybrid	Y
+MA0228.1_ind	ind	bacterial 1-hybrid	Y
+MA0229.1_inv	inv	bacterial 1-hybrid	Y
+MA0230.1_lab	lab	bacterial 1-hybrid	Y
+MA0231.1_lbe	lbe	bacterial 1-hybrid	Y
+MA0232.1_lbl	lbl	bacterial 1-hybrid	Y
+MA0233.1_mirr	mirr	bacterial 1-hybrid	Y
+MA0234.1_oc	oc	bacterial 1-hybrid	Y
+MA0235.1_onecut	onecut	bacterial 1-hybrid	Y
+MA0236.1_otp	otp	bacterial 1-hybrid	Y
+MA0238.1_pb	pb	bacterial 1-hybrid	Y
+MA0239.1_prd	prd	bacterial 1-hybrid	Y
+MA0240.1_repo	repo	bacterial 1-hybrid	Y
+MA0241.1_ro	ro	bacterial 1-hybrid	Y
+MA0242.1_Bgb::run	Bgb	bacterial 1-hybrid	Y
+MA0242.1_Bgb::run	run	bacterial 1-hybrid	Y
+MA0243.1_sd	sd	DNaseI footprinting	Y
+MA0244.1_slbo	slbo	DNaseI footprinting	Y
+MA0245.1_slou	slou	bacterial 1-hybrid	Y
+MA0246.1_so	so	bacterial 1-hybrid	Y
+MA0248.1_tup	tup	bacterial 1-hybrid	Y
+MA0249.1_twi	twi	DNaseI footprinting	Y
+MA0250.1_unc-4	unc-4	bacterial 1-hybrid	Y
+MA0251.1_unpg	unpg	bacterial 1-hybrid	Y
+MA0252.1_vis	vis	bacterial 1-hybrid	Y
+MA0253.1_vnd	vnd	bacterial 1-hybrid	Y
+MA0254.1_vvl	vvl	DNaseI footprinting	Y
+MA0255.1_z	z	DNaseI footprinting	Y
+MA0256.1_zen	zen	bacterial 1-hybrid	Y
+MA0257.1_zen2	zen2	bacterial 1-hybrid	Y
+MA0094.2_Ubx	Ubx	bacterial 1-hybrid	Y
+MA0443.1_btd	btd	bacterial 1-hybrid	Y
+MA0444.1_CG34031	CG34031	bacterial 1-hybrid	Y
+MA0445.1_D	D	bacterial 1-hybrid	Y
+MA0446.1_fkh	fkh	bacterial 1-hybrid	Y
+MA0447.1_gt	gt	bacterial 1-hybrid	Y
+MA0448.1_H2.0	H2.0	bacterial 1-hybrid	Y
+MA0449.1_h	h	bacterial 1-hybrid	Y
+MA0450.1_hkb	hkb	bacterial 1-hybrid	Y
+MA0451.1_kni	kni	bacterial 1-hybrid	Y
+MA0197.2_nub	nub	bacterial 1-hybrid	Y
+MA0454.1_odd	odd	bacterial 1-hybrid	Y
+MA0456.1_opa	opa	bacterial 1-hybrid	Y
+MA0457.1_PHDP	PHDP	bacterial 1-hybrid	Y
+MA0458.1_slp1	slp1	bacterial 1-hybrid	Y
+MA0459.1_tll	tll	bacterial 1-hybrid	Y
+MA0460.1_ttk	ttk	bacterial 1-hybrid	Y
+MA0529.1_BEAF-32	BEAF-32	ChIP-chip	Y
+MA0216.2_cad	cad	ChIP-chip	Y
+MA0530.1_cnc::maf-S	cnc	ChIP-chip	Y
+MA0530.1_cnc::maf-S	maf-S	ChIP-chip	Y
+MA0531.1_CTCF	CTCF	ChIP-chip	Y
+MA0452.2_Kr	Kr	ChIP-chip	Y
+MA0532.1_Stat92E	Stat92E	ChIP-chip	Y
+MA0533.1_su(Hw)	su	ChIP-chip	Y
+MA0534.1_EcR::usp	EcR	ChIP-seq	Y
+MA0534.1_EcR::usp	usp	ChIP-seq	Y
+MA0237.2_pan	pan	ChIP-chip	Y
+MA0535.1_Mad	Mad	ChIP-chip	Y
+MA0536.1_pnr	pnr	ChIP-chip	Y
+MA0247.2_tin	tin	ChIP-chip	Y
+MA0915.1_dve	dve	PBM	Y
+MA0916.1_Ets21C	Ets21C	PBM	Y
+MA0917.1_gcm2	gcm2	PBM	Y
+MA0086.2_sna	sna	SMiLE-seq	Y

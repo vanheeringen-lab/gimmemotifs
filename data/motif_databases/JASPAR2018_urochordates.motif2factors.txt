@@ -1,0 +1,2 @@
+Motif	Factor	Evidence	Curated
+MA0118.1_Macho-1	Macho-1	SELEX	Y

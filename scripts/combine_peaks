@@ -1,0 +1,137 @@
+#!/usr/bin/env python
+import argparse
+import glob
+import os
+import sys
+from tempfile import NamedTemporaryFile 
+from io import StringIO
+
+import genomepy
+from gimmemotifs import __version__
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from sklearn.preprocessing import scale
+from pybedtools import BedTool
+
+def combine_peaks(peaks, genome, window, scale_value):
+    """
+    Combine multiple MACS2 summit files and returns the summit
+    with the maximum value.
+
+    Parameters
+    ----------
+    peaks : list
+        List with summit file names.
+
+    genome : str
+        Genome file name. Either a file with chromosome sizes or a genomepy
+        genome name.
+
+    window : int
+        Window size. Summits will be extended to this size before merging.
+
+    scale_value : bool
+        Scale summit values before taking the maximum.
+    
+    Returns
+    -------
+    summits : pandas.DataFrame
+        DataFrame with summits.
+    """
+    try:
+        g = genomepy.Genome(genome)
+        genome = g.props['sizes']['sizes']
+    except: 
+        pass
+    
+    # Read MACS2 summit files
+    header = ["chrom", "start", "end", "name", "value"]
+    dfs = [pd.read_table(f, names=header) for f in peaks]
+    
+    # Combine in one DataFrame
+    for i,df in enumerate(dfs):
+        df["experiment"] = df.loc[0,"name"].replace("_peak_1", "")
+        df["log_value"] = np.log1p(df["value"])
+        df["log_value_scaled"] = scale(df[["log_value"]])
+    df_all = pd.concat(dfs)
+    
+    # Plot
+    sns.boxplot(data=df_all, y="experiment", x="log_value")
+    sns.boxplot(data=df_all, y="experiment", x="log_value_scaled")
+    
+    check_col = "value"
+    if scale_value: 
+        check_col = "log_value_scaled"
+    
+    df_all["col4"] = (df_all["chrom"] + ";" + 
+                      df_all["start"].astype(str) + ";" +
+                      df_all["end"].astype(str) + ";" +
+                      df_all["log_value_scaled"].astype(str))
+                
+    tmp = NamedTemporaryFile(suffix=".all_peaks.bed", delete=False).name
+    out = df_all[["chrom", "start", "end", "col4"]].sort_values(["chrom", "start"])
+    out.to_csv(tmp, sep="\t", index=False, header=False)
+
+    b = BedTool(tmp)
+    all_summits = []
+    for f in b.slop(b=window//2, g=genome).merge(c=4, o="collapse"):
+        summits = [x.split(";") for x in f[3].split(",")]
+        all_summits.append(sorted(summits, key=lambda x: float(x[3]))[-1][:3])
+    
+    df = pd.DataFrame(all_summits, columns=["chrom", "start", "end"])
+    return df
+
+if __name__ == "__main__":
+
+    description = """
+    GimmeMotifs v{0} - combine_peaks
+    """.format(__version__)
+    
+    parser = argparse.ArgumentParser(
+                                    description=description,
+                                    )
+
+    parser.add_argument(
+        "-i", "--input",
+        dest="peaks",
+        required=True,
+        help="MACS2 summit files",
+        metavar="SUMMITS",
+        nargs="*")
+    parser.add_argument(
+        "-g", "--genome",
+        dest="genome",
+        required=True,
+        help="Genome name or genome file",
+        metavar="GENOME")
+    parser.add_argument(
+        "-w", "--window",
+        dest="window",
+        type=int,
+        help="Window size (default 200)",
+        default=200)
+    parser.add_argument(
+        "-s", "--scale",
+        dest="scale",
+        help="Scale summit values",
+        action="store_true",
+        default=False)
+
+    args = parser.parse_args()    
+    
+    exit = False
+    for fname in args.peaks:
+        if not os.path.exists(fname):
+            print("File {} does not exist!".format(fname), file=sys.stderr)
+            exit = True
+    if exit:
+        sys.exit(1)
+
+    df = combine_peaks(args.peaks, args.genome, args.window, args.scale)
+    output = StringIO()
+    df.to_csv(output, sep="\t", index=False, header=False)
+    output.seek(0)
+    print(output.read())
+

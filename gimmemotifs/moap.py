@@ -41,11 +41,17 @@ from lightning.regression import CDRegressor
 
 import xgboost
 
+from gimmemotifs import __version__
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
-from gimmemotifs.config import MotifConfig, GM_VERSION
+from gimmemotifs.config import MotifConfig
+from gimmemotifs.utils import pwmfile_location
+
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 logger = logging.getLogger("gimme.maelstrom")
+
 
 class Moap(object):
     """Moap base class.
@@ -155,7 +161,7 @@ class BayesianRidgeMoap(Moap):
         if self.scale:
             logger.debug("Scaling motif scores")
             # Scale motif scores
-            df_X = df_X.apply(scale)
+            df_X[:] = scale(df_X, axis=0)
         
         #logger.debug("Scaling y")
         
@@ -213,7 +219,7 @@ class XgboostRegressionMoap(Moap):
         
         if self.scale:
             # Scale motif scores
-            df_X = df_X.apply(scale)
+            df_X[:] = scale(df_X, axis=0)
         
         # Normalize across samples and features
         #y = df_y.apply(scale, 1).apply(scale, 0)
@@ -297,7 +303,7 @@ class LightningRegressionMoap(Moap):
         
         if self.scale:
             # Scale motif scores
-            df_X = df_X.apply(scale)
+            df_X[:] = scale(df_X, axis=0)
         
         # Normalize across samples and features
         #y = df_y.apply(scale, 1).apply(scale, 0)
@@ -426,7 +432,7 @@ class LightningClassificationMoap(Moap):
         
         if self.scale:
             # Scale motif scores
-            df_X = df_X.apply(scale)
+            df_X[:] = scale(df_X, axis=0)
         
         idx = list(range(df_y.shape[0]))
 
@@ -688,7 +694,7 @@ class RFMoap(Moap):
 
 @register_predictor('Lasso')
 class LassoMoap(Moap):
-    def __init__(self, scale=True, kfolds=5, alpha_stepsize=1.0, ncpus=None):
+    def __init__(self, scale=True, kfolds=4, alpha_stepsize=1.0, ncpus=None):
         """Predict motif activities using Lasso MultiTask regression
 
         Parameters
@@ -738,32 +744,20 @@ class LassoMoap(Moap):
         self.supported_tables = ["score", "count"]
         self.ptype = "regression"
 
-    def fit(self, df_X, df_y):
+    def fit(self, df_X, df_y, permute=False):
         logger.info("Fitting Lasso")
         if not df_y.shape[0] == df_X.shape[0]:
             raise ValueError("number of regions is not equal")
        
         if self.scale:
             # Scale motif scores
-            df_X = df_X.apply(scale)
+            df_X[:] = scale(df_X, axis=0)
 
         idx = list(range(df_y.shape[0]))
         y = df_y.iloc[idx]
         X = df_X.loc[y.index].values
         y = y.values
        
-        X_train,X_test,y_train,y_test = train_test_split(X,y)
-        sys.stderr.write("set alpha through cross-validation\n")
-        # Determine best parameters based on CV
-        self.clf.fit(X_train, y_train)
-        
-        sys.stdout.write("average score ({} fold CV): {}\n".format(
-                    self.kfolds,
-                    self.clf.score(X_test, y_test)
-                    ))
-
-        sys.stderr.write("Estimate coefficients using bootstrapping\n")
-
         # fit coefficients
         coefs = self._get_coefs(X, y)
         self.act_ = pd.DataFrame(coefs.T)
@@ -772,31 +766,43 @@ class LassoMoap(Moap):
         self.act_.columns = df_y.columns
         self.act_.index = df_X.columns
 
-        # Permutations
-        sys.stderr.write("permutations\n")
-        random_dfs = []
-        for _ in range(10):
-            y_random = y[np.random.permutation(range(y.shape[0]))]
-            coefs = self._get_coefs(X, y_random)
-            random_dfs.append(pd.DataFrame(coefs.T))
-        random_df = pd.concat(random_dfs)
-
-        # Select cutoff based on percentile
-        high_cutoffs = random_df.quantile(0.99)
-        low_cutoffs = random_df.quantile(0.01)
-        
-        # Set significance
-        self.sig_ = pd.DataFrame(index=df_X.columns)
-        self.sig_["sig"] = False
-
-        for col,c_high,c_low in zip(
-                self.act_.columns, high_cutoffs, low_cutoffs):
-            self.sig_["sig"].loc[self.act_[col] >= c_high] = True
-            self.sig_["sig"].loc[self.act_[col] <= c_low] = True
-        
+        if permute:
+            # Permutations
+            logger.info("permutations\n")
+            random_dfs = []
+            for _ in range(10):
+                y_random = y[np.random.permutation(range(y.shape[0]))]
+                coefs = self._get_coefs(X, y_random)
+                random_dfs.append(pd.DataFrame(coefs.T))
+            random_df = pd.concat(random_dfs)
+    
+            # Select cutoff based on percentile
+            high_cutoffs = random_df.quantile(0.99)
+            low_cutoffs = random_df.quantile(0.01)
+            
+            # Set significance
+            self.sig_ = pd.DataFrame(index=df_X.columns)
+            self.sig_["sig"] = False
+    
+            for col,c_high,c_low in zip(
+                    self.act_.columns, high_cutoffs, low_cutoffs):
+                self.sig_["sig"].loc[self.act_[col] >= c_high] = True
+                self.sig_["sig"].loc[self.act_[col] <= c_low] = True
+            
         logger.info("Done")
 
     def _get_coefs(self, X, y):
+        logger.info("set alpha through cross-validation\n")
+        # Determine best parameters based on CV
+        self.clf.fit(X, y)
+        
+        logger.debug("average score ({} fold CV): {}".format(
+                    self.kfolds,
+                    self.clf.best_score_
+                    ))
+
+        logger.info("Estimate coefficients using bootstrapping\n")
+
         n_samples = 0.75 * X.shape[0]
         max_samples = X.shape[0]
         m = self.clf.best_estimator_
@@ -808,7 +814,8 @@ class LassoMoap(Moap):
         coefs = np.array(coefs).mean(axis=0)
         return coefs
 
-def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=None, pwmfile=None, genome=None, fpr=0.01, ncpus=None):
+def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=None, pwmfile=None, genome=None, fpr=0.01, ncpus=None,
+        subsample=None):
     """Run a single motif activity prediction algorithm.
     
     Parameters
@@ -856,8 +863,6 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
     
     config = MotifConfig()
 
-    m2f = None
-    
     if inputfile.endswith("feather"):
         df = pd.read_feather(inputfile)
         df = df.set_index(df.columns[0])
@@ -878,45 +883,31 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
     if motiffile is None:
         if genome is None:
             raise ValueError("need a genome")
-        # check pwmfile
-        if pwmfile is None:
-            pwmfile = config.get_default_params().get("motif_db", None)
-            if pwmfile is not None:
-                pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
         
-        if pwmfile is None:
-            raise ValueError("no pwmfile given and no default database specified")
-
-        if not os.path.exists(pwmfile):
-            raise ValueError("{} does not exist".format(pwmfile))
-
+        pwmfile = pwmfile_location(pwmfile)
         try:
-            motifs = read_motifs(open(pwmfile))
+            motifs = read_motifs(pwmfile)
         except:
             sys.stderr.write("can't read motifs from {}".format(pwmfile))
             raise
-
-        base = os.path.splitext(pwmfile)[0]
-        map_file = base + ".motif2factors.txt"
-        if os.path.exists(map_file):
-            m2f = pd.read_table(map_file, index_col=0, comment="#")
 
         # initialize scanner
         s = Scanner(ncpus=ncpus)
         sys.stderr.write(pwmfile + "\n")
         s.set_motifs(pwmfile)
         s.set_genome(genome)
+        s.set_background(genome=genome)
 
         # scan for motifs
         sys.stderr.write("scanning for motifs\n")
-        motif_names = [m.id for m in read_motifs(open(pwmfile))]
+        motif_names = [m.id for m in read_motifs(pwmfile)]
         scores = []
         if method == 'classic' or scoring == "count":
             s.set_threshold(fpr=fpr)
             for row in s.count(list(df.index)):
                 scores.append(row)
         else:
-            for row in s.best_score(list(df.index)):
+            for row in s.best_score(list(df.index), normalize=True):
                 scores.append(row)
 
         motifs = pd.DataFrame(scores, index=df.index, columns=motif_names)
@@ -933,6 +924,11 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
             logger.warn("%s output already exists... skipping", method)
             return out
     
+    if subsample is not None:
+        n = int(subsample * df.shape[0])
+        logger.debug("Subsampling %d regions", n)
+        df = df.sample(n)
+    
     motifs = motifs.loc[df.index]
     
     if method == "lightningregressor":
@@ -945,7 +941,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
     
     if outfile:
         with open(outfile, "w") as f:
-            f.write("# maelstrom - GimmeMotifs version {}\n".format(GM_VERSION))
+            f.write("# maelstrom - GimmeMotifs version {}\n".format(__version__))
             f.write("# method: {} with motif {}\n".format(method, scoring))
             if genome:
                 f.write("# genome: {}\n".format(genome))

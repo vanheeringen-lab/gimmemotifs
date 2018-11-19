@@ -7,12 +7,12 @@
 import os
 import sys
 import argparse
-from gimmemotifs.config import MotifConfig, BG_TYPES, GM_VERSION, BED_VALID_BGS
-from  gimmemotifs import commands
+from gimmemotifs.config import MotifConfig, BG_TYPES, BED_VALID_BGS
+from  gimmemotifs import commands, __version__
 from gimmemotifs.utils import check_genome
 
 if __name__ == "__main__":
-    
+
     config = MotifConfig()
     params = config.get_default_params()
     default_pwm_file = os.path.join(config.get_motif_dir(), params["motif_db"])
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     
     description = """
     GimmeMotifs v{0}
-    """.format(GM_VERSION)
+    """.format(__version__)
     
     epilog = """   
     commands:
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     # gimme_motifs.py
     p = subparsers.add_parser('motifs')
     p.add_argument("inputfile", 
-                   help="Inputfile in BED or FASTA format", 
+                   help="Inputfile in BED, narrowPeak or FASTA format", 
                    metavar="INPUTFILE")
     p.add_argument("-k", "--keepintermediate", 
                    dest="keep_intermediate", 
@@ -71,9 +71,9 @@ if __name__ == "__main__":
                    default=params["analysis"])
     p.add_argument("-g", "--genome", 
                    dest="genome", 
-                   help="Genome version (%s)" % (params["genome"]),
-                   metavar="VERSION", 
-                   default=params["genome"])
+                   help="Genome",
+                   metavar="GENOME", 
+                   default=None)
     p.add_argument("-N", "--nthreads", 
                    dest="ncpus", 
                    help="Number of threads (default %s)" % (params["ncpus"]),
@@ -262,16 +262,6 @@ if __name__ == "__main__":
     
     p.set_defaults(func=commands.cluster)
     
-    # gimme genome
-    p = subparsers.add_parser('genome')
-    p.add_argument("fastadir",
-                   help="Directory to place genome",
-                   metavar="FASTADIR")
-    p.add_argument("genomebuild",
-                   help="UCSC genome name",
-                   metavar="GENOMEBUILD")
-    p.set_defaults(func=commands.genome)
-    
     # generate_background_sequences.py
     p = subparsers.add_parser('background')
     p.add_argument("outputfile", 
@@ -304,7 +294,7 @@ if __name__ == "__main__":
     p.add_argument("-g", 
                    dest="genome", help="genome version (not for type 'random')", 
                    metavar="GENOME", 
-                   default="hg19")
+                  )
     p.add_argument("-m", 
                    dest="markov_order", 
                    help="order of the Markov model (only for type 'random', default 1)", 
@@ -358,7 +348,7 @@ if __name__ == "__main__":
                    metavar="INPUTFILE")
     p.add_argument("-g", "--genome", 
                    dest="genome", 
-                   help="genome version", 
+                   help="Genome", 
                    metavar="GENOME", 
                     default=None)
     p.add_argument("-p", "--pwmfile",
@@ -406,6 +396,11 @@ if __name__ == "__main__":
     p.add_argument("-T", "--score_table",
                    dest="score_table", 
                    help="output maximum score in tabular format", 
+                   action="store_true",
+                   default=False)
+    p.add_argument("-z", "--zscore",
+                   dest="zscore", 
+                   help="convert pfm logodds score to z-score", 
                    action="store_true",
                    default=False)
     p.add_argument("-N", "--nthreads", 
@@ -467,8 +462,8 @@ if __name__ == "__main__":
                   default=0.01)
     p.add_argument("-g", "--genome",
                    dest="genome", 
-                   help="Genome version. Only necessary in combination with a BED file with clusters as inputfile.",
-                   metavar="VERSION", 
+                   help="Genome; only necessary in combination with a BED file with clusters as inputfile.",
+                   metavar="GENOME", 
                    )
     p.set_defaults(func=commands.diff)
     

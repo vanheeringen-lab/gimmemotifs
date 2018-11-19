@@ -6,9 +6,6 @@ matrix:
       language: generic
     - os: linux
       language: python
-      python: "2.7"
-    - os: linux
-      language: python
       python: "3.5"
     - os: linux
       language: python
@@ -21,11 +18,7 @@ matrix:
 before_install:
   # install miniconda for Python dependencies
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-        wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-      else
-        wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-      fi
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     else
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
     fi
@@ -40,22 +33,17 @@ before_install:
   - conda config --add channels bioconda
   - conda info -a
   # if matplotlib functionality is tested
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok )& fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok )& fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; fi
-
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ulimit -S -n 4096; ulimit -a; fi
 install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      conda install python=$TRAVIS_PYTHON_VERSION pip future "numpy<1.14" scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed xdg xxhash readline ghostscript homer gadem trawler weeder xxmotif tqdm;
+      conda install python=$TRAVIS_PYTHON_VERSION pip future "numpy<1.14" scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost pillow pyyaml diskcache six ucsc-bigbedtobed xdg xxhash readline ghostscript homer gadem trawler weeder xxmotif tqdm genomepy ncurses;
    else
-      conda install python=3 pip future "numpy<1.14" scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost r-robustrankaggreg pillow pyyaml diskcache six ucsc-bigbedtobed xdg xxhash readline ghostscript homer gadem trawler weeder xxmotif tqdm;
+      conda install python=3 pip future "numpy<1.14" scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost pillow pyyaml diskcache six ucsc-bigbedtobed xdg xxhash readline ghostscript homer gadem trawler weeder xxmotif tqdm genomepy ncurses;
     fi
-  - pip install genomepy==0.4.0 
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then 
-      conda install configparser;
-    fi
-  - python setup.py develop
   - python setup.py build
-#  - pip install nose coverage
+  - pip install msgpack
 #  - pip install coveralls
 # # command to run tests, e.g. python setup.py test
 script:  

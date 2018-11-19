@@ -1,0 +1,30 @@
+name: gimmemotifs
+channels:
+  - defaults
+  - bioconda
+  - conda-forge
+dependencies:
+  - python=3
+  - numpy
+  - scipy
+  - matplotlib
+  - jinja2
+  - pyyaml>=3.10
+  - pybedtools
+  - statsmodels
+  - scikit-learn
+  - sklearn-contrib-lightning
+  - seaborn
+  - pysam
+  - xgboost >= 0.71
+  - xdg
+  - diskcache
+  - xxhash
+  - configparser
+  - six
+  - future
+  - genomepy
+  - tqdm
+  - pillow
+  - sphinx_bootstrap_theme
+  - numpydoc

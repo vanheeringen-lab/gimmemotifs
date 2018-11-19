@@ -20,14 +20,13 @@ mpl.use("Agg", warn=False)
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.gridspec import GridSpec
-from matplotlib.colors import to_hex, Normalize
+from matplotlib.colors import to_hex, Normalize, rgb2hex
 from mpl_toolkits.axes_grid1 import ImageGrid
 import seaborn as sns
 sns.set_style('white')
 from PIL import Image
 
 
-#from ete3 import Tree, faces, AttrFace, TreeStyle, NodeStyle
 
 VALID_EXTENSIONS = [".png", ".pdf", ".svg", ".ps"]
 
@@ -37,6 +36,14 @@ def axes_off(ax):
     ax.set_frame_on(False)
     ax.axes.get_yaxis().set_visible(False)
     ax.axes.get_xaxis().set_visible(False)
+
+def background_gradient(s, m, M, cmap='RdBu_r', low=0, high=0):
+    rng = M - m
+    norm = Normalize(m - (rng * low),
+                     M + (rng * high))
+    normed = norm(s.values)
+    c = [rgb2hex(x) for x in plt.cm.get_cmap(cmap)(normed)]
+    return ['background-color: %s' % color for color in c]
 
 def roc_plot(outfile, plot_x, plot_y, ids=None):
     if ids is None:
@@ -276,13 +283,25 @@ def diff_plot(motifs, pwms, names, freq, counts, bgfreq, bgcounts, outfile, mind
     plt.close(fig)
 
 def _tree_layout(node):
+    try:
+        from ete3 import AttrFace, faces
+    except ImportError:
+        print("Please install ete3 to use this functionality")
+        sys.exit(1)
+
     if node.is_leaf():
         nameFace = AttrFace("name", fsize=24, ftype="Nimbus Sans L")
         faces.add_face_to_node(nameFace, node, 10, position="branch-right")
 
 def _get_motif_tree(tree, data, circle=True, vmin=None, vmax=None):
-    print(circle, vmin, vmax)
+    try:
+        from ete3 import Tree, NodeStyle, TreeStyle
+    except ImportError:
+        print("Please install ete3 to use this functionality")
+        sys.exit(1)
+
     t = Tree(tree)
+    
     # Determine cutoff for color scale
     if not(vmin and vmax):
         for i in range(90, 101):
@@ -293,9 +312,9 @@ def _get_motif_tree(tree, data, circle=True, vmin=None, vmax=None):
         vmin = -minmax
     if not vmax:
         vmax = minmax
-    print(vmin, vmax)
+    
     norm = Normalize(vmin=vmin, vmax=vmax, clip=True)
-    mapper = cm.ScalarMappable(norm=norm, cmap="coolwarm")
+    mapper = cm.ScalarMappable(norm=norm, cmap="RdBu_r")
     
     m = 25 / data.values.max()
     
@@ -331,6 +350,12 @@ def motif_tree_plot(outfile, tree, data, circle=True, vmin=None, vmax=None, dpi=
     """
     Plot a "phylogenetic" tree 
     """
+    try:
+        from ete3 import Tree, faces, AttrFace, TreeStyle, NodeStyle
+    except ImportError:
+        print("Please install ete3 to use this functionality")
+        sys.exit(1)
+
     # Define the tree
     t, ts = _get_motif_tree(tree, data, circle, vmin, vmax)
     

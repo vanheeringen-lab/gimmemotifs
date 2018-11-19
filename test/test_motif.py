@@ -2,6 +2,7 @@ from __future__ import print_function
 import unittest
 import tempfile
 import os
+import numpy as np
 from gimmemotifs.motif import *
 from gimmemotifs.shutils import which
 
@@ -122,6 +123,30 @@ class TestMotif(unittest.TestCase):
             ]
         m = Motif(pwm)
         self.assertEqual(h, m.hash())
+    
+    def test9_logodds_matrix(self):
+        pwm = [
+            [0.5, 0.4, 0.1, 0.0],
+            [0.25, 0.25, 0.25, 0.25],
+        ]
+        
+        logodds = np.array([
+                [0.69813, 0.47623, -0.89160, -4.60517],
+                [0.00995, 0.00995, 0.00995, 0.00995],
+                ])
+        m = Motif(pwm)
+        np.testing.assert_almost_equal(logodds, np.array(m.logodds), decimal=5)
+
+    def test10_read_motifs(self):
+        
+        # Read motifs from file
+        motifs = read_motifs(self.pwm2, fmt="pwm")
+        self.assertEqual(5, len(motifs))
+        
+        # Read motifs from file as dictionary
+        motifs = read_motifs(self.pwm2, fmt="pwm", as_dict=True)
+        self.assertEqual(5, len(motifs))
+        self.assertEqual(type({}), type(motifs))
 
     def tearDown(self):
         pass

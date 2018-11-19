@@ -160,7 +160,7 @@ class PredictionResult(object):
 #                                    callback=self.add_stats)
 #                
 
-def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools=None, job_server=None, ncpus=8, max_time=None, stats_fg=None, stats_bg=None):
+def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools=None, job_server=None, ncpus=8, max_time=-1, stats_fg=None, stats_bg=None):
     """Parallel prediction of motifs.
 
     Utility function for gimmemotifs.denovo.gimme_motifs. Probably better to 
@@ -189,8 +189,10 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
         sys.stderr.write("Setting analysis xs to small")
         analysis = "small"
 
+    
     if not job_server:
-        job_server = pool
+        n_cpus = int(config.get_default_params()["ncpus"])
+        job_server = Pool(processes=n_cpus, maxtasksperchild=1000) 
     
     jobs = {}
     
@@ -326,7 +328,7 @@ def predict_motifs(infile, bgfile, outfile, params=None, stats_fg=None, stats_bg
                     infile, 
                     outfile, 
                     analysis, 
-                    params["genome"], 
+                    params.get("genome", None), 
                     params["use_strand"], 
                     bgfile, 
                     tools, 
@@ -346,8 +348,3 @@ def predict_motifs(infile, bgfile, outfile, params=None, stats_fg=None, stats_bg
         result.motifs = []
     
     return result
-
-try:
-    from gimmemotifs.mp import pool
-except ImportError as e:
-    pass

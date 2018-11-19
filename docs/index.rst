@@ -20,7 +20,7 @@ If you find it useful please cite our paper:
 Getting started
 ---------------
 
-* The easiest way to :ref:`install<Install GimmeMotifs>` GimmeMotifs is using bioconda_ on Linux or Mac. Python 2.7 and >=3.4 are supported.
+* The easiest way to :ref:`install<Install GimmeMotifs>` GimmeMotifs is using bioconda_ on Linux or Mac. From version 0.13.0 only Python 3 (>= 3.4) is supported. 
 * Have a look at these :ref:`simple examples<simple_examples>` to get a taste of what is possible.
 * Check out the more detailed :ref:`tutorials<tutorials>`.
 * Full command-line reference can be found :ref:`here<command-line>`.
@@ -45,6 +45,7 @@ Full contents
     :maxdepth: 2
 
     installation
+    overview
     examples
     tutorials
     reference
