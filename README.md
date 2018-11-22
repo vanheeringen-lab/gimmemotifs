@@ -14,6 +14,13 @@ See [full GimmeMotifs documentation](http://gimmemotifs.readthedocs.org/) for de
 
 For documentation on the development version see [here](http://gimmemotifs.readthedocs.org/en/latest/).
 
+The manuscript describing this latest release is available on [biorRxiv](https://doi.org/10.1101/474403) as a preprint and can be cited as:
+
+> [**GimmeMotifs: an analysis framework for transcription factor motif analysis**](https://doi.org/10.1101/474403) <br>
+Niklas Bruse, Simon J. van Heeringen<br>
+_bioRxiv_ (2018) DOI: [10.1101/474403](https://doi.org/10.1101/474403)
+
+
 ## We need your help!
 
 GimmeMotifs was originally developed for our own needs but we would really like it to be useful to the wider community. However, this also depends on your input. Let us know what you think! What features are missing? Which tutorial would you like to see? What part of the documentation is unclear? Have great ideas for future developments? Maybe you even want to join in developing this software?
