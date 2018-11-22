@@ -14,6 +14,14 @@ See [full GimmeMotifs documentation](http://gimmemotifs.readthedocs.org/) for de
 
 For documentation on the development version see [here](http://gimmemotifs.readthedocs.org/en/latest/).
 
+## We need your help!
+
+GimmeMotifs was originally developed for our own needs but we would really like it to be useful to the wider community. However, this also depends on your input. Let us know what you think! What features are missing? Which tutorial would you like to see? What part of the documentation is unclear? Have great ideas for future developments? Maybe you even want to join in developing this software?
+
+[Let us know!](https://github.com/simonvh/gimmemotifs/issues/)
+
+
+
 ## Easy installation
 
 The most straightforward way to install GimmeMotifs is via [conda](https://docs.continuum.io/anaconda/) using the [bioconda](https://bioconda.github.io/) channel.
@@ -36,8 +44,8 @@ $ conda create -n gimme python=3 gimmemotifs
 $ conda activate gimme
 ```
 
-Python 3 is the preferred version, however, GimmeMotifs also supports Python 2. 
-Don't forget to activate the environment with `source activate gimme` whenever you want to use GimmeMotifs.
+Python 3 is the required, from version 0.13.0 on GimmeMotifs no longer supports Python 2. 
+Don't forget to activate the environment with `conda activate gimme` whenever you want to use GimmeMotifs.
 
 ## Quick start
 
