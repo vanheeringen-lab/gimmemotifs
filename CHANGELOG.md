@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- The meme motif tools should now be recognized after install.
+- If the inputfile of gimme motifs is not recognized, a clear error message is printed.
+
+### Changed
+
+- Changed "user" background to "custom" background.
+
 ## [0.13.0] - 2018-11-19
 
 ### Added
