@@ -1,9 +1,27 @@
-# Copyright (c) 2009-2017 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2018 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
-"""De novo motif prediction."""
+"""De novo motif prediction.
+
+This module contains functions to predict *de novo* motifs using one or more 
+*de novo* motif tools. The main function is `gimme_motifs`, which is likely
+the only method that you'll need from this module. 
+
+Examples
+--------
+from gimmemotifs.denovo import gimme_motifs
+
+peaks = "Gm12878.CTCF.top500.w200.fa"
+outdir = "CTCF.gimme"
+params = {
+    "tools": "Homer,BioProspector",
+    "genome": "hg38",
+    }
+
+motifs = gimme_motifs(peaks, outdir, params=params)
+"""
 import datetime
 import os
 import sys

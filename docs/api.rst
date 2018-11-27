@@ -527,6 +527,13 @@ Auto-generated
 
 This part of the API documentation is not yet complete.
 
+The Motif class
+---------------
+
+.. automodule:: gimmemotifs.motif
+   :members:
+
+
 Prediction of de novo motifs
 ----------------------------
 
