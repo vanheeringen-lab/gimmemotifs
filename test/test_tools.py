@@ -52,8 +52,8 @@ class TestMotifProgram(unittest.TestCase):
                     "improbizer",
                     "motifsampler",
                     "posmo",
-                    "meme", # until the bioconda package is fixed
-                    "memew", # until the bioconda package is fixed
+                    #"meme", # until the bioconda package is fixed
+                    #"memew", # until the bioconda package is fixed
                     ]:
                     continue
 
