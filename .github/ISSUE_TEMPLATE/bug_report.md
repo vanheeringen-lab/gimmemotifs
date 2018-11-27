@@ -13,7 +13,7 @@ Steps to reproduce the behavior:
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-** Error logs **
+**Error logs**
 If applicable, add error logs to help explain your problem.
 
 **Installation information (please complete the following information):**
