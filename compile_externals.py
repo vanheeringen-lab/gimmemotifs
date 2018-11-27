@@ -27,7 +27,7 @@ def compile_configmake(name, binary, configure=True, src_dir="src"):
     if configure:
         Popen(["chmod", "+x", "./configure"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
         Popen(["./configure"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
-    Popen(["make"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
+    Popen(["make -j 4"], cwd=path, stdout=PIPE, stderr=PIPE, shell=True).communicate()
 
     if os.path.exists(os.path.join(path, binary)):
         return True
@@ -60,6 +60,6 @@ def compile_all(prefix=None, src_dir="src"):
         print_result(result)
         # In line with the conda binary which is also called meme
         path = os.path.join(src_dir, "meme_4.6.0/src")
-        os.rename(os.path.join(path, "meme.bin"), os.path.join(path,"src/meme"))
+        os.rename(os.path.join(path, "meme.bin"), os.path.join(path,"meme"))
     
     return
