@@ -25,7 +25,7 @@ def motifs(args):
         if not bg in (cfg.FA_VALID_BGS + cfg.BED_VALID_BGS):
             print("Invalid value for background argument")
             sys.exit(1)
-        if "user" in bg and not args.user_background:
+        if "custom" in bg and not args.custom_background:
             print("Please specify a background file to use")
             sys.exit(1)
     
@@ -62,7 +62,7 @@ def motifs(args):
         "keep_intermediate": args.keep_intermediate,
         "max_time": args.max_time,
         "markov_model": args.markov_model,
-        "user_background": args.user_background,
+        "custom_background": args.custom_background,
         "torque": args.torque,
     }
     

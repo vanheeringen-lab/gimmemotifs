@@ -115,9 +115,9 @@ if __name__ == "__main__":
                        ",".join(BED_VALID_BGS), params["background"]), 
                    metavar="N", 
                    default=params["background"])
-    p.add_argument("-u", "--user_background", 
-                   dest="user_background", 
-                   help="User-specified, FASTA formatted  background file, use in combination with the '-b user' option", 
+    p.add_argument("-u", "--custom_background", 
+                   dest="custom_background", 
+                   help="Custom FASTA formatted  background file, use in combination with the '-b custom' option", 
                    metavar="FILE")
     p.add_argument("-l", "--localization_width", 
                    dest="lwidth", 
