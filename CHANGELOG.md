@@ -7,11 +7,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
-- The meme motif tools should now be recognized after install.
-- If the inputfile of gimme motifs is not recognized, a clear error message is printed.
+- The MEME motif tools should now be recognized after install.
+- If the inputfile of `gimme motifs` is not recognized, a clear error message is printed.
 
 ### Changed
 
+- MEME is no longer included with GimmeMotifs. When installing via conda meme will be included. If GimmeMotifs is installed via pip, then MEME needs to be installed separately. 
 - Changed "user" background to "custom" background.
 
 ## [0.13.0] - 2018-11-19
