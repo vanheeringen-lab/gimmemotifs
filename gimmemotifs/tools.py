@@ -1578,7 +1578,7 @@ class ChIPMunk(MotifProgram):
                 ncpus, 
                 outfile
                 )
-            print("command: ", cmd)
+            #print("command: ", cmd)
             p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
             std = p.communicate()
             stdout = stdout + std[0].decode()
