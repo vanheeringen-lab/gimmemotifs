@@ -1954,7 +1954,7 @@ class Meme(MotifProgram):
 
     def __init__(self):
         self.name = "MEME"
-        self.cmd = "meme.bin"
+        self.cmd = "meme"
         self.use_width = True
     
     def _parse_params(self, params=None):
@@ -2085,7 +2085,7 @@ class MemeW(MotifProgram):
     
     def __init__(self):
         self.name = "MEMEW"
-        self.cmd = "meme.bin"
+        self.cmd = "meme"
         self.use_width = False
     
     def _parse_params(self, params=None):
