@@ -23,8 +23,6 @@ conda_build = os.environ.get("CONDA_BUILD")
 module1 = Extension('gimmemotifs.c_metrics', sources = ['gimmemotifs/c_metrics.c'])
 
 MOTIF_BINS = {
-    "MEME": ["src/meme_4.6.0/src/meme"],
-    "MEMEW": ["src/meme_4.6.0/src/meme"],
     "MDmodule": ["src/MDmodule/MDmodule"],
     "BioProspector": ["src/BioProspector/BioProspector"],
     "Posmo": ["src/posmo/posmo", "src/posmo/clusterwd"],

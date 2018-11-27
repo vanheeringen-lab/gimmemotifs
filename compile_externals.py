@@ -56,15 +56,5 @@ def compile_all(prefix=None, src_dir="src"):
     sys.stderr.flush()
     result = compile_simple("MDmodule", src_dir=src_dir)
     print_result(result)
-    
-    # We don't need to compile MEME for conda
-    if not conda_build:
-        sys.stderr.write("compiling MEME")
-        sys.stderr.flush()
-        result = compile_configmake("meme_4.6.0", "src/meme.bin", src_dir=src_dir)
-        print_result(result)
-        # In line with the conda binary which is also called meme
-        path = os.path.join(src_dir, "meme_4.6.0/src")
-        os.rename(os.path.join(path, "meme.bin"), os.path.join(path,"meme"))
-    
+   
     return

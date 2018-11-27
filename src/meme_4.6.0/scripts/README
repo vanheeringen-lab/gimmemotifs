@@ -1,3 +1,0 @@
-Any changes should be applied to *.in files where avaliable. 
-These files serve as templates for the final files that get 
-created with "make" command
