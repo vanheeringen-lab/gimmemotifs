@@ -26,8 +26,13 @@ def compile_configmake(name, binary, configure=True, src_dir="src"):
     
     if configure:
         Popen(["chmod", "+x", "./configure"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
-        Popen(["./configure"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
-    Popen(["make -j 4"], cwd=path, stdout=PIPE, stderr=PIPE, shell=True).communicate()
+        stdout, stderr = Popen(["./configure"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
+        print(stdout)
+        print(stderr)
+
+    stdout, stderr = Popen(["make -j 4"], cwd=path, stdout=PIPE, stderr=PIPE, shell=True).communicate()
+    print(stdout)
+    print(stderr)
 
     if os.path.exists(os.path.join(path, binary)):
         return True
