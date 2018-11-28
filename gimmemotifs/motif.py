@@ -68,6 +68,7 @@ class Motif(object):
             self.pwm = []
             self.pfm = []
         
+        self.wiggled_pwm = None
         self.factors = {DIRECT_NAME:[], INDIRECT_NAME:[]}
         self.seqs = []
         self.consensus = ""
@@ -377,6 +378,7 @@ class Motif(object):
         self.consensus = None 
         self.min_score = None
         self.max_score = None
+        self.wiggled_pwm = None
         
         return self
 
@@ -1065,6 +1067,14 @@ class Motif(object):
         m = Motif(pfm=random_pfm)
         m.id = "random"
         return m
+
+    def wiggle_pwm(self):
+        if self.wiggled_pwm is None:
+            self.wiggled_pwm = [np.array(row) + (np.random.random(4) / 1e6) for row in self.pwm]
+            self.wiggled_pwm = [list(row / np.sum(row)) for row in self.wiggled_pwm]
+        
+        return self.wiggled_pwm
+        
 
 def default_motifs():
     """Return list of Motif instances from default motif database."""

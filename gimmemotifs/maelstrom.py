@@ -1,8 +1,16 @@
-# Copyright (c) 2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2016-2018 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
+"""Class implementing the maelstrom method (Bruse & van Heeringen, 2018)
+
+Examples
+--------
+
+run_maelstrom(input, "hg38", outdir)
+mr = MaelstromResult(outdir)
+"""
 import glob
 import os
 import re
@@ -41,7 +49,34 @@ FPR = 0.01
 
 logger = logging.getLogger("gimme.maelstrom")
 
-def scan_to_table(input_table, genome, data_dir, scoring, pwmfile=None, ncpus=None):
+def scan_to_table(input_table, genome, scoring, pwmfile=None, ncpus=None):
+    """Scan regions in input table with motifs.
+
+    Parameters
+    ----------
+    input_table : str
+        Filename of input table. Can be either a text-separated tab file or a
+        feather file.
+    
+    genome : str
+        Genome name. Can be either the name of a FASTA-formatted file or a 
+        genomepy genome name.
+    
+    scoring : str
+        "count" or "score"
+    
+    pwmfile : str, optional
+        Specify a PFM file for scanning.
+    
+    ncpus : int, optional
+        If defined this specifies the number of cores to use.
+    
+    Returns
+    -------
+    table : pandas.DataFrame
+        DataFrame with motif ids as column names and regions as index. Values
+        are either counts or scores depending on the 'scoring' parameter.s
+    """
     config = MotifConfig()
     
     if pwmfile is None:
@@ -214,6 +249,44 @@ def df_rank_aggregation(df, dfs, exps):
 
 def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=False, 
         score_table=None, count_table=None, methods=None, ncpus=None):
+    """Run maelstrom on an input table.
+    
+    Parameters
+    ----------
+    infile : str
+        Filename of input table. Can be either a text-separated tab file or a
+        feather file.
+    
+    genome : str
+        Genome name. Can be either the name of a FASTA-formatted file or a 
+        genomepy genome name.
+    
+    outdir : str
+        Output directory for all results.
+
+    pwmfile : str, optional
+        Specify a PFM file for scanning.
+
+    plot : bool, optional
+        Create heatmaps.
+    
+    cluster : bool, optional
+        If True and if the input table has more than one column, the data is
+        clustered and the cluster activity methods are also run. Not 
+        well-tested.
+    
+    score_table : str, optional
+        Filename of pre-calculated table with motif scores.
+
+    count_table : str, optional
+        Filename of pre-calculated table with motif counts.
+
+    methods : list, optional
+        Activity methods to use. By default are all used.
+
+    ncpus : int, optional
+        If defined this specifies the number of cores to use.
+    """
     logger.info("Starting maelstrom")
     if infile.endswith("feather"):
         df = pd.read_feather(infile)
@@ -248,7 +321,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=False
         count_table = os.path.join(outdir, "motif.count.txt.gz")
         if not os.path.exists(count_table):
             logger.info("Motif scanning (counts)")
-            counts = scan_to_table(infile, genome, outdir, "count",
+            counts = scan_to_table(infile, genome, "count",
                 pwmfile=pwmfile, ncpus=ncpus)
             counts.to_csv(count_table, sep="\t", compression="gzip")
         else:
@@ -259,7 +332,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=False
         score_table = os.path.join(outdir, "motif.score.txt.gz")
         if not os.path.exists(score_table):
             logger.info("Motif scanning (scores)")
-            scores = scan_to_table(infile, genome, outdir, "score",
+            scores = scan_to_table(infile, genome, "score",
                 pwmfile=pwmfile, ncpus=ncpus)
             scores.to_csv(score_table, sep="\t", float_format="%.3f", 
                 compression="gzip")

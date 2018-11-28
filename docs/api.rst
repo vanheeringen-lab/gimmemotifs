@@ -533,7 +533,6 @@ The Motif class
 .. automodule:: gimmemotifs.motif
    :members:
 
-
 Prediction of de novo motifs
 ----------------------------
 
@@ -546,6 +545,12 @@ Motif scanning
 .. automodule:: gimmemotifs.scanner
    :members:
 
+Maelstrom
+---------
+
+.. automodule:: gimmemotifs.maelstrom
+   :members:
+
 Motif activity prediction
 -------------------------
 
@@ -556,4 +561,10 @@ Motif statistics
 ----------------
 
 .. automodule:: gimmemotifs.stats
+   :members: 
+
+Motif comparison
+----------------
+
+.. automodule:: gimmemotifs.comparison
    :members: 
