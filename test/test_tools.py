@@ -61,6 +61,9 @@ class TestMotifProgram(unittest.TestCase):
             print("Testing {}...".format(t))
             
             (motifs, stderr, stdout) =  t.run(self.fa, params)
+            print(motifs)
+            print(stderr)
+            print(stdout)
             self.assertTrue(self.ap1_included(motifs))
 
     def tearDown(self):
