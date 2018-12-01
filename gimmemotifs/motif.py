@@ -1227,6 +1227,9 @@ def _read_motifs_from_filehandle(handle, fmt):
                     motif.factors[DIRECT_NAME] = m2f_direct[motif.id]
                 if motif.id in m2f_indirect:
                     motif.factors[INDIRECT_NAME] = m2f_indirect[motif.id]
+        for motif in motifs:
+            for n in [DIRECT_NAME, INDIRECT_NAME]:
+                motif.factors[n] = list(set(motif.factors[n]))
     return motifs
 
 
