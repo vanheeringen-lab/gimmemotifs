@@ -2043,13 +2043,13 @@ class Meme(MotifProgram):
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
 
-        p = re.compile('BL   MOTIF (\d+) width=(\d+) seqs=(\d+)')
-        pa = re.compile('\)\s+(\w+)')
+        p = re.compile('MOTIF.+MEME-(\d+)\s*width\s*=\s*(\d+)\s+sites\s*=\s*(\d+)')
+        pa = re.compile('\)\s+([A-Z]+)')
         line = fo.readline()
         while line:
             m = p.search(line)
             align = []
-            pfm = []    
+            pfm = None  
             if m:
                 id = "%s_%s_w%s" % (self.name, m.group(1), m.group(2))
                 while not line.startswith("//"):
