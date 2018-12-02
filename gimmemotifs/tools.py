@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2018 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -41,7 +41,7 @@ def get_tool(name):
 
     Returns
     -------
-    tools : MotifProgram instance
+    tool : MotifProgram instance
     """
     tool = name.lower()
     if tool not in __tools__:
@@ -2014,7 +2014,7 @@ class Meme(MotifProgram):
         if not default_params["single"]:
             cmd.append(strand)
         
-        #sys.stderr.write(" ".join(cmd) + "\n")
+        sys.stderr.write(" ".join(cmd) + "\n")
         p = Popen(cmd, bufsize=1, stderr=PIPE, stdout=PIPE) 
         stdout,stderr = p.communicate()
 
@@ -2051,10 +2051,12 @@ class Meme(MotifProgram):
             align = []
             pfm = None  
             if m:
+                print(m.group(0))
                 id = "%s_%s_w%s" % (self.name, m.group(1), m.group(2))
                 while not line.startswith("//"):
                     ma = pa.search(line)
                     if ma:
+                        print(ma.group(0))
                         l = ma.group(1)
                         align.append(l)
                         if not pfm:
