@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 - MEME is no longer included with GimmeMotifs. When installing via conda meme will be included. If GimmeMotifs is installed via pip, then MEME needs to be installed separately. 
 - Changed "user" background to "custom" background.
+- Updated Posmo to run with a wider variety of settings.
 
 ## [0.13.0] - 2018-11-19
 
