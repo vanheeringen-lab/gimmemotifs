@@ -18,12 +18,14 @@ class TestMotifProgram(unittest.TestCase):
         return os.path.exists(bin) and os.access(bin, os.X_OK)
     
     def ap1_included(self, motifs):
+        #if len(motifs) == 0:
+        #    return False
         ap1 = motif_from_consensus("TGASTCA")
         mc = MotifComparer()
-        for motif in motifs:
-            match = mc.get_closest_match(ap1, motif)
-            if match["TGASTCA"][1][3] < 1e-6:
-                return True
+        match = mc.get_closest_match(ap1, motifs, metric="seqcor")
+        print(match)
+        if match["TGASTCA"][1][0] >= 0.8:
+            return True
         return False
 
     def test_tools(self):
