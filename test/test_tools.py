@@ -43,6 +43,7 @@ class TestMotifProgram(unittest.TestCase):
                     "xxmotif", # takes too long
                     "trawler", # unpredictable, sometimes doesn't find the motif
                     "weeder", # doesn't work at the moment
+                    "posmo", # motif doesn't predictably look like AP1
                     ]:
                 continue
            
@@ -53,9 +54,6 @@ class TestMotifProgram(unittest.TestCase):
                     "hms",
                     "improbizer",
                     "motifsampler",
-                    "posmo",
-                    #"meme", # until the bioconda package is fixed
-                    #"memew", # until the bioconda package is fixed
                     ]:
                     continue
 
