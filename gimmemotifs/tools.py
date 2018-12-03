@@ -1644,7 +1644,7 @@ class Posmo(MotifProgram):
     def __init__(self):
         self.name = "Posmo"
         self.cmd = "posmo"
-        self.use_width = False
+        self.use_width = True
     
     def _parse_params(self, params=None):
         """
@@ -1692,6 +1692,7 @@ class Posmo(MotifProgram):
         if params is not None: 
             default_params.update(params)
         
+        width = params.get("width", 8)
         basename = "posmo_in.fa"
 
         new_file = os.path.join(self.tmpdir, basename)
@@ -1703,9 +1704,10 @@ class Posmo(MotifProgram):
         motifs = []
         current_path = os.getcwd()
         os.chdir(self.tmpdir)    
-        for x in ["111111", "11111111"]:
+        for n_ones in range(4, min(width, 11), 2):
+            x = "1" * n_ones
             outfile = "%s.%s.out" % (fastafile, x)
-            cmd = "%s 5000 %s %s 1.6 2.5 20 200" % (bin, x, fastafile)
+            cmd = "%s 5000 %s %s 1.6 2.5 %s 200" % (bin, x, fastafile, width)
             p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
             stdout, stderr = p.communicate()
             stdout = stdout.decode()
@@ -1720,13 +1722,13 @@ class Posmo(MotifProgram):
         
             if os.path.exists(outfile):
                 with open(outfile) as f:
-                    motifs += self.parse(f)
+                    motifs += self.parse(f, width, n_ones)
         
         os.chdir(current_path)
         
         return motifs, stdout, stderr
 
-    def parse(self, fo):
+    def parse(self, fo, width, seed=None):
         """
         Convert Posmo output to motifs
         
@@ -1747,12 +1749,16 @@ class Posmo(MotifProgram):
             matrix = [[float(x) for x in line.strip().split("\t")] for line in lines[2:]]
             matrix = [[matrix[x][y] for x in range(4)] for y in range(len(matrix[0]))]
             m = Motif(matrix)
+            m.trim(0.1)
             m.id = lines[0].strip().split(" ")[-1]
             motifs.append(m)
             lines = [fo.readline() for x in range(6)]
         
         for i,motif in enumerate(motifs):
-            motif.id = "%s_%s" % (self.name, i + 1)
+            if seed:
+                motif.id = "%s_w%s.%s_%s" % (self.name, width, seed, i + 1)
+            else:
+                motif.id = "%s_w%s_%s" % (self.name, width, i + 1)
             motif.trim(0.25)
         
         return motifs
