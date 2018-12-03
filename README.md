@@ -2,7 +2,7 @@
 
 [![bioconda-badge](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io)
 [![PyPI version](https://badge.fury.io/py/gimmemotifs.svg)](https://badge.fury.io/py/gimmemotifs)
-[![Build Status](https://travis-ci.org/simonvh/gimmemotifs.svg?branch=master)](https://travis-ci.org/simonvh/gimmemotifs)
+[![Build Status](https://travis-ci.org/vanheeringen-lab/gimmemotifs.svg?branch=master)](https://travis-ci.org/vanheeringen-lab/gimmemotifs)
 [![Code Health](https://landscape.io/github/simonvh/gimmemotifs/master/landscape.svg?style=flat)](https://landscape.io/github/simonvh/gimmemotifs/master)
 [![Documentation Status](https://readthedocs.org/projects/gimmemotifs/badge/?version=master)](http://gimmemotifs.readthedocs.io/en/master/?badge=master)
 
@@ -13,6 +13,21 @@ Suite of motif tools, including a motif prediction pipeline for ChIP-seq experim
 See [full GimmeMotifs documentation](http://gimmemotifs.readthedocs.org/) for detailed installation instructions and usage examples.
 
 For documentation on the development version see [here](http://gimmemotifs.readthedocs.org/en/latest/).
+
+The manuscript describing this latest release is available on [biorRxiv](https://doi.org/10.1101/474403) as a preprint and can be cited as:
+
+> [**GimmeMotifs: an analysis framework for transcription factor motif analysis**](https://doi.org/10.1101/474403) <br>
+Niklas Bruse, Simon J. van Heeringen<br>
+_bioRxiv_ (2018) DOI: [10.1101/474403](https://doi.org/10.1101/474403)
+
+
+## We need your help!
+
+GimmeMotifs was originally developed for our own needs but we would really like it to be useful to the wider community. However, this also depends on your input. Let us know what you think! What features are missing? Which tutorial would you like to see? What part of the documentation is unclear? Have great ideas for future developments? Maybe you even want to join in developing this software?
+
+[Let us know!](https://github.com/simonvh/gimmemotifs/issues/)
+
+
 
 ## Easy installation
 
@@ -36,8 +51,8 @@ $ conda create -n gimme python=3 gimmemotifs
 $ conda activate gimme
 ```
 
-Python 3 is the preferred version, however, GimmeMotifs also supports Python 2. 
-Don't forget to activate the environment with `source activate gimme` whenever you want to use GimmeMotifs.
+Python 3 is the required, from version 0.13.0 on GimmeMotifs no longer supports Python 2. 
+Don't forget to activate the environment with `conda activate gimme` whenever you want to use GimmeMotifs.
 
 ## Quick start
 

@@ -72,7 +72,7 @@ copyright = u'2018, Simon van Heeringen, licensed under CC BY 4.0'
 # The short X.Y version.
 sys.path.append("../")
 from gimmemotifs import __version__
-version = __version__
+version = __version__.split("+")[0]
 # The full version, including alpha/beta/rc tags.
 release = __version__
 
