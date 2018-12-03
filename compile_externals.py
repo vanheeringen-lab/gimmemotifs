@@ -26,8 +26,13 @@ def compile_configmake(name, binary, configure=True, src_dir="src"):
     
     if configure:
         Popen(["chmod", "+x", "./configure"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
-        Popen(["./configure"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
-    Popen(["make"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
+        stdout, stderr = Popen(["./configure"], cwd=path, stdout=PIPE, stderr=PIPE).communicate()
+        print(stdout)
+        print(stderr)
+
+    stdout, stderr = Popen(["make -j 4"], cwd=path, stdout=PIPE, stderr=PIPE, shell=True).communicate()
+    print(stdout)
+    print(stderr)
 
     if os.path.exists(os.path.join(path, binary)):
         return True
@@ -51,12 +56,5 @@ def compile_all(prefix=None, src_dir="src"):
     sys.stderr.flush()
     result = compile_simple("MDmodule", src_dir=src_dir)
     print_result(result)
-    
-    # We don't need to compile MEME for conda
-    if not conda_build:
-       sys.stderr.write("compiling MEME")
-       sys.stderr.flush()
-       result = compile_configmake("meme_4.6.0", "src/meme.bin", src_dir=src_dir)
-       print_result(result)
-    
+   
     return

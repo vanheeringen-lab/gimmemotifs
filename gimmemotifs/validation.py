@@ -55,7 +55,12 @@ def check_denovo_input(inputfile, params):
             Genome(genome)
         # is it a valid bed-file etc.
         check_bed_file(inputfile)    # bed-specific, will also work for narrowPeak
-    
+    else:
+        sys.stderr.write("Format of inputfile {} not recognized.\n".format(inputfile))
+        sys.stderr.write("Input should be FASTA, BED or narrowPeak.\n")
+        sys.stderr.write("See https://genome.ucsc.edu/FAQ/FAQformat.html for specifications.\n")
+        sys.exit(1)
+
     for bg in background:
         if not bg in valid_bg:
             logger.info("Input type is %s, ignoring background type '%s'", 

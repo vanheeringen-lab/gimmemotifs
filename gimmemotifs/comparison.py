@@ -1,9 +1,8 @@
-# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2018 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-
 """ 
 Module to compare DNA sequence motifs (positional frequency matrices)
 """
@@ -147,7 +146,6 @@ RCDB = (
 
 # Function that can be parallelized
 def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
-    
     try:
         scores = {}
         for m1 in motifs:
@@ -159,22 +157,61 @@ def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
         logging.exception("_get_all_scores failed")
 
 
-def akl(x,y):
-    """ Calculates the average Kullback-Leibler similarity
-    See Mahony,  2007
+def akl(p1, p2):
+    """Calculates motif position similarity based on average Kullback-Leibler similarity.
+    
+    See Mahony, 2007.
+   
+    Parameters
+    ----------
+    p1 : list
+        Motif position 1.
+    
+    p2 : list
+        Motif position 2.
+    
+    Returns
+    -------
+    score : float
     """
-    return 10 - (entropy(x,y) + entropy(y,x)) / 2.0
+    return 10 - (entropy(p1,p2) + entropy(p2,p1)) / 2.0
 
-def chisq(x,y):
-    return chi2_contingency([x, y])[1]
-
-def ssd(x,y):
-    """ Sum of squared distances 
+def chisq(p1, p2):
+    """Calculates motif position similarity based on chi-square.
+    
+    Parameters
+    ----------
+    p1 : list
+        Motif position 1.
+    
+    p2 : list
+        Motif position 2.
+    
+    Returns
+    -------
+    score : float
     """
-    return np.sum([(a-b)**2 for a,b in zip(x,y)] )
+    return chi2_contingency([p1, p2])[1]
+
+def ssd(p1, p2):
+    """Calculates motif position similarity based on sum of squared distances.
+    
+    Parameters
+    ----------
+    p1 : list
+        Motif position 1.
+    
+    p2 : list
+        Motif position 2.
+    
+    Returns
+    -------
+    score : float
+    """
+    return 2 - np.sum([(a-b)**2 for a,b in zip(p1,p2)])
 
 def seqcor(m1, m2, seq=None):
-    """ Calculates motif similary based on Pearson correlation of scores.
+    """Calculates motif similarity based on Pearson correlation of scores.
 
     Based on Kielbasa (2015) and Grau (2015).
     Scores are calculated based on scanning a de Bruijn sequence of 7-mers.
@@ -229,6 +266,37 @@ def seqcor(m1, m2, seq=None):
     return sorted(c, key=lambda x: x[0])[-1]
 
 class MotifComparer(object):
+    """Class for motif comparison.
+    
+    Compare two or more motifs using a variety of metrics. Probably the best
+    metric to compare motifs is seqcor. The implementation of this metric 
+    is similar to the one used in Grau (2015), where motifs are scored 
+    according to the Pearson correlation of the scores along sequence. In this
+    case a de Bruijn of k=7 is used.
+
+    Valid metrics are:
+    seqcor - Pearson correlation of motif scores along sequence.
+    pcc - Pearson correlation coefficient of motif PFMs.
+    ed - Euclidean distance-based similarity of motif PFMs.
+    distance - Distance-based similarity of motif PFMs.
+    wic - Weighted Information Content, see van Heeringen 2011.
+    chisq - Chi-squared similarity of motif PFMs.
+    akl - Similarity based on average Kullback-Leibler similarity, see Mahony, 2011.
+    ssd - Sum of squared distances of motif PFMs.
+    
+    Examples
+    --------
+    mc = MotifComparer()
+    
+    # Compare two motifs
+    score, pos, strand = mc.compare_motifs(m1, m2, metric="seqcor")
+
+    # Compare a list of motifs to another list of motifs
+    mc.get_all_scores(motifs, dbmotifs, match, metric, combine)
+
+    # Get the best match for every motif in a list of reference motifs
+    get_closest_match(motifs, dbmotifs=None)
+    """  
     def __init__(self):
         self.config = MotifConfig()
         self.metrics = ["pcc", "ed", "distance", "wic"]
@@ -252,13 +320,50 @@ class MotifComparer(object):
                                 self.scoredist[metric]["%s_%s" % (match, combine)].setdefault(int(l1), {})[int(l2)] = [float(m), float(sd)]
     
     def compare_motifs(self, m1, m2, match="total", metric="wic", combine="mean", pval=False):
+        """Compare two motifs.
+        
+        The similarity metric can be any of seqcor, pcc, ed, distance, wic, 
+        chisq, akl or ssd. If match is 'total' the similarity score is 
+        calculated for the whole match, including positions that are not 
+        present in both motifs. If match is partial or subtotal, only the
+        matching psotiions are used to calculate the score. The score of
+        individual position is combined using either the mean or the sum.
 
+        Note that the match and combine parameters have no effect on the seqcor
+        similarity metric.      
+
+        Parameters
+        ----------
+        m1 : Motif instance
+            Motif instance 1.
+
+        m2 : Motif instance
+            Motif instance 2.
+
+        match : str, optional
+            Match can be "partial", "subtotal" or "total". Not all metrics use 
+            this.
+
+        metric : str, optional
+            Distance metric.
+
+        combine : str, optional
+            Combine positional scores using "mean" or "sum". Not all metrics
+            use this.
+
+        pval : bool, optional
+            Calculate p-vale of match.
+        
+        Returns
+        -------
+        score, position, strand 
+        """
         if metric == "seqcor":
             return seqcor(m1, m2)
         elif match == "partial":
             if pval:
                 return self.pvalue(m1, m2, "total", metric, combine, self.max_partial(m1.pwm, m2.pwm, metric, combine))
-            elif metric in ["pcc", "ed", "distance", "wic", "chisq"]:
+            elif metric in ["pcc", "ed", "distance", "wic", "chisq", "ssd"]:
                 return self.max_partial(m1.pwm, m2.pwm, metric, combine)
             else:
                 return self.max_partial(m1.pfm, m2.pfm, metric, combine)
@@ -266,16 +371,16 @@ class MotifComparer(object):
         elif match == "total":
             if pval:
                 return self.pvalue(m1, m2, match, metric, combine, self.max_total(m1.pwm, m2.pwm, metric, combine))
-            elif metric == "pcc":
-                sys.stderr.write("Can't calculate PCC of columns with equal distribution!\n")
-                return None
-            elif metric in ["ed", "distance", "wic", "chisq"]:
+            elif metric in ["pcc", 'akl']:
+                # Slightly randomize the weight matrix
+                return self.max_total(m1.wiggle_pwm(), m2.wiggle_pwm(), metric, combine)
+            elif metric in ["ed", "distance", "wic", "chisq", "pcc", "ssd"]:
                 return self.max_total(m1.pwm, m2.pwm, metric, combine)
             else:
                 return self.max_total(m1.pfm, m2.pfm, metric, combine)
                 
         elif match == "subtotal":
-            if metric in ["pcc", "ed", "distance", "wic", "chisq"]:
+            if metric in ["pcc", "ed", "distance", "wic", "chisq", "ssd"]:
                 return self.max_subtotal(m1.pwm, m2.pwm, metric, combine)
             else:
                 return self.max_subtotal(m1.pfm, m2.pfm, metric, combine)
@@ -466,9 +571,47 @@ class MotifComparer(object):
             p2 = p2[:len(p1)]
         return p1,p2
 
-    def get_all_scores(self, motifs, dbmotifs, match, metric, combine, pval=False, parallel=True, trim=None, ncpus=None):
-    
-            
+    def get_all_scores(self, motifs, dbmotifs, match, metric, combine, 
+                            pval=False, parallel=True, trim=None, ncpus=None):
+        """Pairwise comparison of a set of motifs compared to reference motifs.
+
+        Parameters
+        ----------
+        motifs : list
+            List of Motif instances.
+
+        dbmotifs : list
+            List of Motif instances.
+
+        match : str
+            Match can be "partial", "subtotal" or "total". Not all metrics use 
+            this.
+
+        metric : str
+            Distance metric.
+
+        combine : str
+            Combine positional scores using "mean" or "sum". Not all metrics
+            use this.
+
+        pval : bool , optional
+            Calculate p-vale of match.
+        
+        parallel : bool , optional
+            Use multiprocessing for parallel execution. True by default.
+
+        trim : float or None
+            If a float value is specified, motifs are trimmed used this IC 
+            cutoff before comparison.
+
+        ncpus : int or None
+            Specifies the number of cores to use for parallel execution.
+
+        Returns
+        -------
+        scores : dict
+            Dictionary with scores.
+        """
         # trim motifs first, if specified
         if trim:
             for m in motifs:
@@ -477,7 +620,7 @@ class MotifComparer(object):
                 m.trim(trim)
         
         # hash of result scores
-        scores ={}
+        scores = {}
         
         if parallel:    
             # Divide the job into big chunks, to keep parallel overhead to minimum
@@ -521,11 +664,10 @@ class MotifComparer(object):
 
         Parameters
         ----------
-
         motifs : list or str
             Filename of motifs or list of motifs.
 
-        dbmotifs ; list or str, optional
+        dbmotifs : list or str, optional
             Database motifs, default will be used if not specified.
 
         match : str, optional
@@ -539,7 +681,6 @@ class MotifComparer(object):
 
         Returns
         -------
-
         closest_match : dict
         """
 

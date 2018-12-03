@@ -18,9 +18,9 @@ logger = logging.getLogger("gimme.config")
 
 ### CONSTANTS ###
 BG_TYPES = ["random", "genomic", "gc", "promoter"]
-FA_VALID_BGS = ["random", "promoter", "gc", "user", "genomic"]
-BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "user"]
-BG_RANK = {"user":1, "promoter":2, "gc":3, "random":4, "genomic":5}
+FA_VALID_BGS = ["random", "promoter", "gc", "custom", "genomic"]
+BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "custom"]
+BG_RANK = {"custom":1, "promoter":2, "gc":3, "random":4, "genomic":5}
 FASTA_EXT = [".fasta", ".fa", ".fsa"]
 DIRECT_NAME = "direct"
 INDIRECT_NAME = "indirect"

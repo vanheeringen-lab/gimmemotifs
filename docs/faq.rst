@@ -3,6 +3,30 @@
 FAQ
 ===
 
+Sorry, motif prediction tool [X] is not supported
+-------------------------------------------------
+
+If `gimme motifs` does not recognize a motif tools that should be installed, you can update the configuration file. This file is likely located at `~/.config/gimmemotifs/gimmemotifs.cfg`.
+
+Edit this file and update the following lines under the `[params]` section:
+
+::
+
+    available_tools = MDmodule,MEME,MEMEW,Weeder,GADEM,MotifSampler,Trawler,Improbizer,BioProspector,Posmo,ChIPMunk,AMD,HMS,Homer
+    tools = MDmodule,MEME,Weeder,MotifSampler,trawler,Improbizer,BioProspector,Posmo,ChIPMunk,AMD,Homer
+
+Add the tool that you want to the `available_tools` parameter. Keep in mind the exact upper-/lower-case combination that GimmeMotifs uses. By updating the `tools` parameter you can set the tools that `gimme motifs` uses by default. This can always be changed at the command-line. 
+
+In addition, you might also have to update the binary location. Either update this section if it exists or add it. For instance, to set this information for MEME:
+
+::
+
+    [MEME]
+    bin = /home/simon/anaconda2/envs/gimme/gimmemotifs/tools/meme.bin
+    dir = /home/simon/anaconda2/envs/gimme/gimmemotifs/tools
+
+The `dir` variable ususally doesn't matter and you can set it the same directory as where the binary is located.
+
 I get motifs that have differential scores in gimme maelstrom, however, the number is not different across clusters
 -------------------------------------------------------------------------------------------------------------------
 

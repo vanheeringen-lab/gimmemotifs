@@ -13,6 +13,7 @@ docs/_build/*
 data/examples/*
 !data/examples/*.bed
 !data/examples/*.fa
+!data/examples/example.pfm
 *.pyc
 dist/*
 website/**/*

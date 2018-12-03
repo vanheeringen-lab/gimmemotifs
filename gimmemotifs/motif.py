@@ -3,7 +3,7 @@
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
 # distribution.
-""" Core motif class """
+"""Module contain core motif functionality"""
 # Python imports
 import os
 import re
@@ -68,6 +68,7 @@ class Motif(object):
             self.pwm = []
             self.pfm = []
         
+        self.wiggled_pwm = None
         self.factors = {DIRECT_NAME:[], INDIRECT_NAME:[]}
         self.seqs = []
         self.consensus = ""
@@ -156,7 +157,7 @@ class Motif(object):
         Returns
         -------
         len : int
-            Motif length
+            Motif length.
         """
         return len(self.to_consensus())
 
@@ -164,14 +165,20 @@ class Motif(object):
         return "{}_{}".format(self.id, self.to_consensus())
 
     def information_content(self):
+        """Return the total information content of the motif.
+
+        Return
+        ------
+        ic : float
+            Motif information content.
+        """
         ic = 0
         for row in self.pwm:
             ic += 2.0 + np.sum([row[x] * log(row[x])/log(2) for x in range(4) if row[x] > 0])
         return ic
 
     def pwm_min_score(self):
-        """
-        Return the minimum PWM score.
+        """Return the minimum PWM score.
 
         Returns
         -------
@@ -187,8 +194,7 @@ class Motif(object):
         return self.min_score
    
     def pwm_max_score(self):
-        """
-        Return the maximum PWM score.
+        """Return the maximum PWM score.
 
         Returns
         -------
@@ -204,6 +210,18 @@ class Motif(object):
         return self.max_score
     
     def score_kmer(self, kmer):
+        """Calculate the log-odds score for a specific k-mer.
+
+        Parameters
+        ----------
+        kmer : str
+            String representing a kmer. Should be the same length as the motif.
+        
+        Returns
+        -------
+        score : float
+            Log-odd score.
+        """
         if len(kmer) != len(self.pwm):
             raise Exception("incorrect k-mer length")
         
@@ -215,11 +233,29 @@ class Motif(object):
         return score
 
     def pfm_to_pwm(self, pfm, pseudo=0.001):
+        """Convert PFM with counts to a PFM with fractions.
+
+        Parameters
+        ----------
+        pfm : list
+            2-dimensional list with counts.
+        pseudo : float
+            Pseudocount used in conversion.
+        
+        Returns
+        -------
+        pwm : list
+            2-dimensional list with fractions.
+        """
         return [[(x + pseudo)/(float(np.sum(row)) + pseudo * 4) for x in row] for row in pfm]
 
     def to_motevo(self):
-        """
-        Return motif formatted in MotEvo (TRANSFAC-like) format
+        """Return motif formatted in MotEvo (TRANSFAC-like) format
+        
+        Returns
+        -------
+        m : str
+            String of motif in MotEvo format.
         """
         m = "//\n"
         m += "NA {}\n".format(self.id)
@@ -230,6 +266,13 @@ class Motif(object):
         return m
 
     def to_transfac(self):
+        """Return motif formatted in TRANSFAC format
+        
+        Returns
+        -------
+        m : str
+            String of motif in TRANSFAC format.
+        """
         m = "%s\t%s\t%s\n" % ("DE", self.id, "unknown")
         for i, (row, cons) in enumerate(zip(self.pfm, self.to_consensus())):
             m += "%i\t%s\t%s\n" % (i, "\t".join([str(int(x)) for x in row]), cons)
@@ -237,6 +280,13 @@ class Motif(object):
         return m
 
     def to_meme(self):
+        """Return motif formatted in MEME format
+        
+        Returns
+        -------
+        m : str
+            String of motif in MEME format.
+        """
         motif_id = self.id.replace(" ", "_")
         m = "MOTIF %s\n" % motif_id
         m += "BL   MOTIF %s width=0 seqs=0\n"% motif_id
@@ -245,6 +295,13 @@ class Motif(object):
         return m
 
     def ic_pos(self, row1, row2=None):
+        """Calculate the information content of one position.
+
+        Returns
+        -------
+        score : float
+            Information content.
+        """
         if row2 is None:
             row2 = [0.25,0.25,0.25,0.25]
 
@@ -255,6 +312,14 @@ class Motif(object):
         return score
 
     def pcc_pos(self, row1, row2):
+        """Calculate the Pearson correlation coefficient of one position
+        compared to another position.
+
+        Returns
+        -------
+        score : float
+            Pearson correlation coefficient.
+        """
         mean1 = np.mean(row1)
         mean2 = np.mean(row2)
 
@@ -272,6 +337,13 @@ class Motif(object):
             return a / sqrt(x * y)
     
     def rc(self):
+        """Return the reverse complemented motif.
+
+        Returns
+        -------
+        m : Motif instance
+            New Motif instance with the reverse complement of the input motif.
+        """
         m = Motif()
         m.pfm = [row[::-1] for row in self.pfm[::-1]]
         m.pwm = [row[::-1] for row in self.pwm[::-1]]
@@ -279,6 +351,20 @@ class Motif(object):
         return m
 
     def trim(self, edge_ic_cutoff=0.4):
+        """Trim positions with an information content lower than the threshold.
+
+        The default threshold is set to 0.4. The Motif will be changed in-place.
+
+        Parameters
+        ----------
+        edge_ic_cutoff : float, optional
+            Information content threshold. All motif positions at the flanks 
+            with an information content lower thab this will be removed.
+
+        Returns
+        -------
+        m : Motif instance
+        """
         pwm = self.pwm[:]
         while len(pwm) > 0 and self.ic_pos(pwm[0]) < edge_ic_cutoff:
             pwm = pwm[1:]
@@ -292,10 +378,23 @@ class Motif(object):
         self.consensus = None 
         self.min_score = None
         self.max_score = None
+        self.wiggled_pwm = None
         
         return self
 
     def consensus_scan(self, fa):
+        """Scan FASTA with the motif as a consensus sequence.
+
+        Parameters
+        ----------
+        fa : Fasta object
+            Fasta object to scan
+        
+        Returns
+        -------
+        matches : dict
+            Dictionaru with matches.
+        """
         regexp = "".join(["[" + "".join(self.iupac[x.upper()]) + "]" for x in self.to_consensusv2()])
         p = re.compile(regexp)
         matches = {}
@@ -307,7 +406,33 @@ class Motif(object):
         return matches
 
     def pwm_scan(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
-        c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff        
+        """Scan sequences with this motif.
+
+        Scan sequences from a FASTA object with this motif. Less efficient 
+        than using a Scanner object. By setting the cutoff to 0.0 and 
+        nreport to 1, the best match for every sequence will be returned.
+        Only the position of the matches is returned.
+
+        Parameters
+        ----------
+        fa : Fasta object
+            Fasta object to scan.
+        cutoff : float , optional
+            Cutoff to use for motif scanning. This cutoff is not specifically
+            optimized and the strictness will vary a lot with motif lengh.
+        nreport : int , optional
+            Maximum number of matches to report.
+        scan_rc : bool , optional
+            Scan the reverse complement. True by default.
+        
+        Returns
+        -------
+        matches : dict
+            Dictionary with motif matches. Only the position of the matches is
+            returned.
+        """
+        c = self.pwm_min_score() + (
+            self.pwm_max_score() - self.pwm_min_score()) * cutoff        
         pwm = self.pwm
         matches = {}
         for name, seq in fa.items():
@@ -318,6 +443,31 @@ class Motif(object):
         return matches
     
     def pwm_scan_all(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
+        """Scan sequences with this motif.
+
+        Scan sequences from a FASTA object with this motif. Less efficient 
+        than using a Scanner object. By setting the cutoff to 0.0 and 
+        nreport to 1, the best match for every sequence will be returned.
+        The score, position and strand for every match is returned.
+
+        Parameters
+        ----------
+        fa : Fasta object
+            Fasta object to scan.
+        cutoff : float , optional
+            Cutoff to use for motif scanning. This cutoff is not specifically
+            optimized and the strictness will vary a lot with motif lengh.
+        nreport : int , optional
+            Maximum number of matches to report.
+        scan_rc : bool , optional
+            Scan the reverse complement. True by default.
+        
+        Returns
+        -------
+        matches : dict
+            Dictionary with motif matches. The score, position and strand for 
+            every match is returned.
+        """
         c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff        
         pwm = self.pwm
         matches = {}
@@ -329,6 +479,31 @@ class Motif(object):
         return matches
 
     def pwm_scan_score(self, fa, cutoff=0, nreport=1, scan_rc=True):
+        """Scan sequences with this motif.
+
+        Scan sequences from a FASTA object with this motif. Less efficient 
+        than using a Scanner object. By setting the cutoff to 0.0 and 
+        nreport to 1, the best match for every sequence will be returned.
+        Only the score of the matches is returned.
+
+        Parameters
+        ----------
+        fa : Fasta object
+            Fasta object to scan.
+        cutoff : float , optional
+            Cutoff to use for motif scanning. This cutoff is not specifically
+            optimized and the strictness will vary a lot with motif lengh.
+        nreport : int , optional
+            Maximum number of matches to report.
+        scan_rc : bool , optional
+            Scan the reverse complement. True by default.
+        
+        Returns
+        -------
+        matches : dict
+            Dictionary with motif matches. Only the score of the matches is
+            returned.
+        """
         c = self.pwm_min_score() + (self.pwm_max_score() - self.pwm_min_score()) * cutoff        
         pwm = self.pwm
         matches = {}
@@ -340,6 +515,29 @@ class Motif(object):
         return matches
             
     def pwm_scan_to_gff(self, fa, gfffile, cutoff=0.9, nreport=50, scan_rc=True, append=False):
+        """Scan sequences with this motif and save to a GFF file.
+
+        Scan sequences from a FASTA object with this motif. Less efficient 
+        than using a Scanner object. By setting the cutoff to 0.0 and 
+        nreport to 1, the best match for every sequence will be returned.
+        The output is save to a file in GFF format.
+
+        Parameters
+        ----------
+        fa : Fasta object
+            Fasta object to scan.
+        gfffile : str
+            Filename of GFF output file.
+        cutoff : float , optional
+            Cutoff to use for motif scanning. This cutoff is not specifically
+            optimized and the strictness will vary a lot with motif lengh.
+        nreport : int , optional
+            Maximum number of matches to report.
+        scan_rc : bool , optional
+            Scan the reverse complement. True by default.
+        append : bool , optional
+            Append to GFF file instead of overwriting it. False by default.
+        """
         if append:
             out = open(gfffile, "a")
         else:    
@@ -366,6 +564,38 @@ class Motif(object):
         out.close()
 
     def average_motifs(self, other, pos, orientation, include_bg=False):
+        """Return the average of two motifs.
+
+        Combine this motif with another motif and return the average as a new
+        Motif object. The position and orientatien need to be supplied. The pos
+        parameter is the position of the second motif relative to this motif.
+        
+        For example, take the following two motifs:
+        Motif 1: CATGYT
+        Motif 2: GGCTTGY
+
+        With position -2, the motifs are averaged as follows:
+        xxCATGYT
+        GGCTTGYx
+
+        Parameters
+        ----------
+        other : Motif object
+            Other Motif object.
+        pos : int
+            Position of the second motif relative to this motif.
+        orientation : int
+            Orientation, should be 1 or -1. If the orientation is -1 then the 
+            reverse complement of the other motif is used for averaging.
+        include_bg : bool , optional
+            Extend both motifs with background frequencies (0.25) before
+            averaging. False by default.
+        
+        Returns
+        -------
+        motif : motif object
+            New Motif object containing average motif.
+        """
         # xxCATGYT
         # GGCTTGYx
         # pos = -2
@@ -697,6 +927,8 @@ class Motif(object):
     def hash(self):
         """Return hash of motif.
 
+        This is an unique identifier of a motif, regardless of the id.
+
         Returns:
         hash : str
         """
@@ -731,8 +963,27 @@ class Motif(object):
                 self._pwm_to_str(precision)
             )
 
-    def to_img(self, fname, fmt="EPS", add_left=0, seqlogo=None, height=6):
-        """ Valid formats EPS, GIF, PDF, PNG """
+    def to_img(self, fname, fmt="PNG", add_left=0, seqlogo=None, height=6):
+        """Create a sequence logo using seqlogo.
+
+        Create a sequence logo and save it to a file. Valid formats are: PNG, 
+        EPS, GIF and PDF. 
+
+        Parameters
+        ----------
+        fname : str
+            Output filename.
+        fmt : str , optional
+            Output format (case-insensitive). Valid formats are PNG, EPS, GIF 
+            and PDF.
+        add_left : int , optional
+            Pad motif with empty positions on the left side.
+        seqlogo : str
+            Location of the seqlogo executable. By default the seqlogo version 
+            that is included with GimmeMotifs is used.
+        height : float
+            Height of the image
+        """
         if not seqlogo:
             seqlogo = self.seqlogo
         if not seqlogo:
@@ -792,6 +1043,15 @@ class Motif(object):
         #    os.unlink(f.name)
 
     def randomize(self):
+        """Create a new motif with shuffled positions.
+
+        Shuffle the positions of this motif and return a new Motif instance.
+
+        Returns
+        -------
+        m : Motif instance
+            Motif instance with shuffled positions.
+        """
         random_pfm = [[c for c in row] for row in self.pfm]
         random.shuffle(random_pfm)
         m = Motif(pfm=random_pfm)
@@ -807,6 +1067,14 @@ class Motif(object):
         m = Motif(pfm=random_pfm)
         m.id = "random"
         return m
+
+    def wiggle_pwm(self):
+        if self.wiggled_pwm is None:
+            self.wiggled_pwm = [np.array(row) + (np.random.random(4) / 1e6) for row in self.pwm]
+            self.wiggled_pwm = [list(row / np.sum(row)) for row in self.wiggled_pwm]
+        
+        return self.wiggled_pwm
+        
 
 def default_motifs():
     """Return list of Motif instances from default motif database."""
@@ -824,6 +1092,21 @@ def default_motifs():
     return motifs
 
 def motif_from_align(align):
+    """Convert alignment to motif.
+
+    Converts a list with sequences to a motif. Sequences should be the same 
+    length.
+
+    Parameters
+    ----------
+    align : list
+        List with sequences (A,C,G,T).
+    
+    Returns
+    -------
+    m : Motif instance
+        Motif created from the aligned sequences.
+    """
     width = len(align[0])
     nucs = {"A":0,"C":1,"G":2,"T":3}
     pfm =  [[0 for _ in range(4)] for _ in range(width)]
@@ -835,6 +1118,23 @@ def motif_from_align(align):
     return m
 
 def motif_from_consensus(cons, n=12):
+    """Convert consensus sequence to motif.
+
+    Converts a consensus sequences using the nucleotide IUPAC alphabet to a 
+    motif. 
+
+    Parameters
+    ----------
+    cons : str
+        Consensus sequence using the IUPAC alphabet.
+    n : int , optional
+        Count used to convert the sequence to a PFM.
+    
+    Returns
+    -------
+    m : Motif instance
+        Motif created from the consensus.
+    """
     width = len(cons)
     nucs = {"A":0,"C":1,"G":2,"T":3}
     pfm = [[0 for _ in range(4)] for _ in range(width)]
@@ -927,6 +1227,9 @@ def _read_motifs_from_filehandle(handle, fmt):
                     motif.factors[DIRECT_NAME] = m2f_direct[motif.id]
                 if motif.id in m2f_indirect:
                     motif.factors[INDIRECT_NAME] = m2f_indirect[motif.id]
+        for motif in motifs:
+            for n in [DIRECT_NAME, INDIRECT_NAME]:
+                motif.factors[n] = list(set(motif.factors[n]))
     return motifs
 
 

@@ -72,6 +72,8 @@ These are the prerequisites for a full GimmeMotifs installation.
 - R + RobustRankAggreg https://cran.r-project.org/web/packages/RobustRankAggreg/index.html
 - Perl + Algorithm::Cluster
 
+In addition many of the motif tools (such as MEME) will need to be installed separately. Instructions for doing so are not included here.
+
 Using pip
 +++++++++
 
@@ -82,11 +84,11 @@ Install with pip as follows:
 
     $ sudo pip install gimmemotifs
 
-Or the (unstable) develops branch with the newest bells, whistles and bugs:
+Or the (unstable) develop branch with the newest bells, whistles and bugs:
 
 ::
 
-    $ sudo pip install git+https://github.com/simonvh/gimmemotifs.git@develop
+    $ sudo pip install git+https://github.com/vanheeringen-lab/gimmemotifs.git@develop
 
 If you don't have root access, see the option below.
 

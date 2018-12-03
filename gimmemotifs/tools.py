@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2018 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -41,7 +41,7 @@ def get_tool(name):
 
     Returns
     -------
-    tools : MotifProgram instance
+    tool : MotifProgram instance
     """
     tool = name.lower()
     if tool not in __tools__:
@@ -1578,7 +1578,7 @@ class ChIPMunk(MotifProgram):
                 ncpus, 
                 outfile
                 )
-            print("command: ", cmd)
+            #print("command: ", cmd)
             p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
             std = p.communicate()
             stdout = stdout + std[0].decode()
@@ -1644,7 +1644,7 @@ class Posmo(MotifProgram):
     def __init__(self):
         self.name = "Posmo"
         self.cmd = "posmo"
-        self.use_width = False
+        self.use_width = True
     
     def _parse_params(self, params=None):
         """
@@ -1692,6 +1692,7 @@ class Posmo(MotifProgram):
         if params is not None: 
             default_params.update(params)
         
+        width = params.get("width", 8)
         basename = "posmo_in.fa"
 
         new_file = os.path.join(self.tmpdir, basename)
@@ -1703,9 +1704,10 @@ class Posmo(MotifProgram):
         motifs = []
         current_path = os.getcwd()
         os.chdir(self.tmpdir)    
-        for x in ["111111", "11111111"]:
+        for n_ones in range(4, min(width, 11), 2):
+            x = "1" * n_ones
             outfile = "%s.%s.out" % (fastafile, x)
-            cmd = "%s 5000 %s %s 1.6 2.5 20 200" % (bin, x, fastafile)
+            cmd = "%s 5000 %s %s 1.6 2.5 %s 200" % (bin, x, fastafile, width)
             p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE) 
             stdout, stderr = p.communicate()
             stdout = stdout.decode()
@@ -1720,13 +1722,13 @@ class Posmo(MotifProgram):
         
             if os.path.exists(outfile):
                 with open(outfile) as f:
-                    motifs += self.parse(f)
+                    motifs += self.parse(f, width, n_ones)
         
         os.chdir(current_path)
         
         return motifs, stdout, stderr
 
-    def parse(self, fo):
+    def parse(self, fo, width, seed=None):
         """
         Convert Posmo output to motifs
         
@@ -1747,12 +1749,16 @@ class Posmo(MotifProgram):
             matrix = [[float(x) for x in line.strip().split("\t")] for line in lines[2:]]
             matrix = [[matrix[x][y] for x in range(4)] for y in range(len(matrix[0]))]
             m = Motif(matrix)
+            m.trim(0.1)
             m.id = lines[0].strip().split(" ")[-1]
             motifs.append(m)
             lines = [fo.readline() for x in range(6)]
         
         for i,motif in enumerate(motifs):
-            motif.id = "%s_%s" % (self.name, i + 1)
+            if seed:
+                motif.id = "%s_w%s.%s_%s" % (self.name, width, seed, i + 1)
+            else:
+                motif.id = "%s_w%s_%s" % (self.name, width, i + 1)
             motif.trim(0.25)
         
         return motifs
@@ -1954,7 +1960,7 @@ class Meme(MotifProgram):
 
     def __init__(self):
         self.name = "MEME"
-        self.cmd = "meme.bin"
+        self.cmd = "meme"
         self.use_width = True
     
     def _parse_params(self, params=None):
@@ -2043,18 +2049,20 @@ class Meme(MotifProgram):
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
 
-        p = re.compile('BL   MOTIF (\d+) width=(\d+) seqs=(\d+)')
-        pa = re.compile('\)\s+(\w+)')
+        p = re.compile('MOTIF.+MEME-(\d+)\s*width\s*=\s*(\d+)\s+sites\s*=\s*(\d+)')
+        pa = re.compile('\)\s+([A-Z]+)')
         line = fo.readline()
         while line:
             m = p.search(line)
             align = []
-            pfm = []    
+            pfm = None  
             if m:
+                #print(m.group(0))
                 id = "%s_%s_w%s" % (self.name, m.group(1), m.group(2))
                 while not line.startswith("//"):
                     ma = pa.search(line)
                     if ma:
+                        #print(ma.group(0))
                         l = ma.group(1)
                         align.append(l)
                         if not pfm:
@@ -2085,7 +2093,7 @@ class MemeW(MotifProgram):
     
     def __init__(self):
         self.name = "MEMEW"
-        self.cmd = "meme.bin"
+        self.cmd = "meme"
         self.use_width = False
     
     def _parse_params(self, params=None):
@@ -2102,6 +2110,7 @@ class MemeW(MotifProgram):
         prm["background"] =  os.path.abspath(prm["background"])
         
         return prm 
+
 
     def _run_program(self, bin, fastafile, params=None):
         """
@@ -2173,18 +2182,20 @@ class MemeW(MotifProgram):
         motifs = []
         nucs = {"A":0,"C":1,"G":2,"T":3}
 
-        p = re.compile('BL   MOTIF (\d+) width=(\d+) seqs=(\d+)')
-        pa = re.compile('\)\s+(\w+)')
+        p = re.compile('MOTIF.+MEME-(\d+)\s*width\s*=\s*(\d+)\s+sites\s*=\s*(\d+)')
+        pa = re.compile('\)\s+([A-Z]+)')
         line = fo.readline()
         while line:
             m = p.search(line)
             align = []
-            pfm = []    
+            pfm = None  
             if m:
+                #print(m.group(0))
                 id = "%s_%s_w%s" % (self.name, m.group(1), m.group(2))
                 while not line.startswith("//"):
                     ma = pa.search(line)
                     if ma:
+                        #print(ma.group(0))
                         l = ma.group(1)
                         align.append(l)
                         if not pfm:

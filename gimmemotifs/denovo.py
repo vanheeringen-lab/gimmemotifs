@@ -1,9 +1,27 @@
-# Copyright (c) 2009-2017 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2018 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
-"""De novo motif prediction."""
+"""De novo motif prediction.
+
+This module contains functions to predict *de novo* motifs using one or more 
+*de novo* motif tools. The main function is `gimme_motifs`, which is likely
+the only method that you'll need from this module. 
+
+Examples
+--------
+from gimmemotifs.denovo import gimme_motifs
+
+peaks = "Gm12878.CTCF.top500.w200.fa"
+outdir = "CTCF.gimme"
+params = {
+    "tools": "Homer,BioProspector",
+    "genome": "hg38",
+    }
+
+motifs = gimme_motifs(peaks, outdir, params=params)
+"""
 import datetime
 import os
 import sys
@@ -164,7 +182,7 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
             "PLEASE NOTE: FASTA file contains sequences of different lengths. "
             "Positional preference plots might be incorrect!")
 
-def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_times=10, user_background=None):
+def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_times=10, custom_background=None):
     """Create background of a specific type.
 
     Parameters
@@ -228,24 +246,24 @@ def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_tim
                 genome, gene_file)
         f = PromoterFasta(gene_file, genome, width, nr_times * len(fg))
         logger.debug("Random promoter background: %s", outfile)
-    elif bg_type == "user":
-        bg_file = user_background
+    elif bg_type == "custom":
+        bg_file = custom_background
         if not bg_file:
             raise IOError(
                     "Background file not specified!")
 
         if not os.path.exists(bg_file):
             raise IOError(
-                    "User-specified background file %s does not exist!",
+                    "Custom background file %s does not exist!",
                     bg_file)
         else:
-            logger.info("Copying user-specified background file %s to %s.",
+            logger.info("Copying custom background file %s to %s.",
                     bg_file, outfile)
             f = Fasta(bg_file)
             l = np.median([len(seq) for seq in f.seqs])
             if l < (width * 0.95) or l > (width * 1.05):
                    logger.warn(
-                    "The user-specified background file %s contains sequences with a "
+                    "The custom background file %s contains sequences with a "
                     "median length of %s, while GimmeMotifs predicts motifs in sequences "
                     "of length %s. This will influence the statistics! It is recommended "
                     "to use background sequences of the same length.", 
@@ -254,7 +272,7 @@ def create_background(bg_type, fafile, outfile, genome="hg18", width=200, nr_tim
     f.writefasta(outfile)
     return len(f)
 
-def create_backgrounds(outdir, background=None, genome="hg38", width=200, user_background=None):
+def create_backgrounds(outdir, background=None, genome="hg38", width=200, custom_background=None):
     """Create different backgrounds for motif prediction and validation.
 
     Parameters
@@ -292,7 +310,7 @@ def create_backgrounds(outdir, background=None, genome="hg38", width=200, user_b
                     os.path.join(outdir, "prediction.bg.fa"), 
                     genome=genome, 
                     width=width,
-                    user_background=user_background)
+                    custom_background=custom_background)
 
     # Get background fasta files for statistics
     bg_info = {}
@@ -305,7 +323,7 @@ def create_backgrounds(outdir, background=None, genome="hg38", width=200, user_b
                                         fname, 
                                         genome=genome, 
                                         width=width,
-                                        user_background=user_background)
+                                        custom_background=custom_background)
 
         bg_info[bg] = fname
     return bg_info
@@ -546,7 +564,7 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
             background, 
             params.get("genome", None), 
             params["width"], 
-            params.get("user_background", None)
+            params.get("custom_background", None)
             )
     
     # Predict de novo motifs

@@ -5,6 +5,24 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Improved docstrings of several modules.
+- Added new API examples.
+
+### Fixed
+
+- The MEME motif tools should now be recognized after install.
+- Output of MEME 5.0.2 is now parsed correctly.
+- If the inputfile of `gimme motifs` is not recognized, a clear error message is printed.
+- Duplicate factors are removed from the motif factors list.
+
+### Changed
+
+- MEME is no longer included with GimmeMotifs. When installing via conda meme will be included. If GimmeMotifs is installed via pip, then MEME needs to be installed separately. 
+- Changed "user" background to "custom" background.
+- Updated Posmo to run with a wider variety of settings.
+
 ## [0.13.0] - 2018-11-19
 
 ### Added

@@ -411,9 +411,9 @@ class Scanner(object):
         
         if not genome:
             if self.genome:
+                genome = self.genome
                 logger.info("Using default background: genome {} with length {}".format(
                     genome, length))
-                genome = self.genome
             else:
                 raise ValueError("Need either genome or filename for background.")
         
