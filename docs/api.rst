@@ -11,6 +11,9 @@ API documentation
 Examples
 ========
 
+You can follow the interactive API example documentaion in a Jypyter notebook using mybinder: 
+.. image:: https://mybinder.org/badge_logo.svg :target: https://mybinder.org/v2/gh/vanheeringen-lab/gimmemotifs/develop?filepath=docs/api_examples.ipynb
+
 Working with motifs
 -------------------
 
