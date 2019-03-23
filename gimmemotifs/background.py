@@ -24,6 +24,7 @@ from random import choice
 
 # External imports
 import numpy as np
+import pandas as pd
 import pybedtools
 from genomepy import Genome
 
@@ -198,8 +199,9 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
     except Exception:
         try:
             # pylint: disable=unexpected-keyword-arg
+            fields = pd.read_csv(matchfile, comment="#", nrows=10, sep="\t").shape[1]
             bed = pybedtools.BedTool(matchfile)
-            gc = [float(x[4]) for x in bed.nucleotide_content(fi=genome_fa)]
+            gc = [float(x[fields + 1]) for x in bed.nucleotide_content(fi=genome_fa)]
             lengths = [x.length for x in bed]
         except:
             sys.stderr.write("Please provide input file in BED or FASTA format\n")
@@ -239,30 +241,41 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
         with open(genome_size, "w") as f:
             for seqname in g.keys():
                 f.write("{}\t{}\n".format(seqname, len(g[seqname])))
-   
-    # pylint: disable=unexpected-keyword-arg
-    r = rnd.random(l=length, n=number * 30, g=genome_size).nucleotide_content(fi=genome_fa)
-    if del_size:
-        os.unlink(genome_size)
-    
-    features = [f[:3] + [float(f[7])] for f in r if float(f[12]) <= length * N_FRACTION]
-    gc = [f[3] for f in features]
     
     #sys.stderr.write("Done\n")
+    features = []
+    gc = []
     for bin_start, bin_end, count in zip(bins[:-1], bins[1:], gc_hist):
         #sys.stderr.write("CG {}-{}\n".format(bin_start, bin_end))
         if count > 0:
             rcount = 0
-            for f in features:
-                if (f[3] >= bin_start and f[3] < bin_end):
-                    out.write("{}\t{}\t{}\n".format(*f[:3]))
-                    rcount += 1
-                    if rcount >= count:
-                        break
-
+            c = 0            
+            while count != rcount:
+                c += 1
+                if len(features) == 0 or c < 2:
+                    # pylint: disable=unexpected-keyword-arg
+                    n = number * (c ** 2 * 10)
+                    if n < 10000:
+                        n = 10000
+                    r = rnd.random(l=length, n=n, g=genome_size).nucleotide_content(fi=genome_fa)
+                    features += [f[:3] + [float(f[7])] for f in r if float(f[12]) <= length * N_FRACTION]
+                    gc += [f[3] for f in features]
+            
+                for f in features:
+                    if (f[3] >= bin_start and f[3] < bin_end):
+                        out.write("{}\t{}\t{}\n".format(*f[:3]))
+                        rcount += 1
+                        if rcount >= count:
+                            break
+            
             if count != rcount:
                 sys.stderr.write("not enough random sequences found for {} <= GC < {} ({} instead of {})\n".format(bin_start, bin_end, rcount, count))
     out.close()
+
+    if del_size:
+        os.unlink(genome_size)
+
+
 
 class MatchedGcFasta(Fasta):
     """ 
