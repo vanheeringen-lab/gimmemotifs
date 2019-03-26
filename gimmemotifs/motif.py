@@ -27,6 +27,7 @@ except ImportError:
     pass
 import xxhash
 import base64
+import matplotlib.pyplot as plt
 
 class Motif(object):
     
@@ -477,6 +478,115 @@ class Motif(object):
             for score,pos,strand in result:
                 matches[name].append((pos,score,strand))
         return matches
+
+    def plot_logo(self, fname=None, ic=True, title=True, letters=True, height=2):
+        """Plot motif logo.
+        
+        This is an implementation of the logo presented here:
+        http://www.ensembl.info/2018/10/15/new-ensembl-motif-features/
+        
+        Parameters
+        ----------
+        fname : str, optional
+            If fname is set, the plot will be saved with fname as filename.
+        ic : bool, optional
+            Use the bit score. If this is set to False, the frequency
+            will be used.
+        title : bool, optional
+            Plot the motif id as the title.
+        letters : bool, optional
+            Plot the nucleotides in the bars.
+        height : float, optional
+            Height of the plot.
+        """   
+        width = 0.94
+
+        pfm = self.pwm
+        nucs = np.array(["A", "C", "G", "T"])
+
+        neg_matrix = np.zeros((len(pfm), 4))
+        
+        pos_matrix = []
+        nuc_pfm = []
+        for row in pfm:
+            if ic:
+                ylabel = "bits"
+                ic_row = []
+                y_max = 2
+                for p in row:
+                    if p < 0.25:
+                        ic_row.append(0)
+                    else:
+                        ic_row.append(p * np.log2((p) / 0.25))
+
+            else:
+                ic_row = row
+                ylabel = "frequency"
+                y_max = 1
+            idx = np.argsort(ic_row)
+            pos_matrix.append(np.array(ic_row)[idx])
+            nuc_pfm.append(nucs[idx])
+
+        colors = {
+            "A": (0.308, 0.709, 0.280),
+            "C": (0.145,0.362, 0.6),
+            "G": (0.969, 0.702, 0.172),
+            "T": (0.841, 0.158, 0.224)
+        }
+        
+        #x_max = np.max([np.sum(row) for row in pos_matrix])
+        #x_min = -np.min([np.sum(row) for row in neg_matrix])
+        #neg_matrix = neg_matrix / x_min * x_max
+        
+        fig = plt.figure(figsize=(len(pfm) * 0.3, height))
+        for (sign, matrix) in [(1, pos_matrix), (-1, neg_matrix)]:
+            minbottom = np.zeros(len(matrix))
+            alpha = 1
+            if sign == -1:
+                minbottom = np.array([np.sum(row) for row in matrix])
+                alpha = 0.5
+
+            # Print the bars
+            for i in range(0, len(pfm[0])):
+
+                pheight = [abs(r[i]) for r in matrix]
+                bottom= minbottom + [sum(np.abs(r[:i])) for r in matrix]
+
+                c = [colors[r[i]] for r in nuc_pfm]
+                plt.bar(range(1, len(pfm) + 1), width=width, height=pheight, bottom=bottom, 
+                    color=c,
+                    alpha=alpha)
+
+            if letters:
+                # Print the letters
+                for i in range(len(pfm)):
+                    for n in range(4):
+                        x = i + 1
+                        y = matrix[i][n] / 2 + sum(matrix[i][:n])
+                        nuc = nuc_pfm[i][n]
+
+                        c = "white"
+                        if abs(matrix[i][n]) * height >= 0.5:
+                            plt.text(x, y, nuc_pfm[i][n], 
+                                horizontalalignment="center",
+                                verticalalignment="center",
+                                fontsize=8 + 10 * (matrix[i][n] / y_max),
+                                color= c,
+                    )
+
+        # Remove axis lines
+        ax = plt.gca()
+        for spine in ax.spines.values():
+            spine.set_color('none')
+            
+        if title:
+            plt.title(self.id)
+        plt.xlim(0.47, len(self) + 0.5)
+        plt.xticks(range(1, len(pfm) + 1))
+        plt.ylabel(ylabel)
+        
+        if fname:
+            plt.savefig(fname, dpi=300)
 
     def pwm_scan_score(self, fa, cutoff=0, nreport=1, scan_rc=True):
         """Scan sequences with this motif.

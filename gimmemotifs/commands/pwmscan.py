@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under 
 # the terms of the MIT License, see the file COPYING included with this 
@@ -70,11 +70,11 @@ def scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalu
                         fa.ids[i], 
                         "\t".join([str(x) for x in counts])
                         )
-def scan_score_table(s, fa, motifs, scan_rc, normalize=False):
+def scan_score_table(s, fa, motifs, scan_rc, normalize=False, gcnorm=False):
     
-    s.set_threshold(threshold=0.0)
+    s.set_threshold(threshold=0.0, gc=gcnorm)
     # get iterator
-    result_it = s.best_score(fa, scan_rc, normalize=normalize)
+    result_it = s.best_score(fa, scan_rc, normalize=normalize, gc=gcnorm)
     # header
     yield "\t{}".format("\t".join([m.id for m in motifs]))
     # score table
@@ -84,7 +84,7 @@ def scan_score_table(s, fa, motifs, scan_rc, normalize=False):
                     "\t".join(["{:4f}".format(x) for x in scores])
                     )
 
-def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods, bed, normalize):
+def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods, bed, normalize, gcnorm):
     
     table = False
     if moods:
@@ -95,7 +95,7 @@ def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pval
                     yield format_line(fa[seq_id], seq_id, motif,
                             score, pos, strand, bed=bed)
     else:
-        result_it = s.scan(fa, nreport, scan_rc, normalize)
+        result_it = s.scan(fa, nreport, scan_rc, normalize, gc=gcnorm)
         for i, result in enumerate(result_it):
             seq_id = fa.ids[i]
             seq = fa[seq_id]
@@ -107,7 +107,8 @@ def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pval
 
 def command_scan(inputfile, pwmfile, nreport=1, fpr=0.01, cutoff=None, 
         bed=False, scan_rc=True, table=False, score_table=False, moods=False, 
-        pvalue=None, bgfile=None, genome=None, ncpus=None, normalize=False):
+        pvalue=None, bgfile=None, genome=None, ncpus=None, normalize=False, 
+        gcnorm=False):
     motifs = read_motifs(pwmfile)
     
     fa = as_fasta(inputfile, genome)
@@ -119,7 +120,9 @@ def command_scan(inputfile, pwmfile, nreport=1, fpr=0.01, cutoff=None,
     if genome:
         s.set_genome(genome=genome)
 
-    if genome or bgfile:
+    if genome:
+        s.set_background(genome=genome, fname=bgfile, length=fa.median_length(), gc=gcnorm)
+    if bgfile:
         s.set_background(genome=genome, fname=bgfile, length=fa.median_length())
 
     if not score_table:
@@ -128,9 +131,11 @@ def command_scan(inputfile, pwmfile, nreport=1, fpr=0.01, cutoff=None,
     if table:
         it = scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods)
     elif score_table:
-        it = scan_score_table(s, fa, motifs, scan_rc, normalize=normalize) 
+        it = scan_score_table(s, fa, motifs, scan_rc, normalize=normalize, gcnorm=gcnorm) 
     else:
-        it = scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods, bed, normalize=normalize)
+        it = scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, 
+                            scan_rc, pvalue, moods, bed, normalize=normalize,
+                             gcnorm=gcnorm)
     
     for row in it:
         yield row
@@ -143,14 +148,20 @@ def pwmscan(args):
     print("# GimmeMotifs version {}".format(__version__))
     print("# Input: {}".format(args.inputfile))
     print("# Motifs: {}".format(args.pwmfile))
-    if args.fpr:
+    if args.fpr and not args.score_table:
         if args.genome:
             print("# FPR: {} ({})".format(args.fpr, args.genome))
         elif args.bgfile:
             print("# FPR: {} ({})".format(args.fpr, args.bgfile))
     if args.cutoff:
         print("# Threshold: {}".format(args.cutoff))
-
+    if args.zscore:
+        if args.gcnorm:
+            print("# Scoring: GC frequency normalized z-score")
+        else:
+            print("# Scoring: normalized z-score")
+    else:
+        print("# Scoring: logodds score")
 
     for line in command_scan(
             args.inputfile, 
@@ -168,5 +179,6 @@ def pwmscan(args):
             genome=args.genome,
             ncpus=args.ncpus,
             normalize=args.zscore,
+            gcnorm=args.gcnorm,
             ):
         print(line)
