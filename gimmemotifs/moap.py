@@ -582,7 +582,7 @@ class HypergeomMoap(Moap):
             testing using the Benjamini-Hochberg correction
         """
         self.act_ = None
-        self.act_description = ("activity values: BH-corrected "
+        self.act_description = ("activity values: -log10-transformed, BH-corrected "
                                 "hypergeometric p-values")
         self.pref_table = "count"
         self.supported_tables = ["count"]
