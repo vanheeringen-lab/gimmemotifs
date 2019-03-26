@@ -584,7 +584,7 @@ class Scanner(object):
         useq = seq.upper()
         gc = (useq.count("G") + useq.count("C")) / len(useq)
         for b_start,b_end in self.gc_bins:
-            if gc > b_start and gc <= b_end:
+            if gc >= b_start and gc <= b_end:
                 return "{:.2f}-{:.2f}".format(b_start, b_end)
 
     def scan(self, seqs, nreport=100, scan_rc=True, normalize=False, gc=False):
