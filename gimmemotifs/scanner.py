@@ -21,7 +21,7 @@ from diskcache import Cache
 import numpy as np
 from scipy.stats import scoreatpercentile
 
-from gimmemotifs.background import RandomGenomicFasta
+from gimmemotifs.background import RandomGenomicFasta, gc_bin_bedfile
 from gimmemotifs.config import MotifConfig,CACHE_DIR
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.c_metrics import pwmscan
@@ -261,6 +261,7 @@ class Scanner(object):
         self.genome = None
         self.background = None
         self.meanstd = {}
+        self.gc_bins = [(0,1)]
 
         if ncpus is None:
             self.ncpus = int(MotifConfig().get_default_params()["ncpus"])
@@ -348,34 +349,45 @@ class Scanner(object):
                 cutoff = (opt_score - min_score) / (motif.pwm_max_score() - min_score)
             yield motif, opt_score#cutoff
 
-
-    def set_meanstd(self):
-
+    def set_meanstd(self, gc=False):
         if not self.background:
-            self.set_background()
+            self.set_background(gc=gc)
 
         seqs = self.background.seqs
-
+        if gc:
+            seq_bins = [s.split(" ")[-1] for s in self.background.ids]
+        else:
+            seq_bins = ["0.00-1.00"] * len(seqs)
+        if gc:
+            bins = list(set(seq_bins))
+        else:
+            bins = ["0.00-1.00"]
+        
+        logger.info("Determining mean and stddev for motifs.") 
         motifs = read_motifs(self.motifs)
         with Cache(CACHE_DIR) as cache:
             scan_motifs = []
-            for motif in motifs:
-                k = "{}|{}".format(motif.hash(), self.background_hash)
+            for bin in bins:
+                if bin not in self.meanstd:
+                    self.meanstd[bin] = {}
+                bin_seqs = [s for s,b in zip(seqs, seq_bins) if b == bin]
+                
+                for motif in motifs:
+                    k = "e{}|{}|{}".format(motif.hash(), self.background_hash, bin)
            
-                results = cache.get(k)
-                if results is None:
-                    scan_motifs.append(motif)
-                else:
-                    self.meanstd[motif.id] = results 
+                    results = cache.get(k)
+                    if results is None:
+                        scan_motifs.append(motif)
+                    else:
+                        self.meanstd[bin][motif.id] = results 
         
-            if len(scan_motifs) > 0:
-                logger.info("Determining mean and stddev for motifs.") 
-                for motif, mean, std in self._meanstd_from_seqs(scan_motifs, seqs):
-                    k = "{}|{}".format(motif.hash(), self.background_hash)
-                    cache.set(k, [mean, std])
-                    self.meanstd[motif.id] = mean, std
-    
-    def set_background(self, fname=None, genome=None, length=200, nseq=10000):
+                if len(scan_motifs) > 0:
+                    for motif, mean, std in self._meanstd_from_seqs(scan_motifs, bin_seqs):
+                        k = "e{}|{}|{}".format(motif.hash(), self.background_hash, bin)
+                        cache.set(k, [mean, std])
+                        self.meanstd[bin][motif.id] = mean, std
+
+    def set_background(self, fname=None, genome=None, length=200, nseq=10000, gc=False, gc_bins=None):
         """Set the background to use for FPR and z-score calculations.
 
         Background can be specified either as a genome name or as the 
@@ -417,17 +429,35 @@ class Scanner(object):
             else:
                 raise ValueError("Need either genome or filename for background.")
         
-        
         logger.info("Using background: genome {} with length {}".format(genome, length))
-        with Cache(CACHE_DIR) as cache:
-            self.background_hash = "{}\{}".format(genome, int(length))
-            fa = cache.get(self.background_hash)
+        with Cache(CACHE_DIR) as cache:           
+            self.background_hash = "d{}:{}:{}:{}".format(genome, int(length), gc, str(gc_bins))
+            c = cache.get(self.background_hash)
+            if c:
+                fa, gc_bins = c
+            else:
+                fa = None
+           
             if not fa:
-                fa = RandomGenomicFasta(genome, length, nseq)
-                cache.set(self.background_hash, fa)
+                if gc == True:
+
+                    if gc_bins is None:
+                        gc_bins = [(0.0, 0.2), (0.8, 1)]
+                        for b in np.arange(0.2, 0.799, 0.05):
+                            gc_bins.append((b, b + 0.05))
+                    
+                    with NamedTemporaryFile() as tmp:
+                        gc_bin_bedfile(tmp.name, genome, number=nseq, l=length, bins=gc_bins)
+                        fa = as_fasta(tmp.name, genome=genome)
+                else:
+                    fa = RandomGenomicFasta(genome, length, nseq)
+                cache.set(self.background_hash, (fa,gc_bins))
+        
         self.background = fa
+        if gc_bins:
+            self.gc_bins = gc_bins
     
-    def set_threshold(self, fpr=None, threshold=None):
+    def set_threshold(self, fpr=None, threshold=None, gc=gc):
         """Set motif scanning threshold based on background sequences.
 
         Parameters
@@ -462,7 +492,7 @@ class Scanner(object):
         
         if not self.background:
             try:
-                self.set_background()
+                self.set_background(gc=gc)
             except:
                 raise ValueError("please run set_background() first")
         
@@ -530,21 +560,14 @@ class Scanner(object):
         count_table = [counts for counts in self.count(seqs, nreport, scan_rc)]
         return np.sum(np.array(count_table), 0)
     
-    def best_score(self, seqs, scan_rc=True, normalize=False):
+    def best_score(self, seqs, scan_rc=True, normalize=False, gc=False):
         """
         give the score of the best match of each motif in each sequence
         returns an iterator of lists containing floats
         """
-        self.set_threshold(threshold=0.0)
-        if normalize and len(self.meanstd) == 0:
-            self.set_meanstd()
-            means = np.array([self.meanstd[m][0] for m in self.motif_ids])
-            stds = np.array([self.meanstd[m][1] for m in self.motif_ids])
-
-        for matches in self.scan(seqs, 1, scan_rc):
+        self.set_threshold(threshold=0.0, gc=gc)
+        for matches in self.scan(seqs, 1, scan_rc, normalize=normalize, gc=gc):
             scores = np.array([sorted(m, key=lambda x: x[0])[0][0] for m in matches if len(m) > 0])
-            if normalize:
-                scores = (scores - means) / stds
             yield scores
  
     def best_match(self, seqs, scan_rc=True):
@@ -557,7 +580,14 @@ class Scanner(object):
         for matches in self.scan(seqs, 1, scan_rc):
             yield [m[0] for m in matches]
    
-    def scan(self, seqs, nreport=100, scan_rc=True, normalize=False):
+    def get_seq_bin(self, seq):
+        useq = seq.upper()
+        gc = (useq.count("G") + useq.count("C")) / len(useq)
+        for b_start,b_end in self.gc_bins:
+            if gc > b_start and gc <= b_end:
+                return "{:.2f}-{:.2f}".format(b_start, b_end)
+
+    def scan(self, seqs, nreport=100, scan_rc=True, normalize=False, gc=False):
         """
         scan a set of regions / sequences
         """
@@ -570,28 +600,26 @@ class Scanner(object):
             self.set_threshold(threshold=0.95)
 
         seqs = as_fasta(seqs, genome=self.genome)
-           
+
         it = self._scan_sequences(seqs.seqs, 
                     nreport, scan_rc)
        
         if normalize:
             if len(self.meanstd) == 0:
-                self.set_meanstd()
-            mean_std = [self.meanstd.get(m_id) for m_id in self.motif_ids]
-            means = [x[0] for x in  mean_std]
-            stds = [x[1] for x in  mean_std]
 
+                self.set_meanstd(gc=gc)
+        gc_seqs = [self.get_seq_bin(seq) for seq in seqs.seqs]
 
-        for result in it:
+        for result,gc_seq in zip(it, gc_seqs):
             if normalize:
                 zresult = [] 
                 for i,mrow in enumerate(result):
-                    mrow = [((x[0] - means[i]) / stds[i], x[1], x[2]) for x in mrow]
+                    m_mean, m_std = self.meanstd[gc_seq][self.motif_ids[i]]
+                    mrow = [((x[0] - m_mean) / m_std, x[1], x[2]) for x in mrow]
                     zresult.append(mrow)
                 yield zresult
             else:
                 yield result
-
 
     def _scan_regions(self, regions, nreport, scan_rc):
         genome = self.genome

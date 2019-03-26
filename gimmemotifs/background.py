@@ -21,6 +21,7 @@ import re
 import sys
 from tempfile import NamedTemporaryFile
 from random import choice
+import logging
 
 # External imports
 import numpy as np
@@ -31,6 +32,9 @@ from genomepy import Genome
 # GimmeMotifs imports
 from gimmemotifs import mytmpdir
 from gimmemotifs.fasta import Fasta
+from gimmemotifs.config import CACHE_DIR
+
+logger = logging.getLogger("gimme.background")
 
 def create_random_genomic_bedfile(out, genome, length, n):
     features = Genome(genome).get_random_sequences(n, length)
@@ -186,6 +190,89 @@ class MarkovFasta(Fasta):
             else:
                 n -= weight
         return item
+
+def create_gc_bin_index(genome, fname):
+    """Create index of GC content for a genome.
+
+    Parameters
+    ----------
+    genome : str
+        Genome name.
+    fname : str
+        Name of the index file.
+    """
+    logger.info("Creating index for genomic GC frequencies.")
+    g = Genome(genome)
+    fasta = g.filename
+    sizes = g.props["sizes"]["sizes"]
+
+    with NamedTemporaryFile() as tmp:
+        pybedtools.BedTool().window_maker(g=sizes, w=100).nucleotide_content(fi=fasta).saveas(tmp.name)
+        df = pd.read_csv(tmp.name, sep="\t", usecols=[0,1,2,4,9])
+
+    df["w200"] = df.iloc[:,3].rolling(2, min_periods=2).mean()
+    df["n200"] = df.iloc[:,4].rolling(2, min_periods=2).sum()
+    df["w500"] = df.iloc[:,3].rolling(5, min_periods=5).mean()
+    df["n500"] = df.iloc[:,4].rolling(5, min_periods=5).sum()
+    cols = ["chrom", "start", "end", "w100", "n100", "w200", "n200", "w500", "n500"]
+    df.columns = cols
+    
+    df.reset_index()[cols].to_feather(fname)
+
+def gc_bin_bedfile(bedfile, genome, number, l=200, bins=None, random_state=None):
+    """Create a BED file from different GC bins.
+    
+    Parameters
+    ----------
+    bedfile : str
+        Name of the output BED file.
+    genome : str
+        Genome name.
+    number : int
+        Number of sequences to retrieve.
+    l : int, optional
+        Length of the sequences, default is 200.
+    bins : list, optional
+        GC frequency bins to use, for instance [(0,50),(50,100)]
+    """
+    if bins is None:
+        bins = [(0.0, 0.2), (0.8, 1)]
+        for b in np.arange(0.2, 0.799, 0.05):
+            bins.append((b, b + 0.05))
+
+    if number < len(bins):
+        raise ValueError("Number of sequences requested < number of bins")
+
+    fname = os.path.join(CACHE_DIR, "{}.gcfreq.feather".format(genome))
+    if not os.path.exists(fname):
+        create_gc_bin_index(genome, fname)
+    
+    df = pd.read_feather(fname)
+
+    if l >= 100:
+        col = "w{}".format(((l + 50)// 100) * 100)
+    else:
+        logger.warn("Can't create GC regions smaller than 100, using 100 instead")
+        col = "w100"
+
+    if not col in df.columns:
+        df[col] = df.iloc[:,3].rolling(l//100, min_periods=l//100).mean()
+        df[col.replace("w","n")] = df.iloc[:,3].rolling(l//100, min_periods=l//100).sum()
+
+    df = df[df[col.replace("w","n")] < 0.1 * l]
+    n = number // len(bins)
+    
+    with open(bedfile, "w") as f:
+        pass
+
+    with open(bedfile, 'a') as f:
+        for b_start, b_end in bins:
+            df_bin = df[(df[col] > b_start) & (df[col] <= b_end)]
+            if df_bin.shape[0] > 0:
+                df_bin = df_bin.sample(n, replace=True, random_state=random_state)
+                df_bin["bin"] = "{:.2f}-{:.2f}".format(b_start, b_end)
+                df_bin["end"] = df_bin["start"] + l
+                df_bin[["chrom", "start", "end", "bin"]].to_csv(f, sep="\t", header=False, index=False)
 
 def matched_gc_bedfile(bedfile, matchfile, genome, number):
     N_FRACTION = 0.1
