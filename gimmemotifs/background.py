@@ -243,7 +243,7 @@ def gc_bin_bedfile(bedfile, genome, number, l=200, bins=None, random_state=None)
     if number < len(bins):
         raise ValueError("Number of sequences requested < number of bins")
 
-    fname = os.path.join(CACHE_DIR, "{}.gcfreq.feather".format(genome))
+    fname = os.path.join(CACHE_DIR, "{}.gcfreq.feather".format(os.path.basename(genome)))
     if not os.path.exists(fname):
         create_gc_bin_index(genome, fname)
     
@@ -252,7 +252,7 @@ def gc_bin_bedfile(bedfile, genome, number, l=200, bins=None, random_state=None)
     if l >= 100:
         col = "w{}".format(((l + 50)// 100) * 100)
     else:
-        logger.warn("Can't create GC regions smaller than 100, using 100 instead")
+        logger.warn("For regions smaller than 100nt, GC% will not be exact")
         col = "w100"
 
     if not col in df.columns:
@@ -275,8 +275,19 @@ def gc_bin_bedfile(bedfile, genome, number, l=200, bins=None, random_state=None)
                 df_bin[["chrom", "start", "end", "bin"]].to_csv(f, sep="\t", header=False, index=False)
 
 def matched_gc_bedfile(bedfile, matchfile, genome, number):
-    N_FRACTION = 0.1
+    """Create a BED file with GC% matched to input file.
     
+    Parameters
+    ----------
+    bedfile : str
+        Name of the output BED file.
+    matchfile : str
+        Name of input file (BED or FASTA format)
+    genome : str
+        Genome name.
+    number : int
+        Number of sequences to retrieve.
+    """
     g = Genome(genome)
     genome_fa = g.filename
     try:
@@ -288,81 +299,46 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
             # pylint: disable=unexpected-keyword-arg
             fields = pd.read_csv(matchfile, comment="#", nrows=10, sep="\t").shape[1]
             bed = pybedtools.BedTool(matchfile)
-            gc = [float(x[fields + 1]) for x in bed.nucleotide_content(fi=genome_fa)]
-            lengths = [x.length for x in bed]
+            gc = np.array([float(x[fields + 1]) for x in bed.nucleotide_content(fi=genome_fa)])
+            lengths = np.array([x.length for x in bed])
+            gc = [round(x, 2) for x in gc / lengths]
         except:
             sys.stderr.write("Please provide input file in BED or FASTA format\n")
             raise
-    gc_hist,bins = np.histogram(gc, range=(0,1), bins=20)
     
-    length = np.median(lengths)
+    # Get the median length of the sequences
+    length = int(np.median(lengths))
     if np.std(lengths) > length * 0.05:
         sys.stderr.write("Sequences do not seem to be of equal length.\n")
         sys.stderr.write("GC% matched sequences of the median length ({}) will be created\n".format(length))
 
-    if number:
-        norm = number * gc_hist / (float(sum(gc_hist))) + 0.5
-        inorm = norm.astype(np.int)
+    bins = [(0.0, 0.2), (0.8, 1)]
+    for b in np.arange(0.2, 0.799, 0.05):
+        bins.append((b, b + 0.05))
+   
+    fraction = number / len(gc)
+    gc = np.array(gc)
+    bin_count = []
+    for b_start, b_end in bins:
+        bin_count.append(int(np.sum((gc > round(b_start, 2)) & (gc <= round(b_end, 2))) * fraction))
 
-        s = np.argsort(norm - inorm)
-        while sum(inorm) > number:
-            if inorm[np.argmin(s)] > 0:
-                inorm[np.argmin(s)] -= 1
-            s[np.argmin(s)] = len(s)
-        while sum(inorm) < number:
-            inorm[np.argmax(s)] += 1
-            s[np.argmax(s)] = 0
-        gc_hist = inorm
-
-    rnd = pybedtools.BedTool()
-    out = open(bedfile, "w")
-    #sys.stderr.write("Generating sequences\n")
-    #sys.stderr.write("{}\n".format(number))
+    rest = number - sum(bin_count)
+    for i in range(rest):
+        bin_count[i] += 1
+   
+    nseqs = max(bin_count) * len(bins)
     
-    # Create a file with chromosome sizes if it doesn't exist yet
-    genome_size = genome_fa + ".sizes"
-    del_size = False
-    if not os.path.exists(genome_size):
-        genome_size = NamedTemporaryFile().name
-        del_size = True
-        with open(genome_size, "w") as f:
-            for seqname in g.keys():
-                f.write("{}\t{}\n".format(seqname, len(g[seqname])))
+    with NamedTemporaryFile() as tmp:
+        gc_bin_bedfile(tmp.name, genome, nseqs, l=length, bins=bins, random_state=None)
+        df = pd.read_csv(tmp.name, sep="\t", names=["chrom", "start", "end", "bin"])
     
-    #sys.stderr.write("Done\n")
-    features = []
-    gc = []
-    for bin_start, bin_end, count in zip(bins[:-1], bins[1:], gc_hist):
-        #sys.stderr.write("CG {}-{}\n".format(bin_start, bin_end))
-        if count > 0:
-            rcount = 0
-            c = 0            
-            while count != rcount:
-                c += 1
-                if len(features) == 0 or c < 2:
-                    # pylint: disable=unexpected-keyword-arg
-                    n = number * (c ** 2 * 10)
-                    if n < 10000:
-                        n = 10000
-                    r = rnd.random(l=length, n=n, g=genome_size).nucleotide_content(fi=genome_fa)
-                    features += [f[:3] + [float(f[7])] for f in r if float(f[12]) <= length * N_FRACTION]
-                    gc += [f[3] for f in features]
-            
-                for f in features:
-                    if (f[3] >= bin_start and f[3] < bin_end):
-                        out.write("{}\t{}\t{}\n".format(*f[:3]))
-                        rcount += 1
-                        if rcount >= count:
-                            break
-            
-            if count != rcount:
-                sys.stderr.write("not enough random sequences found for {} <= GC < {} ({} instead of {})\n".format(bin_start, bin_end, rcount, count))
-    out.close()
-
-    if del_size:
-        os.unlink(genome_size)
-
-
+    with open(bedfile, "w") as f:
+        pass
+    with open(bedfile, 'a') as f:
+        for (b_start, b_end), n in zip(bins, bin_count):
+            print(b_start, b_end, n)
+            b = "{:.2f}-{:.2f}".format(b_start, b_end)
+            df.loc[df["bin"] == b, ["chrom", "start", "end"]].sample(n).to_csv(f, sep="\t", header=False, index=False)
 
 class MatchedGcFasta(Fasta):
     """ 
