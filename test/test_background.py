@@ -1,9 +1,10 @@
 import unittest
 import tempfile
 import os
-from collections import Counter
-from gimmemotifs.background import matched_gc_bedfile
+from gimmemotifs.background import matched_gc_bedfile, create_gc_bin_index
+from gimmemotifs.config import CACHE_DIR
 from pybedtools import BedTool
+import numpy as np
 
 class TestBackground(unittest.TestCase):
     """ A test class to test generation of background sequences"""
@@ -20,15 +21,15 @@ class TestBackground(unittest.TestCase):
         gc_bed2 = os.path.join( self.data_dir, "test_gc2.bed")
         gc_bed3 = os.path.join( self.data_dir, "test_gc3.bed")
         
-        for bed in [gc_bed1, gc_bed2, gc_bed3]:
-            matched_gc_bedfile(tmp.name, bed, self.genome, 10)
-            b = BedTool(tmp.name)
-            gc = [f[4] for f in b.nucleotide_content(fi=self.genome)]
-            gc = [str(round(float(x), 1)) for x in gc]
-            c = Counter(gc)
-            
-            self.assertEquals(5, c["0.2"])
-            self.assertEquals(5, c["0.4"])
+        for min_bin_size in (10, 50):
+            print("GC bin size", min_bin_size)
+            for bed in [gc_bed1, gc_bed2, gc_bed3]:
+                matched_gc_bedfile(tmp.name, bed, self.genome, 10, min_bin_size=min_bin_size)
+                b = BedTool(tmp.name)
+                gc = [f[4] for f in b.nucleotide_content(fi=self.genome)]
+                gc = np.array([round(float(x), 2) for x in gc])
+                self.assertEquals(5, np.sum(gc <= round(0.2, 2)))
+                self.assertEquals(5, np.sum((gc <= round(0.4, 2)) & (gc > round(0.35, 2))))
 
     def tearDown(self):
         pass

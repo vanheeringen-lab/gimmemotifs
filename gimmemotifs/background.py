@@ -191,7 +191,7 @@ class MarkovFasta(Fasta):
                 n -= weight
         return item
 
-def create_gc_bin_index(genome, fname):
+def create_gc_bin_index(genome, fname, min_bin_size=100):
     """Create index of GC content for a genome.
 
     Parameters
@@ -200,6 +200,9 @@ def create_gc_bin_index(genome, fname):
         Genome name.
     fname : str
         Name of the index file.
+    min_bin_size : int
+        Minimum bin size (default 100). Warning: setting to a small value
+        will result in a very large index file!
     """
     logger.info("Creating index for genomic GC frequencies.")
     g = Genome(genome)
@@ -207,19 +210,19 @@ def create_gc_bin_index(genome, fname):
     sizes = g.props["sizes"]["sizes"]
 
     with NamedTemporaryFile() as tmp:
-        pybedtools.BedTool().window_maker(g=sizes, w=100).nucleotide_content(fi=fasta).saveas(tmp.name)
+        pybedtools.BedTool().window_maker(g=sizes, w=min_bin_size).nucleotide_content(fi=fasta).saveas(tmp.name)
         df = pd.read_csv(tmp.name, sep="\t", usecols=[0,1,2,4,9])
 
-    df["w200"] = df.iloc[:,3].rolling(2, min_periods=2).mean()
-    df["n200"] = df.iloc[:,4].rolling(2, min_periods=2).sum()
-    df["w500"] = df.iloc[:,3].rolling(5, min_periods=5).mean()
-    df["n500"] = df.iloc[:,4].rolling(5, min_periods=5).sum()
-    cols = ["chrom", "start", "end", "w100", "n100", "w200", "n200", "w500", "n500"]
-    df.columns = cols
+    cols = ["chrom", "start", "end", "w{}".format(min_bin_size), "n{}".format(min_bin_size)]
+    for t in (2,5):
+        df["w{}".format(min_bin_size * t)] = df.iloc[:,3].rolling(t, min_periods=t).mean()
+        df["n{}".format(min_bin_size * t)] = df.iloc[:,4].rolling(t, min_periods=t).sum()
+        cols += ["w{}".format(min_bin_size * t), "n{}".format(min_bin_size * t)]
     
+    df.columns = cols
     df.reset_index()[cols].to_feather(fname)
 
-def gc_bin_bedfile(bedfile, genome, number, l=200, bins=None, random_state=None):
+def gc_bin_bedfile(bedfile, genome, number, l=200, bins=None, random_state=None, min_bin_size=100):
     """Create a BED file from different GC bins.
     
     Parameters
@@ -243,21 +246,21 @@ def gc_bin_bedfile(bedfile, genome, number, l=200, bins=None, random_state=None)
     if number < len(bins):
         raise ValueError("Number of sequences requested < number of bins")
 
-    fname = os.path.join(CACHE_DIR, "{}.gcfreq.feather".format(os.path.basename(genome)))
+    fname = os.path.join(CACHE_DIR, "{}.gcfreq.{}.feather".format(os.path.basename(genome), min_bin_size))
     if not os.path.exists(fname):
-        create_gc_bin_index(genome, fname)
+        create_gc_bin_index(genome, fname, min_bin_size=min_bin_size)
     
     df = pd.read_feather(fname)
 
-    if l >= 100:
-        col = "w{}".format(((l + 50)// 100) * 100)
+    if l >= min_bin_size:
+        col = "w{}".format(((l + min_bin_size // 2)// min_bin_size) * min_bin_size)
     else:
-        logger.warn("For regions smaller than 100nt, GC% will not be exact")
-        col = "w100"
+        logger.warn("For regions smaller than {}nt, GC% will not be exact".format(min_bin_size))
+        col = "w{}".format(min_bin_size)
 
     if not col in df.columns:
-        df[col] = df.iloc[:,3].rolling(l//100, min_periods=l//100).mean()
-        df[col.replace("w","n")] = df.iloc[:,3].rolling(l//100, min_periods=l//100).sum()
+        df[col] = df.iloc[:,3].rolling(l//min_bin_size, min_periods=l//min_bin_size).mean()
+        df[col.replace("w","n")] = df.iloc[:,3].rolling(l//min_bin_size, min_periods=l//min_bin_size).sum()
 
     df = df[df[col.replace("w","n")] < 0.1 * l]
     n = number // len(bins)
@@ -267,14 +270,17 @@ def gc_bin_bedfile(bedfile, genome, number, l=200, bins=None, random_state=None)
 
     with open(bedfile, 'a') as f:
         for b_start, b_end in bins:
+            #print(df.head())
+            #print(col, b_start, b_end)
             df_bin = df[(df[col] > b_start) & (df[col] <= b_end)]
+            #print(df_bin)
             if df_bin.shape[0] > 0:
                 df_bin = df_bin.sample(n, replace=True, random_state=random_state)
                 df_bin["bin"] = "{:.2f}-{:.2f}".format(b_start, b_end)
-                df_bin["end"] = df_bin["start"] + l
+                df_bin["start"] = df_bin["end"] - l 
                 df_bin[["chrom", "start", "end", "bin"]].to_csv(f, sep="\t", header=False, index=False)
 
-def matched_gc_bedfile(bedfile, matchfile, genome, number):
+def matched_gc_bedfile(bedfile, matchfile, genome, number, min_bin_size=100):
     """Create a BED file with GC% matched to input file.
     
     Parameters
@@ -301,7 +307,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
             bed = pybedtools.BedTool(matchfile)
             gc = np.array([float(x[fields + 1]) for x in bed.nucleotide_content(fi=genome_fa)])
             lengths = np.array([x.length for x in bed])
-            gc = [round(x, 2) for x in gc / lengths]
+            gc = [round(x, 2) for x in gc]
         except:
             sys.stderr.write("Please provide input file in BED or FASTA format\n")
             raise
@@ -318,6 +324,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
    
     fraction = number / len(gc)
     gc = np.array(gc)
+    print("GC", gc)
     bin_count = []
     for b_start, b_end in bins:
         bin_count.append(int(np.sum((gc > round(b_start, 2)) & (gc <= round(b_end, 2))) * fraction))
@@ -328,10 +335,10 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number):
    
     nseqs = max(bin_count) * len(bins)
     
-    with NamedTemporaryFile() as tmp:
-        gc_bin_bedfile(tmp.name, genome, nseqs, l=length, bins=bins, random_state=None)
+    with NamedTemporaryFile(delete=False) as tmp:
+        gc_bin_bedfile(tmp.name, genome, nseqs, l=length, bins=bins, random_state=None, min_bin_size=min_bin_size)
         df = pd.read_csv(tmp.name, sep="\t", names=["chrom", "start", "end", "bin"])
-    
+        print(tmp.name)
     with open(bedfile, "w") as f:
         pass
     with open(bedfile, 'a') as f:
