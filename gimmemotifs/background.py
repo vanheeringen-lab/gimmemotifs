@@ -275,9 +275,10 @@ def gc_bin_bedfile(bedfile, genome, number, l=200, bins=None, random_state=None,
             df_bin = df[(df[col] > b_start) & (df[col] <= b_end)]
             #print(df_bin)
             if df_bin.shape[0] > 0:
+                df_bin["start"] = df_bin["end"] - l 
+                df_bin = df_bin[df_bin["start"] > 0]
                 df_bin = df_bin.sample(n, replace=True, random_state=random_state)
                 df_bin["bin"] = "{:.2f}-{:.2f}".format(b_start, b_end)
-                df_bin["start"] = df_bin["end"] - l 
                 df_bin[["chrom", "start", "end", "bin"]].to_csv(f, sep="\t", header=False, index=False)
 
 def matched_gc_bedfile(bedfile, matchfile, genome, number, min_bin_size=100):
@@ -324,7 +325,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, min_bin_size=100):
    
     fraction = number / len(gc)
     gc = np.array(gc)
-    print("GC", gc)
+    #print("GC", gc)
     bin_count = []
     for b_start, b_end in bins:
         bin_count.append(int(np.sum((gc > round(b_start, 2)) & (gc <= round(b_end, 2))) * fraction))
@@ -338,12 +339,12 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, min_bin_size=100):
     with NamedTemporaryFile(delete=False) as tmp:
         gc_bin_bedfile(tmp.name, genome, nseqs, l=length, bins=bins, random_state=None, min_bin_size=min_bin_size)
         df = pd.read_csv(tmp.name, sep="\t", names=["chrom", "start", "end", "bin"])
-        print(tmp.name)
+        #print(tmp.name)
     with open(bedfile, "w") as f:
         pass
     with open(bedfile, 'a') as f:
         for (b_start, b_end), n in zip(bins, bin_count):
-            print(b_start, b_end, n)
+            #print(b_start, b_end, n)
             b = "{:.2f}-{:.2f}".format(b_start, b_end)
             df.loc[df["bin"] == b, ["chrom", "start", "end"]].sample(n).to_csv(f, sep="\t", header=False, index=False)
 

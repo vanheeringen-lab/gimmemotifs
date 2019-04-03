@@ -6,81 +6,19 @@
 # distribution.
 """Command line function 'roc'."""
 from __future__ import print_function
-from gimmemotifs.motif import read_motifs
-from gimmemotifs.plot import roc_plot
-from gimmemotifs.stats import calc_stats_iterator
-from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
-import numpy as np
-import pandas as pd
 import os
 import re
 import sys
-from statsmodels.stats.multitest import multipletests
+import shutil
 
-def html_report(outdir, infile, pwmfile, threshold=0.01):
-    df = pd.read_table(infile, index_col=0)
-    del df.index.name
-    df["corrected P-value"] = multipletests(df["P-value"], method="fdr_bh")[1]
-    
-    cols = [
-            "Logo",
-            "# matches",
-            "# matches background",
-            "P-value",
-            "log10 P-value",
-            "corrected P-value",
-            "ROC AUC",
-            "PR AUC",
-            "Enr. at 1% FPR",
-            "Recall at 10% FDR"
-    ]
-   
-    
-    motifs = read_motifs(pwmfile)
-    idx = [motif.id for motif in motifs]
-    direct = [",".join(motif.factors[DIRECT_NAME]) for motif in motifs]
-    indirect = [",".join(motif.factors[INDIRECT_NAME]) for motif in motifs]
-    m2f = pd.DataFrame({DIRECT_NAME:direct, INDIRECT_NAME:indirect}, index=idx)
+import numpy as np
 
-    factor_cols = [DIRECT_NAME, INDIRECT_NAME]
-    if True:
-        for factor_col in factor_cols:
-            f = m2f[factor_col].str.len() > 30        
-            m2f[factor_col] = '<div title="' + m2f[factor_col] + '">' + m2f[factor_col].str.slice(0,30) 
-            m2f.loc[f, factor_col] += '(...)'
-            m2f[factor_col] += '</div>'
-        df = df.join(m2f)
-        cols = factor_cols + cols
-    
-    df = df[df["corrected P-value"] <= threshold]
-    
-    df["Logo"] = ['<img src="logos/{}.png" height=40/>'.format(re.sub('[^-_\w]+', '_', x)) for x in list(df.index)]
-    
-    df = df[cols]
-    if not os.path.exists(outdir + "/logos"):
-        os.makedirs(outdir + "/logos")
-    for motif in motifs:
-        if motif.id in df.index:
-            motif.to_img(outdir + "/logos/{}.png".format(re.sub('[^-_\w]+', '_', motif.id)), fmt="PNG")
-    
-    bar_cols = [
-            "log10 P-value", "ROC AUC", "PR AUC", "MNCP",
-            "Enr. at 1% FPR", "Recall at 10% FDR"
-            ]
-    template_dir = MotifConfig().get_template_dir()
-    js = open(os.path.join(template_dir, "sortable/sortable.min.js"), encoding="utf-8").read()
-    css = open(os.path.join(template_dir, "sortable/sortable-theme-slick.css"), encoding="utf-8").read()
-    with open(outdir + "/gimme.roc.report.html", "w",  encoding="utf-8") as f: 
-        f.write("<head>\n")
-        f.write("<style>{}</style>\n".format(css))
-        f.write("</head>\n")
-        f.write("<body>\n")
-        if df.shape[0] > 0: 
-            f.write(df.sort_values("ROC AUC", ascending=False).style.bar(bar_cols).set_precision(3).set_table_attributes("data-sortable").render().replace("data-sortable", 'class="sortable-theme-slick" data-sortable'))
-        else:
-            f.write("No enriched motifs found.")
-        f.write("<script>{}</script>\n".format(js))
-        f.write("</body>\n")
+from gimmemotifs.motif import read_motifs
+from gimmemotifs.stats import calc_stats_iterator
+from gimmemotifs.denovo import gimme_motifs
+from gimmemotifs.background import matched_gc_bedfile
+from gimmemotifs.comparison import MotifComparer
+from gimmemotifs.report import roc_html_report
 
 def roc(args):
     """ Calculate ROC_AUC and other metrics and optionally plot ROC curve."""
@@ -88,8 +26,68 @@ def roc(args):
     # Default extension for image
     if outputfile and not outputfile.endswith(".png"):
         outputfile += ".png"
+     
+    if args.outdir:
+        if not os.path.exists(args.outdir):
+            os.makedirs(args.outdir)
+   
+    bg = args.background
+    if not args.background:
+        # create GC-matched background if not provided
+        bgfile = os.path.join(args.outdir, "generated_background.bed")
+        n = 5000
+        matched_gc_bedfile(bgfile, args.sample, args.genome, 5000)
+        bg = bgfile
+
+   
+    pwmfile = args.pwmfile
     
-    motifs = read_motifs(args.pwmfile, fmt="pwm")
+    motifs = read_motifs(pwmfile, fmt="pwm")
+    if args.denovo:
+        #gimme_motifs(args.sample, args.outdir, 
+        #        params={
+        #            "tools":"MDmodule,Homer,BioProspector", 
+        #            "analysis":"xl",
+        #            "background":"gc",
+        #            "genome":args.genome,
+        #            }
+        #        ) 
+        denovo = read_motifs(
+                os.path.join(args.outdir, "gimme.denovo.pfm")
+                )
+        mc = MotifComparer()
+        result = mc.get_closest_match(denovo, dbmotifs=pwmfile, metric="seqcor")
+        new_map_file = os.path.join(args.outdir, "combined.motif2factors.txt")
+        base = os.path.splitext(pwmfile)[0]
+        map_file = base + ".motif2factors.txt"
+        if os.path.exists(map_file):
+            shutil.copyfile(map_file, new_map_file)
+ 
+        motifs += denovo
+        pwmfile = os.path.join(args.outdir, "combined.pfm")
+        with open(pwmfile, "w") as f:
+            for m in motifs:
+                print(m.to_pwm(), file=f)
+      
+        with open(new_map_file, "a") as f:
+            for m in denovo:
+                print("{}\t{}\t{}\t{}".format(
+                    m.id,
+                    "de novo",
+                    "GimmeMotifs",
+                    "Y"
+                    ), file=f)
+                for copy_m in motifs:
+                    if copy_m.id == result[m.id][0]:
+                        for factor in copy_m.factors['direct']:
+                            print("{}\t{}\t{}\t{}".format(
+                            m.id,
+                            factor,
+                            "inferred (GimmeMotifs)",
+                            "N"), file=f)
+
+                        break
+
 
     ids = []
     if args.ids:
@@ -97,7 +95,7 @@ def roc(args):
     else:
         ids = [m.id for m in motifs]
     motifs = [m for m in motifs if (m.id in ids)]
-    
+   
     stats = [
             "phyper_at_fpr",
             "roc_auc", 
@@ -114,15 +112,12 @@ def roc(args):
     
     f_out = sys.stdout
     if args.outdir:
-        if not os.path.exists(args.outdir):
-            os.makedirs(args.outdir)
         f_out = open(args.outdir + "/gimme.roc.report.txt", "w")
     
     # Print the metrics
     f_out.write("Motif\t# matches\t# matches background\tP-value\tlog10 P-value\tROC AUC\tPR AUC\tEnr. at 1% FPR\tRecall at 10% FDR\n")
     
-    
-    for motif_stats in calc_stats_iterator(motifs, args.sample, args.background, 
+    for motif_stats in calc_stats_iterator(motifs, args.sample, bg, 
             genome=args.genome, stats=stats, ncpus=args.ncpus):
     
         for motif in motifs:
@@ -152,7 +147,7 @@ def roc(args):
         html_report(
             args.outdir,
             args.outdir + "/gimme.roc.report.txt",
-            args.pwmfile,
+            pwmfile,
             0.01,
             )
 

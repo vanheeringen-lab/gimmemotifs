@@ -17,6 +17,7 @@ import jinja2
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from statsmodels.stats.multitest import multipletests
 
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.fasta import Fasta
@@ -27,6 +28,8 @@ from gimmemotifs.rocmetrics import roc_values
 from gimmemotifs.stats import calc_stats, add_star, write_stats
 from gimmemotifs import mytmpdir, __version__
 from gimmemotifs.utils import motif_localization
+
+
 
 logger = logging.getLogger("gimme.report")
 
@@ -298,3 +301,67 @@ def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
         f.write("<script>{}</script>\n".format(js))
         f.write("</body>\n")
 
+def roc_html_report(outdir, infile, pwmfile, threshold=0.01):
+    df = pd.read_table(infile, index_col=0)
+    del df.index.name
+    df["corrected P-value"] = multipletests(df["P-value"], method="fdr_bh")[1]
+    
+    cols = [
+            "logo",
+            "# matches",
+            "# matches background",
+            "P-value",
+            "log10 P-value",
+            "corrected P-value",
+            "ROC AUC",
+            "PR AUC",
+            "Enr. at 1% FPR",
+            "Recall at 10% FDR"
+    ]
+   
+    
+    motifs = read_motifs(pwmfile)
+    idx = [motif.id for motif in motifs]
+    direct = [",".join(motif.factors[DIRECT_NAME]) for motif in motifs]
+    indirect = [",".join(motif.factors[INDIRECT_NAME]) for motif in motifs]
+    m2f = pd.DataFrame({DIRECT_NAME:direct, INDIRECT_NAME:indirect}, index=idx)
+
+    factor_cols = [DIRECT_NAME, INDIRECT_NAME]
+    if True:
+        for factor_col in factor_cols:
+            f = m2f[factor_col].str.len() > 30        
+            m2f[factor_col] = '<div title="' + m2f[factor_col] + '">' + m2f[factor_col].str.slice(0,30) 
+            m2f.loc[f, factor_col] += '(...)'
+            m2f[factor_col] += '</div>'
+        df = df.join(m2f)
+        cols = factor_cols + cols
+    
+    df = df[df["corrected P-value"] <= threshold]
+    
+    df["logo"] = ['<img src="logos/{}.png" height=40/>'.format(re.sub('[^-_\w]+', '_', x)) for x in list(df.index)]
+    
+    df = df[cols]
+    if not os.path.exists(outdir + "/logos"):
+        os.makedirs(outdir + "/logos")
+    for motif in motifs:
+        if motif.id in df.index:
+            motif.to_img(outdir + "/logos/{}.png".format(re.sub('[^-_\w]+', '_', motif.id)), fmt="PNG")
+    
+    bar_cols = [
+            "log10 P-value", "ROC AUC", "PR AUC", "MNCP",
+            "Enr. at 1% FPR", "Recall at 10% FDR"
+            ]
+    template_dir = MotifConfig().get_template_dir()
+    js = open(os.path.join(template_dir, "sortable/sortable.min.js"), encoding="utf-8").read()
+    css = open(os.path.join(template_dir, "sortable/sortable-theme-slick.css"), encoding="utf-8").read()
+    with open(outdir + "/gimme.roc.report.html", "w",  encoding="utf-8") as f: 
+        f.write("<head>\n")
+        f.write("<style>{}</style>\n".format(css))
+        f.write("</head>\n")
+        f.write("<body>\n")
+        if df.shape[0] > 0: 
+            f.write(df.sort_values("ROC AUC", ascending=False).style.bar(bar_cols).set_precision(3).set_table_attributes("data-sortable").render().replace("data-sortable", 'class="sortable-theme-slick" data-sortable'))
+        else:
+            f.write("No enriched motifs found.")
+        f.write("<script>{}</script>\n".format(js))
+        f.write("</body>\n")

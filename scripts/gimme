@@ -200,7 +200,7 @@ if __name__ == "__main__":
     p.add_argument("sample", 
                    help="FASTA, BED or region file", 
                    metavar="FG_FILE")
-    p.add_argument("background", 
+    p.add_argument("-b", "--background", 
                    help="FASTA, BED or region file with background sequences", 
                    metavar="BG_FILE")
     p.add_argument("-r",
@@ -213,6 +213,11 @@ if __name__ == "__main__":
                    "(default: {0})".format(default_pwm), 
                    default=default_pwm_file,
                    metavar="PWMFILE")
+    p.add_argument("--denovo",
+                   dest="denovo",
+                   default=False,
+                   action="store_true",
+                   )
     p.add_argument("-g", 
                    dest="genome", 
                    help="Genome (when input files are not in FASTA format)", 

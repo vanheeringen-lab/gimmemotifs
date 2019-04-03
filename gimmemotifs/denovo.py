@@ -625,7 +625,7 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
         sorted_motifs = sorted(motifs, key=lambda x: rank[str(x)], reverse=True)
         final_motifs, stats = rename_motifs(sorted_motifs, result.stats)
 
-    with open(os.path.join(outdir, "motifs.pwm"), "w") as f:
+    with open(os.path.join(outdir, "gimme.denovo.pfm"), "w") as f:
         for m in final_motifs:
             f.write("{}\n".format(m.to_pwm()))
     
@@ -634,7 +634,7 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
 
         create_denovo_motif_report(
                 inputfile, 
-                os.path.join(outdir, "motifs.pwm"), 
+                os.path.join(outdir, "gimme.denovo.pfm"), 
                 os.path.join(tmpdir, "validation.fa"), 
                 bg, 
                 os.path.join(tmpdir, "localization.fa"), 
