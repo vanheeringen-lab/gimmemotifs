@@ -29,34 +29,21 @@ from gimmemotifs.stats import calc_stats, add_star, write_stats
 from gimmemotifs import mytmpdir, __version__
 from gimmemotifs.utils import motif_localization
 
-
-
 logger = logging.getLogger("gimme.report")
 
-def get_roc_values(motif, fg_file, bg_file):
+def get_roc_values(motif, fg_file, bg_file, genome):
     """Calculate ROC AUC values for ROC plots."""
-    #print(calc_stats(motif, fg_file, bg_file, stats=["roc_values"], ncpus=1))
-    #["roc_values"])
-    
     try:
-#        fg_result = motif.pwm_scan_score(Fasta(fg_file), cutoff=0.0, nreport=1)
-#        fg_vals = [sorted(x)[-1] for x in fg_result.values()]
-#
-#        bg_result = motif.pwm_scan_score(Fasta(bg_file), cutoff=0.0, nreport=1)
-#        bg_vals = [sorted(x)[-1] for x in bg_result.values()]
-
-#        (x, y) = roc_values(fg_vals, bg_vals)
-        stats = calc_stats(motif, fg_file, bg_file, stats=["roc_values"], ncpus=1)
+        stats = calc_stats(motif, fg_file, bg_file, genome=genome, stats=["roc_values"], ncpus=1)
         (x,y) = list(stats.values())[0]["roc_values"]
         return None,x,y
     except Exception as e:
         print(motif)
         print(motif.id)
+        print(str(e))
         raise
-        error = e
-        return error,[],[]
 
-def create_roc_plots(pwmfile, fgfa, background, outdir):
+def create_roc_plots(pwmfile, fgfa, background, outdir, genome):
     """Make ROC plots for all motifs."""
     motifs = read_motifs(pwmfile, fmt="pwm", as_dict=True)
     ncpus = int(MotifConfig().get_default_params()['ncpus'])
@@ -68,7 +55,7 @@ def create_roc_plots(pwmfile, fgfa, background, outdir):
             k = "{}_{}".format(str(m), bg)
             jobs[k] = pool.apply_async(
                                             get_roc_values,
-                                            (motifs[m_id], fgfa, fname,)
+                                            (motifs[m_id], fgfa, fname, genome,)
                                             )
     imgdir = os.path.join(outdir, "images")
     if not os.path.exists(imgdir):
@@ -203,7 +190,7 @@ def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outd
     motifs = read_motifs(pwmfile, fmt="pwm")
     
     # ROC plots
-    create_roc_plots(pwmfile, fgfa, background, outdir)
+    create_roc_plots(pwmfile, fgfa, background, outdir, params["genome"])
     
     # Closest match in database
     mc = MotifComparer()
@@ -238,8 +225,6 @@ def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outd
 def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
     df = pd.read_table(infile, index_col=0)
     df = df[np.any(abs(df) >= threshold, 1)]
-    M = max(abs(df.min().min()), df.max().max())
-    m = -M
 
     motifs = read_motifs(pwmfile)
 
@@ -272,7 +257,6 @@ def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
     template_dir = MotifConfig().get_template_dir()
     js = open(os.path.join(template_dir, "sortable/sortable.min.js"), encoding="utf-8").read()
     css = open(os.path.join(template_dir, "sortable/sortable-theme-slick.css"), encoding="utf-8").read()
-    cm = sns.diverging_palette(240, 10, as_cmap=True)
     df = df[factor_cols + ["logo"] + list(cols)]
     
     df_styled = df.style
@@ -338,14 +322,14 @@ def roc_html_report(outdir, infile, pwmfile, threshold=0.01):
     
     df = df[df["corrected P-value"] <= threshold]
     
-    df["logo"] = ['<img src="logos/{}.png" height=40/>'.format(re.sub('[^-_\w]+', '_', x)) for x in list(df.index)]
+    df["logo"] = ['<img src="logos/{}.png" height=40/>'.format(re.sub(r'[^-_\w]+', '_', x)) for x in list(df.index)]
     
     df = df[cols]
     if not os.path.exists(outdir + "/logos"):
         os.makedirs(outdir + "/logos")
     for motif in motifs:
         if motif.id in df.index:
-            motif.to_img(outdir + "/logos/{}.png".format(re.sub('[^-_\w]+', '_', motif.id)), fmt="PNG")
+            motif.to_img(outdir + "/logos/{}.png".format(re.sub(r'[^-_\w]+', '_', motif.id)), fmt="PNG")
     
     bar_cols = [
             "log10 P-value", "ROC AUC", "PR AUC", "MNCP",

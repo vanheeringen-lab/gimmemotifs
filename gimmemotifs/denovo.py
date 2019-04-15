@@ -129,8 +129,6 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
                 bedfile, pred_bedfile, val_bedfile)
     divide_file(bedfile, pred_bedfile, val_bedfile, fraction, abs_max)
 
-    config = MotifConfig()
-   
     genome = Genome(params["genome"])
     for infile in [pred_bedfile, val_bedfile]:
         genome.track2fasta(
@@ -392,7 +390,7 @@ def filter_significant_motifs(fname, result, bg, metrics=None):
     
     return sig_motifs
 
-def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, stats=None, metrics=("roc_auc", "recall_at_fdr")):
+def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, genome, stats=None, metrics=("roc_auc", "recall_at_fdr")):
     """Return the best motif per cluster for a clustering results.
 
     The motif can be either the average motif or one of the clustered motifs.
@@ -413,6 +411,9 @@ def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, sta
 
     background : dict
         Dictionary for background file names.
+
+    genome : str
+        Genome name.
 
     stats : dict, optional
         If statistics are not supplied they will be computed.
@@ -439,7 +440,7 @@ def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, sta
     
     new_stats = {}
     for bg, bg_fa in background.items():
-        for m,s in calc_stats(clustered_motifs, fg_fa, bg_fa).items():
+        for m,s in calc_stats(clustered_motifs, fg_fa, bg_fa, genome=genome).items():
             if m not in new_stats:
                 new_stats[m] = {}
             new_stats[m][bg] = s
@@ -616,7 +617,9 @@ def gimme_motifs(inputfile, outdir, params=None, filter_significant=True, cluste
                 clusters, 
                 os.path.join(tmpdir, 'validation.fa'), 
                 background, 
-                result.stats)
+                params["genome"],
+                result.stats,
+                )
         
         final_motifs, stats = rename_motifs(best_motifs, result.stats)
     else:

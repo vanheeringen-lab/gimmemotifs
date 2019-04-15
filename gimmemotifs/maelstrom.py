@@ -49,7 +49,7 @@ FPR = 0.01
 
 logger = logging.getLogger("gimme.maelstrom")
 
-def scan_to_table(input_table, genome, scoring, pwmfile=None, ncpus=None):
+def scan_to_table(input_table, genome, scoring, pwmfile=None, ncpus=None, normalize=True, gc=True):
     """Scan regions in input table with motifs.
 
     Parameters
@@ -99,7 +99,7 @@ def scan_to_table(input_table, genome, scoring, pwmfile=None, ncpus=None):
     s = Scanner(ncpus=ncpus)
     s.set_motifs(pwmfile)
     s.set_genome(genome)
-    s.set_background(genome=genome)
+    s.set_background(genome=genome, gc=gc)
     
     nregions = len(regions)
 
@@ -113,8 +113,16 @@ def scan_to_table(input_table, genome, scoring, pwmfile=None, ncpus=None):
         logger.info("done")
     else:
         s.set_threshold(threshold=0.0)
-        logger.info("creating score table")
-        for row in s.best_score(regions, normalize=True):
+        msg = "creating score table"
+        if normalize:
+            msg += " (z-score"
+            if gc:
+                msg += ", GC%"
+            msg += ")"
+        else:
+            msg += " (logodds)"
+        logger.info(msg)
+        for row in s.best_score(regions, normalize=normalize, gc=gc):
             scores.append(row)
         logger.info("done")
    
@@ -248,7 +256,8 @@ def df_rank_aggregation(df, dfs, exps):
     return df_p
 
 def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=False, 
-        score_table=None, count_table=None, methods=None, ncpus=None):
+        score_table=None, count_table=None, methods=None, ncpus=None, 
+        normalize=True, gc=True):
     """Run maelstrom on an input table.
     
     Parameters
@@ -286,6 +295,12 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=False
 
     ncpus : int, optional
         If defined this specifies the number of cores to use.
+
+    normalize : bool, optional
+        Use z-score normalized motif scores.
+    
+    gc : bool, optional
+        Use GC% bins to normalize motif scores.
     """
     logger.info("Starting maelstrom")
     if infile.endswith("feather"):
@@ -320,9 +335,9 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=False
     if not count_table:
         count_table = os.path.join(outdir, "motif.count.txt.gz")
         if not os.path.exists(count_table):
-            logger.info("Motif scanning (counts)")
+            logger.info("motif scanning (counts)")
             counts = scan_to_table(infile, genome, "count",
-                pwmfile=pwmfile, ncpus=ncpus)
+                pwmfile=pwmfile, ncpus=ncpus, normalize=normalize, gc=gc)
             counts.to_csv(count_table, sep="\t", compression="gzip")
         else:
             logger.info("Counts, using: %s", count_table)
@@ -331,9 +346,9 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=False
     if not score_table:
         score_table = os.path.join(outdir, "motif.score.txt.gz")
         if not os.path.exists(score_table):
-            logger.info("Motif scanning (scores)")
+            logger.info("motif scanning (scores)")
             scores = scan_to_table(infile, genome, "score",
-                pwmfile=pwmfile, ncpus=ncpus)
+                pwmfile=pwmfile, ncpus=ncpus, normalize=normalize, gc=gc)
             scores.to_csv(score_table, sep="\t", float_format="%.3f", 
                 compression="gzip")
         else:
@@ -554,7 +569,7 @@ class MaelstromResult():
                             figsize=(2 + w * 0.5 * aspect, 0.5 * h), linewidths=1,
                            **kwargs)
         cg.ax_col_dendrogram.set_visible(False)
-        plt.setp(cg.ax_heatmap.yaxis.get_majorticklabels(), rotation=0);
+        plt.setp(cg.ax_heatmap.yaxis.get_majorticklabels(), rotation=0)
         return cg
         
         

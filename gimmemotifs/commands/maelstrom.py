@@ -17,6 +17,8 @@ def maelstrom(args):
     pwmfile = args.pwmfile
     methods = args.methods
     ncpus = args.ncpus
+    normalize = args.normalize
+    gc = args.gc
     
     if not os.path.exists(infile):
         raise ValueError("file {} does not exist".format(infile))
@@ -24,4 +26,4 @@ def maelstrom(args):
     if methods:
         methods = [x.strip() for x in methods.split(",")]
 
-    run_maelstrom(infile, genome, outdir, pwmfile, methods=methods, ncpus=ncpus)
+    run_maelstrom(infile, genome, outdir, pwmfile, methods=methods, ncpus=ncpus, normalize=normalize, gc=gc)

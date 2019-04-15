@@ -52,6 +52,8 @@ except ImportError:
 logger = logging.getLogger("gimme.scanner")
 config = MotifConfig()
 
+lock = mp.Lock()
+
 def scan_to_best_match(fname, motifs, ncpus=None, genome=None, score=False, zscore=False, gc=False):
     """Scan a FASTA file with motifs.
 
@@ -363,8 +365,8 @@ class Scanner(object):
         else:
             bins = ["0.00-1.00"]
         
-        logger.info("Determining mean and stddev for motifs.") 
         motifs = read_motifs(self.motifs)
+        lock.acquire()
         with Cache(CACHE_DIR) as cache:
             scan_motifs = []
             for bin in bins:
@@ -382,10 +384,12 @@ class Scanner(object):
                         self.meanstd[bin][motif.id] = results 
         
                 if len(scan_motifs) > 0:
+                    logger.info("Determining mean and stddev for motifs.")
                     for motif, mean, std in self._meanstd_from_seqs(scan_motifs, bin_seqs):
                         k = "e{}|{}|{}".format(motif.hash(), self.background_hash, bin)
                         cache.set(k, [mean, std])
                         self.meanstd[bin][motif.id] = mean, std
+        lock.release()
 
     def set_background(self, fname=None, genome=None, length=200, nseq=10000, gc=False, gc_bins=None):
         """Set the background to use for FPR and z-score calculations.
@@ -427,12 +431,13 @@ class Scanner(object):
         if not genome:
             if self.genome:
                 genome = self.genome
-                logger.info("Using default background: genome {} with length {}".format(
+                logger.info("using default background: genome {} with length {}".format(
                     genome, length))
             else:
                 raise ValueError("Need either genome or filename for background.")
         
-        logger.info("Using background: genome {} with length {}".format(genome, length))
+        logger.info("using background: genome {} with length {}".format(genome, length))
+        lock.acquire()
         with Cache(CACHE_DIR) as cache:           
             self.background_hash = "d{}:{}:{}:{}".format(genome, int(length), gc, str(gc_bins))
             c = cache.get(self.background_hash)
@@ -450,12 +455,14 @@ class Scanner(object):
                             gc_bins.append((b, b + 0.05))
                     
                     with NamedTemporaryFile() as tmp:
+                        logger.info("using {} sequences".format(nseq))
                         gc_bin_bedfile(tmp.name, genome, number=nseq, l=length, bins=gc_bins)
                         fa = as_fasta(tmp.name, genome=genome)
                 else:
                     fa = RandomGenomicFasta(genome, length, nseq)
                 cache.set(self.background_hash, (fa,gc_bins))
-        
+        lock.release()
+
         self.background = fa
         if gc_bins:
             self.gc_bins = gc_bins
@@ -501,6 +508,7 @@ class Scanner(object):
         
         seqs = self.background.seqs
 
+        lock.acquire()
         with Cache(CACHE_DIR) as cache:
             scan_motifs = []
             for motif in motifs:
@@ -518,7 +526,7 @@ class Scanner(object):
                         thresholds[motif.id] = threshold
                     
             if len(scan_motifs) > 0:
-                logger.info("Determining FPR-based threshold")
+                logger.info("determining FPR-based threshold")
                 for motif, threshold in self._threshold_from_seqs(scan_motifs, seqs, fpr):
                     k = "{}|{}|{:.4f}".format(motif.hash(), self.background_hash, fpr)
                     cache.set(k, threshold)
@@ -528,6 +536,7 @@ class Scanner(object):
                         thresholds[motif.id] = 0.0
                     else:
                         thresholds[motif.id] = threshold
+        lock.release()
         self.threshold_str = "{}_{}_{}".format(fpr, threshold, self.background_hash)
         self.threshold = thresholds
 

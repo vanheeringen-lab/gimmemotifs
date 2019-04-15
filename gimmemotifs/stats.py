@@ -7,7 +7,7 @@ import numpy as np
 from scipy.stats import rankdata
 
 from gimmemotifs import rocmetrics
-from gimmemotifs.scanner import scan_to_best_match
+from gimmemotifs.scanner import scan_to_best_match, Scanner
 from gimmemotifs.motif import read_motifs, Motif
 from gimmemotifs.config import MotifConfig
 
@@ -57,8 +57,13 @@ def calc_stats_iterator(motifs, fg_file, bg_file, genome=None, stats=None, ncpus
     
     if ncpus is None:
         ncpus = int(MotifConfig().get_default_params()["ncpus"])
-    chunksize = 240
+    
+    s = Scanner(ncpus=ncpus)
+    s.set_motifs(all_motifs)
+    s.set_genome(genome)
+    s.set_meanstd(gc=True)
 
+    chunksize = 240
     for i in range(0, len(all_motifs), chunksize):
         result = {}
         logger.debug("chunk %s of %s",
