@@ -19,5 +19,6 @@ include data/examples/TAp73alpha.fa
 include data/examples/test.small.fa
 include data/examples/example.pfm
 include data/examples/Gm12878.CTCF.top500.w200.fa
+include data/examples/MA0099.3.jaspar
 include versioneer.py
 include gimmemotifs/_version.py

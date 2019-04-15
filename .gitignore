@@ -14,6 +14,7 @@ data/examples/*
 !data/examples/*.bed
 !data/examples/*.fa
 !data/examples/example.pfm
+!data/examples/*jaspar
 *.pyc
 dist/*
 website/**/*

@@ -20,6 +20,7 @@ The manuscript describing this latest release is available on [biorRxiv](https:/
 Niklas Bruse, Simon J. van Heeringen<br>
 _bioRxiv_ (2018) DOI: [10.1101/474403](https://doi.org/10.1101/474403)
 
+You can interactively try out the Python API in a Jupyter notebook using binder: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/vanheeringen-lab/gimmemotifs/develop?filepath=docs%2Fapi_examples.ipynb)
 
 ## We need your help!
 
