@@ -47,7 +47,7 @@ def roc(args):
         print(args.genome)
         gimme_motifs(args.sample, args.outdir, 
                 params={
-                    "tools":"MEME,Homer,BioProspector", 
+                    "tools":"BioProspector", 
                     "analysis":"small",
                     "background":"gc",
                     "genome":args.genome,
