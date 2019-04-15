@@ -44,14 +44,15 @@ def roc(args):
     
     motifs = read_motifs(pwmfile, fmt="pwm")
     if args.denovo:
-        #gimme_motifs(args.sample, args.outdir, 
-        #        params={
-        #            "tools":"MDmodule,Homer,BioProspector", 
-        #            "analysis":"xl",
-        #            "background":"gc",
-        #            "genome":args.genome,
-        #            }
-        #        ) 
+        print(args.genome)
+        gimme_motifs(args.sample, args.outdir, 
+                params={
+                    "tools":"MEME,Homer,BioProspector", 
+                    "analysis":"small",
+                    "background":"gc",
+                    "genome":args.genome,
+                    }
+                ) 
         denovo = read_motifs(
                 os.path.join(args.outdir, "gimme.denovo.pfm")
                 )
@@ -144,7 +145,7 @@ def roc(args):
     f_out.close() 
     
     if args.outdir:
-        html_report(
+        roc_html_report(
             args.outdir,
             args.outdir + "/gimme.roc.report.txt",
             pwmfile,

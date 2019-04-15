@@ -52,7 +52,7 @@ except ImportError:
 logger = logging.getLogger("gimme.scanner")
 config = MotifConfig()
 
-def scan_to_best_match(fname, motifs, ncpus=None, genome=None, score=False):
+def scan_to_best_match(fname, motifs, ncpus=None, genome=None, score=False, zscore=False, gc=False):
     """Scan a FASTA file with motifs.
 
     Scan a FASTA file and return a dictionary with the best match per motif.
@@ -83,9 +83,9 @@ def scan_to_best_match(fname, motifs, ncpus=None, genome=None, score=False):
     logger.debug("scanning %s...", fname)
     result = dict([(m.id, []) for m in motifs])
     if score:
-        it = s.best_score(fname)
+        it = s.best_score(fname, normalize=zscore, gc=gc)
     else:
-        it = s.best_match(fname)
+        it = s.best_match(fname, normalize=zscore, gc=gc)
     for scores in it:
         for motif,score in zip(motifs, scores):
             result[motif.id].append(score)
@@ -408,6 +408,9 @@ class Scanner(object):
         nseq : int, optional
             Number of genomic sequences to retrieve.
         """
+        if self.background:
+            return
+
         length = int(length)
 
         if genome and fname:
@@ -570,14 +573,14 @@ class Scanner(object):
             scores = np.array([sorted(m, key=lambda x: x[0])[0][0] for m in matches if len(m) > 0])
             yield scores
  
-    def best_match(self, seqs, scan_rc=True):
+    def best_match(self, seqs, scan_rc=True, normalize=False, gc=False):
         """
         give the best match of each motif in each sequence
         returns an iterator of nested lists containing tuples:
         (score, position, strand)
         """
         self.set_threshold(threshold=0.0)
-        for matches in self.scan(seqs, 1, scan_rc):
+        for matches in self.scan(seqs, 1, scan_rc, normalize=normalize, gc=gc):
             yield [m[0] for m in matches]
    
     def get_seq_bin(self, seq):

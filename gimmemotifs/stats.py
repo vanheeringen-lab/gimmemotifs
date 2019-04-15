@@ -65,8 +65,8 @@ def calc_stats_iterator(motifs, fg_file, bg_file, genome=None, stats=None, ncpus
             (i / chunksize) + 1, len(all_motifs) // chunksize + 1)
         motifs = all_motifs[i:i + chunksize]
        
-        fg_total = scan_to_best_match(fg_file, motifs, ncpus=ncpus, genome=genome)
-        bg_total = scan_to_best_match(bg_file, motifs, ncpus=ncpus, genome=genome)
+        fg_total = scan_to_best_match(fg_file, motifs, ncpus=ncpus, genome=genome, zscore=True, gc=True)
+        bg_total = scan_to_best_match(bg_file, motifs, ncpus=ncpus, genome=genome, zscore=True, gc=True)
      
         logger.debug("calculating statistics")
         
