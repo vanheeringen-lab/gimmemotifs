@@ -43,6 +43,7 @@ install:
 #  - pip install coveralls
 # # command to run tests, e.g. python setup.py test
 script:  
+  - python -c 'from gimmemotifs.config import CACHE_DIR;print(CACHE_DIR)'
   - python run_tests.py
 
 #after_sucess:
