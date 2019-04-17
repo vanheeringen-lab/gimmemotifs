@@ -57,7 +57,7 @@ class TestStats(unittest.TestCase):
                 self.assertLess(stats[m2]["ks_pvalue"] , 0.001)
                 
                 self.assertGreater(stats[m1]["phyper_at_fpr"] , 0.1)
-                self.assertLess(stats[m2]["phyper_at_fpr"] , 1e-16)
+                self.assertLess(stats[m2]["phyper_at_fpr"] , 1e-14)
                 
             # Only calculate specific statistic
             stats = calc_stats(self.motifs, self.fg_fa, self.bg_fa, stats=["roc_auc"], genome=self.genome)
