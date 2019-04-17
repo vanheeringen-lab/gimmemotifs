@@ -42,17 +42,6 @@ class TestMotifPwm(unittest.TestCase):
                 self.assertTrue(float(vals[5]) < 9.06)
                 self.assertIn(vals[6], ["+", "-"])
 
-    def test3_gff_enrichment(self):
-        """ Test gff_enrichment """
-        self.motif.pwm_scan_to_gff(self.random, self.random_gff)
-        gff_enrichment(self.prom_gff, self.random_gff, 316, 3160, self.tmp)
-        with open(self.tmp) as f:
-            f.readline() # Header
-            vals = f.readline().strip().split("\t")
-            self.assertEqual(vals[0], "TATA-box")
-            self.assertLess(float(vals[2]), 1e-60)
-            self.assertGreater(float(vals[5]), 1.5)
-
     def tearDown(self):
         pass
 
