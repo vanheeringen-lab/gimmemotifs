@@ -38,11 +38,10 @@ try:
 except:
     pass
 
-
-def mp_calc_stats(motifs, fg_fa, bg_fa, genome, bg_name=None):
+def mp_calc_stats(motifs, fg_fa, bg_fa, zscore, gc, genome, bg_name=None):
     """Parallel calculation of motif statistics."""
     try:
-        stats = calc_stats(motifs, fg_fa, bg_fa, ncpus=1, genome=genome)
+        stats = calc_stats(motifs, fg_fa, bg_fa, ncpus=1, zscore=zscore, gc=gc, genome=genome)
     except Exception as e:
         sys.stderr.write("ERROR: {}\n".format(str(e)))
         stats = {}
@@ -64,7 +63,7 @@ def _run_tool(job_name, t, fastafile, params):
 
 class PredictionResult(object):
     """Store predicted motifs and calculate statistics."""
-    def __init__(self, outfile, genome, fg_file=None, background=None, do_counter=True, job_server=None):
+    def __init__(self, outfile, genome=None, fg_file=None, background=None, gc=False, do_counter=True, job_server=None):
         self.lock = thread.allocate_lock()
         self.motifs = []
         self.finished = []
@@ -85,6 +84,13 @@ class PredictionResult(object):
             self.fg_fa = Fasta(fg_file)
             self.background = dict([(bg,Fasta(fname)) for bg,fname in background.items()])
             self.do_stats = True
+            self.gc = gc
+            self.zscore = self.gc
+            if self.gc:
+                if genome is None:
+                    raise ValueError("Need a genome when calculating GC% zscores for motif statistics")
+                else:
+                    self.genome = genome
         else:
             self.do_stats = False
 
@@ -120,7 +126,7 @@ class PredictionResult(object):
             for bg_name, bg_fa in self.background.items():
                 job = self.job_server.apply_async(
                                     mp_calc_stats, 
-                                    (motifs, self.fg_fa, bg_fa, self.genome, bg_name), 
+                                    (motifs, self.fg_fa, bg_fa, self.zscore, self.gc, self.genome, bg_name), 
                                     callback=self.add_stats
                                     )
                 self.stat_jobs.append(job)
@@ -202,6 +208,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg19", sin
                 organism,
                 fg_file=stats_fg, 
                 background=stats_bg,
+                gc=gc,
                 job_server=job_server,
                 )
     

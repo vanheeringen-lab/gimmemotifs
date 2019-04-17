@@ -22,7 +22,8 @@ class TestDenovo(unittest.TestCase):
             params={
                 "tools":"BioProspector,Homer,MDmodule",
                 "fraction":0.5,
-                "background":"random"
+                "background":"random",
+                "genome":"test/data/background/genome.fa",
                 },
             filter_significant=True,
             cluster=True)

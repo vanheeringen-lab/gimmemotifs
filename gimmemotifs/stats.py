@@ -58,10 +58,12 @@ def calc_stats_iterator(motifs, fg_file, bg_file, stats=None, genome=None, zscor
     if ncpus is None:
         ncpus = int(MotifConfig().get_default_params()["ncpus"])
     
-    s = Scanner(ncpus=ncpus)
-    s.set_motifs(all_motifs)
-    s.set_genome(genome)
-    s.set_meanstd(gc=gc)
+    if zscore or gc:
+        # Precalculate mean and stddev for z-score calculation
+        s = Scanner(ncpus=ncpus)
+        s.set_motifs(all_motifs)
+        s.set_genome(genome)
+        s.set_meanstd(gc=gc)
 
     chunksize = 240
     for i in range(0, len(all_motifs), chunksize):

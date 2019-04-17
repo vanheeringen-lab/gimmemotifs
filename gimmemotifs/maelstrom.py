@@ -100,8 +100,6 @@ def scan_to_table(input_table, genome, scoring, pwmfile=None, ncpus=None, zscore
     s.set_motifs(pwmfile)
     s.set_genome(genome)
     s.set_background(genome=genome, gc=gc)
-    
-    nregions = len(regions)
 
     scores = []
     if scoring == "count":
@@ -230,7 +228,7 @@ def _rank_agg_column(exps, dfs, e):
     tmp_dfs = [pd.DataFrame(), pd.DataFrame()]
         
     for i,sort_order in enumerate([False, True]):
-        for method,scoring,fname in exps:
+        for method,scoring,_ in exps:
             k = "{}.{}".format(method, scoring)
             if k in dfs:
                 v = dfs[k]
@@ -239,7 +237,6 @@ def _rank_agg_column(exps, dfs, e):
 
 def df_rank_aggregation(df, dfs, exps):
     df_p = pd.DataFrame(index=list(dfs.values())[0].index)
-    df_negp = pd.DataFrame(index=list(dfs.values())[0].index)
     names = list(dfs.values())[0].columns
     pool = Pool(16)
     func = partial(_rank_agg_column, exps, dfs)

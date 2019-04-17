@@ -11,6 +11,7 @@ class TestStats(unittest.TestCase):
     def setUp(self):
         self.data_dir = "test/data/stats"
         
+        self.genome = "test/data/background/genome.fa"
         self.motifs = os.path.join(self.data_dir, "motifs.pwm")
         self.fg_fa = os.path.join(self.data_dir, "p73.fa")
         self.bg_fa = os.path.join(self.data_dir, "random.w200.fa")
@@ -31,31 +32,35 @@ class TestStats(unittest.TestCase):
     def test1_stats(self):
         """ Calculate motif statistics """
         for ncpus in [1,2]:
-            stats = calc_stats(self.motifs, self.fg_fa, self.bg_fa, ncpus=ncpus)
+            stats_gc = calc_stats(self.motifs, self.fg_fa, self.bg_fa,
+                        ncpus=ncpus, genome=self.genome, gc=True, zscore=True)
+            stats_normal = calc_stats(self.motifs, self.fg_fa, self.bg_fa,
+                        ncpus=ncpus, gc=False, zscore=False)
             
-            for f in self.stat_functions:
-                self.assertIn(f, list(stats.values())[0])
-            
-            # Two motifs
-            self.assertEqual(2, len(stats))
-    
-            m1 = "T-box_M1713_1.01_CTAGGTGTGAA" # not enriched
-            m2 = "p53_Average_8_CATGyCnGGrCATGy"    # highly enriched
-    
-            self.assertLess(stats[m1]["roc_auc"] , 0.9)
-            self.assertGreater(stats[m2]["roc_auc"] , 0.5)
-    
-            self.assertEqual(stats[m1]["recall_at_fdr"] , 0.0)
-            self.assertGreater(stats[m2]["recall_at_fdr"] , 0.8)
+            for stats in stats_gc, stats_normal:
+                for f in self.stat_functions:
+                    self.assertIn(f, list(stats.values())[0])
+                
+                # Two motifs
+                self.assertEqual(2, len(stats))
         
-            self.assertGreater(stats[m1]["ks_pvalue"] , 0.01)
-            self.assertLess(stats[m2]["ks_pvalue"] , 0.001)
+                m1 = "T-box_M1713_1.01_CTAGGTGTGAA" # not enriched
+                m2 = "p53_Average_8_CATGyCnGGrCATGy"    # highly enriched
+        
+                self.assertLess(stats[m1]["roc_auc"] , 0.9)
+                self.assertGreater(stats[m2]["roc_auc"] , 0.5)
+        
+                self.assertEqual(stats[m1]["recall_at_fdr"] , 0.0)
+                self.assertGreater(stats[m2]["recall_at_fdr"] , 0.8)
             
-            self.assertGreater(stats[m1]["phyper_at_fpr"] , 0.1)
-            self.assertLess(stats[m2]["phyper_at_fpr"] , 1e-16)
-            
+                self.assertGreater(stats[m1]["ks_pvalue"] , 0.01)
+                self.assertLess(stats[m2]["ks_pvalue"] , 0.001)
+                
+                self.assertGreater(stats[m1]["phyper_at_fpr"] , 0.1)
+                self.assertLess(stats[m2]["phyper_at_fpr"] , 1e-16)
+                
             # Only calculate specific statistic
-            stats = calc_stats(self.motifs, self.fg_fa, self.bg_fa, stats=["roc_auc"])
+            stats = calc_stats(self.motifs, self.fg_fa, self.bg_fa, stats=["roc_auc"], genome=self.genome)
             
             self.assertEqual(1, len(list(stats.values())[0]))
             
@@ -71,7 +76,7 @@ class TestStats(unittest.TestCase):
             motifs = read_motifs(f)
         motif = [m for m in motifs if str(m) == m_id][0]
         
-        stats = calc_stats(motif, self.fg_fa, self.bg_fa, stats=["roc_auc"])
+        stats = calc_stats(motif, self.fg_fa, self.bg_fa, stats=["roc_auc"], genome=self.genome)
         self.assertGreater(stats[m_id]["roc_auc"] , 0.9)
     
     def tearDown(self):
