@@ -28,8 +28,12 @@ class TestDenovo(unittest.TestCase):
             filter_significant=True,
             cluster=True)
        
-        fnames = ["motifs.pwm", "motif_report.html", "cluster_report.html",
-                    "params.txt", "stats.random.txt"]
+        fnames = [
+                "gimme.denovo.pfm", 
+                "motif_report.html", 
+                "cluster_report.html",
+                "params.txt", 
+                "stats.random.txt"]
         
     
         with open(os.path.join(self.outdir, 'gimmemotifs.log')) as f:
