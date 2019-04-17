@@ -33,7 +33,7 @@ from genomepy import Genome
 from gimmemotifs import mytmpdir
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.config import CACHE_DIR, BG_TYPES, MotifConfig
-from gimmemotifs.utils import number_of_seqs_in_file
+from gimmemotifs.utils import number_of_seqs_in_file, as_fasta
 
 logger = logging.getLogger("gimme.background")
 
@@ -114,18 +114,21 @@ def create_background_file(outfile, bg_type, fmt='fasta', length=None,  genome=N
             m.writefasta(outfile)
         else:
             matched_gc_bedfile(outfile, inputfile, genome, number)
-    elif bg_type == "promoter":
-        if fmt == "fasta":
-            m = PromoterFasta(gene_file, genome, length=length, n=number)
-            m.writefasta(outfile)
-        else:
-            create_promoter_bedfile(outfile, gene_file, length, number)
-    elif bg_type == "genomic":
-        if fmt == "fasta":
-            m = RandomGenomicFasta(genome, length, number)
-            m.writefasta(outfile)
-        else:
-            create_random_genomic_bedfile(outfile, genome, length, number)
+    else:
+        if length is None:
+            length = np.median([len(seq) for seq in as_fasta(inputfile, genome=genome).seqs])
+        if bg_type == "promoter":
+            if fmt == "fasta":
+                m = PromoterFasta(gene_file, genome, length=length, n=number)
+                m.writefasta(outfile)
+            else:
+                create_promoter_bedfile(outfile, gene_file, length, number)
+        elif bg_type == "genomic":
+            if fmt == "fasta":
+                m = RandomGenomicFasta(genome, length, number)
+                m.writefasta(outfile)
+            else:
+                create_random_genomic_bedfile(outfile, genome, length, number)
 
 def create_random_genomic_bedfile(out, genome, length, n):
     features = Genome(genome).get_random_sequences(n, length)
