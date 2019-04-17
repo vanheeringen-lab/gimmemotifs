@@ -45,7 +45,7 @@ class TestDenovo(unittest.TestCase):
             self.assertTrue(os.path.exists(os.path.join(self.outdir, fname)))   
   
         # Check if correct motif is predicted
-        with open(os.path.join(self.outdir, "motifs.pwm")) as f:
+        with open(os.path.join(self.outdir, "gimme.denovo.pfm")) as f:
             predicted_motifs = read_motifs(f)
         ap1 = motif_from_consensus("TGASTCA")
 
