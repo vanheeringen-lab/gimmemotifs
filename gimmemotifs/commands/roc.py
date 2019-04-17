@@ -94,13 +94,6 @@ def roc(args):
     else:
         logger.info("skipping de novo")
 
-    ids = []
-    if args.ids:
-        ids = args.ids.split(",")
-    else:
-        ids = [m.id for m in motifs]
-    motifs = [m for m in motifs if (m.id in ids)]
-   
     stats = [
             "phyper_at_fpr",
             "roc_auc", 
@@ -111,10 +104,6 @@ def roc(args):
             "matches_at_fpr",
             ]
     
-    plot_x = []
-    plot_y = []
-    legend = []
-    
     f_out = sys.stdout
     if args.outdir:
         f_out = open(args.outdir + "/gimme.roc.report.txt", "w")
@@ -123,7 +112,7 @@ def roc(args):
     f_out.write("Motif\t# matches\t# matches background\tP-value\tlog10 P-value\tROC AUC\tPR AUC\tEnr. at 1% FPR\tRecall at 10% FDR\n")
     
     logger.info("calculating stats")
-    for motif_stats in calc_stats_iterator(motifs, args.sample, bg, 
+    for motif_stats in calc_stats_iterator(motifs, args.sample, bgfile, 
             stats=stats, genome=args.genome, ncpus=args.ncpus,
             zscore=args.zscore, gc=args.gc):
     
