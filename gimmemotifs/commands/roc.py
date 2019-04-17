@@ -20,6 +20,7 @@ from gimmemotifs.denovo import gimme_motifs
 from gimmemotifs.background import matched_gc_bedfile
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.report import roc_html_report
+from gimmemotifs.plot import roc_plot
 
 logger = logging.getLogger("gimme.roc")
 
@@ -38,8 +39,7 @@ def roc(args):
     if not args.background:
         # create GC-matched background if not provided
         bgfile = os.path.join(args.outdir, "generated_background.bed")
-        n = 5000
-        matched_gc_bedfile(bgfile, args.sample, args.genome, 5000)
+        matched_gc_bedfile(bgfile, args.sample, args.genome, 10000)
         bg = bgfile
    
     pwmfile = args.pwmfile
