@@ -340,7 +340,7 @@ def gc_bin_bedfile(bedfile, genome, number, l=200, bins=None, random_state=None,
     fname = os.path.join(CACHE_DIR, "{}.gcfreq.{}.feather".format(os.path.basename(genome), min_bin_size))
     if not os.path.exists(fname):
         if not os.path.exists(CACHE_DIR):
-            os.mkdirs(CACHE_DIR)
+            os.makedirs(CACHE_DIR)
         create_gc_bin_index(genome, fname, min_bin_size=min_bin_size)
     
     df = pd.read_feather(fname)
