@@ -62,7 +62,7 @@ def roc(args):
         mc = MotifComparer()
         result = mc.get_closest_match(denovo, dbmotifs=pfmfile, metric="seqcor")
         new_map_file = os.path.join(args.outdir, "combined.motif2factors.txt")
-        base = os.path.splitext(pwmfile)[0]
+        base = os.path.splitext(pfmfile)[0]
         map_file = base + ".motif2factors.txt"
         if os.path.exists(map_file):
             shutil.copyfile(map_file, new_map_file)
