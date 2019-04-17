@@ -17,41 +17,42 @@ import numpy as np
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.stats import calc_stats_iterator
 from gimmemotifs.denovo import gimme_motifs
-from gimmemotifs.background import matched_gc_bedfile
+from gimmemotifs.background import create_background_file
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.report import roc_html_report
-from gimmemotifs.plot import roc_plot
 
 logger = logging.getLogger("gimme.roc")
 
 def roc(args):
-    """ Calculate ROC_AUC and other metrics and optionally plot ROC curve."""
-    outputfile = args.outfile
-    # Default extension for image
-    if outputfile and not outputfile.endswith(".png"):
-        outputfile += ".png"
-     
+    """ Calculate ROC_AUC and other metrics and optionally plot ROC curve.""" 
     if args.outdir:
         if not os.path.exists(args.outdir):
             os.makedirs(args.outdir)
    
+    bgfile = None
     bg = args.background
-    if not args.background:
-        # create GC-matched background if not provided
-        bgfile = os.path.join(args.outdir, "generated_background.bed")
-        matched_gc_bedfile(bgfile, args.sample, args.genome, 10000)
-        bg = bgfile
-   
-    pwmfile = args.pwmfile
+    if bg is None:
+        bg = "gc"
     
-    motifs = read_motifs(pwmfile, fmt="pwm")
+    if os.path.isfile(bg):
+        bgfile = bg
+        bg = "custom"
+    else:
+        # create background if not provided
+        bgfile = os.path.join(args.outdir, "generated_background.{}.fa".format(bg))
+        create_background_file(bgfile, bg, fmt='fasta', genome=args.genome, inputfile=args.sample, number=10000)
+    
+    pfmfile = args.pfmfile
+    
+    motifs = read_motifs(pfmfile, fmt="pwm")
     if args.denovo:
         print(args.genome)
         gimme_motifs(args.sample, args.outdir, 
                 params={
                     "tools": args.tools, 
                     "analysis": args.analysis,
-                    "background": "gc",
+                    "background": bg,
+                    "custom_background": bgfile,
                     "genome": args.genome,
                     }
                 ) 
@@ -59,7 +60,7 @@ def roc(args):
                 os.path.join(args.outdir, "gimme.denovo.pfm")
                 )
         mc = MotifComparer()
-        result = mc.get_closest_match(denovo, dbmotifs=pwmfile, metric="seqcor")
+        result = mc.get_closest_match(denovo, dbmotifs=pfmfile, metric="seqcor")
         new_map_file = os.path.join(args.outdir, "combined.motif2factors.txt")
         base = os.path.splitext(pwmfile)[0]
         map_file = base + ".motif2factors.txt"
@@ -67,8 +68,8 @@ def roc(args):
             shutil.copyfile(map_file, new_map_file)
  
         motifs += denovo
-        pwmfile = os.path.join(args.outdir, "combined.pfm")
-        with open(pwmfile, "w") as f:
+        pfmfile = os.path.join(args.outdir, "combined.pfm")
+        with open(pfmfile, "w") as f:
             for m in motifs:
                 print(m.to_pwm(), file=f)
       
@@ -128,11 +129,6 @@ def roc(args):
     
         for motif in motifs:
             if str(motif) in motif_stats:
-                if outputfile:
-                    x, y = motif_stats[str(motif)]["roc_values"]
-                    plot_x.append(x)
-                    plot_y.append(y)
-                    legend.append(motif.id)
                 log_pvalue = np.inf
                 if motif_stats[str(motif)]["phyper_at_fpr"] > 0:
                     log_pvalue = -np.log10(motif_stats[str(motif)]["phyper_at_fpr"])
@@ -154,10 +150,6 @@ def roc(args):
         roc_html_report(
             args.outdir,
             args.outdir + "/gimme.roc.report.txt",
-            pwmfile,
+            pfmfile,
             0.01,
             )
-
-    # Plot the ROC curve
-    if outputfile:
-        roc_plot(outputfile, plot_x, plot_y, ids=legend)
