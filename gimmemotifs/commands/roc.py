@@ -10,6 +10,7 @@ import os
 import re
 import sys
 import shutil
+import logging
 
 import numpy as np
 
@@ -19,6 +20,8 @@ from gimmemotifs.denovo import gimme_motifs
 from gimmemotifs.background import matched_gc_bedfile
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.report import roc_html_report
+
+logger = logging.getLogger("gimme.roc")
 
 def roc(args):
     """ Calculate ROC_AUC and other metrics and optionally plot ROC curve."""
@@ -38,7 +41,6 @@ def roc(args):
         n = 5000
         matched_gc_bedfile(bgfile, args.sample, args.genome, 5000)
         bg = bgfile
-
    
     pwmfile = args.pwmfile
     
@@ -47,10 +49,10 @@ def roc(args):
         print(args.genome)
         gimme_motifs(args.sample, args.outdir, 
                 params={
-                    "tools":"BioProspector", 
-                    "analysis":"small",
-                    "background":"gc",
-                    "genome":args.genome,
+                    "tools": args.tools, 
+                    "analysis": args.analysis,
+                    "background": "gc",
+                    "genome": args.genome,
                     }
                 ) 
         denovo = read_motifs(
@@ -88,7 +90,8 @@ def roc(args):
                             "N"), file=f)
 
                         break
-
+    else:
+        logger.info("skipping de novo")
 
     ids = []
     if args.ids:
@@ -118,8 +121,10 @@ def roc(args):
     # Print the metrics
     f_out.write("Motif\t# matches\t# matches background\tP-value\tlog10 P-value\tROC AUC\tPR AUC\tEnr. at 1% FPR\tRecall at 10% FDR\n")
     
+    logger.info("calculating stats")
     for motif_stats in calc_stats_iterator(motifs, args.sample, bg, 
-            genome=args.genome, stats=stats, ncpus=args.ncpus):
+            stats=stats, genome=args.genome, ncpus=args.ncpus,
+            zscore=args.zscore, gc=args.gc):
     
         for motif in motifs:
             if str(motif) in motif_stats:
@@ -144,6 +149,7 @@ def roc(args):
                       ))
     f_out.close() 
     
+    logger.info("creating report")
     if args.outdir:
         roc_html_report(
             args.outdir,

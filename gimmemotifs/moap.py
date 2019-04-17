@@ -815,7 +815,7 @@ class LassoMoap(Moap):
         return coefs
 
 def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=None, pwmfile=None, genome=None, fpr=0.01, ncpus=None,
-        subsample=None):
+        subsample=None, zscore=True, gc=True):
     """Run a single motif activity prediction algorithm.
     
     Parameters
@@ -852,6 +852,12 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
     
     ncpus : int, optional
         Number of threads to use. Default is the number specified in the config.
+
+    zscore : bool, optional
+        Use z-score normalized motif scores.
+    
+    gc : bool optional
+        Use GC% bins for z-score.
     
     Returns
     -------
@@ -907,7 +913,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
             for row in s.count(list(df.index)):
                 scores.append(row)
         else:
-            for row in s.best_score(list(df.index), normalize=True):
+            for row in s.best_score(list(df.index), zscore=zscore, gc=gc):
                 scores.append(row)
 
         motifs = pd.DataFrame(scores, index=df.index, columns=motif_names)

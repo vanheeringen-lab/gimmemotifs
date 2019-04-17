@@ -49,7 +49,7 @@ FPR = 0.01
 
 logger = logging.getLogger("gimme.maelstrom")
 
-def scan_to_table(input_table, genome, scoring, pwmfile=None, ncpus=None, normalize=True, gc=True):
+def scan_to_table(input_table, genome, scoring, pwmfile=None, ncpus=None, zscore=True, gc=True):
     """Scan regions in input table with motifs.
 
     Parameters
@@ -114,7 +114,7 @@ def scan_to_table(input_table, genome, scoring, pwmfile=None, ncpus=None, normal
     else:
         s.set_threshold(threshold=0.0)
         msg = "creating score table"
-        if normalize:
+        if zscore:
             msg += " (z-score"
             if gc:
                 msg += ", GC%"
@@ -122,7 +122,7 @@ def scan_to_table(input_table, genome, scoring, pwmfile=None, ncpus=None, normal
         else:
             msg += " (logodds)"
         logger.info(msg)
-        for row in s.best_score(regions, normalize=normalize, gc=gc):
+        for row in s.best_score(regions, zscore=zscore, gc=gc):
             scores.append(row)
         logger.info("done")
    
@@ -257,7 +257,7 @@ def df_rank_aggregation(df, dfs, exps):
 
 def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=False, 
         score_table=None, count_table=None, methods=None, ncpus=None, 
-        normalize=True, gc=True):
+        zscore=True, gc=True):
     """Run maelstrom on an input table.
     
     Parameters
@@ -296,7 +296,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=False
     ncpus : int, optional
         If defined this specifies the number of cores to use.
 
-    normalize : bool, optional
+    zscore : bool, optional
         Use z-score normalized motif scores.
     
     gc : bool, optional
@@ -337,7 +337,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=False
         if not os.path.exists(count_table):
             logger.info("motif scanning (counts)")
             counts = scan_to_table(infile, genome, "count",
-                pwmfile=pwmfile, ncpus=ncpus, normalize=normalize, gc=gc)
+                pwmfile=pwmfile, ncpus=ncpus, zscore=zscore, gc=gc)
             counts.to_csv(count_table, sep="\t", compression="gzip")
         else:
             logger.info("Counts, using: %s", count_table)
@@ -348,7 +348,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=False
         if not os.path.exists(score_table):
             logger.info("motif scanning (scores)")
             scores = scan_to_table(infile, genome, "score",
-                pwmfile=pwmfile, ncpus=ncpus, normalize=normalize, gc=gc)
+                pwmfile=pwmfile, ncpus=ncpus, zscore=zscore, gc=gc)
             scores.to_csv(score_table, sep="\t", float_format="%.3f", 
                 compression="gzip")
         else:

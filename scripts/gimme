@@ -193,7 +193,7 @@ if __name__ == "__main__":
                    type=int,
                    default=int(params["ncpus"]))
     p.add_argument("--rawscore",
-                   dest="normalize",
+                   dest="zscore",
                    help="Don't z-score normalize motif scores",
                    action="store_false",
                    default=True)
@@ -242,6 +242,16 @@ if __name__ == "__main__":
                    metavar="INT", 
                    type=int,
                    default=int(params["ncpus"]))
+    p.add_argument("--rawscore",
+                   dest="zscore",
+                   help="Don't z-score normalize motif scores",
+                   action="store_false",
+                   default=True)
+    p.add_argument("--nogc",
+                   dest="gc",
+                   help="Don't use GC% bins",
+                   action="store_false",
+                   default=True)
     p.add_argument("--denovo",
                    dest="known",
                    help="Only use de novo motifs",
@@ -261,10 +271,10 @@ if __name__ == "__main__":
                    help="Tools to use, any combination of %s (default %s)" % (params["available_tools"], 
                    params["tools"]), 
                    metavar="N", 
-                   default=params["tools"])
+                   default="MEME,Homer,BioProspector")
     denovo_grp.add_argument("-a", "--analysis",
                    dest="analysis",
-                   help="Analysis type: small, medium, large, xl (%s)" % params["analysis"], 
+                   help="Analysis type: small, medium, large, xl (xl)", 
                    metavar="ANALYSIS", 
                    default="xl")
     denovo_grp.add_argument("-k", "--keepintermediate", 

@@ -70,11 +70,11 @@ def scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalu
                         fa.ids[i], 
                         "\t".join([str(x) for x in counts])
                         )
-def scan_score_table(s, fa, motifs, scan_rc, normalize=False, gcnorm=False):
+def scan_score_table(s, fa, motifs, scan_rc, zscore=False, gcnorm=False):
     
     s.set_threshold(threshold=0.0, gc=gcnorm)
     # get iterator
-    result_it = s.best_score(fa, scan_rc, normalize=normalize, gc=gcnorm)
+    result_it = s.best_score(fa, scan_rc, zscore=zscore, gc=gcnorm)
     # header
     yield "\t{}".format("\t".join([m.id for m in motifs]))
     # score table
@@ -84,7 +84,7 @@ def scan_score_table(s, fa, motifs, scan_rc, normalize=False, gcnorm=False):
                     "\t".join(["{:4f}".format(x) for x in scores])
                     )
 
-def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods, bed, normalize, gcnorm):
+def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods, bed, zscore, gcnorm):
     
     table = False
     if moods:
@@ -95,7 +95,7 @@ def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pval
                     yield format_line(fa[seq_id], seq_id, motif,
                             score, pos, strand, bed=bed)
     else:
-        result_it = s.scan(fa, nreport, scan_rc, normalize, gc=gcnorm)
+        result_it = s.scan(fa, nreport, scan_rc, zscore, gc=gcnorm)
         for i, result in enumerate(result_it):
             seq_id = fa.ids[i]
             seq = fa[seq_id]
@@ -107,7 +107,7 @@ def scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pval
 
 def command_scan(inputfile, pwmfile, nreport=1, fpr=0.01, cutoff=None, 
         bed=False, scan_rc=True, table=False, score_table=False, moods=False, 
-        pvalue=None, bgfile=None, genome=None, ncpus=None, normalize=False, 
+        pvalue=None, bgfile=None, genome=None, ncpus=None, zscore=False, 
         gcnorm=False):
     motifs = read_motifs(pwmfile)
     
@@ -131,10 +131,10 @@ def command_scan(inputfile, pwmfile, nreport=1, fpr=0.01, cutoff=None,
     if table:
         it = scan_table(s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods)
     elif score_table:
-        it = scan_score_table(s, fa, motifs, scan_rc, normalize=normalize, gcnorm=gcnorm) 
+        it = scan_score_table(s, fa, motifs, scan_rc, zscore=zscore, gcnorm=gcnorm) 
     else:
         it = scan_normal(s, inputfile, fa, motifs, cutoff, bgfile, nreport, 
-                            scan_rc, pvalue, moods, bed, normalize=normalize,
+                            scan_rc, pvalue, moods, bed, zscore=zscore,
                              gcnorm=gcnorm)
     
     for row in it:
@@ -178,7 +178,7 @@ def pwmscan(args):
             bgfile=args.bgfile,
             genome=args.genome,
             ncpus=args.ncpus,
-            normalize=args.zscore,
+            zscore=args.zscore,
             gcnorm=args.gcnorm,
             ):
         print(line)

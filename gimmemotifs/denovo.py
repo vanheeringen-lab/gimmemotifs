@@ -390,7 +390,9 @@ def filter_significant_motifs(fname, result, bg, metrics=None):
     
     return sig_motifs
 
-def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, genome, stats=None, metrics=("roc_auc", "recall_at_fdr")):
+def best_motif_in_cluster(single_pwm, clus_pwm, clusters, fg_fa, background, 
+                genome, stats=None, metrics=("roc_auc", "recall_at_fdr"),               
+        ):
     """Return the best motif per cluster for a clustering results.
 
     The motif can be either the average motif or one of the clustered motifs.
