@@ -34,15 +34,16 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ulimit -S -n 4096; ulimit -a; fi
 install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      conda install python=$TRAVIS_PYTHON_VERSION pip future "numpy<1.14" scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost pillow pyyaml diskcache six ucsc-bigbedtobed xdg python-xxhash readline ghostscript homer gadem trawler weeder xxmotif tqdm genomepy ncurses meme>=5;
+      conda install python=$TRAVIS_PYTHON_VERSION pip future "numpy<1.14" scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost pillow pyyaml diskcache six ucsc-bigbedtobed xdg python-xxhash readline ghostscript homer gadem trawler weeder xxmotif tqdm genomepy ncurses meme>=5 pyarrow;
    else
-      conda install python=3 pip future "numpy<1.14" scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost pillow pyyaml diskcache six ucsc-bigbedtobed xdg python-xxhash readline ghostscript homer gadem trawler weeder xxmotif tqdm genomepy ncurses meme>=5;
+      conda install python=3 pip future "numpy<1.14" scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost pillow pyyaml diskcache six ucsc-bigbedtobed xdg python-xxhash readline ghostscript homer gadem trawler weeder xxmotif tqdm genomepy ncurses meme>=5 pyarrow;
     fi
   - python setup.py build
   - pip install msgpack
 #  - pip install coveralls
 # # command to run tests, e.g. python setup.py test
 script:  
+  - python -c 'from gimmemotifs.config import CACHE_DIR;print(CACHE_DIR)'
   - python run_tests.py
 
 #after_sucess:

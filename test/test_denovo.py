@@ -22,13 +22,18 @@ class TestDenovo(unittest.TestCase):
             params={
                 "tools":"BioProspector,Homer,MDmodule",
                 "fraction":0.5,
-                "background":"random"
+                "background":"random",
+                "genome":"test/data/background/genome.fa",
                 },
             filter_significant=True,
             cluster=True)
        
-        fnames = ["motifs.pwm", "motif_report.html", "cluster_report.html",
-                    "params.txt", "stats.random.txt"]
+        fnames = [
+                "gimme.denovo.pfm", 
+                "motif_report.html", 
+                "cluster_report.html",
+                "params.txt", 
+                "stats.random.txt"]
         
     
         with open(os.path.join(self.outdir, 'gimmemotifs.log')) as f:
@@ -40,7 +45,7 @@ class TestDenovo(unittest.TestCase):
             self.assertTrue(os.path.exists(os.path.join(self.outdir, fname)))   
   
         # Check if correct motif is predicted
-        with open(os.path.join(self.outdir, "motifs.pwm")) as f:
+        with open(os.path.join(self.outdir, "gimme.denovo.pfm")) as f:
             predicted_motifs = read_motifs(f)
         ap1 = motif_from_consensus("TGASTCA")
 

@@ -7,13 +7,13 @@ import numpy as np
 from scipy.stats import rankdata
 
 from gimmemotifs import rocmetrics
-from gimmemotifs.scanner import scan_to_best_match
+from gimmemotifs.scanner import scan_to_best_match, Scanner
 from gimmemotifs.motif import read_motifs, Motif
 from gimmemotifs.config import MotifConfig
 
 logger = logging.getLogger("gimme.stats")
 
-def calc_stats_iterator(motifs, fg_file, bg_file, genome=None, stats=None, ncpus=None):
+def calc_stats_iterator(motifs, fg_file, bg_file, stats=None, genome=None, zscore=True, gc=True, ncpus=None):
     """Calculate motif enrichment metrics.
 
     Parameters
@@ -57,16 +57,23 @@ def calc_stats_iterator(motifs, fg_file, bg_file, genome=None, stats=None, ncpus
     
     if ncpus is None:
         ncpus = int(MotifConfig().get_default_params()["ncpus"])
-    chunksize = 240
+    
+    if zscore or gc:
+        # Precalculate mean and stddev for z-score calculation
+        s = Scanner(ncpus=ncpus)
+        s.set_motifs(all_motifs)
+        s.set_genome(genome)
+        s.set_meanstd(gc=gc)
 
+    chunksize = 240
     for i in range(0, len(all_motifs), chunksize):
         result = {}
         logger.debug("chunk %s of %s",
             (i / chunksize) + 1, len(all_motifs) // chunksize + 1)
         motifs = all_motifs[i:i + chunksize]
        
-        fg_total = scan_to_best_match(fg_file, motifs, ncpus=ncpus, genome=genome)
-        bg_total = scan_to_best_match(bg_file, motifs, ncpus=ncpus, genome=genome)
+        fg_total = scan_to_best_match(fg_file, motifs, ncpus=ncpus, genome=genome, zscore=zscore, gc=gc)
+        bg_total = scan_to_best_match(bg_file, motifs, ncpus=ncpus, genome=genome, zscore=zscore, gc=gc)
      
         logger.debug("calculating statistics")
         
@@ -81,7 +88,7 @@ def calc_stats_iterator(motifs, fg_file, bg_file, genome=None, stats=None, ncpus
             result[motif_id][s] = ret
         yield result
 
-def calc_stats(motifs, fg_file, bg_file, genome=None, stats=None, ncpus=None):
+def calc_stats(motifs, fg_file, bg_file, stats=None, genome=None, zscore=True, gc=True, ncpus=None):
     """Calculate motif enrichment metrics.
 
     Parameters
@@ -113,7 +120,9 @@ def calc_stats(motifs, fg_file, bg_file, genome=None, stats=None, ncpus=None):
         dictionary with metric name and value pairs.
     """
     result = {}
-    for batch_result in calc_stats_iterator(motifs, fg_file, bg_file, genome=genome, stats=stats, ncpus=ncpus):
+    for batch_result in calc_stats_iterator(motifs, fg_file, bg_file, 
+                            genome=genome, stats=stats, ncpus=ncpus,
+                            zscore=zscore, gc=gc):
         for motif_id in batch_result:
             if motif_id not in result:
                 result[motif_id] = {}

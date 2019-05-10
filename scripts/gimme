@@ -192,46 +192,109 @@ if __name__ == "__main__":
                    metavar="INT", 
                    type=int,
                    default=int(params["ncpus"]))
+    p.add_argument("--rawscore",
+                   dest="zscore",
+                   help="Don't z-score normalize motif scores",
+                   action="store_false",
+                   default=True)
+    p.add_argument("--nogc",
+                   dest="gc",
+                   help="Don't use GC% bins",
+                   action="store_false",
+                   default=True)
 
     p.set_defaults(func=commands.maelstrom)
     
     # motif_roc.py and motif_roc_metrics.py
     p = subparsers.add_parser('roc')
+
     p.add_argument("sample", 
-                   help="FASTA, BED or region file", 
-                   metavar="FG_FILE")
-    p.add_argument("background", 
-                   help="FASTA, BED or region file with background sequences", 
-                   metavar="BG_FILE")
-    p.add_argument("-r",
-                   dest="outdir",
-                   help="output dir for graphical report",
+                   help="FASTA, BED, narrowPeak or region file.", 
+                   metavar="INPUT")
+    p.add_argument("outdir",
+                   metavar="OUTDIR",
+                   help="Output directory.",
                    )
-    p.add_argument("-p",
-                   dest="pwmfile",
-                   help="PWM file with motifs "
-                   "(default: {0})".format(default_pwm), 
-                   default=default_pwm_file,
-                   metavar="PWMFILE")
+    p.add_argument("-b", "--background", 
+                   help="Background type ({}) or a file with background sequences (FASTA, BED or regions)".format(",".join(BED_VALID_BGS)),
+                   metavar="BACKGROUND")
     p.add_argument("-g", 
                    dest="genome", 
-                   help="Genome (when input files are not in FASTA format)", 
+                   help="Genome name or fasta file", 
                    metavar="GENOME")
-    p.add_argument("-o", 
-                   dest="outfile", 
-                   help="Name of output file with ROC plot (png, svg, ps, pdf)", 
-                   metavar="FILE")
-    p.add_argument("-i", 
-                   dest="ids", 
-                   help="Comma-separated list of motif ids to plot in ROC (default is all ids)", 
-                   metavar="IDS")
+    p.add_argument("--denovo",
+                   dest="known",
+                   help="Only use de novo motifs",
+                   default=True,
+                   action="store_false",
+                   )
+    p.add_argument("--known",
+                   dest="denovo",
+                   help="Only use known motifs",
+                   default=True,
+                   action="store_false",
+                   )
+    p.add_argument("--rawscore",
+                   dest="zscore",
+                   help="Don't z-score normalize motif scores",
+                   action="store_false",
+                   default=True)
+    p.add_argument("--nogc",
+                   dest="gc",
+                   help="Don't use GC%% bins",
+                   action="store_false",
+                   default=True)
     p.add_argument("-N", "--nthreads", 
                    dest="ncpus", 
                    help="Number of threads (default %s)" % (params["ncpus"]),
                    metavar="INT", 
                    type=int,
                    default=int(params["ncpus"]))
-
+    
+    # Specific arguments for known motifs
+    known_grp = p.add_argument_group(title='optional arguments for known motifs')
+    known_grp.add_argument("-p",
+                   dest="pfmfile",
+                   help="PFM file with motifs."
+                   "(default: {0})".format(default_pwm), 
+                   default=default_pwm_file,
+                   metavar="PFMFILE")
+ 
+    # Specific arguments for de novo motifs
+    denovo_grp = p.add_argument_group(title='optional arguments for de novo motifs')
+    denovo_grp.add_argument("-t", "--tools", 
+                   dest="tools", 
+                   help="Tools to use, any combination of %s (default %s)" % (params["available_tools"], 
+                   params["tools"]), 
+                   metavar="N", 
+                   default="MEME,Homer,BioProspector")
+    denovo_grp.add_argument("-a", "--analysis",
+                   dest="analysis",
+                   help="Analysis type: small, medium, large, xl (xl)", 
+                   metavar="ANALYSIS", 
+                   default="xl")
+    denovo_grp.add_argument("-k", "--keepintermediate", 
+                   dest="keep_intermediate", 
+                   help="Don't delete intermediate files", 
+                   default=False, 
+                   action="store_true")
+    denovo_grp.add_argument("-s", "--singlestrand", 
+                   dest="single", 
+                   help="Only predict motifs for single + strand (default is both)", 
+                   action="store_true", 
+                   default=False)
+    denovo_grp.add_argument("-f", "--fraction", 
+                   dest="fraction", 
+                   help="Fraction of peaks to use for motif predicton (%s)" % params["fraction"], 
+                   metavar="FRACTION",
+                   default=params["fraction"], 
+                   type=float)
+    denovo_grp.add_argument("-w", "--width", 
+                   dest="width", 
+                   help="Width to use for motif prediction (%s)" % params["width"], 
+                   metavar="N", 
+                   default=params["width"], 
+                   type=int)
  
     p.set_defaults(func=commands.roc)
     

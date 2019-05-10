@@ -32,9 +32,103 @@ from genomepy import Genome
 # GimmeMotifs imports
 from gimmemotifs import mytmpdir
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.config import CACHE_DIR
+from gimmemotifs.config import CACHE_DIR, BG_TYPES, MotifConfig
+from gimmemotifs.utils import number_of_seqs_in_file, as_fasta
 
 logger = logging.getLogger("gimme.background")
+
+def create_background_file(outfile, bg_type, fmt='fasta', length=None,  genome=None, inputfile=None, number=10000):
+    """
+    Create a background file for motif analysis.
+
+    Parameters
+    ----------
+    outfile : str
+        Name of the output file.
+    bg_type : str
+        Type of background (gc, genomic, random or promoter). 
+    fmt : str, optional
+        Either 'fasta' or 'bed'.
+    length : int, optional
+        Length of the generated sequences, is determined from the inputfile if not 
+        given.
+    genome : str, optional
+    inputfile : str, optional
+    number : int, optional
+    """
+    fmt = fmt.lower()
+    if fmt in ["fa", "fsa"]:
+        fmt = "fasta"
+
+    if bg_type not in BG_TYPES:
+        print("The argument 'type' should be one of: %s" % (",".join(BG_TYPES)))
+        sys.exit(1)
+
+    if fmt == "bed" and bg_type == "random":
+        print("Random background can only be generated in FASTA format!")
+        sys.exit(1)
+        
+    if bg_type == "gc" and not inputfile:
+        print("need a FASTA formatted input file for background gc")
+        sys.exit(1)
+    
+    # GimmeMotifs configuration for file and directory locations
+    config = MotifConfig()
+        
+    # Genome index location for creation of FASTA files
+    if bg_type in ["gc", "genomic", "promoter"] and fmt == "fasta":
+        if genome is None:
+            print("Need a genome to create background file")
+            sys.exit(1)
+        Genome(genome)
+
+    # Gene definition
+    fname = Genome(genome).filename
+    gene_file = fname.replace(".fa", ".annotation.bed.gz")
+    if not gene_file:
+        gene_file = os.path.join(config.get_gene_dir(), "{}.bed".format(genome))
+    
+    if bg_type in ["promoter"]:
+        if not os.path.exists(gene_file):
+            print("Could not find a gene file for genome {}".format(genome))
+            print("Did you use the --annotation flag for genomepy?")
+            print("Alternatively make sure there is a file called {}.bed in {}".format(genome, config.get_gene_dir()))
+            sys.exit(1)
+
+    # Number of sequences
+    if number is None:
+        if inputfile:
+            number = number_of_seqs_in_file(inputfile)
+            logger.info("Using {} of background sequences based on input file".format(number))
+        else:
+            number = 10000
+            logger.info("Number of background sequences not specified, using 10,000 sequences")
+    
+    if bg_type == "random":
+        f = Fasta(inputfile)
+        m = MarkovFasta(f, n=number, k=1)
+        m.writefasta(outfile)
+    elif bg_type == "gc":
+        if fmt == "fasta":
+            m = MatchedGcFasta(inputfile, genome, number=number)
+            m.writefasta(outfile)
+        else:
+            matched_gc_bedfile(outfile, inputfile, genome, number)
+    else:
+        if length is None:
+            length = np.median([len(seq) for seq in as_fasta(inputfile, genome=genome).seqs])
+        if bg_type == "promoter":
+            if fmt == "fasta":
+                m = PromoterFasta(gene_file, genome, length=length, n=number)
+                m.writefasta(outfile)
+            else:
+                create_promoter_bedfile(outfile, gene_file, length, number)
+        elif bg_type == "genomic":
+            if fmt == "fasta":
+                m = RandomGenomicFasta(genome, length, number)
+                m.writefasta(outfile)
+            else:
+                create_random_genomic_bedfile(outfile, genome, length, number)
 
 def create_random_genomic_bedfile(out, genome, length, n):
     features = Genome(genome).get_random_sequences(n, length)
@@ -248,6 +342,8 @@ def gc_bin_bedfile(bedfile, genome, number, l=200, bins=None, random_state=None,
 
     fname = os.path.join(CACHE_DIR, "{}.gcfreq.{}.feather".format(os.path.basename(genome), min_bin_size))
     if not os.path.exists(fname):
+        if not os.path.exists(CACHE_DIR):
+            os.makedirs(CACHE_DIR)
         create_gc_bin_index(genome, fname, min_bin_size=min_bin_size)
     
     df = pd.read_feather(fname)
@@ -275,9 +371,10 @@ def gc_bin_bedfile(bedfile, genome, number, l=200, bins=None, random_state=None,
             df_bin = df[(df[col] > b_start) & (df[col] <= b_end)]
             #print(df_bin)
             if df_bin.shape[0] > 0:
+                df_bin["start"] = df_bin["end"] - l 
+                df_bin = df_bin[df_bin["start"] > 0]
                 df_bin = df_bin.sample(n, replace=True, random_state=random_state)
                 df_bin["bin"] = "{:.2f}-{:.2f}".format(b_start, b_end)
-                df_bin["start"] = df_bin["end"] - l 
                 df_bin[["chrom", "start", "end", "bin"]].to_csv(f, sep="\t", header=False, index=False)
 
 def matched_gc_bedfile(bedfile, matchfile, genome, number, min_bin_size=100):
@@ -324,7 +421,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, min_bin_size=100):
    
     fraction = number / len(gc)
     gc = np.array(gc)
-    print("GC", gc)
+    #print("GC", gc)
     bin_count = []
     for b_start, b_end in bins:
         bin_count.append(int(np.sum((gc > round(b_start, 2)) & (gc <= round(b_end, 2))) * fraction))
@@ -338,12 +435,12 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, min_bin_size=100):
     with NamedTemporaryFile(delete=False) as tmp:
         gc_bin_bedfile(tmp.name, genome, nseqs, l=length, bins=bins, random_state=None, min_bin_size=min_bin_size)
         df = pd.read_csv(tmp.name, sep="\t", names=["chrom", "start", "end", "bin"])
-        print(tmp.name)
+        #print(tmp.name)
     with open(bedfile, "w") as f:
         pass
     with open(bedfile, 'a') as f:
         for (b_start, b_end), n in zip(bins, bin_count):
-            print(b_start, b_end, n)
+            #print(b_start, b_end, n)
             b = "{:.2f}-{:.2f}".format(b_start, b_end)
             df.loc[df["bin"] == b, ["chrom", "start", "end"]].sample(n).to_csv(f, sep="\t", header=False, index=False)
 

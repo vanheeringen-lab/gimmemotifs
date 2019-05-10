@@ -38,15 +38,14 @@ try:
 except:
     pass
 
-
-def mp_calc_stats(motifs, fg_fa, bg_fa, bg_name=None):
+def mp_calc_stats(motifs, fg_fa, bg_fa, zscore, gc, genome, bg_name=None):
     """Parallel calculation of motif statistics."""
     try:
-        stats = calc_stats(motifs, fg_fa, bg_fa, ncpus=1)
+        stats = calc_stats(motifs, fg_fa, bg_fa, ncpus=1, zscore=zscore, gc=gc, genome=genome)
     except Exception as e:
-        raise
         sys.stderr.write("ERROR: {}\n".format(str(e)))
         stats = {}
+        raise
 
     if not bg_name:
         bg_name = "default"
@@ -64,13 +63,14 @@ def _run_tool(job_name, t, fastafile, params):
 
 class PredictionResult(object):
     """Store predicted motifs and calculate statistics."""
-    def __init__(self, outfile, fg_file=None, background=None, do_counter=True, job_server=None):
+    def __init__(self, outfile, genome=None, fg_file=None, background=None, gc=False, do_counter=True, job_server=None):
         self.lock = thread.allocate_lock()
         self.motifs = []
         self.finished = []
         self.stats = {}
         self.stat_jobs = []
         self.outfile = outfile
+        self.genome = genome
         if job_server:
             self.job_server = job_server
         else:
@@ -84,6 +84,13 @@ class PredictionResult(object):
             self.fg_fa = Fasta(fg_file)
             self.background = dict([(bg,Fasta(fname)) for bg,fname in background.items()])
             self.do_stats = True
+            self.gc = gc
+            self.zscore = self.gc
+            if self.gc:
+                if genome is None:
+                    raise ValueError("Need a genome when calculating GC% zscores for motif statistics")
+                else:
+                    self.genome = genome
         else:
             self.do_stats = False
 
@@ -119,7 +126,7 @@ class PredictionResult(object):
             for bg_name, bg_fa in self.background.items():
                 job = self.job_server.apply_async(
                                     mp_calc_stats, 
-                                    (motifs, self.fg_fa, bg_fa, bg_name), 
+                                    (motifs, self.fg_fa, bg_fa, self.zscore, self.gc, self.genome, bg_name), 
                                     callback=self.add_stats
                                     )
                 self.stat_jobs.append(job)
@@ -160,7 +167,7 @@ class PredictionResult(object):
 #                                    callback=self.add_stats)
 #                
 
-def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", single=False, background="", tools=None, job_server=None, ncpus=8, max_time=-1, stats_fg=None, stats_bg=None):
+def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg19", single=False, background="", tools=None, job_server=None, ncpus=8, max_time=-1, stats_fg=None, stats_bg=None, gc=True):
     """Parallel prediction of motifs.
 
     Utility function for gimmemotifs.denovo.gimme_motifs. Probably better to 
@@ -172,7 +179,7 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
     config = MotifConfig()
 
     if not tools:
-        tools = dict([(x,1) for x in config.get_default_params["tools"].split(",")])
+        tools = dict([(x,1) for x in config.get_default_params()["tools"].split(",")])
     
     #logger = logging.getLogger('gimme.prediction.pp_predict_motifs')
 
@@ -198,8 +205,10 @@ def pp_predict_motifs(fastafile, outfile, analysis="small", organism="hg18", sin
     
     result = PredictionResult(
                 outfile, 
+                organism,
                 fg_file=stats_fg, 
                 background=stats_bg,
+                gc=gc,
                 job_server=job_server,
                 )
     
@@ -311,6 +320,9 @@ def predict_motifs(infile, bgfile, outfile, params=None, stats_fg=None, stats_bg
                 params = parse_denovo_params()
                 break
     
+    if not "genome" in params:
+        logger.error("Need a genome for de novo motif prediction")
+
     # Define all tools
     tools = dict(
             [

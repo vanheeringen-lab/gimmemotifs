@@ -358,33 +358,36 @@ class MotifComparer(object):
         -------
         score, position, strand 
         """
-        if metric == "seqcor":
-            return seqcor(m1, m2)
-        elif match == "partial":
-            if pval:
-                return self.pvalue(m1, m2, "total", metric, combine, self.max_partial(m1.pwm, m2.pwm, metric, combine))
-            elif metric in ["pcc", "ed", "distance", "wic", "chisq", "ssd"]:
-                return self.max_partial(m1.pwm, m2.pwm, metric, combine)
-            else:
-                return self.max_partial(m1.pfm, m2.pfm, metric, combine)
-
-        elif match == "total":
-            if pval:
-                return self.pvalue(m1, m2, match, metric, combine, self.max_total(m1.pwm, m2.pwm, metric, combine))
-            elif metric in ["pcc", 'akl']:
-                # Slightly randomize the weight matrix
-                return self.max_total(m1.wiggle_pwm(), m2.wiggle_pwm(), metric, combine)
-            elif metric in ["ed", "distance", "wic", "chisq", "pcc", "ssd"]:
-                return self.max_total(m1.pwm, m2.pwm, metric, combine)
-            else:
-                return self.max_total(m1.pfm, m2.pfm, metric, combine)
-                
-        elif match == "subtotal":
-            if metric in ["pcc", "ed", "distance", "wic", "chisq", "ssd"]:
-                return self.max_subtotal(m1.pwm, m2.pwm, metric, combine)
-            else:
-                return self.max_subtotal(m1.pfm, m2.pfm, metric, combine)
+        if isinstance(metric, str):
+        
+            if metric == "seqcor":
+                return seqcor(m1, m2)
+            elif match == "partial":
+                if pval:
+                    return self.pvalue(m1, m2, "total", metric, combine, self.max_partial(m1.pwm, m2.pwm, metric, combine))
+                elif metric in ["pcc", "ed", "distance", "wic", "chisq", "ssd"]:
+                    return self.max_partial(m1.pwm, m2.pwm, metric, combine)
+                else:
+                    return self.max_partial(m1.pfm, m2.pfm, metric, combine)
     
+            elif match == "total":
+                if pval:
+                    return self.pvalue(m1, m2, match, metric, combine, self.max_total(m1.pwm, m2.pwm, metric, combine))
+                elif metric in ["pcc", 'akl']:
+                    # Slightly randomize the weight matrix
+                    return self.max_total(m1.wiggle_pwm(), m2.wiggle_pwm(), metric, combine)
+                elif metric in ["ed", "distance", "wic", "chisq", "pcc", "ssd"]:
+                    return self.max_total(m1.pwm, m2.pwm, metric, combine)
+                else:
+                    return self.max_total(m1.pfm, m2.pfm, metric, combine)
+                    
+            elif match == "subtotal":
+                if metric in ["pcc", "ed", "distance", "wic", "chisq", "ssd"]:
+                    return self.max_subtotal(m1.pwm, m2.pwm, metric, combine)
+                else:
+                    return self.max_subtotal(m1.pfm, m2.pfm, metric, combine)
+        else:
+            return metric(m1, m2)
 
     def _check_length(self, l):
         # Set the length to a length represented in randomly generated JASPAR motifs 

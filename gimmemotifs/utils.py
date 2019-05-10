@@ -320,21 +320,6 @@ def calc_motif_enrichment(sample, background, mtc=None, len_sample=None, len_bac
 
     return (sig, p_value, n_sample, n_back)
 
-def gff_enrichment(sample, background, numsample, numbackground, outfile):
-    data_sample = parse_gff(sample)
-    data_bg = parse_gff(background)
-    (e,p,ns,nb) = calc_motif_enrichment(data_sample, data_bg, "Benjamini-Hochberg", numsample, numbackground)
-    
-    out = open(outfile, "w")
-    out.write("Motif\tSig\tp-value\t# sample\t# background\tEnrichment\n")
-    for m in e.keys():
-        if nb[m] > 0:
-            enrich = (ns[m] / float(numsample)) / (nb[m] / float(numbackground))
-            out.write("%s\t%s\t%s\t%s\t%s\t%0.3f\n" % (m, e[m], p[m], ns[m], nb[m], enrich))
-        else:
-            out.write("%s\t%s\t%s\t%s\t%s\tInf\n" % (m, e[m], p[m], ns[m], nb[m]))
-    out.close()
-
 def is_valid_bedfile(bedfile, columns=6):
     f = open(bedfile)
     for i, line in enumerate(f.readlines()):

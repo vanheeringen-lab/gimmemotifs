@@ -320,7 +320,6 @@ class LightningRegressionMoap(Moap):
         }
         clf = GridSearchCV(cd, parameters, n_jobs=self.ncpus)
 
-        nsplits = int(y.shape[1] / batch_size)
         if shuffle:         
             idx = list(y.sample(y.shape[1], axis=1, random_state=42).columns)     
         else:         
@@ -681,7 +680,7 @@ class RFMoap(Moap):
                 clf.feature_importances_
                 ]).T
         
-        for i,c in enumerate(le.classes_):
+        for i,_ in enumerate(le.classes_):
             diff = df_X.loc[y == i].quantile(q=0.75) - df_X.loc[y != i].quantile(q=0.75)
             sign = (diff >= 0) * 2 - 1
             importances[:,i] *= sign
@@ -815,7 +814,7 @@ class LassoMoap(Moap):
         return coefs
 
 def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=None, pwmfile=None, genome=None, fpr=0.01, ncpus=None,
-        subsample=None):
+        subsample=None, zscore=True, gc=True):
     """Run a single motif activity prediction algorithm.
     
     Parameters
@@ -852,6 +851,12 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
     
     ncpus : int, optional
         Number of threads to use. Default is the number specified in the config.
+
+    zscore : bool, optional
+        Use z-score normalized motif scores.
+    
+    gc : bool optional
+        Use GC% bins for z-score.
     
     Returns
     -------
@@ -861,8 +866,6 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
     if scoring and scoring not in ['score', 'count']:
         raise ValueError("valid values are 'score' and 'count'")
     
-    config = MotifConfig()
-
     if inputfile.endswith("feather"):
         df = pd.read_feather(inputfile)
         df = df.set_index(df.columns[0])
@@ -907,7 +910,7 @@ def moap(inputfile, method="hypergeom", scoring=None, outfile=None, motiffile=No
             for row in s.count(list(df.index)):
                 scores.append(row)
         else:
-            for row in s.best_score(list(df.index), normalize=True):
+            for row in s.best_score(list(df.index), zscore=zscore, gc=gc):
                 scores.append(row)
 
         motifs = pd.DataFrame(scores, index=df.index, columns=motif_names)
