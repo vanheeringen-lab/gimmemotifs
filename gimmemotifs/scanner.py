@@ -389,6 +389,20 @@ class Scanner(object):
                         k = "e{}|{}|{}".format(motif.hash(), self.background_hash, bin)
                         cache.set(k, [mean, std])
                         self.meanstd[bin][motif.id] = mean, std
+            
+            # Prevent std of 0
+            # This should only happen in testing
+            for motif in motifs:
+                stds = np.array([self.meanstd[gcbin][motif.id][1] for gcbin in bins])
+                idx = stds == 0
+                if True in idx:
+                    std = np.mean(stds[~idx])
+                    for gcbin in np.array(bins)[idx]:
+                        k = "e{}|{}|{}".format(motif.hash(), self.background_hash, gcbin)
+                        mean = self.meanstd[gcbin][motif.id][0]
+                        cache.set(k, [mean, std])
+                        self.meanstd[gcbin][motif.id] = mean, std
+
         lock.release()
 
     def set_background(self, fname=None, genome=None, length=200, nseq=10000, gc=False, gc_bins=None):
@@ -648,6 +662,7 @@ class Scanner(object):
         if zscore:
             if len(self.meanstd) == 0:
                 self.set_meanstd(gc=gc)
+        
         gc_seqs = [self.get_seq_bin(seq) for seq in seqs.seqs]
 
         for result,gc_seq in zip(it, gc_seqs):
