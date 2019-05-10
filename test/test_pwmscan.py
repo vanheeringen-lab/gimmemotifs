@@ -3,7 +3,6 @@ import tempfile
 import os
 from gimmemotifs.motif import *
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.utils import gff_enrichment 
 from time import sleep
 
 class TestMotifPwm(unittest.TestCase):
