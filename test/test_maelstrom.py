@@ -31,6 +31,8 @@ class TestMoap(unittest.TestCase):
 
         for fname in glob(os.path.join(self.outdir, "activity*")):
             os.unlink(fname)
+        for fname in glob(os.path.join(self.outdir, "gimme.verte*")):
+            os.unlink(fname)
         os.unlink(self.outfile)
         
         #run_maelstrom(self.clusters, "mm10", self.outdir)
