@@ -16,8 +16,6 @@ class TestDenovo(unittest.TestCase):
 
     def test1_denovo(self):
         """ de novo motif prediction """
-       
-        
         gimme_motifs("test/data/denovo/input.fa", self.outdir,
             params={
                 "tools":"BioProspector,Homer,MDmodule",
