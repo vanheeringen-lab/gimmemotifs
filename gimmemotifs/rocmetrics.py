@@ -89,7 +89,12 @@ def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.1):
     
     y_true, y_score = values_to_labels(fg_vals, bg_vals)
     
-    precision, recall, _ = precision_recall_curve(y_true, y_score)
+    try:
+        precision, recall, _ = precision_recall_curve(y_true, y_score)
+    except Exception as e:
+        print(y_true)
+        print(y_score)
+        raise
     fdr = 1 - precision
     cutoff_index = next(i for i, x in enumerate(fdr) if x <= fdr_cutoff)
     return recall[cutoff_index]
