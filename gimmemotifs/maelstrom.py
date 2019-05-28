@@ -39,7 +39,7 @@ from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.report import maelstrom_html_report
-from gimmemotifs.utils import join_max, pwmfile_location
+from gimmemotifs.utils import join_max, pwmfile_location, as_fasta
 
 from multiprocessing import Pool
 
@@ -96,10 +96,11 @@ def scan_to_table(input_table, genome, scoring, pwmfile=None, ncpus=None, zscore
         idx = df.index
     
     regions = list(idx)
+    length = int(np.median([len(seq) for seq in as_fasta(np.random.choice(regions, size=1000, replace=False), genome=genome).seqs]))
     s = Scanner(ncpus=ncpus)
     s.set_motifs(pwmfile)
     s.set_genome(genome)
-    s.set_background(genome=genome, gc=gc)
+    s.set_background(genome=genome, gc=gc, length=length)
 
     scores = []
     if scoring == "count":
