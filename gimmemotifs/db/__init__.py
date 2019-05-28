@@ -411,9 +411,9 @@ class ImageMotifDb(MotifDb):
 @register_db('cis-bp')
 class CisbpMotifDb(MotifDb):
     """
-    CIS-BP 1.02
+    CIS-BP 2.00
     """
-    VERSION = "1.02"
+    VERSION = "2.00"
     BASE = "http://cisbp.ccbr.utoronto.ca/data/{}/DataFiles/Bulk_downloads/EntireDataset/".format(VERSION)
     ANNO_URL = BASE + "/TF_Information_all_motifs.txt.zip"
     URL = BASE + "/PWMs.zip"
@@ -451,7 +451,7 @@ class CisbpMotifDb(MotifDb):
         anno = {}
         df = pd.read_table(self.ANNO_URL)
         df = df.loc[
-                df["TF_Species"].isin(["Homo_sapiens", "Mus_musculus"]) & (df["TF_Status"] != "N"), 
+                df["TF_Species"].isin(["Homo_sapiens"]) & (df["TF_Status"] != "N"), 
                 ["Motif_ID", "TF_Name", "MSource_Type", "TF_Status"]
             ]
         df["TF_Status"] = df["TF_Status"].str.replace("D", "Y").str.replace("I", "N")
