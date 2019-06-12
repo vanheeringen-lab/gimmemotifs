@@ -81,10 +81,10 @@ class TestMotif(unittest.TestCase):
             motifs = read_motifs(f, fmt="jaspar")
 
         my_motifs = [
-                "MA0002.2\tRUNX1",
-                "MA0003.3\tTFAP2A",
-                "MA0004.1\tArnt",
-                "MA0006.1\tAhr::Arnt"
+                "MA0002.2",
+                "MA0003.3",
+                "MA0004.1",
+                "MA0006.1"
         ]
 
         my_lens = [6,6,11,11]
