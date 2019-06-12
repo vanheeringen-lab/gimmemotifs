@@ -259,7 +259,12 @@ if __name__ == "__main__":
                    "(default: {0})".format(default_pwm), 
                    default=default_pwm_file,
                    metavar="PFMFILE")
- 
+    known_grp.add_argument("--noreport",
+                   dest="report",
+                   help="Don't create a HTML report.",
+                   default=True,
+                   action="store_false")
+
     # Specific arguments for de novo motifs
     denovo_grp = p.add_argument_group(title='optional arguments for de novo motifs')
     denovo_grp.add_argument("-t", "--tools", 

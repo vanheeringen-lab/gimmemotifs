@@ -133,12 +133,13 @@ def roc(args):
                       motif_stats[str(motif)]["recall_at_fdr"],
                       ))
     f_out.close() 
-    
-    logger.info("creating report")
-    if args.outdir:
-        roc_html_report(
-            args.outdir,
-            args.outdir + "/gimme.roc.report.txt",
-            pfmfile,
-            0.01,
-            )
+   
+    if args.report:
+        logger.info("creating report")
+        if args.outdir:
+            roc_html_report(
+                args.outdir,
+                args.outdir + "/gimme.roc.report.txt",
+                pfmfile,
+                0.01,
+                )
