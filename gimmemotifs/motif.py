@@ -1314,6 +1314,10 @@ def _read_motifs_from_filehandle(handle, fmt):
     if fmt.lower() == "jaspar":
         motifs = _read_motifs_jaspar(handle)
     
+    # Remove everything after tab from motif identifiers
+    for motif in motifs:
+        motif.id = motif.id.split("\t")[0]
+
     if handle.name:
         base = os.path.splitext(handle.name)[0]
         map_file = base + ".motif2factors.txt"
@@ -1340,6 +1344,7 @@ def _read_motifs_from_filehandle(handle, fmt):
         for motif in motifs:
             for n in [DIRECT_NAME, INDIRECT_NAME]:
                 motif.factors[n] = list(set(motif.factors[n]))
+    
     return motifs
 
 
