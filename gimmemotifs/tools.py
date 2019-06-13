@@ -2057,7 +2057,6 @@ class Meme(MotifProgram):
             align = []
             pfm = None  
             if m:
-                print("FOUND")
                 #print(m.group(0))
                 id = "%s_%s_w%s" % (self.name, m.group(1), m.group(2))
                 while not line.startswith("//"):
