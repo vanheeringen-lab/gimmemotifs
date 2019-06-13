@@ -142,15 +142,6 @@ class MotifConfig(object):
             d[k] = self.config.getboolean("params", k)
         return d
 
-    def get_seqlogo(self):
-        try:
-            exe = self.config.get("main", "seqlogo")
-            if not os.path.exists(exe):
-                exe = os.path.join(self.package_dir, exe)
-            return exe
-        except Exception:
-            return None
-
     def dir(self, program):
         if self.config.has_section(program):
             if self.config.has_option(program, "dir"):
@@ -198,11 +189,6 @@ class MotifConfig(object):
 
     def get_score_dir(self):
         return self.get_data_dir("score_dir")
-
-    def set_seqlogo(self, exe):
-        if not self.config.has_section("main"):
-            self.config.add_section("main")
-        self.config.set("main", "seqlogo", exe)
 
     def set_motif_dir(self, path):
         if not self.config.has_section("main"):

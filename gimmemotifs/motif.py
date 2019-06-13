@@ -28,6 +28,8 @@ except ImportError:
 import xxhash
 import base64
 import matplotlib.pyplot as plt
+import logomaker as lm
+import pandas as pd
 
 class Motif(object):
     
@@ -78,8 +80,7 @@ class Motif(object):
         
         self.id = ""
         self.config = MotifConfig()
-        self.seqlogo = self.config.get_seqlogo()
-
+     
         self.nucs = "ACGT"
         
         self.iupac_rev = {
@@ -479,7 +480,71 @@ class Motif(object):
                 matches[name].append((pos,score,strand))
         return matches
 
-    def plot_logo(self, fname=None, ic=True, title=True, letters=True, height=2):
+    def plot_logo(self, kind="information", fname=None, title=True, ylabel=True):
+        """Plot motif logo
+
+        Parameters
+        ----------
+        kind : str, optional
+            Type of logo to plot, can be 'information', 'frequency', 'energy' or 'ensembl'.
+        fname : str, optional
+            If fname is set, the plot will be saved with fname as filename.
+        title : bool, optional
+            Plot the motif id as the title.
+        ylabel : bool, optional
+            Plot the Y axis label.
+        """
+        matrix = pd.DataFrame(self.pfm, columns=['A','C','G','T'])
+        if kind == "ensembl":
+            self.plot_ensembl_logo(fname=None, title=title)
+            return
+        elif kind == "information":
+            matrix = lm.transform_matrix(matrix, from_type='counts', to_type='information')
+            logo = lm.Logo(matrix,
+                figsize=(0.75 * matrix.shape[0],3),
+                show_spines=False,
+                vpad=0.02,
+            )
+            if ylabel:
+                logo.ax.set_ylabel("Bits", fontsize=16)
+            logo.ax.set_ylim(0,2)
+            logo.ax.set_yticks([0,0.5,1,1.5,2], minor=False)
+        elif kind == "frequency":
+            matrix = lm.transform_matrix(matrix, from_type='counts', to_type='probability')
+            logo = lm.Logo(matrix,
+                    font_name="DejaVu Sans Mono",
+                    figsize=(0.75 * matrix.shape[0],3),
+                    show_spines=False,
+                    vpad=0.02,
+            )
+            if ylabel:
+                logo.ax.set_ylabel("Frequency", fontsize=16)
+            logo.ax.set_ylim(0,1)
+
+        elif kind == "energy":
+            matrix = lm.transform_matrix(matrix,  from_type='counts', to_type='weight')
+            matrix = lm.transform_matrix(matrix, center_values=True)
+            logo = lm.Logo(matrix,
+                fade_below=0.7,
+                shade_below=0.3,
+                flip_below=False,
+                show_spines=False,
+                figsize=(0.5 * matrix.shape[0],4)
+                )
+            if ylabel:
+                logo.ax.set_ylabel("$\Delta \Delta G$/RT", labelpad=-1,fontsize=16)
+        else:
+            raise ValueError("Unknown motif visualization")
+        if title:
+            logo.ax.set_title(self.id, fontsize=16)
+    
+        if fname:
+            plt.savefig(fname, dpi=300) 
+
+        return logo     
+
+
+    def plot_ensembl_logo(self, fname=None, ic=True, title=True, letters=True, height=2):
         """Plot motif logo.
         
         This is an implementation of the logo presented here:
@@ -1094,63 +1159,8 @@ class Motif(object):
         height : float
             Height of the image
         """
-        if not seqlogo:
-            seqlogo = self.seqlogo
-        if not seqlogo:
-            raise ValueError("seqlogo not specified or configured")
-        
-        #TODO: split to_align function
-        
-        VALID_FORMATS = ["EPS", "GIF", "PDF", "PNG"]
-        N = 1000
-        fmt = fmt.upper()
-        if not fmt in VALID_FORMATS:
-            sys.stderr.write("Invalid motif format\n")
-            return
-        
-        if fname[-4:].upper() == (".%s" % fmt):
-            fname = fname[:-4]
-        seqs = []
-        if add_left == 0:
-            seqs = ["" for i in range(N)]
-        else:
-            for nuc in ["A", "C", "T", "G"]:
-                seqs += [nuc * add_left for i in range(N // 4)]
-
-        for pos in range(len(self.pwm)):
-            vals = [self.pwm[pos][0] * N]
-            for i in range(1,4):
-                vals.append(vals[i-1] + self.pwm[pos][i] * N)
-            if vals[3] - N != 0:
-                #print "Motif weights don't add up to 1! Error of %s%%" % ((vals[3] - n)/ n * 100)
-                vals[3] = N
-            for i in range(N):
-                if i <= vals[0]:
-                    seqs[i] += "A"
-                elif i <= vals[1]:
-                    seqs[i] += "C"
-                elif i <= vals[2]:
-                    seqs[i] += "G"
-                elif i <= vals[3]:
-                    seqs[i] += "T"
-    
-        f = NamedTemporaryFile(mode="w", dir=mytmpdir())
-        for seq in seqs:
-            f.write("%s\n" % seq)
-        f.flush()
-        makelogo = "{0} -f {1} -F {2} -c -a -h {3} -w {4} -o {5} -b -n -Y" 
-        cmd = makelogo.format(
-                              seqlogo, 
-                              f.name, 
-                              fmt, 
-                              height,
-                              len(self) + add_left, 
-                              fname)
-        sp.call(cmd, shell=True)
-        
-        # Delete tempfile
-        #if os.path.exists(f.name):
-        #    os.unlink(f.name)
+        raise DeprecationWarning("Method to_img() is replaced by plot_logo()")
+        self.plot_logo(fname=fname, kind="information")
 
     def randomize(self):
         """Create a new motif with shuffled positions.
