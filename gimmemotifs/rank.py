@@ -9,7 +9,10 @@ from tempfile import NamedTemporaryFile
 import subprocess as sp
 import pandas as pd
 import numpy as np
-from scipy.misc import factorial
+try:
+    from scipy.special import factorial
+except ImportError:
+    from scipy.misc import factorial
 from statsmodels.sandbox.stats.multicomp import multipletests
 
 def rankagg_R(df, method="stuart"):
