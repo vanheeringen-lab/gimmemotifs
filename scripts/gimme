@@ -445,10 +445,22 @@ if __name__ == "__main__":
     p.add_argument("pwmfile",
                     help="PWM file with motifs",
                     metavar="PWMFILE")
-    p.add_argument("-i", 
+    p.add_argument("-i", "--ids", 
                    dest="ids", 
                    help="Comma-separated list of motif ids (default is all ids)", 
                    metavar="IDS")
+    p.add_argument("-k", "--kind",
+                   dest="kind", 
+                   help="Type of motif (information, frequency, energy or ensembl)",
+                   metavar="TYPE",
+                   default="information")
+    p.add_argument("--notitle", 
+                   dest="title", 
+                   help="Don't include motif ID as title",
+                   default=True,
+                   action="store_false")
+
+
     p.set_defaults(func=commands.logo)
     
     p = subparsers.add_parser('prediction')

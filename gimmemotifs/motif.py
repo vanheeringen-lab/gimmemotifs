@@ -1159,7 +1159,7 @@ class Motif(object):
         height : float
             Height of the image
         """
-        raise DeprecationWarning("Method to_img() is replaced by plot_logo()")
+        warn("Method to_img() is replaced by plot_logo()", DeprecationWarning)
         self.plot_logo(fname=fname, kind="information")
 
     def randomize(self):
