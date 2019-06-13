@@ -665,6 +665,7 @@ class Scanner(object):
         
         gc_seqs = [self.get_seq_bin(seq) for seq in seqs.seqs]
 
+        logger.info("Scanning")
         for result,gc_seq in zip(it, gc_seqs):
             if zscore:
                 zresult = [] 
