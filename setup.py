@@ -81,10 +81,6 @@ class build_tools(my_build_py):
                     os.path.join(src_dir,"Improbizer/ameme_x86_64"), 
                     os.path.join(target_dir, "ameme"))
        
-            if os.path.exists("src/weblogo"):
-                self.copy_tree("src/weblogo", 
-                        os.path.join(target_dir, "weblogo"))
-
         my_build_py.run(self)
 
 cmdclass["build_py"] = build_tools
@@ -143,5 +139,6 @@ setup (
             "genomepy",
             "tqdm",
             "pillow",
+            "logomaker",
             ],
 )
