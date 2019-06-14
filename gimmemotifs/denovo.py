@@ -5,9 +5,9 @@
 # distribution.
 """De novo motif prediction.
 
-This module contains functions to predict *de novo* motifs using one or more 
+This module contains functions to predict *de novo* motifs using one or more
 *de novo* motif tools. The main function is `gimme_motifs`, which is likely
-the only method that you'll need from this module. 
+the only method that you'll need from this module.
 
 Examples
 --------
@@ -25,7 +25,6 @@ motifs = gimme_motifs(peaks, outdir, params=params)
 import datetime
 import os
 import sys
-import re
 import logging
 import logging.handlers
 import shutil
@@ -135,7 +134,7 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
 
 def prepare_denovo_input_fa(inputfile, params, outdir):
     """Create all the FASTA files for de novo motif prediction and validation.
-    
+
     Parameters
     ----------
     """
@@ -199,9 +198,9 @@ def create_background(
         Size of regions.
 
     nr_times : int, optional
-        Generate this times as many background sequences as compared to 
+        Generate this times as many background sequences as compared to
         input file.
-    
+
     Returns
     -------
     nr_seqs  : int
@@ -258,15 +257,15 @@ def create_background(
         else:
             logger.info("Copying custom background file %s to %s.", bg_file, outfile)
             f = Fasta(bg_file)
-            l = np.median([len(seq) for seq in f.seqs])
-            if l < (size * 0.95) or l > (size * 1.05):
+            median_length = np.median([len(seq) for seq in f.seqs])
+            if median_length < (size * 0.95) or median_length > (size * 1.05):
                 logger.warn(
                     "The custom background file %s contains sequences with a "
                     "median size of %s, while GimmeMotifs predicts motifs in sequences "
                     "of size %s. This will influence the statistics! It is recommended "
                     "to use background sequences of the same size.",
                     bg_file,
-                    l,
+                    median_length,
                     size,
                 )
 
@@ -283,7 +282,7 @@ def create_backgrounds(
     ----------
     outdir : str
         Directory to save results.
-    
+
     background : list, optional
         Background types to create, default is 'random'.
 
@@ -337,7 +336,7 @@ def create_backgrounds(
 
 def _is_significant(stats, metrics=None):
     """Filter significant motifs based on several statistics.
-    
+
     Parameters
     ----------
     stats : dict
@@ -346,7 +345,7 @@ def _is_significant(stats, metrics=None):
     metrics : sequence
         Metric with associated minimum values. The default is
         (("max_enrichment", 3), ("roc_auc", 0.55), ("enr_at_fpr", 0.55))
-    
+
     Returns
     -------
     significant : bool
@@ -422,7 +421,7 @@ def best_motif_in_cluster(
     clus_pwm : str
         Filename of motifs.
 
-    clusters : 
+    clusters :
         Motif clustering result.
 
     fg_fa : str
@@ -438,9 +437,9 @@ def best_motif_in_cluster(
         If statistics are not supplied they will be computed.
 
     metrics : sequence, optional
-        Metrics to use for motif evaluation. Default are "roc_auc" and 
+        Metrics to use for motif evaluation. Default are "roc_auc" and
         "recall_at_fdr".
-    
+
     Returns
     -------
     motifs : list
@@ -488,7 +487,7 @@ def best_motif_in_cluster(
 
 def rename_motifs(motifs, stats=None):
     """Rename motifs to GimmeMotifs_1..GimmeMotifs_N.
-    
+
     If stats object is passed, stats will be copied."""
     final_motifs = []
     for i, motif in enumerate(motifs):
@@ -527,17 +526,17 @@ def gimme_motifs(
 
     filter_significant : bool, optional
         Filter motifs for significance using the validation set.
-    
+
     cluster : bool, optional
         Cluster similar predicted (and significant) motifs.
 
     create_report : bool, optional
         Create output reports (both .txt and .html).
- 
+
     Returns
     -------
     motifs : list
-        List of predicted motifs.     
+        List of predicted motifs.
 
     Examples
     --------
@@ -703,5 +702,5 @@ def gimme_motifs(
     return final_motifs
 
 
-from gimmemotifs.cluster import cluster_motifs_with_report
-from gimmemotifs.prediction import predict_motifs
+from gimmemotifs.cluster import cluster_motifs_with_report  # noqa: E402
+from gimmemotifs.prediction import predict_motifs  # noqa: E402
