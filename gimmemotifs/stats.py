@@ -13,7 +13,10 @@ from gimmemotifs.config import MotifConfig
 
 logger = logging.getLogger("gimme.stats")
 
-def calc_stats_iterator(motifs, fg_file, bg_file, stats=None, genome=None, zscore=True, gc=True, ncpus=None):
+
+def calc_stats_iterator(
+    motifs, fg_file, bg_file, stats=None, genome=None, zscore=True, gc=True, ncpus=None
+):
     """Calculate motif enrichment metrics.
 
     Parameters
@@ -46,7 +49,7 @@ def calc_stats_iterator(motifs, fg_file, bg_file, stats=None, genome=None, zscor
     """
     if not stats:
         stats = rocmetrics.__all__
-    
+
     if isinstance(motifs, Motif):
         all_motifs = [motifs]
     else:
@@ -54,10 +57,10 @@ def calc_stats_iterator(motifs, fg_file, bg_file, stats=None, genome=None, zscor
             all_motifs = motifs
         else:
             all_motifs = read_motifs(motifs, fmt="pwm")
-    
+
     if ncpus is None:
         ncpus = int(MotifConfig().get_default_params()["ncpus"])
-    
+
     if zscore or gc:
         # Precalculate mean and stddev for z-score calculation
         s = Scanner(ncpus=ncpus)
@@ -68,27 +71,35 @@ def calc_stats_iterator(motifs, fg_file, bg_file, stats=None, genome=None, zscor
     chunksize = 240
     for i in range(0, len(all_motifs), chunksize):
         result = {}
-        logger.debug("chunk %s of %s",
-            (i / chunksize) + 1, len(all_motifs) // chunksize + 1)
-        motifs = all_motifs[i:i + chunksize]
-       
-        fg_total = scan_to_best_match(fg_file, motifs, ncpus=ncpus, genome=genome, zscore=zscore, gc=gc)
-        bg_total = scan_to_best_match(bg_file, motifs, ncpus=ncpus, genome=genome, zscore=zscore, gc=gc)
-     
+        logger.debug(
+            "chunk %s of %s", (i / chunksize) + 1, len(all_motifs) // chunksize + 1
+        )
+        motifs = all_motifs[i : i + chunksize]
+
+        fg_total = scan_to_best_match(
+            fg_file, motifs, ncpus=ncpus, genome=genome, zscore=zscore, gc=gc
+        )
+        bg_total = scan_to_best_match(
+            bg_file, motifs, ncpus=ncpus, genome=genome, zscore=zscore, gc=gc
+        )
+
         logger.debug("calculating statistics")
-        
+
         if ncpus == 1:
-            it = _single_stats(motifs, stats, fg_total, bg_total) 
+            it = _single_stats(motifs, stats, fg_total, bg_total)
         else:
-            it = _mp_stats(motifs, stats, fg_total, bg_total, ncpus) 
-        
+            it = _mp_stats(motifs, stats, fg_total, bg_total, ncpus)
+
         for motif_id, s, ret in it:
             if motif_id not in result:
                 result[motif_id] = {}
             result[motif_id][s] = ret
         yield result
 
-def calc_stats(motifs, fg_file, bg_file, stats=None, genome=None, zscore=True, gc=True, ncpus=None):
+
+def calc_stats(
+    motifs, fg_file, bg_file, stats=None, genome=None, zscore=True, gc=True, ncpus=None
+):
     """Calculate motif enrichment metrics.
 
     Parameters
@@ -120,19 +131,27 @@ def calc_stats(motifs, fg_file, bg_file, stats=None, genome=None, zscore=True, g
         dictionary with metric name and value pairs.
     """
     result = {}
-    for batch_result in calc_stats_iterator(motifs, fg_file, bg_file, 
-                            genome=genome, stats=stats, ncpus=ncpus,
-                            zscore=zscore, gc=gc):
+    for batch_result in calc_stats_iterator(
+        motifs,
+        fg_file,
+        bg_file,
+        genome=genome,
+        stats=stats,
+        ncpus=ncpus,
+        zscore=zscore,
+        gc=gc,
+    ):
         for motif_id in batch_result:
             if motif_id not in result:
                 result[motif_id] = {}
-            for s,ret in batch_result[motif_id].items():
+            for s, ret in batch_result[motif_id].items():
                 result[motif_id][s] = ret
     return result
 
+
 def _single_stats(motifs, stats, fg_total, bg_total):
     # Initialize multiprocessing pool
-    
+
     for motif in motifs:
         motif_id = motif.id
         fg_vals = fg_total[motif_id]
@@ -146,15 +165,16 @@ def _single_stats(motifs, stats, fg_total, bg_total):
                 fg = [x[1] for x in fg_vals]
                 bg = [x[1] for x in bg_vals]
             else:
-                raise ValueError("Unknown input_type for stats") 
-            
+                raise ValueError("Unknown input_type for stats")
+
             ret = func(fg, bg)
             yield str(motif), s, ret
+
 
 def _mp_stats(motifs, stats, fg_total, bg_total, ncpus):
     # Initialize multiprocessing pool
     pool = Pool(ncpus, maxtasksperchild=1000)
-    
+
     jobs = []
     for motif in motifs:
         motif_id = motif.id
@@ -169,17 +189,17 @@ def _mp_stats(motifs, stats, fg_total, bg_total, ncpus):
                 fg = [x[1] for x in fg_vals]
                 bg = [x[1] for x in bg_vals]
             else:
-                raise ValueError("Unknown input_type for stats") 
-            
-            j = pool.apply_async(func, 
-                        (fg, bg))
+                raise ValueError("Unknown input_type for stats")
+
+            j = pool.apply_async(func, (fg, bg))
             jobs.append([str(motif), s, j])
     pool.close()
     pool.join()
-    
+
     for motif_id, s, job in jobs:
-        ret = job.get() 
+        ret = job.get()
         yield motif_id, s, ret
+
 
 def star(stat, categories):
     stars = 0
@@ -190,23 +210,26 @@ def star(stat, categories):
             return stars
     return stars
 
+
 def add_star(stats):
     all_stats = {
-            "mncp": [2, 5, 8],
-            "roc_auc": [0.6, 0.75, 0.9],
-            "max_enrichment": [10, 20, 30],
-            "enr_at_fpr": [4, 8, 12],
-            "fraction_fpr": [0.4, 0.6, 0.8],
-            "ks_significance": [4, 7, 10],
-            "numcluster": [3, 6, 9],
+        "mncp": [2, 5, 8],
+        "roc_auc": [0.6, 0.75, 0.9],
+        "max_enrichment": [10, 20, 30],
+        "enr_at_fpr": [4, 8, 12],
+        "fraction_fpr": [0.4, 0.6, 0.8],
+        "ks_significance": [4, 7, 10],
+        "numcluster": [3, 6, 9],
     }
-    
-    for motif,s2 in stats.items():
+
+    for motif, s2 in stats.items():
         for bg, s in s2.items():
             stats[motif][bg]["stars"] = int(
-                        np.mean([star(s[x], all_stats[x]) for x in all_stats.keys() if x in s]) + 0.5
-                    )
+                np.mean([star(s[x], all_stats[x]) for x in all_stats.keys() if x in s])
+                + 0.5
+            )
     return stats
+
 
 def rank_motifs(stats, metrics=("roc_auc", "recall_at_fdr")):
     """Determine mean rank of motifs based on metrics."""
@@ -215,15 +238,17 @@ def rank_motifs(stats, metrics=("roc_auc", "recall_at_fdr")):
     motif_ids = stats.keys()
     background = list(stats.values())[0].keys()
     for metric in metrics:
-        mean_metric_stats = [np.mean(
-            [stats[m][bg][metric] for bg in background]) for m in motif_ids]
+        mean_metric_stats = [
+            np.mean([stats[m][bg][metric] for bg in background]) for m in motif_ids
+        ]
         ranked_metric_stats = rankdata(mean_metric_stats)
         combined_metrics.append(ranked_metric_stats)
-    
+
     for motif, val in zip(motif_ids, np.mean(combined_metrics, 0)):
         rank[motif] = val
 
     return rank
+
 
 def write_stats(stats, fname, header=None):
     """write motif statistics to text file."""
@@ -233,21 +258,24 @@ def write_stats(stats, fname, header=None):
         f = open(fname.format(bg), "w")
         if header:
             f.write(header)
-        
+
         stat_keys = sorted(list(list(stats.values())[0].values())[0].keys())
         f.write("{}\t{}\n".format("Motif", "\t".join(stat_keys)))
 
         for motif in stats:
             m_stats = stats.get(str(motif), {}).get(bg)
             if m_stats:
-                f.write("{}\t{}\n".format(
-                    "_".join(motif.split("_")[:-1]),
-                    "\t".join([str(m_stats[k]) for k in stat_keys])
-                    ))
+                f.write(
+                    "{}\t{}\n".format(
+                        "_".join(motif.split("_")[:-1]),
+                        "\t".join([str(m_stats[k]) for k in stat_keys]),
+                    )
+                )
             else:
-                logger.warn("No stats for motif {0}, skipping this motif!".format(motif.id))
-            #motifs.remove(motif)
+                logger.warn(
+                    "No stats for motif {0}, skipping this motif!".format(motif.id)
+                )
+            # motifs.remove(motif)
         f.close()
 
     return
-

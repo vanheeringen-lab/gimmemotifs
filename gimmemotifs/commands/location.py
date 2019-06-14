@@ -1,7 +1,7 @@
 # Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
-# This module is free software. You can redistribute it and/or modify it under 
-# the terms of the MIT License, see the file COPYING included with this 
+# This module is free software. You can redistribute it and/or modify it under
+# the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """
 Command line tool 'location'.
@@ -14,6 +14,7 @@ from gimmemotifs.utils import motif_localization
 from multiprocessing import Pool
 from gimmemotifs.config import MotifConfig
 import os
+
 
 def location(args):
     """
@@ -38,17 +39,17 @@ def location(args):
     ids = [motif.id for motif in motifs]
     if args.ids:
         ids = args.ids.split(",")
-    
+
     n_cpus = int(MotifConfig().get_default_params()["ncpus"])
-    pool = Pool(processes=n_cpus, maxtasksperchild=1000) 
+    pool = Pool(processes=n_cpus, maxtasksperchild=1000)
     for motif in motifs:
         if motif.id in ids:
             outfile = os.path.join("%s_histogram" % motif.id)
             jobs.append(
-                    pool.apply_async(
-                        motif_localization, 
-                        (fastafile,motif,lsize,outfile, args.cutoff)
-                        ))
-    
+                pool.apply_async(
+                    motif_localization, (fastafile, motif, lsize, outfile, args.cutoff)
+                )
+            )
+
     for job in jobs:
         job.get()

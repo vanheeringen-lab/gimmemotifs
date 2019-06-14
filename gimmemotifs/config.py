@@ -1,7 +1,7 @@
 # Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
-# This module is free software. You can redistribute it and/or modify it under 
-# the terms of the MIT License, see the file COPYING included with this 
+# This module is free software. You can redistribute it and/or modify it under
+# the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """ Configuration for GimmeMotifs """
 import configparser
@@ -20,7 +20,7 @@ logger = logging.getLogger("gimme.config")
 BG_TYPES = ["random", "genomic", "gc", "promoter"]
 FA_VALID_BGS = ["random", "promoter", "gc", "custom", "genomic"]
 BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "custom"]
-BG_RANK = {"custom":1, "promoter":2, "gc":3, "random":4, "genomic":5}
+BG_RANK = {"custom": 1, "promoter": 2, "gc": 3, "random": 4, "genomic": 5}
 FASTA_EXT = [".fasta", ".fa", ".fsa"]
 DIRECT_NAME = "direct"
 INDIRECT_NAME = "indirect\nor predicted"
@@ -28,35 +28,49 @@ INDIRECT_NAME = "indirect\nor predicted"
 CACHE_DIR = os.path.join(xdg.XDG_CACHE_HOME, "gimmemotifs")
 CONFIG_DIR = os.path.join(xdg.XDG_CONFIG_HOME, "gimmemotifs")
 
-MOTIF_CLASSES = ["MDmodule", "MEME", "MEMEW", "Weeder", "GADEM", "MotifSampler", "Trawler", "Improbizer",  "BioProspector", "Posmo", "ChIPMunk", "AMD", "HMS", "Homer", "XXmotif"]
+MOTIF_CLASSES = [
+    "MDmodule",
+    "MEME",
+    "MEMEW",
+    "Weeder",
+    "GADEM",
+    "MotifSampler",
+    "Trawler",
+    "Improbizer",
+    "BioProspector",
+    "Posmo",
+    "ChIPMunk",
+    "AMD",
+    "HMS",
+    "Homer",
+    "XXmotif",
+]
 
 
 class MotifConfig(object):
     """Configuration object for the gimmemotifs module."""
+
     __shared_state = {}
-    
+
     prefix = sysconfig.get_config_var("prefix")
-    
+
     # Default config that is installed with GimmeMotifs
     default_config = pkg_resources.resource_filename(
-            'data', 'cfg/gimmemotifs.default.cfg')
-    
-    # 
+        "data", "cfg/gimmemotifs.default.cfg"
+    )
+
+    #
     package_dir = os.path.dirname(
-            os.path.abspath(
-                inspect.getfile(inspect.currentframe())
-                ))
-        
+        os.path.abspath(inspect.getfile(inspect.currentframe()))
+    )
+
     user_config = os.path.join(CONFIG_DIR, "gimmemotifs.cfg")
 
-
     config_dir = "share/gimmemotifs/gimmemotifs.cfg"
-    configs = [
-        user_config,
-    ]
+    configs = [user_config]
     config = None
     TOOL_SECTION = "tools"
-    
+
     def __init__(self, use_config=""):
         self.__dict__ = self.__shared_state
         if use_config:
@@ -70,12 +84,11 @@ class MotifConfig(object):
                 self.create_default_config()
                 cfg = self.config.read(self.configs)
             if not cfg:
-                raise ValueError("Configuration file not found,"
-                                "could not create it!")
-    
+                raise ValueError("Configuration file not found," "could not create it!")
+
     def create_default_config(self):
         logger.info("Creating new config.")
-        
+
         available_tools = []
         cfg = self.config.read(self.default_config)
         for m in MOTIF_CLASSES:
@@ -91,21 +104,19 @@ class MotifConfig(object):
                     cmd = which(exe)
                     if cmd:
                         logger.info("Using system version of %s.", m)
-                        self.set_program(m, 
-                                {
-                                    "bin":cmd, 
-                                    "dir":os.path.dirname(cmd)
-                                    }
-                                )
+                        self.set_program(m, {"bin": cmd, "dir": os.path.dirname(cmd)})
                         available_tools.append(m)
                     else:
-                        logger.warn("%s not found. To include it you will have to install it.", m)
+                        logger.warn(
+                            "%s not found. To include it you will have to install it.",
+                            m,
+                        )
 
             except configparser.NoSectionError:
                 logger.warn("{} not in config".format(m))
-         
+
         params = self.get_default_params()
-        params['available_tools'] = ",".join(available_tools)
+        params["available_tools"] = ",".join(available_tools)
         self.set_default_params(params)
 
         if not os.path.exists(CONFIG_DIR):
@@ -113,29 +124,27 @@ class MotifConfig(object):
         with open(self.user_config, "w") as f:
             self.config.write(f)
         logger.info("Configuration file: %s", self.user_config)
-    
+
     def bin(self, program):
         try:
             exe = self.config.get(program, "bin")
             if not os.path.exists(exe):
                 mdir = self.config.get(program, "dir")
                 if not os.path.exists(mdir):
-                    mdir = os.path.join(
-                            self.package_dir,
-                            mdir)
+                    mdir = os.path.join(self.package_dir, mdir)
                 exe = os.path.join(mdir, exe)
 
-        except: 
+        except:
             raise ValueError("No configuration found for %s" % program)
         return exe
-    
+
     def set_default_params(self, params):
         if not self.config.has_section("params"):
             self.config.add_section("params")
 
-        for k,v in params.items():
+        for k, v in params.items():
             self.config.set("params", k, str(v))
-    
+
     def get_default_params(self):
         d = dict(self.config.items("params"))
         for k in ["use_strand", "use_cache"]:
@@ -145,13 +154,10 @@ class MotifConfig(object):
     def dir(self, program):
         if self.config.has_section(program):
             if self.config.has_option(program, "dir"):
-                try: 
+                try:
                     mdir = self.config.get(program, "dir")
                     if not os.path.exists(mdir):
-                        mdir = os.path.join(
-                                self.package_dir,
-                                mdir
-                                )
+                        mdir = os.path.join(self.package_dir, mdir)
                     return mdir
                 except Exception:
                     return None
@@ -159,26 +165,25 @@ class MotifConfig(object):
                 return os.path.dirname(self.bin(program))
         else:
             raise ValueError("No configuration found for %s" % program)
-    
+
     def set_program(self, program, d):
         if not self.config.has_section(program):
             self.config.add_section(program)
 
-        for par,value in d.items():
+        for par, value in d.items():
             self.config.set(program, par, value)
 
     def get_data_dir(self, ddir):
         my_dir = self.config.get("main", ddir)
         if not os.path.exists(my_dir):
-            my_dir = pkg_resources.resource_filename(
-                'data', my_dir)
+            my_dir = pkg_resources.resource_filename("data", my_dir)
         return my_dir
 
     def set_template_dir(self, path):
         if not self.config.has_section("main"):
             self.config.add_section("main")
         self.config.set("main", "template_dir", path)
-    
+
     def get_template_dir(self):
         return self.get_data_dir("template_dir")
 
@@ -205,7 +210,7 @@ class MotifConfig(object):
 
     def get_gene_dir(self):
         return self.get_data_dir("gene_dir")
-    
+
     def set_bg_dir(self, path):
         if not self.config.has_section("main"):
             self.config.add_section("main")
@@ -224,12 +229,13 @@ class MotifConfig(object):
 
     def is_configured(self, program):
         return self.config.has_section(program)
-    
+
     def save(self):
-        self.config.write(open(os.path.expanduser('~/.gimmemotifs.cfg'), "w"))
+        self.config.write(open(os.path.expanduser("~/.gimmemotifs.cfg"), "w"))
 
     def write(self, fo):
         self.config.write(fo)
+
 
 def parse_denovo_params(user_params=None):
     """Return default GimmeMotifs parameters. 
@@ -264,7 +270,7 @@ def parse_denovo_params(user_params=None):
         logger.debug("  %s: %s", param, value)
 
     # Maximum time?
-    
+
     if params["max_time"]:
         try:
             max_time = params["max_time"] = float(params["max_time"])
@@ -281,6 +287,7 @@ def parse_denovo_params(user_params=None):
 
     return params
 
-#if __name__ == "__main__":
+
+# if __name__ == "__main__":
 #    m = MotifConfig()
 #    print m.is_configured("meme")

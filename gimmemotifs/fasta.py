@@ -1,7 +1,7 @@
 # Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
-# This module is free software. You can redistribute it and/or modify it under 
-# the terms of the MIT License, see the file COPYING included with this 
+# This module is free software. You can redistribute it and/or modify it under
+# the terms of the MIT License, see the file COPYING included with this
 # distribution.
 
 """ Module to work with FASTA files """
@@ -10,20 +10,20 @@ import random
 import re
 import numpy as np
 
-class Fasta(object):
 
+class Fasta(object):
     def __init__(self, fname=None, split_whitespace=False):
         """ Instantiate fasta object. Optional Fasta-formatted file as argument"""
         self.ids = []
         self.seqs = []
-        p = re.compile(r'[^abcdefghiklmnpqrstuvwyzxABCDEFGHIKLMNPQRSTUVWXYZ]')
+        p = re.compile(r"[^abcdefghiklmnpqrstuvwyzxABCDEFGHIKLMNPQRSTUVWXYZ]")
         if fname:
             f = open(fname, "r")
             c = f.read()
             f.close()
-            if not(c.startswith(">")):
+            if not (c.startswith(">")):
                 raise IOError("Not a valid FASTA file")
-            
+
             for seq in c.split(">"):
                 if len(seq) > 1:
                     lines = seq.split("\n")
@@ -35,7 +35,7 @@ class Fasta(object):
                     if p.match(sequence):
                         raise IOError("Not a valid FASTA file")
                     self.seqs.append(sequence)
-        
+
     def hardmask(self):
         """ Mask all lowercase nucleotides with N's """
         p = re.compile("a|c|g|t|n")
@@ -52,9 +52,9 @@ class Fasta(object):
             i = 0
             while (i < n) and (len(ids) > 0):
                 seq_id = ids.pop()
-                if (len(self[seq_id]) >= l):
+                if len(self[seq_id]) >= l:
                     start = random.randint(0, len(self[seq_id]) - l)
-                    random_f["random%s" % (i + 1)] = self[seq_id][start:start+l]
+                    random_f["random%s" % (i + 1)] = self[seq_id][start : start + l]
                     i += 1
             if len(random_f) != n:
                 sys.stderr.write("Not enough sequences of required length")
@@ -67,7 +67,6 @@ class Fasta(object):
             for i in range(n):
                 random_f[choice[i]] = self[choice[i]]
         return random_f
-
 
     def __getitem__(self, idx):
         if isinstance(idx, slice):
@@ -97,14 +96,14 @@ class Fasta(object):
         i = self.ids.index(key)
         self.ids.pop(i)
         self.seqs.pop(i)
-        
+
     def _format_seq(self, seq):
         return seq
 
     def add(self, seq_id, seq):
         self.ids.append(seq_id)
         self.seqs.append(seq)
-    
+
     def has_key(self, key):
         if key in self.ids:
             return True
@@ -117,7 +116,9 @@ class Fasta(object):
     def writefasta(self, fname):
         """ Write sequences to FASTA formatted file"""
         f = open(fname, "w")
-        fa_str = "\n".join([">%s\n%s" % (id, self._format_seq(seq)) for id, seq in self.items()])
+        fa_str = "\n".join(
+            [">%s\n%s" % (id, self._format_seq(seq)) for id, seq in self.items()]
+        )
         f.write(fa_str)
         f.close()
 

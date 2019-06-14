@@ -1,7 +1,7 @@
 # Copyright (c) 2009-2018 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
-# This module is free software. You can redistribute it and/or modify it under 
-# the terms of the MIT License, see the file COPYING included with this 
+# This module is free software. You can redistribute it and/or modify it under
+# the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """ 
 Module to compare DNA sequence motifs (positional frequency matrices)
@@ -15,19 +15,21 @@ import random
 import logging
 
 # External imports
-from scipy.stats import norm,entropy,chi2_contingency
+from scipy.stats import norm, entropy, chi2_contingency
 from scipy.spatial import distance
 import numpy as np
 
 # GimmeMotifs imports
 from gimmemotifs.config import MotifConfig
-from gimmemotifs.c_metrics import pfmscan,score
+from gimmemotifs.c_metrics import pfmscan, score
 from gimmemotifs.motif import parse_motifs
+
 # pool import is at the bottom
 
-try: 
+try:
     import copy_reg
     import types
+
     def _pickle_method(m):
         if m.im_self is None:
             return getattr, (m.im_class, m.im_func.func_name)
@@ -39,109 +41,109 @@ except:
     pass
 
 RCDB = (
-"AATGCCTGCCTCGCCCATATAAGCATCAAGGCATATTTATTACCGGCCGCATGGAACCTTTCCTCCCAATCGAACAAGTC"
-"AGGTGGCATCCGGGAACGACTGTTGACACCGACAAGAAGCCGACCCCGTAATGGGGAACCGAGTTTGGCTTAGCTGCTTC"
-"ATATGGCGTTCACTAGTAATATTCGGAGACAACTACGTCCGGTATCTAGGCGATGGGGTGAGCGTGGTATAAGTCCATTC"
-"AACCGTTATGACGGCTAAGGTCGCTACTCTCGTGAGCTATCTGTAGGACGAAGGGTTAGAGTCCCATGCAGAGAGGGGAA"
-"TCACTGAGAGCCACAATTCAGAGATATCACGCCGCGTACTGCAGCCTTTTCGGCTCCTCGGACTCGCTAATACGCGTCAG"
-"CTGGGAGCCCGCATATCTGAAAACCGCTAACTTCTCTCGAGCCCCTCAAGTACACTGGGAAAGTCCCCAATATGACCTGT"
-"CTCACCGATCTAATCCTACGCGATCCTATAGAGTATAGTGCTCCTTCATGCTGACTCCACAGTCACTCGCCGTCTCATGA"
-"CCGATGTTGGGGTACAAATCTCGTTCAATTCTAAACTTTTTAGTACCCATAGCATAGCGGGAATGGCCTTGTGTTCCGAC"
-"GCGAGGTACCGCCCCAAGTCGACCAAGTAGAATAAGTTAATGAGCCCTGTCATTAGACTATATTCCTGAAAGCATAAGCG"
-"AGCGATCAGCTATACATAATTAGTAGGTGATGTACAAGTTACGGTCTGACATGTTCAGCAATAGCAATGTTTGTGTGCAG"
-"AACTCACAGCTCTCGCGGCTGCTGCATCCACCTCTGGGTAGGAGGACACACGCCCGAAGACTTCAAATGGGCTGACCTCT"
-"CATAGGTAGTGCAGGGACTATGGTTACGAGTACTGTTTTTTCCTTCGGTAAAATAATACTAGCAACAGAAAATAGCCGGA"
-"TTGGTAGTTATCTTCGCACAATCCATCTTGCTGGACGGTTCGCGAGCTACTTCCGTTAATTGACTCTGGCCCGTAGTCCT"
-"CGATAGGCGTACGATAGACAAGCACAAATTTTTAATCACGGGTTGCGTCACCGGCACTCGGATGTAAAGGATGGTACGTT"
-"GGCGGCTTACTGATTCGCCAGTCTCAAGCATTTGGGGGTAATTGGTCACGTCTCGGAGGGCGACGACAAACGGTCCCCTT"
-"AAATCTATAATGTGATTGGCTGTGTTGGTGGCCAAAGTTCAACGGCTTGTGAGAGAGATGGGAATACAATCAGGTCGAAG"
-"CAACGAATACGTTACCTGCGAATGCTCAAGACAGCCGTAAGACGAACAGCTTTCGGTGCCCCACTAGCTGTAGCGGATGA"
-"GTGATCCTCGTTATAGCAGGCTCAAAACACACTACTATCTCGATTCGGTCCGGCGCGTTCTCCTGCGGGGGGCGATACTT"
-"AAGACCATAAAACATCTTCTTCCCCGATGCTAAACGCGAAATTACGAAGCGTTGGTCCGAAGCCTAAATTTCCTAGCACT"
-"TAGGAAGTGGCGGTTGTGAAGGCGAGCCAACTAGGGAGAATAGAACCCGCTCGGCGTTTGCTGCCAGAACGGCAGACCAA"
-"ATCGTATAGGCTCTTACCGCTTCCTCACACATTCGGCAGCCCCCAGGTTACACTTACGTACGGGATACCTCCATGGTGTG"
-"TGGGACGAGGTTTCTCTATGCCCTGATATTGACAGTCCTAAAGTGCGGGACTGATCTTGGTGACAGCGAGGGACCAGGCC"
-"AGCCAGCATATGTCTAACGCCCCGCCGACGATAACATTTTCGTGGTGAGTAGACCCTTTCGCCGCTAGCCCACGAGTGGT"
-"GCAAATAAAAAAGAAGTCCTTTCAACACTGAACTGGAGTTACATGGGTGCGGCTCACTATTTAATGGAATTGGCAGATTT"
-"CAAAATGGATAACGTCCTTATGTTTAGGTTTGGTATGAAACCCAGCGGCCCCCGAGCTTTTTCACAGTATAATCCCACTT"
-"AAAAGTGGATTACTTAGATGCGCCCGGGTCGCCAATGACGTGCCCTCGACACAATAACACGTTGAGGATTGCGAAACTTC"
-"CAGCTACCTGAGTCGGAGCGCGTAATCTCTAATAAGGCACTAATGTCGTATTTGGCGCCCAATGTCATCAACCCACTGCA"
-"CGCCTCGAGTCATACGTCTTCCAATCTTGACGTACATTGTCAGCGCGCAGTTCGTTCGACTGGTCGGATAGAGCACGGAA"
-"ATCGCACGGGGATCATGAATACTGAATGATGCGAACGGTATTACGTGGCAGGAAACGCACCATTGTACGGCAAACTTGAC"
-"TTTTGTTCTTCATTACCAGACGCACAGCAACTGGGGCCTCGTAGTGACGGGTATGCGCGGTGGGCATGCGTAGTAACTGC"
-"TGGGCCACGACCTCATAAGTAGTTCTAGGGTCAGAATGGTTGAGTCCACATCCATACCTTCTTAGGTCTGTTAGCTCTTC"
-"ACGTTTGAATAGGTTAAGCTGGTCTCCTATCTTACACCGTACTTACCACTTGTGCCATAATCATTTATATTATGCCAAAA"
-"CTTACATAGTATACCGACCGCCTACGTGAGTGGCTGAGAACCTACGGTTAACGCTATTCGCGGGGTTTGCGATGCACCGT"
-"CAAACCACTATCAAAGATTTTATAATAGCTACAAAACGGACTAGTTTTCGCTAGTCTCGACGAATGAGGCCAATAATTTG"
-"CGTGGCGATCTCTTTGTCCTTCCTGGTGTTGCACAGAACCATCTACGGCCGATAATCTTCCTTTGAACCGCGTCTTGCAC"
-"TGCTTAAGGATTTATCCCATTGATCTATTGTCGATTACCTCTTCCGAGCCGGCAGGTTTACTTCTAACTCTGTGTGTATT"
-"TACAGTTCCGTCTAGATCTGAGACCCATCACTAAGGCGTTGTCGCCGGCCCAACGGGTGCCAACAGCGCAGCTGTCCAAA"
-"CAAACCGGTAGCAAGCGATGTCCTATGTGGTTATTATCAACGACACCCTGTATAAACTCAGCTCCTAACAAGCTCCGGCA"
-"TTCTCATCTATGGCCCTCTGTCTAGGATACGCTAAGACAATCGTCAGATGGCGGGTAAACTGGCACTTGCCTTCCATAGG"
-"GCCCCTAGGACCCGCAAGGGCTGTATGAGCGCTATCATTGACGACTCTCAATAGTAAAAACGTAACGCGGATCGTTTCAA"
-"TGCGATCGAGTTCATTTGTCTGTAACGACCCTCTTTACGACGAGTTGTTGTACTGAGGAGTCTGCAGGCCGTTACTTGTC"
-"CCCGGCCTTACCCAATTGCTCACATCATGGCGCTTTAAATGGCTCCGTGAAATTGTAACACATGACTTACTCTTATGGAC"
-"CATTTCGGAATCTAGCGCCCCTGCGTGTACAGAATCGGATCAAGAAAGCGACGGCATGATTGCACGTGGTTCATCTGCGG"
-"TATGTACCTAGTGCGAGCAAGGTGGGAACAGGGAACTAAATAACGCATTCACACTTTGTATGTGACAAAATACCCCTTTT"
-"AGCTAGGGCTTTTACACGGTAGGCAAAGACGGGAGGTCCCAACCTGTTGTGCATTTCAGTCTTGGCAACATGCAACCGAC"
-"GTGGGGTTGGAATCGTGAACTATAAGGTACTCCTTGACAACATTAATTTTGGGAAGTCACCTCCGTTGCCTGTAGAAACG"
-"TTGCGCATGTAGACTGTATTAAGTTGAGAAGCGCTGCAATGGCATTGTTTTCCGATGGCCGCCGCAAAGTATTTCTTAAT"
-"CCGCCAGGTGAAGTGACCTATAAAGCTTCAGCTTCTGCCCAGTCCGCGCGCCCTTATCGATTTAGAGGGATAGGGACGGA"
-"CAGAAGTGTCTTTCCATCCAGACCCCTGTGTAGTCGTGCGCGAAGCTCTGTTTGATTACAGGAACAACACGGCGTCTCTC"
-"CGTCAGTGGTCGTCTGTGGTCTATGATCAGGAGTGGAGACTTTAAGCGGGGAGTCGAGTATCTTTTATCACAGGAGGCAA"
-"TTTACCTTGAGTATGTTAGATTGCTTTGACTGAGTACGTGTGACCGCGACGCTTACGCTGCGGATACTGCGGCACCTCGG"
-"CTAGAGCGCATTATTAAAGATCTCGCAGAGTGGGCGGAACCCAAAGCGTACCGTCGACATGCTTCCGGGTGGAACTCCTA"
-"GTCACAGATGTAGCACAGTGGAATAGTTTCACTTTCGTTTATTCCGCGATGATTCACTCCGATCATTATGATGGTGGAGG"
-"GAGTGTCACGGCACATCGACTAGATGTGTACGCAAGAATCCAGCGTTCGGATTCAATACATGTGAACACCTGCAACGCAG"
-"CCATCAGGCTGTTATAAGACTAAGATGCCTCAAAGTCGTACAGGTATATCATATAGAATCTGGGGAGGGGTGGTACCCGG"
-"TTCTTATTGATTTCGATGCGGTTAGTTTGAGTGTTTGCATTGCCCCGACGGGCAGGGCCGACTTAGTAAGAATATCCACA"
-"AGACCGGCTGAAACAGCATTGGTGCCTAGTACTTTCTAATTTATGAATCTTATCCGTGGGTGTGCGCTTAGACCTGGTTT"
-"AATTACACAACTTCAGTTCTCGCTCAGGCCCTTTAGATATTTGACCGTGAGAAAGAGCGGCTACACTATGAACGGATGGG"
-"CCTAATCAGACGGTCGTAGGGATCTACTGCCTGAAGATCCTTGTCATGCATTCCAGAGCGTAGACACATAACTGGTTGTC"
-"CATGTCCAGGCGTCCGTAGCGCAAAACCTTCAGAAATGAGATCCGTCGTCCACGATCAACATATACGTGCGGTCTAGCTT"
-"TGCAACTAAGCACTGTAGTGGACACTAGAAAACGAGCCTTGCCCAAGAGGCACGGCTCTGATCCATGAAATAGGAATCCT"
-"GCATTAGCAAAAAGGAGATGCATAACCCCTATATCCCCTAATTCCCTCATGGTTTTAAACTACATTACTGCTCTTGTAGA"
-"GACATCTCAAATTCTCTTAGAGCTCCCTGAGATTGTTGCGGAGCAGACGTCAGGACGGCCCGCCTTGGTTTCGAGCATCT"
-"GGTGGTCCTTGGCTATATACAACGTCACAATGAATGTATGGCTAGGCTACTAGACTCTTGAACAGATCCACGCCACATGG"
-"CTTTCCGGCCAGTAAAGTAGGGCGTATAACCGAACCCTATTAGTTACCGTATTGTTCATGTACTCTGACTAAAGCAGAGC"
-"AACCACCGAGATGACTACTGTACCGGGCTTATTTCGTAGCTTAGGCGCACTGATAGGTGGTGGGTCCGTGTCGGGAGTTT"
-"TTGACATAAACAACGATACCATGCCAGCGCCTGCGCCGTTTACGTCGCAGTGAAGCGAATTGCAAGCCCAAACGACGCAG"
-"TCCAACGAGTCGCTGCTAACGATGCCGAGTCTCTGTATCTCACTTATCTGCAAGTATGGTGATAGATAGAAGACCCGAAT"
-"TTTAGACGCTCGATGACCCAGTATGCTCTCCAGGTACGGATTTGCTTACCTACACGATGTATCATGTCTGCGTAAAACTG"
-"ACAGATTGATATGGAGCCTCTGCCTTTGGTGTCTGAACGTCTACCTTTGCTCCAAATTGATGTTCCAAAGAAAAGCACCC"
-"TTGTAAACAGGCCTCCAACAAGATATAATTGCGGTGCTGAGCCAGGGCGGCGCCTCCCTTGGGATCGAAGTTCGGCGCTC"
-"GTCACGACAGCAGGGTCCAGTCATTTTAACAGTGACATCAGCCTCCGCTCAACAAATAGAGGCGAAGTCGCGTGAGGCTA"
-"GTTAGTATCAGCAGATCGTAGAAGGGGGAGATAATGGCGAGACACGTGATGCAATACTCCGGGGGTGCACTCTTCTGGTT"
-"AAATTCCTTGCATAGGCATGTGCGGAAGGGACACGAGCACCAGTGGCCTATTGGATCCCGGTGTGGTAGAACAGTTAGGC"
-"AGCTCATGTTACTCATTGCGCCACCCAACTGCAAAAGAGTTTCCCGAACATTCTTTAGCCAGATCATCATCTTTCACCAG"
-"CGATTCAGCGAACACGAACGTAGCATGCACTTCGTTAAACGTCGTGTGGCAATATTTTTCGAACTAGAGGAATGTCTTCA"
-"ACTGAGCAGGACTCCGCGGGATTTTCATCGTAAGGTGCGCAGAAACTGTCTGGCGTCGATACAAGCGTGAATATGGTAAA"
-"GCCGGGACGCGCGAGTTAAAGGCGCGGGCGAACTCTCCCGGGGCTACCAGGGGAGCATGGCAGTCTGTCGAATTCATCCT"
-"AATATGTAGGGGGGGATTCGTGATCTCCGCCGGTTACCCTTAGAACGATTAATATCGCTATAGTACGAGCTCAATCAAGT"
-"CTGGGACATTTGCCCGGACTTGCTTGGCCGTGGAGCGGTCCACCGGAGGATGTCGCTCTCTTCGAATGGGTTACTGTCCC"
-"GTGTGCCCATGGCCAGGCTTGGAGTAGGCTGGAGCTAGCAGAATTACTCCCATAACAAAGCCTTCGAGGTCTTTATTGCG"
-"TTCCTCGCATGAGTTATTCGATATATGCAGTCGCATAGTTGATTCTCGGGCACTGGATCGGCTGGGGTCCCGAGTAAATC"
-"AGCGGTGATTTTTGGTTGGTTCGTATGGGGGAAATGTAATGCCCCTTGAAAAGACTCATATCCTGGGCTCTACGTATCTG"
-"GAGGAGGGTAGCGTGTTTAAGATCGATGGACGTGTATACGGGTCACCCGAGGGGGTCAAGCTTATCATCCCTGGGATGTT"
-"AACTGATGCCCGCTGCCCCCTGAACCCCCCACCCTACCTCACTGGCTTGAAGCCCCATGACGCTAGGTTGACGCCCAGAA"
-"AGGCCTACAATATACTTCATCACACCTCAATTGTCCGGAATGAAAGTTATATATTTCCACGTTCTTGGATTTCTATGTCC"
-"GCTGTGGCCGAAGTACCGAGCAGCACTCAGACTACCCCGAAACGGGGCCAACCGGATCCTGAGGTTCACCGTGGCTACGC"
-"CGGGCCTTCTCCATCAAAAGGTGAGGGCTAACCAATACCAGCCCGTGGTCATTCTAGCATTAAGCCTCGGTCGCACCGGT"
-"CCTGGCAAAATCGGCACGAGGGTGAATTTCTCGTCTATTAACACTTGGCGTAACAGGATGCTGCGATAAACCCGATTAGT"
-"CGGGTAGAGTGAGTCACGCATAAAGTTGCCCTAAGGAACTTAGCACGCACGCGGGTGTACCAGTACCAAGCTAATCTGAT"
-"AACCTCCTTACAGCACATTGAGTTGCGACAGTGTGCTCATCGGCGATTATTCAGGTTCGAGTGTGGAAGCCACCGTTGTG"
-"GGTATCAAGCGCGACACTGCCGCGGTAGATAAAGGTCTCGTATCGGGCCCACAGGCGACTATCCTTCTGATGAGGACGCT"
-"GTACTACTCGCAAGTTCTTTCGACGTCCCCCGTCCGCCTGACCATGTTTCTTCGTGCATACACCTTCCCTAAAACGCTCC"
-"TGGAAACACCGCCGTATGTCGGCAACCTTGGAAAATTGGACGCATCCCGATCGTCTCCCACGCGTTGACTATTACAACCC"
-"TCAGCGTGCCACTAAACCGATATCCGGAGAAAAACCCTGGATACACTCTCTAGGTGCAGCTTGCGCGTGTCAGGGTATAG"
-"ACTTAACAATTAGCCTTAACTATCGGACACCTAACGTTCCAGTAGGAACCAGCACGTTAAGAGGAGAGGCCGAGAGGATA"
-"ATTCGTACCCTAACCTTAATTCAAGTGATACGGAATTCTTCTCGAATCTCCAATGGAGTGCGTATGCCGCCTCAGAACAC"
-"TAACACCCCGGTCAGTAGCAGTCAGTCGGTCTCTTGCCGCTTGGGTCGAGCTGGCGCGATTGCCGGGTTAATCTACACCA"
-"CAAAGGGAAAAGTAAGGGATTGAAGGGCAGTTTGTAAGCTCAGAGGACCTACCATTAGGTATTCTGGACTAACGGGCGGG"
-"AGCGAAGGTCCGCATTTAGCGCGGCCTAGGTCGGGCTATCCAAAAGCGGAAACCGTGCACATATCGTGCTTCTAGAGTTG"
-"GTAACAACCTCTACTACAACTGTGTCATAGCCTGTCCTGTCGGACGATGGTCGCGATAGCACCTGTGCCTGGGTGATCAA"
-"ATCATACTACCGATTGACCTTGTTTCGTCATCCAACTTGGACCTGCTTGCCATCCCCACATTTACGGAGTTGACCAGAGA"
-"ACATAGCTTCCCGTTCCGGTCGATCACAAAAA"
+    "AATGCCTGCCTCGCCCATATAAGCATCAAGGCATATTTATTACCGGCCGCATGGAACCTTTCCTCCCAATCGAACAAGTC"
+    "AGGTGGCATCCGGGAACGACTGTTGACACCGACAAGAAGCCGACCCCGTAATGGGGAACCGAGTTTGGCTTAGCTGCTTC"
+    "ATATGGCGTTCACTAGTAATATTCGGAGACAACTACGTCCGGTATCTAGGCGATGGGGTGAGCGTGGTATAAGTCCATTC"
+    "AACCGTTATGACGGCTAAGGTCGCTACTCTCGTGAGCTATCTGTAGGACGAAGGGTTAGAGTCCCATGCAGAGAGGGGAA"
+    "TCACTGAGAGCCACAATTCAGAGATATCACGCCGCGTACTGCAGCCTTTTCGGCTCCTCGGACTCGCTAATACGCGTCAG"
+    "CTGGGAGCCCGCATATCTGAAAACCGCTAACTTCTCTCGAGCCCCTCAAGTACACTGGGAAAGTCCCCAATATGACCTGT"
+    "CTCACCGATCTAATCCTACGCGATCCTATAGAGTATAGTGCTCCTTCATGCTGACTCCACAGTCACTCGCCGTCTCATGA"
+    "CCGATGTTGGGGTACAAATCTCGTTCAATTCTAAACTTTTTAGTACCCATAGCATAGCGGGAATGGCCTTGTGTTCCGAC"
+    "GCGAGGTACCGCCCCAAGTCGACCAAGTAGAATAAGTTAATGAGCCCTGTCATTAGACTATATTCCTGAAAGCATAAGCG"
+    "AGCGATCAGCTATACATAATTAGTAGGTGATGTACAAGTTACGGTCTGACATGTTCAGCAATAGCAATGTTTGTGTGCAG"
+    "AACTCACAGCTCTCGCGGCTGCTGCATCCACCTCTGGGTAGGAGGACACACGCCCGAAGACTTCAAATGGGCTGACCTCT"
+    "CATAGGTAGTGCAGGGACTATGGTTACGAGTACTGTTTTTTCCTTCGGTAAAATAATACTAGCAACAGAAAATAGCCGGA"
+    "TTGGTAGTTATCTTCGCACAATCCATCTTGCTGGACGGTTCGCGAGCTACTTCCGTTAATTGACTCTGGCCCGTAGTCCT"
+    "CGATAGGCGTACGATAGACAAGCACAAATTTTTAATCACGGGTTGCGTCACCGGCACTCGGATGTAAAGGATGGTACGTT"
+    "GGCGGCTTACTGATTCGCCAGTCTCAAGCATTTGGGGGTAATTGGTCACGTCTCGGAGGGCGACGACAAACGGTCCCCTT"
+    "AAATCTATAATGTGATTGGCTGTGTTGGTGGCCAAAGTTCAACGGCTTGTGAGAGAGATGGGAATACAATCAGGTCGAAG"
+    "CAACGAATACGTTACCTGCGAATGCTCAAGACAGCCGTAAGACGAACAGCTTTCGGTGCCCCACTAGCTGTAGCGGATGA"
+    "GTGATCCTCGTTATAGCAGGCTCAAAACACACTACTATCTCGATTCGGTCCGGCGCGTTCTCCTGCGGGGGGCGATACTT"
+    "AAGACCATAAAACATCTTCTTCCCCGATGCTAAACGCGAAATTACGAAGCGTTGGTCCGAAGCCTAAATTTCCTAGCACT"
+    "TAGGAAGTGGCGGTTGTGAAGGCGAGCCAACTAGGGAGAATAGAACCCGCTCGGCGTTTGCTGCCAGAACGGCAGACCAA"
+    "ATCGTATAGGCTCTTACCGCTTCCTCACACATTCGGCAGCCCCCAGGTTACACTTACGTACGGGATACCTCCATGGTGTG"
+    "TGGGACGAGGTTTCTCTATGCCCTGATATTGACAGTCCTAAAGTGCGGGACTGATCTTGGTGACAGCGAGGGACCAGGCC"
+    "AGCCAGCATATGTCTAACGCCCCGCCGACGATAACATTTTCGTGGTGAGTAGACCCTTTCGCCGCTAGCCCACGAGTGGT"
+    "GCAAATAAAAAAGAAGTCCTTTCAACACTGAACTGGAGTTACATGGGTGCGGCTCACTATTTAATGGAATTGGCAGATTT"
+    "CAAAATGGATAACGTCCTTATGTTTAGGTTTGGTATGAAACCCAGCGGCCCCCGAGCTTTTTCACAGTATAATCCCACTT"
+    "AAAAGTGGATTACTTAGATGCGCCCGGGTCGCCAATGACGTGCCCTCGACACAATAACACGTTGAGGATTGCGAAACTTC"
+    "CAGCTACCTGAGTCGGAGCGCGTAATCTCTAATAAGGCACTAATGTCGTATTTGGCGCCCAATGTCATCAACCCACTGCA"
+    "CGCCTCGAGTCATACGTCTTCCAATCTTGACGTACATTGTCAGCGCGCAGTTCGTTCGACTGGTCGGATAGAGCACGGAA"
+    "ATCGCACGGGGATCATGAATACTGAATGATGCGAACGGTATTACGTGGCAGGAAACGCACCATTGTACGGCAAACTTGAC"
+    "TTTTGTTCTTCATTACCAGACGCACAGCAACTGGGGCCTCGTAGTGACGGGTATGCGCGGTGGGCATGCGTAGTAACTGC"
+    "TGGGCCACGACCTCATAAGTAGTTCTAGGGTCAGAATGGTTGAGTCCACATCCATACCTTCTTAGGTCTGTTAGCTCTTC"
+    "ACGTTTGAATAGGTTAAGCTGGTCTCCTATCTTACACCGTACTTACCACTTGTGCCATAATCATTTATATTATGCCAAAA"
+    "CTTACATAGTATACCGACCGCCTACGTGAGTGGCTGAGAACCTACGGTTAACGCTATTCGCGGGGTTTGCGATGCACCGT"
+    "CAAACCACTATCAAAGATTTTATAATAGCTACAAAACGGACTAGTTTTCGCTAGTCTCGACGAATGAGGCCAATAATTTG"
+    "CGTGGCGATCTCTTTGTCCTTCCTGGTGTTGCACAGAACCATCTACGGCCGATAATCTTCCTTTGAACCGCGTCTTGCAC"
+    "TGCTTAAGGATTTATCCCATTGATCTATTGTCGATTACCTCTTCCGAGCCGGCAGGTTTACTTCTAACTCTGTGTGTATT"
+    "TACAGTTCCGTCTAGATCTGAGACCCATCACTAAGGCGTTGTCGCCGGCCCAACGGGTGCCAACAGCGCAGCTGTCCAAA"
+    "CAAACCGGTAGCAAGCGATGTCCTATGTGGTTATTATCAACGACACCCTGTATAAACTCAGCTCCTAACAAGCTCCGGCA"
+    "TTCTCATCTATGGCCCTCTGTCTAGGATACGCTAAGACAATCGTCAGATGGCGGGTAAACTGGCACTTGCCTTCCATAGG"
+    "GCCCCTAGGACCCGCAAGGGCTGTATGAGCGCTATCATTGACGACTCTCAATAGTAAAAACGTAACGCGGATCGTTTCAA"
+    "TGCGATCGAGTTCATTTGTCTGTAACGACCCTCTTTACGACGAGTTGTTGTACTGAGGAGTCTGCAGGCCGTTACTTGTC"
+    "CCCGGCCTTACCCAATTGCTCACATCATGGCGCTTTAAATGGCTCCGTGAAATTGTAACACATGACTTACTCTTATGGAC"
+    "CATTTCGGAATCTAGCGCCCCTGCGTGTACAGAATCGGATCAAGAAAGCGACGGCATGATTGCACGTGGTTCATCTGCGG"
+    "TATGTACCTAGTGCGAGCAAGGTGGGAACAGGGAACTAAATAACGCATTCACACTTTGTATGTGACAAAATACCCCTTTT"
+    "AGCTAGGGCTTTTACACGGTAGGCAAAGACGGGAGGTCCCAACCTGTTGTGCATTTCAGTCTTGGCAACATGCAACCGAC"
+    "GTGGGGTTGGAATCGTGAACTATAAGGTACTCCTTGACAACATTAATTTTGGGAAGTCACCTCCGTTGCCTGTAGAAACG"
+    "TTGCGCATGTAGACTGTATTAAGTTGAGAAGCGCTGCAATGGCATTGTTTTCCGATGGCCGCCGCAAAGTATTTCTTAAT"
+    "CCGCCAGGTGAAGTGACCTATAAAGCTTCAGCTTCTGCCCAGTCCGCGCGCCCTTATCGATTTAGAGGGATAGGGACGGA"
+    "CAGAAGTGTCTTTCCATCCAGACCCCTGTGTAGTCGTGCGCGAAGCTCTGTTTGATTACAGGAACAACACGGCGTCTCTC"
+    "CGTCAGTGGTCGTCTGTGGTCTATGATCAGGAGTGGAGACTTTAAGCGGGGAGTCGAGTATCTTTTATCACAGGAGGCAA"
+    "TTTACCTTGAGTATGTTAGATTGCTTTGACTGAGTACGTGTGACCGCGACGCTTACGCTGCGGATACTGCGGCACCTCGG"
+    "CTAGAGCGCATTATTAAAGATCTCGCAGAGTGGGCGGAACCCAAAGCGTACCGTCGACATGCTTCCGGGTGGAACTCCTA"
+    "GTCACAGATGTAGCACAGTGGAATAGTTTCACTTTCGTTTATTCCGCGATGATTCACTCCGATCATTATGATGGTGGAGG"
+    "GAGTGTCACGGCACATCGACTAGATGTGTACGCAAGAATCCAGCGTTCGGATTCAATACATGTGAACACCTGCAACGCAG"
+    "CCATCAGGCTGTTATAAGACTAAGATGCCTCAAAGTCGTACAGGTATATCATATAGAATCTGGGGAGGGGTGGTACCCGG"
+    "TTCTTATTGATTTCGATGCGGTTAGTTTGAGTGTTTGCATTGCCCCGACGGGCAGGGCCGACTTAGTAAGAATATCCACA"
+    "AGACCGGCTGAAACAGCATTGGTGCCTAGTACTTTCTAATTTATGAATCTTATCCGTGGGTGTGCGCTTAGACCTGGTTT"
+    "AATTACACAACTTCAGTTCTCGCTCAGGCCCTTTAGATATTTGACCGTGAGAAAGAGCGGCTACACTATGAACGGATGGG"
+    "CCTAATCAGACGGTCGTAGGGATCTACTGCCTGAAGATCCTTGTCATGCATTCCAGAGCGTAGACACATAACTGGTTGTC"
+    "CATGTCCAGGCGTCCGTAGCGCAAAACCTTCAGAAATGAGATCCGTCGTCCACGATCAACATATACGTGCGGTCTAGCTT"
+    "TGCAACTAAGCACTGTAGTGGACACTAGAAAACGAGCCTTGCCCAAGAGGCACGGCTCTGATCCATGAAATAGGAATCCT"
+    "GCATTAGCAAAAAGGAGATGCATAACCCCTATATCCCCTAATTCCCTCATGGTTTTAAACTACATTACTGCTCTTGTAGA"
+    "GACATCTCAAATTCTCTTAGAGCTCCCTGAGATTGTTGCGGAGCAGACGTCAGGACGGCCCGCCTTGGTTTCGAGCATCT"
+    "GGTGGTCCTTGGCTATATACAACGTCACAATGAATGTATGGCTAGGCTACTAGACTCTTGAACAGATCCACGCCACATGG"
+    "CTTTCCGGCCAGTAAAGTAGGGCGTATAACCGAACCCTATTAGTTACCGTATTGTTCATGTACTCTGACTAAAGCAGAGC"
+    "AACCACCGAGATGACTACTGTACCGGGCTTATTTCGTAGCTTAGGCGCACTGATAGGTGGTGGGTCCGTGTCGGGAGTTT"
+    "TTGACATAAACAACGATACCATGCCAGCGCCTGCGCCGTTTACGTCGCAGTGAAGCGAATTGCAAGCCCAAACGACGCAG"
+    "TCCAACGAGTCGCTGCTAACGATGCCGAGTCTCTGTATCTCACTTATCTGCAAGTATGGTGATAGATAGAAGACCCGAAT"
+    "TTTAGACGCTCGATGACCCAGTATGCTCTCCAGGTACGGATTTGCTTACCTACACGATGTATCATGTCTGCGTAAAACTG"
+    "ACAGATTGATATGGAGCCTCTGCCTTTGGTGTCTGAACGTCTACCTTTGCTCCAAATTGATGTTCCAAAGAAAAGCACCC"
+    "TTGTAAACAGGCCTCCAACAAGATATAATTGCGGTGCTGAGCCAGGGCGGCGCCTCCCTTGGGATCGAAGTTCGGCGCTC"
+    "GTCACGACAGCAGGGTCCAGTCATTTTAACAGTGACATCAGCCTCCGCTCAACAAATAGAGGCGAAGTCGCGTGAGGCTA"
+    "GTTAGTATCAGCAGATCGTAGAAGGGGGAGATAATGGCGAGACACGTGATGCAATACTCCGGGGGTGCACTCTTCTGGTT"
+    "AAATTCCTTGCATAGGCATGTGCGGAAGGGACACGAGCACCAGTGGCCTATTGGATCCCGGTGTGGTAGAACAGTTAGGC"
+    "AGCTCATGTTACTCATTGCGCCACCCAACTGCAAAAGAGTTTCCCGAACATTCTTTAGCCAGATCATCATCTTTCACCAG"
+    "CGATTCAGCGAACACGAACGTAGCATGCACTTCGTTAAACGTCGTGTGGCAATATTTTTCGAACTAGAGGAATGTCTTCA"
+    "ACTGAGCAGGACTCCGCGGGATTTTCATCGTAAGGTGCGCAGAAACTGTCTGGCGTCGATACAAGCGTGAATATGGTAAA"
+    "GCCGGGACGCGCGAGTTAAAGGCGCGGGCGAACTCTCCCGGGGCTACCAGGGGAGCATGGCAGTCTGTCGAATTCATCCT"
+    "AATATGTAGGGGGGGATTCGTGATCTCCGCCGGTTACCCTTAGAACGATTAATATCGCTATAGTACGAGCTCAATCAAGT"
+    "CTGGGACATTTGCCCGGACTTGCTTGGCCGTGGAGCGGTCCACCGGAGGATGTCGCTCTCTTCGAATGGGTTACTGTCCC"
+    "GTGTGCCCATGGCCAGGCTTGGAGTAGGCTGGAGCTAGCAGAATTACTCCCATAACAAAGCCTTCGAGGTCTTTATTGCG"
+    "TTCCTCGCATGAGTTATTCGATATATGCAGTCGCATAGTTGATTCTCGGGCACTGGATCGGCTGGGGTCCCGAGTAAATC"
+    "AGCGGTGATTTTTGGTTGGTTCGTATGGGGGAAATGTAATGCCCCTTGAAAAGACTCATATCCTGGGCTCTACGTATCTG"
+    "GAGGAGGGTAGCGTGTTTAAGATCGATGGACGTGTATACGGGTCACCCGAGGGGGTCAAGCTTATCATCCCTGGGATGTT"
+    "AACTGATGCCCGCTGCCCCCTGAACCCCCCACCCTACCTCACTGGCTTGAAGCCCCATGACGCTAGGTTGACGCCCAGAA"
+    "AGGCCTACAATATACTTCATCACACCTCAATTGTCCGGAATGAAAGTTATATATTTCCACGTTCTTGGATTTCTATGTCC"
+    "GCTGTGGCCGAAGTACCGAGCAGCACTCAGACTACCCCGAAACGGGGCCAACCGGATCCTGAGGTTCACCGTGGCTACGC"
+    "CGGGCCTTCTCCATCAAAAGGTGAGGGCTAACCAATACCAGCCCGTGGTCATTCTAGCATTAAGCCTCGGTCGCACCGGT"
+    "CCTGGCAAAATCGGCACGAGGGTGAATTTCTCGTCTATTAACACTTGGCGTAACAGGATGCTGCGATAAACCCGATTAGT"
+    "CGGGTAGAGTGAGTCACGCATAAAGTTGCCCTAAGGAACTTAGCACGCACGCGGGTGTACCAGTACCAAGCTAATCTGAT"
+    "AACCTCCTTACAGCACATTGAGTTGCGACAGTGTGCTCATCGGCGATTATTCAGGTTCGAGTGTGGAAGCCACCGTTGTG"
+    "GGTATCAAGCGCGACACTGCCGCGGTAGATAAAGGTCTCGTATCGGGCCCACAGGCGACTATCCTTCTGATGAGGACGCT"
+    "GTACTACTCGCAAGTTCTTTCGACGTCCCCCGTCCGCCTGACCATGTTTCTTCGTGCATACACCTTCCCTAAAACGCTCC"
+    "TGGAAACACCGCCGTATGTCGGCAACCTTGGAAAATTGGACGCATCCCGATCGTCTCCCACGCGTTGACTATTACAACCC"
+    "TCAGCGTGCCACTAAACCGATATCCGGAGAAAAACCCTGGATACACTCTCTAGGTGCAGCTTGCGCGTGTCAGGGTATAG"
+    "ACTTAACAATTAGCCTTAACTATCGGACACCTAACGTTCCAGTAGGAACCAGCACGTTAAGAGGAGAGGCCGAGAGGATA"
+    "ATTCGTACCCTAACCTTAATTCAAGTGATACGGAATTCTTCTCGAATCTCCAATGGAGTGCGTATGCCGCCTCAGAACAC"
+    "TAACACCCCGGTCAGTAGCAGTCAGTCGGTCTCTTGCCGCTTGGGTCGAGCTGGCGCGATTGCCGGGTTAATCTACACCA"
+    "CAAAGGGAAAAGTAAGGGATTGAAGGGCAGTTTGTAAGCTCAGAGGACCTACCATTAGGTATTCTGGACTAACGGGCGGG"
+    "AGCGAAGGTCCGCATTTAGCGCGGCCTAGGTCGGGCTATCCAAAAGCGGAAACCGTGCACATATCGTGCTTCTAGAGTTG"
+    "GTAACAACCTCTACTACAACTGTGTCATAGCCTGTCCTGTCGGACGATGGTCGCGATAGCACCTGTGCCTGGGTGATCAA"
+    "ATCATACTACCGATTGACCTTGTTTCGTCATCCAACTTGGACCTGCTTGCCATCCCCACATTTACGGAGTTGACCAGAGA"
+    "ACATAGCTTCCCGTTCCGGTCGATCACAAAAA"
 )
 
 # Function that can be parallelized
@@ -151,7 +153,9 @@ def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
         for m1 in motifs:
             scores[m1.id] = {}
             for m2 in dbmotifs:
-                scores[m1.id][m2.id] = mc.compare_motifs(m1, m2, match, metric, combine, pval=pval)    
+                scores[m1.id][m2.id] = mc.compare_motifs(
+                    m1, m2, match, metric, combine, pval=pval
+                )
         return scores
     except Exception:
         logging.exception("_get_all_scores failed")
@@ -174,7 +178,8 @@ def akl(p1, p2):
     -------
     score : float
     """
-    return 10 - (entropy(p1,p2) + entropy(p2,p1)) / 2.0
+    return 10 - (entropy(p1, p2) + entropy(p2, p1)) / 2.0
+
 
 def chisq(p1, p2):
     """Calculates motif position similarity based on chi-square.
@@ -193,6 +198,7 @@ def chisq(p1, p2):
     """
     return chi2_contingency([p1, p2])[1]
 
+
 def ssd(p1, p2):
     """Calculates motif position similarity based on sum of squared distances.
     
@@ -208,7 +214,8 @@ def ssd(p1, p2):
     -------
     score : float
     """
-    return 2 - np.sum([(a-b)**2 for a,b in zip(p1,p2)])
+    return 2 - np.sum([(a - b) ** 2 for a, b in zip(p1, p2)])
+
 
 def seqcor(m1, m2, seq=None):
     """Calculates motif similarity based on Pearson correlation of scores.
@@ -239,17 +246,17 @@ def seqcor(m1, m2, seq=None):
     l = max(l1, l2)
 
     if seq is None:
-        seq = RCDB 
-    
+        seq = RCDB
+
     L = len(seq)
 
     # Scan RC de Bruijn sequence
     result1 = pfmscan(seq, m1.pwm, m1.pwm_min_score(), len(seq), False, True)
     result2 = pfmscan(seq, m2.pwm, m2.pwm_min_score(), len(seq), False, True)
-    
+
     # Reverse complement of motif 2
     result3 = pfmscan(seq, m2.rc().pwm, m2.rc().pwm_min_score(), len(seq), False, True)
-    
+
     result1 = np.array(result1)
     result2 = np.array(result2)
     result3 = np.array(result3)
@@ -257,13 +264,22 @@ def seqcor(m1, m2, seq=None):
     # Return maximum correlation
     c = []
     for i in range(l1 - l1 // 3):
-        c.append([1 - distance.correlation(result1[:L-l-i],result2[i:L-l]), i, 1])
-        c.append([1 - distance.correlation(result1[:L-l-i],result3[i:L-l]), i, -1])
+        c.append(
+            [1 - distance.correlation(result1[: L - l - i], result2[i : L - l]), i, 1]
+        )
+        c.append(
+            [1 - distance.correlation(result1[: L - l - i], result3[i : L - l]), i, -1]
+        )
     for i in range(l2 - l2 // 3):
-        c.append([1 - distance.correlation(result1[i:L-l],result2[:L-l-i]), -i, 1])
-        c.append([1 - distance.correlation(result1[i:L-l],result3[:L-l-i]), -i, -1])
-    
+        c.append(
+            [1 - distance.correlation(result1[i : L - l], result2[: L - l - i]), -i, 1]
+        )
+        c.append(
+            [1 - distance.correlation(result1[i : L - l], result3[: L - l - i]), -i, -1]
+        )
+
     return sorted(c, key=lambda x: x[0])[-1]
+
 
 class MotifComparer(object):
     """Class for motif comparison.
@@ -296,14 +312,14 @@ class MotifComparer(object):
 
     # Get the best match for every motif in a list of reference motifs
     get_closest_match(motifs, dbmotifs=None)
-    """  
+    """
+
     def __init__(self):
         self.config = MotifConfig()
         self.metrics = ["pcc", "ed", "distance", "wic"]
         self.combine = ["mean", "sum"]
         self._load_scores()
         # Create a parallel python job server, to use for fast motif comparison
-        
 
     def _load_scores(self):
         self.scoredist = {}
@@ -312,14 +328,24 @@ class MotifComparer(object):
             for match in ["total", "subtotal"]:
                 for combine in ["mean"]:
                     self.scoredist[metric]["%s_%s" % (match, combine)] = {}
-                    score_file = os.path.join(self.config.get_score_dir(), "%s_%s_%s_score_dist.txt" % (match, metric, combine))
+                    score_file = os.path.join(
+                        self.config.get_score_dir(),
+                        "%s_%s_%s_score_dist.txt" % (match, metric, combine),
+                    )
                     if os.path.exists(score_file):
                         with open(score_file) as f:
                             for line in f:
                                 l1, l2, m, sd = line.strip().split("\t")[:4]
-                                self.scoredist[metric]["%s_%s" % (match, combine)].setdefault(int(l1), {})[int(l2)] = [float(m), float(sd)]
-    
-    def compare_motifs(self, m1, m2, match="total", metric="wic", combine="mean", pval=False):
+                                self.scoredist[metric][
+                                    "%s_%s" % (match, combine)
+                                ].setdefault(int(l1), {})[int(l2)] = [
+                                    float(m),
+                                    float(sd),
+                                ]
+
+    def compare_motifs(
+        self, m1, m2, match="total", metric="wic", combine="mean", pval=False
+    ):
         """Compare two motifs.
         
         The similarity metric can be any of seqcor, pcc, ed, distance, wic, 
@@ -359,28 +385,44 @@ class MotifComparer(object):
         score, position, strand 
         """
         if isinstance(metric, str):
-        
+
             if metric == "seqcor":
                 return seqcor(m1, m2)
             elif match == "partial":
                 if pval:
-                    return self.pvalue(m1, m2, "total", metric, combine, self.max_partial(m1.pwm, m2.pwm, metric, combine))
+                    return self.pvalue(
+                        m1,
+                        m2,
+                        "total",
+                        metric,
+                        combine,
+                        self.max_partial(m1.pwm, m2.pwm, metric, combine),
+                    )
                 elif metric in ["pcc", "ed", "distance", "wic", "chisq", "ssd"]:
                     return self.max_partial(m1.pwm, m2.pwm, metric, combine)
                 else:
                     return self.max_partial(m1.pfm, m2.pfm, metric, combine)
-    
+
             elif match == "total":
                 if pval:
-                    return self.pvalue(m1, m2, match, metric, combine, self.max_total(m1.pwm, m2.pwm, metric, combine))
-                elif metric in ["pcc", 'akl']:
+                    return self.pvalue(
+                        m1,
+                        m2,
+                        match,
+                        metric,
+                        combine,
+                        self.max_total(m1.pwm, m2.pwm, metric, combine),
+                    )
+                elif metric in ["pcc", "akl"]:
                     # Slightly randomize the weight matrix
-                    return self.max_total(m1.wiggle_pwm(), m2.wiggle_pwm(), metric, combine)
+                    return self.max_total(
+                        m1.wiggle_pwm(), m2.wiggle_pwm(), metric, combine
+                    )
                 elif metric in ["ed", "distance", "wic", "chisq", "pcc", "ssd"]:
                     return self.max_total(m1.pwm, m2.pwm, metric, combine)
                 else:
                     return self.max_total(m1.pfm, m2.pfm, metric, combine)
-                    
+
             elif match == "subtotal":
                 if metric in ["pcc", "ed", "distance", "wic", "chisq", "ssd"]:
                     return self.max_subtotal(m1.pwm, m2.pwm, metric, combine)
@@ -390,7 +432,7 @@ class MotifComparer(object):
             return metric(m1, m2)
 
     def _check_length(self, l):
-        # Set the length to a length represented in randomly generated JASPAR motifs 
+        # Set the length to a length represented in randomly generated JASPAR motifs
         if l < 4:
             return 4
         if l == 13:
@@ -402,17 +444,17 @@ class MotifComparer(object):
         if l == 21:
             return 22
         if l > 22:
-            return 30    
-        return l    
-    
+            return 30
+        return l
+
     def pvalue(self, m1, m2, match, metric, combine, score):
         l1, l2 = len(m1.pwm), len(m2.pwm)
-        
-        l1 = self._check_length(l1)    
-        l2 = self._check_length(l2)    
-        
-        m,s = self.scoredist[metric]["%s_%s" % (match, combine)][l1][l2]    
-        
+
+        l1 = self._check_length(l1)
+        l2 = self._check_length(l2)
+
+        m, s = self.scoredist[metric]["%s_%s" % (match, combine)][l1][l2]
+
         try:
             [1 - norm.cdf(score[0], m, s), score[1], score[2]]
         except Exception as e:
@@ -423,12 +465,12 @@ class MotifComparer(object):
     def score_matrices(self, matrix1, matrix2, metric, combine):
         if metric in self.metrics and combine in self.combine:
             s = score(matrix1, matrix2, metric, combine)
-            
+
             if s != s:
                 return None
             else:
                 return s
-        
+
         else:
             if metric == "akl":
                 func = akl
@@ -438,12 +480,12 @@ class MotifComparer(object):
                 func = ssd
             else:
                 try:
-                    func = getattr(distance, metric)     
-                except: 
+                    func = getattr(distance, metric)
+                except:
                     raise Exception("Unknown metric '{}'".format(metric))
 
             scores = []
-            for pos1,pos2 in zip(matrix1,matrix2):
+            for pos1, pos2 in zip(matrix1, matrix2):
                 scores.append(func(pos1, pos2))
             if combine == "mean":
                 return np.mean(scores)
@@ -454,111 +496,111 @@ class MotifComparer(object):
 
     def max_subtotal(self, matrix1, matrix2, metric, combine):
         scores = []
-        min_overlap = 4 
-        
+        min_overlap = 4
+
         if len(matrix1) < min_overlap or len(matrix2) < min_overlap:
             return self.max_total(matrix1, matrix2, metric, combine)
-    
-        #return c_max_subtotal(matrix1, matrix2, metric, combine)
+
+        # return c_max_subtotal(matrix1, matrix2, metric, combine)
 
         for i in range(-(len(matrix2) - min_overlap), len(matrix1) - min_overlap + 1):
-            p1,p2 = self.make_equal_length_truncate(matrix1, matrix2, i)
+            p1, p2 = self.make_equal_length_truncate(matrix1, matrix2, i)
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, 1])
-    
+
         rev_matrix2 = [row[::-1] for row in matrix2[::-1]]
         for i in range(-(len(matrix2) - min_overlap), len(matrix1) - min_overlap + 1):
-            p1,p2 = self.make_equal_length_truncate(matrix1, rev_matrix2, i)    
+            p1, p2 = self.make_equal_length_truncate(matrix1, rev_matrix2, i)
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, -1])
-        
+
         if not scores:
             return []
         return sorted(scores, key=lambda x: x[0])[-1]
-    
+
     def max_partial(self, matrix1, matrix2, metric, combine):
 
         scores = []
-    
-        for i in range(-(len(matrix2) -1), len(matrix1)):
-            p1,p2 = self.make_equal_length_truncate_second(matrix1, matrix2, i)    
+
+        for i in range(-(len(matrix2) - 1), len(matrix1)):
+            p1, p2 = self.make_equal_length_truncate_second(matrix1, matrix2, i)
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, 1])
-    
+
         rev_matrix2 = [row[::-1] for row in matrix2[::-1]]
-        for i in range(-(len(matrix2) -1), len(matrix1)):
-            p1,p2 = self.make_equal_length_truncate_second(matrix1, rev_matrix2, i)    
+        for i in range(-(len(matrix2) - 1), len(matrix1)):
+            p1, p2 = self.make_equal_length_truncate_second(matrix1, rev_matrix2, i)
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, -1])
-        
+
         if not scores:
             return []
         return sorted(scores, key=lambda x: x[0])[-1]
 
     def max_total(self, matrix1, matrix2, metric, combine):
         scores = []
-    
-        for i in range(-(len(matrix2) -1), len(matrix1)):
-            p1,p2 = self.make_equal_length(matrix1, matrix2, i)    
+
+        for i in range(-(len(matrix2) - 1), len(matrix1)):
+            p1, p2 = self.make_equal_length(matrix1, matrix2, i)
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, 1])
-    
+
         rev_matrix2 = [row[::-1] for row in matrix2[::-1]]
-        for i in range(-(len(matrix2) -1), len(matrix1)):
-            p1,p2 = self.make_equal_length(matrix1, rev_matrix2, i)    
+        for i in range(-(len(matrix2) - 1), len(matrix1)):
+            p1, p2 = self.make_equal_length(matrix1, rev_matrix2, i)
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, -1])
-        
+
         if not scores:
             sys.stdout.write("No score {} {}".format(matrix1, matrix2))
             return []
         return sorted(scores, key=lambda x: x[0])[-1]
-    
+
     def make_equal_length(self, pwm1, pwm2, pos, bg=None):
         if bg is None:
-            bg = [0.25,0.25,0.25,0.25]
-        
+            bg = [0.25, 0.25, 0.25, 0.25]
+
         p1 = pwm1[:]
         p2 = pwm2[:]
-    
+
         if pos < 1:
             p1 = [bg for _ in range(-pos)] + p1
         else:
             p2 = [bg for _ in range(pos)] + p2
-    
+
         diff = len(p1) - len(p2)
         if diff > 0:
             p2 += [bg for _ in range(diff)]
         elif diff < 0:
             p1 += [bg for _ in range(-diff)]
-    
-        return p1,p2
-    
+
+        return p1, p2
+
     def make_equal_length_truncate(self, pwm1, pwm2, pos):
         p1 = pwm1[:]
         p2 = pwm2[:]
-    
+
         if pos < 0:
             p2 = p2[-pos:]
         elif pos > 0:
             p1 = p1[pos:]
-        
+
         if len(p1) > len(p2):
-            p1 = p1[:len(p2)]
+            p1 = p1[: len(p2)]
         else:
-            p2 = p2[:len(p1)]
+            p2 = p2[: len(p1)]
         return p1, p2
-    
+
     def make_equal_length_truncate_second(self, pwm1, pwm2, pos, bg=None):
         if bg is None:
-            bg = [0.25,0.25,0.25,0.25]
-        
+            bg = [0.25, 0.25, 0.25, 0.25]
+
         p1 = pwm1[:]
         p2 = pwm2[:]
 
@@ -566,16 +608,26 @@ class MotifComparer(object):
             p2 = p2[-pos:]
         else:
             p2 = [bg for _ in range(pos)] + p2
-            
+
         diff = len(p1) - len(p2)
         if diff > 0:
             p2 += [bg for _ in range(diff)]
         elif diff < 0:
-            p2 = p2[:len(p1)]
-        return p1,p2
+            p2 = p2[: len(p1)]
+        return p1, p2
 
-    def get_all_scores(self, motifs, dbmotifs, match, metric, combine, 
-                            pval=False, parallel=True, trim=None, ncpus=None):
+    def get_all_scores(
+        self,
+        motifs,
+        dbmotifs,
+        match,
+        metric,
+        combine,
+        pval=False,
+        parallel=True,
+        trim=None,
+        ncpus=None,
+    ):
         """Pairwise comparison of a set of motifs compared to reference motifs.
 
         Parameters
@@ -621,48 +673,69 @@ class MotifComparer(object):
                 m.trim(trim)
             for m in dbmotifs:
                 m.trim(trim)
-        
+
         # hash of result scores
         scores = {}
-        
-        if parallel:    
+
+        if parallel:
             # Divide the job into big chunks, to keep parallel overhead to minimum
             # Number of chunks = number of processors available
             if ncpus is None:
                 ncpus = int(MotifConfig().get_default_params()["ncpus"])
 
             pool = Pool(processes=ncpus, maxtasksperchild=1000)
- 
+
             batch_len = len(dbmotifs) // ncpus
             if batch_len <= 0:
                 batch_len = 1
             jobs = []
-            for i in range(0, len(dbmotifs), batch_len): 
+            for i in range(0, len(dbmotifs), batch_len):
                 # submit jobs to the job server
-                
-                p = pool.apply_async(_get_all_scores, 
-                    args=(self, motifs, dbmotifs[i: i + batch_len], match, metric, combine, pval))
+
+                p = pool.apply_async(
+                    _get_all_scores,
+                    args=(
+                        self,
+                        motifs,
+                        dbmotifs[i : i + batch_len],
+                        match,
+                        metric,
+                        combine,
+                        pval,
+                    ),
+                )
                 jobs.append(p)
-            
+
             pool.close()
             for job in jobs:
                 # Get the job result
                 result = job.get()
                 # and update the result score
-                for m1,v in result.items():
+                for m1, v in result.items():
                     for m2, s in v.items():
                         if m1 not in scores:
                             scores[m1] = {}
                         scores[m1][m2] = s
-        
+
             pool.join()
         else:
             # Do the whole thing at once if we don't want parallel
-            scores = _get_all_scores(self, motifs, dbmotifs, match, metric, combine, pval)
-        
+            scores = _get_all_scores(
+                self, motifs, dbmotifs, match, metric, combine, pval
+            )
+
         return scores
 
-    def get_closest_match(self, motifs, dbmotifs=None, match="partial", metric="wic",combine="mean", parallel=True, ncpus=None):
+    def get_closest_match(
+        self,
+        motifs,
+        dbmotifs=None,
+        match="partial",
+        metric="wic",
+        combine="mean",
+        parallel=True,
+        ncpus=None,
+    ):
         """Return best match in database for motifs.
 
         Parameters
@@ -691,31 +764,34 @@ class MotifComparer(object):
             pwm = self.config.get_default_params()["motif_db"]
             pwmdir = self.config.get_motif_dir()
             dbmotifs = os.path.join(pwmdir, pwm)
-       
+
         motifs = parse_motifs(motifs)
         dbmotifs = parse_motifs(dbmotifs)
 
         dbmotif_lookup = dict([(m.id, m) for m in dbmotifs])
 
-        scores = self.get_all_scores(motifs, dbmotifs, match, metric, combine, parallel=parallel, ncpus=ncpus)
+        scores = self.get_all_scores(
+            motifs, dbmotifs, match, metric, combine, parallel=parallel, ncpus=ncpus
+        )
         for motif in scores:
-            scores[motif] = sorted(
-                    scores[motif].items(), 
-                    key=lambda x:x[1][0]
-                    )[-1]
-        
+            scores[motif] = sorted(scores[motif].items(), key=lambda x: x[1][0])[-1]
+
         for motif in motifs:
             dbmotif, score = scores[motif.id]
             pval, pos, orient = self.compare_motifs(
-                    motif, dbmotif_lookup[dbmotif], match, metric, combine, True)
-            
+                motif, dbmotif_lookup[dbmotif], match, metric, combine, True
+            )
+
             scores[motif.id] = [dbmotif, (list(score) + [pval])]
-        
+
         return scores
 
     def generate_score_dist(self, motifs, match, metric, combine):
-        
-        score_file = os.path.join(self.config.get_score_dir(), "%s_%s_%s_score_dist.txt" % (match, metric, combine))    
+
+        score_file = os.path.join(
+            self.config.get_score_dir(),
+            "%s_%s_%s_score_dist.txt" % (match, metric, combine),
+        )
         f = open(score_file, "w")
 
         all_scores = {}
@@ -725,15 +801,18 @@ class MotifComparer(object):
         sorted_motifs = {}
         for l in all_scores.keys():
             sorted_motifs[l] = [motif for motif in motifs if len(motif) == l]
-        
+
         for l1 in all_scores.keys():
             for l2 in all_scores.keys():
-                scores = self.get_all_scores(sorted_motifs[l1], sorted_motifs[l2], match, metric, combine)
+                scores = self.get_all_scores(
+                    sorted_motifs[l1], sorted_motifs[l2], match, metric, combine
+                )
                 scores = [[y[0] for y in x.values() if y] for x in scores.values()]
                 scores = np.array(scores).ravel()
                 f.write("%s\t%s\t%s\t%s\n" % (l1, l2, np.mean(scores), np.std(scores)))
 
-        f.close()    
+        f.close()
+
 
 # import here is necessary as workaround
 # see: http://stackoverflow.com/questions/18947876/using-python-multiprocessing-pool-in-the-terminal-and-in-code-modules-for-django
@@ -741,4 +820,3 @@ try:
     from multiprocessing import Pool
 except:
     pass
-
