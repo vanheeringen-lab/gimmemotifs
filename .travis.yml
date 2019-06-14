@@ -39,7 +39,7 @@ install:
       conda install python=3 pip future "numpy<1.14" scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost pillow pyyaml diskcache six ucsc-bigbedtobed xdg python-xxhash readline ghostscript homer gadem trawler weeder xxmotif tqdm genomepy ncurses meme>=5 pyarrow;
     fi
   - python setup.py build
-  - pip install msgpack logomaker flake8
+  - pip install msgpack logomaker flake8 black
 #  - pip install coveralls
 # # command to run tests, e.g. python setup.py test
 script:  
