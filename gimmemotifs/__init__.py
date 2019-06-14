@@ -27,8 +27,11 @@ class DuplicateFilter(logging.Filter):
             return True
 
 logger = logging.getLogger('gimme')
+if (logger.hasHandlers()):
+    logger.handlers.clear()
+
 logger.setLevel(logging.DEBUG)
-logger.addFilter(DuplicateFilter('gimme'))
+#logger.addFilter(DuplicateFilter('gimme'))
 
 # nice format
 screen_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
@@ -37,7 +40,7 @@ screen_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"
 sh = logging.StreamHandler()
 sh.setLevel(logging.INFO)
 sh.setFormatter(screen_formatter)
-sh.addFilter(DuplicateFilter('gimme'))
+#sh.addFilter(DuplicateFilter('gimme'))
 logger.addHandler(sh)
 
 

@@ -127,7 +127,7 @@ if __name__ == "__main__":
                    help="Don't delete intermediate files", 
                    default=False, 
                    action="store_true")
-    denovo_grp.add_argument("-s", "--singlestrand", 
+    denovo_grp.add_argument("-S", "--singlestrand", 
                    dest="single", 
                    help="Only predict motifs for single + strand (default is both)", 
                    action="store_true", 
@@ -138,13 +138,16 @@ if __name__ == "__main__":
                    metavar="FRACTION",
                    default=params["fraction"], 
                    type=float)
-    denovo_grp.add_argument("-w", "--width", 
-                   dest="width", 
-                   help="Width to use for motif prediction (%s)" % params["width"], 
+    denovo_grp.add_argument("-s", "--size", 
+                   dest="size", 
+                   help="Region size to use for motif prediction (%s). Set to 0 to use the size of the input regions." % params["size"], 
                    metavar="N", 
-                   default=params["width"], 
+                   default=params["size"], 
                    type=int)
- 
+   
+    p.set_defaults(func=commands.motifs)
+
+
     # closest_match.py
     p = subparsers.add_parser('match')
     p.add_argument("pwmfile", 
@@ -293,10 +296,10 @@ if __name__ == "__main__":
     p.add_argument("fastafile", 
                    help="Fasta formatted file", 
                    metavar="FAFILE")
-    p.add_argument("-w", 
-                   dest="width", 
-                   help="Set width to W (default: determined from fastafile)", 
-                   metavar="WIDTH", 
+    p.add_argument("-s", 
+                   dest="size", 
+                   help="Set size to W (default: determined from fastafile)", 
+                   metavar="INT", 
                    type=int)
     p.add_argument("-i", 
                    dest="ids", 

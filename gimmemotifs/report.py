@@ -185,7 +185,7 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
 
 def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outdir, params, stats=None):
     """Create text and graphical (.html) motif reports."""
-    logger.info("creating reports")
+    logger.info("creating de novo reports")
 
     motifs = read_motifs(pwmfile, fmt="pwm")
     
@@ -209,14 +209,14 @@ def create_denovo_motif_report(inputfile, pwmfile, fgfa, background, locfa, outd
     if not params:
         params = {}
     cutoff_fpr = params.get('cutoff_fpr', 0.9)
-    lwidth = np.median([len(seq) for seq in Fasta(locfa).seqs])
+    lsize = np.median([len(seq) for seq in Fasta(locfa).seqs])
 
     # Location plots
     logger.debug("Creating localization plots")
     for motif in motifs:
         logger.debug("  {} {}".format(motif.id, motif))
         outfile = os.path.join(outdir, "images/{}_histogram.svg".format(motif.id))
-        motif_localization(locfa, motif, lwidth, outfile, cutoff=cutoff_fpr)
+        motif_localization(locfa, motif, lsize, outfile, cutoff=cutoff_fpr)
 
     # Create reports
     _create_text_report(inputfile, motifs, closest_match, stats, outdir)

@@ -12,6 +12,7 @@ import os
 import re
 import sys
 import hashlib
+import logging
 import mmap
 import random
 import six
@@ -20,6 +21,7 @@ from math import log
 import requests
 from subprocess import Popen
 from tempfile import NamedTemporaryFile
+from shutil import copyfile
 
 # External imports
 from scipy import special
@@ -33,7 +35,45 @@ from gimmemotifs.plot import plot_histogram
 from gimmemotifs.rocmetrics import ks_pvalue
 from gimmemotifs.config import MotifConfig
 
+logger = logging.getLogger("gimme.utils")
+
+# pylint: disable=no-member
 lgam = special.gammaln
+
+def rc(seq):
+    """ Return reverse complement of sequence """
+    d = str.maketrans("actgACTG","tgacTGAC")
+    return seq[::-1].translate(d)
+
+def narrowpeak_to_bed(inputfile, bedfile, size=0):
+    """Convert narrowPeak file to BED file.
+    """
+    p = re.compile(r'^(#|track|browser)')    
+    warn_no_summit = True
+    with open(bedfile, "w") as f_out:
+        with open(inputfile) as f_in:
+            for line in f_in:
+                if p.search(line):
+                    continue
+                vals = line.strip().split("\t")
+                start, end = int(vals[1]), int(vals[2])
+                
+                if size > 0:
+                    summit = int(vals[9])
+                    if summit == -1:
+                        if warn_no_summit:
+                            logger.warn("No summit present in narrowPeak file, using the peak center.")
+                            warn_no_summit = False
+                        summit = (end - start) // 2
+
+                    start = start + summit - (size // 2)
+                    end = start + size
+                f_out.write("{}\t{}\t{}\t{}\n".format(
+                    vals[0],
+                    start,
+                    end,
+                    vals[6]
+                    ))
 
 def pwmfile_location(infile):
     config = MotifConfig()
@@ -65,7 +105,7 @@ def get_jaspar_motif_info(motif_id):
     result = requests.get(query_url.format(motif_id))
  
     if not result.ok:
-      r.raise_for_status()
+      result.raise_for_status()
       sys.exit()
  
     return result.json()
@@ -140,10 +180,12 @@ def divide_fa_file(fname, sample, rest, fraction, abs_max):
     
     return x, len(ids[x:])    
 
-def write_equalwidth_bedfile(bedfile, width, outfile):
-    """Read input from <bedfile>, set the width of all entries to <width> and 
+def write_equalsize_bedfile(bedfile, size, outfile):
+    """Read input from <bedfile>, set the size of all entries to <size> and 
     write the result to <outfile>.
     Input file needs to be in BED or WIG format."""
+    if size <= 0:
+        copyfile(bedfile, outfile)
 
     BUFSIZE = 10000
     f = open(bedfile)
@@ -161,11 +203,11 @@ def write_equalwidth_bedfile(bedfile, width, outfile):
                     print("Error on line %s while reading %s. Is the file in BED or WIG format?" % (line_count, bedfile))
                     sys.exit(1)
 
-                start = (start + end) // 2 - (width // 2)
-                # This shifts the center, but ensures the width is identical... maybe not ideal
+                start = (start + end) // 2 - (size // 2)
+                # This shifts the center, but ensures the size is identical... maybe not ideal
                 if start < 0:
                     start = 0
-                end = start + width
+                end = start + size
                 # Keep all the other information in the bedfile if it's there
                 if len(vals) > 3:
                     out.write("%s\t%s\t%s\t%s\n" % (vals[0], start, end, "\t".join(vals[3:])))
@@ -243,7 +285,7 @@ def parse_gff(gff_file):
             for line in lines:
                 vals = line.strip().split("\t")
                 if len(vals) == 9:
-                    (seq, program, feature, start, end, score, strand, bla, extra) = vals
+                    (seq, _program, _feature, _start, _end, _score, _strand, _bla, extra) = vals
             
                     (motif_name, motif_instance) = map(str.strip, extra.split(";"))
                     motif_name = motif_name.split(" ")[1][1:-1]
@@ -361,7 +403,7 @@ def median_bed_len(bedfile):
     f.close()
     return np.median(l)
 
-def motif_localization(fastafile, motif, width, outfile, cutoff=0.9):
+def motif_localization(fastafile, motif, size, outfile, cutoff=0.9):
     NR_HIST_MATCHES = 100
 
     matches = motif.pwm_scan(Fasta(fastafile), cutoff=cutoff, nreport=NR_HIST_MATCHES)
@@ -370,11 +412,11 @@ def motif_localization(fastafile, motif, width, outfile, cutoff=0.9):
         for a in matches.values():
             ar += a
         matches = np.array(ar)
-        p = ks_pvalue(matches, width - len(motif))
+        p = ks_pvalue(matches, size - len(motif))
         plot_histogram(
-                matches - width / 2 + len(motif) / 2, 
+                matches - size / 2 + len(motif) / 2, 
                 outfile, 
-                xrange=(-width / 2, width / 2), 
+                xrange=(-size / 2, size / 2), 
                 breaks=21, 
                 title="%s (p=%0.2e)" % (motif.id, p), 
                 xlabel="Position")
@@ -496,7 +538,7 @@ def determine_file_type(fname):
     filetype : str
         Filename in lower-case.
     """
-    if not (isinstance(fname, str) or isinstance(fname, unicode)):
+    if not (isinstance(fname, str)):
         raise ValueError("{} is not a file name!", fname)
 
     if not os.path.isfile(fname):
@@ -540,7 +582,6 @@ def determine_file_type(fname):
                 except ValueError:
                     # As far as I know there is no 10-column BED format
                     return "unknown"
-                    pass
             return "bed"
     
     # Catch-all
@@ -568,7 +609,7 @@ def get_seqs_type(seqs):
                 return "regions"
             else:
                 raise ValueError("unknown region type")
-    elif isinstance(seqs, str) or isinstance(seqs, unicode):
+    elif isinstance(seqs, str):
         if os.path.isfile(seqs):
             ftype = determine_file_type(seqs)
             if ftype == "unknown":
@@ -643,6 +684,6 @@ def check_genome(genome):
     try:
         Genome(genome)
         return True
-    except Exception as e:
+    except Exception:
         pass
     return False

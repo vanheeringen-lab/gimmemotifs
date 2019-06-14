@@ -37,7 +37,7 @@ from gimmemotifs.utils import number_of_seqs_in_file, as_fasta
 
 logger = logging.getLogger("gimme.background")
 
-def create_background_file(outfile, bg_type, fmt='fasta', length=None,  genome=None, inputfile=None, number=10000):
+def create_background_file(outfile, bg_type, fmt='fasta', size=None,  genome=None, inputfile=None, number=10000):
     """
     Create a background file for motif analysis.
 
@@ -49,8 +49,8 @@ def create_background_file(outfile, bg_type, fmt='fasta', length=None,  genome=N
         Type of background (gc, genomic, random or promoter). 
     fmt : str, optional
         Either 'fasta' or 'bed'.
-    length : int, optional
-        Length of the generated sequences, is determined from the inputfile if not 
+    size : int, optional
+        Size of the generated sequences, is determined from the inputfile if not 
         given.
     genome : str, optional
     inputfile : str, optional
@@ -110,28 +110,28 @@ def create_background_file(outfile, bg_type, fmt='fasta', length=None,  genome=N
         m.writefasta(outfile)
     elif bg_type == "gc":
         if fmt == "fasta":
-            m = MatchedGcFasta(inputfile, genome, number=number)
+            m = MatchedGcFasta(inputfile, genome, number=number, size=size)
             m.writefasta(outfile)
         else:
-            matched_gc_bedfile(outfile, inputfile, genome, number)
+            matched_gc_bedfile(outfile, inputfile, genome, number, size=size)
     else:
-        if length is None:
-            length = np.median([len(seq) for seq in as_fasta(inputfile, genome=genome).seqs])
+        if size is None:
+            size = np.median([len(seq) for seq in as_fasta(inputfile, genome=genome).seqs])
         if bg_type == "promoter":
             if fmt == "fasta":
-                m = PromoterFasta(gene_file, genome, length=length, n=number)
+                m = PromoterFasta(gene_file, genome, size=size, n=number)
                 m.writefasta(outfile)
             else:
-                create_promoter_bedfile(outfile, gene_file, length, number)
+                create_promoter_bedfile(outfile, gene_file, size, number)
         elif bg_type == "genomic":
             if fmt == "fasta":
-                m = RandomGenomicFasta(genome, length, number)
+                m = RandomGenomicFasta(genome, size, number)
                 m.writefasta(outfile)
             else:
-                create_random_genomic_bedfile(outfile, genome, length, number)
+                create_random_genomic_bedfile(outfile, genome, size, number)
 
-def create_random_genomic_bedfile(out, genome, length, n):
-    features = Genome(genome).get_random_sequences(n, length)
+def create_random_genomic_bedfile(out, genome, size, n):
+    features = Genome(genome).get_random_sequences(n, size)
 
     # Write result to bedfile
     tmp = open(out, "w")
@@ -139,7 +139,7 @@ def create_random_genomic_bedfile(out, genome, length, n):
         tmp.write("%s\t%d\t%d\n" % (chrom, start, end))
     tmp.flush()    
 
-def create_promoter_bedfile(out, genefile, length, n):
+def create_promoter_bedfile(out, genefile, size, n):
     strand_map = {"+":True, "-":False, 1:True, -1:False, "1":True, "-1":False}
 
     features = []
@@ -150,14 +150,14 @@ def create_promoter_bedfile(out, genefile, length, n):
 
     for line in fin:
         if not line.startswith("track") or line.startswith("#"):
-            (chrom, start, end, _name, score, strand) = line[:-1].split("\t")[:6]
+            (chrom, start, end, _name , _, strand) = line[:-1].split("\t")[:6]
             start, end = int(start), int(end)
             strand= strand_map[strand]
             if strand:
-                if start - length >= 0:
-                    features.append([chrom, start - length, start, strand])
+                if start - size >= 0:
+                    features.append([chrom, start - size, start, strand])
             else:
-                features.append([chrom, end, end + length, strand])
+                features.append([chrom, end, end + size, strand])
     fin.close()
     
     if n < len(features):
@@ -175,10 +175,10 @@ class MarkovFasta(Fasta):
     """ 
     Generates a new Fasta object containing sequences using a 1st order Markov
     model, based on the input sequences. By default 10 times as many sequences 
-    will be generated with the same length as the input sequences.
+    will be generated with the same size as the input sequences.
 
     Required arg 'fasta' is a Fasta object
-    Optional arg 'length' can be used to generate sequences of a different length
+    Optional arg 'size' can be used to generate sequences of a different size
     Optional arg 'n' specifies the number of sequences to generate
     Optional arg 'k' specifies the order of the Markov model, default is 1 for 1st
     order
@@ -194,7 +194,7 @@ class MarkovFasta(Fasta):
     
     """
     
-    def __init__(self, fasta, length=None, n=None, k=1, matrix_only=False):
+    def __init__(self, fasta, size=None, n=None, k=1, matrix_only=False):
         self.k = k
 
         # Initialize super Fasta object
@@ -213,8 +213,8 @@ class MarkovFasta(Fasta):
         while len(self) < n:
             seq = choice(fasta.seqs)
             name = "random_Markov%s_%s" % (k,c)
-            if length:
-                random_seq = self._generate_sequence(length)
+            if size:
+                random_seq = self._generate_sequence(size)
             else:
                 random_seq = self._generate_sequence(len(seq))
             self.add(name, random_seq)    
@@ -304,6 +304,7 @@ def create_gc_bin_index(genome, fname, min_bin_size=100):
     sizes = g.props["sizes"]["sizes"]
 
     with NamedTemporaryFile() as tmp:
+        # pylint: disable=unexpected-keyword-arg
         pybedtools.BedTool().window_maker(g=sizes, w=min_bin_size).nucleotide_content(fi=fasta).saveas(tmp.name)
         df = pd.read_csv(tmp.name, sep="\t", usecols=[0,1,2,4,9])
 
@@ -328,7 +329,7 @@ def gc_bin_bedfile(bedfile, genome, number, l=200, bins=None, random_state=None,
     number : int
         Number of sequences to retrieve.
     l : int, optional
-        Length of the sequences, default is 200.
+        size of the sequences, default is 200.
     bins : list, optional
         GC frequency bins to use, for instance [(0,50),(50,100)]
     """
@@ -377,7 +378,7 @@ def gc_bin_bedfile(bedfile, genome, number, l=200, bins=None, random_state=None,
                 df_bin["bin"] = "{:.2f}-{:.2f}".format(b_start, b_end)
                 df_bin[["chrom", "start", "end", "bin"]].to_csv(f, sep="\t", header=False, index=False)
 
-def matched_gc_bedfile(bedfile, matchfile, genome, number, min_bin_size=100):
+def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_size=100):
     """Create a BED file with GC% matched to input file.
     
     Parameters
@@ -390,30 +391,33 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, min_bin_size=100):
         Genome name.
     number : int
         Number of sequences to retrieve.
+    size : int, optional
+        Size of the generated sequenced. If not provided, the input size is used.
     """
     g = Genome(genome)
     genome_fa = g.filename
     try:
         fa = Fasta(matchfile)
         gc = [(seq.upper().count("C") + seq.upper().count("G")) / len(seq) for seq in fa.seqs]
-        lengths = [len(seq) for seq in fa.seqs]
+        sizes = [len(seq) for seq in fa.seqs]
     except Exception:
         try:
             # pylint: disable=unexpected-keyword-arg
             fields = pd.read_csv(matchfile, comment="#", nrows=10, sep="\t").shape[1]
             bed = pybedtools.BedTool(matchfile)
             gc = np.array([float(x[fields + 1]) for x in bed.nucleotide_content(fi=genome_fa)])
-            lengths = np.array([x.length for x in bed])
+            sizes = np.array([x.length for x in bed])
             gc = [round(x, 2) for x in gc]
         except:
             sys.stderr.write("Please provide input file in BED or FASTA format\n")
             raise
     
-    # Get the median length of the sequences
-    length = int(np.median(lengths))
-    if np.std(lengths) > length * 0.05:
-        sys.stderr.write("Sequences do not seem to be of equal length.\n")
-        sys.stderr.write("GC% matched sequences of the median length ({}) will be created\n".format(length))
+    # Get the median size of the sequences
+    if size is None:
+        size = int(np.median(sizes))
+        if np.std(sizes) > size * 0.05:
+            sys.stderr.write("Sequences do not seem to be of equal size.\n")
+            sys.stderr.write("GC% matched sequences of the median size ({}) will be created\n".format(size))
 
     bins = [(0.0, 0.2), (0.8, 1)]
     for b in np.arange(0.2, 0.799, 0.05):
@@ -433,7 +437,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, min_bin_size=100):
     nseqs = max(bin_count) * len(bins)
     
     with NamedTemporaryFile(delete=False) as tmp:
-        gc_bin_bedfile(tmp.name, genome, nseqs, l=length, bins=bins, random_state=None, min_bin_size=min_bin_size)
+        gc_bin_bedfile(tmp.name, genome, nseqs, l=size, bins=bins, random_state=None, min_bin_size=min_bin_size)
         df = pd.read_csv(tmp.name, sep="\t", names=["chrom", "start", "end", "bin"])
         #print(tmp.name)
     with open(bedfile, "w") as f:
@@ -458,13 +462,13 @@ class MatchedGcFasta(Fasta):
     Returns a Fasta object
     
     """
-    def __init__(self, matchfile, genome="hg19", number=None):
+    def __init__(self, matchfile, genome="hg19", number=None, size=None):
         # Create temporary files
         tmpbed = NamedTemporaryFile(dir=mytmpdir()).name
         tmpfasta = NamedTemporaryFile(dir=mytmpdir()).name
         
         # Create bed-file with coordinates of random sequences
-        matched_gc_bedfile(tmpbed, matchfile, genome, number)
+        matched_gc_bedfile(tmpbed, matchfile, genome, number, size=size)
         
         # Convert track to fasta
         Genome(genome).track2fasta(tmpbed, fastafile=tmpfasta)
@@ -480,25 +484,25 @@ class PromoterFasta(Fasta):
     """ 
     Generates a new Fasta object containing randomly selected promoters.
     A BED file of gene coordinates is used to extract sequences of a specified
-    length upstream of the the TSS.
+    size upstream of the the TSS.
     
     Required arg 'genefile' is a file containing genes BED format (at least 6 
     columns including the strand information). 
-    Required arg 'length' specifies the length 
+    Required arg 'size' specifies the size 
     Required arg 'in' specifies the number of sequences to generate.
 
     Returns a Fasta object
     
     """
-    def __init__(self, genefile, genome, length=None, n=None):
-        length = int(length)
+    def __init__(self, genefile, genome, size=None, n=None):
+        size = int(size)
 
         # Create temporary files
         tmpbed = NamedTemporaryFile(dir=mytmpdir()).name
         tmpfasta = NamedTemporaryFile(dir=mytmpdir()).name
         
         # Create bed-file with coordinates of random sequences
-        create_promoter_bedfile(tmpbed, genefile, length, n)
+        create_promoter_bedfile(tmpbed, genefile, size, n)
         
         # Convert track to fasta
         Genome(genome).track2fasta(tmpbed, fastafile=tmpfasta, stranded=True)
@@ -515,21 +519,21 @@ class RandomGenomicFasta(Fasta):
     Generates a new Fasta object containing randomly selected genomic regions.
     
     columns including the strand information). 
-    Required arg 'length' specifies the length 
+    Required arg 'size' specifies the size 
     Required arg 'in' specifies the number of sequences to generate.
 
     Returns a Fasta object
     
     """
-    def __init__(self, genome, length=None, n=None):
-        length = int(length)
+    def __init__(self, genome, size=None, n=None):
+        size = int(size)
 
         # Create temporary files
         tmpbed = NamedTemporaryFile(dir=mytmpdir()).name
         tmpfasta = NamedTemporaryFile(dir=mytmpdir()).name
         
         # Create bed-file with coordinates of random sequences
-        create_random_genomic_bedfile(tmpbed, genome, length, n)
+        create_random_genomic_bedfile(tmpbed, genome, size, n)
         
         # Convert track to fasta
         Genome(genome).track2fasta(tmpbed, fastafile=tmpfasta, stranded=True)

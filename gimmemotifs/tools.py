@@ -18,7 +18,6 @@ import glob
 # gimme imports
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.shutils import which
-from gimmemotifs import included_tools
 
 # Necessary for when setup.py needs to import 
 # refactor at some point
@@ -28,7 +27,9 @@ try:
 except ImportError:
     pass
 
-MOTIF_CLASSES = ["MDmodule", "Meme", "MemeW", "Weeder", "Gadem", "MotifSampler", "Trawler", "Improbizer",  "BioProspector", "Posmo", "ChIPMunk", "Jaspar", "Amd", "Hms", "Homer", "XXmotif"]
+MOTIF_CLASSES = ["MDmodule", "Meme", "MemeW", "Weeder", "Gadem", "MotifSampler", 
+        "Trawler", "Improbizer",  "BioProspector", "Posmo", "ChIPMunk", "Jaspar", 
+        "Amd", "Hms", "Homer", "XXmotif"]
 
 def get_tool(name): 
     """
@@ -371,26 +372,26 @@ class Homer(MotifProgram):
 
         stderr = ""
         stdout = "Running command:\n{}\n".format(cmd)
-        
+ 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.tmpdir) 
         out,err = p.communicate()
         stdout += out.decode()
         stderr += err.decode()
-        
+
         motifs = []
-        
+
         if os.path.exists(outfile):
             motifs = read_motifs(outfile, fmt="pwm")
             for i, m in enumerate(motifs):
                 m.id = "{}_{}_{}".format(self.name, params["width"], i + 1)
-        
+
         return motifs, stdout, stderr
 
 class BioProspector(MotifProgram):
 
     """
     Predict motifs using BioProspector.
-    
+
     Reference: 
     """
 

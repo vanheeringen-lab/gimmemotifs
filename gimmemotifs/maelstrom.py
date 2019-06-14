@@ -171,7 +171,7 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
     f = np.any(df_sig >= sig_cutoff, 1)
     vis = df_sig[f]
     if vis.shape[0] == 0:
-        logging.info("No motifs reach the threshold, skipping visualization.\n")
+        logger.info("No motifs reach the threshold, skipping visualization.\n")
         return
     
     # cluster rows
@@ -415,7 +415,7 @@ def run_maelstrom(infile, genome, outdir, pwmfile=None, plot=True, cluster=False
         try:
             dfs[t] = pd.read_table(fname, index_col=0, comment="#")
         except:
-            logging.warn("Activity file for {} not found!\n".format(t))
+            logger.warn("Activity file for {} not found!\n".format(t))
    
     if len(methods) > 1:
         logger.info("Rank aggregation")

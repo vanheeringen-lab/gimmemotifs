@@ -6,7 +6,6 @@
 # distribution.
 """Command line function 'maelstrom'"""
 import os
-from gimmemotifs.genome_index import check_genome
 from gimmemotifs.maelstrom import run_maelstrom
 
 def maelstrom(args):

@@ -494,6 +494,8 @@ class Motif(object):
         ylabel : bool, optional
             Plot the Y axis label.
         """
+        fig_height = 3
+        fig_width = 0.45
         matrix = pd.DataFrame(self.pfm, columns=['A','C','G','T'])
         if kind == "ensembl":
             self.plot_ensembl_logo(fname=None, title=title)
@@ -501,7 +503,7 @@ class Motif(object):
         elif kind == "information":
             matrix = lm.transform_matrix(matrix, from_type='counts', to_type='information')
             logo = lm.Logo(matrix,
-                figsize=(0.75 * matrix.shape[0],3),
+                figsize=(fig_width * matrix.shape[0],fig_height),
                 show_spines=False,
                 vpad=0.02,
             )
@@ -513,7 +515,7 @@ class Motif(object):
             matrix = lm.transform_matrix(matrix, from_type='counts', to_type='probability')
             logo = lm.Logo(matrix,
                     font_name="DejaVu Sans Mono",
-                    figsize=(0.75 * matrix.shape[0],3),
+                    figsize=(fig_width * matrix.shape[0],fig_height),
                     show_spines=False,
                     vpad=0.02,
             )
@@ -529,12 +531,15 @@ class Motif(object):
                 shade_below=0.3,
                 flip_below=False,
                 show_spines=False,
-                figsize=(0.5 * matrix.shape[0],4)
+                figsize=(fig_width * matrix.shape[0],fig_height*2)
                 )
             if ylabel:
                 logo.ax.set_ylabel("$\Delta \Delta G$/RT", labelpad=-1,fontsize=16)
         else:
             raise ValueError("Unknown motif visualization")
+        
+        logo.ax.set_xticks(range(matrix.shape[0]))
+        logo.ax.set_xticklabels(range(1, matrix.shape[0] + 1))
         if title:
             logo.ax.set_title(self.id, fontsize=16)
     
@@ -603,7 +608,7 @@ class Motif(object):
         #x_min = -np.min([np.sum(row) for row in neg_matrix])
         #neg_matrix = neg_matrix / x_min * x_max
         
-        fig = plt.figure(figsize=(len(pfm) * 0.3, height))
+        plt.figure(figsize=(len(pfm) * 0.3, height))
         for (sign, matrix) in [(1, pos_matrix), (-1, neg_matrix)]:
             minbottom = np.zeros(len(matrix))
             alpha = 1
@@ -629,10 +634,9 @@ class Motif(object):
                         x = i + 1
                         y = matrix[i][n] / 2 + sum(matrix[i][:n])
                         nuc = nuc_pfm[i][n]
-
                         c = "white"
                         if abs(matrix[i][n]) * height >= 0.5:
-                            plt.text(x, y, nuc_pfm[i][n], 
+                            plt.text(x, y, nuc, 
                                 horizontalalignment="center",
                                 verticalalignment="center",
                                 fontsize=8 + 10 * (matrix[i][n] / y_max),
@@ -1431,7 +1435,7 @@ def _read_motifs_pwm(handle):
     return motifs
 
 def _read_motifs_jaspar(handle):
-    p = re.compile("([ACGT])\s*\[?([^\]]+)\]?")
+    p = re.compile(r"([ACGT])\s*\[?([^\]]+)\]?")
     motifs = []
     motif_id = ""
     pwm = {}

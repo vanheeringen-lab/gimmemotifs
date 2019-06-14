@@ -27,10 +27,10 @@ def location(args):
     fastafile = args.fastafile
     pwmfile = args.pwmfile
 
-    lwidth = args.width
-    if not lwidth:
+    lsize = args.size
+    if not lsize:
         f = Fasta(fastafile)
-        lwidth = len(f.items()[0][1])
+        lsize = len(f.items()[0][1])
         f = None
 
     jobs = []
@@ -47,7 +47,7 @@ def location(args):
             jobs.append(
                     pool.apply_async(
                         motif_localization, 
-                        (fastafile,motif,lwidth,outfile, args.cutoff)
+                        (fastafile,motif,lsize,outfile, args.cutoff)
                         ))
     
     for job in jobs:

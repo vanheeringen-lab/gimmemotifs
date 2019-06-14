@@ -11,6 +11,7 @@ import re
 import sys
 import shutil
 import logging
+from tempfile import NamedTemporaryFile
 
 import numpy as np
 
@@ -20,6 +21,7 @@ from gimmemotifs.denovo import gimme_motifs
 from gimmemotifs.background import create_background_file
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.report import roc_html_report
+from gimmemotifs.utils import determine_file_type, narrowpeak_to_bed
 
 logger = logging.getLogger("gimme.motifs")
 
@@ -40,7 +42,11 @@ def motifs(args):
     else:
         # create background if not provided
         bgfile = os.path.join(args.outdir, "generated_background.{}.fa".format(bg))
-        create_background_file(bgfile, bg, fmt='fasta', genome=args.genome, inputfile=args.sample, number=10000)
+        size = args.size
+        if size <= 0:
+            size = None
+        logger.info("creating background (matched GC%)")
+        create_background_file(bgfile, bg, fmt='fasta', genome=args.genome, inputfile=args.sample, size=size, number=10000)
     
     pfmfile = args.pfmfile
     
@@ -54,6 +60,7 @@ def motifs(args):
                     "background": bg,
                     "custom_background": bgfile,
                     "genome": args.genome,
+                    "size": args.size
                     }
                 ) 
         denovo = read_motifs(
@@ -112,7 +119,15 @@ def motifs(args):
     f_out.write("Motif\t# matches\t# matches background\tP-value\tlog10 P-value\tROC AUC\tPR AUC\tEnr. at 1% FPR\tRecall at 10% FDR\n")
     
     logger.info("calculating stats")
-    for motif_stats in calc_stats_iterator(motifs, args.sample, bgfile, 
+    ftype = determine_file_type(args.sample)
+    sample = args.sample
+    if ftype == "narrowpeak":
+        f = NamedTemporaryFile()
+        logger.debug("Using %s as temporary BED file".format(f.name))
+        narrowpeak_to_bed(args.sample, f.name, size=args.size)
+        sample = f.name
+
+    for motif_stats in calc_stats_iterator(motifs, sample, bgfile, 
             stats=stats, genome=args.genome, ncpus=args.ncpus,
             zscore=args.zscore, gc=args.gc):
     
@@ -135,7 +150,7 @@ def motifs(args):
     f_out.close() 
    
     if args.report:
-        logger.info("creating report")
+        logger.info("creating statistics report")
         if args.outdir:
             roc_html_report(
                 args.outdir,
