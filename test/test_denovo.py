@@ -14,24 +14,28 @@ class TestDenovo(unittest.TestCase):
 
     def test1_denovo(self):
         """ de novo motif prediction """
-        gimme_motifs("test/data/denovo/input.fa", self.outdir,
-                     params={
-                         "tools": "BioProspector,Homer,MDmodule",
-                         "fraction": 0.5,
-                         "background": "random",
-                         "genome": "test/data/background/genome.fa",
-                     },
-                     filter_significant=True,
-                     cluster=True)
+        gimme_motifs(
+            "test/data/denovo/input.fa",
+            self.outdir,
+            params={
+                "tools": "BioProspector,Homer,MDmodule",
+                "fraction": 0.5,
+                "background": "random",
+                "genome": "test/data/background/genome.fa",
+            },
+            filter_significant=True,
+            cluster=True,
+        )
 
         fnames = [
             "gimme.denovo.pfm",
             "motif_report.html",
             "cluster_report.html",
             "params.txt",
-            "stats.random.txt"]
+            "stats.random.txt",
+        ]
 
-        with open(os.path.join(self.outdir, 'gimmemotifs.log')) as f:
+        with open(os.path.join(self.outdir, "gimmemotifs.log")) as f:
             log = f.read()
         self.assertIn("clustering", log)
 
@@ -60,5 +64,5 @@ class TestDenovo(unittest.TestCase):
         pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
