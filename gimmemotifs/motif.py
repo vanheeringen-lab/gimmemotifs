@@ -515,8 +515,8 @@ class Motif(object):
         fig_height = 3
         fig_width = 0.45
 
-        total = sum(motif.pfm[0]) / 4
-        pfm = [[n] * 4] * add_left + self.pfm
+        total = sum(self.pfm[0]) / 4
+        pfm = [[total] * 4] * add_left + self.pfm
         matrix = pd.DataFrame(pfm, columns=["A", "C", "G", "T"])
         if kind == "ensembl":
             self.plot_ensembl_logo(fname=None, title=title)
