@@ -1,13 +1,12 @@
+from gimmemotifs.utils import determine_file_type
+from gimmemotifs.config import FA_VALID_BGS, BED_VALID_BGS
+from genomepy import Genome
 import os
 import sys
 import logging
 
 logger = logging.getLogger()
 
-from genomepy import Genome
-from gimmemotifs.fasta import Fasta
-from gimmemotifs.config import MotifConfig, FA_VALID_BGS, BED_VALID_BGS
-from gimmemotifs.utils import determine_file_type
 
 # import logger
 
@@ -36,7 +35,7 @@ def check_bed_file(fname):
                 )
                 sys.exit(1)
             try:
-                start, end = int(vals[1]), int(vals[2])
+                int(vals[1]), int(vals[2])
             except ValueError:
                 logger.error(
                     "No valid integer coordinates on line %s of file %s", i + 1, fname
@@ -76,7 +75,7 @@ def check_denovo_input(inputfile, params):
         sys.exit(1)
 
     for bg in background:
-        if not bg in valid_bg:
+        if bg not in valid_bg:
             logger.info(
                 "Input type is %s, ignoring background type '%s'", input_type, bg
             )

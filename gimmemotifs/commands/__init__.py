@@ -10,7 +10,7 @@ else:
     level = -1
 
 # Dynamically load all commands
-for importer, cmdname, _ in pkgutil.iter_modules([dirname]):
+for _importer, cmdname, _ in pkgutil.iter_modules([dirname]):
     m = __import__(
         "{0}.{1}".format(__name__, cmdname), globals(), locals(), [cmdname], level
     )

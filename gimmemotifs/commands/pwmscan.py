@@ -8,7 +8,6 @@
 Command line function 'scan'.
 """
 from __future__ import print_function
-import os
 import re
 
 from gimmemotifs.motif import read_motifs
@@ -20,16 +19,12 @@ MAX_CPUS = 16
 
 
 def format_line(
-    seq,
-    seq_id,
-    motif,
-    score,
-    pos,
-    strand,
-    bed=False,
-    seq_p=re.compile(r"([^\s:]+):(\d+)-(\d+)"),
-    strandmap={-1: "-", 1: "+"},
+    seq, seq_id, motif, score, pos, strand, bed=False, seq_p=None, strandmap=None
 ):
+    if seq_p is None:
+        seq_p = re.compile(r"([^\s:]+):(\d+)-(\d+)")
+    if strandmap is None:
+        strandmap = {-1: "-", 1: "+"}
     if bed:
         m = seq_p.search(seq_id)
         if m:

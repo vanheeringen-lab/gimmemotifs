@@ -248,7 +248,7 @@ class MarkovFasta(Fasta):
         kmercount = {}
 
         init = alphabet[:]
-        for i in range(k - 1):
+        for _i in range(k - 1):
             new_init = []
             for x in init:
                 for l in alphabet:
@@ -268,15 +268,15 @@ class MarkovFasta(Fasta):
         for seq in seqs:
             seq = seq.upper()
             for i in range(len(seq) - k):
-                if p.search(seq[i: i + k + 1]):
-                    lettercount[seq[i: i + k]] += 1
-                    kmercount[seq[i: i + k + 1]] += 1
+                if p.search(seq[i : i + k + 1]):
+                    lettercount[seq[i : i + k]] += 1
+                    kmercount[seq[i : i + k + 1]] += 1
                     total += 1
 
         for k, v in kmercount.items():
             self.trans[k[:-1]][k[-1]] = float(v)
 
-        for k, v in self.trans.items():
+        for _k, v in self.trans.items():
             s = np.sum(np.array(list(v.values())))
             for x, y in v.items():
                 v[x] = y / s
@@ -291,7 +291,7 @@ class MarkovFasta(Fasta):
         for _ in range(l - self.k):
             sequence.append(
                 self._weighted_random(
-                    list(self.trans["".join(sequence[-self.k:])].items())
+                    list(self.trans["".join(sequence[-self.k :])].items())
                 )
             )
         return "".join(sequence)
@@ -299,7 +299,7 @@ class MarkovFasta(Fasta):
     def _weighted_random(self, l):
         n = random.uniform(0, 1)
         item = None
-        for item, weight in l:
+        for _item, weight in l:
             if n < weight:
                 break
             else:
@@ -476,11 +476,10 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
         size = int(np.median(sizes))
         if np.std(sizes) > size * 0.05:
             sys.stderr.write("Sequences do not seem to be of equal size.\n")
-            sys.stderr.write((
-                "GC% matched sequences of the median size ({}) "
-                "will be created\n").format(
-                    size
-            )
+            sys.stderr.write(
+                (
+                    "GC% matched sequences of the median size ({}) " "will be created\n"
+                ).format(size)
             )
 
     bins = [(0.0, 0.2), (0.8, 1)]

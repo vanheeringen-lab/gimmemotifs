@@ -637,10 +637,10 @@ class Hms(MotifProgram):
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
 
-        cmd = ("{} -i {} -w {} -dna 4 -iteration 50 -chain 20 -seqprop -0.1 "
-               "-strand 2 -peaklocation {} -t_dof 3 -dep 2").format(
-            bin, fgfile, params["width"], summitfile
-        )
+        cmd = (
+            "{} -i {} -w {} -dna 4 -iteration 50 -chain 20 -seqprop -0.1 "
+            "-strand 2 -peaklocation {} -t_dof 3 -dep 2"
+        ).format(bin, fgfile, params["width"], summitfile)
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
@@ -917,7 +917,7 @@ class Improbizer(MotifProgram):
             m = p.search(line)
             if m:
                 pwm_data = {}
-                for i in range(4):
+                for _i in range(4):
                     vals = [x.strip() for x in fo.readline().strip().split(" ") if x]
                     pwm_data[vals[0].upper()] = vals[1:]
                 pwm = []
@@ -1923,7 +1923,9 @@ class Gadem(MotifProgram):
                             for p in range(len(line)):
                                 pfm[p][nucs[line[p]]] += 1
 
-            m = [line.strip().split(" ")[1].split("\t") for line in lines[i + 1 : i + 5]]
+            m = [
+                line.strip().split(" ")[1].split("\t") for line in lines[i + 1 : i + 5]
+            ]
 
             pwm = [[float(m[x][y]) for x in range(4)] for y in range(len(m[0]))]
 

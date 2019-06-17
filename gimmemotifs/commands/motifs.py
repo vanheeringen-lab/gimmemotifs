@@ -7,7 +7,6 @@
 """Command line function 'roc'."""
 from __future__ import print_function
 import os
-import re
 import sys
 import shutil
 import logging

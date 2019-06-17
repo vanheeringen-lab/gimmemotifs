@@ -854,7 +854,7 @@ class Scanner(object):
                         yield region, ret
         else:
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
-                for j, ret in enumerate(
+                for _j, ret in enumerate(
                     scan_func(scan_seqs[i * batchsize : (i + 1) * batchsize])
                 ):
                     yield scan_seqs[i], ret

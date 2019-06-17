@@ -227,8 +227,7 @@ def write_equalsize_bedfile(bedfile, size, outfile):
                 except ValueError:
                     print(
                         "Error on line %s while reading %s. "
-                        "Is the file in BED or WIG format?"
-                        % (line_count, bedfile)
+                        "Is the file in BED or WIG format?" % (line_count, bedfile)
                     )
                     sys.exit(1)
 
@@ -432,8 +431,7 @@ def is_valid_bedfile(bedfile, columns=6):
             except ValueError:
                 sys.stderr.write(
                     "Error in line %s: "
-                    "coordinates in column 2 and 3 need to be integers!\n"
-                    % (i)
+                    "coordinates in column 2 and 3 need to be integers!\n" % (i)
                 )
                 return False
 
@@ -442,8 +440,7 @@ def is_valid_bedfile(bedfile, columns=6):
                 if vals[5] not in ["+", "-"]:
                     sys.stderr.write(
                         "Error in line %s: "
-                        "column 6 (strand information) needs to be + or -"
-                        % (i)
+                        "column 6 (strand information) needs to be + or -" % (i)
                     )
                     return False
 
@@ -462,8 +459,7 @@ def median_bed_len(bedfile):
             except ValueError:
                 sys.stderr.write(
                     "Error in line %s: "
-                    "coordinates in column 2 and 3 need to be integers!\n"
-                    % (i)
+                    "coordinates in column 2 and 3 need to be integers!\n" % (i)
                 )
                 sys.exit(1)
     f.close()

@@ -73,7 +73,7 @@ def calc_stats_iterator(
         logger.debug(
             "chunk %s of %s", (i / chunksize) + 1, len(all_motifs) // chunksize + 1
         )
-        motifs = all_motifs[i: i + chunksize]
+        motifs = all_motifs[i : i + chunksize]
 
         fg_total = scan_to_best_match(
             fg_file, motifs, ncpus=ncpus, genome=genome, zscore=zscore, gc=gc

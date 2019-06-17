@@ -5,6 +5,13 @@
 # distribution.
 """ Various plotting functions """
 from __future__ import print_function
+from PIL import Image
+import seaborn as sns
+from mpl_toolkits.axes_grid1 import ImageGrid
+from matplotlib.colors import to_hex, Normalize, rgb2hex
+from matplotlib.gridspec import GridSpec
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
 import os
 import sys
 from tempfile import NamedTemporaryFile
@@ -18,15 +25,8 @@ from gimmemotifs import mytmpdir
 import matplotlib as mpl
 
 mpl.use("Agg", warn=False)
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-from matplotlib.gridspec import GridSpec
-from matplotlib.colors import to_hex, Normalize, rgb2hex
-from mpl_toolkits.axes_grid1 import ImageGrid
-import seaborn as sns
 
 sns.set_style("white")
-from PIL import Image
 
 
 VALID_EXTENSIONS = [".png", ".pdf", ".svg", ".ps"]
@@ -56,7 +56,7 @@ def roc_plot(outfile, plot_x, plot_y, ids=None):
     fig.add_subplot(111, aspect="equal")
 
     if isinstance(plot_x[0], np.ndarray):
-        for i, (x, y) in enumerate(zip(plot_x, plot_y)):
+        for _i, (x, y) in enumerate(zip(plot_x, plot_y)):
             plt.plot(x, y)
     else:
         plt.plot(plot_x, plot_y)
