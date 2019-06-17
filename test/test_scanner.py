@@ -3,7 +3,6 @@ import tempfile
 import os
 from gimmemotifs.scanner import *
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.genome_index import GenomeIndex
 from time import sleep
 
 class TestScanner(unittest.TestCase):
