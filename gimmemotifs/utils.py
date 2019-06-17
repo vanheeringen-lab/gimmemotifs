@@ -65,7 +65,8 @@ def narrowpeak_to_bed(inputfile, bedfile, size=0):
                     if summit == -1:
                         if warn_no_summit:
                             logger.warn(
-                                "No summit present in narrowPeak file, using the peak center."
+                                "No summit present in narrowPeak file, "
+                                "using the peak center."
                             )
                             warn_no_summit = False
                         summit = (end - start) // 2
@@ -130,7 +131,9 @@ def phyper_single(k, good, bad, N):
 
 
 def phyper(k, good, bad, N):
-    """ Current hypergeometric implementation in scipy is broken, so here's the correct version """
+    """ Current hypergeometric implementation in scipy is broken,
+    so here's the correct version.
+    """
     pvalues = [phyper_single(x, good, bad, N) for x in range(k + 1, N + 1)]
     return np.sum(pvalues)
 
@@ -199,7 +202,7 @@ def divide_fa_file(fname, sample, rest, fraction, abs_max):
 
 
 def write_equalsize_bedfile(bedfile, size, outfile):
-    """Read input from <bedfile>, set the size of all entries to <size> and 
+    """Read input from <bedfile>, set the size of all entries to <size> and
     write the result to <outfile>.
     Input file needs to be in BED or WIG format."""
     if size <= 0:
@@ -223,13 +226,15 @@ def write_equalsize_bedfile(bedfile, size, outfile):
                     start, end = int(vals[1]), int(vals[2])
                 except ValueError:
                     print(
-                        "Error on line %s while reading %s. Is the file in BED or WIG format?"
+                        "Error on line %s while reading %s. "
+                        "Is the file in BED or WIG format?"
                         % (line_count, bedfile)
                     )
                     sys.exit(1)
 
                 start = (start + end) // 2 - (size // 2)
-                # This shifts the center, but ensures the size is identical... maybe not ideal
+                # This shifts the center, but ensures the size is identical...
+                # maybe not ideal
                 if start < 0:
                     start = 0
                 end = start + size
@@ -336,9 +341,9 @@ def parse_gff(gff_file):
 
                     mr.sequences[seq] = 1
 
-                    if not motif_name in mr.motifs:
+                    if motif_name not in mr.motifs:
                         mr.motifs[motif_name] = {}
-                    if not seq in mr.motifs[motif_name]:
+                    if seq not in mr.motifs[motif_name]:
                         mr.motifs[motif_name][seq] = 0
                     mr.motifs[motif_name][seq] += 1
                 else:
@@ -398,11 +403,11 @@ def calc_motif_enrichment(sample, background, mtc=None, len_sample=None, len_bac
                     p_value[motif] = 1
     elif mtc == "Benjamini-Hochberg":
         motifs = sorted(p_value.keys(), key=lambda x: -p_value[x])
-        l = len(p_value)
-        c = l
+        length = len(p_value)
+        c = length
         for m in motifs:
             if p_value[m] != "NA":
-                p_value[m] = p_value[m] * l / c
+                p_value[m] = p_value[m] * length / c
             c -= 1
 
     return (sig, p_value, n_sample, n_back)
@@ -426,7 +431,8 @@ def is_valid_bedfile(bedfile, columns=6):
                 int(vals[1]), int(vals[2])
             except ValueError:
                 sys.stderr.write(
-                    "Error in line %s: coordinates in column 2 and 3 need to be integers!\n"
+                    "Error in line %s: "
+                    "coordinates in column 2 and 3 need to be integers!\n"
                     % (i)
                 )
                 return False
@@ -435,7 +441,8 @@ def is_valid_bedfile(bedfile, columns=6):
                 # We need the strand
                 if vals[5] not in ["+", "-"]:
                     sys.stderr.write(
-                        "Error in line %s: column 6 (strand information) needs to be + or -"
+                        "Error in line %s: "
+                        "column 6 (strand information) needs to be + or -"
                         % (i)
                     )
                     return False
@@ -446,20 +453,21 @@ def is_valid_bedfile(bedfile, columns=6):
 
 def median_bed_len(bedfile):
     f = open(bedfile)
-    l = []
+    lengths = []
     for i, line in enumerate(f.readlines()):
         if not (line.startswith("browser") or line.startswith("track")):
             vals = line.split("\t")
             try:
-                l.append(int(vals[2]) - int(vals[1]))
+                lengths.append(int(vals[2]) - int(vals[1]))
             except ValueError:
                 sys.stderr.write(
-                    "Error in line %s: coordinates in column 2 and 3 need to be integers!\n"
+                    "Error in line %s: "
+                    "coordinates in column 2 and 3 need to be integers!\n"
                     % (i)
                 )
                 sys.exit(1)
     f.close()
-    return np.median(l)
+    return np.median(lengths)
 
 
 def motif_localization(fastafile, motif, size, outfile, cutoff=0.9):
@@ -508,7 +516,7 @@ def parse_cutoff(motifs, cutoff, default=0.9):
             cutoffs[motif.id] = float(cutoff)
 
     for motif in motifs:
-        if not motif.id in cutoffs:
+        if motif.id not in cutoffs:
             sys.stderr.write(
                 "No cutoff found for {0}, using default {1}\n".format(motif.id, default)
             )
@@ -623,7 +631,7 @@ def determine_file_type(fname):
     try:
         Fasta(fname)
         return "fasta"
-    except:
+    except Exception:
         pass
     # Read first line that is not a comment or an UCSC-specific line
     p = re.compile(r"^(#|track|browser)")
@@ -703,7 +711,7 @@ def as_fasta(seqs, genome=None):
             raise ValueError("need genome to convert to FASTA")
 
         tmpfa = NamedTemporaryFile()
-        if type(genome) == type(""):
+        if isinstance(genome, str):
             genome = Genome(genome)
         genome.track2fasta(seqs, tmpfa.name)
         return Fasta(tmpfa.name)

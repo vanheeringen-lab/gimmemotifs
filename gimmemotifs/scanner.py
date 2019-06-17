@@ -133,7 +133,7 @@ def scan_region(region, genome, motifs, nreport, scan_rc):
 
     # retrieve sequence
     chrom, start, end = re.split(r"[:-]", region)
-    seq = genome[chrom][int(start): int(end)].seq.upper()
+    seq = genome[chrom][int(start) : int(end)].seq.upper()
 
     return scan_sequence(seq, motifs, nreport, scan_rc)
 
@@ -255,7 +255,7 @@ def scan_it_moods(
         jobs.append(
             pool.apply_async(
                 func,
-                (fa[i: i + chunk], motifs, matrices, bg, thresholds, nreport, scan_rc),
+                (fa[i : i + chunk], motifs, matrices, bg, thresholds, nreport, scan_rc),
             )
         )
 
@@ -839,12 +839,12 @@ class Scanner(object):
         batchsize = 1000
         if self.ncpus > 1:
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
-                batch = scan_seqs[i * batchsize: (i + 1) * batchsize]
+                batch = scan_seqs[i * batchsize : (i + 1) * batchsize]
                 chunksize = len(batch) // self.ncpus + 1
                 jobs = []
                 for j in range((len(batch) - 1) // chunksize + 1):
                     job = self.pool.apply_async(
-                        scan_func, (batch[j * chunksize: (j + 1) * chunksize],)
+                        scan_func, (batch[j * chunksize : (j + 1) * chunksize],)
                     )
                     jobs.append(job)
 
@@ -855,6 +855,6 @@ class Scanner(object):
         else:
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
                 for j, ret in enumerate(
-                    scan_func(scan_seqs[i * batchsize: (i + 1) * batchsize])
+                    scan_func(scan_seqs[i * batchsize : (i + 1) * batchsize])
                 ):
                     yield scan_seqs[i], ret

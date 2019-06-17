@@ -39,7 +39,7 @@ class MotifDb(object):
         ----------
         name : str
             Name of the provider (eg. JASPAR, HOMER, ...)
-        
+
         Returns
         -------
         db : MotifDb instance
@@ -91,7 +91,7 @@ class JasparMotifDb(MotifDb):
     JASPAR motif database
     """
 
-    URL = "http://jaspar.genereg.net/download/CORE/JASPAR2018_CORE{}_non-redundant_pfms_jaspar.txt"
+    URL = "http://jaspar.genereg.net/download/CORE/JASPAR2018_CORE{}_non-redundant_pfms_jaspar.txt"  # noqa: E501
     NAME = "JASPAR2018{}.pfm"
     GROUPS = [
         "",
@@ -104,7 +104,7 @@ class JasparMotifDb(MotifDb):
     ]
 
     def download(self, outdir=DEFAULT_OUT):
-        ### JASPAR ###
+        # JASPAR
         for group in self.GROUPS:
             if group != "":
                 group = "_" + group
@@ -138,9 +138,9 @@ class JasparMotifDb(MotifDb):
                 mtype = info["type"]
                 if mtype == "universal protein binding microarray (PBM)":
                     mtype = "PBM"
-            except:
+            except Exception:
                 mtype = "Unknown"
-            factors = re.sub("\([^)]+\)", "", motif.id.split("_")[1]).split("::")
+            factors = re.sub(r"\([^)]+\)", "", motif.id.split("_")[1]).split("::")
             anno[motif.id] = [[f, mtype, "Y"] for f in factors]
         return anno
 
@@ -155,7 +155,7 @@ class HomerMotifDb(MotifDb):
     URL = "http://homer.ucsd.edu/homer/custom.motifs"
 
     def download(self, outdir=DEFAULT_OUT):
-        ### Homer ###
+        # Homer
         pfm_out = os.path.join(outdir, self.NAME)
         with open(pfm_out, "w") as f:
             print("# Homer motif database (v4.10)", file=f)
@@ -188,7 +188,7 @@ class HomerMotifDb(MotifDb):
                     anno[motif.id] = [[source_factor, "ChIP-seq", "Y"]]
                 else:
                     pass
-            except:
+            except Exception:
                 pass
             # anno[motif.id] = factors
         return anno
@@ -451,7 +451,7 @@ class CisbpMotifDb(MotifDb):
     """
 
     VERSION = "2.00"
-    BASE = "http://cisbp.ccbr.utoronto.ca/data/{}/DataFiles/Bulk_downloads/EntireDataset/".format(
+    BASE = "http://cisbp.ccbr.utoronto.ca/data/{}/DataFiles/Bulk_downloads/EntireDataset/".format(  # noqa: E501
         VERSION
     )
     ANNO_URL = BASE + "/TF_Information_all_motifs.txt.zip"
@@ -509,10 +509,10 @@ class CisbpMotifDb(MotifDb):
 @register_db("rsat")
 class RsatMotifDb(MotifDb):
     """
-    RSAT clustered motifs 
+    RSAT clustered motifs
     """
 
-    URL = "http://pedagogix-tagc.univ-mrs.fr/rsat/data/published_data/Castro_2016_matrix-clustering/Application_4/{}/cor0.8_Ncor0.65/All_{}_motifs_cluster_root_motifs.tf"
+    URL = "http://pedagogix-tagc.univ-mrs.fr/rsat/data/published_data/Castro_2016_matrix-clustering/Application_4/{}/cor0.8_Ncor0.65/All_{}_motifs_cluster_root_motifs.tf"  # noqa: E501
     NAME = "RSAT_{}.pfm"
 
     def download(self, outdir=DEFAULT_OUT):

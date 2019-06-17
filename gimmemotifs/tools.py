@@ -138,7 +138,7 @@ class MotifProgram(object):
     def is_configured(self):
         """
         Check if the tool is configured.
-        
+
         Returns
         -------
         is_configured : bool
@@ -149,7 +149,7 @@ class MotifProgram(object):
     def is_installed(self):
         """
         Check if the tool is installed.
-        
+
         Returns
         -------
         is_installed : bool
@@ -172,7 +172,7 @@ class MotifProgram(object):
 
         tmp : str, optional
             Directory to use for creation of temporary files.
-       
+
         Returns
         -------
         motifs : list of Motif instances
@@ -180,7 +180,7 @@ class MotifProgram(object):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -209,8 +209,8 @@ class XXmotif(MotifProgram):
 
     """
     Predict motifs using XXmotif.
-    
-    Reference: 
+
+    Reference:
     """
 
     def __init__(self):
@@ -254,7 +254,7 @@ class XXmotif(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -269,7 +269,7 @@ class XXmotif(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -312,8 +312,8 @@ class Homer(MotifProgram):
 
     """
     Predict motifs using Homer.
-    
-    Reference: Heinz et al, 2010; PMID: 20513432 
+
+    Reference: Heinz et al, 2010; PMID: 20513432
     """
 
     def __init__(self):
@@ -359,7 +359,7 @@ class Homer(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -374,7 +374,7 @@ class Homer(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -417,7 +417,7 @@ class BioProspector(MotifProgram):
     """
     Predict motifs using BioProspector.
 
-    Reference: 
+    Reference:
     """
 
     def __init__(self):
@@ -464,7 +464,7 @@ class BioProspector(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -479,7 +479,7 @@ class BioProspector(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -516,7 +516,7 @@ class BioProspector(MotifProgram):
     def parse(self, fo):
         """
         Convert BioProspector output to motifs
-        
+
         Parameters
         ----------
         fo : file-like
@@ -556,8 +556,8 @@ class Hms(MotifProgram):
 
     """
     Predict motifs using HMS.
-    
-    Reference: 
+
+    Reference:
     """
 
     def __init__(self):
@@ -607,7 +607,7 @@ class Hms(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -622,7 +622,7 @@ class Hms(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -637,7 +637,8 @@ class Hms(MotifProgram):
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
 
-        cmd = "{} -i {} -w {} -dna 4 -iteration 50 -chain 20 -seqprop -0.1 -strand 2 -peaklocation {} -t_dof 3 -dep 2".format(
+        cmd = ("{} -i {} -w {} -dna 4 -iteration 50 -chain 20 -seqprop -0.1 "
+               "-strand 2 -peaklocation {} -t_dof 3 -dep 2").format(
             bin, fgfile, params["width"], summitfile
         )
 
@@ -658,7 +659,7 @@ class Hms(MotifProgram):
     def parse(self, fo):
         """
         Convert HMS output to motifs
-        
+
         Parameters
         ----------
         fo : file-like
@@ -683,7 +684,7 @@ class Amd(MotifProgram):
     """
     Predict motifs using AMD.
 
-    Reference: 
+    Reference:
     """
 
     def __init__(self):
@@ -719,7 +720,7 @@ class Amd(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -734,7 +735,7 @@ class Amd(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -768,7 +769,7 @@ class Amd(MotifProgram):
     def parse(self, fo):
         """
         Convert AMD output to motifs
-        
+
         Parameters
         ----------
         fo : file-like
@@ -808,7 +809,7 @@ class Improbizer(MotifProgram):
     """
     Predict motifs using Improbizer.
 
-    Reference: 
+    Reference:
     """
 
     def __init__(self):
@@ -846,7 +847,7 @@ class Improbizer(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -861,7 +862,7 @@ class Improbizer(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -897,7 +898,7 @@ class Improbizer(MotifProgram):
     def parse(self, fo):
         """
         Convert Improbizer output to motifs
-        
+
         Parameters
         ----------
         fo : file-like
@@ -934,7 +935,7 @@ class Trawler(MotifProgram):
     """
     Predict motifs using Trawler.
 
-    Reference: Ettwiller, 2010; PMID: 17589518 
+    Reference: Ettwiller, 2010; PMID: 17589518
     """
 
     def __init__(self):
@@ -975,7 +976,7 @@ class Trawler(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -990,7 +991,7 @@ class Trawler(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -1055,9 +1056,9 @@ class Weeder(MotifProgram):
 
     """
     Predict motifs using Weeder.
-    
-    Reference: 
-    
+
+    Reference:
+
     """
 
     def __init__(self):
@@ -1089,7 +1090,7 @@ class Weeder(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -1104,7 +1105,7 @@ class Weeder(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -1164,7 +1165,7 @@ class Weeder(MotifProgram):
     def parse(self, fo):
         """
         Convert Weeder output to motifs
-        
+
         Parameters
         ----------
         fo : file-like
@@ -1182,8 +1183,8 @@ class MotifSampler(MotifProgram):
 
     """
     Predict motifs using MotifSampler.
-    
-    Reference: 
+
+    Reference:
     """
 
     def __init__(self):
@@ -1239,7 +1240,7 @@ class MotifSampler(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -1254,7 +1255,7 @@ class MotifSampler(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -1292,7 +1293,7 @@ class MotifSampler(MotifProgram):
     def parse(self, fo):
         """
         Convert MotifSampler output to motifs
-        
+
         Parameters
         ----------
         fo : file-like
@@ -1327,7 +1328,7 @@ class MotifSampler(MotifProgram):
     def parse_out(self, fo):
         """
         Convert MotifSampler output to motifs
-        
+
         Parameters
         ----------
         fo : file-like
@@ -1383,7 +1384,7 @@ class MDmodule(MotifProgram):
     """
     Predict motifs using MDmodule.
 
-    Reference: 
+    Reference:
     """
 
     def __init__(self):
@@ -1414,7 +1415,7 @@ class MDmodule(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -1429,7 +1430,7 @@ class MDmodule(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -1475,7 +1476,7 @@ class MDmodule(MotifProgram):
     def parse(self, fo):
         """
         Convert MDmodule output to motifs
-        
+
         Parameters
         ----------
         fo : file-like
@@ -1535,7 +1536,7 @@ class ChIPMunk(MotifProgram):
     """
     Predict motifs using ChIPMunk.
 
-    Reference: 
+    Reference:
     """
 
     def __init__(self):
@@ -1564,7 +1565,7 @@ class ChIPMunk(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -1579,7 +1580,7 @@ class ChIPMunk(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -1636,7 +1637,7 @@ class ChIPMunk(MotifProgram):
     def parse(self, fo):
         """
         Convert ChIPMunk output to motifs
-        
+
         Parameters
         ----------
         fo : file-like
@@ -1647,12 +1648,6 @@ class ChIPMunk(MotifProgram):
         motifs : list
             List of Motif instances.
         """
-        # KDIC|6.124756232026243
-        # A|517.9999999999999 42.99999999999999 345.99999999999994 25.999999999999996 602.9999999999999 155.99999999999997 2.9999999999999996 91.99999999999999
-        # C|5.999999999999999 4.999999999999999 2.9999999999999996 956.9999999999999 91.99999999999999 17.999999999999996 22.999999999999996 275.99999999999994
-        # G|340.99999999999994 943.9999999999999 630.9999999999999 6.999999999999999 16.999999999999996 48.99999999999999 960.9999999999999 14.999999999999998
-        # T|134.99999999999997 7.999999999999999 19.999999999999996 9.999999999999998 287.99999999999994 776.9999999999999 12.999999999999998 616.9999999999999
-        # N|999.9999999999998
         line = fo.readline()
         if not line:
             return []
@@ -1676,7 +1671,7 @@ class Posmo(MotifProgram):
     """
     Predict motifs using Posmo.
 
-    Reference: 
+    Reference:
     """
 
     def __init__(self):
@@ -1707,7 +1702,7 @@ class Posmo(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -1722,7 +1717,7 @@ class Posmo(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -1775,7 +1770,7 @@ class Posmo(MotifProgram):
     def parse(self, fo, width, seed=None):
         """
         Convert Posmo output to motifs
-        
+
         Parameters
         ----------
         fo : file-like
@@ -1815,7 +1810,7 @@ class Gadem(MotifProgram):
     """
     Predict motifs using GADEM.
 
-    Reference: 
+    Reference:
     """
 
     def __init__(self):
@@ -1846,7 +1841,7 @@ class Gadem(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -1861,7 +1856,7 @@ class Gadem(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -1894,7 +1889,7 @@ class Gadem(MotifProgram):
     def parse(self, fo):
         """
         Convert GADEM output to motifs
-        
+
         Parameters
         ----------
         fo : file-like
@@ -1919,16 +1914,16 @@ class Gadem(MotifProgram):
             number = m_id.split("_")[0][1:]
             if os.path.exists("%s.seq" % number):
                 with open("%s.seq" % number) as f:
-                    for l in f:
-                        if "x" not in l and "n" not in l:
-                            l = l.strip().upper()
-                            align.append(l)
+                    for line in f:
+                        if "x" not in line and "n" not in line:
+                            line = line.strip().upper()
+                            align.append(line)
                             if not pfm:
-                                pfm = [[0 for x in range(4)] for x in range(len(l))]
-                            for p in range(len(l)):
-                                pfm[p][nucs[l[p]]] += 1
+                                pfm = [[0 for x in range(4)] for x in range(len(line))]
+                            for p in range(len(line)):
+                                pfm[p][nucs[line[p]]] += 1
 
-            m = [l.strip().split(" ")[1].split("\t") for l in lines[i + 1 : i + 5]]
+            m = [line.strip().split(" ")[1].split("\t") for line in lines[i + 1 : i + 5]]
 
             pwm = [[float(m[x][y]) for x in range(4)] for y in range(len(m[0]))]
 
@@ -1971,7 +1966,7 @@ class Jaspar(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -1986,7 +1981,7 @@ class Jaspar(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -2002,8 +1997,8 @@ class Meme(MotifProgram):
 
     """
     Predict motifs using MEME.
-    
-    Reference: 
+
+    Reference:
     """
 
     def __init__(self):
@@ -2034,7 +2029,7 @@ class Meme(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -2049,7 +2044,7 @@ class Meme(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -2058,7 +2053,6 @@ class Meme(MotifProgram):
             default_params.update(params)
 
         tmp = NamedTemporaryFile(dir=self.tmpdir)
-        tmpname = tmp.name
 
         strand = "-revcomp"
         width = default_params["width"]
@@ -2097,7 +2091,7 @@ class Meme(MotifProgram):
     def parse(self, fo):
         """
         Convert MEME output to motifs
-        
+
         Parameters
         ----------
         fo : file-like
@@ -2111,8 +2105,8 @@ class Meme(MotifProgram):
         motifs = []
         nucs = {"A": 0, "C": 1, "G": 2, "T": 3}
 
-        p = re.compile("MOTIF.+MEME-(\d+)\s*width\s*=\s*(\d+)\s+sites\s*=\s*(\d+)")
-        pa = re.compile("\)\s+([A-Z]+)")
+        p = re.compile(r"MOTIF.+MEME-(\d+)\s*width\s*=\s*(\d+)\s+sites\s*=\s*(\d+)")
+        pa = re.compile(r"\)\s+([A-Z]+)")
         line = fo.readline()
         while line:
             m = p.search(line)
@@ -2125,13 +2119,13 @@ class Meme(MotifProgram):
                     ma = pa.search(line)
                     if ma:
                         # print(ma.group(0))
-                        l = ma.group(1)
-                        align.append(l)
+                        match = ma.group(1)
+                        align.append(match)
                         if not pfm:
-                            pfm = [[0 for x in range(4)] for x in range(len(l))]
-                        for pos in range(len(l)):
-                            if l[pos] in nucs:
-                                pfm[pos][nucs[l[pos]]] += 1
+                            pfm = [[0 for x in range(4)] for x in range(len(match))]
+                        for pos in range(len(match)):
+                            if match[pos] in nucs:
+                                pfm[pos][nucs[match[pos]]] += 1
                             else:
                                 for i in range(4):
                                     pfm[pos][i] += 0.25
@@ -2150,8 +2144,8 @@ class MemeW(MotifProgram):
 
     """
     Predict motifs using MEME
-    
-    Reference: 
+
+    Reference:
     """
 
     def __init__(self):
@@ -2182,7 +2176,7 @@ class MemeW(MotifProgram):
         ----------
         bin : str
             Command used to run the tool.
-        
+
         fastafile : str
             Name of the FASTA input file.
 
@@ -2197,7 +2191,7 @@ class MemeW(MotifProgram):
 
         stdout : str
             Standard out of the tool.
-        
+
         stderr : str
             Standard error of the tool.
         """
@@ -2206,7 +2200,6 @@ class MemeW(MotifProgram):
             default_params.update(params)
 
         tmp = NamedTemporaryFile(dir=self.tmpdir)
-        tmpname = tmp.name
 
         strand = "-revcomp"
         number = default_params["number"]
@@ -2246,7 +2239,7 @@ class MemeW(MotifProgram):
     def parse(self, fo):
         """
         Convert MEME output to motifs
-        
+
         Parameters
         ----------
         fo : file-like
@@ -2260,8 +2253,8 @@ class MemeW(MotifProgram):
         motifs = []
         nucs = {"A": 0, "C": 1, "G": 2, "T": 3}
 
-        p = re.compile("MOTIF.+MEME-(\d+)\s*width\s*=\s*(\d+)\s+sites\s*=\s*(\d+)")
-        pa = re.compile("\)\s+([A-Z]+)")
+        p = re.compile(r"MOTIF.+MEME-(\d+)\s*width\s*=\s*(\d+)\s+sites\s*=\s*(\d+)")
+        pa = re.compile(r"\)\s+([A-Z]+)")
         line = fo.readline()
         while line:
             m = p.search(line)
@@ -2274,13 +2267,13 @@ class MemeW(MotifProgram):
                     ma = pa.search(line)
                     if ma:
                         # print(ma.group(0))
-                        l = ma.group(1)
-                        align.append(l)
+                        match = ma.group(1)
+                        align.append(match)
                         if not pfm:
-                            pfm = [[0 for x in range(4)] for x in range(len(l))]
-                        for pos in range(len(l)):
-                            if l[pos] in nucs:
-                                pfm[pos][nucs[l[pos]]] += 1
+                            pfm = [[0 for x in range(4)] for x in range(len(match))]
+                        for pos in range(len(match)):
+                            if match[pos] in nucs:
+                                pfm[pos][nucs[match[pos]]] += 1
                             else:
                                 for i in range(4):
                                     pfm[pos][i] += 0.25

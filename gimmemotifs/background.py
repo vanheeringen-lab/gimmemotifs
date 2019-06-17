@@ -268,9 +268,9 @@ class MarkovFasta(Fasta):
         for seq in seqs:
             seq = seq.upper()
             for i in range(len(seq) - k):
-                if p.search(seq[i : i + k + 1]):
-                    lettercount[seq[i : i + k]] += 1
-                    kmercount[seq[i : i + k + 1]] += 1
+                if p.search(seq[i: i + k + 1]):
+                    lettercount[seq[i: i + k]] += 1
+                    kmercount[seq[i: i + k + 1]] += 1
                     total += 1
 
         for k, v in kmercount.items():
@@ -291,7 +291,7 @@ class MarkovFasta(Fasta):
         for _ in range(l - self.k):
             sequence.append(
                 self._weighted_random(
-                    list(self.trans["".join(sequence[-self.k :])].items())
+                    list(self.trans["".join(sequence[-self.k:])].items())
                 )
             )
         return "".join(sequence)
@@ -476,10 +476,11 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
         size = int(np.median(sizes))
         if np.std(sizes) > size * 0.05:
             sys.stderr.write("Sequences do not seem to be of equal size.\n")
-            sys.stderr.write(
-                "GC% matched sequences of the median size ({}) will be created\n".format(
+            sys.stderr.write((
+                "GC% matched sequences of the median size ({}) "
+                "will be created\n").format(
                     size
-                )
+            )
             )
 
     bins = [(0.0, 0.2), (0.8, 1)]
