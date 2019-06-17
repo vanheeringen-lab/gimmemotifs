@@ -494,7 +494,7 @@ class Motif(object):
         return matches
 
     def plot_logo(
-        self, kind="information", fname=None, title=True, ylabel=True, add_left=None
+        self, kind="information", fname=None, title=True, ylabel=True, add_left=0
     ):
         """Plot motif logo
 
