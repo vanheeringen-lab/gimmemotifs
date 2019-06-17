@@ -1463,7 +1463,7 @@ def _read_motifs_from_filehandle(handle, fmt):
 
 
 def read_motifs(infile=None, fmt="pwm", as_dict=False):
-    """ 
+    """
     Read motifs from a file or stream or file-like object.
 
     Parameters

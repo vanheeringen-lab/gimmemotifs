@@ -8,7 +8,6 @@ import os
 import sys
 from datetime import datetime
 from multiprocessing import Pool
-from tempfile import NamedTemporaryFile
 import re
 import shutil
 import logging
@@ -16,17 +15,15 @@ import logging
 import jinja2
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from statsmodels.stats.multitest import multipletests
 
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.motif import read_motifs, default_motifs
-from gimmemotifs.config import MotifConfig, BG_RANK, DIRECT_NAME, INDIRECT_NAME
+from gimmemotifs.motif import read_motifs
+from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 from gimmemotifs.plot import roc_plot
-from gimmemotifs.rocmetrics import roc_values
 from gimmemotifs.stats import calc_stats, add_star, write_stats
-from gimmemotifs import mytmpdir, __version__
+from gimmemotifs import __version__
 from gimmemotifs.utils import motif_localization
 
 logger = logging.getLogger("gimme.report")

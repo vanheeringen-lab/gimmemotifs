@@ -5,7 +5,7 @@
 # distribution.
 """ Module to calculate motif scoring metrics.
 
-Includes ROC AUC, MNCP, enrichment and others, which are calculated 
+Includes ROC AUC, MNCP, enrichment and others, which are calculated
 on the basis of motif scanning results.
 """
 
@@ -84,10 +84,10 @@ def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.1):
 
     bg_vals : array_like
         The list of values for the negative set.
-    
+
     fdr : float, optional
         The FDR (between 0.0 and 1.0).
-    
+
     Returns
     -------
     recall : float
@@ -103,6 +103,7 @@ def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.1):
     except Exception as e:
         print(y_true)
         print(y_score)
+        print(e)
         raise
     fdr = 1 - precision
     cutoff_index = next(i for i, x in enumerate(fdr) if x <= fdr_cutoff)
@@ -121,10 +122,10 @@ def matches_at_fpr(fg_vals, bg_vals, fpr=0.01):
 
     bg_vals : array_like
         The list of values for the negative set.
-    
+
     fpr : float, optional
         The FPR (between 0.0 and 1.0).
-    
+
     Returns
     -------
     fraction : float
@@ -148,10 +149,10 @@ def phyper_at_fpr(fg_vals, bg_vals, fpr=0.01):
 
     bg_vals : array_like
         The list of values for the negative set.
-    
+
     fpr : float, optional
         The FPR (between 0.0 and 1.0).
-    
+
     Returns
     -------
     fraction : float
@@ -180,10 +181,10 @@ def fraction_fpr(fg_vals, bg_vals, fpr=0.01):
 
     bg_vals : array_like
         The list of values for the negative set.
-    
+
     fpr : float, optional
         The FPR (between 0.0 and 1.0).
-    
+
     Returns
     -------
     fraction : float
@@ -206,10 +207,10 @@ def score_at_fpr(fg_vals, bg_vals, fpr=0.01):
 
     bg_vals : array_like
         The list of values for the negative set.
-    
+
     fpr : float, optional
         The FPR (between 0.0 and 1.0).
-    
+
     Returns
     -------
     score : float
@@ -231,10 +232,10 @@ def enr_at_fpr(fg_vals, bg_vals, fpr=0.01):
 
     bg_vals : array_like
         The list of values for the negative set.
-    
+
     fpr : float, optional
         The FPR (between 0.0 and 1.0).
-    
+
     Returns
     -------
     enrichment : float
@@ -261,10 +262,10 @@ def max_enrichment(fg_vals, bg_vals, minbg=2):
 
     bg_vals : array_like
         The list of values for the negative set.
-    
+
     minbg : int, optional
         Minimum number of matches in background. The default is 2.
-    
+
     Returns
     -------
     enrichment : float
@@ -277,14 +278,12 @@ def max_enrichment(fg_vals, bg_vals, minbg=2):
     l_fg = len(fg_vals)
     l_bg = len(bg_vals)
     m = 0
-    s = 0
     for i in range(len(scores), 0, -1):
         bgcount = float(len(xsort[i:][xsort[i:] == 0]))
         if bgcount >= minbg:
             enr = (len(xsort[i:][xsort[i:] == 1]) / l_fg) / (bgcount / l_bg)
             if enr > m:
                 m = enr
-                s = scores[idx[i]]
     return m
 
 
@@ -302,7 +301,7 @@ def mncp(fg_vals, bg_vals):
 
     bg_vals : array_like
         The list of values for the negative set.
-    
+
     Returns
     -------
     score : float
@@ -341,7 +340,7 @@ def pr_auc(fg_vals, bg_vals):
 
     bg_vals : array_like
         list of values for negative set
-    
+
     Returns
     -------
     score : float
@@ -365,7 +364,7 @@ def roc_auc(fg_vals, bg_vals):
 
     bg_vals : array_like
         list of values for negative set
-    
+
     Returns
     -------
     score : float
@@ -392,7 +391,7 @@ def roc_auc_xlim(x_bla, y_bla, xlim=0.1):
 
     xlim : float, optional
         FPR value
-    
+
     Returns
     -------
     score : float
@@ -512,7 +511,7 @@ def max_fmeasure(fg_vals, bg_vals):
 
     bg_vals : array_like
         The list of values for the negative set.
-    
+
     Returns
     -------
     f : float
@@ -546,7 +545,7 @@ def ks_pvalue(fg_pos, bg_pos=None):
 
     bg_pos : array_like, optional
         The list of values for the negative set.
-    
+
     Returns
     -------
     p : float
@@ -571,7 +570,7 @@ def ks_significance(fg_pos, bg_pos=None):
 
     bg_pos : array_like, optional
         The list of values for the negative set.
-    
+
     Returns
     -------
     p : float

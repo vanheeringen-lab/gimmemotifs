@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import argparse
-import glob
 import os
 import sys
 from tempfile import NamedTemporaryFile
@@ -8,7 +7,6 @@ from io import StringIO
 
 import genomepy
 from gimmemotifs import __version__
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -35,7 +33,7 @@ def combine_peaks(peaks, genome, window, scale_value):
 
     scale_value : bool
         Scale summit values before taking the maximum.
-    
+
     Returns
     -------
     summits : pandas.DataFrame
@@ -44,7 +42,7 @@ def combine_peaks(peaks, genome, window, scale_value):
     try:
         g = genomepy.Genome(genome)
         genome = g.props["sizes"]["sizes"]
-    except:
+    except Exception:
         pass
 
     # Read MACS2 summit files
@@ -62,7 +60,7 @@ def combine_peaks(peaks, genome, window, scale_value):
     sns.boxplot(data=df_all, y="experiment", x="log_value")
     sns.boxplot(data=df_all, y="experiment", x="log_value_scaled")
 
-    check_col = "value"
+    check_col = "log_value"
     if scale_value:
         check_col = "log_value_scaled"
 
@@ -73,7 +71,7 @@ def combine_peaks(peaks, genome, window, scale_value):
         + ";"
         + df_all["end"].astype(str)
         + ";"
-        + df_all["log_value_scaled"].astype(str)
+        + df_all[check_col].astype(str)
     )
 
     tmp = NamedTemporaryFile(suffix=".all_peaks.bed", delete=False).name

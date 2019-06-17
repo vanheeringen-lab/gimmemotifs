@@ -24,7 +24,7 @@ if __name__ == "__main__":
         __version__
     )
 
-    epilog = """   
+    epilog = """
     commands:
         motifs      identify enriched motifs (known and/or de novo)
         maelstrom   find differential motifs
@@ -37,7 +37,7 @@ if __name__ == "__main__":
         diff        compare motif frequency and enrichment
                     between fasta files
         logo        create sequence logo(s)
-    
+
     type `gimme <command> -h` for more details
     """
 
@@ -61,9 +61,10 @@ if __name__ == "__main__":
     p.add_argument(
         "-b",
         "--background",
-        help="Background type ({}) or a file with background sequences (FASTA, BED or regions)".format(
-            ",".join(BED_VALID_BGS)
-        ),
+        help=(
+            "Background type ({}) or a file with background "
+            "sequences (FASTA, BED or regions)"
+        ).format(",".join(BED_VALID_BGS)),
         metavar="BACKGROUND",
     )
     p.add_argument(
@@ -172,8 +173,10 @@ if __name__ == "__main__":
         "-s",
         "--size",
         dest="size",
-        help="Region size to use for motif prediction (%s). Set to 0 to use the size of the input regions."
-        % params["size"],
+        help=(
+            "Region size to use for motif prediction ({}). "
+            "Set to 0 to use the size of the input regions."
+        ).format(params["size"]),
         metavar="N",
         default=params["size"],
         type=int,
@@ -485,7 +488,10 @@ if __name__ == "__main__":
     p = subparsers.add_parser("diff")
     p.add_argument(
         "inputfiles",
-        help="FASTA-formatted inputfiles OR a BED file with an identifier in the 4th column, for instance a cluster number.",
+        help=(
+            "FASTA-formatted inputfiles OR a BED file with an identifier in the 4th "
+            "column, for instance a cluster number."
+        ),
         metavar="FAFILES",
     )
     p.add_argument("bgfile", help="FASTA-formatted background file", metavar="BGFAFILE")
@@ -528,7 +534,10 @@ if __name__ == "__main__":
         "-g",
         "--genome",
         dest="genome",
-        help="Genome; only necessary in combination with a BED file with clusters as inputfile.",
+        help=(
+            "Genome; only necessary in combination with a BED file with clusters "
+            "as inputfile."
+        ),
         metavar="GENOME",
     )
     p.set_defaults(func=commands.diff)
@@ -578,7 +587,8 @@ if __name__ == "__main__":
         parser.print_help()
     elif sys.argv[1] == "roc":
         print(
-            "This command is deprecated. Use the following command for the same functionality:"
+            "This command is deprecated. "
+            "Use the following command for the same functionality:"
         )
         print()
         print("$ gimme motifs <inputfile> <outdir> --known")

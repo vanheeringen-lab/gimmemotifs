@@ -1,5 +1,4 @@
 """Calculate motif enrichment statistics."""
-import sys
 from multiprocessing import Pool
 import logging
 
@@ -22,7 +21,7 @@ def calc_stats_iterator(
     Parameters
     ----------
     motifs : str, list or Motif instance
-        A file with motifs in pwm format, a list of Motif instances or a 
+        A file with motifs in pwm format, a list of Motif instances or a
         single Motif instance.
 
     fg_file : str
@@ -33,9 +32,9 @@ def calc_stats_iterator(
 
     genome : str, optional
         Genome or index directory in case of BED/regions.
-    
+
     stats : list, optional
-        Names of metrics to calculate. See gimmemotifs.rocmetrics.__all__ 
+        Names of metrics to calculate. See gimmemotifs.rocmetrics.__all__
         for available metrics.
 
     ncpus : int, optional
@@ -74,7 +73,7 @@ def calc_stats_iterator(
         logger.debug(
             "chunk %s of %s", (i / chunksize) + 1, len(all_motifs) // chunksize + 1
         )
-        motifs = all_motifs[i : i + chunksize]
+        motifs = all_motifs[i: i + chunksize]
 
         fg_total = scan_to_best_match(
             fg_file, motifs, ncpus=ncpus, genome=genome, zscore=zscore, gc=gc
@@ -105,7 +104,7 @@ def calc_stats(
     Parameters
     ----------
     motifs : str, list or Motif instance
-        A file with motifs in pwm format, a list of Motif instances or a 
+        A file with motifs in pwm format, a list of Motif instances or a
         single Motif instance.
 
     fg_file : str
@@ -116,9 +115,9 @@ def calc_stats(
 
     genome : str, optional
         Genome or index directory in case of BED/regions.
-    
+
     stats : list, optional
-        Names of metrics to calculate. See gimmemotifs.rocmetrics.__all__ 
+        Names of metrics to calculate. See gimmemotifs.rocmetrics.__all__
         for available metrics.
 
     ncpus : int, optional

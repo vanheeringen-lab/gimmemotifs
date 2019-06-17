@@ -133,7 +133,7 @@ def scan_region(region, genome, motifs, nreport, scan_rc):
 
     # retrieve sequence
     chrom, start, end = re.split(r"[:-]", region)
-    seq = genome[chrom][int(start) : int(end)].seq.upper()
+    seq = genome[chrom][int(start): int(end)].seq.upper()
 
     return scan_sequence(seq, motifs, nreport, scan_rc)
 
@@ -255,7 +255,7 @@ def scan_it_moods(
         jobs.append(
             pool.apply_async(
                 func,
-                (fa[i : i + chunk], motifs, matrices, bg, thresholds, nreport, scan_rc),
+                (fa[i: i + chunk], motifs, matrices, bg, thresholds, nreport, scan_rc),
             )
         )
 
@@ -423,9 +423,9 @@ class Scanner(object):
     ):
         """Set the background to use for FPR and z-score calculations.
 
-        Background can be specified either as a genome name or as the 
+        Background can be specified either as a genome name or as the
         name of a FASTA file.
-        
+
         Parameters
         ----------
         fname : str, optional
@@ -476,7 +476,7 @@ class Scanner(object):
                 fa = None
 
             if not fa:
-                if gc == True:
+                if gc:
 
                     if gc_bins is None:
                         gc_bins = [(0.0, 0.2), (0.8, 1)]
@@ -486,7 +486,7 @@ class Scanner(object):
                     with NamedTemporaryFile() as tmp:
                         logger.info("using {} sequences".format(nseq))
                         gc_bin_bedfile(
-                            tmp.name, genome, number=nseq, l=size, bins=gc_bins
+                            tmp.name, genome, number=nseq, length=size, bins=gc_bins
                         )
                         fa = as_fasta(tmp.name, genome=genome)
                 else:
@@ -507,7 +507,7 @@ class Scanner(object):
             Desired FPR, between 0.0 and 1.0.
 
         threshold : float or str, optional
-            Desired motif threshold, expressed as the fraction of the 
+            Desired motif threshold, expressed as the fraction of the
             difference between minimum and maximum score of the PWM.
             Should either be a float between 0.0 and 1.0 or a filename
             with thresholds as created by 'gimme threshold'.
@@ -534,7 +534,7 @@ class Scanner(object):
         if not self.background:
             try:
                 self.set_background(gc=gc)
-            except:
+            except Exception:
                 raise ValueError("please run set_background() first")
 
         seqs = self.background.seqs
@@ -698,7 +698,7 @@ class Scanner(object):
                         m_mean, m_std = self.get_motif_mean_std(
                             gc_seq, self.motif_ids[i]
                         )
-                    except:
+                    except Exception:
                         print(self.meanstd)
                         print(gc_seq, self.motif_ids[i])
                         raise
@@ -839,12 +839,12 @@ class Scanner(object):
         batchsize = 1000
         if self.ncpus > 1:
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
-                batch = scan_seqs[i * batchsize : (i + 1) * batchsize]
+                batch = scan_seqs[i * batchsize: (i + 1) * batchsize]
                 chunksize = len(batch) // self.ncpus + 1
                 jobs = []
                 for j in range((len(batch) - 1) // chunksize + 1):
                     job = self.pool.apply_async(
-                        scan_func, (batch[j * chunksize : (j + 1) * chunksize],)
+                        scan_func, (batch[j * chunksize: (j + 1) * chunksize],)
                     )
                     jobs.append(job)
 
@@ -855,6 +855,6 @@ class Scanner(object):
         else:
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
                 for j, ret in enumerate(
-                    scan_func(scan_seqs[i * batchsize : (i + 1) * batchsize])
+                    scan_func(scan_seqs[i * batchsize: (i + 1) * batchsize])
                 ):
                     yield scan_seqs[i], ret
