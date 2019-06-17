@@ -18,11 +18,10 @@ warnings.warn = warn
 import os
 import sys
 import shutil
-from functools import partial
 
 try:
     from itertools import izip
-except:
+except ImportError:
     izip = zip
 import itertools
 import logging
@@ -30,8 +29,7 @@ from multiprocessing import Pool
 
 import pandas as pd
 import numpy as np
-from scipy.stats import ks_2samp, hypergeom, mannwhitneyu
-from scipy.cluster.hierarchy import linkage, fcluster
+from scipy.stats import hypergeom, mannwhitneyu
 from statsmodels.sandbox.stats.multicomp import multipletests
 from tqdm import tqdm
 
@@ -39,8 +37,7 @@ from tqdm import tqdm
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
 from sklearn.multiclass import OneVsRestClassifier
-from sklearn.linear_model import Ridge, MultiTaskLasso, BayesianRidge
-from sklearn.metrics.pairwise import pairwise_distances
+from sklearn.linear_model import MultiTaskLasso, BayesianRidge
 from sklearn.preprocessing import scale, LabelEncoder
 from lightning.classification import CDClassifier
 from lightning.regression import CDRegressor
@@ -77,10 +74,10 @@ class Moap(object):
         ----------
         name : str
             Name of the predictor (eg. Xgboost, BayesianRidge, ...)
-        
+
         ncpus : int, optional
             Number of threads. Default is the number specified in the config.
-        
+
         Returns
         -------
         moap : Moap instance
@@ -142,16 +139,16 @@ class BayesianRidgeMoap(Moap):
         Parameters
         ----------
         scale : boolean, optional, default True
-            If ``True``, the motif scores will be scaled 
+            If ``True``, the motif scores will be scaled
             before classification.
-        
+
         ncpus : int, optional
             Number of threads. Default is the number specified in the config.
 
         Attributes
         ----------
         act_ : DataFrame, shape (n_motifs, n_clusters)
-            Coefficients of the regression model. 
+            Coefficients of the regression model.
         """
 
         self.act_description = "activity values: coefficients of the" "regression model"
@@ -209,16 +206,16 @@ class XgboostRegressionMoap(Moap):
         Parameters
         ----------
         scale : boolean, optional, default True
-            If ``True``, the motif scores will be scaled 
+            If ``True``, the motif scores will be scaled
             before classification
-        
+
         ncpus : int, optional
             Number of threads. Default is the number specified in the config.
-       
+
         Attributes
         ----------
         act_ : DataFrame, shape (n_motifs, n_clusters)
-            Feature scores. 
+            Feature scores.
         """
 
         self.act_description = "activity values: feature scores from" "fitted model"
@@ -288,17 +285,17 @@ class XgboostRegressionMoap(Moap):
 @register_predictor("LightningRegressor")
 class LightningRegressionMoap(Moap):
     def __init__(self, scale=True, cv=3, ncpus=None):
-        """Predict motif activities using lightning CDRegressor 
+        """Predict motif activities using lightning CDRegressor
 
         Parameters
         ----------
         scale : boolean, optional, default True
-            If ``True``, the motif scores will be scaled 
+            If ``True``, the motif scores will be scaled
             before classification
-       
+
         cv : int, optional, default 3
             Cross-validation k-fold parameter.
-        
+
         ncpus : int, optional
             Number of threads. Default is the number specified in the config.
 
@@ -394,17 +391,17 @@ class LightningRegressionMoap(Moap):
 @register_predictor("LightningClassification")
 class LightningClassificationMoap(Moap):
     def __init__(self, scale=True, permute=False, ncpus=None):
-        """Predict motif activities using lightning CDClassifier 
+        """Predict motif activities using lightning CDClassifier
 
         Parameters
         ----------
         scale : boolean, optional, default True
-            If ``True``, the motif scores will be scaled 
+            If ``True``, the motif scores will be scaled
             before classification
-        
+
         ncpus : int, optional
             Number of threads. Default is the number specified in the config.
-       
+
         Attributes
         ----------
         act_ : DataFrame, shape (n_motifs, n_clusters)
@@ -465,8 +462,8 @@ class LightningClassificationMoap(Moap):
         y = y.values.flatten()
 
         # Convert (putative) string labels
-        l = LabelEncoder()
-        y = l.fit_transform(y)
+        label = LabelEncoder()
+        y = label.fit_transform(y)
 
         # Split data
         X_train, X_test, y_train, y_test = train_test_split(X, y)
@@ -493,13 +490,13 @@ class LightningClassificationMoap(Moap):
         coeffs = np.array([e.coef_ for e in b.estimators_]).mean(axis=0)
 
         # Create dataframe of predicted coefficients
-        if len(l.classes_) == 2:
+        if len(label.classes_) == 2:
             self.act_ = pd.DataFrame(np.hstack((-coeffs.T, coeffs.T)))
         else:
             self.act_ = pd.DataFrame(coeffs.T)
 
         # Convert labels back to original names
-        self.act_.columns = l.inverse_transform(range(len(l.classes_)))
+        self.act_.columns = label.inverse_transform(range(len(label.classes_)))
         self.act_.index = df_X.columns
 
         if self.permute:
@@ -511,7 +508,7 @@ class LightningClassificationMoap(Moap):
                 b.fit(X, y_random)
                 coeffs = np.array([e.coef_ for e in b.estimators_]).mean(axis=0)
 
-                if len(l.classes_) == 2:
+                if len(label.classes_) == 2:
                     random_dfs.append(pd.DataFrame(np.hstack((-coeffs.T, coeffs.T))))
                 else:
                     random_dfs.append(pd.DataFrame(coeffs.T))
@@ -535,14 +532,14 @@ class LightningClassificationMoap(Moap):
 class MWUMoap(Moap):
     def __init__(self, *args, **kwargs):
         """Predict motif activities using Mann-Whitney U p-value
-    
-        This method compares the motif score distribution of each 
-        cluster versus the motif score distribution of all other 
+
+        This method compares the motif score distribution of each
+        cluster versus the motif score distribution of all other
         clusters.
-        
+
         Parameters
         ----------
-       
+
         Attributes
         ----------
         act_ : DataFrame, shape (n_motifs, n_clusters)
@@ -598,7 +595,7 @@ class HypergeomMoap(Moap):
 
         Parameters
         ----------
-       
+
         Attributes
         ----------
         act_ : DataFrame, shape (n_motifs, n_clusters)
@@ -668,7 +665,7 @@ class RFMoap(Moap):
         ----------
         act_ : DataFrame, shape (n_motifs, n_clusters)
             feature importances from the model
-        
+
         """
         self.act_ = None
         if ncpus is None:
@@ -727,23 +724,23 @@ class LassoMoap(Moap):
         Parameters
         ----------
         scale : boolean, optional, default True
-            If ``True``, the motif scores will be scaled 
+            If ``True``, the motif scores will be scaled
             before classification
-     
+
         kfolds : integer, optional, default 5
             number of kfolds for parameter search
-        
+
         alpha_stepsize : float, optional, default 1.0
             stepsize for use in alpha gridsearch
 
         ncpus : int, optional
             Number of threads. Default is the number specified in the config.
-        
+
         Attributes
         ----------
         act_ : DataFrame, shape (n_motifs, n_clusters)
             fitted motif activities
-    
+
         sig_ : DataFrame, shape (n_motifs,)
             boolean values, if coefficients are higher/lower than
             the 1%t from random permutation
@@ -852,48 +849,48 @@ def moap(
     gc=True,
 ):
     """Run a single motif activity prediction algorithm.
-    
+
     Parameters
     ----------
     inputfile : str
-        :1File with regions (chr:start-end) in first column and either cluster 
+        :1File with regions (chr:start-end) in first column and either cluster
         name in second column or a table with values.
-    
+
     method : str, optional
-        Motif activity method to use. Any of 'hypergeom', 'lasso', 
-        'lightningclassification', 'lightningregressor', 'bayesianridge', 
-        'rf', 'xgboost'. Default is 'hypergeom'. 
-    
+        Motif activity method to use. Any of 'hypergeom', 'lasso',
+        'lightningclassification', 'lightningregressor', 'bayesianridge',
+        'rf', 'xgboost'. Default is 'hypergeom'.
+
     scoring:  str, optional
         Either 'score' or 'count'
-    
+
     outfile : str, optional
         Name of outputfile to save the fitted activity values.
-    
+
     motiffile : str, optional
         Table with motif scan results. First column should be exactly the same
         regions as in the inputfile.
-    
+
     pwmfile : str, optional
-        File with motifs in pwm format. Required when motiffile is not 
+        File with motifs in pwm format. Required when motiffile is not
         supplied.
-    
+
     genome : str, optional
         Genome name, as indexed by gimme. Required when motiffile is not
         supplied
-    
+
     fpr : float, optional
         FPR for motif scanning
-    
+
     ncpus : int, optional
         Number of threads to use. Default is the number specified in the config.
 
     zscore : bool, optional
         Use z-score normalized motif scores.
-    
+
     gc : bool optional
         Use GC% bins for z-score.
-    
+
     Returns
     -------
     pandas DataFrame with motif activity
@@ -925,7 +922,7 @@ def moap(
         pwmfile = pwmfile_location(pwmfile)
         try:
             motifs = read_motifs(pwmfile)
-        except:
+        except Exception:
             sys.stderr.write("can't read motifs from {}".format(pwmfile))
             raise
 

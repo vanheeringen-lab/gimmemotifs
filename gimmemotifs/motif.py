@@ -44,7 +44,7 @@ class Motif(object):
     0   0   1   0
     >>> print(motif.to_consensus())
     CwG
-    
+
     """
 
     PSEUDO_PFM_COUNT = 1000  # Jaspar mean
@@ -218,7 +218,7 @@ class Motif(object):
         ----------
         kmer : str
             String representing a kmer. Should be the same length as the motif.
-        
+
         Returns
         -------
         score : float
@@ -243,7 +243,7 @@ class Motif(object):
             2-dimensional list with counts.
         pseudo : float
             Pseudocount used in conversion.
-        
+
         Returns
         -------
         pwm : list
@@ -256,7 +256,7 @@ class Motif(object):
 
     def to_motevo(self):
         """Return motif formatted in MotEvo (TRANSFAC-like) format
-        
+
         Returns
         -------
         m : str
@@ -272,7 +272,7 @@ class Motif(object):
 
     def to_transfac(self):
         """Return motif formatted in TRANSFAC format
-        
+
         Returns
         -------
         m : str
@@ -286,7 +286,7 @@ class Motif(object):
 
     def to_meme(self):
         """Return motif formatted in MEME format
-        
+
         Returns
         -------
         m : str
@@ -366,7 +366,7 @@ class Motif(object):
         Parameters
         ----------
         edge_ic_cutoff : float, optional
-            Information content threshold. All motif positions at the flanks 
+            Information content threshold. All motif positions at the flanks
             with an information content lower thab this will be removed.
 
         Returns
@@ -397,7 +397,7 @@ class Motif(object):
         ----------
         fa : Fasta object
             Fasta object to scan
-        
+
         Returns
         -------
         matches : dict
@@ -418,8 +418,8 @@ class Motif(object):
     def pwm_scan(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
         """Scan sequences with this motif.
 
-        Scan sequences from a FASTA object with this motif. Less efficient 
-        than using a Scanner object. By setting the cutoff to 0.0 and 
+        Scan sequences from a FASTA object with this motif. Less efficient
+        than using a Scanner object. By setting the cutoff to 0.0 and
         nreport to 1, the best match for every sequence will be returned.
         Only the position of the matches is returned.
 
@@ -434,7 +434,7 @@ class Motif(object):
             Maximum number of matches to report.
         scan_rc : bool , optional
             Scan the reverse complement. True by default.
-        
+
         Returns
         -------
         matches : dict
@@ -457,8 +457,8 @@ class Motif(object):
     def pwm_scan_all(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
         """Scan sequences with this motif.
 
-        Scan sequences from a FASTA object with this motif. Less efficient 
-        than using a Scanner object. By setting the cutoff to 0.0 and 
+        Scan sequences from a FASTA object with this motif. Less efficient
+        than using a Scanner object. By setting the cutoff to 0.0 and
         nreport to 1, the best match for every sequence will be returned.
         The score, position and strand for every match is returned.
 
@@ -473,11 +473,11 @@ class Motif(object):
             Maximum number of matches to report.
         scan_rc : bool , optional
             Scan the reverse complement. True by default.
-        
+
         Returns
         -------
         matches : dict
-            Dictionary with motif matches. The score, position and strand for 
+            Dictionary with motif matches. The score, position and strand for
             every match is returned.
         """
         c = (
@@ -499,7 +499,7 @@ class Motif(object):
         Parameters
         ----------
         kind : str, optional
-            Type of logo to plot, can be 'information', 'frequency', 'energy' or 
+            Type of logo to plot, can be 'information', 'frequency', 'energy' or
             'ensembl'.
         fname : str, optional
             If fname is set, the plot will be saved with fname as filename.
@@ -555,7 +555,7 @@ class Motif(object):
                 figsize=(fig_width * matrix.shape[0], fig_height * 2),
             )
             if ylabel:
-                logo.ax.set_ylabel("$\Delta \Delta G$/RT", labelpad=-1, fontsize=16)
+                logo.ax.set_ylabel(r"$\Delta \Delta G$/RT", labelpad=-1, fontsize=16)
         else:
             raise ValueError("Unknown motif visualization")
 
@@ -573,10 +573,10 @@ class Motif(object):
         self, fname=None, ic=True, title=True, letters=True, height=2
     ):
         """Plot motif logo.
-        
+
         This is an implementation of the logo presented here:
         http://www.ensembl.info/2018/10/15/new-ensembl-motif-features/
-        
+
         Parameters
         ----------
         fname : str, optional
@@ -690,8 +690,8 @@ class Motif(object):
     def pwm_scan_score(self, fa, cutoff=0, nreport=1, scan_rc=True):
         """Scan sequences with this motif.
 
-        Scan sequences from a FASTA object with this motif. Less efficient 
-        than using a Scanner object. By setting the cutoff to 0.0 and 
+        Scan sequences from a FASTA object with this motif. Less efficient
+        than using a Scanner object. By setting the cutoff to 0.0 and
         nreport to 1, the best match for every sequence will be returned.
         Only the score of the matches is returned.
 
@@ -706,7 +706,7 @@ class Motif(object):
             Maximum number of matches to report.
         scan_rc : bool , optional
             Scan the reverse complement. True by default.
-        
+
         Returns
         -------
         matches : dict
@@ -731,8 +731,8 @@ class Motif(object):
     ):
         """Scan sequences with this motif and save to a GFF file.
 
-        Scan sequences from a FASTA object with this motif. Less efficient 
-        than using a Scanner object. By setting the cutoff to 0.0 and 
+        Scan sequences from a FASTA object with this motif. Less efficient
+        than using a Scanner object. By setting the cutoff to 0.0 and
         nreport to 1, the best match for every sequence will be returned.
         The output is save to a file in GFF format.
 
@@ -790,7 +790,7 @@ class Motif(object):
         Combine this motif with another motif and return the average as a new
         Motif object. The position and orientatien need to be supplied. The pos
         parameter is the position of the second motif relative to this motif.
-        
+
         For example, take the following two motifs:
         Motif 1: CATGYT
         Motif 2: GGCTTGY
@@ -806,12 +806,12 @@ class Motif(object):
         pos : int
             Position of the second motif relative to this motif.
         orientation : int
-            Orientation, should be 1 or -1. If the orientation is -1 then the 
+            Orientation, should be 1 or -1. If the orientation is -1 then the
             reverse complement of the other motif is used for averaging.
         include_bg : bool , optional
             Extend both motifs with background frequencies (0.25) before
             averaging. False by default.
-        
+
         Returns
         -------
         motif : motif object
@@ -1213,10 +1213,10 @@ class Motif(object):
         ----------
         precision : int, optional, default 4
             Floating-point precision.
-        
+
         extra_str |: str, optional
             Extra text to include with motif id line.
-        
+
         Returns
         -------
         motif_str : str
@@ -1235,20 +1235,20 @@ class Motif(object):
     def to_img(self, fname, fmt="PNG", add_left=0, seqlogo=None, height=6):
         """Create a sequence logo using seqlogo.
 
-        Create a sequence logo and save it to a file. Valid formats are: PNG, 
-        EPS, GIF and PDF. 
+        Create a sequence logo and save it to a file. Valid formats are: PNG,
+        EPS, GIF and PDF.
 
         Parameters
         ----------
         fname : str
             Output filename.
         fmt : str , optional
-            Output format (case-insensitive). Valid formats are PNG, EPS, GIF 
+            Output format (case-insensitive). Valid formats are PNG, EPS, GIF
             and PDF.
         add_left : int , optional
             Pad motif with empty positions on the left side.
         seqlogo : str
-            Location of the seqlogo executable. By default the seqlogo version 
+            Location of the seqlogo executable. By default the seqlogo version
             that is included with GimmeMotifs is used.
         height : float
             Height of the image
@@ -1311,14 +1311,14 @@ def default_motifs():
 def motif_from_align(align):
     """Convert alignment to motif.
 
-    Converts a list with sequences to a motif. Sequences should be the same 
+    Converts a list with sequences to a motif. Sequences should be the same
     length.
 
     Parameters
     ----------
     align : list
         List with sequences (A,C,G,T).
-    
+
     Returns
     -------
     m : Motif instance
@@ -1338,8 +1338,8 @@ def motif_from_align(align):
 def motif_from_consensus(cons, n=12):
     """Convert consensus sequence to motif.
 
-    Converts a consensus sequences using the nucleotide IUPAC alphabet to a 
-    motif. 
+    Converts a consensus sequences using the nucleotide IUPAC alphabet to a
+    motif.
 
     Parameters
     ----------
@@ -1347,7 +1347,7 @@ def motif_from_consensus(cons, n=12):
         Consensus sequence using the IUPAC alphabet.
     n : int , optional
         Count used to convert the sequence to a PFM.
-    
+
     Returns
     -------
     m : Motif instance
@@ -1398,7 +1398,7 @@ def parse_motifs(motifs):
 
 
 def _read_motifs_from_filehandle(handle, fmt):
-    """ 
+    """
     Read motifs from a file-like object.
 
     Parameters
@@ -1407,11 +1407,11 @@ def _read_motifs_from_filehandle(handle, fmt):
         Motifs.
     fmt : string, optional
         Motif format, can be 'pwm', 'transfac', 'xxmotif', 'jaspar' or 'align'.
-    
+
     Returns
     -------
     motifs : list
-        List of Motif instances. 
+        List of Motif instances.
     """
     if fmt.lower() == "pwm":
         motifs = _read_motifs_pwm(handle)
@@ -1448,7 +1448,7 @@ def _read_motifs_from_filehandle(handle, fmt):
                             m2f_indirect[motif] = m2f_indirect.get(motif, []) + [
                                 factor_info[0]
                             ]
-                except:
+                except Exception:
                     pass
             for motif in motifs:
                 if motif.id in m2f_direct:
@@ -1469,20 +1469,20 @@ def read_motifs(infile=None, fmt="pwm", as_dict=False):
     Parameters
     ----------
     infile : string or file-like object, optional
-        Motif database, filename of motif file or file-like object. If infile 
-        is not specified the default motifs as specified in the config file 
+        Motif database, filename of motif file or file-like object. If infile
+        is not specified the default motifs as specified in the config file
         will be returned.
 
     fmt : string, optional
         Motif format, can be 'pwm', 'transfac', 'xxmotif', 'jaspar' or 'align'.
-    
+
     as_dict : boolean, optional
         Return motifs as a dictionary with motif_id, motif pairs.
-    
+
     Returns
     -------
     motifs : list
-        List of Motif instances. If as_dict is set to True, motifs is a 
+        List of Motif instances. If as_dict is set to True, motifs is a
         dictionary.
     """
     if infile is None or isinstance(infile, six.string_types):
@@ -1500,7 +1500,7 @@ def read_motifs(infile=None, fmt="pwm", as_dict=False):
 
 def _read_motifs_pwm(handle):
     p = re.compile(
-        r"(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)"
+        r"(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)"  # noqa: E501
     )
     motifs = []
     pfm = []
@@ -1560,7 +1560,7 @@ def _read_motifs_jaspar(handle):
                     motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
                     motif.id = motif_id
                     motifs.append(motif)
-            except:
+            except Exception:
                 raise ValueError("Can't parse line\n" + line)
 
     if motif_id and motifs[-1].id != motif_id:
