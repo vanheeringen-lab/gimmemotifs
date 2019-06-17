@@ -591,7 +591,8 @@ def gimme_motifs(
     elif input_type == "narrowpeak":
         logger.info("preparing input from narrowPeak")
         prepare_denovo_input_narrowpeak(inputfile, params, tmpdir)
-    elif input_type == "preparing input from FASTA":
+    elif input_type == "fasta":
+        logger.info("preparing input from FASTA")
         prepare_denovo_input_fa(inputfile, params, tmpdir)
     else:
         logger.error("unknown input file format!")
