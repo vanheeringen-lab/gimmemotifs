@@ -1,12 +1,7 @@
 from setuptools import setup, find_packages
-from setuptools import Extension, Command
-from distutils.command.build import build
-from setuptools.command.install import install
-import distutils.command.install as orig
+from setuptools import Extension
 
 import os
-import glob
-import sys
 from io import open
 from compile_externals import compile_all
 import versioneer
@@ -104,11 +99,7 @@ setup(
     + versioneer.get_version(),
     license="MIT",
     packages=find_packages(),
-    scripts=[
-        "scripts/gimme",
-        "scripts/combine_peaks",
-        "scripts/coverage_table",
-    ],
+    scripts=["scripts/gimme", "scripts/combine_peaks", "scripts/coverage_table"],
     include_package_data=True,
     ext_modules=[module1],
     cmdclass=cmdclass,
