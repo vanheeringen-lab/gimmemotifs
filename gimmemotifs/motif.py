@@ -493,7 +493,9 @@ class Motif(object):
                 matches[name].append((pos, score, strand))
         return matches
 
-    def plot_logo(self, kind="information", fname=None, title=True, ylabel=True):
+    def plot_logo(
+        self, kind="information", fname=None, title=True, ylabel=True, add_left=None
+    ):
         """Plot motif logo
 
         Parameters
@@ -507,10 +509,15 @@ class Motif(object):
             Plot the motif id as the title.
         ylabel : bool, optional
             Plot the Y axis label.
+        add_left : int, optional
+            Add non-informative positions to the left (to align logo)
         """
         fig_height = 3
         fig_width = 0.45
-        matrix = pd.DataFrame(self.pfm, columns=["A", "C", "G", "T"])
+
+        total = sum(motif.pfm[0]) / 4
+        pfm = [[n] * 4] * add_left + self.pfm
+        matrix = pd.DataFrame(pfm, columns=["A", "C", "G", "T"])
         if kind == "ensembl":
             self.plot_ensembl_logo(fname=None, title=title)
             return

@@ -122,10 +122,10 @@ def match_plot(plotdata, outfile):
             axes_off(grid[j])
 
         tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
-        motif.to_img(tmp.name, fmt="PNG", height=6)
+        motif.plot_logo(fname=tmp.name, title=False)
         grid[0].imshow(plt.imread(tmp.name), interpolation="none")
         tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
-        dbmotif.to_img(tmp.name, fmt="PNG")
+        dbmotif.plot_logo(fname=tmp.name, title=False)
         grid[1].imshow(plt.imread(tmp.name), interpolation="none")
 
         ax = plt.subplot(nrows, ncols, i * 2 + 2)
@@ -306,7 +306,7 @@ def diff_plot(
         ax = plt.subplot(gs[i + nbar, plot_order[0]])
         axes_off(ax)
         tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
-        pwms[motif].to_img(tmp.name, fmt="PNG", height=6)
+        pwms[motif].plot_logo(fname=tmp.name, title=False)
         ax.imshow(plt.imread(tmp.name), interpolation="none")
 
     # plt.show()

@@ -138,7 +138,7 @@ def _create_graphical_report(
         rm.id_href = {"href": "#%s" % motif.id}
         rm.id_name = {"name": motif.id}
         rm.img = {"src": os.path.join("images", "%s.png" % motif.id)}
-        motif.to_img(os.path.join(outdir, "images/{}.png".format(motif.id)), fmt="PNG")
+        motif.plot_logo(fname=os.path.join(outdir, "images/{}.png".format(motif.id)))
 
         # TODO: fix best ID
         rm.best = "Gimme"  # best_id[motif.id]
@@ -172,8 +172,8 @@ def _create_graphical_report(
         rm.histogram_link = {"href": "images/%s_histogram.svg" % motif.id}
 
         match_id = closest_match[motif.id][0]
-        dbmotifs[match_id].to_img(
-            os.path.join(outdir, "images/{}.png".format(match_id)), fmt="PNG"
+        dbmotifs[match_id].plot_logo(
+            fname=os.path.join(outdir, "images/{}.png".format(match_id))
         )
 
         rm.match_img = {"src": "images/{}.png".format(match_id)}
@@ -292,9 +292,8 @@ def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
         os.makedirs(outdir + "/logos")
     for motif in motifs:
         if motif.id in df.index:
-            motif.to_img(
-                outdir + "/logos/{}.png".format(re.sub("[()/]", "_", motif.id)),
-                fmt="PNG",
+            motif.plot_logo(
+                fname=outdir + "/logos/{}.png".format(re.sub("[()/]", "_", motif.id))
             )
 
     template_dir = MotifConfig().get_template_dir()
@@ -389,9 +388,9 @@ def roc_html_report(outdir, infile, pwmfile, threshold=0.01):
         os.makedirs(outdir + "/logos")
     for motif in motifs:
         if motif.id in df.index:
-            motif.to_img(
-                outdir + "/logos/{}.png".format(re.sub(r"[^-_\w]+", "_", motif.id)),
-                fmt="PNG",
+            motif.plot_logo(
+                fname=outdir
+                + "/logos/{}.png".format(re.sub(r"[^-_\w]+", "_", motif.id))
             )
 
     bar_cols = [

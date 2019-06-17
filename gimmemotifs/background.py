@@ -299,7 +299,7 @@ class MarkovFasta(Fasta):
     def _weighted_random(self, l):
         n = random.uniform(0, 1)
         item = None
-        for _item, weight in l:
+        for item, weight in l:  # noqa: B007
             if n < weight:
                 break
             else:

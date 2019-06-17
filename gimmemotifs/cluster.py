@@ -293,7 +293,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
     for cluster, members in clusters:
         cluster.trim(trim_ic)
         png = "images/{}.png".format(cluster.id)
-        cluster.to_img(os.path.join(outdir, png), fmt="PNG")
+        cluster.plot_logo(fname=os.path.join(outdir, png))
         ids.append([cluster.id, {"src": png}, []])
         if len(members) > 1:
             scores = {}
@@ -314,7 +314,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
                     motif = rc
                 # print "%s\t%s" % (motif.id, add)
                 png = "images/{}.png".format(motif.id.replace(" ", "_"))
-                motif.to_img(os.path.join(outdir, png), fmt="PNG", add_left=add)
+                motif.to_logo(fname=os.path.join(outdir, png), add_left=add)
         ids[-1][2] = [
             dict(
                 [
