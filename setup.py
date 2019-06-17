@@ -105,7 +105,6 @@ setup(
     license="MIT",
     packages=find_packages(),
     scripts=[
-        "scripts/track2fasta.py",
         "scripts/gimme",
         "scripts/combine_peaks",
         "scripts/coverage_table",
