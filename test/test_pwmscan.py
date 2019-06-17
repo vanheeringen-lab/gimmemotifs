@@ -1,5 +1,5 @@
 import unittest
-import tempfile
+from tempfile import NamedTemporaryFile
 import os
 from gimmemotifs.motif import *
 from gimmemotifs.fasta import Fasta

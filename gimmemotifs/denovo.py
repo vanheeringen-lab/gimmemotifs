@@ -574,6 +574,7 @@ def gimme_motifs(
     logger.info("starting full motif analysis")
     logger.debug("Using temporary directory %s", mytmpdir())
 
+    params["size"] = int(params["size"])
     if params["size"] > 0:
         logger.info(
             "using size of {}, set size to 0 to use original region size".format(
