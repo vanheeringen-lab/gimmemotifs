@@ -8,7 +8,6 @@ import configparser
 import sysconfig
 import xdg
 import os
-import sys
 import logging
 import pkg_resources
 import inspect
@@ -16,7 +15,7 @@ from gimmemotifs.shutils import which
 
 logger = logging.getLogger("gimme.config")
 
-### CONSTANTS ###
+# CONSTANTS #
 BG_TYPES = ["random", "genomic", "gc", "promoter"]
 FA_VALID_BGS = ["random", "promoter", "gc", "custom", "genomic"]
 BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "custom"]
@@ -90,7 +89,7 @@ class MotifConfig(object):
         logger.info("Creating new config.")
 
         available_tools = []
-        cfg = self.config.read(self.default_config)
+        self.config.read(self.default_config)
         for m in MOTIF_CLASSES:
             try:
                 exe = self.config.get(m, "bin")
@@ -134,7 +133,7 @@ class MotifConfig(object):
                     mdir = os.path.join(self.package_dir, mdir)
                 exe = os.path.join(mdir, exe)
 
-        except:
+        except Exception:
             raise ValueError("No configuration found for %s" % program)
         return exe
 
@@ -238,7 +237,7 @@ class MotifConfig(object):
 
 
 def parse_denovo_params(user_params=None):
-    """Return default GimmeMotifs parameters. 
+    """Return default GimmeMotifs parameters.
 
     Defaults will be replaced with parameters defined in user_params.
 

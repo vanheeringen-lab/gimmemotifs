@@ -10,12 +10,9 @@ import re
 import sys
 import random
 from math import log, sqrt
-import subprocess as sp
-from tempfile import NamedTemporaryFile
 from warnings import warn
 import six
 
-from gimmemotifs import mytmpdir
 from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 from gimmemotifs.c_metrics import pfmscan
 from gimmemotifs.utils import pwmfile_location
@@ -26,7 +23,6 @@ try:
 except ImportError:
     pass
 import xxhash
-import base64
 import matplotlib.pyplot as plt
 import logomaker as lm
 import pandas as pd
@@ -503,7 +499,8 @@ class Motif(object):
         Parameters
         ----------
         kind : str, optional
-            Type of logo to plot, can be 'information', 'frequency', 'energy' or 'ensembl'.
+            Type of logo to plot, can be 'information', 'frequency', 'energy' or 
+            'ensembl'.
         fname : str, optional
             If fname is set, the plot will be saved with fname as filename.
         title : bool, optional
@@ -1276,14 +1273,14 @@ class Motif(object):
         return m
 
     def randomize_dimer(self):
-        l = len(self.pfm)
+        length = len(self.pfm)
         random_pfm = []
-        for _ in range(l / 2):
-            pos = random.randint(0, l - 1)
+        for _ in range(length / 2):
+            pos = random.randint(0, length - 1)
             random_pfm += [[c for c in row] for row in self.pfm[pos : pos + 2]]
-        m = Motif(pfm=random_pfm)
-        m.id = "random"
-        return m
+        motif = Motif(pfm=random_pfm)
+        motif.id = "random"
+        return motif
 
     def wiggle_pwm(self):
         if self.wiggled_pwm is None:

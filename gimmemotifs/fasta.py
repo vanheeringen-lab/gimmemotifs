@@ -39,22 +39,24 @@ class Fasta(object):
     def hardmask(self):
         """ Mask all lowercase nucleotides with N's """
         p = re.compile("a|c|g|t|n")
-        for seq_id in self.fasta_dict.keys():
-            self.fasta_dict[seq_id] = p.sub("N", self.fasta_dict[seq_id])
+        for seq_id in self.ids:
+            self[seq_id] = p.sub("N", self[seq_id])
         return self
 
-    def get_random(self, n, l=None):
+    def get_random(self, n, length=None):
         """ Return n random sequences from this Fasta object """
         random_f = Fasta()
-        if l:
+        if length:
             ids = self.ids[:]
             random.shuffle(ids)
             i = 0
             while (i < n) and (len(ids) > 0):
                 seq_id = ids.pop()
-                if len(self[seq_id]) >= l:
-                    start = random.randint(0, len(self[seq_id]) - l)
-                    random_f["random%s" % (i + 1)] = self[seq_id][start : start + l]
+                if len(self[seq_id]) >= length:
+                    start = random.randint(0, len(self[seq_id]) - length)
+                    random_f["random%s" % (i + 1)] = self[seq_id][
+                        start : start + length
+                    ]
                     i += 1
             if len(random_f) != n:
                 sys.stderr.write("Not enough sequences of required length")

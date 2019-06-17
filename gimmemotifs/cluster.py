@@ -33,7 +33,7 @@ class MotifTree(object):
         self.maxscore = 0
         self.frontier = False
 
-    def setFrontier(self, arg, root):
+    def setFrontier(self, _arg, root):
         self.frontier = True
         if self != root:
             self.parent.setFrontier(True, root)
@@ -96,7 +96,7 @@ def cluster_motifs(
     progress=True,
     ncpus=None,
 ):
-    """ 
+    """
     Clusters a set of sequence motifs. Required arg 'motifs' is a file containing
     positional frequency matrices or an array with motifs.
 
@@ -106,22 +106,22 @@ def cluster_motifs(
     the motifs. By default the WIC score is used (metric='wic'), using the the
     score over the whole alignment (match='total'), with the total motif score
     calculated as the mean score of all positions (combine='mean').
-    'match' can be either 'total' for the total alignment or 'subtotal' for the 
+    'match' can be either 'total' for the total alignment or 'subtotal' for the
     maximum scoring subsequence of the alignment.
     'metric' can be any metric defined in MotifComparer, currently: 'pcc', 'ed',
-    'distance', 'wic' or 'chisq' 
-    'combine' determines how the total score is calculated from the score of 
+    'distance', 'wic' or 'chisq'
+    'combine' determines how the total score is calculated from the score of
     individual positions and can be either 'sum' or 'mean'
-    
-    'pval' can be True or False and determines if the score should be converted to 
+
+    'pval' can be True or False and determines if the score should be converted to
     an empirical p-value
 
     'threshold' determines the score (or p-value) cutoff
 
-    If 'trim_edges' is set to True, all motif edges with an IC below 
+    If 'trim_edges' is set to True, all motif edges with an IC below
     'edge_ic_cutoff' will be removed before clustering
 
-    When computing the average of two motifs 'include_bg' determines if, at a 
+    When computing the average of two motifs 'include_bg' determines if, at a
     position only present in one motif, the information in that motif should
     be kept, or if it should be averaged with background frequencies. Should
     probably be left set to True.
@@ -171,12 +171,12 @@ def cluster_motifs(
     total = len(cluster_nodes)
 
     while len(cluster_nodes) > 1:
-        l = sorted(scores.keys(), key=lambda x: scores[x][0])
+        length = sorted(scores.keys(), key=lambda x: scores[x][0])
         i = -1
-        (n1, n2) = l[i]
+        (n1, n2) = length[i]
         while n1 not in cluster_nodes or n2 not in cluster_nodes:
             i -= 1
-            (n1, n2) = l[i]
+            (n1, n2) = length[i]
 
         if len(n1.motif) > 0 and len(n2.motif) > 0:
             (score, pos, orientation) = scores[(n1, n2)]
@@ -207,7 +207,7 @@ def cluster_motifs(
                 )[0]
 
             new_node.mergescore = score
-            # print "%s + %s = %s with score %s" % (n1.motif.id, n2.motif.id, ave_motif.id, score)
+
             n1.parent = new_node
             n2.parent = new_node
             new_node.left = n1
@@ -303,7 +303,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
                 )
             add_pos = sorted(scores.values(), key=lambda x: x[1])[0][1]
             for motif in members:
-                score, pos, strand = scores[motif]
+                _score, pos, strand = scores[motif]
                 add = pos - add_pos
 
                 if strand in [1, "+"]:

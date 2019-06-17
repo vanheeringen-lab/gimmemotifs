@@ -4,10 +4,10 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 
-""" 
+"""
 Classes to generate background files in FASTA format. Two different methods are
-included: MarkovFasta, which generates a background according to a 1st order 
-Markov model and MatchedGenomicFasta, which generates a background with a 
+included: MarkovFasta, which generates a background according to a 1st order
+Markov model and MatchedGenomicFasta, which generates a background with a
 similar genomic distribution as the input.
 
 """
@@ -49,11 +49,11 @@ def create_background_file(
     outfile : str
         Name of the output file.
     bg_type : str
-        Type of background (gc, genomic, random or promoter). 
+        Type of background (gc, genomic, random or promoter).
     fmt : str, optional
         Either 'fasta' or 'bed'.
     size : int, optional
-        Size of the generated sequences, is determined from the inputfile if not 
+        Size of the generated sequences, is determined from the inputfile if not
         given.
     genome : str, optional
     inputfile : str, optional
@@ -106,9 +106,7 @@ def create_background_file(
     if number is None:
         if inputfile:
             number = number_of_seqs_in_file(inputfile)
-            logger.info(
-                "Using {} of background sequences based on input file".format(number)
-            )
+            logger.info("Using %s of background sequences based on input file", number)
         else:
             number = 10000
             logger.info(
@@ -194,9 +192,9 @@ def create_promoter_bedfile(out, genefile, size, n):
 
 
 class MarkovFasta(Fasta):
-    """ 
+    """
     Generates a new Fasta object containing sequences using a 1st order Markov
-    model, based on the input sequences. By default 10 times as many sequences 
+    model, based on the input sequences. By default 10 times as many sequences
     will be generated with the same size as the input sequences.
 
     Required arg 'fasta' is a Fasta object
@@ -206,14 +204,14 @@ class MarkovFasta(Fasta):
     order
 
     Returns a Fasta object
-    
+
     Example:
-        
+
         f = Fasta("input.fa")
         random_fa = MarkovFasta(f, multiply = 5)
         for id,seq in random_fa.items():
             print seq
-    
+
     """
 
     def __init__(self, fasta, size=None, n=None, k=1, matrix_only=False):
@@ -355,10 +353,10 @@ def create_gc_bin_index(genome, fname, min_bin_size=100):
 
 
 def gc_bin_bedfile(
-    bedfile, genome, number, l=200, bins=None, random_state=None, min_bin_size=100
+    bedfile, genome, number, length=200, bins=None, random_state=None, min_bin_size=100
 ):
     """Create a BED file from different GC bins.
-    
+
     Parameters
     ----------
     bedfile : str
@@ -367,7 +365,7 @@ def gc_bin_bedfile(
         Genome name.
     number : int
         Number of sequences to retrieve.
-    l : int, optional
+    length : int, optional
         size of the sequences, default is 200.
     bins : list, optional
         GC frequency bins to use, for instance [(0,50),(50,100)]
@@ -390,27 +388,29 @@ def gc_bin_bedfile(
 
     df = pd.read_feather(fname)
 
-    if l >= min_bin_size:
-        col = "w{}".format(((l + min_bin_size // 2) // min_bin_size) * min_bin_size)
+    if length >= min_bin_size:
+        col = "w{}".format(
+            ((length + min_bin_size // 2) // min_bin_size) * min_bin_size
+        )
     else:
-        logger.warn(
-            "For regions smaller than {}nt, GC% will not be exact".format(min_bin_size)
+        logger.warning(
+            "For regions smaller than %s nt, GC%% will not be exact", min_bin_size
         )
         col = "w{}".format(min_bin_size)
 
-    if not col in df.columns:
+    if col not in df.columns:
         df[col] = (
             df.iloc[:, 3]
-            .rolling(l // min_bin_size, min_periods=l // min_bin_size)
+            .rolling(length // min_bin_size, min_periods=length // min_bin_size)
             .mean()
         )
         df[col.replace("w", "n")] = (
             df.iloc[:, 3]
-            .rolling(l // min_bin_size, min_periods=l // min_bin_size)
+            .rolling(length // min_bin_size, min_periods=length // min_bin_size)
             .sum()
         )
 
-    df = df[df[col.replace("w", "n")] < 0.1 * l]
+    df = df[df[col.replace("w", "n")] < 0.1 * length]
     n = number // len(bins)
 
     with open(bedfile, "w") as f:
@@ -423,7 +423,7 @@ def gc_bin_bedfile(
             df_bin = df[(df[col] > b_start) & (df[col] <= b_end)]
             # print(df_bin)
             if df_bin.shape[0] > 0:
-                df_bin["start"] = df_bin["end"] - l
+                df_bin["start"] = df_bin["end"] - length
                 df_bin = df_bin[df_bin["start"] > 0]
                 df_bin = df_bin.sample(n, replace=True, random_state=random_state)
                 df_bin["bin"] = "{:.2f}-{:.2f}".format(b_start, b_end)
@@ -434,7 +434,7 @@ def gc_bin_bedfile(
 
 def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_size=100):
     """Create a BED file with GC% matched to input file.
-    
+
     Parameters
     ----------
     bedfile : str
@@ -467,7 +467,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
             )
             sizes = np.array([x.length for x in bed])
             gc = [round(x, 2) for x in gc]
-        except:
+        except Exception:
             sys.stderr.write("Please provide input file in BED or FASTA format\n")
             raise
 
@@ -506,7 +506,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
             tmp.name,
             genome,
             nseqs,
-            l=size,
+            length=size,
             bins=bins,
             random_state=None,
             min_bin_size=min_bin_size,
@@ -525,18 +525,18 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
 
 
 class MatchedGcFasta(Fasta):
-    """ 
+    """
     Generates a new Fasta object containing sequences randomly selected from
     the genome. These sequences are selected in such a way that the GC%
     distribution is similar to the GC% distribution og the input sequences.
-   
+
     Required arg 'matchfile' is a BED or FASTA file
-    
-    Optional arg 'number' specifies the number of sequences to generate, 
+
+    Optional arg 'number' specifies the number of sequences to generate,
     default is the number of input sequences/
 
     Returns a Fasta object
-    
+
     """
 
     def __init__(self, matchfile, genome="hg19", number=None, size=None):
@@ -559,18 +559,18 @@ class MatchedGcFasta(Fasta):
 
 
 class PromoterFasta(Fasta):
-    """ 
+    """
     Generates a new Fasta object containing randomly selected promoters.
     A BED file of gene coordinates is used to extract sequences of a specified
     size upstream of the the TSS.
-    
-    Required arg 'genefile' is a file containing genes BED format (at least 6 
-    columns including the strand information). 
-    Required arg 'size' specifies the size 
+
+    Required arg 'genefile' is a file containing genes BED format (at least 6
+    columns including the strand information).
+    Required arg 'size' specifies the size
     Required arg 'in' specifies the number of sequences to generate.
 
     Returns a Fasta object
-    
+
     """
 
     def __init__(self, genefile, genome, size=None, n=None):
@@ -595,15 +595,14 @@ class PromoterFasta(Fasta):
 
 
 class RandomGenomicFasta(Fasta):
-    """ 
+    """
     Generates a new Fasta object containing randomly selected genomic regions.
-    
-    columns including the strand information). 
-    Required arg 'size' specifies the size 
+
+    columns including the strand information).
+    Required arg 'size' specifies the size
     Required arg 'in' specifies the number of sequences to generate.
 
     Returns a Fasta object
-    
     """
 
     def __init__(self, genome, size=None, n=None):

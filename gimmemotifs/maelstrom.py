@@ -14,10 +14,8 @@ mr = MaelstromResult(outdir)
 import glob
 import os
 import re
-import subprocess as sp
 import shutil
 import sys
-from tempfile import NamedTemporaryFile
 import logging
 from functools import partial
 
@@ -33,7 +31,6 @@ import seaborn as sns
 
 sns.set_style("white")
 
-from gimmemotifs.background import RandomGenomicFasta
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.moap import moap, Moap
 from gimmemotifs.rank import rankagg
@@ -61,20 +58,20 @@ def scan_to_table(
     input_table : str
         Filename of input table. Can be either a text-separated tab file or a
         feather file.
-    
+
     genome : str
-        Genome name. Can be either the name of a FASTA-formatted file or a 
+        Genome name. Can be either the name of a FASTA-formatted file or a
         genomepy genome name.
-    
+
     scoring : str
         "count" or "score"
-    
+
     pwmfile : str, optional
         Specify a PFM file for scanning.
-    
+
     ncpus : int, optional
         If defined this specifies the number of cores to use.
-    
+
     Returns
     -------
     table : pandas.DataFrame
@@ -312,17 +309,17 @@ def run_maelstrom(
     gc=True,
 ):
     """Run maelstrom on an input table.
-    
+
     Parameters
     ----------
     infile : str
         Filename of input table. Can be either a text-separated tab file or a
         feather file.
-    
+
     genome : str
-        Genome name. Can be either the name of a FASTA-formatted file or a 
+        Genome name. Can be either the name of a FASTA-formatted file or a
         genomepy genome name.
-    
+
     outdir : str
         Output directory for all results.
 
@@ -331,12 +328,12 @@ def run_maelstrom(
 
     plot : bool, optional
         Create heatmaps.
-    
+
     cluster : bool, optional
         If True and if the input table has more than one column, the data is
-        clustered and the cluster activity methods are also run. Not 
+        clustered and the cluster activity methods are also run. Not
         well-tested.
-    
+
     score_table : str, optional
         Filename of pre-calculated table with motif scores.
 
@@ -351,7 +348,7 @@ def run_maelstrom(
 
     zscore : bool, optional
         Use z-score normalized motif scores.
-    
+
     gc : bool, optional
         Use GC% bins to normalize motif scores.
     """
@@ -493,7 +490,7 @@ def run_maelstrom(
         fname = os.path.join(outdir, "activity.{}.{}.out.txt".format(method, scoring))
         try:
             dfs[t] = pd.read_table(fname, index_col=0, comment="#")
-        except:
+        except FileNotFoundError:
             logger.warn("Activity file for {} not found!\n".format(t))
 
     if len(methods) > 1:
@@ -520,14 +517,14 @@ class MaelstromResult:
     """Class for working with maelstrom output."""
 
     def __init__(self, outdir):
-        """Initialize a MaelstromResult object from a maelstrom output 
+        """Initialize a MaelstromResult object from a maelstrom output
         directory.
-        
+
         Parameters
         ----------
         outdir : str
             Name of a maelstrom output directory.
-        
+
         See Also
         --------
         maelstrom.run_maelstrom : Run a maelstrom analysis.
@@ -572,7 +569,7 @@ class MaelstromResult:
             )
             if self.input.shape[1] == 1:
                 self.input.columns = ["cluster"]
-        except:
+        except Exception:
             pass
 
     def plot_heatmap(
@@ -586,29 +583,30 @@ class MaelstromResult:
         **kwargs
     ):
         """Plot clustered heatmap of predicted motif activity.
-        
+
         Parameters
         ----------
         kind : str, optional
-            Which data type to use for plotting. Default is 'final', which will plot the 
-            result of the rang aggregation. Other options are 'freq' for the motif frequencies,
-            or any of the individual activities such as 'rf.score'.
-            
+            Which data type to use for plotting. Default is 'final', which will
+            plot the result of the rang aggregation. Other options are 'freq'
+            for the motif frequencies, or any of the individual activities such
+            as 'rf.score'.
+
         min_freq : float, optional
             Minimum frequency of motif occurrence.
-            
+
         threshold : float, optional
-            Minimum activity (absolute) of the rank aggregation result. 
-        
+            Minimum activity (absolute) of the rank aggregation result.
+
         name : bool, optional
             Use factor names instead of motif names for plotting.
-        
+
         max_len : int, optional
             Truncate the list of factors to this maximum length.
-            
+
         aspect : int, optional
             Aspect ratio for tweaking the plot.
-            
+
         kwargs : other keyword arguments
             All other keyword arguments are passed to sns.clustermap
 
@@ -631,7 +629,7 @@ class MaelstromResult:
             data = self.freq.T
             cmap = "Reds"
         elif kind in self.activity:
-            data = self.activity[dtype]
+            data = self.activity[kind]
             if kind in ["hypergeom.count", "mwu.score"]:
                 cmap = "Reds"
         else:
@@ -663,21 +661,21 @@ class MaelstromResult:
         """Create motif scores boxplot of different clusters.
         Motifs can be specified as either motif or factor names.
         The motif scores will be scaled and plotted as z-scores.
-        
+
         Parameters
         ----------
         motifs : iterable or str
             List of motif or factor names.
-        
+
         name : bool, optional
             Use factor names instead of motif names for plotting.
-        
+
         max_len : int, optional
             Truncate the list of factors to this maximum length.
-        
+
         Returns
         -------
-        
+
         g : FacetGrid
             Returns the seaborn FacetGrid object with the plot.
         """

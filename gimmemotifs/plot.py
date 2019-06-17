@@ -205,9 +205,9 @@ def diff_plot(
 
     # Colormaps
     c1 = mpl.cm.RdBu
-    c2 = mpl.cm.Blues  ##create_colormap("white", "blue")
+    c2 = mpl.cm.Blues
 
-    ### Frequency plot ###
+    # Frequency plot #
 
     # Create axis
     ax = plt.subplot(gs[nbar:-3, plot_order[2]])
@@ -257,7 +257,7 @@ def diff_plot(
     cb = fig.colorbar(sm, cax=cax, ticks=[0, 0.3], orientation="horizontal")
     cb.ax.set_xticklabels(["0%", "30%"])
 
-    #### Enrichment plot
+    # Enrichment plot
     ax = plt.subplot(gs[nbar:-3, plot_order[1]])
     vmin = -10
     vmax = 10
@@ -300,7 +300,7 @@ def diff_plot(
     cb = fig.colorbar(sm, cax=cax, ticks=[vmin, 0, vmax], orientation="horizontal")
     cb.ax.set_xticklabels([vmin, 0, vmax])
 
-    #### Motif logos
+    # Motif logos
 
     for i, motif in enumerate(motifs[ind][::-1]):
         ax = plt.subplot(gs[i + nbar, plot_order[0]])
@@ -382,14 +382,8 @@ def _get_motif_tree(tree, data, circle=True, vmin=None, vmax=None):
 
 def motif_tree_plot(outfile, tree, data, circle=True, vmin=None, vmax=None, dpi=300):
     """
-    Plot a "phylogenetic" tree 
+    Plot a "phylogenetic" tree
     """
-    try:
-        from ete3 import Tree, faces, AttrFace, TreeStyle, NodeStyle
-    except ImportError:
-        print("Please install ete3 to use this functionality")
-        sys.exit(1)
-
     # Define the tree
     t, ts = _get_motif_tree(tree, data, circle, vmin, vmax)
 

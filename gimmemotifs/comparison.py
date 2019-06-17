@@ -3,7 +3,7 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
-""" 
+"""
 Module to compare DNA sequence motifs (positional frequency matrices)
 """
 from __future__ import print_function
@@ -11,7 +11,6 @@ from __future__ import print_function
 # Python imports
 import sys
 import os
-import random
 import logging
 
 # External imports
@@ -37,7 +36,7 @@ try:
             return getattr, (m.im_self, m.im_func.func_name)
 
     copy_reg.pickle(types.MethodType, _pickle_method)
-except:
+except Exception:
     pass
 
 RCDB = (
@@ -146,6 +145,7 @@ RCDB = (
     "ACATAGCTTCCCGTTCCGGTCGATCACAAAAA"
 )
 
+
 # Function that can be parallelized
 def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
     try:
@@ -163,17 +163,17 @@ def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
 
 def akl(p1, p2):
     """Calculates motif position similarity based on average Kullback-Leibler similarity.
-    
+
     See Mahony, 2007.
-   
+
     Parameters
     ----------
     p1 : list
         Motif position 1.
-    
+
     p2 : list
         Motif position 2.
-    
+
     Returns
     -------
     score : float
@@ -183,15 +183,15 @@ def akl(p1, p2):
 
 def chisq(p1, p2):
     """Calculates motif position similarity based on chi-square.
-    
+
     Parameters
     ----------
     p1 : list
         Motif position 1.
-    
+
     p2 : list
         Motif position 2.
-    
+
     Returns
     -------
     score : float
@@ -201,15 +201,15 @@ def chisq(p1, p2):
 
 def ssd(p1, p2):
     """Calculates motif position similarity based on sum of squared distances.
-    
+
     Parameters
     ----------
     p1 : list
         Motif position 1.
-    
+
     p2 : list
         Motif position 2.
-    
+
     Returns
     -------
     score : float
@@ -222,20 +222,20 @@ def seqcor(m1, m2, seq=None):
 
     Based on Kielbasa (2015) and Grau (2015).
     Scores are calculated based on scanning a de Bruijn sequence of 7-mers.
-    This sequence is taken from ShortCAKE (Orenstein & Shamir, 2015). 
+    This sequence is taken from ShortCAKE (Orenstein & Shamir, 2015).
     Optionally another sequence can be given as an argument.
 
     Parameters
     ----------
     m1 : Motif instance
         Motif 1 to compare.
-    
+
     m2 : Motif instance
         Motif 2 to compare.
-    
+
     seq : str, optional
         Sequence to use for scanning instead of k=7 de Bruijn sequence.
-    
+
     Returns
     -------
     score, position, strand
@@ -243,7 +243,7 @@ def seqcor(m1, m2, seq=None):
     l1 = len(m1)
     l2 = len(m2)
 
-    l = max(l1, l2)
+    length = max(l1, l2)
 
     if seq is None:
         seq = RCDB
@@ -265,17 +265,45 @@ def seqcor(m1, m2, seq=None):
     c = []
     for i in range(l1 - l1 // 3):
         c.append(
-            [1 - distance.correlation(result1[: L - l - i], result2[i : L - l]), i, 1]
+            [
+                1
+                - distance.correlation(
+                    result1[: L - length - i], result2[i : L - length]
+                ),
+                i,
+                1,
+            ]
         )
         c.append(
-            [1 - distance.correlation(result1[: L - l - i], result3[i : L - l]), i, -1]
+            [
+                1
+                - distance.correlation(
+                    result1[: L - length - i], result3[i : L - length]
+                ),
+                i,
+                -1,
+            ]
         )
     for i in range(l2 - l2 // 3):
         c.append(
-            [1 - distance.correlation(result1[i : L - l], result2[: L - l - i]), -i, 1]
+            [
+                1
+                - distance.correlation(
+                    result1[i : L - length], result2[: L - length - i]
+                ),
+                -i,
+                1,
+            ]
         )
         c.append(
-            [1 - distance.correlation(result1[i : L - l], result3[: L - l - i]), -i, -1]
+            [
+                1
+                - distance.correlation(
+                    result1[i : L - length], result3[: L - length - i]
+                ),
+                -i,
+                -1,
+            ]
         )
 
     return sorted(c, key=lambda x: x[0])[-1]
@@ -283,10 +311,10 @@ def seqcor(m1, m2, seq=None):
 
 class MotifComparer(object):
     """Class for motif comparison.
-    
+
     Compare two or more motifs using a variety of metrics. Probably the best
-    metric to compare motifs is seqcor. The implementation of this metric 
-    is similar to the one used in Grau (2015), where motifs are scored 
+    metric to compare motifs is seqcor. The implementation of this metric
+    is similar to the one used in Grau (2015), where motifs are scored
     according to the Pearson correlation of the scores along sequence. In this
     case a de Bruijn of k=7 is used.
 
@@ -299,11 +327,11 @@ class MotifComparer(object):
     chisq - Chi-squared similarity of motif PFMs.
     akl - Similarity based on average Kullback-Leibler similarity, see Mahony, 2011.
     ssd - Sum of squared distances of motif PFMs.
-    
+
     Examples
     --------
     mc = MotifComparer()
-    
+
     # Compare two motifs
     score, pos, strand = mc.compare_motifs(m1, m2, metric="seqcor")
 
@@ -347,16 +375,16 @@ class MotifComparer(object):
         self, m1, m2, match="total", metric="wic", combine="mean", pval=False
     ):
         """Compare two motifs.
-        
-        The similarity metric can be any of seqcor, pcc, ed, distance, wic, 
-        chisq, akl or ssd. If match is 'total' the similarity score is 
-        calculated for the whole match, including positions that are not 
+
+        The similarity metric can be any of seqcor, pcc, ed, distance, wic,
+        chisq, akl or ssd. If match is 'total' the similarity score is
+        calculated for the whole match, including positions that are not
         present in both motifs. If match is partial or subtotal, only the
         matching psotiions are used to calculate the score. The score of
         individual position is combined using either the mean or the sum.
 
         Note that the match and combine parameters have no effect on the seqcor
-        similarity metric.      
+        similarity metric.
 
         Parameters
         ----------
@@ -367,7 +395,7 @@ class MotifComparer(object):
             Motif instance 2.
 
         match : str, optional
-            Match can be "partial", "subtotal" or "total". Not all metrics use 
+            Match can be "partial", "subtotal" or "total". Not all metrics use
             this.
 
         metric : str, optional
@@ -379,10 +407,10 @@ class MotifComparer(object):
 
         pval : bool, optional
             Calculate p-vale of match.
-        
+
         Returns
         -------
-        score, position, strand 
+        score, position, strand
         """
         if isinstance(metric, str):
 
@@ -431,21 +459,21 @@ class MotifComparer(object):
         else:
             return metric(m1, m2)
 
-    def _check_length(self, l):
+    def _check_length(self, length):
         # Set the length to a length represented in randomly generated JASPAR motifs
-        if l < 4:
+        if length < 4:
             return 4
-        if l == 13:
+        if length == 13:
             return 14
-        if l == 17:
+        if length == 17:
             return 18
-        if l == 19:
+        if length == 19:
             return 20
-        if l == 21:
+        if length == 21:
             return 22
-        if l > 22:
+        if length > 22:
             return 30
-        return l
+        return length
 
     def pvalue(self, m1, m2, match, metric, combine, score):
         l1, l2 = len(m1.pwm), len(m2.pwm)
@@ -481,7 +509,7 @@ class MotifComparer(object):
             else:
                 try:
                     func = getattr(distance, metric)
-                except:
+                except Exception:
                     raise Exception("Unknown metric '{}'".format(metric))
 
             scores = []
@@ -639,7 +667,7 @@ class MotifComparer(object):
             List of Motif instances.
 
         match : str
-            Match can be "partial", "subtotal" or "total". Not all metrics use 
+            Match can be "partial", "subtotal" or "total". Not all metrics use
             this.
 
         metric : str
@@ -651,12 +679,12 @@ class MotifComparer(object):
 
         pval : bool , optional
             Calculate p-vale of match.
-        
+
         parallel : bool , optional
             Use multiprocessing for parallel execution. True by default.
 
         trim : float or None
-            If a float value is specified, motifs are trimmed used this IC 
+            If a float value is specified, motifs are trimmed used this IC
             cutoff before comparison.
 
         ncpus : int or None
@@ -815,8 +843,8 @@ class MotifComparer(object):
 
 
 # import here is necessary as workaround
-# see: http://stackoverflow.com/questions/18947876/using-python-multiprocessing-pool-in-the-terminal-and-in-code-modules-for-django
+# see: http://stackoverflow.com/questions/18947876/using-python-multiprocessing-pool-in-the-terminal-and-in-code-modules-for-django  # noqa: E501
 try:
     from multiprocessing import Pool
-except:
+except ImportError:
     pass

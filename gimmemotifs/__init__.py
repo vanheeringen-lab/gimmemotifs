@@ -15,11 +15,12 @@ def mytmpdir():
 class DuplicateFilter(logging.Filter):
     logs = {}
     # based on https://stackoverflow.com/questions/44691558
+
     def filter(self, record):
         if record.levelno != logging.INFO:
             return True
 
-        if not record.module in self.logs:
+        if record.module not in self.logs:
             self.logs[record.module] = {}
 
         if record.msg in self.logs[record.module]:
@@ -47,7 +48,7 @@ sh.setFormatter(screen_formatter)
 logger.addHandler(sh)
 
 
-from ._version import get_versions
+from ._version import get_versions  # noqa: E402
 
 __version__ = get_versions()["version"]
 del get_versions

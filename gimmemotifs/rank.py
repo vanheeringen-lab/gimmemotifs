@@ -22,7 +22,7 @@ def rankagg_R(df, method="stuart"):
 
     This function is now deprecated.
 
-    References: 
+    References:
         Kolde et al., 2012, DOI: 10.1093/bioinformatics/btr709
         Stuart et al., 2003,  DOI: 10.1126/science.1087447
 
@@ -41,13 +41,13 @@ def rankagg_R(df, method="stuart"):
 
     df.to_csv(tmpdf.name, sep="\t", index=False)
 
-    script = """ 
-library(RobustRankAggreg); 
-a = read.table("{}", header=TRUE); 
-x = lapply(a, as.vector); 
-result = aggregateRanks(x, method="{}"); 
-result$p.adjust = p.adjust(result$Score); 
- write.table(result, file="{}", sep="\t", quote=FALSE, row.names=FALSE); 
+    script = """
+library(RobustRankAggreg);
+a = read.table("{}", header=TRUE);
+x = lapply(a, as.vector);
+result = aggregateRanks(x, method="{}");
+result$p.adjust = p.adjust(result$Score);
+ write.table(result, file="{}", sep="\t", quote=FALSE, row.names=FALSE);
 """.format(
         tmpdf.name, method, tmpranks.name
     )
@@ -82,8 +82,8 @@ def rankagg(df, method="stuart"):
     """Return aggregated ranks.
 
     Implementation is ported from the RobustRankAggreg R package
-    
-    References: 
+
+    References:
         Kolde et al., 2012, DOI: 10.1093/bioinformatics/btr709
         Stuart et al., 2003,  DOI: 10.1126/science.1087447
 
