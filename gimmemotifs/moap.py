@@ -14,6 +14,7 @@ def warn(*args, **kwargs):
 import warnings
 
 warnings.warn = warn
+warnings.filterwarnings("ignore", message="sklearn.externals.joblib is deprecated")
 
 import os
 import sys
