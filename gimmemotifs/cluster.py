@@ -314,7 +314,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
                     motif = rc
                 # print "%s\t%s" % (motif.id, add)
                 png = "images/{}.png".format(motif.id.replace(" ", "_"))
-                motif.to_logo(fname=os.path.join(outdir, png), add_left=add)
+                motif.plot_logo(fname=os.path.join(outdir, png), add_left=add)
         ids[-1][2] = [
             dict(
                 [
