@@ -21,6 +21,7 @@ website/**/*
 .eggs/
 .pytest_cache/
 **/.ipynb_checkpoints/
+.vscode
 
 test/data/maelstrom/activity*
 test/data/maelstrom/final*

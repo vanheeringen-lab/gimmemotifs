@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Plot motif logos using different styles of visualization (information content, frequency, energy or [Ensembl](http://www.ensembl.info/2018/10/15/new-ensembl-motif-features/)).
+
+### Changed
+
+- Command line tools `gimme roc` has been removed. This functionality has now been merged with `gimme motifs`. 
+- Replaced weblogo/seqlogo with [logomaker](https://logomaker.readthedocs.io/). 
+
+## [0.13.1] - 2018-12-04
+
+### Added
+
 - Improved docstrings of several modules.
 - Added new API examples.
 

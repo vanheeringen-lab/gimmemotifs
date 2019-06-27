@@ -4,6 +4,7 @@ import os
 import pandas as pd
 from gimmemotifs.rank import rankagg
 
+
 class TestRank(unittest.TestCase):
     """ A test class to test rank aggregation """
 
@@ -28,6 +29,5 @@ class TestRank(unittest.TestCase):
             self.assertAlmostEqual(v1, v2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
-        
