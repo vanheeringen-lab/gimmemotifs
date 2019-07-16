@@ -157,10 +157,10 @@ def command_scan(
 
     if genome:
         s.set_background(
-            genome=genome, fname=bgfile, length=fa.median_length(), gc=gcnorm
+            genome=genome, fname=bgfile, size=fa.median_length(), gc=gcnorm
         )
     if bgfile:
-        s.set_background(genome=genome, fname=bgfile, length=fa.median_length())
+        s.set_background(genome=genome, fname=bgfile, size=fa.median_length())
 
     if not score_table:
         s.set_threshold(fpr=fpr, threshold=cutoff)

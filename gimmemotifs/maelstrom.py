@@ -97,7 +97,7 @@ def scan_to_table(
         idx = df.index
 
     regions = list(idx)
-    length = int(
+    size = int(
         np.median(
             [
                 len(seq)
@@ -110,7 +110,7 @@ def scan_to_table(
     s = Scanner(ncpus=ncpus)
     s.set_motifs(pwmfile)
     s.set_genome(genome)
-    s.set_background(genome=genome, gc=gc, length=length)
+    s.set_background(genome=genome, gc=gc, size=size)
 
     scores = []
     if scoring == "count":

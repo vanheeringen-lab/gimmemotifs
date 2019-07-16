@@ -673,7 +673,7 @@ def get_seqs_type(seqs):
     region_p = re.compile(r"^(.+):(\d+)-(\d+)$")
     if isinstance(seqs, Fasta):
         return "fasta"
-    elif isinstance(seqs, list):
+    elif isinstance(seqs, list) or isinstance(seqs, np.ndarray):
         if len(seqs) == 0:
             raise ValueError("empty list of sequences to scan")
         else:
@@ -709,6 +709,9 @@ def as_fasta(seqs, genome=None):
         tmpfa = NamedTemporaryFile()
         if isinstance(genome, str):
             genome = Genome(genome)
+
+        if isinstance(seqs, np.ndarray):
+            seqs = list(seqs)
         genome.track2fasta(seqs, tmpfa.name)
         return Fasta(tmpfa.name)
 
