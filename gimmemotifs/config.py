@@ -55,7 +55,7 @@ class MotifConfig(object):
 
     # Default config that is installed with GimmeMotifs
     default_config = pkg_resources.resource_filename(
-            'gimmemotifs', '../data/cfg/gimmemotifs.default.cfg')
+            'gimmemotifs', '../data/cfg/gimmemotifs.default.cfg'
     )
 
     #
