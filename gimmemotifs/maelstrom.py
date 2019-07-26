@@ -97,7 +97,7 @@ def scan_to_table(
         idx = df.index
 
     regions = list(idx)
-    length = int(
+    size = int(
         np.median(
             [
                 len(seq)
@@ -110,7 +110,7 @@ def scan_to_table(
     s = Scanner(ncpus=ncpus)
     s.set_motifs(pwmfile)
     s.set_genome(genome)
-    s.set_background(genome=genome, gc=gc, length=length)
+    s.set_background(genome=genome, gc=gc, size=size)
 
     scores = []
     if scoring == "count":
@@ -272,7 +272,10 @@ def _rank_agg_column(exps, dfs, e):
             k = "{}.{}".format(method, scoring)
             if k in dfs:
                 v = dfs[k]
-                tmp_dfs[i][k] = v.sort_values(e, ascending=sort_order).index.values
+                # Sample rows before sorting to shuffle 
+                # Otherwise all ties will not have a random order due to inherent
+                # ordering of the motif dataframe
+                tmp_dfs[i][k] = v.sample(frac=1).sort_values(e, ascending=sort_order).index.values
     return -np.log10(rankagg(tmp_dfs[0])) + np.log10(rankagg(tmp_dfs[1]))
 
 
@@ -383,7 +386,7 @@ def run_maelstrom(
             shutil.copy2(mapfile, outdir)
 
     # Create a file with the number of motif matches
-    if not count_table:
+    if count_table is None:
         count_table = os.path.join(outdir, "motif.count.txt.gz")
         if not os.path.exists(count_table):
             logger.info("motif scanning (counts)")
@@ -401,7 +404,7 @@ def run_maelstrom(
             logger.info("Counts, using: %s", count_table)
 
     # Create a file with the score of the best motif match
-    if not score_table:
+    if score_table is None:
         score_table = os.path.join(outdir, "motif.score.txt.gz")
         if not os.path.exists(score_table):
             logger.info("motif scanning (scores)")
@@ -466,11 +469,11 @@ def run_maelstrom(
 
     for method, scoring, fname in exps:
         try:
-            if scoring == "count" and count_table:
+            if scoring == "count" and count_table is not None:
                 moap_with_table(
                     fname, count_table, outdir, method, scoring, ncpus=ncpus
                 )
-            elif scoring == "score" and score_table:
+            elif scoring == "score" and score_table is not None:
                 moap_with_table(
                     fname, score_table, outdir, method, scoring, ncpus=ncpus
                 )

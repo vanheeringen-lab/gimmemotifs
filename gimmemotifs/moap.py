@@ -248,13 +248,13 @@ class XgboostRegressionMoap(Moap):
 
         # Define model
         xgb = xgboost.XGBRegressor(
-            n_estimators=100,
-            learning_rate=0.1,
+            n_estimators=500,
+            learning_rate=0.01,
             nthread=self.ncpus,
             min_child_weight=2,
             max_depth=3,
-            subsample=0.75,
-            colsample_bytree=0.75,
+            subsample=0.8,
+            colsample_bytree=0.8,
             objective="reg:linear",
         )
 
@@ -339,8 +339,8 @@ class LightningRegressionMoap(Moap):
             raise ValueError("number of regions is not equal")
 
         # Define model
-        cd = CDRegressor(penalty="l1/l2", C=1.0 / X.shape[0])
-        parameters = {"alpha": [np.exp(-x) for x in np.arange(0, 8, 1 / 2.5)]}
+        cd = CDRegressor(penalty="l1/l2", C=1.0)
+        parameters = {"alpha": [np.exp(-x) for x in np.arange(0, 10, 1 / 2)]}
         clf = GridSearchCV(cd, parameters, n_jobs=self.ncpus)
 
         if shuffle:
@@ -947,6 +947,8 @@ def moap(
                 scores.append(row)
 
         motifs = pd.DataFrame(scores, index=df.index, columns=motif_names)
+    elif isinstance(motiffile, pd.DataFrame):
+        motifs = motiffile
     else:
         motifs = pd.read_table(motiffile, index_col=0, comment="#")
 
@@ -981,7 +983,7 @@ def moap(
             f.write("# method: {} with motif {}\n".format(method, scoring))
             if genome:
                 f.write("# genome: {}\n".format(genome))
-            if motiffile:
+            if isinstance(motiffile, str):
                 f.write("# motif table: {}\n".format(motiffile))
             f.write("# {}\n".format(clf.act_description))
 

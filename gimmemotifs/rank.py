@@ -105,8 +105,4 @@ def rankagg(df, method="stuart"):
         ).loc[rmat.index]
     rmat = rmat.apply(sorted, 1, result_type="expand")
     p = rmat.apply(qStuart, 1)
-    df = pd.DataFrame(
-        {"p.adjust": multipletests(p, method="h")[1]}, index=rmat.index
-    ).sort_values("p.adjust")
-
-    return df["p.adjust"]
+    return pd.DataFrame({"score":p}, index=rmat.index) 
