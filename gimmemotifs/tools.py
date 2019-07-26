@@ -2478,11 +2478,12 @@ class Dreme(MotifProgram):
         if default_params["single"]:
             cmd.append(strand)
 
-        print(" ".join(cmd) + "\n")
         p = Popen(cmd, bufsize=1, stderr=PIPE, stdout=PIPE)
         stdout, stderr = p.communicate()
 
         motifs = read_motifs(outfile, fmt="meme")
+        for motif in motifs:
+            motif.id = self.name + "_" + motif.id 
 
         return motifs, stdout, stderr
 
