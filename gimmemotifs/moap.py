@@ -49,13 +49,106 @@ from gimmemotifs import __version__
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.config import MotifConfig
-from gimmemotifs.utils import pwmfile_location
+from gimmemotifs.utils import pwmfile_location, as_fasta
 
 import warnings
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 logger = logging.getLogger("gimme.maelstrom")
+FPR = 0.01
+
+
+def scan_to_table(
+    input_table, genome, scoring, pwmfile=None, ncpus=None, zscore=True, gc=True
+):
+    """Scan regions in input table with motifs.
+
+    Parameters
+    ----------
+    input_table : str
+        Filename of input table. Can be either a text-separated tab file or a
+        feather file.
+
+    genome : str
+        Genome name. Can be either the name of a FASTA-formatted file or a
+        genomepy genome name.
+
+    scoring : str
+        "count" or "score"
+
+    pwmfile : str, optional
+        Specify a PFM file for scanning.
+
+    ncpus : int, optional
+        If defined this specifies the number of cores to use.
+
+    Returns
+    -------
+    table : pandas.DataFrame
+        DataFrame with motif ids as column names and regions as index. Values
+        are either counts or scores depending on the 'scoring' parameter.s
+    """
+    config = MotifConfig()
+
+    if pwmfile is None:
+        pwmfile = config.get_default_params().get("motif_db", None)
+        if pwmfile is not None:
+            pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
+
+    if pwmfile is None:
+        raise ValueError("no pwmfile given and no default database specified")
+
+    logger.info("reading table")
+    if input_table.endswith("feather"):
+        df = pd.read_feather(input_table)
+        idx = df.iloc[:, 0].values
+    else:
+        df = pd.read_table(input_table, index_col=0, comment="#")
+        idx = df.index
+
+    regions = list(idx)
+    size = int(
+        np.median(
+            [
+                len(seq)
+                for seq in as_fasta(
+                    np.random.choice(regions, size=1000, replace=False), genome=genome
+                ).seqs
+            ]
+        )
+    )
+    s = Scanner(ncpus=ncpus)
+    s.set_motifs(pwmfile)
+    s.set_genome(genome)
+    s.set_background(genome=genome, gc=gc, size=size)
+
+    scores = []
+    if scoring == "count":
+        logger.info("setting threshold")
+        s.set_threshold(fpr=FPR)
+        logger.info("creating count table")
+        for row in s.count(regions):
+            scores.append(row)
+        logger.info("done")
+    else:
+        s.set_threshold(threshold=0.0)
+        msg = "creating score table"
+        if zscore:
+            msg += " (z-score"
+            if gc:
+                msg += ", GC%"
+            msg += ")"
+        else:
+            msg += " (logodds)"
+        logger.info(msg)
+        for row in s.best_score(regions, zscore=zscore, gc=gc):
+            scores.append(row)
+        logger.info("done")
+
+    motif_names = [m.id for m in read_motifs(pwmfile)]
+    logger.info("creating dataframe")
+    return pd.DataFrame(scores, index=idx, columns=motif_names)
 
 
 class Moap(object):
@@ -939,14 +1032,29 @@ def moap(
         motif_names = [m.id for m in read_motifs(pwmfile)]
         scores = []
         if method == "classic" or scoring == "count":
-            s.set_threshold(fpr=fpr)
-            for row in s.count(list(df.index)):
-                scores.append(row)
+            logger.info("motif scanning (scores)")
+            scores = scan_to_table(
+                inputfile,
+                genome,
+                "count",
+                pwmfile=pwmfile,
+                ncpus=ncpus,
+                zscore=zscore,
+                gc=gc,
+            )
         else:
-            for row in s.best_score(list(df.index), zscore=zscore, gc=gc):
-                scores.append(row)
-
+            logger.info("motif scanning (scores)")
+            scores = scan_to_table(
+                inputfile,
+                genome,
+                "score",
+                pwmfile=pwmfile,
+                ncpus=ncpus,
+                zscore=zscore,
+                gc=gc,
+            )
         motifs = pd.DataFrame(scores, index=df.index, columns=motif_names)
+
     elif isinstance(motiffile, pd.DataFrame):
         motifs = motiffile
     else:
