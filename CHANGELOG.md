@@ -8,11 +8,25 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - Plot motif logos using different styles of visualization (information content, frequency, energy or [Ensembl](http://www.ensembl.info/2018/10/15/new-ensembl-motif-features/)).
+- New scoring scheme that uses a z-score based on genomic sequences with a similar GC%. 
+- CIS-BP motif database version 2.0 ([Lambert et al. 2019](https://www.nature.com/articles/s41588-019-0411-1)).
 
 ### Changed
 
-- Command line tools `gimme roc` has been removed. This functionality has now been merged with `gimme motifs`. 
+- Command line tools `gimme roc` has been removed. This functionality has now been merged with `gimme motifs`. The `gimme motifs` command now scans for both known and *de novo* motifs.
 - Replaced weblogo/seqlogo with [logomaker](https://logomaker.readthedocs.io/). 
+- GC% background now uses a genomic of GC% frequencies.
+- GC% z-score is now the default score for all `gimme` tools.
+
+### Fixed
+
+- Fixed GC% background.
+- `factorial` import for scipy >= 1.3.0.
+- All output columns in HTML reports can now be sorted correctly.
+
+### Removed
+
+- Deprecated modules and scripts.
 
 ## [0.13.1] - 2018-12-04
 
