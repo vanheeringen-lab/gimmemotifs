@@ -1634,22 +1634,29 @@ def _read_motifs_xxmotif(handle):
 
 def _read_motifs_transfac(handle):
     p = re.compile(r"\d+\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s*\w?")
-    p_id = re.compile(r"^(NA|ID)\s+([^\s]+)")
+    p_id = re.compile(r"^(NA|ID|DE)\s+([^\s]+( [^\s]+)?)")
     motifs = []
     pwm = []
     motif_id = ""
+    metadata = None
     for line in handle.readlines():
         m = p_id.search(line.strip())
         if m:
             motif_id = m.group(2)
+            motif_id = re.sub(r"\s+", "_", motif_id)
         elif line.startswith("//"):
             motifs.append(Motif(pwm))
             motifs[-1].id = motif_id
+            if metadata is not None:
+                motifs[-1].metadata = metadata
             pwm = []
         elif p.search(line):
             m = p.search(line)
             pwm.append([float(x) for x in m.group(1, 2, 3, 4)])
-
+        elif line.startswith("CC"):
+            # CC tax_group:vertebrates; pubmed_ids:7592839; uniprot_ids:P30561,P53762; data_type:SELEX
+            metadata = line.replace("CC ", "").split(";")
+            metadata = dict([x.strip().split(":") for x in metadata])
     # If there's only one matrix, and the format is not complete
     if len(pwm) != 0:
         motifs.append(Motif(pwm))

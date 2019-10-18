@@ -91,8 +91,9 @@ class JasparMotifDb(MotifDb):
     JASPAR motif database
     """
 
-    URL = "http://jaspar.genereg.net/download/CORE/JASPAR2018_CORE{}_non-redundant_pfms_jaspar.txt"  # noqa: E501
-    NAME = "JASPAR2018{}.pfm"
+    URL = "http://jaspar.genereg.net/download/CORE/JASPAR{0}_CORE{1}_non-redundant_pfms_transfac.txt"
+    UNVALIDATED_URL = "http://jaspar.genereg.net/download/collections/JASPAR{}_UNVALIDATED{}_pfms_transfac.txt"
+    NAME = "JASPAR{}{}.pfm"
     GROUPS = [
         "",
         "vertebrates",
@@ -103,45 +104,73 @@ class JasparMotifDb(MotifDb):
         "urochordates",
     ]
 
-    def download(self, outdir=DEFAULT_OUT):
-        # JASPAR
+    def download(self, version="2020", outdir=DEFAULT_OUT):
+        ### JASPAR ###
         for group in self.GROUPS:
             if group != "":
                 group = "_" + group
-            outfile = os.path.join(outdir, self.NAME.format(group))
-            url = self.URL.format(group)
-            with open(outfile, "w") as f:
-                with urlopen(url) as response:
-                    for line in response:
-                        line = line.decode().strip()
-                        if line.startswith(">"):
-                            line = "_".join(line.split("\t")[:2])
-                        print(line, file=f)
+            outfile = os.path.join(outdir, self.NAME.format(version, group))
 
-            motifs = read_motifs(outfile, fmt="jaspar")
+            for i, base_url in enumerate([self.URL, self.UNVALIDATED_URL]):
+                url = base_url.format(version, group)
+                if i == 0:
+                    mode = "w"
+                else:
+                    mode = "a"
+                with open(outfile, mode) as f:
+                    with urlopen(url) as response:
+                        for line in response:
+                            line = line.decode().strip()
+                            if line.startswith(">"):
+                                line = "_".join(line.split("\t")[:2])
+                            print(line, file=f)
+
+            motifs = read_motifs(outfile, fmt="transfac")
+
+            anno = self.annotate_factors(motifs)
             with open(outfile, "w") as f:
-                print("# JASPAR2018{} motif database".format(group), file=f)
-                print("# Retrieved from: {}".format(url), file=f)
+                print("# JASPAR{}{} motif database".format(version, group), file=f)
+                print("# Retrieved from:", file=f)
+                for base_url in [self.URL, self.UNVALIDATED_URL]:
+                    print("#     * {}".format(base_url.format(version, group)), file=f)
+                print(
+                    "# Note: this file also contains the unvalidated motifs from JASPAR.",
+                    file=f,
+                )
+                print(
+                    "#       These have not been confirmed by orthogonal evidence and have ",
+                    file=f,
+                )
+                print("#       a motif id that starts with UN.", file=f)
                 print("# Date: {}".format(self.date), file=f)
                 for motif in motifs:
                     print(motif.to_pwm(), file=f)
 
             # if group == "_vertebrates":
-            anno = self.annotate_factors(motifs)
-            self.create_annotation(os.path.join(outdir, self.NAME.format(group)), anno)
+            self.create_annotation(
+                os.path.join(outdir, self.NAME.format(version, group)), anno
+            )
 
     def annotate_factors(self, motifs):
         anno = {}
         for motif in motifs:
-            info = get_jaspar_motif_info(motif.id.split("_")[0])
+            mtype = "Unknown"
+            if hasattr(motif, "metadata") and "data_type" in motif.metadata:
+                mtype = motif.metadata["data_type"]
+            else:
+                info = get_jaspar_motif_info(motif.id.split("_")[0])
             try:
                 mtype = info["type"]
-                if mtype == "universal protein binding microarray (PBM)":
-                    mtype = "PBM"
-            except Exception:
-                mtype = "Unknown"
-            factors = re.sub(r"\([^)]+\)", "", motif.id.split("_")[1]).split("::")
-            anno[motif.id] = [[f, mtype, "Y"] for f in factors]
+            except:
+                pass
+            if mtype == "universal protein binding microarray (PBM)":
+                mtype = "PBM"
+            factors = re.sub("\([^)]+\)", "", motif.id.split("_")[1]).split("::")
+            if motif.id.startswith("MA"):
+                direct = "Y"
+            else:
+                direct = "N"
+            anno[motif.id] = [[f, mtype, direct] for f in factors]
         return anno
 
 
