@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Plot motif logos using different styles of visualization (information content, frequency, energy or [Ensembl](http://www.ensembl.info/2018/10/15/new-ensembl-motif-features/)).
 - New scoring scheme that uses a z-score based on genomic sequences with a similar GC%. 
 - CIS-BP motif database version 2.0 ([Lambert et al. 2019](https://www.nature.com/articles/s41588-019-0411-1)).
+- JASPAR 2020 motif database.
 
 ### Changed
 
