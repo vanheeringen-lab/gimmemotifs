@@ -24,12 +24,11 @@ And activate it!
     
     $ source activate gimme
 
-To locate the example files mentioned in the tutorial, locate the ``examples/`` directory of your GimmeMotifs installation. When using conda:
-
+To locate the example files mentioned in the tutorial, locate the ``examples/`` directory of your GimmeMotifs installation. 
 ::
 
-    $  echo `conda info | grep default | awk '{print $4}'`/share/gimmemotifs/examples
-    /home/simon/anaconda3/share/gimmemotifs/examples
+    $  python -c 'import pkg_resources; print(pkg_resources.resource_filename("gimmemotifs", "../data/examples/"))'
+    /home/simon/anaconda3/envs/gimme/lib/python3.6/site-packages/gimmemotifs-0.13.1-py3.6-linux-x86_64.egg/gimmemotifs/../data/examples/
 
 
 Alternatively, the example data is also available from figshare_ and you can download it from there.
@@ -61,7 +60,7 @@ Select the top 500 peaks, based on the signalValue column of the narrowPeak_ for
 
 ::
 
-    $ sort -k7gr Gm12878.CTCF.bed | head -n 500 > Gm12878.CTCF.top500.narrowPeak
+    $ sort -k7gr Gm12878.CTCF.narrowPeak | head -n 500 > Gm12878.CTCF.top500.narrowPeak
 
 Note that the top 500 peaks are just for the sake of the tutorial. 
 Normally you would use a much larger sample (or all peaks) as input for ``gimme motifs``.
@@ -80,12 +79,13 @@ Having both an index genome and an input file, we can run ``gimme motifs``.
 
 :: 
 
-    $ gimme motifs Gm12878.CTCF.top500.narrowPeak -g hg19 -n gimme.CTCF
+    $ gimme motifs Gm12878.CTCF.top500.narrowPeak -g hg19 -n gimme.CTCF --denovo
 
 Once again, this will take some time. 
 When ``gimme motifs``  is finished you can view the results in a web browser. 
 `gimme.CTCF/motif_report.html`_ should look a lot like this.
 This is what an almost perfect motif looks like, with a ROC AUC close to 1.0.
+In this case we run `gimme motifs` with a `narrowPeak` file as input. Other options are FASTA or BED files, or text files with region specified as `chr:start-end`.
 
 .. _`gimme.CTCF/motif_report.html`: gimme.CTCF/motif_report.html
 .. _`narrowPeak`: https://genome.ucsc.edu/FAQ/FAQformat.html#format12
