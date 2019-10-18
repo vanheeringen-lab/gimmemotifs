@@ -12,17 +12,15 @@ List of tools
 -------------
 
 * :ref:`gimme motifs<gimme_motifs>`
-* :ref:`gimme maelstrom<gimme_maelstrom>`
 * :ref:`gimme scan<gimme_scan>`
-* :ref:`gimme roc<gimme_roc>`
+* :ref:`gimme maelstrom<gimme_maelstrom>`
 * :ref:`gimme match<gimme_match>`
+* :ref:`gimme logo<gimme_logo>`
 * :ref:`gimme cluster<gimme_cluster>`
-* :ref:`gimme index<gimme_index>`
 * :ref:`gimme background<gimme_background>`
 * :ref:`gimme threshold<gimme_threshold>`
 * :ref:`gimme location<gimme_location>`
 * :ref:`gimme diff<gimme_diff>`
-* :ref:`gimme logo<gimme_logo>`
 
 
 Input formats
@@ -55,8 +53,11 @@ The frequencies are seperated by tabs, and in the order A,C,G,T.
 Command: gimme motifs
 ---------------------
 
-Quick example
-~~~~~~~~~~~~~
+The `gimme motifs` can be used for known and/or *de novo* motif analysis.
+By default it runs both.
+
+Quick example of *de novo* motif analysis
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can try GimmeMotifs with a small example dataset included in the
 examples directory, included with GimmeMotifs. This example does not
@@ -69,36 +70,26 @@ on your system):
 
 ::
 
-    gimme motifs /usr/share/gimmemotifs/examples/TAp73alpha.fa -n p73
+    gimme motifs /usr/share/gimmemotifs/examples/TAp73alpha.fa p73 --denovo -g hg19
 
-The ``-n`` or ``--name`` option defines the name of the output directory
-that is created. All output files are stored in this directory.
+The first argument is the name of the input file and the second argument 
+defines the name of the output directory that is created. All output files 
+are stored in this directory. The genome is set to ``hg19`` genome. As the 
+input is a FASTA file, any human genome version can be used, for instance
+``-g hg38`` would also work. This requires you to have installed ``hg19``
+using [genomepy](https://github.com/simonvh/genomepy). Alternatively, you
+can also supply the path to a genome FASTA file with the ``-g`` option.
 
-Depending on your computer you may have to wait some minutes for your
-results. Once GimmeMotifs is finished you can open
+Depending on your computer, this analysis will take around 15-20 minutes. 
+By default, the 
+[three top-performing](https://www.biorxiv.org/content/10.1101/474403v1) 
+*de novo* motif tools will be use: MEME, Homer and BioProspector.
+Once GimmeMotifs is finished you can open
 `p73/p73\_motif\_report.html <p73/p73_motif_report.html>`__ in your
 browser.
 
-Example: gimme motifs
-~~~~~~~~~~~~~~~~~~~~~
-
-This example is the same as above, except it will start from a BED file.
-This example does require you to have hg19 present and indexed. Change
-to a directory where you have write permissions and run the following
-command (substitute the filename with the location of the file on your
-system):
-
-::
-
-    gimme motifs /usr/share/gimmemotifs/examples/TAp73alpha.bed -n example
-
-The ``-n`` or ``--name`` option defines the name of the output directory
-that is created. All output files are stored in this directory.
-
-Depending on your computer you may have to wait some minutes for your
-results. Once GimmeMotifs is finished you can open
-`example/example\_motif\_report.html <example/example_motif_report.html>`__
-in your browser.
+You can also run the same analysis with a BED file as input, or a text 
+file with regions in `chrom:start-end` format
 
 Best practices and tips
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -106,25 +97,23 @@ Best practices and tips
 GimmeMotifs is multi-threaded
 +++++++++++++++++++++++++++++
 
-GimmeMotifs runs multi-threaded and uses all the CPU’s in the system.
-This means that all the programs will be run in parallel as much as
-possible. Of course some programs are still single-threaded, and will
-not benefit from this. Because GimmeMotifs uses all the available CPU’s
-it does not make much sense to start multiple GimmeMotifs jobs at the
-same time.
+GimmeMotifs runs multi-threaded and by default uses 12 threads. All the 
+*de novo* programs will be run in parallel as much as possible. Of 
+course some programs are still single-threaded, and will not really 
+benefit from multithreading. You can change the number of threads that
+are used using the `-N` parameter.
 
 Running time
 ++++++++++++
 
-The running time of GimmeMotifs greatly depends on which tools you use
-for prediction and how large the dataset is. Some of the tools might
-take a very long time and two of them, GADEM is not added to
-the default tools because of this reason. You can always use them for an
-analysis (by specifying the ``-t`` command-line option), but it is
-recommended to only do this for a small dataset (say, less than 5000
-peaks). Weeder in combination with the ``xl`` analysis can also take a
-very long time, so be prepared. In general a ``small`` analysis will be
-the quickest, and a ``xl`` analysis will be the slowest.
+The running time of the *de novo* part of GimmeMotifs largely depends 
+on three factors:
+
+- the size of the input dataset;
+- the motif prediction tools you use;
+- the size of the motifs to be identified.
+
+**Size of input dataset**
 
 While GimmeMotifs is developed specifically for ChIP-seq datasets, most
 motif prediction tools are not. In practice this means that it does not
@@ -137,40 +126,23 @@ configuration file, which is set to 1000 by default. In general, if you
 have a large amount of peaks, you can also consider to run GimmeMotifs
 on the top sequences of your input, for instance the 5000 highest peaks.
 
-There are two options that you can use to control the running time of
-GimmeMotifs. First, you can set an absolute time limit with the
-``max_time`` option. This option (in hours) determines the maximum time
-used for motif prediction. If some programs take longer, the running
-jobs will be terminated, and the program will continue with all the
-motifs that have been predicted so far. The other option is kind of an
-emergency button: when you think that GimmeMotifs has been running long
-enough, you can press Ctrl+C **once, and only once!**. This will signal
-GimmeMotifs to terminate the running jobs and continue with the
-analysis. Please note that this works almost always, but still, there is
-a small chance that program might be in a function where the Ctrl-C
-option screws up, and GimmeMotifs will not be able to handle the result
-gracefully.
+**Motif prediction tools**
 
-Intermediate results
-++++++++++++++++++++
+By default, `gimme motifs` uses three *de novo* motif prediction tools:
+MEME, BioProspector and Homer. These we found to be the best performing
+programs for ChIP-seq data ([Bruse & van Heeringen, 2018](https://www.biorxiv.org/content/10.1101/474403v1.full)).
+You can include a large variety of other toolsi by using the ``-t``
+parameter. This will result in an increased running time and some tools, 
+such as GADEM, will take a very long time.
 
-GimmeMotifs produces a lot of intermediate results, such as all
-predicted motifs, fasta-files used for validation and so on. These are
-deleted by default (as they can get quite large), but if you are
-interested in them, you can specify the ``-k`` option.
+**Motif size**
 
-Running on FASTA files
-++++++++++++++++++++++
-
-It is possible to run GimmeMotifs on a FASTA file as input instead
-of a BED file. This is detected automatically if youir inputfile is
-correctly formatted according to FASTA specifications. In this case it
-is not possible to generate a genomic matched background, so only the
-random Markov background will be used. Please note that for best
-results, all the sequences should be of the same length. This is not
-necessary for motif prediction, but the statistics and positional
-preference plots will be wrong if sequences have different lengths. Also
-see the next section.
+The default setting for motif size is `-a xl`, which searches for motifs
+with a length of up to 20. You can use different analysis sizes: 
+``small`` (up to 8), ``medium`` (up to 10) or ``large`` (up to 14). The 
+running time can be significantly shorter for shorter motifs. However, 
+keep in mind that the ``xl`` analysis setting results in the best motifs 
+in general.
 
 Small input sets
 ++++++++++++++++
@@ -179,8 +151,26 @@ Keep in mind that GimmeMotifs is developed for larger datasets, where
 you have the luxury to use a large fraction of your input for
 validation. So, at least several hundred sequences would be optimal. If
 you want to run GimmeMotifs on a small input dataset, it might be
-worthwile to increase the fraction used for prediction (with the ``-f``
-argument.
+worthwile to increase the fraction used for prediction with the ``-f``
+argument, for instance ``-f 0.5``.
+
+Running on FASTA files
+++++++++++++++++++++++
+
+It is possible to run GimmeMotifs on a FASTA file as input instead
+of a BED file. This is detected automatically if youir inputfile is
+correctly formatted according to FASTA specifications. Please note that for 
+best results, all the sequences should be of the same length. This is not
+necessary for motif prediction, but the statistics and positional
+preference plots will be wrong if sequences have different lengths. 
+
+Intermediate results
+++++++++++++++++++++
+
+GimmeMotifs produces a lot of intermediate results, such as all
+predicted motifs, fasta-files used for validation and so on. These are
+deleted by default (as they can get quite large), but if you are
+interested in them, you can specify the ``-k`` option.
 
 Detailed options for gimme motifs
 +++++++++++++++++++++++++++++++++
