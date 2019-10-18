@@ -1413,15 +1413,15 @@ def _read_motifs_from_filehandle(handle, fmt):
     handle : file-like object
         Motifs.
     fmt : string, optional
-        Motif format, can be 'pwm', 'transfac', 'xxmotif', 'jaspar' or 'align'.
+        Motif format, can be 'pfm', 'transfac', 'xxmotif', 'jaspar' or 'align'.
 
     Returns
     -------
     motifs : list
         List of Motif instances.
     """
-    if fmt.lower() == "pwm":
-        motifs = _read_motifs_pwm(handle)
+    if fmt.lower() == "pfm":
+        motifs = _read_motifs_pfm(handle)
     if fmt.lower() == "transfac":
         motifs = _read_motifs_transfac(handle)
     if fmt.lower() == "xxmotif":
@@ -1469,7 +1469,7 @@ def _read_motifs_from_filehandle(handle, fmt):
     return motifs
 
 
-def read_motifs(infile=None, fmt="pwm", as_dict=False):
+def read_motifs(infile=None, fmt="pfm", as_dict=False):
     """
     Read motifs from a file or stream or file-like object.
 
@@ -1481,7 +1481,7 @@ def read_motifs(infile=None, fmt="pwm", as_dict=False):
         will be returned.
 
     fmt : string, optional
-        Motif format, can be 'pwm', 'transfac', 'xxmotif', 'jaspar' or 'align'.
+        Motif format, can be 'pfm', 'transfac', 'xxmotif', 'jaspar' or 'align'.
 
     as_dict : boolean, optional
         Return motifs as a dictionary with motif_id, motif pairs.
@@ -1492,6 +1492,10 @@ def read_motifs(infile=None, fmt="pwm", as_dict=False):
         List of Motif instances. If as_dict is set to True, motifs is a
         dictionary.
     """
+    # Support old naming
+    if fmt == "pwm":
+        fmt = "pfm"
+
     if infile is None or isinstance(infile, six.string_types):
         infile = pwmfile_location(infile)
         with open(infile) as f:
@@ -1505,7 +1509,7 @@ def read_motifs(infile=None, fmt="pwm", as_dict=False):
     return motifs
 
 
-def _read_motifs_pwm(handle):
+def _read_motifs_pfm(handle):
     p = re.compile(
         r"(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)\s+(\d+(\.\d+)?(e-\d+)?)"  # noqa: E501
     )
