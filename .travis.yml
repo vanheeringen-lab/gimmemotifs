@@ -11,7 +11,8 @@ matrix:
 #  apt: true
 #  directories:
 #    - $HOME/miniconda
-
+services:
+  - xvfb
 before_install:
   # install miniconda for Python dependencies
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -30,7 +31,6 @@ before_install:
   - conda info -a
   # if matplotlib functionality is tested
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok )& fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ulimit -S -n 4096; ulimit -a; fi
 install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
