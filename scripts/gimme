@@ -15,8 +15,8 @@ if __name__ == "__main__":
 
     config = MotifConfig()
     params = config.get_default_params()
-    default_pwm_file = os.path.join(config.get_motif_dir(), params["motif_db"])
-    default_pwm = params["motif_db"]
+    default_pfm_file = os.path.join(config.get_motif_dir(), params["motif_db"])
+    default_pfm = params["motif_db"]
 
     description = """
     GimmeMotifs v{0}
@@ -27,16 +27,16 @@ if __name__ == "__main__":
     epilog = """
     commands:
         motifs      identify enriched motifs (known and/or de novo)
-        maelstrom   find differential motifs
         scan        scan for known motifs
+        maelstrom   find differential motifs
         match       find motif matches in database
+        logo        create sequence logo(s)
         cluster     cluster similar motifs
         background  create a background file
         threshold   calculate motif scan threshold
         location    motif location histograms
         diff        compare motif frequency and enrichment
                     between fasta files
-        logo        create sequence logo(s)
 
     type `gimme <command> -h` for more details
     """
@@ -120,8 +120,8 @@ if __name__ == "__main__":
     known_grp.add_argument(
         "-p",
         dest="pfmfile",
-        help="PFM file with motifs." "(default: {0})".format(default_pwm),
-        default=default_pwm_file,
+        help="PFM file with motifs." "(default: {0})".format(default_pfm),
+        default=default_pfm_file,
         metavar="PFMFILE",
     )
 
@@ -184,179 +184,7 @@ if __name__ == "__main__":
 
     p.set_defaults(func=commands.motifs)
 
-    # closest_match.py
-    p = subparsers.add_parser("match")
-    p.add_argument("pwmfile", help="File with pwms", metavar="PWMFILE")
-    p.add_argument(
-        "-d",
-        dest="dbpwmfile",
-        help="File with pwms to match against " "(default: {0})".format(default_pwm),
-        default=default_pwm_file,
-        metavar="DBFILE",
-    )
-    p.add_argument(
-        "-o",
-        dest="img",
-        help="Output file with graphical report (png, svg, ps, pdf)",
-        metavar="FILE",
-    )
-    p.set_defaults(func=commands.match)
-
-    p = subparsers.add_parser("maelstrom")
-    p.add_argument(
-        "inputfile", help="file with regions and clusters", metavar="INPUTFILE"
-    )
-    p.add_argument("genome", help="genome", metavar="GENOME")
-    p.add_argument("outdir", help="output directory", metavar="DIR")
-    p.add_argument(
-        "-p",
-        "--pwmfile",
-        dest="pwmfile",
-        help="PWM file with motifs " "(default: {0})".format(default_pwm),
-        default=default_pwm_file,
-        metavar="PWMFILE",
-    )
-    p.add_argument(
-        "-m",
-        "--methods",
-        dest="methods",
-        help="Run with specific methods",
-        default=None,
-        metavar="NAMES",
-    )
-    p.add_argument(
-        "-N",
-        "--nthreads",
-        dest="ncpus",
-        help="Number of threads (default %s)" % (params["ncpus"]),
-        metavar="INT",
-        type=int,
-        default=int(params["ncpus"]),
-    )
-    p.add_argument(
-        "--rawscore",
-        dest="zscore",
-        help="Don't z-score normalize motif scores",
-        action="store_false",
-        default=True,
-    )
-    p.add_argument(
-        "--nogc",
-        dest="gc",
-        help="Don't use GC% bins",
-        action="store_false",
-        default=True,
-    )
-
-    p.set_defaults(func=commands.maelstrom)
-
-    # motif_cluster.py
-    p = subparsers.add_parser("cluster")
-    p.add_argument("inputfile", help="Inputfile (PFM format)", metavar="INPUTFILE")
-    p.add_argument("outdir", help="Name of output directory", metavar="OUTDIR")
-    p.add_argument(
-        "-s",
-        dest="single",
-        help="Don't compare reverse complements of motifs",
-        default=False,
-        action="store_true",
-    )
-    p.add_argument(
-        "-t", dest="threshold", help="Cluster threshold", default=0.95, type=float
-    )
-    p.add_argument(
-        "-N",
-        "--nthreads",
-        dest="ncpus",
-        help="Number of threads (default %s)" % (params["ncpus"]),
-        metavar="INT",
-        type=int,
-        default=int(params["ncpus"]),
-    )
-
-    p.set_defaults(func=commands.cluster)
-
-    # generate_background_sequences.py
-    p = subparsers.add_parser("background")
-    p.add_argument("outputfile", help="outputfile", metavar="FILE")
-    p.add_argument(
-        "bg_type",
-        help="type of background sequences to generate (%s)" % ",".join(BG_TYPES),
-        metavar="TYPE",
-    )
-    p.add_argument(
-        "-i", dest="inputfile", help="input sequences (BED or FASTA)", metavar="FILE"
-    )
-    p.add_argument(
-        "-f",
-        dest="outformat",
-        help="output format (BED or FASTA",
-        metavar="TYPE",
-        default="fasta",
-    )
-    p.add_argument(
-        "-l", dest="length", help="length of random sequences", metavar="INT", type=int
-    )
-    p.add_argument(
-        "-n",
-        dest="number",
-        help="number of sequence to generate",
-        metavar="NUMBER",
-        default=10,
-        type=int,
-    )
-    p.add_argument(
-        "-g",
-        dest="genome",
-        help="genome version (not for type 'random')",
-        metavar="GENOME",
-    )
-    p.add_argument(
-        "-m",
-        dest="markov_order",
-        help="order of the Markov model (only for type 'random', default 1)",
-        metavar="N",
-        default=1,
-        type=int,
-    )
-    p.set_defaults(func=commands.background)
-
-    # get_fpr_based_pwmscan_threshold.py
-    p = subparsers.add_parser("threshold")
-    p.add_argument("pwmfile", help="File with pwms", metavar="PWMFILE")
-    p.add_argument(
-        "inputfile", help="FASTA file with background sequences", metavar="FAFILE"
-    )
-    p.add_argument("fpr", help="Desired fpr", type=float, metavar="FPR")
-    p.set_defaults(func=commands.threshold)
-
-    # motif_localization_plots.py
-    p = subparsers.add_parser("location")
-    p.add_argument("pwmfile", help="File with pwms", metavar="PWMFILE")
-    p.add_argument("fastafile", help="Fasta formatted file", metavar="FAFILE")
-    p.add_argument(
-        "-s",
-        dest="size",
-        help="Set size to W (default: determined from fastafile)",
-        metavar="INT",
-        type=int,
-    )
-    p.add_argument(
-        "-i",
-        dest="ids",
-        help="Comma-separated list of motif ids to plot (default is all ids)",
-        metavar="IDS",
-    )
-    p.add_argument(
-        "-c",
-        dest="cutoff",
-        help="Cutoff for motif scanning (default 0.95)",
-        type=float,
-        default=0.95,
-    )
-    p.set_defaults(func=commands.location)
-
-    # pwmscan.py
+    # pfmscan.py
     NREPORT = 1
     p = subparsers.add_parser("scan")
     p.add_argument(
@@ -367,11 +195,11 @@ if __name__ == "__main__":
     )
     p.add_argument(
         "-p",
-        "--pwmfile",
-        dest="pwmfile",
-        help="PWM file with motifs " "(default: {0})".format(default_pwm),
-        default=default_pwm_file,
-        metavar="PWMFILE",
+        "--pfmfile",
+        dest="pfmfile",
+        help="PFM file with motifs " "(default: {0})".format(default_pfm),
+        default=default_pfm_file,
+        metavar="pfmfile",
     )
     p.add_argument(
         "-f",
@@ -482,7 +310,205 @@ if __name__ == "__main__":
         default=None,
     )
 
-    p.set_defaults(func=commands.pwmscan)
+    p.set_defaults(func=commands.pfmscan)
+
+    p = subparsers.add_parser("maelstrom")
+    p.add_argument(
+        "inputfile", help="file with regions and clusters", metavar="INPUTFILE"
+    )
+    p.add_argument("genome", help="genome", metavar="GENOME")
+    p.add_argument("outdir", help="output directory", metavar="DIR")
+    p.add_argument(
+        "-p",
+        "--pfmfile",
+        dest="pfmfile",
+        help="PFM file with motifs " "(default: {0})".format(default_pfm),
+        default=default_pfm_file,
+        metavar="pfmfile",
+    )
+    p.add_argument(
+        "-m",
+        "--methods",
+        dest="methods",
+        help="Run with specific methods",
+        default=None,
+        metavar="NAMES",
+    )
+    p.add_argument(
+        "-N",
+        "--nthreads",
+        dest="ncpus",
+        help="Number of threads (default %s)" % (params["ncpus"]),
+        metavar="INT",
+        type=int,
+        default=int(params["ncpus"]),
+    )
+    p.add_argument(
+        "--rawscore",
+        dest="zscore",
+        help="Don't z-score normalize motif scores",
+        action="store_false",
+        default=True,
+    )
+    p.add_argument(
+        "--nogc",
+        dest="gc",
+        help="Don't use GC% bins",
+        action="store_false",
+        default=True,
+    )
+
+    p.set_defaults(func=commands.maelstrom)
+
+    # closest_match.py
+    p = subparsers.add_parser("match")
+    p.add_argument("pfmfile", help="File with pfms", metavar="pfmfile")
+    p.add_argument(
+        "-d",
+        dest="dbpfmfile",
+        help="File with pfms to match against " "(default: {0})".format(default_pfm),
+        default=default_pfm_file,
+        metavar="DBFILE",
+    )
+    p.add_argument(
+        "-o",
+        dest="img",
+        help="Output file with graphical report (png, svg, ps, pdf)",
+        metavar="FILE",
+    )
+    p.set_defaults(func=commands.match)
+
+    # pwm2logo.py
+    p = subparsers.add_parser("logo")
+    p.add_argument("pfmfile", help="PFM file with motifs", metavar="pfmfile")
+    p.add_argument(
+        "-i",
+        "--ids",
+        dest="ids",
+        help="Comma-separated list of motif ids (default is all ids)",
+        metavar="IDS",
+    )
+    p.add_argument(
+        "-k",
+        "--kind",
+        dest="kind",
+        help="Type of motif (information, frequency, energy or ensembl)",
+        metavar="TYPE",
+        default="information",
+    )
+    p.add_argument(
+        "--notitle",
+        dest="title",
+        help="Don't include motif ID as title",
+        default=True,
+        action="store_false",
+    )
+
+    # motif_cluster.py
+    p = subparsers.add_parser("cluster")
+    p.add_argument("inputfile", help="Inputfile (PFM format)", metavar="INPUTFILE")
+    p.add_argument("outdir", help="Name of output directory", metavar="OUTDIR")
+    p.add_argument(
+        "-s",
+        dest="single",
+        help="Don't compare reverse complements of motifs",
+        default=False,
+        action="store_true",
+    )
+    p.add_argument(
+        "-t", dest="threshold", help="Cluster threshold", default=0.95, type=float
+    )
+    p.add_argument(
+        "-N",
+        "--nthreads",
+        dest="ncpus",
+        help="Number of threads (default %s)" % (params["ncpus"]),
+        metavar="INT",
+        type=int,
+        default=int(params["ncpus"]),
+    )
+
+    p.set_defaults(func=commands.cluster)
+
+    # generate_background_sequences.py
+    p = subparsers.add_parser("background")
+    p.add_argument("outputfile", help="outputfile", metavar="FILE")
+    p.add_argument(
+        "bg_type",
+        help="type of background sequences to generate (%s)" % ",".join(BG_TYPES),
+        metavar="TYPE",
+    )
+    p.add_argument(
+        "-i", dest="inputfile", help="input sequences (BED or FASTA)", metavar="FILE"
+    )
+    p.add_argument(
+        "-f",
+        dest="outformat",
+        help="output format (BED or FASTA",
+        metavar="TYPE",
+        default="fasta",
+    )
+    p.add_argument(
+        "-l", dest="length", help="length of random sequences", metavar="INT", type=int
+    )
+    p.add_argument(
+        "-n",
+        dest="number",
+        help="number of sequence to generate",
+        metavar="NUMBER",
+        default=10,
+        type=int,
+    )
+    p.add_argument(
+        "-g",
+        dest="genome",
+        help="genome version (not for type 'random')",
+        metavar="GENOME",
+    )
+    p.add_argument(
+        "-m",
+        dest="markov_order",
+        help="order of the Markov model (only for type 'random', default 1)",
+        metavar="N",
+        default=1,
+        type=int,
+    )
+    p.set_defaults(func=commands.background)
+
+    # get_fpr_based_pfmscan_threshold.py
+    p = subparsers.add_parser("threshold")
+    p.add_argument("pfmfile", help="File with pfms", metavar="pfmfile")
+    p.add_argument(
+        "inputfile", help="FASTA file with background sequences", metavar="FAFILE"
+    )
+    p.add_argument("fpr", help="Desired fpr", type=float, metavar="FPR")
+    p.set_defaults(func=commands.threshold)
+
+    # motif_localization_plots.py
+    p = subparsers.add_parser("location")
+    p.add_argument("pfmfile", help="File with pfms", metavar="pfmfile")
+    p.add_argument("fastafile", help="Fasta formatted file", metavar="FAFILE")
+    p.add_argument(
+        "-s",
+        dest="size",
+        help="Set size to W (default: determined from fastafile)",
+        metavar="INT",
+        type=int,
+    )
+    p.add_argument(
+        "-i",
+        dest="ids",
+        help="Comma-separated list of motif ids to plot (default is all ids)",
+        metavar="IDS",
+    )
+    p.add_argument(
+        "-c",
+        dest="cutoff",
+        help="Cutoff for motif scanning (default 0.95)",
+        type=float,
+        default=0.95,
+    )
+    p.set_defaults(func=commands.location)
 
     MAXENR = 3
     p = subparsers.add_parser("diff")
@@ -498,11 +524,11 @@ if __name__ == "__main__":
     p.add_argument("outputfile", help="outputfile (image)", metavar="PNGFILE")
     p.add_argument(
         "-p",
-        "--pwmfile",
-        dest="pwmfile",
-        help="PWM file with motifs " "(default: {0})".format(default_pwm),
-        default=default_pwm_file,
-        metavar="PWMFILE",
+        "--pfmfile",
+        dest="pfmfile",
+        help="PFM file with motifs " "(default: {0})".format(default_pfm),
+        default=default_pfm_file,
+        metavar="pfmfile",
     )
     p.add_argument(
         "-c",
@@ -542,38 +568,12 @@ if __name__ == "__main__":
     )
     p.set_defaults(func=commands.diff)
 
-    # pwm2logo.py
-    p = subparsers.add_parser("logo")
-    p.add_argument("pwmfile", help="PWM file with motifs", metavar="PWMFILE")
-    p.add_argument(
-        "-i",
-        "--ids",
-        dest="ids",
-        help="Comma-separated list of motif ids (default is all ids)",
-        metavar="IDS",
-    )
-    p.add_argument(
-        "-k",
-        "--kind",
-        dest="kind",
-        help="Type of motif (information, frequency, energy or ensembl)",
-        metavar="TYPE",
-        default="information",
-    )
-    p.add_argument(
-        "--notitle",
-        dest="title",
-        help="Don't include motif ID as title",
-        default=True,
-        action="store_false",
-    )
-
     p.set_defaults(func=commands.logo)
 
     p = subparsers.add_parser("prediction")
     p.add_argument("tool", help="Specific motif prediction tool to run", metavar="NAME")
     p.add_argument("infile", help="Input FASTA file", metavar="FILE")
-    p.add_argument("outfile", help="Output pwm file", metavar="FILE")
+    p.add_argument("outfile", help="Output PFM file", metavar="FILE")
     p.add_argument(
         "-p",
         dest="paramfile",
