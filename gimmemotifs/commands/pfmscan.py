@@ -45,7 +45,7 @@ def format_line(
     else:
         return '{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\tmotif_name "{}" ; motif_instance "{}"'.format(
             seq_id,
-            "pwmscan",
+            "pfmscan",
             "misc_feature",
             pos + 1,  # GFF is 1-based
             pos + len(motif),
@@ -128,7 +128,7 @@ def scan_normal(
 
 def command_scan(
     inputfile,
-    pwmfile,
+    pfmfile,
     nreport=1,
     fpr=0.01,
     cutoff=None,
@@ -144,13 +144,13 @@ def command_scan(
     zscore=False,
     gcnorm=False,
 ):
-    motifs = read_motifs(pwmfile)
+    motifs = read_motifs(pfmfile)
 
     fa = as_fasta(inputfile, genome)
 
     # initialize scanner
     s = Scanner(ncpus=ncpus)
-    s.set_motifs(pwmfile)
+    s.set_motifs(pfmfile)
 
     if genome:
         s.set_genome(genome=genome)
@@ -192,14 +192,14 @@ def command_scan(
         yield row
 
 
-def pwmscan(args):
+def pfmscan(args):
 
     if args.fpr is None and args.cutoff is None:
         args.fpr = 0.01
 
     print("# GimmeMotifs version {}".format(__version__))
     print("# Input: {}".format(args.inputfile))
-    print("# Motifs: {}".format(args.pwmfile))
+    print("# Motifs: {}".format(args.pfmfile))
     if args.fpr and not args.score_table:
         if args.genome:
             print("# FPR: {} ({})".format(args.fpr, args.genome))
@@ -217,7 +217,7 @@ def pwmscan(args):
 
     for line in command_scan(
         args.inputfile,
-        args.pwmfile,
+        args.pfmfile,
         nreport=args.nreport,
         fpr=args.fpr,
         cutoff=args.cutoff,

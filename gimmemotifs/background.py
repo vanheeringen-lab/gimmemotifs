@@ -85,13 +85,13 @@ def create_background_file(
             sys.exit(1)
         Genome(genome)
 
-    # Gene definition
-    fname = Genome(genome).filename
-    gene_file = fname.replace(".fa", ".annotation.bed.gz")
-    if not gene_file:
-        gene_file = os.path.join(config.get_gene_dir(), "{}.bed".format(genome))
-
     if bg_type in ["promoter"]:
+        # Gene definition
+        fname = Genome(genome).filename
+        gene_file = fname.replace(".fa", ".annotation.bed.gz")
+        if not gene_file:
+            gene_file = os.path.join(config.get_gene_dir(), "{}.bed".format(genome))
+
         if not os.path.exists(gene_file):
             print("Could not find a gene file for genome {}".format(genome))
             print("Did you use the --annotation flag for genomepy?")

@@ -31,10 +31,18 @@ def motifs(args):
         if not os.path.exists(args.outdir):
             os.makedirs(args.outdir)
 
+    genome = args.genome
+    if genome is None:
+        args.zscore = False
+        args.gc = False
+        
     bgfile = None
     bg = args.background
     if bg is None:
-        bg = "gc"
+        if genome is None:
+            bg = "random"
+        else:
+            bg = "gc"
 
     if os.path.isfile(bg):
         bgfile = bg
@@ -45,12 +53,16 @@ def motifs(args):
         size = args.size
         if size <= 0:
             size = None
-        logger.info("creating background (matched GC%)")
+        if bg == "gc":
+            logger.info("creating background (matched GC%)")
+        else:
+            logger.info("creating background (random)")
+
         create_background_file(
             bgfile,
             bg,
             fmt="fasta",
-            genome=args.genome,
+            genome=genome,
             inputfile=args.sample,
             size=size,
             number=10000,
@@ -60,7 +72,6 @@ def motifs(args):
 
     motifs = read_motifs(pfmfile, fmt="pwm")
     if args.denovo:
-        print(args.genome)
         gimme_motifs(
             args.sample,
             args.outdir,
