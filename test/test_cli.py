@@ -41,7 +41,7 @@ def test_gimme_maelstrom():
 @pytest.mark.parametrize(
     "arguments",
     [
-        ["-c", 0.8],
+        ["-c", "0.8"],
         ["-t", "-g", "hg38"],
         ["-T"],
         ["-b", "-g" "hg38"],
@@ -55,3 +55,13 @@ def test_gimme_scan(arguments):
     )
 
     assert 1 == 1
+
+def test_gimme_logo():
+    motif_name = "MA0103.3_ZEB1"
+    cli(
+        ["logo", "test/data/cli/motifs.pfm", "-i", motif_name]
+    )
+
+    assert os.path.exists(f"{motif_name}.png")
+    if os.path.exists(f"{motif_name}.png"):
+        os.unlink(f"{motif_name}.png")
