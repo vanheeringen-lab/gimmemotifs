@@ -108,15 +108,13 @@ def scan_to_table(
         idx = df.index
 
     regions = list(idx)
+    if len(regions) >= 1000:
+        check_regions = np.random.choice(regions, size=1000, replace=False)
+    else:
+        check_regions = regions
+
     size = int(
-        np.median(
-            [
-                len(seq)
-                for seq in as_fasta(
-                    np.random.choice(regions, size=1000, replace=False), genome=genome
-                ).seqs
-            ]
-        )
+        np.median([len(seq) for seq in as_fasta(check_regions, genome=genome).seqs])
     )
     s = Scanner(ncpus=ncpus)
     s.set_motifs(pwmfile)
