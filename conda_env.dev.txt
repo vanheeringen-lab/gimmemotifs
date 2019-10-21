@@ -33,3 +33,10 @@ weeder
 xdg
 xgboost >=0.71
 xxmotif
+
+# development-specific
+black
+flake8
+flake8-bugbear
+pytest
+twine
