@@ -35,7 +35,7 @@ before_install:
 install:
   - conda env create -q -f conda_env.dev.txt -n gimme
   - conda activate gimme
-  - python setup.py build
+  - pip install -e
 #  - pip install coveralls
 # # command to run tests, e.g. python setup.py test
 script:  
