@@ -1,7 +1,6 @@
 import os
 import re
 import sys
-import gc
 from functools import partial
 from tempfile import mkdtemp, NamedTemporaryFile
 import logging
