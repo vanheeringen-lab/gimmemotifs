@@ -403,6 +403,7 @@ def cli(sys_args):
         default=True,
         action="store_false",
     )
+    p.set_defaults(func=commands.logo)
 
     # motif_cluster.py
     p = subparsers.add_parser("cluster")

@@ -7,13 +7,13 @@
 
 from __future__ import print_function
 from gimmemotifs.comparison import MotifComparer
-from gimmemotifs.motif import pwmfile_to_motifs, Motif
+from gimmemotifs.motif import read_motifs, Motif
 from gimmemotifs.plot import match_plot
 
 
 def match(args):
-    sample = dict([(m.id, m) for m in pwmfile_to_motifs(args.pwmfile)])
-    db = dict([(m.id, m) for m in pwmfile_to_motifs(args.dbpwmfile)])
+    sample = dict([(m.id, m) for m in read_motifs(args.pfmfile)])
+    db = dict([(m.id, m) for m in read_motifs(args.dbpfmfile)])
 
     mc = MotifComparer()
     result = mc.get_closest_match(

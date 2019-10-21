@@ -9,7 +9,7 @@ Command line tool 'location'.
 Creates a histogram of motif matches relative to sequence center.
 """
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.motif import pwmfile_to_motifs
+from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import motif_localization
 from multiprocessing import Pool
 from gimmemotifs.config import MotifConfig
@@ -26,7 +26,7 @@ def location(args):
         Command line arguments.
     """
     fastafile = args.fastafile
-    pwmfile = args.pwmfile
+    pfmfile = args.pfmfile
 
     lsize = args.size
     if not lsize:
@@ -35,7 +35,7 @@ def location(args):
         f = None
 
     jobs = []
-    motifs = pwmfile_to_motifs(pwmfile)
+    motifs = read_motifs(pfmfile)
     ids = [motif.id for motif in motifs]
     if args.ids:
         ids = args.ids.split(",")

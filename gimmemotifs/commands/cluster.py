@@ -5,7 +5,7 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 
-from gimmemotifs.motif import pwmfile_to_motifs
+from gimmemotifs.motif import read_motifs
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.cluster import cluster_motifs
 from gimmemotifs.config import MotifConfig
@@ -95,7 +95,7 @@ def cluster(args):
     ncpus = args.ncpus
 
     clusters = []
-    motifs = pwmfile_to_motifs(args.inputfile)
+    motifs = read_motifs(args.inputfile)
     if len(motifs) == 1:
         clusters = [[motifs[0], motifs]]
     else:
