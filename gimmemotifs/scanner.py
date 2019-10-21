@@ -497,7 +497,7 @@ class Scanner(object):
         if gc_bins:
             self.gc_bins = gc_bins
 
-    def set_threshold(self, fpr=None, threshold=None, gc=gc):
+    def set_threshold(self, fpr=None, threshold=None, gc=False):
         """Set motif scanning threshold based on background sequences.
 
         Parameters

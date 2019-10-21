@@ -11,6 +11,7 @@ from gimmemotifs.config import MotifConfig, BG_TYPES, BED_VALID_BGS
 from gimmemotifs import commands, __version__
 from gimmemotifs.utils import check_genome
 
+
 def cli(sys_args):
     config = MotifConfig()
     params = config.get_default_params()
@@ -509,7 +510,6 @@ def cli(sys_args):
     )
     p.set_defaults(func=commands.location)
 
-    MAXENR = 3
     p = subparsers.add_parser("diff")
     p.add_argument(
         "inputfiles",

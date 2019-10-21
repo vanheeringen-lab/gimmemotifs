@@ -35,9 +35,8 @@ from gimmemotifs.config import MotifConfig
 from gimmemotifs.moap import moap, Moap, scan_to_table
 from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.scanner import Scanner
 from gimmemotifs.report import maelstrom_html_report
-from gimmemotifs.utils import join_max, pwmfile_location, as_fasta
+from gimmemotifs.utils import join_max, pwmfile_location
 
 from multiprocessing import Pool
 

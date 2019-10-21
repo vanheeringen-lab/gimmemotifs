@@ -55,7 +55,7 @@ class MotifConfig(object):
 
     # Default config that is installed with GimmeMotifs
     default_config = pkg_resources.resource_filename(
-            'gimmemotifs', '../data/cfg/gimmemotifs.default.cfg'
+        "gimmemotifs", "../data/cfg/gimmemotifs.default.cfg"
     )
 
     #
@@ -176,7 +176,8 @@ class MotifConfig(object):
         my_dir = self.config.get("main", ddir)
         if not os.path.exists(my_dir):
             my_dir = pkg_resources.resource_filename(
-                'gimmemotifs', os.path.join('../data', my_dir))
+                "gimmemotifs", os.path.join("../data", my_dir)
+            )
         return my_dir
 
     def set_template_dir(self, path):

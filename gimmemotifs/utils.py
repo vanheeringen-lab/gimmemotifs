@@ -709,7 +709,7 @@ def as_fasta(seqs, genome=None):
         tmpfa = NamedTemporaryFile()
         if isinstance(genome, str):
             genome = Genome(genome)
-        
+
         if isinstance(seqs, np.ndarray):
             seqs = list(seqs)
         genome.track2fasta(seqs, tmpfa.name)
