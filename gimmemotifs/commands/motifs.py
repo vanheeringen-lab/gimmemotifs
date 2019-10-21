@@ -70,6 +70,7 @@ def motifs(args):
 
     pfmfile = args.pfmfile
 
+    motifs = []
     if args.known:
         motifs = read_motifs(pfmfile, fmt="pfm")
 
