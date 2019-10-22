@@ -1,4 +1,5 @@
 bedtools
+dinamo
 diskcache
 feather-format
 future
@@ -12,6 +13,7 @@ matplotlib >=2.0
 meme >=5
 ncurses
 numpy
+prosampler
 pillow
 pyarrow
 pybedtools

@@ -1,4 +1,5 @@
 bedtools
+dinamo
 diskcache
 feather-format
 future
@@ -13,6 +14,7 @@ meme >=5
 ncurses
 numpy
 pillow
+prosampler
 pyarrow
 pybedtools
 pysam
