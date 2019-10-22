@@ -617,11 +617,11 @@ def determine_file_type(fname):
         raise ValueError("{} is not a file!", fname)
 
     ext = os.path.splitext(fname)[1].lower()
-    if ext in ["bed"]:
+    if ext in [".bed"]:
         return "bed"
-    elif ext in ["fa", "fasta"]:
+    elif ext in [".fa", ".fasta"]:
         return "fasta"
-    elif ext in ["narrowpeak"]:
+    elif ext in [".narrowpeak"]:
         return "narrowpeak"
 
     try:
