@@ -6,6 +6,8 @@
 """ Configuration for GimmeMotifs """
 import configparser
 import sysconfig
+import glob
+import sys
 import xdg
 import os
 import logging
@@ -131,16 +133,25 @@ class MotifConfig(object):
 
     def bin(self, program):
         try:
-            exe = self.config.get(program, "bin")
-            if not os.path.exists(exe):
+            exe_base = self.config.get(program, "bin")
+            if not os.path.exists(exe_base):
                 mdir = self.config.get(program, "dir")
-                if not os.path.exists(mdir):
-                    mdir = os.path.join(self.package_dir, mdir)
-                exe = os.path.join(mdir, exe)
+                build_dir = next(
+                    iter(glob.glob(f"build/lib*{sys.version[:3]}/gimmemotifs")), ""
+                )
+                dirs = [
+                    mdir,
+                    os.path.join(self.package_dir, mdir),
+                    os.path.join(build_dir, mdir),
+                ]
+                for bla in dirs:
+                    exe = os.path.join(bla, exe_base)
+                    if os.path.exists(exe):
+                        return os.path.abspath(exe)
 
         except Exception:
             raise ValueError("No configuration found for %s" % program)
-        return exe
+        return exe_base
 
     def set_default_params(self, params):
         if not self.config.has_section("params"):
