@@ -181,7 +181,7 @@ class MotifConfig(object):
                     ]
                     for mdir in dirs:
                         if os.path.exists(mdir):
-                            return mdir 
+                            return mdir
                 except Exception:
                     return None
             else:
