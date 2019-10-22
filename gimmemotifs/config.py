@@ -171,9 +171,17 @@ class MotifConfig(object):
             if self.config.has_option(program, "dir"):
                 try:
                     mdir = self.config.get(program, "dir")
-                    if not os.path.exists(mdir):
-                        mdir = os.path.join(self.package_dir, mdir)
-                    return mdir
+                    build_dir = next(
+                        iter(glob.glob(f"build/lib*{sys.version[:3]}/gimmemotifs")), ""
+                    )
+                    dirs = [
+                        mdir,
+                        os.path.join(self.package_dir, mdir),
+                        os.path.join(build_dir, mdir),
+                    ]
+                    for mdir in dirs:
+                        if os.path.exists(mdir):
+                            return mdir 
                 except Exception:
                     return None
             else:
