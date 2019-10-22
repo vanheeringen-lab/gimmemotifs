@@ -304,6 +304,7 @@ class Rpmcmc(MotifProgram):
         """
         motifs = []
         pfm = []
+        name = ""
         for line in open(fname):
             line = line.strip()
             if line.startswith("PFM"):
@@ -334,7 +335,7 @@ class Dinamo(MotifProgram):
     """
     Predict motifs using DiNAMO.
 
-    Reference: Saad et al., 2018, doi: 10.1186/s12859-018-2215-1 
+    Reference: Saad et al., 2018, doi: 10.1186/s12859-018-2215-1
     """
 
     def __init__(self):
@@ -2483,7 +2484,7 @@ class Dreme(MotifProgram):
 
         motifs = read_motifs(outfile, fmt="meme")
         for motif in motifs:
-            motif.id = self.name + "_" + motif.id 
+            motif.id = self.name + "_" + motif.id
 
         return motifs, stdout, stderr
 

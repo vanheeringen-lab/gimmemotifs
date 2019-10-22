@@ -450,7 +450,7 @@ def cli(sys_args):
         default="fasta",
     )
     p.add_argument(
-            "-s", dest="size", help="size of random sequences", metavar="INT", type=int
+        "-s", dest="size", help="size of random sequences", metavar="INT", type=int
     )
     p.add_argument(
         "-n",

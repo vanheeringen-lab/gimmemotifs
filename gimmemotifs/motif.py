@@ -1656,7 +1656,7 @@ def _read_motifs_meme(handle):
                 line = handle.readline()
                 if not line.strip():
                     break
-                row = [float(x) for x in re.split("\s", line.strip())]
+                row = [float(x) for x in re.split(r"\s", line.strip())]
                 freqs.append(row)
 
             motif = Motif(freqs)
