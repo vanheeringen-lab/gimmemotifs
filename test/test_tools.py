@@ -27,7 +27,8 @@ def test_tool(tool_name):
     params = {"background": bg_fa, "organism": "hg38", "width": 7}
     print(__tools__)
     if tool_name in [
-        "yamda",  # not installable vio bioconda;
+        "yamda",  # not installable vio bioconda
+        "rpmcmc", # not installable via bioconda
         "gadem",  # sometimes crashes on invalid pointer
         "jaspar",
         "xxmotif",  # takes too long
