@@ -31,6 +31,7 @@ MOTIF_CLASSES = [
     "MDmodule",
     "MEME",
     "MEMEW",
+    "DREME",
     "Weeder",
     "GADEM",
     "MotifSampler",
@@ -43,6 +44,10 @@ MOTIF_CLASSES = [
     "HMS",
     "Homer",
     "XXmotif",
+    "ProSampler",
+    "Yamda",
+    "DiNAMO",
+    "RPMCMC",
 ]
 
 

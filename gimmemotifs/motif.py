@@ -1422,14 +1422,18 @@ def _read_motifs_from_filehandle(handle, fmt):
     """
     if fmt.lower() == "pfm":
         motifs = _read_motifs_pfm(handle)
-    if fmt.lower() == "transfac":
+    elif fmt.lower() == "transfac":
         motifs = _read_motifs_transfac(handle)
-    if fmt.lower() == "xxmotif":
+    elif fmt.lower() == "xxmotif":
         motifs = _read_motifs_xxmotif(handle)
-    if fmt.lower() == "align":
+    elif fmt.lower() == "align":
         motifs = _read_motifs_align(handle)
-    if fmt.lower() == "jaspar":
+    elif fmt.lower() == "jaspar":
         motifs = _read_motifs_jaspar(handle)
+    elif fmt.lower() == "meme":
+        motifs = _read_motifs_meme(handle)
+    else:
+        raise ValueError("Unknown format {}".format(fmt))
 
     # Remove everything after tab from motif identifiers
     for motif in motifs:
@@ -1630,6 +1634,32 @@ def _read_motifs_xxmotif(handle):
 
             pwm = np.array(freqs).transpose()
             motif = Motif(pwm)
+            motif.id = mid.replace(" ", "_")
+            motifs.append(motif)
+
+    return motifs
+
+
+def _read_motifs_meme(handle):
+    motifs = []
+    line = handle.readline()
+    while line:
+        while line and not line.startswith("MOTIF"):
+            line = handle.readline()
+
+        if line:
+            mid = line.strip().split(" ")[1]
+            freqs = []
+            while not line.startswith("letter"):
+                line = handle.readline()
+            while line:
+                line = handle.readline()
+                if not line.strip():
+                    break
+                row = [float(x) for x in re.split("\s", line.strip())]
+                freqs.append(row)
+
+            motif = Motif(freqs)
             motif.id = mid.replace(" ", "_")
             motifs.append(motif)
 
