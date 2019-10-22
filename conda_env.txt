@@ -1,5 +1,5 @@
 bedtools
-dinamo # [not osx]
+dinamo # [linux]
 diskcache
 feather-format
 future
