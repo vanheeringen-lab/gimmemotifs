@@ -12,8 +12,8 @@ matplotlib >=2.0
 meme >=5
 ncurses
 numpy
-pillow
 prosampler
+pillow
 pyarrow
 pybedtools
 pysam
@@ -34,3 +34,10 @@ weeder
 xdg
 xgboost >=0.71
 xxmotif
+
+# development-specific
+black
+flake8
+flake8-bugbear
+pytest
+twine
