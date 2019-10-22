@@ -1,5 +1,4 @@
 bedtools
-dinamo
 diskcache
 feather-format
 future
