@@ -26,7 +26,7 @@ List of tools
 Input formats
 -------------
 
-Most tools in this section take a file in PWM format as input. This is
+Most tools in this section take a file in PFM format as input. This is
 actually a file with Position Specific Scoring Matrices (PSSMs)
 containing *frequencies*. It looks like this:
 
@@ -53,7 +53,7 @@ The frequencies are seperated by tabs, and in the order A,C,G,T.
 Command: gimme motifs
 ---------------------
 
-The `gimme motifs` can be used for known and/or *de novo* motif analysis.
+The ``gimme motifs`` command can be used for known and/or *de novo* motif analysis.
 By default it runs both.
 
 Quick example of *de novo* motif analysis
@@ -74,15 +74,14 @@ on your system):
 
 The first argument is the name of the input file and the second argument 
 defines the name of the output directory that is created. All output files 
-are stored in this directory. The genome is set to ``hg19`` genome. As the 
-input is a FASTA file, any human genome version can be used, for instance
-``-g hg38`` would also work. This requires you to have installed ``hg19``
-using [genomepy](https://github.com/simonvh/genomepy). Alternatively, you
+are stored in this directory. The genome is set to the ``hg38`` genome. This 
+requires you to have installed ``hg38`` using 
+ `genomepy<https://github.com/simonvh/genomepy>`_. Alternatively, you
 can also supply the path to a genome FASTA file with the ``-g`` option.
 
 Depending on your computer, this analysis will take around 15-20 minutes. 
 By default, the 
-[three top-performing](https://www.biorxiv.org/content/10.1101/474403v1) 
+`three top-performing<https://www.biorxiv.org/content/10.1101/474403v1>`_
 *de novo* motif tools will be use: MEME, Homer and BioProspector.
 Once GimmeMotifs is finished you can open
 `p73/p73\_motif\_report.html <p73/p73_motif_report.html>`__ in your
@@ -130,10 +129,35 @@ on the top sequences of your input, for instance the 5000 highest peaks.
 
 By default, `gimme motifs` uses three *de novo* motif prediction tools:
 MEME, BioProspector and Homer. These we found to be the best performing
-programs for ChIP-seq data ([Bruse & van Heeringen, 2018](https://www.biorxiv.org/content/10.1101/474403v1.full)).
-You can include a large variety of other toolsi by using the ``-t``
+programs for ChIP-seq data (`Bruse & van Heeringen, 2018`<https://www.biorxiv.org/content/10.1101/474403v1.full>`_).
+You can include a large variety of other tools by using the ``-t``
 parameter. This will result in an increased running time and some tools, 
 such as GADEM, will take a very long time.
+The following tools are supported:
+
+- `AMD<https://dx.doi.org/10.1371%2Fjournal.pone.0024576>`_
+- `BioProspector<http://ai.stanford.edu/~xsliu/BioProspector/>`_
+- `ChIPMunk<http://autosome.ru/ChIPMunk/>`_
+- `DiNAMO<https://github.com/bonsai-team/DiNAMO>`_
+- `GADEM<https://dx.doi.org/10.1089%2Fcmb.2008.16TT>`_
+- `DREME<http://meme-suite.org/index.html>`_
+- `HMS<https://doi.org/10.1093/nar/gkr1135>`_
+- `Homer<http://homer.ucsd.edu/homer/motif/>`_
+- `Improbizer<https://doi.org/10.1126/science.1102216>`_
+- `MDmodule<http://people.math.umass.edu/~conlon/mr.html>`_
+- `MEME<http://meme-suite.org/index.html>`_
+- `MotifSampler<http://bioinformatics.intec.ugent.be/MotifSuite/motifsampler.php>`_
+- `POSMO<https://dx.doi.org/10.1093%2Fnar%2Fgkr1135>`_
+- `ProSampler<https://github.com/zhengchangsulab/ProSampler>`_
+- `RPMCMC<http://daweb.ism.ac.jp/yoshidalab/motif/>`_
+- `Trawler<https://trawler.erc.monash.edu.au/>`_
+- `Weeder<http://159.149.160.51/modtools/>`_
+- `XXmotif<https://github.com/soedinglab/xxmotif>`_
+- `YAMDA<https://github.com/daquang/YAMDA>`_
+
+With the exception of RPMCMC and YAMDA, all tools come installed with GimmeMotifs 
+when using the bioconda package. AMD, HMS, Improbizer, MotifSampler and DiNAMO 
+are not supported on OSX.
 
 **Motif size**
 
@@ -480,33 +504,6 @@ Cluster a set of motifs with the WIC metric.
     -h, --help    show this help message and exit
     -s            Don't compare reverse complements of motifs
     -t THRESHOLD  Cluster threshold
-
-.. _`gimme_index`:
-
-Command: gimme index
---------------------
-
-Creates an index to use with GimmeMotifs.
-Use this command if your genome is not available on UCSC and you want to use it with GimmeMotifs.
-You should have a directory with FASTA files, **one per chromosome**. 
-*Note: this will change with a future version of GimmeMotifs.*
-
-**Positional arguments:**
-
-::
-
-    FASTADIR              Directory to place genome
-    GENOMEBUILD           UCSC genome name
-
-**Optional arguments:**
-
-::
-
-    -h, --help            show this help message and exit
-    -i DIR, --indexdir DIR
-                          Index dir (default
-                          <prefix>/share/gimmemotifs/genome_index)
-
 
 .. _`gimme_background`:
 
