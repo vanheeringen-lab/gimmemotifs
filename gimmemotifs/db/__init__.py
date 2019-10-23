@@ -105,7 +105,7 @@ class JasparMotifDb(MotifDb):
     ]
 
     def download(self, version="2020", outdir=DEFAULT_OUT):
-        ### JASPAR ###
+        # JASPAR
         for group in self.GROUPS:
             if group != "":
                 group = "_" + group
@@ -161,11 +161,11 @@ class JasparMotifDb(MotifDb):
                 info = get_jaspar_motif_info(motif.id.split("_")[0])
             try:
                 mtype = info["type"]
-            except:
+            except Exception:
                 pass
             if mtype == "universal protein binding microarray (PBM)":
                 mtype = "PBM"
-            factors = re.sub("\([^)]+\)", "", motif.id.split("_")[1]).split("::")
+            factors = re.sub(r"\([^)]+\)", "", motif.id.split("_")[1]).split("::")
             if motif.id.startswith("MA"):
                 direct = "Y"
             else:

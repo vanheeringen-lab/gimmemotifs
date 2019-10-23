@@ -8,3 +8,4 @@ dependencies:
   - sklearn-contrib-lightning
   - sphinx_bootstrap_theme
   - numpydoc
+  - pypandoc

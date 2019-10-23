@@ -22,6 +22,7 @@ website/**/*
 .pytest_cache/
 **/.ipynb_checkpoints/
 .vscode
+.coverage*
 
 test/data/maelstrom/activity*
 test/data/maelstrom/final*

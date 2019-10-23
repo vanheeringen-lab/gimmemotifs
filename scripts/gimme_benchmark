@@ -1,0 +1,113 @@
+#!/usr/bin/env python
+# Copyright (c) 2017 Simon van Heeringen <simon.vanheeringen@gmail.com>
+#
+# This module is free software. You can redistribute it and/or modify it under 
+# the terms of the MIT License, see the file COPYING included with this 
+# distribution.
+"""Benchmark different motif algorithms."""
+from tempfile import NamedTemporaryFile, mkdtemp
+from gimmemotifs.denovo import gimme_motifs
+import argparse
+import os
+import sys
+import subprocess as sp
+import pandas as pd
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
+from pybedtools import BedTool
+import shutil
+
+def obtain_bed(href):
+    tmp = NamedTemporaryFile(delete=False)
+    f = urlopen(href)
+    tmp.write(f.read())
+    f.close()
+    tmp.flush()
+    
+    if href.split(".")[-1] in ["bb", "bigBed"]:
+        tmp2 = NamedTemporaryFile(delete=False)
+        tmp2.close()
+        sp.check_output("bigBedToBed {} {}".format(
+                tmp.name, tmp2.name),
+                shell=True)
+        tmp.close()
+        tmp = tmp2
+    return tmp.name
+
+def prepare_bed(bed, genome, genome_fa, npeaks=500, size=200, score_column=6):
+    b = BedTool(bed)
+    peaks = []
+    c = 0
+    for f in b:
+        try:
+            summit = int(f[9])
+            start = int(f[1]) + summit
+            end = start
+        except:
+            start = int(f[1])
+            end = int(f[2])
+        peaks.append([f[0], start, end, f[score_column]])
+        c += 1
+    inbed = NamedTemporaryFile(mode="w", prefix="gimme.", suffix=".bed", delete=False)
+    for x in sorted(peaks, key=lambda x: x[3])[-npeaks:]:
+        inbed.write("{}\t{}\t{}\t{}\n".format(*x))
+    inbed.close()
+    
+    flankfa = NamedTemporaryFile(mode="w", prefix="gimme.", suffix=".fa", delete=False)
+    flankfa.close()
+    if c > 10 * npeaks:
+        flanks = b.flank(l=size, r=0, g=genome).sample(n=10 * npeaks)
+    else:
+        flanks = b.flank(l=size, r=0, g=genome)
+    flanks.sequence(fi=genome_fa)
+    flanks.save_seqs(flankfa.name)
+    return inbed.name, flankfa.name
+
+parser = argparse.ArgumentParser()
+parser.add_argument("peaks",
+        help="peaks (narrowPeak in bed or bigBed format)",
+        metavar="PEAKS")
+parser.add_argument("genome",
+        help="genome FASTA file",
+        metavar="GENOME")
+
+args = parser.parse_args()
+href = args.peaks
+genome = args.genome 
+sizes = genome + ".sizes"
+
+bed = obtain_bed(href)
+
+inbed, bgfa = prepare_bed(
+    bed, 
+    sizes, 
+    genome,
+    npeaks=1000
+    )
+
+metrics = ["roc_auc", "mncp", "recall_at_fdr"]
+
+params ={
+        "tools":"MDmodule,Homer,BioProspector,ChIPMunk,MEME,MEMEW,MotifSampler,Improbizer,Posmo,AMD,HMS,GADEM",
+#        "tools":"XXmotif,GADEM",
+        "genome":"hg19",
+        "background": "user",
+        "user_background": bgfa, 
+        "keep_intermediate": True, 
+        }
+infile = "/home/simon/git/gimmemotifs/examples/TAp73alpha.fa"
+outfile = "summary.stats.txt"
+outdir = mkdtemp()
+#outdir = "/tmp/tmp0zbsijpu"
+print(outdir)
+gimme_motifs(inbed, outdir, params, filter_significant=False, cluster=False, create_report=False)
+statsfile = os.path.join(outdir, "intermediate/stats.user.txt")
+stats = pd.read_table(statsfile)
+stats["tool"] = stats["Motif"].str.split("_", expand=True).iloc[:,2]
+summary = stats.groupby("tool").max()[metrics]
+
+#shutil.rmtree(outdir)
+summary["source"] = href
+summary.to_csv(outfile, sep="\t")

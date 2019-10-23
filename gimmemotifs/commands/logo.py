@@ -5,13 +5,13 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 
-from gimmemotifs.motif import pwmfile_to_motifs
+from gimmemotifs.motif import read_motifs
 
 
 def logo(args):
-    inputfile = args.pwmfile
+    inputfile = args.pfmfile
 
-    motifs = pwmfile_to_motifs(inputfile)
+    motifs = read_motifs(inputfile)
     if args.ids:
         ids = args.ids.split(",")
         motifs = [m for m in motifs if m.id in ids]

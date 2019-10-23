@@ -70,6 +70,7 @@ def motifs(args):
 
     pfmfile = args.pfmfile
 
+    motifs = []
     if args.known:
         motifs = read_motifs(pfmfile, fmt="pfm")
 
@@ -86,18 +87,18 @@ def motifs(args):
                 "size": args.size,
             },
         )
-        denovo=read_motifs(os.path.join(args.outdir, "gimme.denovo.pfm"))
-        mc=MotifComparer()
-        result=mc.get_closest_match(denovo, dbmotifs=pfmfile, metric="seqcor")
-        match_motifs=read_motifs(pfmfile, as_dict=True)
-        new_map_file=os.path.join(args.outdir, "combined.motif2factors.txt")
-        base=os.path.splitext(pfmfile)[0]
-        map_file=base + ".motif2factors.txt"
+        denovo = read_motifs(os.path.join(args.outdir, "gimme.denovo.pfm"))
+        mc = MotifComparer()
+        result = mc.get_closest_match(denovo, dbmotifs=pfmfile, metric="seqcor")
+        match_motifs = read_motifs(pfmfile, as_dict=True)
+        new_map_file = os.path.join(args.outdir, "combined.motif2factors.txt")
+        base = os.path.splitext(pfmfile)[0]
+        map_file = base + ".motif2factors.txt"
         if os.path.exists(map_file):
             shutil.copyfile(map_file, new_map_file)
 
         motifs += denovo
-        pfmfile=os.path.join(args.outdir, "combined.pfm")
+        pfmfile = os.path.join(args.outdir, "combined.pfm")
         with open(pfmfile, "w") as f:
             for m in motifs:
                 print(m.to_pwm(), file=f)
@@ -118,7 +119,7 @@ def motifs(args):
     else:
         logger.info("skipping de novo")
 
-    stats=[
+    stats = [
         "phyper_at_fpr",
         "roc_auc",
         "pr_auc",
@@ -128,9 +129,9 @@ def motifs(args):
         "matches_at_fpr",
     ]
 
-    f_out=sys.stdout
+    f_out = sys.stdout
     if args.outdir:
-        f_out=open(args.outdir + "/gimme.roc.report.txt", "w")
+        f_out = open(args.outdir + "/gimme.roc.report.txt", "w")
 
     # Print the metrics
     f_out.write(
@@ -138,13 +139,13 @@ def motifs(args):
     )
 
     logger.info("calculating stats")
-    ftype=determine_file_type(args.sample)
-    sample=args.sample
+    ftype = determine_file_type(args.sample)
+    sample = args.sample
     if ftype == "narrowpeak":
-        f=NamedTemporaryFile()
+        f = NamedTemporaryFile()
         logger.debug("Using %s as temporary BED file".format(f.name))
         narrowpeak_to_bed(args.sample, f.name, size=args.size)
-        sample=f.name
+        sample = f.name
 
     for motif_stats in calc_stats_iterator(
         motifs,
@@ -159,9 +160,9 @@ def motifs(args):
 
         for motif in motifs:
             if str(motif) in motif_stats:
-                log_pvalue=np.inf
+                log_pvalue = np.inf
                 if motif_stats[str(motif)]["phyper_at_fpr"] > 0:
-                    log_pvalue=-np.log10(motif_stats[str(motif)]["phyper_at_fpr"])
+                    log_pvalue = -np.log10(motif_stats[str(motif)]["phyper_at_fpr"])
                 f_out.write(
                     "{}\t{:d}\t{:d}\t{:.2e}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.4f}\n".format(
                         motif.id,

@@ -11,7 +11,7 @@ import numpy as np
 from genomepy import Genome
 
 from gimmemotifs.scanner import Scanner
-from gimmemotifs.motif import pwmfile_to_motifs
+from gimmemotifs.motif import read_motifs
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import diff_plot
 from tempfile import mkdtemp
@@ -22,7 +22,7 @@ def diff(args):
     infiles = args.inputfiles.split(",")
     bgfile = args.bgfile
     outfile = args.outputfile
-    pwmfile = args.pwmfile
+    pfmfile = args.pfmfile
     cutoff = args.cutoff
     genome = args.genome
     minenr = float(args.minenr)
@@ -53,12 +53,12 @@ def diff(args):
             Genome(genome).track2fasta(inbed, outfa)
             infiles.append(outfa)
 
-    pwms = dict([(m.id, m) for m in pwmfile_to_motifs(pwmfile)])
-    motifs = [m for m in pwms.keys()]
+    pfms = dict([(m.id, m) for m in read_motifs(pfmfile)])
+    motifs = [m for m in pfms.keys()]
     names = [os.path.basename(os.path.splitext(fname)[0]) for fname in infiles]
 
     s = Scanner()
-    s.set_motifs(pwmfile)
+    s.set_motifs(pfmfile)
     s.set_threshold(threshold=cutoff)
 
     # Get background frequencies
@@ -84,7 +84,7 @@ def diff(args):
 
     diff_plot(
         motifs,
-        pwms,
+        pfms,
         names,
         freq,
         counts,

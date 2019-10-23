@@ -35,9 +35,8 @@ from gimmemotifs.config import MotifConfig
 from gimmemotifs.moap import moap, Moap, scan_to_table
 from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.scanner import Scanner
 from gimmemotifs.report import maelstrom_html_report
-from gimmemotifs.utils import join_max, pwmfile_location, as_fasta
+from gimmemotifs.utils import join_max, pwmfile_location
 
 from multiprocessing import Pool
 
@@ -49,13 +48,14 @@ logger = logging.getLogger("gimme.maelstrom")
 
 
 def moap_with_bg(
-    input_table, genome, data_dir, method, scoring, pwmfile=None, ncpus=None
+    input_table, genome, data_dir, method, scoring, pfmfile=None, ncpus=None
 ):
     outfile = os.path.join(data_dir, "activity.{}.{}.out.txt".format(method, scoring))
 
     moap(
         input_table,
         outfile=outfile,
+        pwmfile=pfmfile,
         genome=genome,
         method=method,
         scoring=scoring,

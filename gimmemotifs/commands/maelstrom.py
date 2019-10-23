@@ -14,7 +14,7 @@ def maelstrom(args):
     infile = args.inputfile
     genome = args.genome
     outdir = args.outdir
-    pwmfile = args.pwmfile
+    pfmfile = args.pfmfile
     methods = args.methods
     ncpus = args.ncpus
     zscore = args.zscore
@@ -30,7 +30,7 @@ def maelstrom(args):
         infile,
         genome,
         outdir,
-        pwmfile,
+        pfmfile,
         methods=methods,
         ncpus=ncpus,
         zscore=zscore,

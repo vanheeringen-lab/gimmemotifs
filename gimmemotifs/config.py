@@ -6,6 +6,8 @@
 """ Configuration for GimmeMotifs """
 import configparser
 import sysconfig
+import glob
+import sys
 import xdg
 import os
 import logging
@@ -31,6 +33,7 @@ MOTIF_CLASSES = [
     "MDmodule",
     "MEME",
     "MEMEW",
+    "DREME",
     "Weeder",
     "GADEM",
     "MotifSampler",
@@ -43,6 +46,10 @@ MOTIF_CLASSES = [
     "HMS",
     "Homer",
     "XXmotif",
+    "ProSampler",
+    "Yamda",
+    "DiNAMO",
+    "RPMCMC",
 ]
 
 
@@ -55,7 +62,7 @@ class MotifConfig(object):
 
     # Default config that is installed with GimmeMotifs
     default_config = pkg_resources.resource_filename(
-            'gimmemotifs', '../data/cfg/gimmemotifs.default.cfg'
+        "gimmemotifs", "../data/cfg/gimmemotifs.default.cfg"
     )
 
     #
@@ -126,16 +133,25 @@ class MotifConfig(object):
 
     def bin(self, program):
         try:
-            exe = self.config.get(program, "bin")
-            if not os.path.exists(exe):
+            exe_base = self.config.get(program, "bin")
+            if not os.path.exists(exe_base):
                 mdir = self.config.get(program, "dir")
-                if not os.path.exists(mdir):
-                    mdir = os.path.join(self.package_dir, mdir)
-                exe = os.path.join(mdir, exe)
+                build_dir = next(
+                    iter(glob.glob(f"build/lib*{sys.version[:3]}/gimmemotifs")), ""
+                )
+                dirs = [
+                    mdir,
+                    os.path.join(self.package_dir, mdir),
+                    os.path.join(build_dir, mdir),
+                ]
+                for bla in dirs:
+                    exe = os.path.join(bla, exe_base)
+                    if os.path.exists(exe):
+                        return os.path.abspath(exe)
 
         except Exception:
             raise ValueError("No configuration found for %s" % program)
-        return exe
+        return exe_base
 
     def set_default_params(self, params):
         if not self.config.has_section("params"):
@@ -155,9 +171,17 @@ class MotifConfig(object):
             if self.config.has_option(program, "dir"):
                 try:
                     mdir = self.config.get(program, "dir")
-                    if not os.path.exists(mdir):
-                        mdir = os.path.join(self.package_dir, mdir)
-                    return mdir
+                    build_dir = next(
+                        iter(glob.glob(f"build/lib*{sys.version[:3]}/gimmemotifs")), ""
+                    )
+                    dirs = [
+                        mdir,
+                        os.path.join(self.package_dir, mdir),
+                        os.path.join(build_dir, mdir),
+                    ]
+                    for mdir in dirs:
+                        if os.path.exists(mdir):
+                            return mdir
                 except Exception:
                     return None
             else:
@@ -176,7 +200,8 @@ class MotifConfig(object):
         my_dir = self.config.get("main", ddir)
         if not os.path.exists(my_dir):
             my_dir = pkg_resources.resource_filename(
-                'gimmemotifs', os.path.join('../data', my_dir))
+                "gimmemotifs", os.path.join("../data", my_dir)
+            )
         return my_dir
 
     def set_template_dir(self, path):

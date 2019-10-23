@@ -5,7 +5,7 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 
-from gimmemotifs.motif import pwmfile_to_motifs
+from gimmemotifs.motif import read_motifs
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.cluster import cluster_motifs
 from gimmemotifs.config import MotifConfig
@@ -48,7 +48,7 @@ def _create_images(outdir, clusters):
     sys.stderr.write("Creating images\n")
     for cluster, members in clusters:
         cluster.trim(trim_ic)
-        cluster.to_img(os.path.join(outdir, "%s.png" % cluster.id), fmt="PNG")
+        cluster.plot_logo(fname=os.path.join(outdir, "%s.png" % cluster.id))
         ids.append([cluster.id, {"src": "%s.png" % cluster.id}, []])
         if len(members) > 1:
             scores = {}
@@ -69,9 +69,8 @@ def _create_images(outdir, clusters):
                     rc.id = motif.id
                     motif = rc
                 # print "%s\t%s" % (motif.id, add)
-                motif.to_img(
-                    os.path.join(outdir, "%s.png" % motif.id.replace(" ", "_")),
-                    fmt="PNG",
+                motif.plot_logo(
+                    fname=os.path.join(outdir, "%s.png" % motif.id.replace(" ", "_")),
                     add_left=add,
                 )
         ids[-1][2] = [
@@ -95,7 +94,7 @@ def cluster(args):
     ncpus = args.ncpus
 
     clusters = []
-    motifs = pwmfile_to_motifs(args.inputfile)
+    motifs = read_motifs(args.inputfile)
     if len(motifs) == 1:
         clusters = [[motifs[0], motifs]]
     else:

@@ -13,7 +13,7 @@ def background(args):
         outfile=args.outputfile,
         bg_type=args.bg_type,
         fmt=args.outformat,
-        length=args.length,
+        size=args.size,
         genome=args.genome,
         inputfile=args.inputfile,
         number=args.number,

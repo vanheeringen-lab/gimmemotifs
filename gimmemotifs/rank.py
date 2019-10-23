@@ -14,7 +14,6 @@ try:
     from scipy.special import factorial
 except ImportError:
     from scipy.misc import factorial
-from statsmodels.sandbox.stats.multicomp import multipletests
 
 
 def rankagg_R(df, method="stuart"):
@@ -105,4 +104,4 @@ def rankagg(df, method="stuart"):
         ).loc[rmat.index]
     rmat = rmat.apply(sorted, 1, result_type="expand")
     p = rmat.apply(qStuart, 1)
-    return pd.DataFrame({"score":p}, index=rmat.index) 
+    return pd.DataFrame({"score": p}, index=rmat.index)

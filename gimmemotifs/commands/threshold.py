@@ -17,10 +17,10 @@ def threshold(args):
         print("Please specify a FPR between 0 and 1")
         sys.exit(1)
 
-    motifs = read_motifs(args.pwmfile)
+    motifs = read_motifs(args.pfmfile)
 
     s = Scanner()
-    s.set_motifs(args.pwmfile)
+    s.set_motifs(args.pfmfile)
     s.set_threshold(args.fpr, filename=args.inputfile)
 
     print("Motif\tScore\tCutoff")

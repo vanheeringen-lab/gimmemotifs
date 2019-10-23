@@ -11,6 +11,7 @@ from gimmemotifs.config import MotifConfig, BG_TYPES, BED_VALID_BGS
 from gimmemotifs import commands, __version__
 from gimmemotifs.utils import check_genome
 
+
 def cli(sys_args):
     config = MotifConfig()
     params = config.get_default_params()
@@ -402,6 +403,7 @@ def cli(sys_args):
         default=True,
         action="store_false",
     )
+    p.set_defaults(func=commands.logo)
 
     # motif_cluster.py
     p = subparsers.add_parser("cluster")
@@ -448,7 +450,7 @@ def cli(sys_args):
         default="fasta",
     )
     p.add_argument(
-        "-l", dest="length", help="length of random sequences", metavar="INT", type=int
+        "-s", dest="size", help="size of random sequences", metavar="INT", type=int
     )
     p.add_argument(
         "-n",
@@ -509,7 +511,6 @@ def cli(sys_args):
     )
     p.set_defaults(func=commands.location)
 
-    MAXENR = 3
     p = subparsers.add_parser("diff")
     p.add_argument(
         "inputfiles",
