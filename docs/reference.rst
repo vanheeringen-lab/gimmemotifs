@@ -199,37 +199,101 @@ interested in them, you can specify the ``-k`` option.
 Detailed options for gimme motifs
 +++++++++++++++++++++++++++++++++
 
--  INPUTFILE
+positional arguments:
+  INPUT                 FASTA, BED, narrowPeak or region file.
+  OUTDIR                Output directory.
 
-   This is the only mandatory option. The inputfile needs to be in BED
-   or FASTA format. BED-fomatted files need to contain at least three
-   tab-seperated columns describing chromosome name, start and end. The
-   fourth column is optional, if specified it will be used by MDmodule
-   to sort the features before motif prediction. GimmeMotifs will take
-   the center of these features, and subsequently extend those to the
-   width specified by the ``width`` argument (see below).
+optional arguments:
+  -h, --help            show this help message and exit
+  -b BACKGROUND, --background BACKGROUND
+                        Background type (random,genomic,gc,promoter,custom) or
+                        a file with background sequences (FASTA, BED or
+                        regions)
+  -g GENOME             Genome name or fasta file
+  --denovo              Only use de novo motifs
+  --known               Only use known motifs
+  --noreport            Don't create a HTML report.
+  --rawscore            Don't z-score normalize motif scores
+  --nogc                Don't use GC% bins
+  -N INT, --nthreads INT
+                        Number of threads (default 12)
 
--  ``-n`` or ``–name``
+optional arguments for known motifs:
+  -p PFMFILE            PFM file with motifs.(default:
+                        gimme.vertebrate.v5.0.pfm)
 
-   The name of your analysis. All outputfiles will be stored in a
-   directory named as given by this parameter. By default this will be
-   gimmemotifs\_dd\_mm\_yyyy, where d,m and y are the current day, month
-   and year respectively.
+optional arguments for de novo motifs:
+  -t N, --tools N       Tools to use, any combination of MDmodule,MEME,MEMEW,W
+                        eeder,GADEM,MotifSampler,Trawler,Improbizer,BioProspec
+                        tor,Posmo,ChIPMunk,AMD,HMS,Homer,ProSampler,YAMDA,DiNA
+                        MO,RPMCMC (default MDmodule,MEME,Weeder,MotifSampler,t
+                        rawler,Improbizer,BioProspector,Posmo,ChIPMunk,AMD,Hom
+                        er,ProSampler,YAMDA)
+  -a ANALYSIS, --analysis ANALYSIS
+                        Analysis type: small, medium, large, xl (xl)
+  -k, --keepintermediate
+                        Don't delete intermediate files
+  -S, --singlestrand    Only predict motifs for single + strand (default is
+                        both)
+  -f FRACTION, --fraction FRACTION
+                        Fraction of peaks to use for motif predicton (0.2)
+  -s N, --size N        Region size to use for motif prediction (200). Set to
+                        0 to use the size of the input regions.
 
--  ``-a`` or ``–analysis``
+
+-  ``INPUT``
+
+   The inputfile needs to be in BED, FASTA, narrowPeak or region format. 
+   By default ``gimme motifs`` will take the center of these features, and extend 
+   those to the size specified by the ``-s`` or ``--size`` argument. By default
+   this is 200 bp. Keep in mind that the smaller the regions are, the better motif
+   discovery will work.
+   **BED-fomatted** files need to contain at least three tab-seperated columns 
+   describing chromosome name, start and end. The fourth column is optional. 
+   If it is specified it will be used by some motif prediction tools to sort the
+   features before motif prediction. 
+   **FASTA** files can be used as input for motif prediction. For best results it
+   is recommended to use sequences of the same size.
+   Peak files in **narrowPeak** format, such as produced by MACS2, can also
+   directly be used as input. With these files, ``gimme motifs`` will use the summit
+   of the peak and create regions of size 200 centered at this summit. Use the ``-s``
+   parameter to change this size.
+   Finally, **region** files can be used. These contain one column, with regions
+   specifief in ``chrom:start-end`` format.
+
+-  ``OUTDIR``
+
+   The name of the output directory. All outputfiles will be saved in this directory.
+   If the directory already exists files will be overwritten.
+
+-  ``-b BACKGROUND, --background BACKGROUND``
+
+   Type of background to use. There are five options: ``gc``, ``genomic``, ``random``, 
+   ``promoter`` or the path to file with background sequences (FASTA, BED or regions).
+   By default ``gc`` is used, which generates random regions from the genome with a 
+   similar GC% as your input sequences. The ``genomic`` background will select random
+   genomic regions without taking the sequence composition into account. The ``random``
+   background will create artificial sequences with a similar nucleotide distribution
+   as your input sequences. The ``promoter`` background will select random promoters. For
+   this option, your genome needs to be installed with genomepy using the ``--annotation``
+   option. Finally, you can select your own custom background by supplying the path to
+   a file.
+
+-  ``-a`` or ``--analysis``
 
    The size of motifs to look for: small (5-8), medium (5-12), large
-   (6-15) or xl (6-20). The larger the motifs, the longer GimmeMotifs
-   will run. The ’xl’ can take a very long time!
+   (6-15) or xl (6-20). The larger the motifs, the longer the *de novo* motif prediction
+   will take. By default, xl will be used as this generally yields the best motifs.
+   However, some prediction tools take a very long time in combination with the xl setting.
 
 -  ``-g`` or ``–genome``
 
-   Name of the genome (index) to use. For instance, for the example in
-   section :ref:`indexing` this would be ``hg19``.
+   Name of the genome to use. This can be the name of a genome installed with genomepy
+   or the path to a FASTA file.
 
 -  ``-s`` or ``–singlestrand``
 
-   Only use the + strand for prediction (off by default).
+   Only use the forward strand for prediction. By default both strands are used.
 
 -  ``-f`` or ``–fraction``
 
@@ -259,12 +323,6 @@ Detailed options for gimme motifs
    (hypergeometric enrichment compared to background) to be called
    significant.
 
--  ``-b`` or ``–background``
-
-   Type of background to use. By default ``random`` (1st order Markov
-   model, similar dinucleotide frequencies as your sequences) and
-   ``gc`` (randomly chosen from the genome with a similar
-   GC% as your input sequences) are used.
 
 -  ``-l`` or ``–localization_width``
 
