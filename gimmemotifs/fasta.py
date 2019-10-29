@@ -24,9 +24,9 @@ class Fasta(object):
             if not (c.startswith(">")):
                 raise IOError("Not a valid FASTA file")
 
-            for seq in c.split(">"):
+            for seq in re.split(r"\r?\n>", c[1:]):
                 if len(seq) > 1:
-                    lines = seq.split("\n")
+                    lines = re.split(r"\r?\n", seq)
                     seq_name = lines[0]
                     if split_whitespace:
                         seq_name = seq_name.split(" ")
