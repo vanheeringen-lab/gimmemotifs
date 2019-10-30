@@ -45,7 +45,7 @@ containing *frequencies*. It looks like this:
     0.0816  0.7096  0.0173  0.1962
     0.1350  0.4035  0.0675  0.3987
 
-The frequencies are seperated by tabs, and in the order A,C,G,T.
+The frequencies are separated by tabs, and in the order A,C,G,T.
 
 
 .. _`gimme_motifs`:
@@ -391,22 +391,24 @@ The second option looks like this:
 ::
 
     loc    NK    Monocytes    T-cells    B-cells
-    chr12:93507547-93507747    3.11846121722    2.52277241968    1.93320358405    0.197177179733
-    chr7:38236460-38236660    1.0980120443    0.502311376556    0.200701906431    0.190757068752
-    chr10:21357147-21357347    0.528935300354    -0.0669540487727    -1.04367733597    -0.34370315226
-    chr6:115521512-115521712    0.406247786632    -0.37661318381    -0.480209252108    -0.667499767004
-    chr2:97359808-97360008    1.50162092566    0.905358101064    0.719059595262    0.0313480230265
-    chr16:16684549-16684749    0.233838577502    -0.362675820232    -0.837804056065    -0.746483496024
-    chrX:138964544-138964744    0.330000689312    -0.29126319574    -0.686082532015    -0.777470189034
-    chr2:186923973-186924173    0.430448401897    -0.258029531121    -1.16410548462    -0.723913541425
-    chrX:113834470-113834670    0.560122313347    -0.0366707259833    -0.686082532015    -0.692926848415
+    chr12:93507547-93507747    3.118    2.522    1.933    0.197
+    chr7:38236460-38236660    1.098    0.502    0.201    0.190
+    chr10:21357147-21357347    0.528    -0.066    -1.04    -0.343
+    chr6:115521512-115521712    0.406    -0.376    -0.480    -0.667
+    chr2:97359808-97360008    1.501    0.905    0.719    0.031
+    chr16:16684549-16684749    0.233    -0.362    -0.837    -0.746
+    chrX:138964544-138964744    0.330    -0.291    -0.686    -0.777
+    chr2:186923973-186924173    0.430    -0.258    -1.164    -0.723
+    chrX:113834470-113834670    0.560    -0.036    -0.686    -0.692
 
 This is a tab-separated table, with a header describing the experiments. In case of sequencing data, such 
 as ChIP-seq, ATAC-seq or DNaseI seq, we recommend to use **log-transformed** read counts which are
 **mean-centered per row**. For optimal results, it is recommended to normalize between experiments (columns), 
 for instance by quantile normalization or scaling.
 
-The output scores of `gimme maelstrom` represents the combined result of multiple methods. 
+The second input format generally gives better results than the first one and would be the recommended format.
+
+The output scores of ``gimme maelstrom`` represent the combined result of multiple methods. 
 The individual results from different methods are ranked from high-scoring motif to low-scoring motif
 and then aggregated using the rank aggregation method from `Kolde, 2012<https://www.ncbi.nlm.nih.gov/pubmed/22247279>`_. 
 The score that is shown is the -log10(p-value), where the p-value (from the rank aggregation) is corrected for multiple testing.
@@ -439,14 +441,14 @@ For instance, this command would scan with thresholds based on 5% FPR with rando
     $ gimme scan input.fa -g mm10 -f 0.05 -b > gimme.scan.bed
 
 
-And this command would base a 0.1% FPR on the input file ``hg38.promoters.fa``:
+And this command would base a 10% FPR on the input file ``hg38.promoters.fa``:
 
 :: 
 
-    $ gimme scan input.fa -f 0.001 -B hg38.promoters.fa -b > gimme.scan.bed
+    $ gimme scan input.fa -f 0.1 -B hg38.promoters.fa -b > gimme.scan.bed
 
 
-Alternatively, you can specify the theshold as a single score.
+Alternatively, you can specify the threshold as a single score.
 This score is relative and is based on the maximum and minimum possible score for each motif. 
 For example, a score of 0.95 means that the score of a motif should be at least 95% of the (maximum score - minimum score).
 This should probably not be set much lower than 0.8, and should be generally at least 0.9-0.95 for good specificity. 
@@ -464,27 +466,85 @@ The ``-t`` will yield a table with number of matches, while the ``-T`` will have
 
 **Positional arguments:**
 
-:: 
+-  ``INPUT``
 
-    INPUTFILE             inputfile (FASTA, BED, regions)
+   The inputfile needs to be in BED, FASTA, narrowPeak or region format. 
+   **BED-fomatted** files need to contain at least three tab-separated columns 
+   describing chromosome name, start and end. 
+   **Region** files can also be used. These contain one column, with regions
+   specified in ``chrom:start-end`` format.
 
-**Optional arguments:**
 
-::
+**Optional arguments**
 
-    -g GENOME, --genome GENOME
-                          genome version
-    -p PWMFILE, --pwmfile PWMFILE
-                          PWM file with motifs (default:
-                          gimme.vertebrate.v3.1.pwm)
-    -f , --fpr            FPR for motif scanning (default 0.01)
-    -B , --bgfile         background file for threshold
-    -c , --cutoff         motif score cutoff or file with cutoffs
-    -n N, --nreport N     report the N best matches
-    -r, --norc            don't scan reverse complement (- strand)
-    -b, --bed             output bed format
-    -t, --table           output counts in tabular format
-    -T, --score_table     output maximum score in tabular format
+-  ``-g GENOME``
+
+   Name of the genome to use. This can be the name of a genome installed with genomepy
+   or the path to a FASTA file.
+
+- ``-p PFMFILE``, ``--pfmfile PFMFILE``
+
+  PFM file with motifs to use for known motif analysis. You can use a custom PFM file,
+  or use any of the databases included with GimmeMotifs such as ``JASPAR2020_vertebrates``,
+  ``HOMER``, ``HOCOCOMOv11_HUMAN`` or ``CIS-BP``. By default, a database of clustered 
+  vertebrate motifs is used, ``gimme.vertebrate.v5.0``. This database has a limited
+  motif redundancy.
+
+- ``-f``, ``--fpr``
+
+  Base the motif score threshold on this FPR. By default this is set to 1%, equivalent to ``-f 0.01``.
+  The score threshold is based on scanning random genomic regions with the same size and the same GC% distribution.
+  This threshold is calculated once for a specific sequence size and cached. Therefore, scanning will take longer
+  the first time you use a specific FPR with a specific input sequence size.
+
+- ``-B``, ``--bgfile``
+
+  Specify a FASTA file to use for FPR calculation, instead of taking random genomic regions.
+
+- ``-c``, ``--cutoff``
+
+  Use this score cutoff instead of an FPR-based threshold. This score is relative and is based on the maximum and minimum possible score for each motif. 
+  For example, a score of 0.95 means that the score of a motif should be at least 95% of the (maximum score - minimum score).
+  This should probably not be set much lower than 0.8, and should be generally at least 0.9-0.95 for good specificity. 
+  Generally, as the optimal threshold might be different for each motif, the use of the FPR-based threshold is preferred.
+
+- ``-n``, ``--nreport``
+
+  Maximum number of matches to report per motif per sequence. By default this is set to 1.
+
+- ``-r``, ``--norc``
+
+  Don't scan the reverse complement of the sequence. By default both strands will be scanned.
+
+- ``-b``, ``--bed``
+
+  Output motif matches in BED format. 
+
+- ``-t``, ``--table``
+
+  Ouput number of matches in a table format, where columns represent motifs and rows represent input sequences.
+
+- ``-T``, ``--score_table``
+
+  Ouput maximum motif score in a table format, where columns represent motifs and rows represent input sequences. The score
+  will be reported for each motif, regardless if it is a good match or not.
+
+- ``-z``, ``--zscore``
+
+  Use z-score normalization for motif scores. The raw logodds motif score are 
+  dependent on motif length. This means that the same logodds score will mean different
+  things for motifs with a different length. By default, GimmeMotifs uses the scores in 
+  a set of genomic background regions to determine the a background distribution of scores.
+  The logodds score is then scaled using this distribution.
+
+- ``--gc``
+
+  Use this option to calculate the motif logodds score distribution based on regions with
+  a similar GC%.
+  
+- ``-N INT, --threads INT``
+
+  Number of threads to use (default is 12).
 
 
 .. _`gimme_match`:
@@ -627,7 +687,7 @@ details.
 
     -h, --help  show this help message and exit
     -w WIDTH    Set width to W (default: determined from fastafile)
-    -i IDS      Comma-seperated list of motif ids to plot (default is all ids)
+    -i IDS      Comma-separated list of motif ids to plot (default is all ids)
     -c CUTOFF   Cutoff for motif scanning (default 0.95)
 
 
