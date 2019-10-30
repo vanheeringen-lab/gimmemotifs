@@ -161,7 +161,7 @@ are not supported on OSX.
 
 **Motif size**
 
-The default setting for motif size is `-a xl`, which searches for motifs
+The default setting for motif size is ``-a xl``, which searches for motifs
 with a length of up to 20. You can use different analysis sizes: 
 ``small`` (up to 8), ``medium`` (up to 10) or ``large`` (up to 14). The 
 running time can be significantly shorter for shorter motifs. However, 
@@ -199,46 +199,7 @@ interested in them, you can specify the ``-k`` option.
 Detailed options for gimme motifs
 +++++++++++++++++++++++++++++++++
 
-positional arguments:
-  INPUT                 FASTA, BED, narrowPeak or region file.
-  OUTDIR                Output directory.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -b BACKGROUND, --background BACKGROUND
-                        Background type (random,genomic,gc,promoter,custom) or
-                        a file with background sequences (FASTA, BED or
-                        regions)
-  -g GENOME             Genome name or fasta file
-  --denovo              Only use de novo motifs
-  --known               Only use known motifs
-  --noreport            Don't create a HTML report.
-  --rawscore            Don't z-score normalize motif scores
-  --nogc                Don't use GC% bins
-  -N INT, --nthreads INT
-                        Number of threads (default 12)
-
-optional arguments for known motifs:
-  -p PFMFILE            PFM file with motifs.(default:
-                        gimme.vertebrate.v5.0.pfm)
-
-optional arguments for de novo motifs:
-  -t N, --tools N       Tools to use, any combination of MDmodule,MEME,MEMEW,W
-                        eeder,GADEM,MotifSampler,Trawler,Improbizer,BioProspec
-                        tor,Posmo,ChIPMunk,AMD,HMS,Homer,ProSampler,YAMDA,DiNA
-                        MO,RPMCMC (default MDmodule,MEME,Weeder,MotifSampler,t
-                        rawler,Improbizer,BioProspector,Posmo,ChIPMunk,AMD,Hom
-                        er,ProSampler,YAMDA)
-  -a ANALYSIS, --analysis ANALYSIS
-                        Analysis type: small, medium, large, xl (xl)
-  -k, --keepintermediate
-                        Don't delete intermediate files
-  -S, --singlestrand    Only predict motifs for single + strand (default is
-                        both)
-  -f FRACTION, --fraction FRACTION
-                        Fraction of peaks to use for motif predicton (0.2)
-  -s N, --size N        Region size to use for motif prediction (200). Set to
-                        0 to use the size of the input regions.
+**Positional arguments**
 
 
 -  ``INPUT``
@@ -259,12 +220,14 @@ optional arguments for de novo motifs:
    of the peak and create regions of size 200 centered at this summit. Use the ``-s``
    parameter to change this size.
    Finally, **region** files can be used. These contain one column, with regions
-   specifief in ``chrom:start-end`` format.
+   specified in ``chrom:start-end`` format.
 
 -  ``OUTDIR``
 
    The name of the output directory. All outputfiles will be saved in this directory.
    If the directory already exists files will be overwritten.
+
+**Optional arguments**
 
 -  ``-b BACKGROUND, --background BACKGROUND``
 
@@ -279,6 +242,62 @@ optional arguments for de novo motifs:
    option. Finally, you can select your own custom background by supplying the path to
    a file.
 
+-  ``-g GENOME``
+
+   Name of the genome to use. This can be the name of a genome installed with genomepy
+   or the path to a FASTA file.
+
+- ``--denovo``
+
+  Only run *de novo* motif analysis. By default, the analysis includes known motifs. For
+  specific arguments for *de novo* motif analysis, see below.
+
+- ``--known``
+  
+  Only run known motif analysis. By default, the analysis includes *de novo* motifs. For
+  specific arguments for known motif analysis, see below.
+
+- ``--noreport``
+
+  Don't create a HTML report, only plain text output files.
+
+- ``--rawscore``
+
+  Don't use z-score normalization for motif scores. The raw logodds motif score are 
+  dependent on motif length. This means that the same logodds score will mean different
+  things for motifs with a different length. By default, GimmeMotifs uses the scores in 
+  a set of genomic background regions to determine the a background distribution of scores.
+  The logodds score is then scaled using this distribution.
+
+- ``--nogc``
+
+  By default GimmeMotifs calculates the motif logodds score distribution for regions with
+  a different GC%. The score is then normalized according to the GC% bin per input sequence.
+  Use this argument to turn this off.
+
+- ``-N INT, --threads INT``
+
+  Number of threads to use (default is 12).
+
+ 
+**Optional arguments for known motif analysis**
+
+- ``-p PFMFILE``
+
+  PFM file with motifs to use for known motif analysis.
+
+**Optional arguments for de novo motif analysis**
+
+- ``-t TOOLS, --tools TOOLS``
+
+  The *de novo* motif prediction tools to use, separated by commas. This can be any 
+  combination of the following:
+  AMD, BioProspector, ChIPMunk, DiNAMO, GADEM, DREME, HMS, Homer, Improbizer, 
+  MDmodule, MEME, MEMEW, MotifSampler, POSMO, ProSampler, RPMCMC, Trawler, Weeder,
+  XXmotif, YAMDA. By default ``TOOLS`` is ``BioProspector,Homer,MEME``. Note that
+  some tools may not be installed. Running ``gimme motifs -h`` will always list
+  the tools that are supported on your installation of GimmeMotifs.
+
 -  ``-a`` or ``--analysis``
 
    The size of motifs to look for: small (5-8), medium (5-12), large
@@ -286,16 +305,15 @@ optional arguments for de novo motifs:
    will take. By default, xl will be used as this generally yields the best motifs.
    However, some prediction tools take a very long time in combination with the xl setting.
 
--  ``-g`` or ``–genome``
+- ``k, --keepintermediate``
 
-   Name of the genome to use. This can be the name of a genome installed with genomepy
-   or the path to a FASTA file.
+  Keep intermediate files.
 
--  ``-s`` or ``–singlestrand``
+-  ``-s, -–singlestrand``
 
    Only use the forward strand for prediction. By default both strands are used.
 
--  ``-f`` or ``–fraction``
+-  ``-f FRACTION, --fraction FRACTION``
 
    This parameter controls the fraction of the sequences used for
    prediction. This 0.2 by default, so in this case a randomly chosen
@@ -305,42 +323,12 @@ optional arguments for de novo motifs:
    this is fine. However, if your set is smaller, it might be worthwile
    to increase this prediction fraction.
 
--  ``-w`` or ``–width``
+-  ``-s N, --size N``
 
    This is the width of the sequences used for motif prediction. Smaller
    sequences will result in a faster analysis, but you are of course
    limited by the accuracy of your data. For the tested ChIP-seq data
-   sets 200 performs fine.
-
--  ``-e`` or ``–enrichment``
-
-   All motifs should have an absolute enrichment of at least this
-   parameter compared to background to be called significant.
-
--  ``-p`` or ``–pvalue``
-
-   All motifs should have a pvalue of at most this parameter
-   (hypergeometric enrichment compared to background) to be called
-   significant.
-
-
--  ``-l`` or ``–localization_width``
-
-   Width used in the positional preference plots.
-
--  ``-t`` or ``–tools``
-
-   A comma-seperated list of all the motif prediction tools to use. By
-   default all installed tools that are specified in the GimmeMotifs
-   configuration file are used.
-
--  ``–max_time``
-
-   Time limit for motif prediction in hours. Use this to control the
-   maximum number of hours that GimmeMotifs uses for motif prediction.
-   After this time, all jobs that are still running will be terminated,
-   and GimmeMotifs will continue with the motifs that are predicted so
-   far.
+   sets 200 performs fine. Set to 0 to use the size of the input regions.
 
 .. _`gimme_maelstrom`:
 
