@@ -303,14 +303,18 @@ optional arguments for de novo motifs:
    sequences will be used for validation (enrichment, ROC curves etc.).
    If you have a large set of sequences (ie. most ChIP-seq peak sets),
    this is fine. However, if your set is smaller, it might be worthwile
-   to increase this prediction fraction.
+   to increase this prediction fraction. The number of sequences that is used
+   is also influenced by the ``abs_max`` parameter in the configuration file.
+   Regardless of the ``-f`` parameter, the total number of sequences used
+   for motif prediction will never exceed the number specified by ``abs_max``.
 
 -  ``-w`` or ``–width``
 
    This is the width of the sequences used for motif prediction. Smaller
    sequences will result in a faster analysis, but you are of course
    limited by the accuracy of your data. For the tested ChIP-seq data
-   sets 200 performs fine.
+   sets 200 performs fine. If this parameter is set to ``0``, the original size
+   of the regions in the input file will be used.
 
 -  ``-e`` or ``–enrichment``
 
