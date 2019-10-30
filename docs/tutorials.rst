@@ -222,8 +222,10 @@ The second option looks like this:
     chr2:186923973-186924173    0.430448401897    -0.258029531121    -1.16410548462    -0.723913541425
     chrX:113834470-113834670    0.560122313347    -0.0366707259833    -0.686082532015    -0.692926848415
 
-This is a tab-separated table, with a header describing the experiments. 
-The values can be (log-transformed) read counts, expression values or other measurements.
+This is a tab-separated table, with a header describing the experiments. In case of sequencing data, such 
+as ChIP-seq, ATAC-seq or DNaseI seq, we recommend to use **log-transformed** read counts which are
+**mean-centered per row**. For optimal results, it is recommended to normalize between experiments (columns), 
+for instance by quantile normalization or scaling.
 
 By default, ``gimme maelstrom`` will run in ensemble mode, where it will combine the results from different classification and regression methods and statistical tests through rank aggregation.
 The only arguments necessary are the input file, the genome and an output directory.
