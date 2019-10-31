@@ -519,7 +519,7 @@ class Motif(object):
         pfm = [[total] * 4] * add_left + self.pfm
         matrix = pd.DataFrame(pfm, columns=["A", "C", "G", "T"])
         if kind == "ensembl":
-            self.plot_ensembl_logo(fname=None, title=title)
+            self.plot_ensembl_logo(fname=fname, title=title)
             return
         elif kind == "information":
             matrix = lm.transform_matrix(
