@@ -573,8 +573,9 @@ class Motif(object):
 
         if fname:
             plt.savefig(fname, dpi=300)
-
-        return logo
+            plt.close()
+        else:
+            return logo
 
     def plot_ensembl_logo(
         self, fname=None, ic=True, title=True, letters=True, height=2
@@ -693,6 +694,9 @@ class Motif(object):
 
         if fname:
             plt.savefig(fname, dpi=300)
+            plt.close()
+        else:
+            return ax
 
     def pwm_scan_score(self, fa, cutoff=0, nreport=1, scan_rc=True):
         """Scan sequences with this motif.
