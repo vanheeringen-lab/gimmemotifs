@@ -598,7 +598,7 @@ This will convert all the motifs in ``CTCF.pfm`` to a sequence logo:
     $ gimme logo -p CTCF.pfm
 
 
-This will create logos for ``GM.5.0.Ets.0026`` from the default database.
+This will create a logo for ``GM.5.0.Ets.0026`` from the default database.
 
 :: 
 
@@ -636,6 +636,7 @@ You can leave the motif title out with the ``--notitle`` argument.
   Comma-separated list of motif ids (default is all ids).
 
 - ``-k TYPE``, ``--kind TYPE``
+
   Type of motif (information, frequency, energy or ensembl). The default is information.
 
 - ``--notitle``
