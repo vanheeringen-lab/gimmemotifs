@@ -371,6 +371,14 @@ def cli(sys_args):
         metavar="DBFILE",
     )
     p.add_argument(
+        "-n",
+        dest="nmatches",
+        help="Number of matches to return (default 1)",
+        default=1,
+        metavar="INT",
+        type=int,
+    )
+    p.add_argument(
         "-o",
         dest="img",
         help="Output file with graphical report (png, svg, ps, pdf)",

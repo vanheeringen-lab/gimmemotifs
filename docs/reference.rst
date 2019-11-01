@@ -158,6 +158,11 @@ With the exception of RPMCMC and YAMDA, all tools come installed with GimmeMotif
 when using the bioconda package. AMD, HMS, Improbizer, MotifSampler and DiNAMO 
 are not supported on OSX.
 
+**Please note:** all these programs include their own license and many are free
+**for academic or non-commercial** use only. For commercial use of any of these 
+programs, please consult the respective author! GimmeMotifs itself can be freely 
+used commercially.
+
 **Motif size**
 
 The default setting for motif size is ``-a xl``, which searches for motifs
@@ -608,9 +613,13 @@ You can specify four types of sequence logos:
 
 =========== =================================================
 information .. image:: images/MA1115.1_POU5F1.information.png
+               :scale: 50 %
 frequency   .. image:: images/MA1115.1_POU5F1.frequency.png
+               :scale: 50 %
 energy      .. image:: images/MA1115.1_POU5F1.energy.png
+               :scale: 50 %
 ensembl     .. image:: images/MA1115.1_POU5F1.ensembl.png
+               :scale: 50 %
 =========== =================================================
 
 You can leave the motif title out with the ``--notitle`` argument.
@@ -620,6 +629,7 @@ You can leave the motif title out with the ``--notitle`` argument.
     $ gimme logo JASPAR2020_vertebrates -i MA1115.1_POU5F1 -k energy --notitle
 
 .. image:: images/MA1115.1_POU5F1.energy.notitle.png
+   :scale: 50 %
 
 **Positional arguments:**
 
@@ -652,8 +662,10 @@ You can leave the motif title out with the ``--notitle`` argument.
 Command: gimme match
 --------------------
 
-Taking an input file with motifs, find the best matching file in another
-file of motifs (according to the WIC metric). 
+Find the the best match of every motif in a PFM file with input motif(s) to a database of reference motifs.
+By default the ``gimme.vertebrate.v5.0`` database is used, however, other databases can be
+specified using the ``-d`` argument. This can be a custom PFM file, or any of the databases 
+included with GimmeMotifs such as, for instance,  ``JASPAR2020_vertebrates``,  ``HOMER``, ``HOCOCOMOv11_HUMAN`` or ``CIS-BP``. 
 If an ouput file is specified, a graphical output with aligned motifs will
 be created. However, this is slow for many motifs and can consume a lot of memory 
 (`see issue`_).
@@ -665,15 +677,16 @@ It works fine for a few motifs at a time.
 
 ::
 
-    PWMFILE     File with input pwms
+    PFMFILE     File with input pfms
 
 **Optional arguments:**
 
 ::
 
     -h, --help  show this help message and exit
-    -d DBFILE   File with pwms to match against (default:
-                gimme.vertebrate.v3.1.pwm)
+    -d DBFILE   File with pfms to match against (default:
+                gimme.vertebrate.v5.0.pfm)
+    -n INT      Number of top matches to report
     -o FILE     Output file with graphical report (png, svg, ps, pdf)
 
 .. _`gimme_cluster`:

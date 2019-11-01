@@ -121,10 +121,12 @@ def match_plot(plotdata, outfile):
         for j in range(2):
             axes_off(grid[j])
 
-        tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
+        tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png", delete=False)
+        print(tmp.name)
         motif.plot_logo(fname=tmp.name, title=False)
         grid[0].imshow(plt.imread(tmp.name), interpolation="none")
-        tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
+        tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png", delete=False)
+        print(tmp.name)
         dbmotif.plot_logo(fname=tmp.name, title=False)
         grid[1].imshow(plt.imread(tmp.name), interpolation="none")
 
