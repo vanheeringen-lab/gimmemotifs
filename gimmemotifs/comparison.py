@@ -415,7 +415,10 @@ class MotifComparer(object):
         if isinstance(metric, str):
 
             if metric == "seqcor":
-                return seqcor(m1, m2)
+                if pval:
+                    return [np.nan, np.nan, np.nan]
+                else:
+                    return seqcor(m1, m2)
             elif match == "partial":
                 if pval:
                     return self.pvalue(
@@ -806,19 +809,20 @@ class MotifComparer(object):
             motifs, dbmotifs, match, metric, combine, parallel=parallel, ncpus=ncpus
         )
         for motif in scores:
-            scores[motif] = sorted(scores[motif].items(), key=lambda x: x[1][0], reverse=True)[:nmatches]
+            scores[motif] = sorted(
+                scores[motif].items(), key=lambda x: x[1][0], reverse=True
+            )[:nmatches]
 
+        ret_scores = {}
         for motif in motifs:
-            scores[motif.id] = []
-            for dmotif, score in scores[motif.id]:
+            ret_scores[motif.id] = []
+            for dbmotif, match_score in scores[motif.id]:
                 pval, pos, orient = self.compare_motifs(
                     motif, dbmotif_lookup[dbmotif], match, metric, combine, True
                 )
 
-            scores[motif.id].append([dbmotif, (list(score) + [pval])])
-
-        return scores
-
+                ret_scores[motif.id].append([dbmotif, (list(match_score) + [pval])])
+        return ret_scores
 
     def get_closest_match(
         self,
@@ -861,10 +865,10 @@ class MotifComparer(object):
             metric=metric,
             combine=combine,
             parallel=parallel,
-            ncpus=ncpu
+            ncpus=ncpus,
         )
 
-        return dict([k,v[0]] for k,v in scores.items()
+        return dict([k, v[0]] for k, v in scores.items())
 
     def generate_score_dist(self, motifs, match, metric, combine):
 

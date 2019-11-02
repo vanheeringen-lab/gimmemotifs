@@ -31,7 +31,7 @@ def match(args):
     if args.img:
         plotdata = []
         for query, matches in result.items():
-                for match in matches:
+            for match in matches:
                 motif = sample[query]
                 dbmotif = db[match[0]]
                 pval, pos, orient = mc.compare_motifs(
