@@ -8,9 +8,11 @@ import pytest
 def fasta_file():
     return "test/data/fasta/test.fa"
 
+
 @pytest.fixture()
 def id_fa_files():
     return ["test/data/fasta/test2.fa", "test/data/fasta/test3.fa"]
+
 
 @pytest.fixture()
 def fasta_obj(fasta_file):

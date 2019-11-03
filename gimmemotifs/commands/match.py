@@ -20,29 +20,23 @@ def match(args):
         sample.values(), args.nmatches, db.values(), "partial", "seqcor", "mean"
     )
 
+    plotdata = []
     print("Motif\tMatch\tScore\tP-value")
-    for motif, matches in result.items():
+    for motif_name, matches in result.items():
         for match in matches:
+
             pval, pos, orient = mc.compare_motifs(
-                sample[motif], db[match[0]], "partial", "seqcor", "mean", pval=True
+                sample[motif_name], db[match[0]], "partial", "seqcor", "mean", pval=True
             )
-            print("%s\t%s\t%0.2f\t%0.3e" % (motif, match[0], match[1][0], pval))
+            print("%s\t%s\t%0.2f\t%0.3e" % (motif_name, match[0], match[1][0], pval))
+            motif = sample[motif_name]
+            dbmotif = db[match[0]]
 
-    if args.img:
-        plotdata = []
-        for query, matches in result.items():
-            for match in matches:
-                motif = sample[query]
-                dbmotif = db[match[0]]
-                pval, pos, orient = mc.compare_motifs(
-                    motif, dbmotif, "partial", "seqcor", "mean", pval=True
-                )
-
+            if args.img:
                 if orient == -1:
                     tmp = dbmotif.id
                     dbmotif = dbmotif.rc()
                     dbmotif.id = tmp
-
                 if pos < 0:
                     tmp = motif.id
                     motif = Motif([[0.25, 0.25, 0.25, 0.25]] * -pos + motif.pwm)
@@ -52,5 +46,12 @@ def match(args):
                     dbmotif = Motif([[0.25, 0.25, 0.25, 0.25]] * pos + dbmotif.pwm)
                     dbmotif.id = tmp
 
+                diff = len(motif) - len(dbmotif)
+                if diff > 0:
+                    dbmotif = Motif(dbmotif.pwm + [[0.25, 0.25, 0.25, 0.25]] * diff)
+                else:
+                    motif = Motif(motif.pwm + [[0.25, 0.25, 0.25, 0.25]] * -diff)
+
                 plotdata.append((motif, dbmotif, pval))
-                match_plot(plotdata, args.img)
+    if args.img:
+        match_plot(plotdata, args.img)

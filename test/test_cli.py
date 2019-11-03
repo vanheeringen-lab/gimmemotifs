@@ -70,7 +70,7 @@ def test_gimme_logo():
 def test_gimme_match(capsys):
     pfm = "test/data/cli/test_motif.pfm"
     for db_args, out in [
-        ([], "GM.5.0.p53.0005"),
+        ([], "GM.5.0.p53.0001"),
         (["-d", "JASPAR2020_vertebrates"], "MA0106.3_TP53"),
     ]:
 

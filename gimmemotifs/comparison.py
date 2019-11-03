@@ -415,10 +415,11 @@ class MotifComparer(object):
         if isinstance(metric, str):
 
             if metric == "seqcor":
+                score, pos, orient = seqcor(m1, m2)
                 if pval:
-                    return [np.nan, np.nan, np.nan]
+                    return [np.nan, pos, orient]
                 else:
-                    return seqcor(m1, m2)
+                    return [score, pos, orient]
             elif match == "partial":
                 if pval:
                     return self.pvalue(

@@ -28,7 +28,7 @@ def test_tool(tool_name):
     print(__tools__)
     if tool_name in [
         "yamda",  # not installable vio bioconda
-        "rpmcmc", # not installable via bioconda
+        "rpmcmc",  # not installable via bioconda
         "gadem",  # sometimes crashes on invalid pointer
         "jaspar",
         "xxmotif",  # takes too long
@@ -51,4 +51,3 @@ def test_tool(tool_name):
     print(stderr)
     print(stdout)
     assert ap1_included(motifs)
-
