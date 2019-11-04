@@ -337,7 +337,7 @@ def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
         f.write("</body>\n")
 
 
-def roc_html_report(outdir, infile, pwmfile, threshold=0.01):
+def roc_html_report(outdir, infile, pfmfile, threshold=0.01, use_motifs=None):
     df = pd.read_table(infile, index_col=0)
     del df.index.name
     df["corrected P-value"] = multipletests(df["P-value"], method="fdr_bh")[1]
@@ -355,8 +355,12 @@ def roc_html_report(outdir, infile, pwmfile, threshold=0.01):
         "Recall at 10% FDR",
     ]
 
-    motifs = read_motifs(pwmfile)
+    motifs = read_motifs(pfmfile)
+    if use_motifs is not None:
+        motifs = [m for m in motifs if m in use_motifs]
+
     idx = [motif.id for motif in motifs]
+    df = df.loc[idx]
     direct = [",".join(motif.factors[DIRECT_NAME]) for motif in motifs]
     indirect = [",".join(motif.factors[INDIRECT_NAME]) for motif in motifs]
     m2f = pd.DataFrame({DIRECT_NAME: direct, INDIRECT_NAME: indirect}, index=idx)
