@@ -15,7 +15,7 @@ import six
 
 from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 from gimmemotifs.c_metrics import pfmscan
-from gimmemotifs.utils import pwmfile_location
+from gimmemotifs.utils import pfmfile_location
 
 # External imports
 try:
@@ -1505,7 +1505,7 @@ def read_motifs(infile=None, fmt="pfm", as_dict=False):
         fmt = "pfm"
 
     if infile is None or isinstance(infile, six.string_types):
-        infile = pwmfile_location(infile)
+        infile = pfmfile_location(infile)
         with open(infile) as f:
             motifs = _read_motifs_from_filehandle(f, fmt)
     else:

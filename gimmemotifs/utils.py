@@ -76,7 +76,7 @@ def narrowpeak_to_bed(inputfile, bedfile, size=0):
                 f_out.write("{}\t{}\t{}\t{}\n".format(vals[0], start, end, vals[6]))
 
 
-def pwmfile_location(infile):
+def pfmfile_location(infile):
     config = MotifConfig()
 
     if infile is None:

@@ -458,7 +458,9 @@ def best_motif_in_cluster(
 
     new_stats = {}
     for bg, bg_fa in background.items():
-        for m, s in calc_stats(clustered_motifs, fg_fa, bg_fa, genome=genome).items():
+        for m, s in calc_stats(
+            fg_file=fg_fa, bg_file=bg_fa, motifs=clustered_motifs, genome=genome
+        ).items():
             if m not in new_stats:
                 new_stats[m] = {}
             new_stats[m][bg] = s

@@ -49,7 +49,7 @@ from gimmemotifs import __version__
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.config import MotifConfig
-from gimmemotifs.utils import pwmfile_location, as_fasta
+from gimmemotifs.utils import pfmfile_location, as_fasta
 
 import warnings
 
@@ -1011,7 +1011,7 @@ def moap(
         if genome is None:
             raise ValueError("need a genome")
 
-        pwmfile = pwmfile_location(pwmfile)
+        pwmfile = pfmfile_location(pwmfile)
         try:
             motifs = read_motifs(pwmfile)
         except Exception:

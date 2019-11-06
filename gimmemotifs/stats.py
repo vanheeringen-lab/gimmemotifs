@@ -9,26 +9,42 @@ from gimmemotifs import rocmetrics
 from gimmemotifs.scanner import scan_to_best_match, Scanner
 from gimmemotifs.motif import read_motifs, Motif
 from gimmemotifs.config import MotifConfig
+from gimmemotifs.utils import pfmfile_location
 
 logger = logging.getLogger("gimme.stats")
 
 
 def calc_stats_iterator(
-    motifs, fg_file, bg_file, stats=None, genome=None, zscore=True, gc=True, ncpus=None
+    fg_file=None,
+    bg_file=None,
+    fg_table=None,
+    bg_table=None,
+    motifs=None,
+    stats=None,
+    genome=None,
+    zscore=True,
+    gc=True,
+    ncpus=None,
 ):
     """Calculate motif enrichment metrics.
 
     Parameters
     ----------
-    motifs : str, list or Motif instance
-        A file with motifs in pwm format, a list of Motif instances or a
-        single Motif instance.
-
     fg_file : str
         Filename of a FASTA, BED or region file with positive sequences.
 
     bg_file : str
         Filename of a FASTA, BED or region file with negative sequences.
+
+    fg_table : str
+        Filename of a table with motif scan results of positive sequences.
+
+    bg_table : str
+        Filename of a table with motif scan results of negative sequences.
+
+    motifs : str, list or Motif instance
+        A file with motifs in pfm format, a list of Motif instances or a
+        single Motif instance.
 
     genome : str, optional
         Genome or index directory in case of BED/regions.
@@ -49,12 +65,25 @@ def calc_stats_iterator(
     if not stats:
         stats = rocmetrics.__all__
 
+    if fg_table is None:
+        if fg_file is None:
+            raise ValueError("Need either fg_table or fg_file argument")
+    elif fg_file is not None:
+        raise ValueError("Need either fg_table or fg_file argument, not both")
+
+    if bg_table is None:
+        if bg_file is None:
+            raise ValueError("Need either bg_table or bg_file argument")
+    elif bg_file is not None:
+        raise ValueError("Need either bg_table or bg_file argument, not both")
+
     if isinstance(motifs, Motif):
         all_motifs = [motifs]
     else:
         if type([]) == type(motifs):
             all_motifs = motifs
         else:
+            motifs = pfmfile_location(motifs)
             all_motifs = read_motifs(motifs, fmt="pwm")
 
     if ncpus is None:
@@ -97,21 +126,36 @@ def calc_stats_iterator(
 
 
 def calc_stats(
-    motifs, fg_file, bg_file, stats=None, genome=None, zscore=True, gc=True, ncpus=None
+    fg_file=None,
+    bg_file=None,
+    fg_table=None,
+    bg_table=None,
+    motifs=None,
+    stats=None,
+    genome=None,
+    zscore=True,
+    gc=True,
+    ncpus=None,
 ):
     """Calculate motif enrichment metrics.
 
     Parameters
     ----------
-    motifs : str, list or Motif instance
-        A file with motifs in pwm format, a list of Motif instances or a
-        single Motif instance.
-
     fg_file : str
         Filename of a FASTA, BED or region file with positive sequences.
 
     bg_file : str
         Filename of a FASTA, BED or region file with negative sequences.
+
+    fg_table : str
+        Filename of a table with motif scan results of positive sequences.
+
+    bg_table : str
+        Filename of a table with motif scan results of negative sequences.
+
+    motifs : str, list or Motif instance
+        A file with motifs in pwm format, a list of Motif instances or a
+        single Motif instance.
 
     genome : str, optional
         Genome or index directory in case of BED/regions.
@@ -131,9 +175,11 @@ def calc_stats(
     """
     result = {}
     for batch_result in calc_stats_iterator(
-        motifs,
-        fg_file,
-        bg_file,
+        fg_file=fg_file,
+        bg_file=bg_file,
+        fg_table=fg_table,
+        bg_table=bg_table,
+        motifs=motifs,
         genome=genome,
         stats=stats,
         ncpus=ncpus,

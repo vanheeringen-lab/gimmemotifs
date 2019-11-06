@@ -36,7 +36,7 @@ from gimmemotifs.moap import moap, Moap, scan_to_table
 from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.report import maelstrom_html_report
-from gimmemotifs.utils import join_max, pwmfile_location
+from gimmemotifs.utils import join_max, pfmfile_location
 
 from multiprocessing import Pool
 
@@ -288,7 +288,7 @@ def run_maelstrom(
     shutil.copyfile(infile, os.path.join(outdir, "input.table.txt"))
 
     # Copy the motif informatuon
-    pwmfile = pwmfile_location(pwmfile)
+    pwmfile = pfmfile_location(pwmfile)
     if pwmfile:
         shutil.copy2(pwmfile, outdir)
         mapfile = re.sub(".p[fw]m$", ".motif2factors.txt", pwmfile)

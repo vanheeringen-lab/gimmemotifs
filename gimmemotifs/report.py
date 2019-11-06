@@ -33,7 +33,12 @@ def get_roc_values(motif, fg_file, bg_file, genome):
     """Calculate ROC AUC values for ROC plots."""
     try:
         stats = calc_stats(
-            motif, fg_file, bg_file, genome=genome, stats=["roc_values"], ncpus=1
+            fg_file=fg_file,
+            bg_file=bg_file,
+            motifs=motif,
+            genome=genome,
+            stats=["roc_values"],
+            ncpus=1,
         )
         (x, y) = list(stats.values())[0]["roc_values"]
         return None, x, y
@@ -222,7 +227,7 @@ def create_denovo_motif_report(
     if stats is None:
         stats = {}
         for bg, bgfa in background.items():
-            for m, s in calc_stats(motifs, fgfa, bgfa).items():
+            for m, s in calc_stats(fg_file=fgfa, bg_file=bgfa, motifs=motifs).items():
                 if m not in stats:
                     stats[m] = {}
                 stats[m][bg] = s

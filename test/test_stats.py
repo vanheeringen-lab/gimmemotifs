@@ -1,105 +1,133 @@
-import unittest
-import tempfile
 import os
+
+import pytest
+
 from gimmemotifs.stats import calc_stats
 from gimmemotifs.motif import read_motifs
-from time import sleep
 
 
-class TestStats(unittest.TestCase):
-    """ A test class to test motif stats """
-
-    def setUp(self):
-        self.data_dir = "test/data/stats"
-
-        self.genome = "test/data/background/genome.fa"
-        self.motifs = os.path.join(self.data_dir, "motifs.pwm")
-        self.fg_fa = os.path.join(self.data_dir, "p73.fa")
-        self.bg_fa = os.path.join(self.data_dir, "random.w200.fa")
-        self.stat_functions = [
-            "recall_at_fdr",
-            "fraction_fpr",
-            "score_at_fpr",
-            "enr_at_fpr",
-            "max_enrichment",
-            "mncp",
-            "roc_auc",
-            "roc_auc_xlim",
-            "max_fmeasure",
-            "ks_pvalue",
-            "ks_significance",
-        ]
-
-    def test1_stats(self):
-        """ Calculate motif statistics """
-        for ncpus in [1, 2]:
-            stats_gc = calc_stats(
-                self.motifs,
-                self.fg_fa,
-                self.bg_fa,
-                ncpus=ncpus,
-                genome=self.genome,
-                gc=True,
-                zscore=True,
-            )
-            stats_normal = calc_stats(
-                self.motifs, self.fg_fa, self.bg_fa, ncpus=ncpus, gc=False, zscore=False
-            )
-
-            for stats in stats_gc, stats_normal:
-                for f in self.stat_functions:
-                    self.assertIn(f, list(stats.values())[0])
-
-                # Two motifs
-                self.assertEqual(2, len(stats))
-
-                m1 = "T-box_M1713_1.01_CTAGGTGTGAA"  # not enriched
-                m2 = "p53_Average_8_CATGyCnGGrCATGy"  # highly enriched
-
-                self.assertLess(stats[m1]["roc_auc"], 0.9)
-                self.assertGreater(stats[m2]["roc_auc"], 0.5)
-
-                self.assertEqual(stats[m1]["recall_at_fdr"], 0.0)
-                self.assertGreater(stats[m2]["recall_at_fdr"], 0.8)
-
-                self.assertGreater(stats[m1]["ks_pvalue"], 0.01)
-                self.assertLess(stats[m2]["ks_pvalue"], 0.001)
-
-                self.assertGreater(stats[m1]["phyper_at_fpr"], 0.1)
-                self.assertLess(stats[m2]["phyper_at_fpr"], 1e-14)
-
-            # Only calculate specific statistic
-            stats = calc_stats(
-                self.motifs,
-                self.fg_fa,
-                self.bg_fa,
-                stats=["roc_auc"],
-                gc=False,
-                zscore=False,
-            )
-
-            self.assertEqual(1, len(list(stats.values())[0]))
-
-            self.assertLess(stats[m1]["roc_auc"], 0.9)
-            self.assertGreater(stats[m2]["roc_auc"], 0.5)
-
-    def test2_stats_single_motif(self):
-        """ Calculate motif statistics """
-
-        m_id = "p53_Average_8_CATGyCnGGrCATGy"
-
-        with open(self.motifs) as f:
-            motifs = read_motifs(f)
-        motif = [m for m in motifs if str(m) == m_id][0]
-
-        stats = calc_stats(
-            motif, self.fg_fa, self.bg_fa, stats=["roc_auc"], gc=False, zscore=False
-        )
-        self.assertGreater(stats[m_id]["roc_auc"], 0.9)
-
-    def tearDown(self):
-        pass
+data_dir = "test/data/stats"
+genome = "test/data/background/genome.fa"
+motifs = os.path.join(data_dir, "motifs.pwm")
+fg_fa = os.path.join(data_dir, "p73.fa")
+bg_fa = os.path.join(data_dir, "random.w200.fa")
+fg_table = os.path.join(data_dir, "p73.scores.txt")
+bg_table = os.path.join(data_dir, "random.scores.txt")
 
 
-if __name__ == "__main__":
-    unittest.main()
+@pytest.fixture
+def stat_functions():
+    return [
+        "recall_at_fdr",
+        "fraction_fpr",
+        "score_at_fpr",
+        "enr_at_fpr",
+        "max_enrichment",
+        "mncp",
+        "roc_auc",
+        "roc_auc_xlim",
+        "max_fmeasure",
+        "ks_pvalue",
+        "ks_significance",
+    ]
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {
+            "motifs": motifs,
+            "fg_file": fg_fa,
+            "bg_file": bg_fa,
+            "genome": genome,
+            "gc": True,
+            "zscore": True,
+        },
+        {
+            "motifs": motifs,
+            "fg_file": fg_fa,
+            "bg_file": bg_fa,
+            "genome": genome,
+            "gc": False,
+            "zscore": False,
+        },
+        {"fg_table": fg_table, "bg_table": bg_table,},
+    ],
+)
+def test1_stats(kwargs, stat_functions):
+    """ Calculate motif statistics """
+    for ncpus in [1, 2]:
+        kwargs["ncpus"] = ncpus
+        stats = calc_stats(**kwargs)
+
+        for f in stat_functions:
+            assert f in list(stats.values())[0]
+
+        # Two motifs
+        assert 2 == len(stats)
+
+        m1 = "T-box_M1713_1.01_CTAGGTGTGAA"  # not enriched
+        m2 = "p53_Average_8_CATGyCnGGrCATGy"  # highly enriched
+
+        assert stats[m1]["roc_auc"] < 0.9
+        assert stats[m2]["roc_auc"] > 0.5
+
+        assert stats[m1]["recall_at_fdr"] == 0.0
+        assert stats[m2]["recall_at_fdr"] > 0.8
+
+        assert stats[m1]["ks_pvalue"] > 0.01
+        assert stats[m2]["ks_pvalue"] < 0.001
+
+        assert stats[m1]["phyper_at_fpr"] > 0.1
+        assert stats[m2]["phyper_at_fpr"] < 1e-14
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {
+            "motifs": motifs,
+            "fg_file": fg_fa,
+            "bg_file": bg_fa,
+            "stats": ["roc_auc"],
+            "gc": False,
+            "zscore": False,
+        },
+    ],
+)
+def test_one_statistic(kwargs):
+    # Only calculate specific statistic
+    stats = calc_stats(**kwargs)
+
+    assert 1 == len(list(stats.values())[0])
+
+    m1 = "T-box_M1713_1.01_CTAGGTGTGAA"  # not enriched
+    m2 = "p53_Average_8_CATGyCnGGrCATGy"  # highly enriched
+    assert stats[m1]["roc_auc"] < 0.9
+    assert stats[m2]["roc_auc"] > 0.5
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {
+            "motifs": motifs,
+            "fg_file": fg_fa,
+            "bg_file": bg_fa,
+            "stats": ["roc_auc"],
+            "gc": False,
+            "zscore": False,
+        },
+    ],
+)
+def test2_stats_single_motif(kwargs):
+    """ Calculate motif statistics """
+
+    m_id = "p53_Average_8_CATGyCnGGrCATGy"
+
+    motifs = read_motifs(kwargs["motifs"])
+    motif = [m for m in motifs if str(m) == m_id][0]
+    kwargs["motifs"] = motif
+
+    stats = calc_stats(**kwargs)
+    assert stats[m_id]["roc_auc"] > 0.9

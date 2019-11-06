@@ -470,7 +470,7 @@ Then we only select p53 motifs.
     
     motifs = [m for m in default_motifs() if any(f in m.factors for f in ["TP53", "TRP53"])]
     
-    stats = calc_stats(motifs, sample, bg)
+    stats = calc_stats(fg_file=sample, bg_file=bg, motifs=motifs)
     
     for k, v in stats[str(motifs[0])].items():
         print(k,v)
@@ -499,7 +499,7 @@ You can choose one or more specific metrics with the additional ``stats`` argume
 .. code-block:: python
 
     metrics = ["roc_auc", "recall_at_fdr"]
-    stats = calc_stats(motifs, sample, bg, stats=metrics)
+    stats = calc_stats(fg_file=sample, bg_file=bg, motifs=motifs, stats=metrics)
     
     for metric in metrics:
         for motif in motifs:

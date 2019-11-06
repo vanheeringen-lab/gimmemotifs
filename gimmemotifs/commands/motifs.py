@@ -148,9 +148,9 @@ def motifs(args):
         sample = f.name
 
     for motif_stats in calc_stats_iterator(
-        motifs,
-        sample,
-        bgfile,
+        motifs=motifs,
+        fg_file=sample,
+        bg_file=bgfile,
         stats=stats,
         genome=args.genome,
         ncpus=args.ncpus,
