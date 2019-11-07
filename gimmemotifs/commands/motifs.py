@@ -215,13 +215,13 @@ def motifs(args):
                 args.outdir,
                 args.outdir + "/gimme.roc.report.txt",
                 pfmfile,
-                0.01,
+                threshold=0.01,
                 outname="gimme.motifs.redundant.html",
             )
             roc_html_report(
                 args.outdir,
                 args.outdir + "/gimme.roc.report.txt",
                 pfmfile,
-                0.01,
+                threshold=0.01,
                 use_motifs=nr_motifs,
             )
