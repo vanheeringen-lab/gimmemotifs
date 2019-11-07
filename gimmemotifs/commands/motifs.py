@@ -15,7 +15,8 @@ from tempfile import NamedTemporaryFile
 import numpy as np
 
 from gimmemotifs.background import create_background_file
-from gimmemotifs.comparison import MotifComparer
+from gimmemotifs.comparison import MotifComparer, select_nonredundant_motifs
+
 from gimmemotifs.denovo import gimme_motifs
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.stats import calc_stats_iterator
@@ -199,9 +200,24 @@ def motifs(args):
                 )
     f_out.close()
 
+    nr_motifs = select_nonredundant_motifs(
+        args.outdir + "/gimme.roc.report.txt",
+        pfmfile,
+        score_table,
+        bg_score_table,
+        tolerance=0.001,
+    )
+    print(nr_motifs)
     if args.report:
         logger.info("creating statistics report")
         if args.outdir:
+            # roc_html_report(
+            #     args.outdir, args.outdir + "/gimme.roc.report.txt", pfmfile, 0.01
+            # )
             roc_html_report(
-                args.outdir, args.outdir + "/gimme.roc.report.txt", pfmfile, 0.01
+                args.outdir,
+                args.outdir + "/gimme.roc.report.txt",
+                pfmfile,
+                0.01,
+                use_motifs=nr_motifs,
             )

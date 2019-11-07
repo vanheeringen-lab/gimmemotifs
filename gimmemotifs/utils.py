@@ -29,11 +29,13 @@ import numpy as np
 import pybedtools
 from genomepy import Genome
 
+
 # gimme imports
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import plot_histogram
 from gimmemotifs.rocmetrics import ks_pvalue
 from gimmemotifs.config import MotifConfig
+
 
 logger = logging.getLogger("gimme.utils")
 

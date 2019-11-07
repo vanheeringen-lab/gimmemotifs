@@ -362,7 +362,7 @@ def roc_html_report(outdir, infile, pfmfile, threshold=0.01, use_motifs=None):
 
     motifs = read_motifs(pfmfile)
     if use_motifs is not None:
-        motifs = [m for m in motifs if m in use_motifs]
+        motifs = [m for m in motifs if m.id in use_motifs]
 
     idx = [motif.id for motif in motifs]
     df = df.loc[idx]
