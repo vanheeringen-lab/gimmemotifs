@@ -207,13 +207,17 @@ def motifs(args):
         bg_score_table,
         tolerance=0.001,
     )
-    print(nr_motifs)
+
     if args.report:
         logger.info("creating statistics report")
         if args.outdir:
-            # roc_html_report(
-            #     args.outdir, args.outdir + "/gimme.roc.report.txt", pfmfile, 0.01
-            # )
+            roc_html_report(
+                args.outdir,
+                args.outdir + "/gimme.roc.report.txt",
+                pfmfile,
+                0.01,
+                outname="gimme.motifs.redundant.html",
+            )
             roc_html_report(
                 args.outdir,
                 args.outdir + "/gimme.roc.report.txt",

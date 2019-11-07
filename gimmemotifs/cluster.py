@@ -337,7 +337,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
         version=__version__,
     )
 
-    cluster_report = os.path.join(outdir, "cluster_report.html")
+    cluster_report = os.path.join(outdir, "gimme.denovo.clusters.html")
     with open(cluster_report, "wb") as f:
         f.write(result.encode("utf-8"))
 

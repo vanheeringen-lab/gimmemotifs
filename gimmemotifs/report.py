@@ -126,7 +126,7 @@ def _create_graphical_report(
     if not os.path.exists(imgdir):
         os.mkdir(imgdir)
 
-    motifs = read_motifs(pwm, fmt="pwm")
+    motifs = read_motifs(pwm, fmt="pfm")
 
     roc_img_file = "%s_roc.%s"
 
@@ -187,7 +187,7 @@ def _create_graphical_report(
 
         report_motifs.append(rm)
 
-    total_report = os.path.join(outdir, "motif_report.html")
+    total_report = os.path.join(outdir, "gimme.denovo.html")
 
     star_img = os.path.join(config.get_template_dir(), "star.png")
     shutil.copyfile(star_img, os.path.join(outdir, "images", "star.png"))
@@ -342,7 +342,14 @@ def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
         f.write("</body>\n")
 
 
-def roc_html_report(outdir, infile, pfmfile, threshold=0.01, use_motifs=None):
+def roc_html_report(
+    outdir,
+    infile,
+    pfmfile,
+    outname="gimme.motifs.html",
+    threshold=0.01,
+    use_motifs=None,
+):
     df = pd.read_table(infile, index_col=0)
     del df.index.name
     df["corrected P-value"] = multipletests(df["P-value"], method="fdr_bh")[1]
@@ -418,7 +425,7 @@ def roc_html_report(outdir, infile, pfmfile, threshold=0.01, use_motifs=None):
         os.path.join(template_dir, "sortable/sortable-theme-slick.css"),
         encoding="utf-8",
     ).read()
-    with open(outdir + "/gimme.roc.report.html", "w", encoding="utf-8") as f:
+    with open(os.path.join(outdir, outname), "w", encoding="utf-8") as f:
         f.write("<head>\n")
         f.write("<style>{}</style>\n".format(css))
         f.write("</head>\n")

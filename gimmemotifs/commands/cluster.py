@@ -23,7 +23,7 @@ def _write_report(outdir, ids, tree, clusters):
     template = env.get_template("cluster_template.jinja.html")
     result = template.render(motifs=ids)
 
-    with open(os.path.join(outdir, "cluster_report.html"), "w") as f:
+    with open(os.path.join(outdir, "gimme.denovo.clusters.html"), "w") as f:
         f.write(result)
 
     f = open(os.path.join(outdir, "cluster_key.txt"), "w")

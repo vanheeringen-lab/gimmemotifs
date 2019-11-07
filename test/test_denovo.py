@@ -29,8 +29,8 @@ class TestDenovo(unittest.TestCase):
 
         fnames = [
             "gimme.denovo.pfm",
-            "motif_report.html",
-            "cluster_report.html",
+            "gimme.denovo.html",
+            "gimme.denovo.clusters.html",
             "params.txt",
             "stats.random.txt",
         ]

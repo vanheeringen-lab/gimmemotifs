@@ -701,7 +701,7 @@ def gimme_motifs(
     logger.info("finished")
     logger.info("output dir: %s", outdir)
     if cluster:
-        logger.info("de novo report: %s", os.path.join(outdir, "motif_report.html"))
+        logger.info("de novo report: %s", os.path.join(outdir, "gimme.denovo.html"))
 
     return final_motifs
 

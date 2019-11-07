@@ -31,7 +31,7 @@ For a full analysis:
     $ gimme motifs TAp73alpha.bed -g hg19 -n gimme.p73 
 
 
-Open the file ``gimme.p73/motif_report.html`` in your web browser to see the results.
+Open the file ``gimme.p73/gimme.denovo.html`` in your web browser to see the results.
 
 Compare motifs between data sets
 --------------------------------
