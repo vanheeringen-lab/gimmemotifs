@@ -218,7 +218,7 @@ def motifs(args):
             scan_to_file(
                 sample,
                 f.name,
-                filepath_or_buffer=f"{motif}.matches.bed",
+                filepath_or_buffer=os.path.join(args.outdir, f"{motif}.matches.bed"),
                 bed=True,
                 fpr=0.01,
                 genome=args.genome,
