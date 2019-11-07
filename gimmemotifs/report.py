@@ -394,6 +394,8 @@ def roc_html_report(
 
     df = df[df["corrected P-value"] <= threshold]
 
+    df["# matches"] = "<a href=" + df.index.to_series() + ".matches.bed>" + df["# matches"].astype(str) + "</a>"
+
     df["logo"] = [
         '<img src="logos/{}.png" height=40/>'.format(re.sub(r"[^-_\w]+", "_", x))
         for x in list(df.index)
