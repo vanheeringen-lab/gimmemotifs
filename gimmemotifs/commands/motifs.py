@@ -14,13 +14,15 @@ from tempfile import NamedTemporaryFile
 
 import numpy as np
 
-from gimmemotifs.motif import read_motifs
-from gimmemotifs.stats import calc_stats_iterator
-from gimmemotifs.denovo import gimme_motifs
 from gimmemotifs.background import create_background_file
 from gimmemotifs.comparison import MotifComparer
+from gimmemotifs.denovo import gimme_motifs
+from gimmemotifs.motif import read_motifs
+from gimmemotifs.stats import calc_stats_iterator
 from gimmemotifs.report import roc_html_report
+from gimmemotifs.scanner import scan_to_file
 from gimmemotifs.utils import determine_file_type, narrowpeak_to_bed
+
 
 logger = logging.getLogger("gimme.motifs")
 
@@ -138,7 +140,7 @@ def motifs(args):
         "Motif\t# matches\t# matches background\tP-value\tlog10 P-value\tROC AUC\tPR AUC\tEnr. at 1% FPR\tRecall at 10% FDR\n"
     )
 
-    logger.info("calculating stats")
+    logger.info("creating motif scan tables")
     ftype = determine_file_type(args.sample)
     sample = args.sample
     if ftype == "narrowpeak":
@@ -147,17 +149,36 @@ def motifs(args):
         narrowpeak_to_bed(args.sample, f.name, size=args.size)
         sample = f.name
 
-    for motif_stats in calc_stats_iterator(
-        motifs=motifs,
-        fg_file=sample,
-        bg_file=bgfile,
-        stats=stats,
+    score_table = os.path.join(args.outdir, "input.motif.score.txt")
+    scan_to_file(
+        sample,
+        pfmfile,
+        filepath_or_buffer=score_table,
+        score_table=True,
         genome=args.genome,
+        zscore=True,
+        gcnorm=True,
+    )
+    bg_score_table = os.path.join(args.outdir, "background.motif.score.txt")
+    scan_to_file(
+        bgfile,
+        pfmfile,
+        filepath_or_buffer=bg_score_table,
+        score_table=True,
+        genome=args.genome,
+        zscore=True,
+        gcnorm=True,
         ncpus=args.ncpus,
-        zscore=args.zscore,
-        gc=args.gc,
-    ):
+    )
 
+    logger.info("calculating stats")
+    for motif_stats in calc_stats_iterator(
+        motifs=pfmfile,
+        fg_table=score_table,
+        bg_table=bg_score_table,
+        stats=stats,
+        ncpus=args.ncpus,
+    ):
         for motif in motifs:
             if str(motif) in motif_stats:
                 log_pvalue = np.inf

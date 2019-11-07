@@ -4,6 +4,7 @@ import pytest
 
 from gimmemotifs.stats import calc_stats
 from gimmemotifs.motif import read_motifs
+from gimmemotifs import rocmetrics
 
 
 data_dir = "test/data/stats"
@@ -51,7 +52,7 @@ def stat_functions():
             "gc": False,
             "zscore": False,
         },
-        {"fg_table": fg_table, "bg_table": bg_table,},
+        {"motifs": motifs, "fg_table": fg_table, "bg_table": bg_table,},
     ],
 )
 def test1_stats(kwargs, stat_functions):
@@ -61,7 +62,9 @@ def test1_stats(kwargs, stat_functions):
         stats = calc_stats(**kwargs)
 
         for f in stat_functions:
-            assert f in list(stats.values())[0]
+            if "fg_table" not in kwargs or getattr(rocmetrics, f).input_type != "pos":
+                print(f, fg_table, getattr(rocmetrics, f).input_type)
+                assert f in list(stats.values())[0]
 
         # Two motifs
         assert 2 == len(stats)
@@ -75,8 +78,9 @@ def test1_stats(kwargs, stat_functions):
         assert stats[m1]["recall_at_fdr"] == 0.0
         assert stats[m2]["recall_at_fdr"] > 0.8
 
-        assert stats[m1]["ks_pvalue"] > 0.01
-        assert stats[m2]["ks_pvalue"] < 0.001
+        if "fg_table" not in kwargs:
+            assert stats[m1]["ks_pvalue"] > 0.01
+            assert stats[m2]["ks_pvalue"] < 0.001
 
         assert stats[m1]["phyper_at_fpr"] > 0.1
         assert stats[m2]["phyper_at_fpr"] < 1e-14

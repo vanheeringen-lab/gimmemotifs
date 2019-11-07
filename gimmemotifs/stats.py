@@ -4,6 +4,7 @@ import logging
 
 import numpy as np
 from scipy.stats import rankdata
+import pandas as pd
 
 from gimmemotifs import rocmetrics
 from gimmemotifs.scanner import scan_to_best_match, Scanner
@@ -30,21 +31,22 @@ def calc_stats_iterator(
 
     Parameters
     ----------
-    fg_file : str
+    fg_file : str, optional
         Filename of a FASTA, BED or region file with positive sequences.
 
-    bg_file : str
+    bg_file : str, optional
         Filename of a FASTA, BED or region file with negative sequences.
 
-    fg_table : str
+    fg_table : str, optional
         Filename of a table with motif scan results of positive sequences.
 
-    bg_table : str
+    bg_table : str, optional
         Filename of a table with motif scan results of negative sequences.
 
-    motifs : str, list or Motif instance
+    motifs : str, list or Motif instance, optional
         A file with motifs in pfm format, a list of Motif instances or a
-        single Motif instance.
+        single Motif instance. If motifs is `None`, the default motif
+        database is used.
 
     genome : str, optional
         Genome or index directory in case of BED/regions.
@@ -77,6 +79,19 @@ def calc_stats_iterator(
     elif bg_file is not None:
         raise ValueError("Need either bg_table or bg_file argument, not both")
 
+    if fg_table is not None or bg_table is not None:
+        remove_stats = []
+        for s in stats:
+            func = getattr(rocmetrics, s)
+            if func.input_type == "pos":
+                remove_stats.append(s)
+        if len(remove_stats) != 0:
+            logger.warn(
+                "Cannot calculate stats that require position from table of motif scores."
+            )
+            logger.warn(f"Skipping the following statistics: {', '.join(remove_stats)}")
+            stats = [s for s in stats if s not in remove_stats]
+
     if isinstance(motifs, Motif):
         all_motifs = [motifs]
     else:
@@ -85,16 +100,25 @@ def calc_stats_iterator(
         else:
             motifs = pfmfile_location(motifs)
             all_motifs = read_motifs(motifs, fmt="pwm")
+    if fg_table is not None or bg_table is not None:
+        filtered_motifs = pd.read_csv(
+            fg_table, sep="\t", index_col=0, nrows=1, comment="#"
+        ).columns
+        filtered_motifs = filtered_motifs.intersection(
+            pd.read_csv(bg_table, sep="\t", index_col=0, nrows=1, comment="#").columns
+        )
+        all_motifs = [m for m in all_motifs if m.id in filtered_motifs]
 
     if ncpus is None:
         ncpus = int(MotifConfig().get_default_params()["ncpus"])
 
-    if zscore or gc:
-        # Precalculate mean and stddev for z-score calculation
-        s = Scanner(ncpus=ncpus)
-        s.set_motifs(all_motifs)
-        s.set_genome(genome)
-        s.set_meanstd(gc=gc)
+    if fg_file is not None or bg_file is not None:
+        if zscore or gc:
+            # Precalculate mean and stddev for z-score calculation
+            s = Scanner(ncpus=ncpus)
+            s.set_motifs(all_motifs)
+            s.set_genome(genome)
+            s.set_meanstd(gc=gc)
 
     chunksize = 240
     for i in range(0, len(all_motifs), chunksize):
@@ -104,12 +128,27 @@ def calc_stats_iterator(
         )
         motifs = all_motifs[i : i + chunksize]
 
-        fg_total = scan_to_best_match(
-            fg_file, motifs, ncpus=ncpus, genome=genome, zscore=zscore, gc=gc
-        )
-        bg_total = scan_to_best_match(
-            bg_file, motifs, ncpus=ncpus, genome=genome, zscore=zscore, gc=gc
-        )
+        if fg_table is None:
+            fg_total = scan_to_best_match(
+                fg_file, motifs, ncpus=ncpus, genome=genome, zscore=zscore, gc=gc
+            )
+        else:
+            fg_total = pd.read_csv(
+                fg_table, sep="\t", usecols=[m.id for m in motifs], comment="#"
+            ).to_dict(orient="list")
+            for m in fg_total:
+                fg_total[m] = [(x, None) for x in fg_total[m]]
+
+        if bg_table is None:
+            bg_total = scan_to_best_match(
+                bg_file, motifs, ncpus=ncpus, genome=genome, zscore=zscore, gc=gc
+            )
+        else:
+            bg_total = pd.read_csv(
+                bg_table, sep="\t", usecols=[m.id for m in motifs], comment="#"
+            ).to_dict(orient="list")
+            for m in bg_total:
+                bg_total[m] = [(x, None) for x in bg_total[m]]
 
         logger.debug("calculating statistics")
 

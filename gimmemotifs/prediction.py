@@ -45,7 +45,13 @@ def mp_calc_stats(motifs, fg_fa, bg_fa, zscore, gc, genome, bg_name=None):
     """Parallel calculation of motif statistics."""
     try:
         stats = calc_stats(
-            motifs, fg_fa, bg_fa, ncpus=1, zscore=zscore, gc=gc, genome=genome
+            motifs=motifs,
+            fg_file=fg_fa,
+            bg_file=bg_fa,
+            ncpus=1,
+            zscore=zscore,
+            gc=gc,
+            genome=genome,
         )
     except Exception as e:
         sys.stderr.write("ERROR: {}\n".format(str(e)))
