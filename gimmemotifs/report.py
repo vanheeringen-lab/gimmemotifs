@@ -349,6 +349,7 @@ def roc_html_report(
     outname="gimme.motifs.html",
     threshold=0.01,
     use_motifs=None,
+    link_matches=False,
 ):
     df = pd.read_table(infile, index_col=0)
     del df.index.name
@@ -394,7 +395,14 @@ def roc_html_report(
 
     df = df[df["corrected P-value"] <= threshold]
 
-    df["# matches"] = "<a href=" + df.index.to_series() + ".matches.bed>" + df["# matches"].astype(str) + "</a>"
+    if link_matches:
+        df["# matches"] = (
+            "<a href="
+            + df.index.to_series()
+            + ".matches.bed>"
+            + df["# matches"].astype(str)
+            + "</a>"
+        )
 
     df["logo"] = [
         '<img src="logos/{}.png" height=40/>'.format(re.sub(r"[^-_\w]+", "_", x))

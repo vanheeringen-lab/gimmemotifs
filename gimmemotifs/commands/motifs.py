@@ -212,7 +212,7 @@ def motifs(args):
     # for this set of non-redundant motifs.
     motif_dict = dict([(m.id, m) for m in motifs])
     for motif in nr_motifs:
-        with NamedTemporaryFile() as f:
+        with NamedTemporaryFile(mode="w") as f:
             print(motif_dict[motif].to_pwm(), file=f)
             f.flush()
             scan_to_file(
@@ -224,7 +224,7 @@ def motifs(args):
                 genome=args.genome,
                 zscore=True,
                 gcnorm=True,
-             )
+            )
 
     if args.report:
         logger.info("creating statistics report")
@@ -235,6 +235,7 @@ def motifs(args):
                 pfmfile,
                 threshold=0.01,
                 outname="gimme.motifs.redundant.html",
+                link_matches=False,
             )
             roc_html_report(
                 args.outdir,
@@ -242,5 +243,8 @@ def motifs(args):
                 pfmfile,
                 threshold=0.01,
                 use_motifs=nr_motifs,
+                link_matches=True,
             )
-            logger.info(f"gimme motifs final report: {os.path.join(args.outdir, 'gimme.motifs.html')}")
+            logger.info(
+                f"gimme motifs final report: {os.path.join(args.outdir, 'gimme.motifs.html')}"
+            )
