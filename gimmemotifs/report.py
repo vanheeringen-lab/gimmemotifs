@@ -397,7 +397,7 @@ def roc_html_report(
 
     if link_matches:
         df["# matches"] = (
-            "<a href="
+            "<a href=motif_scan_results/"
             + df.index.to_series()
             + ".matches.bed>"
             + df["# matches"].astype(str)

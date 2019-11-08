@@ -30,9 +30,13 @@ logger = logging.getLogger("gimme.motifs")
 
 def motifs(args):
     """ Calculate ROC_AUC and other metrics and optionally plot ROC curve."""
-    if args.outdir:
-        if not os.path.exists(args.outdir):
-            os.makedirs(args.outdir)
+    if args.outdir is None:
+        raise ValueError("an output directory is required!")
+    if not os.path.exists(args.outdir):
+        os.makedirs(args.outdir)
+    scan_dir = os.path.join(args.outdir, "motif_scan_results")
+    if not os.path.exists(scan_dir):
+        os.makedirs(scan_dir)
 
     genome = args.genome
     if genome is None:
@@ -155,8 +159,8 @@ def motifs(args):
     # * Can be used to calculate statistics;
     # * Can be used to select a set of non-redundant motifs;
     # * These files are included in the output and can be used for further analyis.
-    score_table = os.path.join(args.outdir, "input.motif.score.txt")
-    bg_score_table = os.path.join(args.outdir, "background.motif.score.txt")
+    score_table = os.path.join(scan_dir, "input.motif.score.txt")
+    bg_score_table = os.path.join(scan_dir, "background.motif.score.txt")
     for infile, outfile in [(sample, score_table), (bgfile, bg_score_table)]:
         scan_to_file(
             infile,
@@ -218,7 +222,7 @@ def motifs(args):
             scan_to_file(
                 sample,
                 f.name,
-                filepath_or_buffer=os.path.join(args.outdir, f"{motif}.matches.bed"),
+                filepath_or_buffer=os.path.join(scan_dir, f"{motif}.matches.bed"),
                 bed=True,
                 fpr=0.01,
                 genome=args.genome,
