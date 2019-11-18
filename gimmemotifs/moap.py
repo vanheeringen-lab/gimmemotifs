@@ -32,7 +32,7 @@ import pandas as pd
 import numpy as np
 from scipy.stats import hypergeom, mannwhitneyu
 from statsmodels.sandbox.stats.multicomp import multipletests
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 # scikit-learn
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -275,6 +275,7 @@ class BayesianRidgeMoap(Moap):
 
         logger.debug("Fitting model")
         pool = Pool(self.ncpus)
+     
         coefs = [
             x
             for x in tqdm(
