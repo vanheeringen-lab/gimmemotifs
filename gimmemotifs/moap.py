@@ -275,7 +275,7 @@ class BayesianRidgeMoap(Moap):
 
         logger.debug("Fitting model")
         pool = Pool(self.ncpus)
-     
+
         coefs = [
             x
             for x in tqdm(
