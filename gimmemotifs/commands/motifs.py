@@ -30,9 +30,13 @@ logger = logging.getLogger("gimme.motifs")
 
 def motifs(args):
     """ Calculate ROC_AUC and other metrics and optionally plot ROC curve."""
-    if args.outdir:
-        if not os.path.exists(args.outdir):
-            os.makedirs(args.outdir)
+    if args.outdir is None:
+        raise ValueError("an output directory is required!")
+    if not os.path.exists(args.outdir):
+        os.makedirs(args.outdir)
+    scan_dir = os.path.join(args.outdir, "motif_scan_results")
+    if not os.path.exists(scan_dir):
+        os.makedirs(scan_dir)
 
     genome = args.genome
     if genome is None:
@@ -150,27 +154,23 @@ def motifs(args):
         narrowpeak_to_bed(args.sample, f.name, size=args.size)
         sample = f.name
 
-    score_table = os.path.join(args.outdir, "input.motif.score.txt")
-    scan_to_file(
-        sample,
-        pfmfile,
-        filepath_or_buffer=score_table,
-        score_table=True,
-        genome=args.genome,
-        zscore=True,
-        gcnorm=True,
-    )
-    bg_score_table = os.path.join(args.outdir, "background.motif.score.txt")
-    scan_to_file(
-        bgfile,
-        pfmfile,
-        filepath_or_buffer=bg_score_table,
-        score_table=True,
-        genome=args.genome,
-        zscore=True,
-        gcnorm=True,
-        ncpus=args.ncpus,
-    )
+    # Create a table with the best score per motif for all motifs.
+    # This has three reasons:
+    # * Can be used to calculate statistics;
+    # * Can be used to select a set of non-redundant motifs;
+    # * These files are included in the output and can be used for further analyis.
+    score_table = os.path.join(scan_dir, "input.motif.score.txt")
+    bg_score_table = os.path.join(scan_dir, "background.motif.score.txt")
+    for infile, outfile in [(sample, score_table), (bgfile, bg_score_table)]:
+        scan_to_file(
+            infile,
+            pfmfile,
+            filepath_or_buffer=outfile,
+            score_table=True,
+            genome=args.genome,
+            zscore=True,
+            gcnorm=True,
+        )
 
     logger.info("calculating stats")
     for motif_stats in calc_stats_iterator(
@@ -200,6 +200,9 @@ def motifs(args):
                 )
     f_out.close()
 
+    # Select a set of "non-redundant" motifs.
+    # Using Recursive Feature Elemination, a set of motifs is selected that
+    # best explains the peaks in comparison to the background sequences.
     nr_motifs = select_nonredundant_motifs(
         args.outdir + "/gimme.roc.report.txt",
         pfmfile,
@@ -207,6 +210,25 @@ def motifs(args):
         bg_score_table,
         tolerance=0.001,
     )
+
+    # Provide BED files with motif scan results for the non-redundant motifs
+    # At the moment this is not ideal, as scanning is now performed twice
+    # for this set of non-redundant motifs.
+    motif_dict = dict([(m.id, m) for m in motifs])
+    for motif in nr_motifs:
+        with NamedTemporaryFile(mode="w") as f:
+            print(motif_dict[motif].to_pwm(), file=f)
+            f.flush()
+            scan_to_file(
+                sample,
+                f.name,
+                filepath_or_buffer=os.path.join(scan_dir, f"{motif}.matches.bed"),
+                bed=True,
+                fpr=0.01,
+                genome=args.genome,
+                zscore=True,
+                gcnorm=True,
+            )
 
     if args.report:
         logger.info("creating statistics report")
@@ -217,6 +239,7 @@ def motifs(args):
                 pfmfile,
                 threshold=0.01,
                 outname="gimme.motifs.redundant.html",
+                link_matches=False,
             )
             roc_html_report(
                 args.outdir,
@@ -224,4 +247,8 @@ def motifs(args):
                 pfmfile,
                 threshold=0.01,
                 use_motifs=nr_motifs,
+                link_matches=True,
+            )
+            logger.info(
+                f"gimme motifs final report: {os.path.join(args.outdir, 'gimme.motifs.html')}"
             )

@@ -592,7 +592,7 @@ genome version needs to be specified with ``-g``.
 Command: gimme logo
 -------------------
 
-Convert one or more motifs in a PFM file to a sequence logo.
+Convert one or more motifs in a PFM file to a sequence logo. Most of these logos are made possible by the excellent `Logomaker <https://logomaker.readthedocs.io/en/latest/>`_ package.
 You can optionally supply a PFM file, otherwise ``gimme logo`` uses the default ``gimme.vertebrate.v5.0``.
 With the ``-i`` option, you can choose one or more motifs to convert.
 

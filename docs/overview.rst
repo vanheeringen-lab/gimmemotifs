@@ -24,19 +24,26 @@ In addition, many other motif databases come included with GimmeMotifs:
 * `JASPAR2018_fungi` -CORE fungi motifs from `JASPAR 2018`_.
 * `JASPAR2018_nematodes` - CORE nematodes motifs from `JASPAR 2018`_.
 * `JASPAR2018_urochordata` - CORE urochordata motifs from `JASPAR 2018`_.
+* `JASPAR2020` - All CORE motifs from `JASPAR 2020`_.
+* `JASPAR2020_vertebrates` - CORE vertebrates motifs from `JASPAR 2020`_.
+* `JASPAR2020_plants` - CORE plants motifs from `JASPAR 2020`_.
+* `JASPAR2020_insects` - CORE insects motifs from `JASPAR 2020`_.
+* `JASPAR2020_fungi` -CORE fungi motifs from `JASPAR 2020`_.
+* `JASPAR2020_nematodes` - CORE nematodes motifs from `JASPAR 2020`_.
+* `JASPAR2020_urochordata` - CORE urochordata motifs from `JASPAR 2020`_.
 * `SwissRegulon` - The `SwissRegulon`_ motifs.
 
 You can specify any of these motif databases by name in any GimmeMotifs tool. For instance: 
 
 ::
 
-    $ gimme scan TAp73alpha.fa -p JASPAR2018_vertebrates
+    $ gimme scan TAp73alpha.fa -p JASPAR2018_vertebrates -g hg38
 
 or 
 
 ::
 
-    $ gimme roc TAp73alpha.fa bg.fa -p HOMER -r roc.report
+    $ gimme motifs TAp73alpha.fa TAp73alpha.motifs -p HOMER -g hg38 --known
 
 .. _`Kheradpour & Kellis (2013)`: https://dx.doi.org/10.1093/nar/gkt1249 
 .. _`Madsen et al. (2018)`: https://dx.doi.org/10.1101/gr.227231.117
@@ -44,6 +51,7 @@ or
 .. _`ENCODE`: http://compbio.mit.edu/encode-motifs/
 .. _`CIS-BP database`: http://cisbp.ccbr.utoronto.ca/
 .. _`JASPAR 2018`: http://jaspar.genereg.net
+.. _`JASPAR 2020`: http://jaspar.genereg.net
 .. _HOMER: http://homer.ucsd.edu/homer/motif/
 .. _HOCOMOCO: http://hocomoco11.autosome.ru/
 .. _`SwissRegulon`: http://swissregulon.unibas.ch/sr/
