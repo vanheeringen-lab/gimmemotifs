@@ -388,7 +388,9 @@ def cli(sys_args):
 
     # pwm2logo.py
     p = subparsers.add_parser("logo")
-    p.add_argument("pfmfile", help="PFM file with motifs", metavar="pfmfile")
+    p.add_argument(
+        "-p", "--pfmfile", help="PFM file with motifs", metavar="pfmfile", default=None
+    )
     p.add_argument(
         "-i",
         "--ids",
