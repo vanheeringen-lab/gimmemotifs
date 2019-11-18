@@ -37,13 +37,13 @@ You can specify any of these motif databases by name in any GimmeMotifs tool. Fo
 
 ::
 
-    $ gimme scan TAp73alpha.fa -p JASPAR2018_vertebrates
+    $ gimme scan TAp73alpha.fa -p JASPAR2018_vertebrates -g hg38
 
 or 
 
 ::
 
-    $ gimme motifs TAp73alpha.fa TAp73alpha.motifs -p HOMER --known
+    $ gimme motifs TAp73alpha.fa TAp73alpha.motifs -p HOMER -g hg38 --known
 
 .. _`Kheradpour & Kellis (2013)`: https://dx.doi.org/10.1093/nar/gkt1249 
 .. _`Madsen et al. (2018)`: https://dx.doi.org/10.1101/gr.227231.117
