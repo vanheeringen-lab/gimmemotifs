@@ -1,0 +1,27 @@
+# YAML 1.2
+---
+message: "If you use this software, please cite it using these metadata."
+cff-version: "1.1.0"
+abstract: |
+    "Background: Transcription factors (TFs) bind to specific DNA sequences, TF motifs, in cis-regulatory sequences and control the expression of the diverse transcriptional programs encoded in the genome. The concerted action of TFs within the chromatin context enables precise temporal and spatial expression patterns. To understand how TFs control gene expression it is essential to model TF binding. TF motif information can help to interpret the exact role of individual regulatory elements, for instance to predict the functional impact of non-coding variants.
+    
+    Findings: Here we present GimmeMotifs, a comprehensive computational framework for TF motif analysis. Compared to the previously published version, this release adds a whole range of new functionality and analysis methods. It now includes tools for de novo motif discovery, motif scanning and sequence analysis, motif clustering, calculation of performance metrics and visualization. Included with GimmeMotifs is a non-redundant database of clustered motifs. Compared to other motif databases, this collection of motifs shows competitive performance in discriminating bound from unbound sequences. Using our de novo motif discovery pipeline we find large differences in performance between de novo motif finders on ChIP-seq data. Using an ensemble method such as implemented in GimmeMotifs will generally result in improved motif identification compared to a single motif finder. Finally, we demonstrate maelstrom, a new ensemble method that enables comparative analysis of TF motifs between multiple high-throughput sequencing experiments, such as ChIP-seq or ATAC-seq. Using a collection of ~200 H3K27ac ChIP-seq data sets we identify TFs that play a role in hematopoietic differentiation and lineage commitment.
+    
+    Conclusion: GimmeMotifs is a fully-featured and flexible framework for TF motif analysis. It contains both command-line tools as well as a Python API and is freely available at: https://github.com/vanheeringen-lab/gimmemotifs."
+authors: 
+  -
+    family-names: Bruse
+    given-names: Niklas
+    affiliation: "Radboud University, Faculty of Science, Department of Molecular Developmental Biology, Radboud Institute for Molecular Life Sciences, 6500 HB Nijmegen, The Netherlands "
+  -
+    family-names: "van Heeringen"
+    given-names: "Simon Jan"
+    orcid: "https://orcid.org/0000-0002-0411-3219"
+    affiliation: "Radboud University, Faculty of Science, Department of Molecular Developmental Biology, Radboud Institute for Molecular Life Sciences, 6500 HB Nijmegen, The Netherlands "
+date-released: 2019-11-18
+doi: "10.1101/474403"
+license: MIT
+repository-code: "https://github.org/vanheeringen-lab/gimmemotifs/"
+title: "GimmeMotifs: an analysis framework for transcription factor motif analysis"
+version: "0.14.0"
+...
