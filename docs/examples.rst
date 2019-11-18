@@ -6,7 +6,7 @@ Simple examples
 Install a genome
 ----------------
 
-Any genome on UCSC, Ensembl or NCBI can be installed automatically using genomepy_. The `genomepy` command tool comes installed with gimmemotifs. For instance, to download the hg38 genome from UCSC:
+Any genome on UCSC, Ensembl or NCBI can be installed automatically using genomepy_. The ``genomepy`` command tool comes installed with gimmemotifs. For instance, to download the hg38 genome from UCSC:
 
 ::
 
@@ -40,7 +40,7 @@ Compare motifs between data sets
 
     $ gimme maelstrom hg19.blood.most_variable.1k.txt hg19 maelstrom.out/
 
-The output scores of `gimme maelstrom` represents the combined result of multiple methods. 
+The output scores of ``gimme maelstrom`` represent the combined result of multiple methods. 
 The individual results from different methods are ranked from high-scoring motif to low-scoring motif
 and then aggregated using rank aggregation. 
 The score that is shown is the -log10(p-value), where the p-value (from the rank aggregation) is corrected for multiple testing. 
@@ -51,17 +51,17 @@ Create sequence logos
 
 ::
 
-    $ gimme logo -i p53_Average_8
+    $ gimme logo -i GM.5.0.p53.0004
 
-This will generate ``p53_Avarage_8.png``.
+This will generate ``GM.5.0.p53.0004.png``.
 
-.. image:: images/p53_Average_8.png
+.. image:: images/GM.5.0.p53.0004.png
 
 Use the ``-p`` argument for a different pwm file. 
-The following command will generate a logo for every motif in ``custom.pwm``.
+The following command will generate a logo for every motif in ``custom.pfm``.
 
 ::  
 
-   $ gimme logo -p custom.pwm
+   $ gimme logo -p custom.pfm
 
  

@@ -69,7 +69,6 @@ These are the prerequisites for a full GimmeMotifs installation.
 - bedtools http://bedtools.readthedocs.io
 - UCSC genePredToBed http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/genePredToBed
 - UCSC bigBedToBed http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bigBedToBed
-- R + RobustRankAggreg https://cran.r-project.org/web/packages/RobustRankAggreg/index.html
 - Perl + Algorithm::Cluster
 
 In addition many of the motif tools (such as MEME) will need to be installed separately. Instructions for doing so are not included here.
