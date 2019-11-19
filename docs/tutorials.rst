@@ -61,7 +61,7 @@ Select the top 500 peaks, based on the signalValue column of the narrowPeak_ for
 
 ::
 
-    $ sort -k7gr Gm12878.CTCF.bed | head -n 500 > Gm12878.CTCF.top500.narrowPeak
+    $ sort -k7gr Gm12878.CTCF.narrowPeak | head -n 500 > Gm12878.CTCF.top500.narrowPeak
 
 Note that the top 500 peaks are just for the sake of the tutorial. 
 Normally you would use a much larger sample (or all peaks) as input for ``gimme motifs``.
@@ -80,14 +80,16 @@ Having both an index genome and an input file, we can run ``gimme motifs``.
 
 :: 
 
-    $ gimme motifs Gm12878.CTCF.top500.narrowPeak -g hg19 -n gimme.CTCF
+    $ gimme motifs Gm12878.CTCF.top500.narrowPeak gimme.CTCF -g hg19 --denovo
 
-Once again, this will take some time. 
+Once again, this will take some time. By specifying the `--denovo` flag, we will
+only look for *de novo* motifs. If this flag is not used, the sequences will also be
+scanned with known motifs.
 When ``gimme motifs``  is finished you can view the results in a web browser. 
 `gimme.CTCF/motif_report.html`_ should look a lot like this.
 This is what an almost perfect motif looks like, with a ROC AUC close to 1.0.
 
-.. _`gimme.CTCF/motif_report.html`: gimme.CTCF/motif_report.html
+.. _`gimme.CTCF/gimme.motifs.report.html`: gimme.CTCF/gimme.motifs.html
 .. _`narrowPeak`: https://genome.ucsc.edu/FAQ/FAQformat.html#format12
 
 
@@ -95,17 +97,17 @@ Scan for known motifs
 ---------------------
 
 **Note:** ``gimme scan`` can be used to identify motif locations. 
-If you're just interested in identifying enriched motifs in a data set, try :ref:`gimme roc<roc>`.
+If you're just interested in identifying enriched motifs in a data set, try :ref:`gimme motifs<motifs>`.
 
 To scan for known motifs, you will need a set of input sequences and a file with motifs. 
-By default, ``gimme scan`` uses the motif database that comes included, which is based on clustered, non-redundant motifs from CIS-BP. 
-For input sequences you can use either a BED file, a FASTA file or a file with regions in ``chr:start-end`` format. 
+By default, ``gimme scan`` uses the motif database that comes included, which is based on clustered, non-redundant motifs from CIS-BP and other sources. 
+For input sequences you can use either a BED, FASTA, narrowPeak file or a file with regions in ``chr:start-end`` format. 
 You will also need to specify the genome, which can either be a genome installed with `genomepy` or a FASTA file. 
 The genome sequence will be used to retrieve sequences, if you have specified a BED or region file, but also to determine a reasonable motif-specific threshold for scanning. 
 The default genome can be specified in the configuration file.
 
 We will use the file ``Gm12878.CTCF.top500.narrowPeak`` that was used for `de novo` motif search above for known motifs.
-While ``gimme motifs`` automatically extends regions from the center of the input regions, ``gimme scan`` uses the regions as specified in the file. 
+While ``gimme motifs`` automatically extends regions from the center of the input regions (or the summit if it is a narrowPeak file), ``gimme scan`` uses the regions as specified in the file. 
 This means we will have to change the size of the regions to 200 nucleotides. 
 Depending on the type and quality of your input data, you can of course make this smaller or larger.
 
@@ -113,7 +115,7 @@ Depending on the type and quality of your input data, you can of course make thi
 
     $ cat Gm12878.CTCF.top500.narrowPeak | awk ' {print $1 "\t" $2 + $10 - 100 "\t" $2 + $10 + 100}' > Gm12878.CTCF.top500.w200.bed
 
-OK, let's scan:
+Note that we use the summit as the center of the peak. If you have summit information available, always use this! OK, let's scan:
 
 ::
 
