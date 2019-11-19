@@ -60,7 +60,7 @@ def test_gimme_scan(arguments):
 
 def test_gimme_logo():
     motif_name = "MA0103.3_ZEB1"
-    cli(["logo", "test/data/cli/motifs.pfm", "-i", motif_name])
+    cli(["logo",  "-p", "test/data/cli/motifs.pfm", "-i", motif_name])
 
     assert os.path.exists(f"{motif_name}.png")
     if os.path.exists(f"{motif_name}.png"):
