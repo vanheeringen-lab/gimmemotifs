@@ -636,15 +636,15 @@ def gimme_motifs(
             logger.info("no significant motifs")
             return
 
-        pwmfile = os.path.join(tmpdir, "significant_motifs.pfm")
+        pfmfile = os.path.join(tmpdir, "significant_motifs.pfm")
     else:
         logger.info("not filtering for significance")
         motifs = result.motifs
-        pwmfile = os.path.join(tmpdir, "all_motifs.pfm")
+        pfmfile = os.path.join(tmpdir, "all_motifs.pfm")
 
     if cluster:
         clusters = cluster_motifs_with_report(
-            pwmfile,
+            pfmfile,
             os.path.join(tmpdir, "clustered_motifs.pfm"),
             outdir,
             0.95,
@@ -653,7 +653,7 @@ def gimme_motifs(
 
         # Determine best motif in cluster
         best_motifs = best_motif_in_cluster(
-            pwmfile,
+            pfmfile,
             os.path.join(tmpdir, "clustered_motifs.pfm"),
             clusters,
             os.path.join(tmpdir, "validation.fa"),

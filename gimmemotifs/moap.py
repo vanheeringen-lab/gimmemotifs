@@ -60,7 +60,7 @@ FPR = 0.01
 
 
 def scan_to_table(
-    input_table, genome, scoring, pwmfile=None, ncpus=None, zscore=True, gc=True
+    input_table, genome, scoring, pfmfile=None, ncpus=None, zscore=True, gc=True
 ):
     """Scan regions in input table with motifs.
 
@@ -77,7 +77,7 @@ def scan_to_table(
     scoring : str
         "count" or "score"
 
-    pwmfile : str, optional
+    pfmfile : str, optional
         Specify a PFM file for scanning.
 
     ncpus : int, optional
@@ -91,13 +91,13 @@ def scan_to_table(
     """
     config = MotifConfig()
 
-    if pwmfile is None:
-        pwmfile = config.get_default_params().get("motif_db", None)
-        if pwmfile is not None:
-            pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
+    if pfmfile is None:
+        pfmfile = config.get_default_params().get("motif_db", None)
+        if pfmfile is not None:
+            pfmfile = os.path.join(config.get_motif_dir(), pfmfile)
 
-    if pwmfile is None:
-        raise ValueError("no pwmfile given and no default database specified")
+    if pfmfile is None:
+        raise ValueError("no pfmfile given and no default database specified")
 
     logger.info("reading table")
     if input_table.endswith("feather"):
@@ -117,7 +117,7 @@ def scan_to_table(
         np.median([len(seq) for seq in as_fasta(check_regions, genome=genome).seqs])
     )
     s = Scanner(ncpus=ncpus)
-    s.set_motifs(pwmfile)
+    s.set_motifs(pfmfile)
     s.set_genome(genome)
     s.set_background(genome=genome, gc=gc, size=size)
 
@@ -144,7 +144,7 @@ def scan_to_table(
             scores.append(row)
         logger.info("done")
 
-    motif_names = [m.id for m in read_motifs(pwmfile)]
+    motif_names = [m.id for m in read_motifs(pfmfile)]
     logger.info("creating dataframe")
     return pd.DataFrame(scores, index=idx, columns=motif_names)
 
@@ -933,7 +933,7 @@ def moap(
     scoring=None,
     outfile=None,
     motiffile=None,
-    pwmfile=None,
+    pfmfile=None,
     genome=None,
     fpr=0.01,
     ncpus=None,
@@ -964,7 +964,7 @@ def moap(
         Table with motif scan results. First column should be exactly the same
         regions as in the inputfile.
 
-    pwmfile : str, optional
+    pfmfile : str, optional
         File with motifs in pwm format. Required when motiffile is not
         supplied.
 
@@ -1012,23 +1012,23 @@ def moap(
         if genome is None:
             raise ValueError("need a genome")
 
-        pwmfile = pfmfile_location(pwmfile)
+        pfmfile = pfmfile_location(pfmfile)
         try:
-            motifs = read_motifs(pwmfile)
+            motifs = read_motifs(pfmfile)
         except Exception:
-            sys.stderr.write("can't read motifs from {}".format(pwmfile))
+            sys.stderr.write("can't read motifs from {}".format(pfmfile))
             raise
 
         # initialize scanner
         s = Scanner(ncpus=ncpus)
-        sys.stderr.write(pwmfile + "\n")
-        s.set_motifs(pwmfile)
+        sys.stderr.write(pfmfile + "\n")
+        s.set_motifs(pfmfile)
         s.set_genome(genome)
         s.set_background(genome=genome)
 
         # scan for motifs
         sys.stderr.write("scanning for motifs\n")
-        motif_names = [m.id for m in read_motifs(pwmfile)]
+        motif_names = [m.id for m in read_motifs(pfmfile)]
         scores = []
         if method == "classic" or scoring == "count":
             logger.info("motif scanning (scores)")
@@ -1036,7 +1036,7 @@ def moap(
                 inputfile,
                 genome,
                 "count",
-                pwmfile=pwmfile,
+                pfmfile=pfmfile,
                 ncpus=ncpus,
                 zscore=zscore,
                 gc=gc,
@@ -1047,7 +1047,7 @@ def moap(
                 inputfile,
                 genome,
                 "score",
-                pwmfile=pwmfile,
+                pfmfile=pfmfile,
                 ncpus=ncpus,
                 zscore=zscore,
                 gc=gc,

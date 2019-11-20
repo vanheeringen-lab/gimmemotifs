@@ -1440,9 +1440,9 @@ class Trawler(MotifProgram):
             stderr += err.decode()
 
             os.chdir(current_path)
-            pwmfiles = glob.glob("{}/tmp*/result/*pwm".format(self.tmpdir))
-            if len(pwmfiles) > 0:
-                out_file = pwmfiles[0]
+            pfmfiles = glob.glob("{}/tmp*/result/*pwm".format(self.tmpdir))
+            if len(pfmfiles) > 0:
+                out_file = pfmfiles[0]
                 stdout += "\nOutfile: {}".format(out_file)
 
                 my_motifs = []
@@ -1639,7 +1639,7 @@ class MotifSampler(MotifProgram):
             prm["strand"] = 0
 
         tmp = NamedTemporaryFile(dir=self.tmpdir)
-        prm["pwmfile"] = tmp.name
+        prm["pfmfile"] = tmp.name
 
         tmp2 = NamedTemporaryFile(dir=self.tmpdir)
         prm["outfile"] = tmp2.name
@@ -1680,7 +1680,7 @@ class MotifSampler(MotifProgram):
             bin,
             fastafile,
             params["background_model"],
-            params["pwmfile"],
+            params["pfmfile"],
             params["width"],
             params["number"],
             params["outfile"],
@@ -1856,7 +1856,7 @@ class MDmodule(MotifProgram):
         shutil.copy(fastafile, new_file)
 
         fastafile = new_file
-        pwmfile = fastafile + ".out"
+        pfmfile = fastafile + ".out"
 
         width = default_params["width"]
         number = default_params["number"]
@@ -1866,7 +1866,7 @@ class MDmodule(MotifProgram):
         cmd = "%s -i %s -a 1 -o %s -w %s -t 100 -r %s" % (
             bin,
             fastafile,
-            pwmfile,
+            pfmfile,
             width,
             number,
         )
@@ -1876,8 +1876,8 @@ class MDmodule(MotifProgram):
         stdout = "cmd: {}\n".format(cmd) + stdout.decode()
 
         motifs = []
-        if os.path.exists(pwmfile):
-            with open(pwmfile) as f:
+        if os.path.exists(pfmfile):
+            with open(pfmfile) as f:
                 motifs = self.parse(f)
 
         os.chdir(current_path)
@@ -2146,7 +2146,7 @@ class Posmo(MotifProgram):
         shutil.copy(fastafile, new_file)
 
         fastafile = new_file
-        # pwmfile = fastafile + ".pwm"
+        # pfmfile = fastafile + ".pwm"
 
         motifs = []
         current_path = os.getcwd()
@@ -2282,18 +2282,18 @@ class Gadem(MotifProgram):
         shutil.copy(fastafile, new_file)
 
         fastafile = new_file
-        pwmfile = fastafile + ".pwm"
+        pfmfile = fastafile + ".pwm"
         outfile = fastafile + ".out"
 
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
-        cmd = "%s -fseq %s -fpwm %s -fout %s" % (bin, fastafile, pwmfile, outfile)
+        cmd = "%s -fseq %s -fpwm %s -fout %s" % (bin, fastafile, pfmfile, outfile)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
 
         motifs = []
-        if os.path.exists(pwmfile):
-            with open(pwmfile) as f:
+        if os.path.exists(pfmfile):
+            with open(pfmfile) as f:
                 motifs = self.parse(f)
 
         os.chdir(current_path)

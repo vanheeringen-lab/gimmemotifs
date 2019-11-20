@@ -49,9 +49,9 @@ def get_roc_values(motif, fg_file, bg_file, genome):
         raise
 
 
-def create_roc_plots(pwmfile, fgfa, background, outdir, genome):
+def create_roc_plots(pfmfile, fgfa, background, outdir, genome):
     """Make ROC plots for all motifs."""
-    motifs = read_motifs(pwmfile, fmt="pwm", as_dict=True)
+    motifs = read_motifs(pfmfile, fmt="pwm", as_dict=True)
     ncpus = int(MotifConfig().get_default_params()["ncpus"])
     pool = Pool(processes=ncpus)
     jobs = {}
@@ -210,15 +210,15 @@ def _create_graphical_report(
 
 
 def create_denovo_motif_report(
-    inputfile, pwmfile, fgfa, background, locfa, outdir, params, stats=None
+    inputfile, pfmfile, fgfa, background, locfa, outdir, params, stats=None
 ):
     """Create text and graphical (.html) motif reports."""
     logger.info("creating de novo reports")
 
-    motifs = read_motifs(pwmfile, fmt="pwm")
+    motifs = read_motifs(pfmfile, fmt="pwm")
 
     # ROC plots
-    create_roc_plots(pwmfile, fgfa, background, outdir, params["genome"])
+    create_roc_plots(pfmfile, fgfa, background, outdir, params["genome"])
 
     # Closest match in database
     mc = MotifComparer()
@@ -249,20 +249,20 @@ def create_denovo_motif_report(
     # Create reports
     _create_text_report(inputfile, motifs, closest_match, stats, outdir)
     _create_graphical_report(
-        inputfile, pwmfile, background, closest_match, outdir, stats
+        inputfile, pfmfile, background, closest_match, outdir, stats
     )
 
 
-def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
+def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=2):
     df = pd.read_table(infile, index_col=0)
     df = df[np.any(abs(df) >= threshold, 1)]
 
-    motifs = read_motifs(pwmfile)
+    motifs = read_motifs(pfmfile)
 
     del df.index.name
     cols = df.columns
 
-    motifs = read_motifs(pwmfile)
+    motifs = read_motifs(pfmfile)
     idx = [motif.id for motif in motifs]
     direct = [
         ",".join(sorted(set([x.upper() for x in motif.factors[DIRECT_NAME]])))

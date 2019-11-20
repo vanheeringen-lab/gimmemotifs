@@ -17,7 +17,7 @@ class TestMoap(unittest.TestCase):
         self.clusters = "test/data/moap/clusters.txt"
         self.score_table = "test/data/moap/motifs.score.txt"
         self.count_table = "test/data/moap/motifs.count.txt"
-        self.outfile = os.path.join(self.outdir, "final.out.csv")
+        self.outfile = os.path.join(self.outdir, "final.out.txt")
 
     def test1_maelstrom(self):
         """ Test Motif Activity by Ensemble Learning (maelstrom) """

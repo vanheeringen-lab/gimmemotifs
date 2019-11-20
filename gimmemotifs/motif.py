@@ -1719,9 +1719,9 @@ def alignfile_to_motifs(fname):
     return read_motifs(open(fname), fmt="align")
 
 
-def pwmfile_to_motifs(fname):
+def pfmfile_to_motifs(fname):
     # this method should be deleted
-    msg = "pwmfile_to_motifs is deprecated, please use read_motifs"
+    msg = "pfmfile_to_motifs is deprecated, please use read_motifs"
     warn(msg, DeprecationWarning)
 
     return read_motifs(open(fname), fmt="pwm")

@@ -55,7 +55,7 @@ def moap_with_bg(
     moap(
         input_table,
         outfile=outfile,
-        pwmfile=pfmfile,
+        pfmfile=pfmfile,
         genome=genome,
         method=method,
         scoring=scoring,
@@ -84,23 +84,23 @@ def safe_join(df1, df2):
     return tmp.join(df2).sort_values("_safe_count").drop("_safe_count", 1)
 
 
-def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
+def visualize_maelstrom(outdir, sig_cutoff=3, pfmfile=None):
 
     config = MotifConfig()
-    if pwmfile is None:
-        pwmfile = config.get_default_params().get("motif_db", None)
-        pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
+    if pfmfile is None:
+        pfmfile = config.get_default_params().get("motif_db", None)
+        pfmfile = os.path.join(config.get_motif_dir(), pfmfile)
 
-    mapfile = pwmfile.replace(".pwm", ".motif2factors.txt")
+    mapfile = pfmfile.replace(".pwm", ".motif2factors.txt")
     if os.path.exists(mapfile):
 
         m2f = pd.read_csv(mapfile, sep="\t", names=["motif", "factors"], index_col=0)
         m2f["factors"] = m2f["factors"].str[:50]
     else:
-        motifs = [m.id for m in read_motifs(pwmfile)]
+        motifs = [m.id for m in read_motifs(pfmfile)]
         m2f = pd.DataFrame({"factors": motifs}, index=motifs)
 
-    sig_fname = os.path.join(outdir, "final.out.csv")
+    sig_fname = os.path.join(outdir, "final.out.txt")
     df_sig = pd.read_table(sig_fname, index_col=0, comment="#")
     f = np.any(df_sig >= sig_cutoff, 1)
     vis = df_sig[f]
@@ -211,7 +211,7 @@ def run_maelstrom(
     infile,
     genome,
     outdir,
-    pwmfile=None,
+    pfmfile=None,
     plot=True,
     cluster=False,
     score_table=None,
@@ -236,7 +236,7 @@ def run_maelstrom(
     outdir : str
         Output directory for all results.
 
-    pwmfile : str, optional
+    pfmfile : str, optional
         Specify a PFM file for scanning.
 
     plot : bool, optional
@@ -288,10 +288,10 @@ def run_maelstrom(
     shutil.copyfile(infile, os.path.join(outdir, "input.table.txt"))
 
     # Copy the motif informatuon
-    pwmfile = pfmfile_location(pwmfile)
-    if pwmfile:
-        shutil.copy2(pwmfile, outdir)
-        mapfile = re.sub(".p[fw]m$", ".motif2factors.txt", pwmfile)
+    pfmfile = pfmfile_location(pfmfile)
+    if pfmfile:
+        shutil.copy2(pfmfile, outdir)
+        mapfile = re.sub(".p[fw]m$", ".motif2factors.txt", pfmfile)
         if os.path.exists(mapfile):
             shutil.copy2(mapfile, outdir)
 
@@ -304,7 +304,7 @@ def run_maelstrom(
                 infile,
                 genome,
                 "count",
-                pwmfile=pwmfile,
+                pfmfile=pfmfile,
                 ncpus=ncpus,
                 zscore=zscore,
                 gc=gc,
@@ -322,7 +322,7 @@ def run_maelstrom(
                 infile,
                 genome,
                 "score",
-                pwmfile=pwmfile,
+                pfmfile=pfmfile,
                 ncpus=ncpus,
                 zscore=zscore,
                 gc=gc,
@@ -389,7 +389,7 @@ def run_maelstrom(
                 )
             else:
                 moap_with_bg(
-                    fname, genome, outdir, method, scoring, pwmfile=pwmfile, ncpus=ncpus
+                    fname, genome, outdir, method, scoring, pfmfile=pfmfile, ncpus=ncpus
                 )
 
         except Exception as e:
@@ -409,7 +409,7 @@ def run_maelstrom(
     if len(methods) > 1:
         logger.info("Rank aggregation")
         df_p = df_rank_aggregation(df, dfs, exps)
-        df_p.to_csv(os.path.join(outdir, "final.out.csv"), sep="\t")
+        df_p.to_csv(os.path.join(outdir, "final.out.txt"), sep="\t")
     # df_p = df_p.join(m2f)
 
     # Write motif frequency table
@@ -422,7 +422,7 @@ def run_maelstrom(
 
     if plot and len(methods) > 1:
         logger.info("html report")
-        maelstrom_html_report(outdir, os.path.join(outdir, "final.out.csv"), pwmfile)
+        maelstrom_html_report(outdir, os.path.join(outdir, "final.out.txt"), pfmfile)
         logger.info(os.path.join(outdir, "gimme.maelstrom.report.html"))
 
 
@@ -446,8 +446,8 @@ class MaelstromResult:
             raise FileNotFoundError("No such directory: " + outdir)
 
         # Load motifs
-        pwmfile = glob.glob(os.path.join(outdir, "*.pwm"))[0]
-        with open(pwmfile) as fin:
+        pfmfile = glob.glob(os.path.join(outdir, "*.pwm"))[0]
+        with open(pfmfile) as fin:
             self.motifs = {m.id: m for m in read_motifs(fin)}
 
         self.activity = {}
@@ -461,7 +461,7 @@ class MaelstromResult:
 
         # Read rank aggregation
         self.result = pd.read_table(
-            os.path.join(outdir, "final.out.csv"), comment="#", index_col=0
+            os.path.join(outdir, "final.out.txt"), comment="#", index_col=0
         )
 
         # Read motif results
