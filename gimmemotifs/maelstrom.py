@@ -429,6 +429,7 @@ def run_maelstrom(
 def _get_factor_list(motif, indirect=False):
     factor_list = motif.factors[DIRECT_NAME]
     if indirect:
+        logger.info("add indirect")
         factor_list += motif.factors[INDIRECT_NAME]
 
     return list(set([f.upper() for f in factor_list]))
@@ -550,6 +551,8 @@ class MaelstromResult:
         filt = np.any(np.abs(self.result) >= threshold, 1)
         if hasattr(self, "freq"):
             filt = filt & np.any(np.abs(self.freq.T) >= min_freq, 1)
+        else:
+            filt = filt & (self.counts.sum() / self.counts.shape[0] > min_freq)
 
         idx = self.result.loc[filt].index
         if idx.shape[0] >= 100:
