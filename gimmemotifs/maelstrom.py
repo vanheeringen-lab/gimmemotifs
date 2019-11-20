@@ -455,17 +455,11 @@ class MaelstromResult:
             raise FileNotFoundError("No such directory: " + outdir)
 
         # Load motifs
-<<<<<<< HEAD
-        pfmfile = glob.glob(os.path.join(outdir, "*.pwm"))[0]
-        with open(pfmfile) as fin:
-            self.motifs = {m.id: m for m in read_motifs(fin)}
-=======
         fnames = glob.glob(os.path.join(outdir, "*.p[fw]m"))
         if len(fnames) > 0:
             pfmfile = fnames[0]
             with open(pfmfile) as fin:
                 self.motifs = {m.id: m for m in read_motifs(fin)}
->>>>>>> 5489cff1e3bc93f9a2ffb6e65b31a94c68621096
 
         self.activity = {}
         # Read individual activity files
