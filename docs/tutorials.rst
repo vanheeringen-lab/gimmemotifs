@@ -248,53 +248,42 @@ There output directory contains several files:
     $ ls maelstrom.blood.1k.out
 
     
-The two motif files, ``motif.count.txt.gz`` and ``motif.score.gz`` contain the motif scan results. 
+The two motif files, ``motif.count.txt.gz`` and ``motif.score.txt.gz`` contain the motif scan results. 
 The ``activity.*.out.txt`` files are tables with the results of the individual methods. 
-The main result is ``final.out.csv``, which integrates all individual methods in a final score. 
+The main result is ``final.out.txt``, which integrates all individual methods in a final score. 
 This score represents the combined result of multiple methods.
 The individual results from different methods are ranked from high-scoring motif to low-scoring motif
 and then aggregated using the rank aggregation method from `Kolde, 2012<https://www.ncbi.nlm.nih.gov/pubmed/22247279>`_.
-The score that is shown is the -log10(p-value), where the p-value (from the rank aggregation) is corrected for multiple testing.
+The score that is shown is the -log10(p-value).
 This procedure is then repeated with the ranking reversed. These are shown as negative values.
 
 The file ``gimme.maelstrom.report.html`` contains a graphical summary of this file that can be opened in your web browser.
 
 .. image:: images/gimme.maelstrom.report.png
 
+You can sort on the different columns by clicking on them.
+
 
 The following Python snippet will create a heatmap of the results.
 
 .. code-block:: python
 
-   import pandas as pd
-   import seaborn as sns
-   import numpy as np
-   import matplotlib.pyplot as plt
+    from gimmemotifs.maelstrom import MaelstromResult
+    import matplotlib.pyplot as plt
 
-   df = pd.read_table("maelstrom.blood.1k.out/final.out.csv", index_col=0)
-   m2f = pd.read_table("/home/simon/git/gimmemotifs/motif_databases/gimme.vertebrate.v3.1.motif2factors.txt", index_col=0)
-   m2f.factors = m2f.factors.str.slice(0,50)
-
-   df = df.join(m2f).set_index("factors")
-   df = df[["Mono", "CD4", "CD8", "Bcell", "Nkcell", "Ery"]]
-
-   cm = sns.clustermap(df[np.any(abs(df) >= 6, 1)], figsize=(4,15))
-   cm.fig.subplots_adjust(right=0.5)
-   plt.setp(cm.ax_heatmap.yaxis.get_majorticklabels(), rotation=0);
-
-   plt.savefig("maelstrom.blood.1k.out/heatmap.png")
+    mr = MaelstromResult("maelstrom.blood.1k.out/")
+    mr.plot_heatmap(threshold=6)
+    plt.savefig("maelstrom.blood.1k.out/heatmap.png")
 
 This will show a heatmap like this:
 
 .. image:: images/heatmap.png
 
-We see that the expected motifs for different cell types are identified. GATA/LMO2 for Erythrocytes, LEF/TCF for T cells (ie. Wnt signaling), EBF1 and PAX5 for B cells and so on. 
-The RUNX motif is only identified in CD8+ T cells and not for CD4+ T cells, which recapitulates a known mechanism in CD4- versus CD8-positive T cell differentiation.
-It is kind of tricky to get the seaborn clustermap to use reasonable dimensions by default, so play around with the figsize parameter to get it to work.
+We see that the expected motifs for different cell types are identified. GATA/TAL1 for Erythrocytes, CEBP for monocytes, LEF/TCF for T cells (ie. Wnt signaling), SPIB and PAX5 for B cells and so on. 
 Keep in mind that this shows only the most relevant motifs (-log10 p-value cutoff of 6), there are more relevant motifs. 
-A file with more regions, ``hg19.blood.most_variable.10k.txt`` for this example, will usually yield better results.
+This example was run only on 1,000 variable enhancer. A file with more regions, ``hg19.blood.most_variable.10k.txt`` for this example, will usually yield better results.
 
-
+The Jupyter notebook example `maelstrom.ipynb <https://github.com/vanheeringen-lab/gimmemotifs/blob/master/docs/notebooks/maelstrom.ipynb>`_ shows a more extensive example on how to work with maelstrom results in Python.
 
 .. _`Corces et al.`: https://dx.doi.org/10.1038/ng.3646
 
