@@ -23,15 +23,17 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import scale
 from scipy.cluster import hierarchy
-from scipy.spatial import distance
+from scipy.spatial.distance import pdist
+from scipy.cluster.hierarchy import linkage, dendrogram
 
 # Plotting
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 import seaborn as sns
 
 sns.set_style("white")
 
-from gimmemotifs.config import MotifConfig
+from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 from gimmemotifs.moap import moap, Moap, scan_to_table
 from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
@@ -109,9 +111,7 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pfmfile=None):
         return
 
     # cluster rows
-    row_linkage = hierarchy.linkage(
-        distance.pdist(vis, metric="euclidean"), method="complete"
-    )
+    row_linkage = hierarchy.linkage(pdist(vis, metric="euclidean"), method="complete")
     idx = hierarchy.leaves_list(row_linkage)
 
     plt.figure()
@@ -426,6 +426,15 @@ def run_maelstrom(
         logger.info(os.path.join(outdir, "gimme.maelstrom.report.html"))
 
 
+def _get_factor_list(motif, indirect=False):
+    factor_list = motif.factors[DIRECT_NAME]
+    if indirect:
+        logger.info("add indirect")
+        factor_list += motif.factors[INDIRECT_NAME]
+
+    return list(set([f.upper() for f in factor_list]))
+
+
 class MaelstromResult:
     """Class for working with maelstrom output."""
 
@@ -446,9 +455,17 @@ class MaelstromResult:
             raise FileNotFoundError("No such directory: " + outdir)
 
         # Load motifs
+<<<<<<< HEAD
         pfmfile = glob.glob(os.path.join(outdir, "*.pwm"))[0]
         with open(pfmfile) as fin:
             self.motifs = {m.id: m for m in read_motifs(fin)}
+=======
+        fnames = glob.glob(os.path.join(outdir, "*.p[fw]m"))
+        if len(fnames) > 0:
+            pfmfile = fnames[0]
+            with open(pfmfile) as fin:
+                self.motifs = {m.id: m for m in read_motifs(fin)}
+>>>>>>> 5489cff1e3bc93f9a2ffb6e65b31a94c68621096
 
         self.activity = {}
         # Read individual activity files
@@ -491,6 +508,8 @@ class MaelstromResult:
         min_freq=0.01,
         threshold=2,
         name=True,
+        indirect=False,
+        figsize=None,
         max_len=50,
         aspect=1,
         **kwargs
@@ -514,8 +533,14 @@ class MaelstromResult:
         name : bool, optional
             Use factor names instead of motif names for plotting.
 
+        indirect : bool, optional
+            Include indirect factors. Default is False.
+
         max_len : int, optional
             Truncate the list of factors to this maximum length.
+
+        figsize : tuple, optional
+            Tuple of figure size (width, height).
 
         aspect : int, optional
             Aspect ratio for tweaking the plot.
@@ -529,18 +554,30 @@ class MaelstromResult:
             A seaborn ClusterGrid instance.
         """
 
-        filt = np.any(np.abs(self.result) >= threshold, 1) & np.any(
-            np.abs(self.freq.T) >= min_freq, 1
-        )
+        filt = np.any(np.abs(self.result) >= threshold, 1)
+        if hasattr(self, "freq"):
+            filt = filt & np.any(np.abs(self.freq.T) >= min_freq, 1)
+        else:
+            filt = filt & (self.counts.sum() / self.counts.shape[0] > min_freq)
 
-        idx = self.result[filt].index
+        idx = self.result.loc[filt].index
+        if idx.shape[0] >= 100:
+            logger.warning("The filtered matrix has more than 100 rows.")
+            logger.warning(
+                "It might be worthwhile to increase the threshold for visualization"
+            )
 
         cmap = "RdBu_r"
         if kind == "final":
             data = self.result
         elif kind == "freq":
-            data = self.freq.T
-            cmap = "Reds"
+            if hasattr(self, "freq"):
+                data = self.freq.T
+                cmap = "Reds"
+            else:
+                raise ValueError(
+                    "frequency plot only works with maelstrom output from clusters"
+                )
         elif kind in self.activity:
             data = self.activity[kind]
             if kind in ["hypergeom.count", "mwu.score"]:
@@ -551,23 +588,47 @@ class MaelstromResult:
         # print(data.head())
         # plt.figure(
         m = data.loc[idx]
+        vmax = max(abs(np.percentile(m, 1)), np.percentile(m, 99))
+        vmin = -vmax
         if name:
             m["factors"] = [
-                join_max(self.motifs[n].factors, max_len, ",", suffix=",(...)")
+                join_max(
+                    _get_factor_list(self.motifs[n], indirect),
+                    max_len,
+                    ",",
+                    suffix=",(...)",
+                )
                 for n in m.index
             ]
             m = m.set_index("factors")
         h, w = m.shape
-        cg = sns.clustermap(
-            m,
-            cmap=cmap,
-            col_cluster=False,
-            figsize=(2 + w * 0.5 * aspect, 0.5 * h),
-            linewidths=1,
-            **kwargs
+
+        if figsize is None:
+            figsize = (m.shape[1], 1 + m.shape[0] / 3)
+        fig = plt.figure(figsize=figsize)
+        npixels = 30
+        g = GridSpec(
+            2, 1, height_ratios=(fig.get_figheight() * fig.dpi - npixels, npixels)
         )
-        cg.ax_col_dendrogram.set_visible(False)
-        plt.setp(cg.ax_heatmap.yaxis.get_majorticklabels(), rotation=0)
+        ax1 = fig.add_subplot(g[0, :])
+        ax2 = fig.add_subplot(g[1, :])
+        ax2.set_title("Significance (-log10(p-value))")
+        dm = pdist(m, metric="euclidean")
+        hc = linkage(dm, method="ward")
+        leaves = dendrogram(hc, no_plot=True)["leaves"]
+        cg = sns.heatmap(
+            m.iloc[leaves],
+            ax=ax1,
+            cbar_ax=ax2,
+            cbar_kws={"orientation": "horizontal"},
+            cmap=cmap,
+            linewidths=1,
+            vmin=vmin,
+            vmax=vmax,
+        )
+        plt.tight_layout()
+        # cg.ax_col_dendrogram.set_visible(False)
+        # plt.setp(cg.ax_heatmap.yaxis.get_majorticklabels(), rotation=0)
         return cg
 
     def plot_scores(self, motifs, name=True, max_len=50):

@@ -86,10 +86,13 @@ Once again, this will take some time. By specifying the `--denovo` flag, we will
 only look for *de novo* motifs. If this flag is not used, the sequences will also be
 scanned with known motifs.
 When ``gimme motifs``  is finished you can view the results in a web browser. 
-`gimme.CTCF/motif_report.html`_ should look a lot like this.
+`gimme.CTCF/gimme.denovo.html`_ should look a lot like this.
 This is what an almost perfect motif looks like, with a ROC AUC close to 1.0.
+The ``gimme motifs`` command also selects a minimal set of motifs that best explain 
+the data using recursive feature elimination. This file is called 
+`gimme.motifs.html <gimme.CTCF/gimme.motifs.html>`_.
 
-.. _`gimme.CTCF/gimme.motifs.report.html`: gimme.CTCF/gimme.motifs.html
+.. _`gimme.CTCF/gimme.denovo.html`: gimme.CTCF/gimme.denovo.html
 .. _`narrowPeak`: https://genome.ucsc.edu/FAQ/FAQformat.html#format12
 
 
@@ -97,12 +100,12 @@ Scan for known motifs
 ---------------------
 
 **Note:** ``gimme scan`` can be used to identify motif locations. 
-If you're just interested in identifying enriched motifs in a data set, try :ref:`gimme motifs<motifs>`.
+If you're just interested in identifying enriched motifs in a data set, try ``gimme motifs``.
 
 To scan for known motifs, you will need a set of input sequences and a file with motifs. 
 By default, ``gimme scan`` uses the motif database that comes included, which is based on clustered, non-redundant motifs from CIS-BP and other sources. 
 For input sequences you can use either a BED, FASTA, narrowPeak file or a file with regions in ``chr:start-end`` format. 
-You will also need to specify the genome, which can either be a genome installed with `genomepy` or a FASTA file. 
+You will also need to specify the genome, which can either be a genome installed with ``genomepy`` or a FASTA file. 
 The genome sequence will be used to retrieve sequences, if you have specified a BED or region file, but also to determine a reasonable motif-specific threshold for scanning. 
 The default genome can be specified in the configuration file.
 
@@ -124,37 +127,33 @@ Note that we use the summit as the center of the peak. If you have summit inform
 The first time you run ``gimme scan`` for a specific combination of motif database, genome, input sequence length and FPR (which is 0.01 by default) it will determine a motif-specific cutoff based on random genome background sequences. 
 This will take a while. However, results will be cached for future scanning.
 
-To get a BED file with the genomic location of motif matches add the ``-b`` argument:
+To get a BED file with the genomic location of motif matches add the ``-b`` argument. You can specify the motif database with the ``-p`` argument. This can be either one 
+of the databases included with GimmeMotifs or a PFM file. For instance, to scan 
+with the vertebrate motifs from `JASPAR <http://jaspar.genereg.net/>`_ and output the results in BED format:
 
 ::
 
-    $ gimme scan Gm12878.CTCF.top500.w200.bed -g hg19 -b > result.scan.bed
+    $ gimme scan Gm12878.CTCF.top500.w200.bed -g hg19 -b -p JASPAR2020_vertebrates > result.scan.bed
 
-By default, ``gimme scan`` gives at most one match per sequence for each motif, if the score of the match reaches a certain threshold.
+By default, ``gimme scan`` gives at most one match per sequence for each motif, if the score of the match reaches the threshold determined by the FPR cutoff.
 
 For a very simple summary, we can just have a look at the most abundant motifs:
 
 :: 
-
-    $ cut -f4 result.scan.bed | sort | uniq -c | sort -n | tail
-         50 E2F_Average_31
-         58 C2H2_ZF_Average_123
-         58 MBD_Average_1
-         58 THAP_finger_M1541_1.01
-         59 Unknown_Average_5
-         67 Ets_Average_70
-         72 C2H2_ZF_M0401_1.01
-         72 CxxC_M0548_1.01
-        118 E2F_Average_27
-        394 C2H2_ZF_Average_200
+    $ cut -f4 result.scan.bed | sort | uniq -c | sort -n | tail -n 5
+        114 UN0322.1_ZNF417
+        213 MA1102.2_CTCFL
+        230 UN0310.1_HMGXB4
+        395 UN0311.1_ZBTB2
+        450 MA0139.1_CTCF
 
 In this case, the most abundant motif is the CTCF motif. 
 
 The specified false positive rate (FPR), with a default of 0.01, determines the motif-specific threshold that is used for scanning.
 This means that the expected rate of occurrence, determined by scanning random genomic sequences, is 1%. 
 Based on the FPR, you can assume that any motif with more than 1% matches is enriched. 
-However, for a more robust measure of motif significance use ``gimme roc``, which is further explained :ref:`below<roc>`.
-This command will give the enrichment, but also the ROC AUC and recall at 10% FDR and other useful statistics.
+However, for a more robust measure of enrichment and significance of known motifs use ``gimme motifs`` with the ``--known`` argument.
+This command will give the enrichment, but also the ROC AUC and recall at 10% FDR and other useful statistics. 
 
 For many applications, it is useful to have motif occurrences as a table. 
 
@@ -170,16 +169,17 @@ Alternatively, ``gimme scan`` can report the score of best match, regardless of 
 
     $ gimme scan Gm12878.CTCF.top500.w200.bed -g hg19 -T > table.score.txt
     $ head table.score.txt | cut -f1-10
-    # GimmeMotifs version 0.10.1b2
+    
+    # GimmeMotifs version 0.14.0
     # Input: Gm12878.CTCF.top500.w200.bed
-    # Motifs: /home/simon/anaconda3/share/gimmemotifs/motif_databases/gimme.vertebrate.v3.1.pwm
-    # FPR: 0.01 (hg19)
-            AP-2_Average_26 AP-2_Average_17 AP-2_Average_27 AP-2_Average_15 AP-2_M5965_1.01 ARID_BRIGHT_Average_1   ARID_BRIGHT_M0104_1.01  ARID_BRIGHT_Average_3   ARID_BRIGHT_M5966_1.01
-    chr11:190037-190237     3.315682        5.251773        5.852259        6.986044        -0.032952       -1.058302       -4.384525       1.989879        -13.872373
-    chr14:106873577-106873777       3.485541        5.315545        3.867055        1.129976        4.386212        -3.305211       -1.392656       2.726421        -13.660561
-    chr14:106765204-106765404       3.936576        5.315545        3.867055        1.434064        -1.284617       -1.058302       -3.578581       1.597828        -8.376869
-    chr15:22461178-22461378 3.936576        5.315545        3.867055        1.387997        -1.284617       -3.305211       -7.331101       1.551285        -8.929093
-    chr14:107119996-107120196       3.485541        5.468490        3.867055        1.434064        4.708942        -5.675314       -7.331101       1.159831        -15.790964
+    # Motifs: /home/simon/anaconda3/envs/gimme/lib/python3.6/site-packages/gimmemotifs-0.14.0-py3.6-linux-x86_64.egg/gimmemotifs/../data/motif_databases/gimme.vertebrate.v5.0.pfm
+    # Scoring: logodds score
+    GM.5.0.Sox.0001	GM.5.0.Homeodomain.0001	GM.5.0.Mixed.0001	GM.5.0.Nuclear_receptor.0001	GM.5.0.Mixed.0002	GM.5.0.Nuclear_receptor.0002	GM.5.0.bHLH.0001	GM.5.0.Myb_SANT.0001	GM.5.0.C2H2_ZF.0001
+    chr11:190037-190237	2.954744	6.600900	4.930669	-3.541198	-2.137985	0.544322	2.067236	-0.004395	6.256473
+    chr14:106873577-106873777	2.433545	5.643687	5.517376	-3.351354	1.466310	0.339341	1.419619	-1.566716	4.527884
+    chr14:106765204-106765404	3.063547	2.256005	5.517376	-4.264769	0.574826	-0.948136	1.419619	-3.344676	4.626366
+    chr15:22461178-22461378	1.680438	2.256005	5.517376	-0.306294	-3.518806	4.715836	1.077683	-3.288322	4.527884
+    chr14:107119996-107120196	0.473710	2.256005	5.517376	-7.013300	-3.518806	-0.948136	1.352120	-5.136550	4.952816
 
 .. _`maelstrom_tutorial`:
 
@@ -253,7 +253,7 @@ The ``activity.*.out.txt`` files are tables with the results of the individual m
 The main result is ``final.out.txt``, which integrates all individual methods in a final score. 
 This score represents the combined result of multiple methods.
 The individual results from different methods are ranked from high-scoring motif to low-scoring motif
-and then aggregated using the rank aggregation method from `Kolde, 2012<https://www.ncbi.nlm.nih.gov/pubmed/22247279>`_.
+and then aggregated using the rank aggregation method from `Kolde, 2012 <https://www.ncbi.nlm.nih.gov/pubmed/22247279>`_.
 The score that is shown is the -log10(p-value).
 This procedure is then repeated with the ranking reversed. These are shown as negative values.
 
@@ -292,6 +292,15 @@ Compare two sets with de novo motifs
 ------------------------------------
 
 gimme motifs
+
+for name in ESC HEPG2; do 
+    cat $name/gimme.denovo.pfm | sed "s/>/>$name./"; 
+done > de_novo_motifs.pfm
+
+$ gimme cluster de_novo_motifs.pfm de_novo_clustered
+
+cat MAX*peaks.bed | sed 's/\w*.MAX/MAX/' > MAX.combined.bed
+cat MAX.combined.bed |awk '{print $1 "\t" $7 -100 "\t" $8 + 100 "\t" $4}'  | sed 's/\t/:/' | sed 's/\t/-/' > MAX.combined.txt
 
 combine: gimme cluster
 
