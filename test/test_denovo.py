@@ -30,7 +30,7 @@ class TestDenovo(unittest.TestCase):
         fnames = [
             "gimme.denovo.pfm",
             "gimme.denovo.html",
-            "gimme.denovo.clusters.html",
+            "gimme.clustereds.html",
             "params.txt",
             "stats.random.txt",
         ]

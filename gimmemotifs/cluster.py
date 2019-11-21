@@ -130,7 +130,7 @@ def cluster_motifs(
 
     # First read pfm or pfm formatted motiffile
     if type([]) != type(motifs):
-        motifs = read_motifs(motifs, fmt="pwm")
+        motifs = read_motifs(motifs, fmt="pfm")
 
     mc = MotifComparer()
 
@@ -260,7 +260,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
     if title is None:
         title = infile
 
-    motifs = read_motifs(infile, fmt="pwm")
+    motifs = read_motifs(infile, fmt="pfm")
 
     trim_ic = 0.2
     clusters = []
@@ -337,7 +337,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
         version=__version__,
     )
 
-    cluster_report = os.path.join(outdir, "gimme.denovo.clusters.html")
+    cluster_report = os.path.join(outdir, "gimme.clustereds.html")
     with open(cluster_report, "wb") as f:
         f.write(result.encode("utf-8"))
 

@@ -735,7 +735,7 @@ based on the sequences in ``promoters.fa``.
 
 ::
 
-    PWMFILE     File with pwms
+    PFMFILE     File with pwms
     FAFILE      FASTA file with background sequences
     FPR         Desired fpr
 
@@ -757,7 +757,7 @@ details.
 
 ::
 
-    PWMFILE     File with pwms
+    PFMFILE     File with pwms
     FAFILE      Fasta formatted file
 
 **Optional arguments:**
@@ -820,7 +820,7 @@ Compare for instance an FPR of 1% vs an FPR of 5%.
 ::
 
     -h, --help            show this help message and exit
-    -p PWMFILE, --pwmfile PWMFILE
+    -p PFMFILE, --pfmfile PFMFILE
                           PWM file with motifs (default:
                           gimme.vertebrate.v3.1.pwm)
     -c , --cutoff         motif score cutoff or file with cutoffs (default 0.9)
