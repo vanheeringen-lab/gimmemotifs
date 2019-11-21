@@ -306,50 +306,40 @@ combine: gimme cluster
 
 scan
 
-.. _roc:
-
 Motif enrichment statistics
 ---------------------------
 
-You can use ``gimme roc`` to compare motifs or to identify relevant known motifs for a specific input file.
+You can use ``gimme motifs`` to compare motifs or to identify relevant known motifs for a specific input file.
 
-Let's get some known motifs for one of the example files, ``TAp73alpha.fa``. 
-First, we need to define a background.
-To get random genomic sequences with a matched GC% content:
+Let's evaluate known motifs for one of the example files, ``TAp73alpha.fa``. 
 
 :: 
 
-    $ gimme background random.gc.fa gc -g hg19 -n 500 -l 200 -i TAp73alpha.fa
+    $ gimme roc TAp73alpha.fa TAp73alpha.out --known
 
-This will create a FASTA file with 500 sequences of 200 nucleotides, that has a GC% distribution similar to ``TAp73alpha.fa``.
-Now we can run ``gimme roc``:
-
-:: 
-
-    $ gimme roc TAp73alpha.fa random.gc.fa -r TAp73alpha.roc
-
-This will create an output directory with two files (and a dir with motif logos).
+This will create an output directory with several output files (and a dir with motif logos).
 
 :: 
 
-    $ ls TAp73alpha.roc
-    gimme.roc.report.html  gimme.roc.report.txt  logos
+    $ ls TAp73alpha.out
+    generated_background.gc.fa  gimme.motifs.redundant.html  logos
+    gimme.motifs.html           gimme.roc.report.txt         motif_scan_results
 
-The file ``gimme.roc.report.html`` is a graphical report that can be opened in your web browser. 
+The file ``generated_background.gc.fa`` is the FASTA file used as background. This is automatically generated and contains sequences with the same GC% frequencies as your input sequences.
+The file `gimme.motifs.html <output/TAp73alpha.out/gimme.motifs.html>`_ is a graphical report that can be opened in your web browser. 
 It should look something like this.
 
 .. image:: images/gimme.roc.report.png
 
-The columns are sortable (click on the header) and the full list of factors that can bind to this motif can be obtained by hovering over the text.
+The columns are sortable (click on the header) and the full list of factors that can bind to this motif can be obtained by hovering over the text. This file contains a *non-redundant* set of motifs. The full report is present in 
+`gimme.motifs.redundant.html <output/TAp73alpha.out/gimme.motifs.html>`_. 
+This report will most likely contain many very similar motifs.
 
 The file ``gimme.roc.report.txt`` is a text report of the same results.
-If you don't need the graphical result you can leave out the ``-r`` argument in which case the text output will be printed to ``stdout``.
-
-What's in the file?
 
 :: 
 
-    $ head -n 1 TAp73alpha.roc/gimme.roc.report.txt | tr \\t \\n
+    $ head -n 1 TAp73alpha.out/gimme.roc.report.txt | tr \\t \\n
     Motif
     # matches
     # matches background
@@ -369,34 +359,32 @@ Let's sort on the last statistic:
 :: 
 
     $ sort -k8g TAp73alpha.roc/gimme.roc.report.txt | cut -f1,6,8 | tail
-    bZIP_M0305_1.01     0.581   0.0820
-    SMAD_M5627_1.01     0.603   0.1440
-    Unknown_M6235_1.01  0.656   0.2350
-    Grainyhead_Average_6        0.687   0.2430
-    Myb_SANT_Average_7  0.586   0.2450
-    bZIP_Average_149    0.609   0.2520
-    Runt_Average_9      0.691   0.3670
-    p53_Average_10      0.811   0.5590
-    p53_M3568_1.01      0.816   0.6230
-    p53_Average_8       0.918   0.8820
+    GM.5.0.p53.0010 0.794   9.11
+    GM.5.0.p53.0008 0.812   9.21
+    GM.5.0.Grainyhead.0001  0.761   11.00
+    GM.5.0.Unknown.0179     0.739   12.40
+    GM.5.0.p53.0005 0.862   26.60
+    GM.5.0.p53.0011 0.853   31.19
+    GM.5.0.p53.0007 0.868   32.00
+    GM.5.0.p53.0003 0.884   37.40
+    GM.5.0.p53.0004 0.905   42.87
+    GM.5.0.p53.0001 0.920   52.70
 
-Not surprisingly, the p53 family motif is the most enriched. 
-In addition, we also get RUNX1 and AP1 motifs. 
-The Grainyhead motif somewhat resembles the p53 motif, which could explain the enrichment. 
+Not surprisingly, the p53 family motif is the most enriched. The Grainyhead motif somewhat resembles the p53 motif, which could explain the enrichment. 
 Let's visualize this.
 This command will create two sequence logos in PNG format:
 
 :: 
 
-    $ gimme logo -i p53_Average_8,Grainyhead_Average_6
+    $ gimme logo -i GM.5.0.p53.0001,GM.5.0.Grainyhead.0001
 
-The p53 motif, or p73 motif in this case, ``p53_Average_8.png``:
+The p53 motif, or p73 motif in this case, ``GM.5.0.p53.0001``:
 
-.. image:: images/p53_Average_8.png
+.. image:: images/GM.5.0.p53.0001
 
-And the Grainyhead motif, ``Grainyhead_Average_6``:
+And the Grainyhead motif, ``GM.5.0.Grainyhead.0001``:
 
-.. image:: images/Grainyhead_Average_6.png
+.. image:: images/GM.5.0.Grainyhead.0001.png
 
 The resemblance is clear. 
 This also serves as a warning to never take the results from a computational tool (including mine) at face value...
