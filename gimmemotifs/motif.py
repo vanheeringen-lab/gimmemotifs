@@ -1346,7 +1346,7 @@ def motif_from_align(align):
     return m
 
 
-def motif_from_consensus(cons, n=12):
+def motif_from_consensus(cons, n=1200):
     """Convert consensus sequence to motif.
 
     Converts a consensus sequences using the nucleotide IUPAC alphabet to a
