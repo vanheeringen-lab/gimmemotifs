@@ -148,11 +148,13 @@ def motifs(args):
     logger.info("creating motif scan tables")
     ftype = determine_file_type(args.sample)
     sample = args.sample
+    delete_sample = False
     if ftype == "narrowpeak":
-        f = NamedTemporaryFile()
+        f = NamedTemporaryFile(delete=False)
         logger.debug("Using %s as temporary BED file".format(f.name))
         narrowpeak_to_bed(args.sample, f.name, size=args.size)
         sample = f.name
+        delete_sample = True
 
     # Create a table with the best score per motif for all motifs.
     # This has three reasons:
@@ -229,6 +231,9 @@ def motifs(args):
                 zscore=True,
                 gcnorm=True,
             )
+
+    if delete_sample:
+        os.unlink(sample)
 
     if args.report:
         logger.info("creating statistics report")
