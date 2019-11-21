@@ -209,7 +209,7 @@ Many different file formats are supported, such as png, svg and pdf.
 .. code-block:: python
 
     m = motif_from_consensus("NTGASTCAN")
-    m.to_img(fname="ap1.png")
+    m.plot_logo(fname="ap1.png")
 
 .. image:: images/ap1.png
 
@@ -356,8 +356,13 @@ This means that for the same combination of motifs and genome, the previously ge
 
 .. code-block:: python
 
+    # Set a 1% FPR threshold based on random hg38 sequence
+    s.set_genome("hg38")
+    s.set_threshold(fpr=0.01)
 
-
+    # get the number of sequences with at least one match
+    counts = [n[0] for n in s.count("Gm12878.CTCF.top500.w200.fa", nreport=1)]
+    print(counts[:10])
 
 ::
 
@@ -532,7 +537,7 @@ Then we only select p53 motifs.
 
     motifs = [m for m in default_motifs() if any(f in m.factors['direct'] for f in ["TP53", "TP63", "TP73"])]
 
-    stats = calc_stats(motifs, sample, bg)
+    stats = calc_stats(motifs=motifs, fg_file=sample, bg_file=bg, genome="hg19")
 
     print("Stats for", motifs[0])
     for k, v in stats[str(motifs[0])].items():
@@ -571,7 +576,7 @@ You can choose one or more specific metrics with the additional ``stats`` argume
 .. code-block:: python
 
     metrics = ["roc_auc", "recall_at_fdr"]
-    stats = calc_stats(motifs, sample, bg, stats=metrics)
+    stats = calc_stats(motifs=motifs, fg_file=sample, bg_file=bg, stats=metrics, genome="hg19")
 
     for metric in metrics:
         for motif in motifs:
