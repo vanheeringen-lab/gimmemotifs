@@ -23,11 +23,10 @@ There are several ways to create a Motif instance.
 .. code-block:: python
 
     from gimmemotifs.motif import Motif,read_motifs
-    
+
     # Read from file
-    with open("example.pwm") as f:
-        motifs = read_motifs(f)
-    
+    motifs = read_motifs("example.pfm")
+
     for motif in motifs:
         print(motif)
 
@@ -69,31 +68,31 @@ Read motifs from files in other formats.
 
 .. code-block:: python
 
-    with open("motifs.txt") as f:
-        motifs = read_motifs(f, fmt="jaspar")
+    motifs = read_motifs("MA0099.3.jaspar", fmt="jaspar")
+    print(motifs[0])        
 
 You can convert a motif to several formats.
 
 .. code-block:: python
 
-    with open("example.pwm") as f:
-        motifs = read_motifs(f)
+    motifs = read_motifs("example.pfm")
 
     # pwm
-    print(motifs[0].to_pwm())
+    print(motifs[0].to_pwm())   
 
 :: 
 
     >AP1
-    0.4908  0.1862  0.2475  0.0755
-    0.0125  0.0102  0.0179  0.9594
-    0.0191  0.0151  0.9236  0.0422
-    0.9457  0.0349  0.0037  0.0158
-    0.0355  0.2714  0.6704  0.0228
-    0.0121  0.0023  0.0052  0.9804
-    0.0271  0.9665  0.0042  0.0022
-    0.9935  0.0018  0.0021  0.0027
-    0.0367  0.2994  0.1227  0.5412
+    0.5558	0.1469	0.2734	0.0240
+    0.0020	0.0015	0.0017	0.9948
+    0.0039	0.0019	0.9502	0.0439
+    0.9697	0.0220	0.0018	0.0065
+    0.0377	0.3311	0.6030	0.0283
+    0.0033	0.0031	0.0043	0.9893
+    0.0188	0.9775	0.0023	0.0014
+    0.9951	0.0021	0.0012	0.0015
+    0.0121	0.3096	0.1221	0.5561
+
     
 .. code-block:: python
 
@@ -103,15 +102,15 @@ You can convert a motif to several formats.
 ::
 
     >AP1
-    490.836673106   186.173418152   247.513020751   75.4768879912
-    12.547339755300001      10.155349184    17.9452120263   959.3520990339999
-    19.1226148238   15.059923645000001      923.609905966   42.2075555647
-    945.664342835   34.901043985399994      3.65113750964   15.783475669799998
-    35.5141768941   271.353190693   670.372169269   22.7604631439
-    12.0584747671   2.26583975448   5.24634274557   980.429342733
-    27.0894652078   966.542517084   4.185842951     2.18217475676
-    993.460370648   1.82289509211   2.05495304279   2.6617812170899997
-    36.6674279259   299.433215935   122.739692952   541.1596631870001
+    555.8	146.9	273.4	24.0
+    2.0	1.5	1.7	994.8000000000001
+    3.9	1.9	950.2	43.9
+    969.7	22.0	1.8	6.5
+    37.699999999999996	331.1	603.0	28.299999999999997
+    3.3	3.1	4.3	989.3
+    18.8	977.5	2.3	1.4
+    995.1	2.1	1.2	1.5
+    12.1	309.59999999999997	122.1	556.1
 
 .. code-block:: python
 
@@ -120,7 +119,47 @@ You can convert a motif to several formats.
 
 ::
 
-    nTGAGTCAy
+    ATGAsTCAy
+
+.. code-block:: python
+
+    # TRANSFAC
+    print(motifs[0].to_transfac())
+
+::
+
+    DE	AP1	unknown
+    0	555	146	273	24	A
+    1	2	1	1	994	T
+    2	3	1	950	43	G
+    3	969	22	1	6	A
+    4	37	331	603	28	s
+    5	3	3	4	989	T
+    6	18	977	2	1	C
+    7	995	2	1	1	A
+    8	12	309	122	556	y
+    XX
+
+.. code-block:: python
+
+    # MEME
+    print(motifs[0].to_meme())
+
+::
+
+    MOTIF AP1
+    BL   MOTIF AP1 width=0 seqs=0
+    letter-probability matrix: alength= 4 w= 9 nsites= 1000.1 E= 0
+    0.5558	0.1469	0.2734	0.024
+    0.002	0.0015	0.0017	0.9948
+    0.0039	0.0019	0.9502	0.0439
+    0.9697	0.022	0.0018	0.0065
+    0.0377	0.3311	0.603	0.0283
+    0.0033	0.0031	0.0043	0.9893
+    0.0188	0.9775	0.0023	0.0014
+    0.9951	0.0021	0.0012	0.0015
+    0.0121	0.3096	0.1221	0.5561
+
 
 Some other useful tidbits.
     
@@ -163,14 +202,14 @@ Some other useful tidbits.
 
     random_snCTAGTAn
 
-To convert a motif to an image, use ``to_img()``.
-Supported formats are png, ps and pdf.
+To convert a motif to an image, use ``plot_logo()``.
+Many different file formats are supported, such as png, svg and pdf.
 
 
 .. code-block:: python
 
     m = motif_from_consensus("NTGASTCAN")
-    m.to_img("ap1.png", fmt="png")
+    m.to_img(fname="ap1.png")
 
 .. image:: images/ap1.png
 
@@ -186,7 +225,7 @@ Let's say we have a FASTA file called ``test.fa`` that looks like this:
     AAAAAAAAAAAAAAAAAAAAAA
     >seq2
     CGCGCGTGAGTCACGCGCGCGCG
-    >seq3
+    
     TGASTCAAAAAAAAAATGASTCA
 
 Now we can use this file for scanning.
@@ -278,17 +317,17 @@ We will get the CTCF motif and scan this file in a number of different ways.
 
 .. code-block:: python
 
-    from gimmemotifs.motif import default_motifs
+    from gimmemotifs.motif import read_motifs
     from gimmemotifs.scanner import Scanner
     from gimmemotifs.fasta import Fasta
     import numpy as np
-    
+
     # Input file
-    fname = "examples/Gm12878.CTCF.top500.w200.fa"
-    
+    fname = "Gm12878.CTCF.top500.w200.fa"
+
     # Select the CTCF motif from the default motif database
-    motifs = [m for m in default_motifs() if "CTCF" in m.factors]
-    
+    motifs = [m for m in read_motifs() if "CTCF" in m.factors['direct']][:1]
+
     # Initialize the scanner
     s = Scanner()
     s.set_motifs(motifs)
@@ -307,7 +346,7 @@ Now let's get the best score for the CTCF motif for each sequence.
     
 ::
 
-    500	10.61	1.21	14.16
+    500	11.00	1.45	15.07
 
 In many cases you'll want to set a threshold. 
 In this example we'll use a 1% FPR threshold, based on scanning randomly selected sequences from the ghg38 genome.
@@ -317,12 +356,8 @@ This means that for the same combination of motifs and genome, the previously ge
 
 .. code-block:: python
 
-    # Set a 1% FPR threshold based on random hg38 sequence
-    s.set_threshold(fpr=0.01, genome="hg38")
-    
-    # get the number of sequences with at least one match
-    counts = [n[0] for n in s.count("examples/Gm12878.CTCF.top500.w200.fa", nreport=1)]
-    print(counts[:10])
+
+
 
 ::
 
@@ -335,19 +370,18 @@ This means that for the same combination of motifs and genome, the previously ge
 
 ::
 
-    [408]
+    [404]
 
 .. code-block:: python
 
     # Scanner.scan() just gives all information
-    seqs = Fasta("examples/Gm12878.CTCF.top500.w200.fa")[:10]
+    seqs = Fasta("Gm12878.CTCF.top500.w200.fa")[:10]
     for i,result in enumerate(s.scan(seqs)):
         seqname = seqs.ids[i]
         for m,matches in enumerate(result):
             motif = motifs[m]
             for score, pos, strand in matches:
                 print(seqname, motif, score, pos, strand)
-
 ::
 
     chr11:190037-190237 C2H2_ZF_Average_200_CCAsyAGrkGGCr 13.4959558370929 143 -1
@@ -443,10 +477,38 @@ For instance, the following command will only predict motifs and cluster them.
 
 .. code-block:: python
 
-    gimme_motifs(peaks, outdir,
+    motifs = gimme_motifs(peaks, outdir,
         params=params, filter_significant=False, create_report=False)
 
 All parameters for motif finding are set by the ``params`` argument. 
+
+Although the ``gimme_motifs()`` function is probably the easiest way to run the de novo finding tools, you can also run any of the tools directly. In this case you would also have to supply the background file if the specific tool requires it.
+
+
+.. code-block:: python
+
+    from gimmemotifs.tools import get_tool
+    from gimmemotifs.background import MatchedGcFasta
+
+    m = get_tool("homer")  # tool name is case-insensitive
+
+    # Create a background fasta file with a similar GC%
+    fa = MatchedGcFasta("TAp73alpha.fa", number=1000)
+    fa.writefasta("bg.fa")
+
+    # Run motif prediction
+    params = {
+        "background": "bg.fa",
+        "width": "20",
+        "number": 5,
+    }
+
+    motifs, stdout, stderr = m.run("TAp73alpha.fa", params=params)
+    print(motifs[0].to_consensus())
+
+::
+
+    nnnCnTGynnnGrCwTGyyn
 
 
 Motif statistics
@@ -464,32 +526,42 @@ Then we only select p53 motifs.
     from gimmemotifs.fasta import Fasta
     from gimmemotifs.stats import calc_stats
     from gimmemotifs.motif import default_motifs
-    
+
     sample = "TAp73alpha.fa"
     bg = MatchedGcFasta(sample, genome="hg19", number=1000)
-    
-    motifs = [m for m in default_motifs() if any(f in m.factors for f in ["TP53", "TRP53"])]
-    
-    stats = calc_stats(fg_file=sample, bg_file=bg, motifs=motifs)
-    
+
+    motifs = [m for m in default_motifs() if any(f in m.factors['direct'] for f in ["TP53", "TP63", "TP73"])]
+
+    stats = calc_stats(motifs, sample, bg)
+
+    print("Stats for", motifs[0])
     for k, v in stats[str(motifs[0])].items():
         print(k,v)
-    
+
+    print()
+
+    best_motif = sorted(motifs, key=lambda x: stats[str(x)]["recall_at_fdr"])[-1]
+    print("Best motif (recall at 10% FDR):", best_motif)
+        
 
 ::
 
-    score_at_fpr 6.7558591134
-    enr_at_fpr 3.4
-    phyper_at_fpr 0.000167840489482
-    roc_auc 0.6439675
-    max_enrichment 4.8
-    roc_auc_xlim 0.012257
-    ks_significance 2.34095270219
-    ks_pvalue 0.00456086584369
-    max_fmeasure 0.680672268908
-    mncp 1.25741046267
-    recall_at_fdr 0.002
-    fraction_fpr 0.034
+    Stats for GM.5.0.p53.0001_rCATGyCCnGrCATGy
+    recall_at_fdr 0.833
+    fraction_fpr 0.416
+    score_at_fpr 9.05025905735
+    enr_at_fpr 41.6
+    max_enrichment 55.5
+    phyper_at_fpr 3.33220067463e-132
+    mncp 1.85474606318
+    roc_auc 0.9211925
+    roc_auc_xlim 0.0680115
+    pr_auc 0.927368602993
+    max_fmeasure 0.867519181586
+    ks_pvalue 0.0
+    ks_significance inf
+
+    Best motif (recall at 10% FDR): GM.5.0.p53.0001_rCATGyCCnGrCATGy
     
 
 A lot of statistics are generated and you will not always need all of them. 
@@ -499,8 +571,8 @@ You can choose one or more specific metrics with the additional ``stats`` argume
 .. code-block:: python
 
     metrics = ["roc_auc", "recall_at_fdr"]
-    stats = calc_stats(fg_file=sample, bg_file=bg, motifs=motifs, stats=metrics)
-    
+    stats = calc_stats(motifs, sample, bg, stats=metrics)
+
     for metric in metrics:
         for motif in motifs:
             print("{}\t{}\t{:.2f}".format(
@@ -521,8 +593,83 @@ You can choose one or more specific metrics with the additional ``stats`` argume
     p53_Average_8   recall_at_fdr   0.83
     p53_M3568_1.01  recall_at_fdr   0.42
 
-Maelstrom
----------
+Motif comparison
+----------------
+
+Compare two motifs.
+
+.. code-block:: python
+
+    from gimmemotifs.comparison import MotifComparer
+    from gimmemotifs.motif import motif_from_consensus
+    from gimmemotifs.motif import read_motifs
+    m1 = motif_from_consensus("RRRCATGYYY")
+    m2 = motif_from_consensus("TCRTGT")
+
+    mc = MotifComparer()
+    score, pos, orient = mc.compare_motifs(m1, m2)
+
+    if orient == -1:
+        m2 = m2.rc()
+    pad1, pad2 = "", ""
+    if pos < 0:
+        pad1 = " " * -pos 
+    elif pos > 0:
+        pad2 =" " * pos
+    print(pad1 + m1.to_consensus())
+    print(pad2 + m2.to_consensus())
+
+::
+
+    rrrCATGyyy
+      ACAyGA
+
+Find closest match in a motif database.
+
+
+.. code-block:: python
+
+    motifs = [
+        motif_from_consensus("GATA"),
+        motif_from_consensus("NTATAWA"),
+        motif_from_consensus("ACGCG"),
+    ]
+
+    mc = MotifComparer()
+    results = mc.get_closest_match(motifs, dbmotifs=read_motifs("HOMER"), metric="seqcor")
+
+    # Load motifs
+    db = read_motifs("HOMER", as_dict=True)
+
+    for motif in motifs:
+        match, scores = results[motif.id]
+        print("{}: {} - {:.3f}".format(motif.id, match, scores[0]))
+        dbmotif = db[match]
+        orient = scores[2]
+        if orient == -1:
+            dbmotif = dbmotif.rc()
+        padm, padd = 0, 0
+        if scores[1] < 0:
+            padm = -scores[1]
+        elif scores[1] > 0:
+            padd = scores[1]
+        print(" " * padm + motif.to_consensus())
+        print(" " * padd + dbmotif.to_consensus())
+        print()
+
+::
+
+    GATA: AGATAASR_GATA3(Zf)/iTreg-Gata3-ChIP-Seq(GSE20898)/Homer - 0.823
+     GATA
+    AGATAAnr
+
+    NTATAWA: NGYCATAAAWCH_CDX4(Homeobox)/ZebrafishEmbryos-Cdx4.Myc-ChIP-Seq(GSE48254)/Homer - 0.747
+      nTATAwA
+    nnynrTAAAnnn
+
+    ACGCG: NCCACGTG_c-Myc(bHLH)/LNCAP-cMyc-ChIP-Seq(Unpublished)/Homer - 0.744
+     ACGCG
+    CACGTGGn
 
 
 Auto-generated

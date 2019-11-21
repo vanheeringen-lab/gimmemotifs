@@ -223,6 +223,7 @@ By default, ``gimme scan`` gives at most one match per sequence for each motif, 
 For a very simple summary, we can just have a look at the most abundant motifs:
 
 :: 
+
     $ cut -f4 result.scan.bed | sort | uniq -c | sort -n | tail -n 5
         114 UN0322.1_ZNF417
         213 MA1102.2_CTCFL
@@ -356,7 +357,7 @@ The following Python snippet will create a heatmap of the results.
 
     mr = MaelstromResult("maelstrom.blood.1k.out/")
     mr.plot_heatmap(threshold=6)
-    plt.savefig("maelstrom.blood.1k.out/heatmap.png")
+    plt.savefig("maelstrom.blood.1k.out/heatmap.png", dpi=300)
 
 This will show a heatmap like this:
 
