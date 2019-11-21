@@ -85,7 +85,7 @@ def test_gimme_cluster():
 
     with TemporaryDirectory() as d:
         cli(["cluster", pfm, d])
-        out_pfm = os.path.join(d, "clustered_motifs.pwm")
+        out_pfm = os.path.join(d, "clustered_motifs.pfm")
         assert os.path.exists(out_pfm)
         cons = ["ACCGTTAACsGy", "ATGACkyA", "TTGCGnAA"]
         assert cons == sorted([m.to_consensus() for m in read_motifs(out_pfm)])
