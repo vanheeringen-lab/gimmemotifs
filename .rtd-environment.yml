@@ -1,11 +1,9 @@
 name: gimmemotifs
 channels:
   - defaults
-  - bioconda
   - conda-forge
 dependencies:
   - python=3
-  - sklearn-contrib-lightning
   - sphinx_bootstrap_theme
   - numpydoc
   - pypandoc
