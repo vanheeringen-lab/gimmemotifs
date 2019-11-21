@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2018 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2016-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
