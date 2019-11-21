@@ -95,6 +95,89 @@ the data using recursive feature elimination. This file is called
 .. _`gimme.CTCF/gimme.denovo.html`: gimme.CTCF/gimme.denovo.html
 .. _`narrowPeak`: https://genome.ucsc.edu/FAQ/FAQformat.html#format12
 
+Motif enrichment statistics
+---------------------------
+
+You can use ``gimme motifs`` to compare motifs or to identify relevant known motifs for a specific input file.
+
+Let's evaluate known motifs for one of the example files, ``TAp73alpha.fa``. 
+
+:: 
+
+    $ gimme motifs TAp73alpha.fa TAp73alpha.motifs --known -g hg19
+
+You can also specify other motif files with the ``-p`` argument, for instance ``-p my_motifs.pfm``, ``-p HOMER`` or ``-p JASPAR2020_vertebrates``. The command will create an output directory with several output files and two directories. One contain the motif logos and the other the motif scan results.
+
+:: 
+
+    $ ls TAp73alpha.motifs
+    generated_background.gc.fa  gimme.motifs.redundant.html  logos
+    gimme.motifs.html           gimme.roc.report.txt         motif_scan_results
+
+The file ``generated_background.gc.fa`` is the FASTA file used as background. This is automatically generated and contains sequences with the same GC% frequencies as your input sequences.
+The file ``gimme.motifs.html`` is a graphical report that can be opened in your web browser. 
+It should look something like this:
+
+.. image:: images/gimme.motifs.known.report.png
+
+The columns are sortable (click on the header) and the full list of factors that can bind to this motif can be obtained by hovering over the text. This file contains a *non-redundant* set of motifs. The full report is present in 
+``gimme.motifs.redundant.html``. 
+This report will most likely contain many very similar motifs.
+
+The file ``gimme.roc.report.txt`` is a text report of the same results.
+
+:: 
+
+    $ head -n 1 TAp73alpha.motifs/gimme.roc.report.txt | tr \\t \\n
+    Motif
+    # matches
+    # matches background
+    P-value
+    log10 P-value
+    ROC AUC
+    Enr. at 1% FPR
+    Recall at 10% FDR
+
+The motif ID, the number of matches in the sample and in the background file, followed by five statistics: the enrichment p-value (hypergeometric/Fisher's exact), the log-transformed p-value, the ROC area under curve (AUC), the enrichment compared to background set at 1% FPR and the recall at 10% FDR.
+
+The ROC AUC is widely used, however, it might not always be the most informative.
+In situations where the background set is very large compared to the input set, it might give a more optimistic picture than warranted.
+
+Let's sort on the last statistic:
+
+:: 
+
+    $ sort -k8g TAp73alpha.motifs/gimme.roc.report.txt | cut -f1,6,8 | tail
+    GM.5.0.p53.0010 0.794   9.11
+    GM.5.0.p53.0008 0.812   9.21
+    GM.5.0.Grainyhead.0001  0.761   11.00
+    GM.5.0.Unknown.0179     0.739   12.40
+    GM.5.0.p53.0005 0.862   26.60
+    GM.5.0.p53.0011 0.853   31.19
+    GM.5.0.p53.0007 0.868   32.00
+    GM.5.0.p53.0003 0.884   37.40
+    GM.5.0.p53.0004 0.905   42.87
+    GM.5.0.p53.0001 0.920   52.70
+
+Not surprisingly, the p53 family motif is the most enriched. The Grainyhead motif somewhat resembles the p53 motif, which could explain the enrichment. 
+Let's visualize this.
+This command will create two sequence logos in PNG format:
+
+:: 
+
+    $ gimme logo -i GM.5.0.p53.0001,GM.5.0.Grainyhead.0001
+
+The p53 motif, or p73 motif in this case, ``GM.5.0.p53.0001``:
+
+.. image:: images/GM.5.0.p53.0001.png
+
+And the Grainyhead motif, ``GM.5.0.Grainyhead.0001``:
+
+.. image:: images/GM.5.0.Grainyhead.0001.png
+
+The resemblance is clear. 
+This also serves as a warning to never take the results from a computational tool (including mine) at face value...
+
 
 Scan for known motifs
 ---------------------
@@ -286,107 +369,3 @@ This example was run only on 1,000 variable enhancer. A file with more regions, 
 The Jupyter notebook example `maelstrom.ipynb <https://github.com/vanheeringen-lab/gimmemotifs/blob/master/docs/notebooks/maelstrom.ipynb>`_ shows a more extensive example on how to work with maelstrom results in Python.
 
 .. _`Corces et al.`: https://dx.doi.org/10.1038/ng.3646
-
-
-Compare two sets with de novo motifs
-------------------------------------
-
-gimme motifs
-
-for name in ESC HEPG2; do 
-    cat $name/gimme.denovo.pfm | sed "s/>/>$name./"; 
-done > de_novo_motifs.pfm
-
-$ gimme cluster de_novo_motifs.pfm de_novo_clustered
-
-cat MAX*peaks.bed | sed 's/\w*.MAX/MAX/' > MAX.combined.bed
-cat MAX.combined.bed |awk '{print $1 "\t" $7 -100 "\t" $8 + 100 "\t" $4}'  | sed 's/\t/:/' | sed 's/\t/-/' > MAX.combined.txt
-
-combine: gimme cluster
-
-scan
-
-Motif enrichment statistics
----------------------------
-
-You can use ``gimme motifs`` to compare motifs or to identify relevant known motifs for a specific input file.
-
-Let's evaluate known motifs for one of the example files, ``TAp73alpha.fa``. 
-
-:: 
-
-    $ gimme roc TAp73alpha.fa TAp73alpha.out --known
-
-This will create an output directory with several output files (and a dir with motif logos).
-
-:: 
-
-    $ ls TAp73alpha.out
-    generated_background.gc.fa  gimme.motifs.redundant.html  logos
-    gimme.motifs.html           gimme.roc.report.txt         motif_scan_results
-
-The file ``generated_background.gc.fa`` is the FASTA file used as background. This is automatically generated and contains sequences with the same GC% frequencies as your input sequences.
-The file `gimme.motifs.html <output/TAp73alpha.out/gimme.motifs.html>`_ is a graphical report that can be opened in your web browser. 
-It should look something like this.
-
-.. image:: images/gimme.roc.report.png
-
-The columns are sortable (click on the header) and the full list of factors that can bind to this motif can be obtained by hovering over the text. This file contains a *non-redundant* set of motifs. The full report is present in 
-`gimme.motifs.redundant.html <output/TAp73alpha.out/gimme.motifs.html>`_. 
-This report will most likely contain many very similar motifs.
-
-The file ``gimme.roc.report.txt`` is a text report of the same results.
-
-:: 
-
-    $ head -n 1 TAp73alpha.out/gimme.roc.report.txt | tr \\t \\n
-    Motif
-    # matches
-    # matches background
-    P-value
-    log10 P-value
-    ROC AUC
-    Enr. at 1% FPR
-    Recall at 10% FDR
-
-The motif ID, the number of matches in the sample and in the background file, followed by five statistics: the enrichment p-value (hypergeometric/Fisher's exact), the log-transformed p-value, the ROC area under curve (AUC), the enrichment compared to background set at 1% FPR and the recall at 10% FDR.
-
-The ROC AUC is widely used, however, it might not always be the most informative.
-In situations where the background set is very large compared to the input set, it might give a more optimistic picture than warranted.
-
-Let's sort on the last statistic:
-
-:: 
-
-    $ sort -k8g TAp73alpha.roc/gimme.roc.report.txt | cut -f1,6,8 | tail
-    GM.5.0.p53.0010 0.794   9.11
-    GM.5.0.p53.0008 0.812   9.21
-    GM.5.0.Grainyhead.0001  0.761   11.00
-    GM.5.0.Unknown.0179     0.739   12.40
-    GM.5.0.p53.0005 0.862   26.60
-    GM.5.0.p53.0011 0.853   31.19
-    GM.5.0.p53.0007 0.868   32.00
-    GM.5.0.p53.0003 0.884   37.40
-    GM.5.0.p53.0004 0.905   42.87
-    GM.5.0.p53.0001 0.920   52.70
-
-Not surprisingly, the p53 family motif is the most enriched. The Grainyhead motif somewhat resembles the p53 motif, which could explain the enrichment. 
-Let's visualize this.
-This command will create two sequence logos in PNG format:
-
-:: 
-
-    $ gimme logo -i GM.5.0.p53.0001,GM.5.0.Grainyhead.0001
-
-The p53 motif, or p73 motif in this case, ``GM.5.0.p53.0001``:
-
-.. image:: images/GM.5.0.p53.0001
-
-And the Grainyhead motif, ``GM.5.0.Grainyhead.0001``:
-
-.. image:: images/GM.5.0.Grainyhead.0001.png
-
-The resemblance is clear. 
-This also serves as a warning to never take the results from a computational tool (including mine) at face value...
-
-
