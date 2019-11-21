@@ -274,9 +274,9 @@ def run_maelstrom(
 
     # Check for duplicates
     if df.index.duplicated(keep=False).any():
-        raise ValueError(
-            "Input file contains duplicate regions! " "Please remove them."
-        )
+        logger.warning("Input file contains duplicate regions!")
+        logger.warning("These will be removed.")
+        df = df.iloc[~df.index.duplicated(keep=False)]
 
     if not os.path.exists(outdir):
         os.mkdir(outdir)
@@ -285,7 +285,8 @@ def run_maelstrom(
         methods = Moap.list_predictors()
     methods = [m.lower() for m in methods]
 
-    shutil.copyfile(infile, os.path.join(outdir, "input.table.txt"))
+    df.to_csv(os.path.join(outdir, "input.table.txt"), sep="\t")
+    infile = os.path.join(outdir, "input.table.txt")
 
     # Copy the motif informatuon
     pfmfile = pfmfile_location(pfmfile)
