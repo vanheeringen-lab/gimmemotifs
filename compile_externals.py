@@ -11,12 +11,12 @@ def compile_simple(name, src_dir="src"):
         return
 
     try:
-        Popen("gcc", stdout=PIPE, stderr=PIPE).communicate()
+        Popen(os.environ["GCC"], stdout=PIPE, stderr=PIPE).communicate()
     except Exception:
         return
 
     Popen(
-        ["gcc", "-o%s" % name, "%s.c" % name, "-lm"], cwd=path, stdout=PIPE
+        [os.environ["GCC"], "-o%s" % name, "%s.c" % name, "-lm"], cwd=path, stdout=PIPE
     ).communicate()
     if os.path.exists(os.path.join(path, name)):
         return True
