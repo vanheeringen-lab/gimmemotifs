@@ -8,6 +8,7 @@ genomepy >=0.6.1
 ghostscript
 homer
 icu=58
+ipywidgets  # Necessary for progress bar in Jupyter notebook
 jinja2
 logomaker
 matplotlib >=2.0
