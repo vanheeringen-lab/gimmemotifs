@@ -5,18 +5,22 @@ from distutils import log
 
 
 def compile_simple(name, src_dir="src"):
+    gcc = os.environ["GCC"]
+    if not gcc:
+        gcc = "gcc"
+
     path = os.path.join(src_dir, "%s" % name)
 
     if not os.path.exists(path):
         return
 
     try:
-        Popen(os.environ["GCC"], stdout=PIPE, stderr=PIPE).communicate()
+        Popen(gcc, stdout=PIPE, stderr=PIPE).communicate()
     except Exception:
         return
 
     Popen(
-        [os.environ["GCC"], "-o%s" % name, "%s.c" % name, "-lm"], cwd=path, stdout=PIPE
+        [gcc, "-o%s" % name, "%s.c" % name, "-lm"], cwd=path, stdout=PIPE
     ).communicate()
     if os.path.exists(os.path.join(path, name)):
         return True
