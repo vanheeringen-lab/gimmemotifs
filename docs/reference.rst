@@ -712,7 +712,6 @@ Cluster a set of motifs with the WIC metric.
     -t THRESHOLD  Cluster threshold
 
 
-
 .. _`gimme_threshold`:
 
 Command: gimme threshold
