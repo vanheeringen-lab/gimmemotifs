@@ -1,17 +1,17 @@
 import unittest
-import tempfile
+from tempfile import NamedTemporaryFile
 import os
 from gimmemotifs.motif import *
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.utils import gff_enrichment 
 from time import sleep
+
 
 class TestMotifPwm(unittest.TestCase):
     """ A test class to test Motif pwmscan functionality and related things """
 
     def setUp(self):
         self.data_dir = "test/data/pwmscan"
-        
+
         with open(os.path.join(self.data_dir, "TATA.pwm")) as f:
             self.motif = read_motifs(f, fmt="pwm")[0]
         self.prom = Fasta(os.path.join(self.data_dir, "promoters.fa"))
@@ -20,7 +20,7 @@ class TestMotifPwm(unittest.TestCase):
         self.random_gff = os.path.join(self.data_dir, "random_result.gff")
         self.enrichment = os.path.join(self.data_dir, "enrichment.txt")
         self.tmp = NamedTemporaryFile().name
-    
+
     def test1_pwm_scan(self):
         """ Scan a FASTA file with PWM of motif """
         result = self.motif.pwm_scan(self.prom, nreport=1)
@@ -30,7 +30,7 @@ class TestMotifPwm(unittest.TestCase):
 
     def test2_pwm_scan_to_gff(self):
         """ Scan a FASTA file with PWM of motif, and produce GFF """
-        
+
         self.motif.pwm_scan_to_gff(self.prom, self.tmp)
         with open(self.tmp) as f:
             for line in f:
@@ -42,19 +42,9 @@ class TestMotifPwm(unittest.TestCase):
                 self.assertTrue(float(vals[5]) < 9.06)
                 self.assertIn(vals[6], ["+", "-"])
 
-    def test3_gff_enrichment(self):
-        """ Test gff_enrichment """
-        self.motif.pwm_scan_to_gff(self.random, self.random_gff)
-        gff_enrichment(self.prom_gff, self.random_gff, 316, 3160, self.tmp)
-        with open(self.tmp) as f:
-            f.readline() # Header
-            vals = f.readline().strip().split("\t")
-            self.assertEqual(vals[0], "TATA-box")
-            self.assertLess(float(vals[2]), 1e-60)
-            self.assertGreater(float(vals[5]), 1.5)
-
     def tearDown(self):
         pass
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

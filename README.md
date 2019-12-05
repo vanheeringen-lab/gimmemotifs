@@ -57,9 +57,11 @@ Don't forget to activate the environment with `conda activate gimme` whenever yo
 
 ## Quick start
 
-### Predict some motifs:
+### Predict some de novo motifs:
 
-`$ gimme motifs my_peaks.bed -g /data/genomes/hg38/hg38.fa -n my_motifs`
+```
+$ gimme motifs my_peaks.bed my_motifs -g /data/genomes/hg38/hg38.fa --denovo
+```
 
 ### Download a genome
 
@@ -77,12 +79,15 @@ genome_dir: /data/genomes
 
 To download a genome from UCSC:
 
-`$ genomepy install hg38 UCSC --annotation`
+```
+$ genomepy install hg38 UCSC --annotation
+```
 
 Now you can specify this genome for GimmeMotifs by name.
 
-`$ gimme motifs my_peaks.bed -g hg38 -n my_motifs`
-
+```
+$ gimme motifs my_peaks.bed -g hg38 -n my_motifs
+```
 
 ## Help 
 

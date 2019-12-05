@@ -6,15 +6,13 @@ matrix:
       language: generic
     - os: linux
       language: python
-      python: "3.5"
-    - os: linux
-      language: python
       python: "3.6"
 #cache:
 #  apt: true
 #  directories:
 #    - $HOME/miniconda
-
+services:
+  - xvfb
 before_install:
   # install miniconda for Python dependencies
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -22,31 +20,33 @@ before_install:
     else
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
     fi
-  - chmod +x miniconda.sh
-  - ./miniconda.sh -b -p $HOME/miniconda -f
-  - export PATH=$HOME/miniconda/bin:$PATH
-  - conda config --set always_yes yes 
-  - conda update --yes conda
+  - bash miniconda.sh -b -p $HOME/miniconda -f
+  - source "$HOME/miniconda/etc/profile.d/conda.sh"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
   - conda config --add channels defaults
   - conda config --add channels bioconda
   - conda config --add channels conda-forge
   - conda info -a
   # if matplotlib functionality is tested
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok )& fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ulimit -S -n 4096; ulimit -a; fi
 install:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      conda install python=$TRAVIS_PYTHON_VERSION pip future "numpy<1.14" scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost pillow pyyaml diskcache six ucsc-bigbedtobed xdg python-xxhash readline ghostscript homer gadem trawler weeder xxmotif tqdm genomepy ncurses meme>=5;
-   else
-      conda install python=3 pip future "numpy<1.14" scipy matplotlib=2 statsmodels scikit-learn seaborn jinja2 bedtools "pysam<0.11.2" pybedtools ucsc-genepredtobed lightning r xgboost pillow pyyaml diskcache six ucsc-bigbedtobed xdg python-xxhash readline ghostscript homer gadem trawler weeder xxmotif tqdm genomepy ncurses meme>=5;
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      conda env create -q -f conda_env.osx.txt -n gimme;
+    else
+      conda env create -q -f conda_env.dev.txt -n gimme;
     fi
-  - python setup.py build
-  - pip install msgpack
+  - conda activate gimme
+  - python setup.py build && pip install -e .
 #  - pip install coveralls
 # # command to run tests, e.g. python setup.py test
 script:  
-  - python run_tests.py
+  - black --check gimmemotifs/ setup.py scripts/
+  - flake8 setup.py gimmemotifs/ scripts/
+  - python -c 'from gimmemotifs.config import CACHE_DIR;print(CACHE_DIR)'
+  - py.test 
 
 #after_sucess:
 #  coveralls

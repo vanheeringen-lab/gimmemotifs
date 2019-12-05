@@ -20,6 +20,9 @@ dist/*
 website/**/*
 .eggs/
 .pytest_cache/
+**/.ipynb_checkpoints/
+.vscode
+.coverage*
 
 test/data/maelstrom/activity*
 test/data/maelstrom/final*
@@ -28,6 +31,7 @@ test/data/maelstrom/motif.freq.txt
 test/data/maelstrom/gimme.vertebrate.v3.1.motif2factors.txt
 test/data/maelstrom/gimme.vertebrate.v3.1.pwm
 test/data/maelstrom/input.table.txt
+test/**/*fai
 
 tmp/*
 
