@@ -347,7 +347,7 @@ class XgboostRegressionMoap(Moap):
             max_depth=3,
             subsample=0.8,
             colsample_bytree=0.8,
-            objective="reg:linear",
+            objective="reg:squarederror",
         )
 
         logger.debug("xgb: 0%")
@@ -853,7 +853,7 @@ class LassoMoap(Moap):
 
         mtk = MultiTaskLasso()
         parameters = {"alpha": [np.exp(-x) for x in np.arange(0, 10, alpha_stepsize)]}
-        self.clf = GridSearchCV(mtk, parameters, cv=kfolds, n_jobs=self.ncpus)
+        self.clf = GridSearchCV(mtk, parameters, cv=kfolds, n_jobs=self.ncpus, scoring="r2")
         self.pref_table = "score"
         self.supported_tables = ["score", "count"]
         self.ptype = "regression"
