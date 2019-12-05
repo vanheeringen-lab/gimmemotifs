@@ -100,6 +100,7 @@ def plot_histogram(
     # when gimme_motifs() is run from a Jupyter notebook.
     plt.close()
 
+
 def match_plot(plotdata, outfile):
     """Plot list of motifs with database match and p-value
     "param plotdata: list of (motif, dbmotif, pval)

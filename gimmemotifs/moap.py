@@ -853,7 +853,9 @@ class LassoMoap(Moap):
 
         mtk = MultiTaskLasso()
         parameters = {"alpha": [np.exp(-x) for x in np.arange(0, 10, alpha_stepsize)]}
-        self.clf = GridSearchCV(mtk, parameters, cv=kfolds, n_jobs=self.ncpus, scoring="r2")
+        self.clf = GridSearchCV(
+            mtk, parameters, cv=kfolds, n_jobs=self.ncpus, scoring="r2"
+        )
         self.pref_table = "score"
         self.supported_tables = ["score", "count"]
         self.ptype = "regression"
