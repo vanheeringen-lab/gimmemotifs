@@ -1021,13 +1021,11 @@ def moap(
 
         # initialize scanner
         s = Scanner(ncpus=ncpus)
-        sys.stderr.write(pfmfile + "\n")
         s.set_motifs(pfmfile)
         s.set_genome(genome)
         s.set_background(genome=genome)
 
         # scan for motifs
-        sys.stderr.write("scanning for motifs\n")
         motif_names = [m.id for m in read_motifs(pfmfile)]
         scores = []
         if method == "classic" or scoring == "count":
