@@ -430,7 +430,6 @@ def run_maelstrom(
 def _get_factor_list(motif, indirect=False):
     factor_list = motif.factors[DIRECT_NAME]
     if indirect:
-        logger.info("add indirect")
         factor_list += motif.factors[INDIRECT_NAME]
 
     return list(set([f.upper() for f in factor_list]))
@@ -599,7 +598,7 @@ class MaelstromResult:
         h, w = m.shape
 
         if figsize is None:
-            figsize = (m.shape[1], 1 + m.shape[0] / 3)
+            figsize = (3 + m.shape[1] / 4, 1 + m.shape[0] / 3)
         fig = plt.figure(figsize=figsize)
         npixels = 30
         g = GridSpec(
