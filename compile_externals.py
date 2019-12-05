@@ -5,9 +5,9 @@ from distutils import log
 
 
 def compile_simple(name, src_dir="src"):
-    gcc = os.environ["GCC"]
-    if not gcc:
-        gcc = "gcc"
+    gcc = "gcc"
+    if "GCC" in os.environ and os.environ["GCC"]:
+        gcc = os.environ["GCC"]
 
     path = os.path.join(src_dir, "%s" % name)
 
