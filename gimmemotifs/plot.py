@@ -96,7 +96,9 @@ def plot_histogram(
     if not outfile.endswith(".svg"):
         outfile += ".svg"
     plt.savefig(outfile, format="svg")
-
+    # Need to explicitly close, as otherwise a histogram will be shown
+    # when gimme_motifs() is run from a Jupyter notebook.
+    plt.close()
 
 def match_plot(plotdata, outfile):
     """Plot list of motifs with database match and p-value
