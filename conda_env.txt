@@ -1,4 +1,5 @@
 bedtools
+configparser
 dinamo
 diskcache
 feather-format

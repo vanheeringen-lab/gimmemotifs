@@ -99,7 +99,7 @@ def pfmfile_location(infile):
                 for ext in [".pfm", ".pwm"]:
                     if os.path.exists(checkfile + ext):
                         infile = checkfile + ext
-                    break
+                        break
             if not os.path.exists(infile):
                 raise ValueError("Motif file {} not found".format(infile))
 

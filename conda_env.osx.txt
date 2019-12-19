@@ -1,4 +1,5 @@
 bedtools
+configparser
 diskcache
 feather-format
 future
