@@ -1,11 +1,11 @@
 # language: minimal # cannot be set untill python is specified in the environments.
 
 matrix:
-#  allow_failures:
-#    - os: osx
+  allow_failures:
+    - os: osx
   include:
-#    - os: osx
-#      language: generic
+    - os: osx
+      language: generic
     - os: linux
       language: python
       python: "3.6"
@@ -83,7 +83,7 @@ script:
   - black --check gimmemotifs/ setup.py scripts/
   - flake8 setup.py gimmemotifs/ scripts/
   - python -c 'from gimmemotifs.config import CACHE_DIR;print(CACHE_DIR)'
-  - pytest -v --disable-pytest-warnings --cov=genomepy --cov-report=xml tests/
+  - pytest -v --disable-pytest-warnings --cov=genomepy --cov-report=xml test/
 
 # Pipe the coverage data to Code Climate
 after_script:
