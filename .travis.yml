@@ -47,9 +47,9 @@ before_install:
 ## what is the purpose of the --set changeps1 no
 #  - conda config --set always_yes yes --set changeps1 no
 #  - conda update -q conda
-#  - conda config --add channels defaults
-#  - conda config --add channels bioconda
-#  - conda config --add channels conda-forge
+  - conda config --add channels defaults
+  - conda config --add channels bioconda
+  - conda config --add channels conda-forge
 #  - conda info -a
 
 ## what does this do???
