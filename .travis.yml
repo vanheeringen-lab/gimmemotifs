@@ -1,11 +1,11 @@
 # language: minimal # cannot be set untill python is specified in the environments.
 
 matrix:
-#  allow_failures:
-#    - os: osx
+  allow_failures:
+    - os: osx
   include:
-#    - os: osx
-#      language: generic
+    - os: osx
+      language: generic
     - os: linux
       language: python
       python: "3.6"
@@ -14,13 +14,13 @@ matrix:
 #  directories:
 #    - $HOME/miniconda
 
-
 env:
   global:
     - CC_TEST_REPORTER_ID=3da9a3e9bf4fb303ec53f63e0172d0e7b3a1aa0b4e4bc8cdb84475437bfd89d1
 
-services:
-  - xvfb
+# services dont work for osx, so this doesnt do anything
+#services:
+#  - xvfb
 before_install:
   # setup miniconda
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -33,12 +33,13 @@ before_install:
   - export PATH=$HOME/miniconda/bin:$PATH
   - conda config --set always_yes yes 
 
-# what is the purpose of this hash?
-  - hash -r
+## what is the purpose of this hash?
+#  - hash -r
 
-  # if matplotlib functionality is tested
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok )& fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ulimit -S -n 4096; ulimit -a; fi
+# services dont work on osx. maybe the 2nd part does something tho...
+#  # if matplotlib functionality is tested
+#  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok )& fi
+#  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ulimit -S -n 4096; ulimit -a; fi
 
 install:
   - conda config --add channels defaults
@@ -62,11 +63,11 @@ before_script:
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
 
-script:  
+script:
   - black --check gimmemotifs/ setup.py scripts/
   - flake8 setup.py gimmemotifs/ scripts/
-  - python -c 'from gimmemotifs.config import CACHE_DIR;print(CACHE_DIR)'
-  - pytest -v --disable-pytest-warnings --cov=gimmemotifs --cov-report=xml test/test_background.py
+#  - python -c 'from gimmemotifs.config import CACHE_DIR;print(CACHE_DIR)'
+  - pytest -v --disable-pytest-warnings --cov=gimmemotifs --cov-report=xml test/
 
 after_script:
   # upload test coverage data to Code Climate
