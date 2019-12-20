@@ -1,3 +1,5 @@
+# language: minimal # cannot be set untill python is specified in the environments.
+
 matrix:
   allow_failures:
     - os: osx
@@ -11,6 +13,12 @@ matrix:
 #  apt: true
 #  directories:
 #    - $HOME/miniconda
+
+
+env:
+  global:
+    - CC_TEST_REPORTER_ID=3da9a3e9bf4fb303ec53f63e0172d0e7b3a1aa0b4e4bc8cdb84475437bfd89d1
+
 services:
   - xvfb
 before_install:
@@ -22,16 +30,21 @@ before_install:
     fi
   - bash miniconda.sh -b -p $HOME/miniconda -f
   - source "$HOME/miniconda/etc/profile.d/conda.sh"
+# what is the purpose of this hash?
   - hash -r
+# what is the purpose of the --set changeps1 no
   - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  - conda config --add channels defaults
-  - conda config --add channels bioconda
-  - conda config --add channels conda-forge
-  - conda info -a
+#  - conda update -q conda
+#  - conda config --add channels defaults
+#  - conda config --add channels bioconda
+#  - conda config --add channels conda-forge
+#  - conda info -a
+
+# what does this do???
   # if matplotlib functionality is tested
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok )& fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ulimit -S -n 4096; ulimit -a; fi
+
 install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
       conda env create -q -f conda_env.osx.txt -n gimme;
@@ -40,13 +53,24 @@ install:
     fi
   - conda activate gimme
   - python setup.py build && pip install -e .
-#  - pip install coveralls
+
+before_script:
+  # install codeclimate test coverage
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64;
+    else
+        wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-darwin-amd64;
+    fi
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
+
 # # command to run tests, e.g. python setup.py test
 script:  
   - black --check gimmemotifs/ setup.py scripts/
   - flake8 setup.py gimmemotifs/ scripts/
   - python -c 'from gimmemotifs.config import CACHE_DIR;print(CACHE_DIR)'
-  - py.test 
+  - pytest -v --disable-pytest-warnings --cov=genomepy --cov-report=xml tests/
 
-#after_sucess:
-#  coveralls
+# Pipe the coverage data to Code Climate
+after_script:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./cc-test-reporter after-build -t coverage.py --exit-code $TRAVIS_TEST_RESULT; fi
