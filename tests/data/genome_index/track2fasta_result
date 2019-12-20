@@ -1,0 +1,16 @@
+>chr1:0-3
+AAA
+>chr3:0-3
+TTT
+>chr1:4-7
+CCC
+>chr3:4-7
+GGG
+>chr1:2-5
+AAC
+>chr3:2-5
+TTG
+>chr1:0-25
+AAAACCCCGGGGTTTTAAAACCCCG
+>chr3:0-14
+TTTTGGGGCCCCAA

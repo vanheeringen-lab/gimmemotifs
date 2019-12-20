@@ -5,6 +5,8 @@
 [![Build Status](https://travis-ci.org/vanheeringen-lab/gimmemotifs.svg?branch=master)](https://travis-ci.org/vanheeringen-lab/gimmemotifs)
 [![Code Health](https://landscape.io/github/simonvh/gimmemotifs/master/landscape.svg?style=flat)](https://landscape.io/github/simonvh/gimmemotifs/master)
 [![Documentation Status](https://readthedocs.org/projects/gimmemotifs/badge/?version=master)](http://gimmemotifs.readthedocs.io/en/master/?badge=master)
+[![Maintainability](https://api.codeclimate.com/v1/badges/b625885e278c303ea9f8/maintainability)](https://codeclimate.com/github/siebrenf/gimmemotifs/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/b625885e278c303ea9f8/test_coverage)](https://codeclimate.com/github/siebrenf/gimmemotifs/test_coverage)
 
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/gimmemotifs/badges/downloads.svg)](https://anaconda.org/bioconda/gimmemotifs)
 [![DOI](https://zenodo.org/badge/676678.svg)](https://zenodo.org/badge/latestdoi/676678)
