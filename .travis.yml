@@ -22,24 +22,35 @@ env:
 services:
   - xvfb
 before_install:
+  # setup miniconda for Python dependencies
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
+    fi
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b -p $HOME/miniconda -f
+  - export PATH=$HOME/miniconda/bin:$PATH
+  - conda config --set always_yes yes 
+
   # install miniconda for Python dependencies
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+#  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
 #  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 #      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
 #    else
 #      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
 #    fi
-  - bash miniconda.sh -b -p $HOME/miniconda -f
-  - source "$HOME/miniconda/etc/profile.d/conda.sh"
-# what is the purpose of this hash?
-  - hash -r
-# what is the purpose of the --set changeps1 no
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  - conda config --add channels defaults
-  - conda config --add channels bioconda
-  - conda config --add channels conda-forge
-  - conda info -a
+#  - bash miniconda.sh -b -p $HOME/miniconda -f
+#  - source "$HOME/miniconda/etc/profile.d/conda.sh"
+## what is the purpose of this hash?
+#  - hash -r
+## what is the purpose of the --set changeps1 no
+#  - conda config --set always_yes yes --set changeps1 no
+#  - conda update -q conda
+#  - conda config --add channels defaults
+#  - conda config --add channels bioconda
+#  - conda config --add channels conda-forge
+#  - conda info -a
 
 ## what does this do???
 #  # if matplotlib functionality is tested
@@ -64,8 +75,8 @@ before_script:
 #    else
 #        wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-darwin-amd64;
 #    fi
-#  - chmod +x ./cc-test-reporter
-  - bash cc-test-reporter before-build
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
 
 # # command to run tests, e.g. python setup.py test
 script:  
