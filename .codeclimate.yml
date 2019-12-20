@@ -29,6 +29,8 @@ exclude_patterns:
   - "INSTALL"
   - "MANIFEST.in"
   - "**/__*"
+  - "**/*.c"
+  - "**/*.ccp"
   - "binder/*"
   - "data/*"
   - "docs/*"
