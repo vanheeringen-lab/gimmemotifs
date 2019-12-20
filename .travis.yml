@@ -61,8 +61,8 @@ before_script:
     else
         wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-darwin-amd64;
     fi
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
+#  - chmod +x ./cc-test-reporter
+  - bash cc-test-reporter before-build
 
 # # command to run tests, e.g. python setup.py test
 script:  
