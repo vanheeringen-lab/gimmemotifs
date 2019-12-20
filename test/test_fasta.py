@@ -1,38 +1,50 @@
 from gimmemotifs.fasta import *
 import tempfile
-import unittest
 import os
+import pytest
 
-class TestFasta(unittest.TestCase):
-    """ A test class for Fasta """
 
-    def setUp(self):
-        self.fasta_file = "test/data/fasta/test.fa"
-        self.assertTrue(os.path.exists(self.fasta_file))
-        self.assertTrue(Fasta(self.fasta_file))
-        self.f = Fasta(self.fasta_file)
-    
-    def test1_index(self):
-        """ Fasta as a dictionary """
-        self.assertEqual(self.f["seq1"], "AAAA")
-        self.assertEqual(self.f["seq2"], "ACGT")
-        self.assertEqual(self.f["seq3"], "CCCCGGGG")
-    
-    def test2_items(self):
-        """ Fasta.items() """
-        self.assertEqual(len(list(self.f.items())), 3)
-    
-    def test3_writefasta(self):
-        """ Write fasta-formatted file"""
-        temp = tempfile.NamedTemporaryFile()
-        tempname = temp.name
-        self.f.writefasta(tempname)
-        with open(self.fasta_file) as f:
-            with open(tempname) as f_ref:
-                self.assertEqual(f.read().strip(), f_ref.read().strip())
-    
-    def tearDown(self):
-            pass
+@pytest.fixture()
+def fasta_file():
+    return "test/data/fasta/test.fa"
 
-if __name__ == '__main__':
-    unittest.main()
+
+@pytest.fixture()
+def id_fa_files():
+    return ["test/data/fasta/test2.fa", "test/data/fasta/test3.fa"]
+
+
+@pytest.fixture()
+def fasta_obj(fasta_file):
+    return Fasta(fasta_file)
+
+
+def test1_index(fasta_obj):
+    """ Fasta as a dictionary """
+    assert fasta_obj["seq1"] == "AAAA"
+    assert fasta_obj["seq2"] == "ACGT"
+    assert fasta_obj["seq3"] == "CCCCGGGG"
+
+
+def test2_items(fasta_obj):
+    """ Fasta.items() """
+    assert len(list(fasta_obj.items())) == 3
+
+
+def test3_writefasta(fasta_file, fasta_obj):
+    """ Write fasta-formatted file"""
+    temp = tempfile.NamedTemporaryFile()
+    tempname = temp.name
+    fasta_obj.writefasta(tempname)
+    with open(fasta_file) as f:
+        with open(tempname) as f_ref:
+            assert f.read().strip() == f_ref.read().strip()
+
+
+def test4_gt_in_id(id_fa_files):
+    for id_fa_file in id_fa_files:
+        f = Fasta(id_fa_file)
+        seqs = [seq for seq in f.seqs]
+        print(seqs)
+        for i in range(3):
+            assert seqs[i] == "ACTG" * (i + 1)

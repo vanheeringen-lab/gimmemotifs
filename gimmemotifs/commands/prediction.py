@@ -1,17 +1,18 @@
-#!/usr/bin/env python 
-# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+#!/usr/bin/env python
+# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
-# This module is free software. You can redistribute it and/or modify it under 
-# the terms of the MIT License, see the file COPYING included with this 
+# This module is free software. You can redistribute it and/or modify it under
+# the terms of the MIT License, see the file COPYING included with this
 # distribution.
 
 import sys
 from yaml import load
 from gimmemotifs.tools import get_tool
 
+
 def prediction(args):
     tool = args.tool
-    infile =  args.infile
+    infile = args.infile
     outfile = args.outfile
     paramfile = args.paramfile
 
