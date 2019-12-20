@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2018 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
@@ -17,11 +17,18 @@ import logging
 from scipy.stats import norm, entropy, chi2_contingency
 from scipy.spatial import distance
 import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.feature_selection import RFE
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.metrics import average_precision_score, roc_auc_score
+import pandas as pd
+
 
 # GimmeMotifs imports
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.c_metrics import pfmscan, score
-from gimmemotifs.motif import parse_motifs
+from gimmemotifs.motif import parse_motifs, read_motifs
+from gimmemotifs.utils import pfmfile_location
 
 # pool import is at the bottom
 
@@ -144,6 +151,9 @@ RCDB = (
     "ATCATACTACCGATTGACCTTGTTTCGTCATCCAACTTGGACCTGCTTGCCATCCCCACATTTACGGAGTTGACCAGAGA"
     "ACATAGCTTCCCGTTCCGGTCGATCACAAAAA"
 )
+
+
+logger = logging.getLogger("gimme.comparison")
 
 
 # Function that can be parallelized
@@ -415,7 +425,11 @@ class MotifComparer(object):
         if isinstance(metric, str):
 
             if metric == "seqcor":
-                return seqcor(m1, m2)
+                score, pos, orient = seqcor(m1, m2)
+                if pval:
+                    return [np.nan, pos, orient]
+                else:
+                    return [score, pos, orient]
             elif match == "partial":
                 if pval:
                     return self.pvalue(
@@ -754,6 +768,73 @@ class MotifComparer(object):
 
         return scores
 
+    def get_best_matches(
+        self,
+        motifs,
+        nmatches=1,
+        dbmotifs=None,
+        match="partial",
+        metric="wic",
+        combine="mean",
+        parallel=True,
+        ncpus=None,
+    ):
+        """Return best match in database for motifs.
+
+        Parameters
+        ----------
+        motifs : list or str
+            Filename of motifs or list of motifs.
+
+        nmatches : int, optional
+            Number of matches to return, default is 1.
+
+        dbmotifs : list or str, optional
+            Database motifs, default will be used if not specified.
+
+        match : str, optional
+
+        metric : str, optional
+
+        combine : str, optional
+
+        ncpus : int, optional
+            Number of threads to use.
+
+        Returns
+        -------
+        closest_match : dict
+        """
+
+        if dbmotifs is None:
+            pwm = self.config.get_default_params()["motif_db"]
+            pwmdir = self.config.get_motif_dir()
+            dbmotifs = os.path.join(pwmdir, pwm)
+
+        motifs = parse_motifs(motifs)
+        dbmotifs = parse_motifs(dbmotifs)
+
+        dbmotif_lookup = dict([(m.id, m) for m in dbmotifs])
+
+        scores = self.get_all_scores(
+            motifs, dbmotifs, match, metric, combine, parallel=parallel, ncpus=ncpus
+        )
+        for motif in scores:
+            scores[motif] = sorted(
+                scores[motif].items(), key=lambda x: x[1][0], reverse=True
+            )[:nmatches]
+
+        ret_scores = {}
+        for motif in motifs:
+            ret_scores[motif.id] = []
+            for dbmotif, match_score in scores[motif.id]:
+                pval, pos, orient = self.compare_motifs(
+                    motif, dbmotif_lookup[dbmotif], match, metric, combine, True
+                )
+
+                ret_scores[motif.id].append([dbmotif, (list(match_score) + [pval])])
+        return ret_scores
+
     def get_closest_match(
         self,
         motifs,
@@ -787,32 +868,18 @@ class MotifComparer(object):
         -------
         closest_match : dict
         """
-
-        if dbmotifs is None:
-            pwm = self.config.get_default_params()["motif_db"]
-            pwmdir = self.config.get_motif_dir()
-            dbmotifs = os.path.join(pwmdir, pwm)
-
-        motifs = parse_motifs(motifs)
-        dbmotifs = parse_motifs(dbmotifs)
-
-        dbmotif_lookup = dict([(m.id, m) for m in dbmotifs])
-
-        scores = self.get_all_scores(
-            motifs, dbmotifs, match, metric, combine, parallel=parallel, ncpus=ncpus
+        scores = self.get_best_matches(
+            motifs,
+            nmatches=1,
+            dbmotifs=dbmotifs,
+            match=match,
+            metric=metric,
+            combine=combine,
+            parallel=parallel,
+            ncpus=ncpus,
         )
-        for motif in scores:
-            scores[motif] = sorted(scores[motif].items(), key=lambda x: x[1][0])[-1]
 
-        for motif in motifs:
-            dbmotif, score = scores[motif.id]
-            pval, pos, orient = self.compare_motifs(
-                motif, dbmotif_lookup[dbmotif], match, metric, combine, True
-            )
-
-            scores[motif.id] = [dbmotif, (list(score) + [pval])]
-
-        return scores
+        return dict([k, v[0]] for k, v in scores.items())
 
     def generate_score_dist(self, motifs, match, metric, combine):
 
@@ -840,6 +907,92 @@ class MotifComparer(object):
                 f.write("%s\t%s\t%s\t%s\n" % (l1, l2, np.mean(scores), np.std(scores)))
 
         f.close()
+
+
+def select_nonredundant_motifs(
+    roc_report, pfmfile, fg_table, bg_table, tolerance=0.001
+):
+    pfmfile = pfmfile_location(pfmfile)
+    motifs = read_motifs(pfmfile)
+    motif_dict = read_motifs(pfmfile, as_dict=True)
+
+    mc = MotifComparer()
+
+    df = pd.read_csv(roc_report, sep="\t", index_col=0)
+    df = df[df["Enr. at 1% FPR"] >= 2]
+    motifs = [m for m in motifs if m.id in df.index]
+
+    cols = ["ROC AUC", "PR AUC", "Enr. at 1% FPR", "Recall at 10% FDR"]
+    rank = df[cols].rank().mean(1).sort_values(ascending=False)
+
+    redundant_motifs = []
+    keep = []
+    while df[~df.index.isin(redundant_motifs)].shape[0] > 0:
+        motif = rank[~rank.index.isin(redundant_motifs)].head(1).index[0]
+        keep.append(motif)
+
+        result = mc.get_all_scores(
+            [motif_dict[motif]],
+            [m for m in motifs if m.id not in redundant_motifs],
+            "partial",
+            "seqcor",
+            "mean",
+        )
+        result = result[motif]
+        redundant_motifs += [m for m in result.keys() if result[m][0] >= 0.7]
+    logger.debug(f"Selected {len(keep)} motifs for feature elimination")
+
+    # Read motif scan results
+    fg_table = pd.read_csv(fg_table, index_col=0, comment="#", sep="\t")
+    bg_table = pd.read_csv(bg_table, index_col=0, comment="#", sep="\t")
+
+    X = pd.concat((fg_table, bg_table), axis=0)
+    y = np.hstack((np.ones(fg_table.shape[0]), np.zeros(bg_table.shape[0])))
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.4, random_state=2, shuffle=True,
+    )
+
+    X_bla = X_train[keep]
+    model = LogisticRegression(solver="liblinear", max_iter=500, penalty="l1")
+    # = RandomForestClassifier(n_estimators=100)
+    max_score = np.mean(
+        cross_val_score(model, X_bla, y_train, cv=5, scoring="average_precision")
+    )
+    mean_scores = []
+    step = 1
+
+    logger.info("selecting non-redundant motifs")
+    n_features = 1
+    for i in range(1, X_bla.shape[1], step):
+        rfe = RFE(model, i)
+        fit = rfe.fit(X_bla, y_train)
+        mean_score = np.mean(
+            cross_val_score(
+                model,
+                X_bla.loc[:, fit.support_],
+                y_train,
+                cv=5,
+                scoring="average_precision",
+            )
+        )
+        if i > 1 and mean_score - mean_scores[-1] < (max_score * tolerance):
+            n_features = i - 1
+            break
+        mean_scores.append(mean_score)
+
+    rfe = RFE(model, n_features)
+    fit = rfe.fit(X_bla, y_train)
+
+    selected_features = X_bla.columns[fit.support_]
+    model.fit(X_train.loc[:, selected_features], y_train)
+    y_pred = model.predict_proba(X_test.loc[:, selected_features])[:, 1]
+    pr_auc = average_precision_score(y_test, y_pred)
+    roc_auc = roc_auc_score(y_test, y_pred)
+    logger.info(
+        f"selected {len(selected_features)} non-redundant motifs: ROC AUC {roc_auc:.3f}, PR AUC {pr_auc:.3f}"
+    )
+    return selected_features
 
 
 # import here is necessary as workaround

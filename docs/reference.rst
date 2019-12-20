@@ -14,10 +14,10 @@ List of tools
 * :ref:`gimme motifs<gimme_motifs>`
 * :ref:`gimme scan<gimme_scan>`
 * :ref:`gimme maelstrom<gimme_maelstrom>`
-* :ref:`gimme match<gimme_match>`
-* :ref:`gimme logo<gimme_logo>`
-* :ref:`gimme cluster<gimme_cluster>`
 * :ref:`gimme background<gimme_background>`
+* :ref:`gimme logo<gimme_logo>`
+* :ref:`gimme match<gimme_match>`
+* :ref:`gimme cluster<gimme_cluster>`
 * :ref:`gimme threshold<gimme_threshold>`
 * :ref:`gimme location<gimme_location>`
 * :ref:`gimme diff<gimme_diff>`
@@ -26,7 +26,7 @@ List of tools
 Input formats
 -------------
 
-Most tools in this section take a file in PWM format as input. This is
+Most tools in this section take a file in PFM format as input. This is
 actually a file with Position Specific Scoring Matrices (PSSMs)
 containing *frequencies*. It looks like this:
 
@@ -45,7 +45,7 @@ containing *frequencies*. It looks like this:
     0.0816  0.7096  0.0173  0.1962
     0.1350  0.4035  0.0675  0.3987
 
-The frequencies are seperated by tabs, and in the order A,C,G,T.
+The frequencies are separated by tabs, and in the order A,C,G,T.
 
 
 .. _`gimme_motifs`:
@@ -53,7 +53,7 @@ The frequencies are seperated by tabs, and in the order A,C,G,T.
 Command: gimme motifs
 ---------------------
 
-The `gimme motifs` can be used for known and/or *de novo* motif analysis.
+The ``gimme motifs`` command can be used for known and/or *de novo* motif analysis.
 By default it runs both.
 
 Quick example of *de novo* motif analysis
@@ -74,22 +74,20 @@ on your system):
 
 The first argument is the name of the input file and the second argument 
 defines the name of the output directory that is created. All output files 
-are stored in this directory. The genome is set to ``hg19`` genome. As the 
-input is a FASTA file, any human genome version can be used, for instance
-``-g hg38`` would also work. This requires you to have installed ``hg19``
-using [genomepy](https://github.com/simonvh/genomepy). Alternatively, you
+are stored in this directory. The genome is set to the ``hg38`` genome. This 
+requires you to have installed ``hg38`` using  `genomepy <https://github.com/simonvh/genomepy>`_. Alternatively, you
 can also supply the path to a genome FASTA file with the ``-g`` option.
 
 Depending on your computer, this analysis will take around 15-20 minutes. 
 By default, the 
-[three top-performing](https://www.biorxiv.org/content/10.1101/474403v1) 
-*de novo* motif tools will be use: MEME, Homer and BioProspector.
+`three top-performing <https://www.biorxiv.org/content/10.1101/474403v1>`_
+*de novo* motif tools will be used: MEME, Homer and BioProspector.
 Once GimmeMotifs is finished you can open
-`p73/p73\_motif\_report.html <p73/p73_motif_report.html>`__ in your
+`p73/p73\_motif\_report.html <p73/p73_motif_report.html>`_ in your
 browser.
 
-You can also run the same analysis with a BED file as input, or a text 
-file with regions in `chrom:start-end` format
+You can also run the same analysis with a BED file or narrowPeak file as input, or a text 
+file with regions in ``chrom:start-end`` format
 
 Best practices and tips
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -101,7 +99,7 @@ GimmeMotifs runs multi-threaded and by default uses 12 threads. All the
 *de novo* programs will be run in parallel as much as possible. Of 
 course some programs are still single-threaded, and will not really 
 benefit from multithreading. You can change the number of threads that
-are used using the `-N` parameter.
+are used using the ``-N`` parameter.
 
 Running time
 ++++++++++++
@@ -128,16 +126,46 @@ on the top sequences of your input, for instance the 5000 highest peaks.
 
 **Motif prediction tools**
 
-By default, `gimme motifs` uses three *de novo* motif prediction tools:
+By default, ``gimme motifs`` uses three *de novo* motif prediction tools:
 MEME, BioProspector and Homer. These we found to be the best performing
-programs for ChIP-seq data ([Bruse & van Heeringen, 2018](https://www.biorxiv.org/content/10.1101/474403v1.full)).
-You can include a large variety of other toolsi by using the ``-t``
+programs for ChIP-seq data (`Bruse & van Heeringen, 2018 <https://www.biorxiv.org/content/10.1101/474403v1.full>`_).
+You can include a large variety of other tools by using the ``-t``
 parameter. This will result in an increased running time and some tools, 
 such as GADEM, will take a very long time.
+The following tools are supported:
+
+- `AMD <https://dx.doi.org/10.1371%2Fjournal.pone.0024576>`_
+- `BioProspector <http://ai.stanford.edu/~xsliu/BioProspector/>`_
+- `ChIPMunk <http://autosome.ru/ChIPMunk/>`_
+- `DiNAMO <https://github.com/bonsai-team/DiNAMO>`_
+- `GADEM <https://dx.doi.org/10.1089%2Fcmb.2008.16TT>`_
+- `DREME <http://meme-suite.org/index.html>`_
+- `HMS <https://doi.org/10.1093/nar/gkr1135>`_
+- `Homer <http://homer.ucsd.edu/homer/motif/>`_
+- `Improbizer <https://doi.org/10.1126/science.1102216>`_
+- `MDmodule <http://people.math.umass.edu/~conlon/mr.html>`_
+- `MEME <http://meme-suite.org/index.html>`_
+- `MotifSampler <http://bioinformatics.intec.ugent.be/MotifSuite/motifsampler.php>`_
+- `POSMO <https://dx.doi.org/10.1093%2Fnar%2Fgkr1135>`_
+- `ProSampler <https://github.com/zhengchangsulab/ProSampler>`_
+- `RPMCMC <http://daweb.ism.ac.jp/yoshidalab/motif/>`_
+- `Trawler <https://trawler.erc.monash.edu.au/>`_
+- `Weeder <http://159.149.160.51/modtools/>`_
+- `XXmotif <https://github.com/soedinglab/xxmotif>`_
+- `YAMDA <https://github.com/daquang/YAMDA>`_
+
+With the exception of RPMCMC and YAMDA, all tools come installed with GimmeMotifs 
+when using the bioconda package. AMD, HMS, Improbizer, MotifSampler and DiNAMO 
+are not supported on OSX.
+
+**Please note:** all these programs include their own license and many are free
+**for academic or non-commercial** use only. For commercial use of any of these 
+programs, please consult the respective author! GimmeMotifs itself can be freely 
+used commercially.
 
 **Motif size**
 
-The default setting for motif size is `-a xl`, which searches for motifs
+The default setting for motif size is ``-a xl``, which searches for motifs
 with a length of up to 20. You can use different analysis sizes: 
 ``small`` (up to 8), ``medium`` (up to 10) or ``large`` (up to 14). The 
 running time can be significantly shorter for shorter motifs. However, 
@@ -147,18 +175,18 @@ in general.
 Small input sets
 ++++++++++++++++
 
-Keep in mind that GimmeMotifs is developed for larger datasets, where
+GimmeMotifs is developed for larger datasets, such as ChIP-seq peaks, where
 you have the luxury to use a large fraction of your input for
-validation. So, at least several hundred sequences would be optimal. If
+validation. This means that at least several hundred sequences would be optimal. If
 you want to run GimmeMotifs on a small input dataset, it might be
-worthwile to increase the fraction used for prediction with the ``-f``
+worthwile to increase the fraction used for motif prediction with the ``-f``
 argument, for instance ``-f 0.5``.
 
 Running on FASTA files
 ++++++++++++++++++++++
 
 It is possible to run GimmeMotifs on a FASTA file as input instead
-of a BED file. This is detected automatically if youir inputfile is
+of a BED file. This is detected automatically if your inputfile is
 correctly formatted according to FASTA specifications. Please note that for 
 best results, all the sequences should be of the same length. This is not
 necessary for motif prediction, but the statistics and positional
@@ -168,46 +196,132 @@ Intermediate results
 ++++++++++++++++++++
 
 GimmeMotifs produces a lot of intermediate results, such as all
-predicted motifs, fasta-files used for validation and so on. These are
+predicted motifs, FASTA files used for validation and so on. These are
 deleted by default (as they can get quite large), but if you are
 interested in them, you can specify the ``-k`` option.
 
 Detailed options for gimme motifs
 +++++++++++++++++++++++++++++++++
 
--  INPUTFILE
+**Positional arguments**
 
-   This is the only mandatory option. The inputfile needs to be in BED
-   or FASTA format. BED-fomatted files need to contain at least three
-   tab-seperated columns describing chromosome name, start and end. The
-   fourth column is optional, if specified it will be used by MDmodule
-   to sort the features before motif prediction. GimmeMotifs will take
-   the center of these features, and subsequently extend those to the
-   width specified by the ``width`` argument (see below).
 
--  ``-n`` or ``–name``
+-  ``INPUT``
 
-   The name of your analysis. All outputfiles will be stored in a
-   directory named as given by this parameter. By default this will be
-   gimmemotifs\_dd\_mm\_yyyy, where d,m and y are the current day, month
-   and year respectively.
+   The inputfile needs to be in BED, FASTA, narrowPeak or region format. 
+   By default ``gimme motifs`` will take the center of these features, and extend 
+   those to the size specified by the ``-s`` or ``--size`` argument. By default
+   this is 200 bp. Keep in mind that the smaller the regions are, the better motif
+   discovery will work.
+   **BED-fomatted** files need to contain at least three tab-separated columns 
+   describing chromosome name, start and end. The fourth column is optional. 
+   If it is specified it will be used by some motif prediction tools to sort the
+   features before motif prediction. 
+   **FASTA** files can be used as input for motif prediction. For best results it
+   is recommended to use sequences of the same size.
+   Peak files in **narrowPeak** format, such as produced by MACS2, can also
+   directly be used as input. With these files, ``gimme motifs`` will use the summit
+   of the peak and create regions of size 200 centered at this summit. Use the ``-s``
+   parameter to change this size.
+   Finally, **region** files can be used. These contain one column, with regions
+   specified in ``chrom:start-end`` format.
 
--  ``-a`` or ``–analysis``
+-  ``OUTDIR``
+
+   The name of the output directory. All output files will be saved in this directory.
+   If the directory already exists files will be overwritten.
+
+**Optional arguments**
+
+-  ``-b BACKGROUND``, ``--background BACKGROUND``
+
+   Type of background to use. There are five options: ``gc``, ``genomic``, ``random``, 
+   ``promoter`` or the path to file with background sequences (FASTA, BED or regions).
+   By default ``gc`` is used, which generates random regions from the genome with a 
+   similar GC% as your input sequences. The ``genomic`` background will select random
+   genomic regions without taking the sequence composition into account. The ``random``
+   background will create artificial sequences with a similar nucleotide distribution
+   as your input sequences. The ``promoter`` background will select random promoters. For
+   this option, your genome needs to be installed with `genomepy <https://github.com/simonvh/genomepy>`_ using the ``--annotation``
+   option. Finally, you can select your own custom background by supplying the path to
+   a file.
+
+-  ``-g GENOME``
+
+   Name of the genome to use. This can be the name of a genome installed with `genomepy <https://github.com/simonvh/genomepy>`_
+   or the path to a FASTA file.
+
+- ``--denovo``
+
+  Only run *de novo* motif analysis. By default, the analysis includes known motifs. For
+  specific arguments for *de novo* motif analysis, see below.
+
+- ``--known``
+  
+  Only run known motif analysis. By default, the analysis includes *de novo* motifs. For
+  specific arguments for known motif analysis, see below.
+
+- ``--noreport``
+
+  Don't create a HTML report, only plain text output files.
+
+- ``--rawscore``
+
+  Don't use z-score normalization for motif scores. The raw logodds motif score are 
+  dependent on motif length. This means that the same logodds score will mean different
+  things for motifs with a different length. By default, GimmeMotifs uses the scores in 
+  a set of genomic background regions to determine the a background distribution of scores.
+  The logodds score is then scaled using this distribution.
+
+- ``--nogc``
+
+  By default GimmeMotifs calculates the motif logodds score distribution for regions with
+  a different GC%. The score is then normalized according to the GC% bin per input sequence.
+  Use this argument to turn this off.
+
+- ``-N INT``, ``--threads INT``
+
+  Number of threads to use (default is 12).
+
+ 
+**Optional arguments for known motif analysis**
+
+- ``-p PFMFILE``
+
+  PFM file with motifs to use for known motif analysis. You can use a custom PFM file,
+  or use any of the databases included with GimmeMotifs such as, for instance,  ``JASPAR2020_vertebrates``,
+  ``HOMER``, ``HOCOCOMOv11_HUMAN`` or ``CIS-BP``. By default, a database of clustered 
+  vertebrate motifs is used, ``gimme.vertebrate.v5.0``. This database has a limited
+  motif redundancy.
+  
+**Optional arguments for de novo motif analysis**
+
+- ``-t TOOLS``, ``--tools TOOLS``
+
+  The *de novo* motif prediction tools to use, separated by commas. This can be any 
+  combination of the following:
+  AMD, BioProspector, ChIPMunk, DiNAMO, GADEM, DREME, HMS, Homer, Improbizer, 
+  MDmodule, MEME, MEMEW, MotifSampler, POSMO, ProSampler, RPMCMC, Trawler, Weeder,
+  XXmotif, YAMDA. By default ``TOOLS`` is ``BioProspector,Homer,MEME``. Note that
+  some tools may not be installed. Running ``gimme motifs -h`` will always list
+  the tools that are supported on your installation of GimmeMotifs.
+
+-  ``-a``, ``--analysis``
 
    The size of motifs to look for: small (5-8), medium (5-12), large
-   (6-15) or xl (6-20). The larger the motifs, the longer GimmeMotifs
-   will run. The ’xl’ can take a very long time!
+   (6-15) or xl (6-20). The larger the motifs, the longer the *de novo* motif prediction
+   will take. By default, xl will be used as this generally yields the best motifs.
+   However, some prediction tools take a very long time in combination with the xl setting.
 
--  ``-g`` or ``–genome``
+- ``k``, ``--keepintermediate``
 
-   Name of the genome (index) to use. For instance, for the example in
-   section :ref:`indexing` this would be ``hg19``.
+  Keep intermediate files.
 
--  ``-s`` or ``–singlestrand``
+-  ``-s``, ``-–singlestrand``
 
-   Only use the + strand for prediction (off by default).
+   Only use the forward strand for prediction. By default both strands are used.
 
--  ``-f`` or ``–fraction``
+-  ``-f FRACTION``, ``--fraction FRACTION``
 
    This parameter controls the fraction of the sequences used for
    prediction. This 0.2 by default, so in this case a randomly chosen
@@ -215,50 +329,18 @@ Detailed options for gimme motifs
    sequences will be used for validation (enrichment, ROC curves etc.).
    If you have a large set of sequences (ie. most ChIP-seq peak sets),
    this is fine. However, if your set is smaller, it might be worthwile
-   to increase this prediction fraction.
+   to increase this prediction fraction. The number of sequences that is used
+   is also influenced by the ``abs_max`` parameter in the configuration file.
+   Regardless of the ``-f`` parameter, the total number of sequences used
+   for motif prediction will never exceed the number specified by ``abs_max``.
 
--  ``-w`` or ``–width``
+-  ``-s N``, ``--size N``
 
-   This is the width of the sequences used for motif prediction. Smaller
+   This is the size of the sequences used for motif prediction. Smaller
    sequences will result in a faster analysis, but you are of course
    limited by the accuracy of your data. For the tested ChIP-seq data
-   sets 200 performs fine.
-
--  ``-e`` or ``–enrichment``
-
-   All motifs should have an absolute enrichment of at least this
-   parameter compared to background to be called significant.
-
--  ``-p`` or ``–pvalue``
-
-   All motifs should have a pvalue of at most this parameter
-   (hypergeometric enrichment compared to background) to be called
-   significant.
-
--  ``-b`` or ``–background``
-
-   Type of background to use. By default ``random`` (1st order Markov
-   model, similar dinucleotide frequencies as your sequences) and
-   ``gc`` (randomly chosen from the genome with a similar
-   GC% as your input sequences) are used.
-
--  ``-l`` or ``–localization_width``
-
-   Width used in the positional preference plots.
-
--  ``-t`` or ``–tools``
-
-   A comma-seperated list of all the motif prediction tools to use. By
-   default all installed tools that are specified in the GimmeMotifs
-   configuration file are used.
-
--  ``–max_time``
-
-   Time limit for motif prediction in hours. Use this to control the
-   maximum number of hours that GimmeMotifs uses for motif prediction.
-   After this time, all jobs that are still running will be terminated,
-   and GimmeMotifs will continue with the motifs that are predicted so
-   far.
+   sets 200 performs fine. If this parameter is set to ``0``, the original size
+   of the regions in the input file will be used.
 
 .. _`gimme_maelstrom`:
 
@@ -280,16 +362,60 @@ This command can be used to identify differential motifs between two or more dat
 ::
 
     -h, --help            show this help message and exit
-    -p PWMFILE, --pwmfile PWMFILE
-                          PWM file with motifs (default:
-                          gimme.vertebrate.v3.1.pwm)
+    -p PFMFILE, --pfmfile PFMFILE
+                          PFM file with motifs (default:
+                          gimme.vertebrate.v5.0.pwm)
     -m NAMES, --methods NAMES
                           Run with specific methods
 
-The output scores of `gimme maelstrom` represents the combined result of multiple methods. 
+**Input file formats**
+
+The input can be in one of two possible formats. 
+In both cases the genomic location should be present as ``chrom:start-end`` in the first column.
+The first option is a two-column format and looks like this:
+
+::
+
+    loc    cluster
+    chr15:49258903-49259103    NK 
+    chr10:72370313-72370513    NK 
+    chr4:40579259-40579459    Monocytes
+    chr10:82225678-82225878    T-cells 
+    chr5:134237941-134238141    B-cells 
+    chr5:58858731-58858931    B-cells 
+    chr20:24941608-24941808    NK 
+    chr5:124203116-124203316    NK 
+    chr17:40094476-40094676    Erythroblast
+    chr17:28659327-28659527    T-cells
+
+This can be the result of a clustering analysis, for instance. 
+
+The second option looks like this:
+
+::
+
+    loc    NK    Monocytes    T-cells    B-cells
+    chr12:93507547-93507747    3.118    2.522    1.933    0.197
+    chr7:38236460-38236660    1.098    0.502    0.201    0.190
+    chr10:21357147-21357347    0.528    -0.066    -1.04    -0.343
+    chr6:115521512-115521712    0.406    -0.376    -0.480    -0.667
+    chr2:97359808-97360008    1.501    0.905    0.719    0.031
+    chr16:16684549-16684749    0.233    -0.362    -0.837    -0.746
+    chrX:138964544-138964744    0.330    -0.291    -0.686    -0.777
+    chr2:186923973-186924173    0.430    -0.258    -1.164    -0.723
+    chrX:113834470-113834670    0.560    -0.036    -0.686    -0.692
+
+This is a tab-separated table, with a header describing the experiments. In case of sequencing data, such 
+as ChIP-seq, ATAC-seq or DNaseI seq, we recommend to use **log-transformed** read counts which are
+**mean-centered per row**. For optimal results, it is recommended to normalize between experiments (columns) after the log-transformatiion step, 
+for instance by quantile normalization or scaling.
+
+The second input format generally gives better results than the first one and would be the recommended format.
+
+The output scores of ``gimme maelstrom`` represent the combined result of multiple methods. 
 The individual results from different methods are ranked from high-scoring motif to low-scoring motif
-and then aggregated using the rank aggregation method from `Kolde, 2012<https://www.ncbi.nlm.nih.gov/pubmed/22247279>`_. 
-The score that is shown is the -log10(p-value), where the p-value (from the rank aggregation) is corrected for multiple testing.
+and then aggregated using the rank aggregation method from `Kolde, 2012 <https://www.ncbi.nlm.nih.gov/pubmed/22247279>`_. 
+The score that is shown is the -log10(p-value), where the p-value comes from the rank aggregation.
 This procedure is then repeated with the ranking reversed. These are shown as negative values.
 
 .. _`gimme_scan`:
@@ -319,14 +445,14 @@ For instance, this command would scan with thresholds based on 5% FPR with rando
     $ gimme scan input.fa -g mm10 -f 0.05 -b > gimme.scan.bed
 
 
-And this command would base a 0.1% FPR on the input file ``hg38.promoters.fa``:
+And this command would base a 10% FPR on the input file ``hg38.promoters.fa``:
 
 :: 
 
-    $ gimme scan input.fa -f 0.001 -B hg38.promoters.fa -b > gimme.scan.bed
+    $ gimme scan input.fa -f 0.1 -B hg38.promoters.fa -b > gimme.scan.bed
 
 
-Alternatively, you can specify the theshold as a single score.
+Alternatively, you can specify the threshold as a single score.
 This score is relative and is based on the maximum and minimum possible score for each motif. 
 For example, a score of 0.95 means that the score of a motif should be at least 95% of the (maximum score - minimum score).
 This should probably not be set much lower than 0.8, and should be generally at least 0.9-0.95 for good specificity. 
@@ -344,168 +470,85 @@ The ``-t`` will yield a table with number of matches, while the ``-T`` will have
 
 **Positional arguments:**
 
-:: 
+-  ``INPUT``
 
-    INPUTFILE             inputfile (FASTA, BED, regions)
-
-**Optional arguments:**
-
-::
-
-    -g GENOME, --genome GENOME
-                          genome version
-    -p PWMFILE, --pwmfile PWMFILE
-                          PWM file with motifs (default:
-                          gimme.vertebrate.v3.1.pwm)
-    -f , --fpr            FPR for motif scanning (default 0.01)
-    -B , --bgfile         background file for threshold
-    -c , --cutoff         motif score cutoff or file with cutoffs
-    -n N, --nreport N     report the N best matches
-    -r, --norc            don't scan reverse complement (- strand)
-    -b, --bed             output bed format
-    -t, --table           output counts in tabular format
-    -T, --score_table     output maximum score in tabular format
-
-.. _`gimme_roc`:
-
-Command: gimme roc
-------------------
-
-Given a sample (positives, peaks) and a background file (random
-sequences, random promoters or similar), ``gimme roc`` calculates several statistics
-and/or creates a ROC plot for motifs in an input PWM file. 
-By default, all motifs will be used in the ROC plot, you can select one or more specific motifs with the ``-i`` option. 
-
-The basic command is as follows:
-
-:: 
-
-    $ gimme roc input.fa bg.fa > statistics.txt
-
-This will use the default motif database, and writes the statistics to the file ``statistics.txt``.
-
-Most likely you'll want a graphical report. 
-Add the ``-r`` argument to supply an output directory name. 
-Once ``gimme roc`` finished, you'll find a file called ``gimme.roc.report.html`` in this directory.
-Open it in your browser to get a graphical summary of the results.
-
-Instead of a FASTA file you can also supply a BED file or regions. 
-In this case you'll need a genome file.
-A custom ``.pwm`` file can be supplied with the ``-p`` argument.
-For instance, the following command scans the input BED files with ``custom_motifs.pwm``:
-
-:: 
-
-    $ gimme roc input.bed bg.bed -p custom_motifs.pwm -g hg38 > statistics.txt
-
-The statistics include the ROC area under curve (ROC\_AUC), 
-the enrichment at 1% FPR and the recall at 10% FDR.
-
-To plot an ROC curve, add the ``-o`` argument. This command will plot the ROC curve for all the motifs that SPI1 can bind.
-
-::
-
-   $ gimme roc input.fa bg.fa -i Ets_Average_110,Ets_M1778_1.01,Ets_Average_100,Ets_Average_93 -o roc.png > statistics.txt
+   The inputfile needs to be in BED, FASTA or region format. 
+   **BED-fomatted** files need to contain at least three tab-separated columns 
+   describing chromosome name, start and end. 
+   **Region** files can also be used. These contain one column, with regions
+   specified in ``chrom:start-end`` format.
 
 
-.. _`Clarke & Granek, 2003`: https://doi.org/10.1093/bioinformatics/19.2.212
+**Optional arguments**
 
-**Positional arguments:**
+-  ``-g GENOME``
 
-:: 
+   Name of the genome to use. This can be the name of a genome installed with `genomepy <https://github.com/simonvh/genomepy>`_
+   or the path to a FASTA file.
+
+- ``-p PFMFILE``, ``--pfmfile PFMFILE``
+
+  PFM file with motifs to use for known motif analysis. You can use a custom PFM file,
+  or use any of the databases included with GimmeMotifs such as, for instance,  ``JASPAR2020_vertebrates``,
+  ``HOMER``, ``HOCOCOMOv11_HUMAN`` or ``CIS-BP``. By default, a database of clustered 
+  vertebrate motifs is used, ``gimme.vertebrate.v5.0``. This database has a limited
+  motif redundancy.
+
+- ``-f``, ``--fpr``
+
+  Base the motif score threshold on this FPR. By default this is set to 1%, equivalent to ``-f 0.01``.
+  The score threshold is based on scanning random genomic regions with the same size and the same GC% distribution.
+  This threshold is calculated once for a specific sequence size and cached. Therefore, scanning will take longer
+  the first time you use a specific FPR with a specific input sequence size.
+
+- ``-B``, ``--bgfile``
+
+  Specify a FASTA file to use for FPR calculation, instead of taking random genomic regions.
+
+- ``-c``, ``--cutoff``
+
+  Use this score cutoff instead of an FPR-based threshold. This score is relative and is based on the maximum and minimum possible score for each motif. 
+  For example, a score of 0.95 means that the score of a motif should be at least 95% of the (maximum score - minimum score).
+  This should probably not be set much lower than 0.8, and should be generally at least 0.9-0.95 for good specificity. 
+  Generally, as the optimal threshold might be different for each motif, the use of the FPR-based threshold is preferred.
+
+- ``-n``, ``--nreport``
+
+  Maximum number of matches to report per motif per sequence. By default this is set to 1.
+
+- ``-r``, ``--norc``
+
+  Don't scan the reverse complement of the sequence. By default both strands will be scanned.
+
+- ``-b``, ``--bed``
+
+  Output motif matches in BED format. 
+
+- ``-t``, ``--table``
+
+  Ouput number of matches in a table format, where columns represent motifs and rows represent input sequences.
+
+- ``-T``, ``--score_table``
+
+  Ouput maximum motif score in a table format, where columns represent motifs and rows represent input sequences. The score
+  will be reported for each motif, regardless if it is a good match or not.
+
+- ``-z``, ``--zscore``
+
+  Use z-score normalization for motif scores. The raw logodds motif score are 
+  dependent on motif length. This means that the same logodds score will mean different
+  things for motifs with a different length. By default, GimmeMotifs uses the scores in 
+  a set of genomic background regions to determine the a background distribution of scores.
+  The logodds score is then scaled using this distribution.
+
+- ``--gc``
+
+  Use this option to calculate the motif logodds score distribution based on regions with
+  a similar GC%.
   
-    FG_FILE     FASTA, BED or region file
-    BG_FILE     FASTA, BED or region file with background sequences
+- ``-N INT, --threads INT``
 
-**Optional arguments:**
-  
-::
-
-    -h, --help  show this help message and exit
-    -r OUTDIR   output dir for graphical report
-    -p PWMFILE  PWM file with motifs (default: gimme.vertebrate.v3.1.pwm)
-    -g GENOME   Genome (when input files are not in FASTA format)
-    -o FILE     Name of output file with ROC plot (png, svg, ps, pdf)
-    -i IDS      Comma-seperated list of motif ids to plot in ROC (default is all
-                ids)
-
-
-.. _`gimme_match`:
-
-Command: gimme match
---------------------
-
-Taking an input file with motifs, find the best matching file in another
-file of motifs (according to the WIC metric). 
-If an ouput file is specified, a graphical output with aligned motifs will
-be created. However, this is slow for many motifs and can consume a lot of memory 
-(`see issue`_).
-It works fine for a few motifs at a time.
-
-.. _`see issue`: https://github.com/simonvh/gimmemotifs/issues/5
-
-**Positional arguments:**
-
-::
-
-    PWMFILE     File with input pwms
-
-**Optional arguments:**
-
-::
-
-    -h, --help  show this help message and exit
-    -d DBFILE   File with pwms to match against (default:
-                gimme.vertebrate.v3.1.pwm)
-    -o FILE     Output file with graphical report (png, svg, ps, pdf)
-
-.. _`gimme_cluster`:
-
-Command: gimme cluster
-----------------------
-
-Cluster a set of motifs with the WIC metric.
-
-**Positional arguments:**
-
-::
-
-    INPUTFILE     Inputfile (PFM format)
-    OUTDIR        Name of output directory
-
-**Optional arguments:**
-
-::
-
-    -h, --help    show this help message and exit
-    -s            Don't compare reverse complements of motifs
-    -t THRESHOLD  Cluster threshold
-
-.. _`gimme_index`:
-
-Command: gimme index
---------------------
-
-Creates an index to use with GimmeMotifs.
-Use this command if your genome is not available on UCSC and you want to use it with GimmeMotifs.
-You should have a directory with FASTA files, **one per chromosome**. 
-*Note: this will change with a future version of GimmeMotifs.*
-
-**Positional arguments:**
-
-::
-
-    FASTADIR              Directory to place genome
-    GENOMEBUILD           UCSC genome name
-
-**Optional arguments:**
-
-::
-
-    -h, --help            show this help message and exit
-    -i DIR, --indexdir DIR
-                          Index dir (default
-                          <prefix>/share/gimmemotifs/genome_index)
+  Number of threads to use (default is 12).
 
 
 .. _`gimme_background`:
@@ -544,6 +587,131 @@ genome version needs to be specified with ``-g``.
     -g GENOME   genome version (not for type 'random')
     -m N        order of the Markov model (only for type 'random', default 1)
 
+.. _`gimme_logo`:
+
+Command: gimme logo
+-------------------
+
+Convert one or more motifs in a PFM file to a sequence logo. Most of these logos are made possible by the excellent `Logomaker <https://logomaker.readthedocs.io/en/latest/>`_ package.
+You can optionally supply a PFM file, otherwise ``gimme logo`` uses the default ``gimme.vertebrate.v5.0``.
+With the ``-i`` option, you can choose one or more motifs to convert.
+
+This will convert all the motifs in ``CTCF.pfm`` to a sequence logo:
+
+:: 
+
+    $ gimme logo -p CTCF.pfm
+
+
+This will create a logo for ``GM.5.0.Ets.0026`` from the default database.
+
+:: 
+
+    $ gimme logo -i GM.5.0.Ets.0026
+
+You can specify four types of sequence logos:
+
+=========== =================================================
+information .. image:: images/MA1115.1_POU5F1.information.png
+               :scale: 50 %
+frequency   .. image:: images/MA1115.1_POU5F1.frequency.png
+               :scale: 50 %
+energy      .. image:: images/MA1115.1_POU5F1.energy.png
+               :scale: 50 %
+ensembl     .. image:: images/MA1115.1_POU5F1.ensembl.png
+               :scale: 50 %
+=========== =================================================
+
+You can leave the motif title out with the ``--notitle`` argument.
+
+:: 
+
+    $ gimme logo JASPAR2020_vertebrates -i MA1115.1_POU5F1 -k energy --notitle
+
+.. image:: images/MA1115.1_POU5F1.energy.notitle.png
+   :scale: 50 %
+
+**Positional arguments:**
+
+- ``pfmfile``
+  
+  PFM file with motifs. You can use a custom PFM file,
+  or use any of the databases included with GimmeMotifs such as, for instance,  ``JASPAR2020_vertebrates``,
+  ``HOMER``, ``HOCOCOMOv11_HUMAN`` or ``CIS-BP``.
+
+**Optional arguments:**
+
+- ``-i IDS``, ``--ids IDS``
+
+  Comma-separated list of motif ids (default is all ids).
+
+- ``-k TYPE``, ``--kind TYPE``
+
+  Type of motif (information, frequency, energy or ensembl). The default is information.
+
+- ``--notitle``
+   
+   Don't include motif ID as title.
+     
+- ``-h``, ``--help``
+   
+   Show help message.
+
+.. _`gimme_match`:
+
+Command: gimme match
+--------------------
+
+Find the the best match of every motif in a PFM file with input motif(s) to a database of reference motifs.
+By default the ``gimme.vertebrate.v5.0`` database is used, however, other databases can be
+specified using the ``-d`` argument. This can be a custom PFM file, or any of the databases 
+included with GimmeMotifs such as, for instance,  ``JASPAR2020_vertebrates``,  ``HOMER``, ``HOCOCOMOv11_HUMAN`` or ``CIS-BP``. 
+If an ouput file is specified, a graphical output with aligned motifs will
+be created. However, this is slow for many motifs and can consume a lot of memory 
+(`see issue`_).
+It works fine for a few motifs at a time.
+
+.. _`see issue`: https://github.com/simonvh/gimmemotifs/issues/5
+
+**Positional arguments:**
+
+::
+
+    PFMFILE     File with input pfms
+
+**Optional arguments:**
+
+::
+
+    -h, --help  show this help message and exit
+    -d DBFILE   File with pfms to match against (default:
+                gimme.vertebrate.v5.0.pfm)
+    -n INT      Number of top matches to report
+    -o FILE     Output file with graphical report (png, svg, ps, pdf)
+
+.. _`gimme_cluster`:
+
+Command: gimme cluster
+----------------------
+
+Cluster a set of motifs with the WIC metric.
+
+**Positional arguments:**
+
+::
+
+    INPUTFILE     Inputfile (PFM format)
+    OUTDIR        Name of output directory
+
+**Optional arguments:**
+
+::
+
+    -h, --help    show this help message and exit
+    -s            Don't compare reverse complements of motifs
+    -t THRESHOLD  Cluster threshold
+
+
 .. _`gimme_threshold`:
 
 Command: gimme threshold
@@ -566,7 +734,7 @@ based on the sequences in ``promoters.fa``.
 
 ::
 
-    PWMFILE     File with pwms
+    PFMFILE     File with pwms
     FAFILE      FASTA file with background sequences
     FPR         Desired fpr
 
@@ -588,7 +756,7 @@ details.
 
 ::
 
-    PWMFILE     File with pwms
+    PFMFILE     File with pwms
     FAFILE      Fasta formatted file
 
 **Optional arguments:**
@@ -597,7 +765,7 @@ details.
 
     -h, --help  show this help message and exit
     -w WIDTH    Set width to W (default: determined from fastafile)
-    -i IDS      Comma-seperated list of motif ids to plot (default is all ids)
+    -i IDS      Comma-separated list of motif ids to plot (default is all ids)
     -c CUTOFF   Cutoff for motif scanning (default 0.95)
 
 
@@ -651,7 +819,7 @@ Compare for instance an FPR of 1% vs an FPR of 5%.
 ::
 
     -h, --help            show this help message and exit
-    -p PWMFILE, --pwmfile PWMFILE
+    -p PFMFILE, --pfmfile PFMFILE
                           PWM file with motifs (default:
                           gimme.vertebrate.v3.1.pwm)
     -c , --cutoff         motif score cutoff or file with cutoffs (default 0.9)
@@ -664,24 +832,4 @@ Compare for instance an FPR of 1% vs an FPR of 5%.
                           Genome version. Only necessary in combination with a
                           BED file with clusters as inputfile.
 
-.. _`gimme_logo`:
 
-Command: gimme logo
--------------------
-
-Convert one or more motifs in a PWM file to a sequence logo.
-You can optionally supply a PWM file, otherwise ``gimme logo`` uses the default.
-With the ``-i`` option, you can choose one or more motifs to convert.
-
-This will convert all the motifs in ``CTCF.pwm`` to a sequence logo:
-
-:: 
-
-    $ gimme logo -p CTCF.pwm
-
-
-This will create logos for ``Ets_Average_100`` and ``Ets_Average_109`` from the default database.
-
-:: 
-
-    $ gimme logo -i Ets_Average_100,Ets_Average_109

@@ -16,7 +16,7 @@ def ap1_included(motifs):
     mc = MotifComparer()
     match = mc.get_closest_match(ap1, motifs, metric="seqcor")
     print(match)
-    if match["TGASTCA"][1][0] >= 0.8:
+    if match["TGASTCA"][1][0] >= 0.75:
         return True
     return False
 
@@ -27,7 +27,8 @@ def test_tool(tool_name):
     params = {"background": bg_fa, "organism": "hg38", "width": 7}
     print(__tools__)
     if tool_name in [
-        "yamda",  # not installable vio bioconda;
+        "yamda",  # not installable vio bioconda
+        "rpmcmc",  # not installable via bioconda
         "gadem",  # sometimes crashes on invalid pointer
         "jaspar",
         "xxmotif",  # takes too long
@@ -39,7 +40,7 @@ def test_tool(tool_name):
 
     if platform.system() == "Darwin":
         # No support for osx
-        if tool_name in ["amd", "hms", "improbizer", "motifsampler"]:
+        if tool_name in ["amd", "hms", "improbizer", "motifsampler", "dinamo"]:
             return
 
     t = get_tool(tool_name)
@@ -50,4 +51,3 @@ def test_tool(tool_name):
     print(stderr)
     print(stdout)
     assert ap1_included(motifs)
-

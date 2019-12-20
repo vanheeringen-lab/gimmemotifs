@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
@@ -45,7 +45,13 @@ def mp_calc_stats(motifs, fg_fa, bg_fa, zscore, gc, genome, bg_name=None):
     """Parallel calculation of motif statistics."""
     try:
         stats = calc_stats(
-            motifs, fg_fa, bg_fa, ncpus=1, zscore=zscore, gc=gc, genome=genome
+            motifs=motifs,
+            fg_file=fg_fa,
+            bg_file=bg_fa,
+            ncpus=1,
+            zscore=zscore,
+            gc=gc,
+            genome=genome,
         )
     except Exception as e:
         sys.stderr.write("ERROR: {}\n".format(str(e)))

@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
@@ -24,9 +24,9 @@ class Fasta(object):
             if not (c.startswith(">")):
                 raise IOError("Not a valid FASTA file")
 
-            for seq in c.split(">"):
+            for seq in re.split(r"\r?\n>", c[1:]):
                 if len(seq) > 1:
-                    lines = seq.split("\n")
+                    lines = re.split(r"\r?\n", seq)
                     seq_name = lines[0]
                     if split_whitespace:
                         seq_name = seq_name.split(" ")

@@ -6,6 +6,7 @@
 [![Code Health](https://landscape.io/github/simonvh/gimmemotifs/master/landscape.svg?style=flat)](https://landscape.io/github/simonvh/gimmemotifs/master)
 [![Documentation Status](https://readthedocs.org/projects/gimmemotifs/badge/?version=master)](http://gimmemotifs.readthedocs.io/en/master/?badge=master)
 
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/gimmemotifs/badges/downloads.svg)](https://anaconda.org/bioconda/gimmemotifs)
 [![DOI](https://zenodo.org/badge/676678.svg)](https://zenodo.org/badge/latestdoi/676678)
 
 Suite of motif tools, including a motif prediction pipeline for ChIP-seq experiments.
@@ -20,6 +21,7 @@ The manuscript describing this latest release is available on [biorRxiv](https:/
 Niklas Bruse, Simon J. van Heeringen<br>
 _bioRxiv_ (2018) DOI: [10.1101/474403](https://doi.org/10.1101/474403)
 
+You can interactively try out the Python API in a Jupyter notebook using binder: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/vanheeringen-lab/gimmemotifs/develop?filepath=docs%2Fapi_examples.ipynb)
 
 ## We need your help!
 
@@ -56,9 +58,11 @@ Don't forget to activate the environment with `conda activate gimme` whenever yo
 
 ## Quick start
 
-### Predict some motifs:
+### Predict some de novo motifs:
 
-`$ gimme motifs my_peaks.bed -g /data/genomes/hg38/hg38.fa -n my_motifs`
+```
+$ gimme motifs my_peaks.bed my_motifs -g /data/genomes/hg38/hg38.fa --denovo
+```
 
 ### Download a genome
 
@@ -76,12 +80,15 @@ genome_dir: /data/genomes
 
 To download a genome from UCSC:
 
-`$ genomepy install hg38 UCSC --annotation`
+```
+$ genomepy install hg38 UCSC --annotation
+```
 
 Now you can specify this genome for GimmeMotifs by name.
 
-`$ gimme motifs my_peaks.bed -g hg38 -n my_motifs`
-
+```
+$ gimme motifs my_peaks.bed -g hg38 -n my_motifs
+```
 
 ## Help 
 

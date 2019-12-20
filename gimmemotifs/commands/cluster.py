@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (c) 2009-2016 Simon van Heeringen <s.vanheeringen@science.ru.nl>
+# Copyright (c) 2009-2019 Simon van Heeringen <s.vanheeringen@science.ru.nl>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
@@ -23,7 +23,7 @@ def _write_report(outdir, ids, tree, clusters):
     template = env.get_template("cluster_template.jinja.html")
     result = template.render(motifs=ids)
 
-    with open(os.path.join(outdir, "cluster_report.html"), "w") as f:
+    with open(os.path.join(outdir, "gimme.clustered.html"), "w") as f:
         f.write(result)
 
     f = open(os.path.join(outdir, "cluster_key.txt"), "w")
@@ -31,7 +31,7 @@ def _write_report(outdir, ids, tree, clusters):
         f.write("%s\t%s\n" % (motif_id[0], ",".join([x["alt"] for x in motif_id[2]])))
     f.close()
 
-    f = open(os.path.join(outdir, "clustered_motifs.pwm"), "w")
+    f = open(os.path.join(outdir, "clustered_motifs.pfm"), "w")
     if len(clusters) == 1 and len(clusters[0][1]) == 1:
         f.write("%s\n" % clusters[0][0].to_pwm())
     else:
@@ -48,7 +48,7 @@ def _create_images(outdir, clusters):
     sys.stderr.write("Creating images\n")
     for cluster, members in clusters:
         cluster.trim(trim_ic)
-        cluster.to_img(os.path.join(outdir, "%s.png" % cluster.id), fmt="PNG")
+        cluster.plot_logo(fname=os.path.join(outdir, "%s.png" % cluster.id))
         ids.append([cluster.id, {"src": "%s.png" % cluster.id}, []])
         if len(members) > 1:
             scores = {}
@@ -69,9 +69,8 @@ def _create_images(outdir, clusters):
                     rc.id = motif.id
                     motif = rc
                 # print "%s\t%s" % (motif.id, add)
-                motif.to_img(
-                    os.path.join(outdir, "%s.png" % motif.id.replace(" ", "_")),
-                    fmt="PNG",
+                motif.plot_logo(
+                    fname=os.path.join(outdir, "%s.png" % motif.id.replace(" ", "_")),
                     add_left=add,
                 )
         ids[-1][2] = [

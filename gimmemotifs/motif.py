@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
@@ -15,7 +15,7 @@ import six
 
 from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 from gimmemotifs.c_metrics import pfmscan
-from gimmemotifs.utils import pwmfile_location
+from gimmemotifs.utils import pfmfile_location
 
 # External imports
 try:
@@ -519,7 +519,7 @@ class Motif(object):
         pfm = [[total] * 4] * add_left + self.pfm
         matrix = pd.DataFrame(pfm, columns=["A", "C", "G", "T"])
         if kind == "ensembl":
-            self.plot_ensembl_logo(fname=None, title=title)
+            self.plot_ensembl_logo(fname=fname, title=title)
             return
         elif kind == "information":
             matrix = lm.transform_matrix(
@@ -573,8 +573,9 @@ class Motif(object):
 
         if fname:
             plt.savefig(fname, dpi=300)
-
-        return logo
+            plt.close()
+        else:
+            return logo
 
     def plot_ensembl_logo(
         self, fname=None, ic=True, title=True, letters=True, height=2
@@ -693,6 +694,9 @@ class Motif(object):
 
         if fname:
             plt.savefig(fname, dpi=300)
+            plt.close()
+        else:
+            return ax
 
     def pwm_scan_score(self, fa, cutoff=0, nreport=1, scan_rc=True):
         """Scan sequences with this motif.
@@ -1342,7 +1346,7 @@ def motif_from_align(align):
     return m
 
 
-def motif_from_consensus(cons, n=12):
+def motif_from_consensus(cons, n=1200):
     """Convert consensus sequence to motif.
 
     Converts a consensus sequences using the nucleotide IUPAC alphabet to a
@@ -1501,7 +1505,7 @@ def read_motifs(infile=None, fmt="pfm", as_dict=False):
         fmt = "pfm"
 
     if infile is None or isinstance(infile, six.string_types):
-        infile = pwmfile_location(infile)
+        infile = pfmfile_location(infile)
         with open(infile) as f:
             motifs = _read_motifs_from_filehandle(f, fmt)
     else:
@@ -1656,7 +1660,7 @@ def _read_motifs_meme(handle):
                 line = handle.readline()
                 if not line.strip():
                     break
-                row = [float(x) for x in re.split("\s", line.strip())]
+                row = [float(x) for x in re.split(r"\s", line.strip())]
                 freqs.append(row)
 
             motif = Motif(freqs)
@@ -1715,9 +1719,9 @@ def alignfile_to_motifs(fname):
     return read_motifs(open(fname), fmt="align")
 
 
-def pwmfile_to_motifs(fname):
+def pfmfile_to_motifs(fname):
     # this method should be deleted
-    msg = "pwmfile_to_motifs is deprecated, please use read_motifs"
+    msg = "pfmfile_to_motifs is deprecated, please use read_motifs"
     warn(msg, DeprecationWarning)
 
     return read_motifs(open(fname), fmt="pwm")

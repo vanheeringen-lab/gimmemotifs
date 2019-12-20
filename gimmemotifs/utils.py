@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
@@ -29,11 +29,13 @@ import numpy as np
 import pybedtools
 from genomepy import Genome
 
+
 # gimme imports
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import plot_histogram
 from gimmemotifs.rocmetrics import ks_pvalue
 from gimmemotifs.config import MotifConfig
+
 
 logger = logging.getLogger("gimme.utils")
 
@@ -76,7 +78,7 @@ def narrowpeak_to_bed(inputfile, bedfile, size=0):
                 f_out.write("{}\t{}\t{}\t{}\n".format(vals[0], start, end, vals[6]))
 
 
-def pwmfile_location(infile):
+def pfmfile_location(infile):
     config = MotifConfig()
 
     if infile is None:
@@ -97,7 +99,7 @@ def pwmfile_location(infile):
                 for ext in [".pfm", ".pwm"]:
                     if os.path.exists(checkfile + ext):
                         infile = checkfile + ext
-                    break
+                        break
             if not os.path.exists(infile):
                 raise ValueError("Motif file {} not found".format(infile))
 
@@ -617,11 +619,11 @@ def determine_file_type(fname):
         raise ValueError("{} is not a file!", fname)
 
     ext = os.path.splitext(fname)[1].lower()
-    if ext in ["bed"]:
+    if ext in [".bed"]:
         return "bed"
-    elif ext in ["fa", "fasta"]:
+    elif ext in [".fa", ".fasta"]:
         return "fasta"
-    elif ext in ["narrowpeak"]:
+    elif ext in [".narrowpeak"]:
         return "narrowpeak"
 
     try:

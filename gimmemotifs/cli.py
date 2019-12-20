@@ -371,6 +371,14 @@ def cli(sys_args):
         metavar="DBFILE",
     )
     p.add_argument(
+        "-n",
+        dest="nmatches",
+        help="Number of matches to return (default 1)",
+        default=1,
+        metavar="INT",
+        type=int,
+    )
+    p.add_argument(
         "-o",
         dest="img",
         help="Output file with graphical report (png, svg, ps, pdf)",
@@ -380,7 +388,9 @@ def cli(sys_args):
 
     # pwm2logo.py
     p = subparsers.add_parser("logo")
-    p.add_argument("pfmfile", help="PFM file with motifs", metavar="pfmfile")
+    p.add_argument(
+        "-p", "--pfmfile", help="PFM file with motifs", metavar="pfmfile", default=None
+    )
     p.add_argument(
         "-i",
         "--ids",
@@ -450,7 +460,7 @@ def cli(sys_args):
         default="fasta",
     )
     p.add_argument(
-            "-s", dest="size", help="size of random sequences", metavar="INT", type=int
+        "-s", dest="size", help="size of random sequences", metavar="INT", type=int
     )
     p.add_argument(
         "-n",

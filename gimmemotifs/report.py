@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2017 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
@@ -33,7 +33,12 @@ def get_roc_values(motif, fg_file, bg_file, genome):
     """Calculate ROC AUC values for ROC plots."""
     try:
         stats = calc_stats(
-            motif, fg_file, bg_file, genome=genome, stats=["roc_values"], ncpus=1
+            fg_file=fg_file,
+            bg_file=bg_file,
+            motifs=motif,
+            genome=genome,
+            stats=["roc_values"],
+            ncpus=1,
         )
         (x, y) = list(stats.values())[0]["roc_values"]
         return None, x, y
@@ -44,9 +49,9 @@ def get_roc_values(motif, fg_file, bg_file, genome):
         raise
 
 
-def create_roc_plots(pwmfile, fgfa, background, outdir, genome):
+def create_roc_plots(pfmfile, fgfa, background, outdir, genome):
     """Make ROC plots for all motifs."""
-    motifs = read_motifs(pwmfile, fmt="pwm", as_dict=True)
+    motifs = read_motifs(pfmfile, fmt="pwm", as_dict=True)
     ncpus = int(MotifConfig().get_default_params()["ncpus"])
     pool = Pool(processes=ncpus)
     jobs = {}
@@ -121,7 +126,7 @@ def _create_graphical_report(
     if not os.path.exists(imgdir):
         os.mkdir(imgdir)
 
-    motifs = read_motifs(pwm, fmt="pwm")
+    motifs = read_motifs(pwm, fmt="pfm")
 
     roc_img_file = "%s_roc.%s"
 
@@ -182,7 +187,7 @@ def _create_graphical_report(
 
         report_motifs.append(rm)
 
-    total_report = os.path.join(outdir, "motif_report.html")
+    total_report = os.path.join(outdir, "gimme.denovo.html")
 
     star_img = os.path.join(config.get_template_dir(), "star.png")
     shutil.copyfile(star_img, os.path.join(outdir, "images", "star.png"))
@@ -205,15 +210,15 @@ def _create_graphical_report(
 
 
 def create_denovo_motif_report(
-    inputfile, pwmfile, fgfa, background, locfa, outdir, params, stats=None
+    inputfile, pfmfile, fgfa, background, locfa, outdir, params, stats=None
 ):
     """Create text and graphical (.html) motif reports."""
     logger.info("creating de novo reports")
 
-    motifs = read_motifs(pwmfile, fmt="pwm")
+    motifs = read_motifs(pfmfile, fmt="pwm")
 
     # ROC plots
-    create_roc_plots(pwmfile, fgfa, background, outdir, params["genome"])
+    create_roc_plots(pfmfile, fgfa, background, outdir, params["genome"])
 
     # Closest match in database
     mc = MotifComparer()
@@ -222,7 +227,7 @@ def create_denovo_motif_report(
     if stats is None:
         stats = {}
         for bg, bgfa in background.items():
-            for m, s in calc_stats(motifs, fgfa, bgfa).items():
+            for m, s in calc_stats(fg_file=fgfa, bg_file=bgfa, motifs=motifs).items():
                 if m not in stats:
                     stats[m] = {}
                 stats[m][bg] = s
@@ -244,20 +249,20 @@ def create_denovo_motif_report(
     # Create reports
     _create_text_report(inputfile, motifs, closest_match, stats, outdir)
     _create_graphical_report(
-        inputfile, pwmfile, background, closest_match, outdir, stats
+        inputfile, pfmfile, background, closest_match, outdir, stats
     )
 
 
-def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
+def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=2):
     df = pd.read_table(infile, index_col=0)
     df = df[np.any(abs(df) >= threshold, 1)]
 
-    motifs = read_motifs(pwmfile)
+    motifs = read_motifs(pfmfile)
 
     del df.index.name
     cols = df.columns
 
-    motifs = read_motifs(pwmfile)
+    motifs = read_motifs(pfmfile)
     idx = [motif.id for motif in motifs]
     direct = [
         ",".join(sorted(set([x.upper() for x in motif.factors[DIRECT_NAME]])))
@@ -337,7 +342,15 @@ def maelstrom_html_report(outdir, infile, pwmfile=None, threshold=2):
         f.write("</body>\n")
 
 
-def roc_html_report(outdir, infile, pwmfile, threshold=0.01):
+def roc_html_report(
+    outdir,
+    infile,
+    pfmfile,
+    outname="gimme.motifs.html",
+    threshold=0.01,
+    use_motifs=None,
+    link_matches=False,
+):
     df = pd.read_table(infile, index_col=0)
     del df.index.name
     df["corrected P-value"] = multipletests(df["P-value"], method="fdr_bh")[1]
@@ -355,8 +368,12 @@ def roc_html_report(outdir, infile, pwmfile, threshold=0.01):
         "Recall at 10% FDR",
     ]
 
-    motifs = read_motifs(pwmfile)
+    motifs = read_motifs(pfmfile)
+    if use_motifs is not None:
+        motifs = [m for m in motifs if m.id in use_motifs]
+
     idx = [motif.id for motif in motifs]
+    df = df.loc[idx]
     direct = [",".join(motif.factors[DIRECT_NAME]) for motif in motifs]
     indirect = [",".join(motif.factors[INDIRECT_NAME]) for motif in motifs]
     m2f = pd.DataFrame({DIRECT_NAME: direct, INDIRECT_NAME: indirect}, index=idx)
@@ -377,6 +394,15 @@ def roc_html_report(outdir, infile, pwmfile, threshold=0.01):
         cols = factor_cols + cols
 
     df = df[df["corrected P-value"] <= threshold]
+
+    if link_matches:
+        df["# matches"] = (
+            "<a href=motif_scan_results/"
+            + df.index.to_series()
+            + ".matches.bed>"
+            + df["# matches"].astype(str)
+            + "</a>"
+        )
 
     df["logo"] = [
         '<img src="logos/{}.png" height=40/>'.format(re.sub(r"[^-_\w]+", "_", x))
@@ -409,7 +435,7 @@ def roc_html_report(outdir, infile, pwmfile, threshold=0.01):
         os.path.join(template_dir, "sortable/sortable-theme-slick.css"),
         encoding="utf-8",
     ).read()
-    with open(outdir + "/gimme.roc.report.html", "w", encoding="utf-8") as f:
+    with open(os.path.join(outdir, outname), "w", encoding="utf-8") as f:
         f.write("<head>\n")
         f.write("<style>{}</style>\n".format(css))
         f.write("</head>\n")

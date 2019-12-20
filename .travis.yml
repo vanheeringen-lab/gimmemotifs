@@ -33,9 +33,13 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok )& fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ulimit -S -n 4096; ulimit -a; fi
 install:
-  - conda env create -q -f conda_env.dev.txt -n gimme
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      conda env create -q -f conda_env.osx.txt -n gimme;
+    else
+      conda env create -q -f conda_env.dev.txt -n gimme;
+    fi
   - conda activate gimme
-  - pip install -e .
+  - python setup.py build && pip install -e .
 #  - pip install coveralls
 # # command to run tests, e.g. python setup.py test
 script:  

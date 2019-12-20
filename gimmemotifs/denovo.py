@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2018 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
@@ -458,7 +458,9 @@ def best_motif_in_cluster(
 
     new_stats = {}
     for bg, bg_fa in background.items():
-        for m, s in calc_stats(clustered_motifs, fg_fa, bg_fa, genome=genome).items():
+        for m, s in calc_stats(
+            fg_file=fg_fa, bg_file=bg_fa, motifs=clustered_motifs, genome=genome
+        ).items():
             if m not in new_stats:
                 new_stats[m] = {}
             new_stats[m][bg] = s
@@ -634,15 +636,15 @@ def gimme_motifs(
             logger.info("no significant motifs")
             return
 
-        pwmfile = os.path.join(tmpdir, "significant_motifs.pfm")
+        pfmfile = os.path.join(tmpdir, "significant_motifs.pfm")
     else:
         logger.info("not filtering for significance")
         motifs = result.motifs
-        pwmfile = os.path.join(tmpdir, "all_motifs.pfm")
+        pfmfile = os.path.join(tmpdir, "all_motifs.pfm")
 
     if cluster:
         clusters = cluster_motifs_with_report(
-            pwmfile,
+            pfmfile,
             os.path.join(tmpdir, "clustered_motifs.pfm"),
             outdir,
             0.95,
@@ -651,7 +653,7 @@ def gimme_motifs(
 
         # Determine best motif in cluster
         best_motifs = best_motif_in_cluster(
-            pwmfile,
+            pfmfile,
             os.path.join(tmpdir, "clustered_motifs.pfm"),
             clusters,
             os.path.join(tmpdir, "validation.fa"),
@@ -699,7 +701,7 @@ def gimme_motifs(
     logger.info("finished")
     logger.info("output dir: %s", outdir)
     if cluster:
-        logger.info("de novo report: %s", os.path.join(outdir, "motif_report.html"))
+        logger.info("de novo report: %s", os.path.join(outdir, "gimme.denovo.html"))
 
     return final_motifs
 

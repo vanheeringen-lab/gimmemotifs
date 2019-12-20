@@ -1,5 +1,5 @@
 #!/usr/bin/python -W ignore
-# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
@@ -14,22 +14,29 @@ from tempfile import NamedTemporaryFile
 
 import numpy as np
 
+from gimmemotifs.background import create_background_file
+from gimmemotifs.comparison import MotifComparer, select_nonredundant_motifs
+
+from gimmemotifs.denovo import gimme_motifs
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.stats import calc_stats_iterator
-from gimmemotifs.denovo import gimme_motifs
-from gimmemotifs.background import create_background_file
-from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.report import roc_html_report
+from gimmemotifs.scanner import scan_to_file
 from gimmemotifs.utils import determine_file_type, narrowpeak_to_bed
+
 
 logger = logging.getLogger("gimme.motifs")
 
 
 def motifs(args):
     """ Calculate ROC_AUC and other metrics and optionally plot ROC curve."""
-    if args.outdir:
-        if not os.path.exists(args.outdir):
-            os.makedirs(args.outdir)
+    if args.outdir is None:
+        raise ValueError("an output directory is required!")
+    if not os.path.exists(args.outdir):
+        os.makedirs(args.outdir)
+    scan_dir = os.path.join(args.outdir, "motif_scan_results")
+    if not os.path.exists(scan_dir):
+        os.makedirs(scan_dir)
 
     genome = args.genome
     if genome is None:
@@ -138,26 +145,43 @@ def motifs(args):
         "Motif\t# matches\t# matches background\tP-value\tlog10 P-value\tROC AUC\tPR AUC\tEnr. at 1% FPR\tRecall at 10% FDR\n"
     )
 
-    logger.info("calculating stats")
+    logger.info("creating motif scan tables")
     ftype = determine_file_type(args.sample)
     sample = args.sample
+    delete_sample = False
     if ftype == "narrowpeak":
-        f = NamedTemporaryFile()
+        f = NamedTemporaryFile(delete=False)
         logger.debug("Using %s as temporary BED file".format(f.name))
         narrowpeak_to_bed(args.sample, f.name, size=args.size)
         sample = f.name
+        delete_sample = True
 
+    # Create a table with the best score per motif for all motifs.
+    # This has three reasons:
+    # * Can be used to calculate statistics;
+    # * Can be used to select a set of non-redundant motifs;
+    # * These files are included in the output and can be used for further analyis.
+    score_table = os.path.join(scan_dir, "input.motif.score.txt")
+    bg_score_table = os.path.join(scan_dir, "background.motif.score.txt")
+    for infile, outfile in [(sample, score_table), (bgfile, bg_score_table)]:
+        scan_to_file(
+            infile,
+            pfmfile,
+            filepath_or_buffer=outfile,
+            score_table=True,
+            genome=args.genome,
+            zscore=True,
+            gcnorm=True,
+        )
+
+    logger.info("calculating stats")
     for motif_stats in calc_stats_iterator(
-        motifs,
-        sample,
-        bgfile,
+        motifs=pfmfile,
+        fg_table=score_table,
+        bg_table=bg_score_table,
         stats=stats,
-        genome=args.genome,
         ncpus=args.ncpus,
-        zscore=args.zscore,
-        gc=args.gc,
     ):
-
         for motif in motifs:
             if str(motif) in motif_stats:
                 log_pvalue = np.inf
@@ -178,9 +202,58 @@ def motifs(args):
                 )
     f_out.close()
 
+    # Select a set of "non-redundant" motifs.
+    # Using Recursive Feature Elemination, a set of motifs is selected that
+    # best explains the peaks in comparison to the background sequences.
+    nr_motifs = select_nonredundant_motifs(
+        args.outdir + "/gimme.roc.report.txt",
+        pfmfile,
+        score_table,
+        bg_score_table,
+        tolerance=0.001,
+    )
+
+    # Provide BED files with motif scan results for the non-redundant motifs
+    # At the moment this is not ideal, as scanning is now performed twice
+    # for this set of non-redundant motifs.
+    motif_dict = dict([(m.id, m) for m in motifs])
+    for motif in nr_motifs:
+        with NamedTemporaryFile(mode="w") as f:
+            print(motif_dict[motif].to_pwm(), file=f)
+            f.flush()
+            scan_to_file(
+                sample,
+                f.name,
+                filepath_or_buffer=os.path.join(scan_dir, f"{motif}.matches.bed"),
+                bed=True,
+                fpr=0.01,
+                genome=args.genome,
+                zscore=True,
+                gcnorm=True,
+            )
+
+    if delete_sample:
+        os.unlink(sample)
+
     if args.report:
         logger.info("creating statistics report")
         if args.outdir:
             roc_html_report(
-                args.outdir, args.outdir + "/gimme.roc.report.txt", pfmfile, 0.01
+                args.outdir,
+                args.outdir + "/gimme.roc.report.txt",
+                pfmfile,
+                threshold=0.01,
+                outname="gimme.motifs.redundant.html",
+                link_matches=False,
+            )
+            roc_html_report(
+                args.outdir,
+                args.outdir + "/gimme.roc.report.txt",
+                pfmfile,
+                threshold=0.01,
+                use_motifs=nr_motifs,
+                link_matches=True,
+            )
+            logger.info(
+                f"gimme motifs final report: {os.path.join(args.outdir, 'gimme.motifs.html')}"
             )

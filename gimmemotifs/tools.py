@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2018 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
@@ -304,6 +304,7 @@ class Rpmcmc(MotifProgram):
         """
         motifs = []
         pfm = []
+        name = ""
         for line in open(fname):
             line = line.strip()
             if line.startswith("PFM"):
@@ -334,7 +335,7 @@ class Dinamo(MotifProgram):
     """
     Predict motifs using DiNAMO.
 
-    Reference: Saad et al., 2018, doi: 10.1186/s12859-018-2215-1 
+    Reference: Saad et al., 2018, doi: 10.1186/s12859-018-2215-1
     """
 
     def __init__(self):
@@ -1439,9 +1440,9 @@ class Trawler(MotifProgram):
             stderr += err.decode()
 
             os.chdir(current_path)
-            pwmfiles = glob.glob("{}/tmp*/result/*pwm".format(self.tmpdir))
-            if len(pwmfiles) > 0:
-                out_file = pwmfiles[0]
+            pfmfiles = glob.glob("{}/tmp*/result/*pwm".format(self.tmpdir))
+            if len(pfmfiles) > 0:
+                out_file = pfmfiles[0]
                 stdout += "\nOutfile: {}".format(out_file)
 
                 my_motifs = []
@@ -1638,7 +1639,7 @@ class MotifSampler(MotifProgram):
             prm["strand"] = 0
 
         tmp = NamedTemporaryFile(dir=self.tmpdir)
-        prm["pwmfile"] = tmp.name
+        prm["pfmfile"] = tmp.name
 
         tmp2 = NamedTemporaryFile(dir=self.tmpdir)
         prm["outfile"] = tmp2.name
@@ -1679,7 +1680,7 @@ class MotifSampler(MotifProgram):
             bin,
             fastafile,
             params["background_model"],
-            params["pwmfile"],
+            params["pfmfile"],
             params["width"],
             params["number"],
             params["outfile"],
@@ -1855,7 +1856,7 @@ class MDmodule(MotifProgram):
         shutil.copy(fastafile, new_file)
 
         fastafile = new_file
-        pwmfile = fastafile + ".out"
+        pfmfile = fastafile + ".out"
 
         width = default_params["width"]
         number = default_params["number"]
@@ -1865,7 +1866,7 @@ class MDmodule(MotifProgram):
         cmd = "%s -i %s -a 1 -o %s -w %s -t 100 -r %s" % (
             bin,
             fastafile,
-            pwmfile,
+            pfmfile,
             width,
             number,
         )
@@ -1875,8 +1876,8 @@ class MDmodule(MotifProgram):
         stdout = "cmd: {}\n".format(cmd) + stdout.decode()
 
         motifs = []
-        if os.path.exists(pwmfile):
-            with open(pwmfile) as f:
+        if os.path.exists(pfmfile):
+            with open(pfmfile) as f:
                 motifs = self.parse(f)
 
         os.chdir(current_path)
@@ -2145,7 +2146,7 @@ class Posmo(MotifProgram):
         shutil.copy(fastafile, new_file)
 
         fastafile = new_file
-        # pwmfile = fastafile + ".pwm"
+        # pfmfile = fastafile + ".pwm"
 
         motifs = []
         current_path = os.getcwd()
@@ -2281,18 +2282,18 @@ class Gadem(MotifProgram):
         shutil.copy(fastafile, new_file)
 
         fastafile = new_file
-        pwmfile = fastafile + ".pwm"
+        pfmfile = fastafile + ".pwm"
         outfile = fastafile + ".out"
 
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
-        cmd = "%s -fseq %s -fpwm %s -fout %s" % (bin, fastafile, pwmfile, outfile)
+        cmd = "%s -fseq %s -fpwm %s -fout %s" % (bin, fastafile, pfmfile, outfile)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
 
         motifs = []
-        if os.path.exists(pwmfile):
-            with open(pwmfile) as f:
+        if os.path.exists(pfmfile):
+            with open(pfmfile) as f:
                 motifs = self.parse(f)
 
         os.chdir(current_path)
@@ -2483,7 +2484,7 @@ class Dreme(MotifProgram):
 
         motifs = read_motifs(outfile, fmt="meme")
         for motif in motifs:
-            motif.id = self.name + "_" + motif.id 
+            motif.id = self.name + "_" + motif.id
 
         return motifs, stdout, stderr
 

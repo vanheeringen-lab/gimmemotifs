@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2018 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2016-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
@@ -23,20 +23,22 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import scale
 from scipy.cluster import hierarchy
-from scipy.spatial import distance
+from scipy.spatial.distance import pdist
+from scipy.cluster.hierarchy import linkage, dendrogram
 
 # Plotting
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 import seaborn as sns
 
 sns.set_style("white")
 
-from gimmemotifs.config import MotifConfig
+from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 from gimmemotifs.moap import moap, Moap, scan_to_table
 from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.report import maelstrom_html_report
-from gimmemotifs.utils import join_max, pwmfile_location
+from gimmemotifs.utils import join_max, pfmfile_location
 
 from multiprocessing import Pool
 
@@ -47,98 +49,6 @@ FPR = 0.01
 logger = logging.getLogger("gimme.maelstrom")
 
 
-def scan_to_table(
-    input_table, genome, scoring, pwmfile=None, ncpus=None, zscore=True, gc=True
-):
-    """Scan regions in input table with motifs.
-
-    Parameters
-    ----------
-    input_table : str
-        Filename of input table. Can be either a text-separated tab file or a
-        feather file.
-
-    genome : str
-        Genome name. Can be either the name of a FASTA-formatted file or a
-        genomepy genome name.
-
-    scoring : str
-        "count" or "score"
-
-    pwmfile : str, optional
-        Specify a PFM file for scanning.
-
-    ncpus : int, optional
-        If defined this specifies the number of cores to use.
-
-    Returns
-    -------
-    table : pandas.DataFrame
-        DataFrame with motif ids as column names and regions as index. Values
-        are either counts or scores depending on the 'scoring' parameter.s
-    """
-    config = MotifConfig()
-
-    if pwmfile is None:
-        pwmfile = config.get_default_params().get("motif_db", None)
-        if pwmfile is not None:
-            pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
-
-    if pwmfile is None:
-        raise ValueError("no pwmfile given and no default database specified")
-
-    logger.info("reading table")
-    if input_table.endswith("feather"):
-        df = pd.read_feather(input_table)
-        idx = df.iloc[:, 0].values
-    else:
-        df = pd.read_table(input_table, index_col=0, comment="#")
-        idx = df.index
-
-    regions = list(idx)
-    size = int(
-        np.median(
-            [
-                len(seq)
-                for seq in as_fasta(
-                    np.random.choice(regions, size=1000, replace=False), genome=genome
-                ).seqs
-            ]
-        )
-    )
-    s = Scanner(ncpus=ncpus)
-    s.set_motifs(pwmfile)
-    s.set_genome(genome)
-    s.set_background(genome=genome, gc=gc, size=size)
-
-    scores = []
-    if scoring == "count":
-        logger.info("setting threshold")
-        s.set_threshold(fpr=FPR)
-        logger.info("creating count table")
-        for row in s.count(regions):
-            scores.append(row)
-        logger.info("done")
-    else:
-        s.set_threshold(threshold=0.0)
-        msg = "creating score table"
-        if zscore:
-            msg += " (z-score"
-            if gc:
-                msg += ", GC%"
-            msg += ")"
-        else:
-            msg += " (logodds)"
-        logger.info(msg)
-        for row in s.best_score(regions, zscore=zscore, gc=gc):
-            scores.append(row)
-        logger.info("done")
-
-    motif_names = [m.id for m in read_motifs(pwmfile)]
-    logger.info("creating dataframe")
-    return pd.DataFrame(scores, index=idx, columns=motif_names)
-
-
 def moap_with_bg(
     input_table, genome, data_dir, method, scoring, pfmfile=None, ncpus=None
 ):
@@ -147,7 +57,7 @@ def moap_with_bg(
     moap(
         input_table,
         outfile=outfile,
-        pwmfile=pfmfile,
+        pfmfile=pfmfile,
         genome=genome,
         method=method,
         scoring=scoring,
@@ -176,23 +86,23 @@ def safe_join(df1, df2):
     return tmp.join(df2).sort_values("_safe_count").drop("_safe_count", 1)
 
 
-def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
+def visualize_maelstrom(outdir, sig_cutoff=3, pfmfile=None):
 
     config = MotifConfig()
-    if pwmfile is None:
-        pwmfile = config.get_default_params().get("motif_db", None)
-        pwmfile = os.path.join(config.get_motif_dir(), pwmfile)
+    if pfmfile is None:
+        pfmfile = config.get_default_params().get("motif_db", None)
+        pfmfile = os.path.join(config.get_motif_dir(), pfmfile)
 
-    mapfile = pwmfile.replace(".pwm", ".motif2factors.txt")
+    mapfile = pfmfile.replace(".pwm", ".motif2factors.txt")
     if os.path.exists(mapfile):
 
         m2f = pd.read_csv(mapfile, sep="\t", names=["motif", "factors"], index_col=0)
         m2f["factors"] = m2f["factors"].str[:50]
     else:
-        motifs = [m.id for m in read_motifs(pwmfile)]
+        motifs = [m.id for m in read_motifs(pfmfile)]
         m2f = pd.DataFrame({"factors": motifs}, index=motifs)
 
-    sig_fname = os.path.join(outdir, "final.out.csv")
+    sig_fname = os.path.join(outdir, "final.out.txt")
     df_sig = pd.read_table(sig_fname, index_col=0, comment="#")
     f = np.any(df_sig >= sig_cutoff, 1)
     vis = df_sig[f]
@@ -201,9 +111,7 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pwmfile=None):
         return
 
     # cluster rows
-    row_linkage = hierarchy.linkage(
-        distance.pdist(vis, metric="euclidean"), method="complete"
-    )
+    row_linkage = hierarchy.linkage(pdist(vis, metric="euclidean"), method="complete")
     idx = hierarchy.leaves_list(row_linkage)
 
     plt.figure()
@@ -303,7 +211,7 @@ def run_maelstrom(
     infile,
     genome,
     outdir,
-    pwmfile=None,
+    pfmfile=None,
     plot=True,
     cluster=False,
     score_table=None,
@@ -328,7 +236,7 @@ def run_maelstrom(
     outdir : str
         Output directory for all results.
 
-    pwmfile : str, optional
+    pfmfile : str, optional
         Specify a PFM file for scanning.
 
     plot : bool, optional
@@ -366,9 +274,9 @@ def run_maelstrom(
 
     # Check for duplicates
     if df.index.duplicated(keep=False).any():
-        raise ValueError(
-            "Input file contains duplicate regions! " "Please remove them."
-        )
+        logger.warning("Input file contains duplicate regions!")
+        logger.warning("These will be removed.")
+        df = df.iloc[~df.index.duplicated(keep=False)]
 
     if not os.path.exists(outdir):
         os.mkdir(outdir)
@@ -377,13 +285,14 @@ def run_maelstrom(
         methods = Moap.list_predictors()
     methods = [m.lower() for m in methods]
 
-    shutil.copyfile(infile, os.path.join(outdir, "input.table.txt"))
+    df.to_csv(os.path.join(outdir, "input.table.txt"), sep="\t")
+    infile = os.path.join(outdir, "input.table.txt")
 
     # Copy the motif informatuon
-    pwmfile = pwmfile_location(pwmfile)
-    if pwmfile:
-        shutil.copy2(pwmfile, outdir)
-        mapfile = re.sub(".p[fw]m$", ".motif2factors.txt", pwmfile)
+    pfmfile = pfmfile_location(pfmfile)
+    if pfmfile:
+        shutil.copy2(pfmfile, outdir)
+        mapfile = re.sub(".p[fw]m$", ".motif2factors.txt", pfmfile)
         if os.path.exists(mapfile):
             shutil.copy2(mapfile, outdir)
 
@@ -396,7 +305,7 @@ def run_maelstrom(
                 infile,
                 genome,
                 "count",
-                pwmfile=pwmfile,
+                pfmfile=pfmfile,
                 ncpus=ncpus,
                 zscore=zscore,
                 gc=gc,
@@ -414,7 +323,7 @@ def run_maelstrom(
                 infile,
                 genome,
                 "score",
-                pwmfile=pwmfile,
+                pfmfile=pfmfile,
                 ncpus=ncpus,
                 zscore=zscore,
                 gc=gc,
@@ -481,7 +390,7 @@ def run_maelstrom(
                 )
             else:
                 moap_with_bg(
-                    fname, genome, outdir, method, scoring, pwmfile=pwmfile, ncpus=ncpus
+                    fname, genome, outdir, method, scoring, pfmfile=pfmfile, ncpus=ncpus
                 )
 
         except Exception as e:
@@ -501,7 +410,7 @@ def run_maelstrom(
     if len(methods) > 1:
         logger.info("Rank aggregation")
         df_p = df_rank_aggregation(df, dfs, exps)
-        df_p.to_csv(os.path.join(outdir, "final.out.csv"), sep="\t")
+        df_p.to_csv(os.path.join(outdir, "final.out.txt"), sep="\t")
     # df_p = df_p.join(m2f)
 
     # Write motif frequency table
@@ -514,8 +423,16 @@ def run_maelstrom(
 
     if plot and len(methods) > 1:
         logger.info("html report")
-        maelstrom_html_report(outdir, os.path.join(outdir, "final.out.csv"), pwmfile)
+        maelstrom_html_report(outdir, os.path.join(outdir, "final.out.txt"), pfmfile)
         logger.info(os.path.join(outdir, "gimme.maelstrom.report.html"))
+
+
+def _get_factor_list(motif, indirect=False):
+    factor_list = motif.factors[DIRECT_NAME]
+    if indirect:
+        factor_list += motif.factors[INDIRECT_NAME]
+
+    return list(set([f.upper() for f in factor_list]))
 
 
 class MaelstromResult:
@@ -538,9 +455,11 @@ class MaelstromResult:
             raise FileNotFoundError("No such directory: " + outdir)
 
         # Load motifs
-        pwmfile = glob.glob(os.path.join(outdir, "*.pwm"))[0]
-        with open(pwmfile) as fin:
-            self.motifs = {m.id: m for m in read_motifs(fin)}
+        fnames = glob.glob(os.path.join(outdir, "*.p[fw]m"))
+        if len(fnames) > 0:
+            pfmfile = fnames[0]
+            with open(pfmfile) as fin:
+                self.motifs = {m.id: m for m in read_motifs(fin)}
 
         self.activity = {}
         # Read individual activity files
@@ -553,7 +472,7 @@ class MaelstromResult:
 
         # Read rank aggregation
         self.result = pd.read_table(
-            os.path.join(outdir, "final.out.csv"), comment="#", index_col=0
+            os.path.join(outdir, "final.out.txt"), comment="#", index_col=0
         )
 
         # Read motif results
@@ -583,6 +502,8 @@ class MaelstromResult:
         min_freq=0.01,
         threshold=2,
         name=True,
+        indirect=False,
+        figsize=None,
         max_len=50,
         aspect=1,
         **kwargs
@@ -606,8 +527,14 @@ class MaelstromResult:
         name : bool, optional
             Use factor names instead of motif names for plotting.
 
+        indirect : bool, optional
+            Include indirect factors. Default is False.
+
         max_len : int, optional
             Truncate the list of factors to this maximum length.
+
+        figsize : tuple, optional
+            Tuple of figure size (width, height).
 
         aspect : int, optional
             Aspect ratio for tweaking the plot.
@@ -621,18 +548,30 @@ class MaelstromResult:
             A seaborn ClusterGrid instance.
         """
 
-        filt = np.any(np.abs(self.result) >= threshold, 1) & np.any(
-            np.abs(self.freq.T) >= min_freq, 1
-        )
+        filt = np.any(np.abs(self.result) >= threshold, 1)
+        if hasattr(self, "freq"):
+            filt = filt & np.any(np.abs(self.freq.T) >= min_freq, 1)
+        else:
+            filt = filt & (self.counts.sum() / self.counts.shape[0] > min_freq)
 
-        idx = self.result[filt].index
+        idx = self.result.loc[filt].index
+        if idx.shape[0] >= 100:
+            logger.warning("The filtered matrix has more than 100 rows.")
+            logger.warning(
+                "It might be worthwhile to increase the threshold for visualization"
+            )
 
         cmap = "RdBu_r"
         if kind == "final":
             data = self.result
         elif kind == "freq":
-            data = self.freq.T
-            cmap = "Reds"
+            if hasattr(self, "freq"):
+                data = self.freq.T
+                cmap = "Reds"
+            else:
+                raise ValueError(
+                    "frequency plot only works with maelstrom output from clusters"
+                )
         elif kind in self.activity:
             data = self.activity[kind]
             if kind in ["hypergeom.count", "mwu.score"]:
@@ -643,23 +582,47 @@ class MaelstromResult:
         # print(data.head())
         # plt.figure(
         m = data.loc[idx]
+        vmax = max(abs(np.percentile(m, 1)), np.percentile(m, 99))
+        vmin = -vmax
         if name:
             m["factors"] = [
-                join_max(self.motifs[n].factors, max_len, ",", suffix=",(...)")
+                join_max(
+                    _get_factor_list(self.motifs[n], indirect),
+                    max_len,
+                    ",",
+                    suffix=",(...)",
+                )
                 for n in m.index
             ]
             m = m.set_index("factors")
         h, w = m.shape
-        cg = sns.clustermap(
-            m,
-            cmap=cmap,
-            col_cluster=False,
-            figsize=(2 + w * 0.5 * aspect, 0.5 * h),
-            linewidths=1,
-            **kwargs
+
+        if figsize is None:
+            figsize = (3 + m.shape[1] / 4, 1 + m.shape[0] / 3)
+        fig = plt.figure(figsize=figsize)
+        npixels = 30
+        g = GridSpec(
+            2, 1, height_ratios=(fig.get_figheight() * fig.dpi - npixels, npixels)
         )
-        cg.ax_col_dendrogram.set_visible(False)
-        plt.setp(cg.ax_heatmap.yaxis.get_majorticklabels(), rotation=0)
+        ax1 = fig.add_subplot(g[0, :])
+        ax2 = fig.add_subplot(g[1, :])
+        ax2.set_title("Significance (-log10(p-value))")
+        dm = pdist(m, metric="euclidean")
+        hc = linkage(dm, method="ward")
+        leaves = dendrogram(hc, no_plot=True)["leaves"]
+        cg = sns.heatmap(
+            m.iloc[leaves],
+            ax=ax1,
+            cbar_ax=ax2,
+            cbar_kws={"orientation": "horizontal"},
+            cmap=cmap,
+            linewidths=1,
+            vmin=vmin,
+            vmax=vmax,
+        )
+        plt.tight_layout()
+        # cg.ax_col_dendrogram.set_visible(False)
+        # plt.setp(cg.ax_heatmap.yaxis.get_majorticklabels(), rotation=0)
         return cg
 
     def plot_scores(self, motifs, name=True, max_len=50):

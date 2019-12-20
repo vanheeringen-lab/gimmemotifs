@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
+# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
@@ -96,6 +96,9 @@ def plot_histogram(
     if not outfile.endswith(".svg"):
         outfile += ".svg"
     plt.savefig(outfile, format="svg")
+    # Need to explicitly close, as otherwise a histogram will be shown
+    # when gimme_motifs() is run from a Jupyter notebook.
+    plt.close()
 
 
 def match_plot(plotdata, outfile):
@@ -121,10 +124,10 @@ def match_plot(plotdata, outfile):
         for j in range(2):
             axes_off(grid[j])
 
-        tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
+        tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png", delete=False)
         motif.plot_logo(fname=tmp.name, title=False)
         grid[0].imshow(plt.imread(tmp.name), interpolation="none")
-        tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png")
+        tmp = NamedTemporaryFile(dir=mytmpdir(), suffix=".png", delete=False)
         dbmotif.plot_logo(fname=tmp.name, title=False)
         grid[1].imshow(plt.imread(tmp.name), interpolation="none")
 

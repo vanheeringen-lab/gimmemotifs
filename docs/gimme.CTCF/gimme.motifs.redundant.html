@@ -1,0 +1,483 @@
+<head>
+<style>/* line 2, ../sass/_sortable.sass */
+table[data-sortable] {
+  font-size: 80%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+/* line 6, ../sass/_sortable.sass */
+table[data-sortable] th {
+  vertical-align: bottom;
+  font-weight: bold;
+}
+/* line 10, ../sass/_sortable.sass */
+table[data-sortable] th, table[data-sortable] td {
+  text-align: left;
+  padding: 2px;
+}
+/* line 14, ../sass/_sortable.sass */
+table[data-sortable] th:not([data-sortable="false"]) {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -webkit-touch-callout: none;
+  cursor: pointer;
+}
+/* line 26, ../sass/_sortable.sass */
+table[data-sortable] th:after {
+  content: "";
+  visibility: hidden;
+  display: inline-block;
+  vertical-align: inherit;
+  height: 0;
+  width: 0;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent;
+  margin-right: 1px;
+  margin-left: 10px;
+  float: right;
+}
+/* line 40, ../sass/_sortable.sass */
+table[data-sortable] th[data-sorted="true"]:after {
+  visibility: visible;
+}
+/* line 43, ../sass/_sortable.sass */
+table[data-sortable] th[data-sorted-direction="descending"]:after {
+  border-top-color: inherit;
+  margin-top: 8px;
+}
+/* line 47, ../sass/_sortable.sass */
+table[data-sortable] th[data-sorted-direction="ascending"]:after {
+  border-bottom-color: inherit;
+  margin-top: 3px;
+}
+
+/* line 6, ../sass/sortable-theme-slick.sass */
+table[data-sortable].sortable-theme-slick {
+  color: #333333;
+  background: white;
+  border: 1px solid #e0e0e0;
+}
+/* line 11, ../sass/sortable-theme-slick.sass */
+table[data-sortable].sortable-theme-slick thead th {
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ffffff), color-stop(100%, #eeeeee));
+  background-image: -webkit-linear-gradient(#ffffff, #eeeeee);
+  background-image: -moz-linear-gradient(#ffffff, #eeeeee);
+  background-image: -o-linear-gradient(#ffffff, #eeeeee);
+  background-image: linear-gradient(#ffffff, #eeeeee);
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #e0e0e0;
+}
+/* line 16, ../sass/sortable-theme-slick.sass */
+table[data-sortable].sortable-theme-slick tbody td {
+  border-top: 1px solid #e0e0e0;
+}
+/* line 19, ../sass/sortable-theme-slick.sass */
+table[data-sortable].sortable-theme-slick tbody > tr:nth-child(odd) > td {
+  background-color: #f9f9f9;
+}
+/* line 22, ../sass/sortable-theme-slick.sass */
+table[data-sortable].sortable-theme-slick th[data-sorted="true"] {
+  -webkit-box-shadow: inset 1px 0 #bce8f1, inset -1px 0 #bce8f1;
+  -moz-box-shadow: inset 1px 0 #bce8f1, inset -1px 0 #bce8f1;
+  box-shadow: inset 1px 0 #bce8f1, inset -1px 0 #bce8f1;
+  color: #3a87ad;
+  background: #d9edf7;
+  border-bottom-color: #bce8f1;
+}
+/* line 28, ../sass/sortable-theme-slick.sass */
+table[data-sortable].sortable-theme-slick th[data-sorted="true"]:first-child {
+  -webkit-box-shadow: inset -1px 0 #bce8f1;
+  -moz-box-shadow: inset -1px 0 #bce8f1;
+  box-shadow: inset -1px 0 #bce8f1;
+}
+/* line 31, ../sass/sortable-theme-slick.sass */
+table[data-sortable].sortable-theme-slick th[data-sorted="true"]:last-child {
+  -webkit-box-shadow: inset 1px 0 #bce8f1;
+  -moz-box-shadow: inset 1px 0 #bce8f1;
+  box-shadow: inset 1px 0 #bce8f1;
+}
+/* line 34, ../sass/sortable-theme-slick.sass */
+table[data-sortable].sortable-theme-slick th[data-sorted="true"][data-sorted-direction="descending"]:after {
+  border-top-color: #3a87ad;
+}
+/* line 37, ../sass/sortable-theme-slick.sass */
+table[data-sortable].sortable-theme-slick th[data-sorted="true"][data-sorted-direction="ascending"]:after {
+  border-bottom-color: #3a87ad;
+}
+</style>
+</head>
+<body>
+<style  type="text/css" >
+    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col8 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 100.0%, transparent 100.0%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col9 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 100.0%, transparent 100.0%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col10 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 100.0%, transparent 100.0%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col11 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 100.0%, transparent 100.0%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col6 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col8 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 39.2%, transparent 39.2%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col9 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 16.1%, transparent 16.1%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col10 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 9.9%, transparent 9.9%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col11 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col6 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col8 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 36.8%, transparent 36.8%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col9 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 17.3%, transparent 17.3%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col10 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 12.5%, transparent 12.5%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col11 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 5.7%, transparent 5.7%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col6 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col8 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 32.3%, transparent 32.3%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col9 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 14.7%, transparent 14.7%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col10 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 12.7%, transparent 12.7%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col11 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col6 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col8 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 31.3%, transparent 31.3%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col9 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 8.0%, transparent 8.0%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col10 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 7.2%, transparent 7.2%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col11 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 0.7%, transparent 0.7%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col6 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col8 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 22.5%, transparent 22.5%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col9 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 10.5%, transparent 10.5%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col10 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 10.8%, transparent 10.8%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col11 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 6.4%, transparent 6.4%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col6 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col8 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 15.8%, transparent 15.8%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col9 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 2.5%, transparent 2.5%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col10 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 1.9%, transparent 1.9%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col11 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col6 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col8 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 15.6%, transparent 15.6%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col9 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 5.2%, transparent 5.2%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col10 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 2.9%, transparent 2.9%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col11 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 1.4%, transparent 1.4%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col6 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col8 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 11.5%, transparent 11.5%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col9 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 3.2%, transparent 3.2%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col10 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 2.9%, transparent 2.9%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col11 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col6 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col8 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 1.4%, transparent 1.4%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col9 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col10 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 0.2%, transparent 0.2%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col11 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col6 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col8 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col9 {
+            width:  10em;
+             height:  80%;
+            background:  linear-gradient(90deg,#d65f5f 0.1%, transparent 0.1%);
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col10 {
+            width:  10em;
+             height:  80%;
+        }    #T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col11 {
+            width:  10em;
+             height:  80%;
+        }</style><table id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521" class="sortable-theme-slick" data-sortable><thead>    <tr>        <th class="blank level0" ></th>        <th class="col_heading level0 col0" >direct</th>        <th class="col_heading level0 col1" >indirect
+or predicted</th>        <th class="col_heading level0 col2" >logo</th>        <th class="col_heading level0 col3" ># matches</th>        <th class="col_heading level0 col4" ># matches background</th>        <th class="col_heading level0 col5" >P-value</th>        <th class="col_heading level0 col6" >log10 P-value</th>        <th class="col_heading level0 col7" >corrected P-value</th>        <th class="col_heading level0 col8" >ROC AUC</th>        <th class="col_heading level0 col9" >PR AUC</th>        <th class="col_heading level0 col10" >Enr. at 1% FPR</th>        <th class="col_heading level0 col11" >Recall at 10% FDR</th>    </tr></thead><tbody>
+                <tr>
+                        <th id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521level0_row0" class="row_heading level0 row0" >GimmeMotifs_1</th>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col0" class="data row0 col0" ><div title="de novo">de novo</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col1" class="data row0 col1" ><div title="CTCF,Ctcf">CTCF,Ctcf</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col2" class="data row0 col2" ><img src="logos/GimmeMotifs_1.png" height=40/></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col3" class="data row0 col3" >354</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col4" class="data row0 col4" >100</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col5" class="data row0 col5" >0</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col6" class="data row0 col6" >inf</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col7" class="data row0 col7" >0</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col8" class="data row0 col8" >0.974</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col9" class="data row0 col9" >0.772</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col10" class="data row0 col10" >70.8</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row0_col11" class="data row0 col11" >0.28</td>
+            </tr>
+            <tr>
+                        <th id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521level0_row1" class="row_heading level0 row1" >GimmeMotifs_4</th>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col0" class="data row1 col0" ><div title="de novo">de novo</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col1" class="data row1 col1" ><div title=""></div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col2" class="data row1 col2" ><img src="logos/GimmeMotifs_4.png" height=40/></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col3" class="data row1 col3" >48</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col4" class="data row1 col4" >105</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col5" class="data row1 col5" >5.76e-27</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col6" class="data row1 col6" >26.2</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col7" class="data row1 col7" >1.61e-26</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col8" class="data row1 col8" >0.72</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col9" class="data row1 col9" >0.174</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col10" class="data row1 col10" >9.14</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row1_col11" class="data row1 col11" >0</td>
+            </tr>
+            <tr>
+                        <th id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521level0_row2" class="row_heading level0 row2" >GimmeMotifs_2</th>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col0" class="data row2 col0" ><div title="de novo">de novo</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col1" class="data row2 col1" ><div title=""></div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col2" class="data row2 col2" ><img src="logos/GimmeMotifs_2.png" height=40/></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col3" class="data row2 col3" >59</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col4" class="data row2 col4" >108</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col5" class="data row2 col5" >2.67e-36</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col6" class="data row2 col6" >35.6</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col7" class="data row2 col7" >1.87e-35</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col8" class="data row2 col8" >0.71</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col9" class="data row2 col9" >0.182</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col10" class="data row2 col10" >10.9</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row2_col11" class="data row2 col11" >0.016</td>
+            </tr>
+            <tr>
+                        <th id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521level0_row3" class="row_heading level0 row3" >GimmeMotifs_8</th>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col0" class="data row3 col0" ><div title="de novo">de novo</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col1" class="data row3 col1" ><div title=""></div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col2" class="data row3 col2" ><img src="logos/GimmeMotifs_8.png" height=40/></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col3" class="data row3 col3" >56</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col4" class="data row3 col4" >101</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col5" class="data row3 col5" >9.85e-35</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col6" class="data row3 col6" >34</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col7" class="data row3 col7" >4.6e-34</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col8" class="data row3 col8" >0.691</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col9" class="data row3 col9" >0.164</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col10" class="data row3 col10" >11.1</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row3_col11" class="data row3 col11" >0</td>
+            </tr>
+            <tr>
+                        <th id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521level0_row4" class="row_heading level0 row4" >GimmeMotifs_5</th>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col0" class="data row4 col0" ><div title="de novo">de novo</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col1" class="data row4 col1" ><div title="E2f3,E2f2">E2f3,E2f2</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col2" class="data row4 col2" ><img src="logos/GimmeMotifs_5.png" height=40/></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col3" class="data row4 col3" >37</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col4" class="data row4 col4" >101</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col5" class="data row4 col5" >2e-18</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col6" class="data row4 col6" >17.7</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col7" class="data row4 col7" >4.67e-18</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col8" class="data row4 col8" >0.687</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col9" class="data row4 col9" >0.116</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col10" class="data row4 col10" >7.33</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row4_col11" class="data row4 col11" >0.002</td>
+            </tr>
+            <tr>
+                        <th id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521level0_row5" class="row_heading level0 row5" >GimmeMotifs_3</th>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col0" class="data row5 col0" ><div title="de novo">de novo</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col1" class="data row5 col1" ><div title=""></div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col2" class="data row5 col2" ><img src="logos/GimmeMotifs_3.png" height=40/></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col3" class="data row5 col3" >49</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col4" class="data row5 col4" >100</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col5" class="data row5 col5" >1.4e-28</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col6" class="data row5 col6" >27.9</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col7" class="data row5 col7" >4.9e-28</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col8" class="data row5 col8" >0.65</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col9" class="data row5 col9" >0.134</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col10" class="data row5 col10" >9.8</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row5_col11" class="data row5 col11" >0.018</td>
+            </tr>
+            <tr>
+                        <th id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521level0_row6" class="row_heading level0 row6" >GimmeMotifs_10</th>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col0" class="data row6 col0" ><div title="de novo">de novo</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col1" class="data row6 col1" ><div title="FOXN1">FOXN1</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col2" class="data row6 col2" ><img src="logos/GimmeMotifs_10.png" height=40/></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col3" class="data row6 col3" >21</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col4" class="data row6 col4" >113</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col5" class="data row6 col5" >1.3e-06</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col6" class="data row6 col6" >5.89</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col7" class="data row6 col7" >2.02e-06</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col8" class="data row6 col8" >0.622</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col9" class="data row6 col9" >0.077</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col10" class="data row6 col10" >3.72</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row6_col11" class="data row6 col11" >0</td>
+            </tr>
+            <tr>
+                        <th id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521level0_row7" class="row_heading level0 row7" >GimmeMotifs_6</th>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col0" class="data row7 col0" ><div title="de novo">de novo</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col1" class="data row7 col1" ><div title=""></div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col2" class="data row7 col2" ><img src="logos/GimmeMotifs_6.png" height=40/></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col3" class="data row7 col3" >22</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col4" class="data row7 col4" >100</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col5" class="data row7 col5" >5.68e-08</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col6" class="data row7 col6" >7.25</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col7" class="data row7 col7" >9.94e-08</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col8" class="data row7 col8" >0.621</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col9" class="data row7 col9" >0.096</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col10" class="data row7 col10" >4.4</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row7_col11" class="data row7 col11" >0.004</td>
+            </tr>
+            <tr>
+                        <th id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521level0_row8" class="row_heading level0 row8" >GimmeMotifs_11</th>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col0" class="data row8 col0" ><div title="de novo">de novo</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col1" class="data row8 col1" ><div title="NRF1">NRF1</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col2" class="data row8 col2" ><img src="logos/GimmeMotifs_11.png" height=40/></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col3" class="data row8 col3" >22</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col4" class="data row8 col4" >100</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col5" class="data row8 col5" >5.68e-08</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col6" class="data row8 col6" >7.25</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col7" class="data row8 col7" >9.94e-08</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col8" class="data row8 col8" >0.604</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col9" class="data row8 col9" >0.082</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col10" class="data row8 col10" >4.4</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row8_col11" class="data row8 col11" >0</td>
+            </tr>
+            <tr>
+                        <th id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521level0_row9" class="row_heading level0 row9" >GimmeMotifs_14</th>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col0" class="data row9 col0" ><div title="de novo">de novo</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col1" class="data row9 col1" ><div title="Mtf1">Mtf1</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col2" class="data row9 col2" ><img src="logos/GimmeMotifs_14.png" height=40/></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col3" class="data row9 col3" >18</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col4" class="data row9 col4" >141</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col5" class="data row9 col5" >0.000553</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col6" class="data row9 col6" >3.26</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col7" class="data row9 col7" >0.000774</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col8" class="data row9 col8" >0.562</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col9" class="data row9 col9" >0.059</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col10" class="data row9 col10" >2.55</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row9_col11" class="data row9 col11" >0</td>
+            </tr>
+            <tr>
+                        <th id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521level0_row10" class="row_heading level0 row10" >GimmeMotifs_13</th>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col0" class="data row10 col0" ><div title="de novo">de novo</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col1" class="data row10 col1" ><div title="Myf">Myf</div></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col2" class="data row10 col2" ><img src="logos/GimmeMotifs_13.png" height=40/></td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col3" class="data row10 col3" >12</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col4" class="data row10 col4" >100</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col5" class="data row10 col5" >0.00692</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col6" class="data row10 col6" >2.16</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col7" class="data row10 col7" >0.00881</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col8" class="data row10 col8" >0.556</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col9" class="data row10 col9" >0.06</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col10" class="data row10 col10" >2.4</td>
+                        <td id="T_3a8a9d6c_0c4d_11ea_8a09_1803733db521row10_col11" class="data row10 col11" >0</td>
+            </tr>
+    </tbody></table><script>/*! sortable.js 0.8.0 */
+(function(){var a,b,c,d,e,f,g;a="table[data-sortable]",d=/^(-?[£$¤]?[\d,.e\-]+%?|inf)$/,g=/^\s+|\s+$/g,c=["click"],f="ontouchstart"in document.documentElement,f&&c.push("touchstart"),b=function(a,b,c){return null!=a.addEventListener?a.addEventListener(b,c,!1):a.attachEvent("on"+b,c)},e={init:function(b){var c,d,f,g,h;for(null==b&&(b={}),null==b.selector&&(b.selector=a),d=document.querySelectorAll(b.selector),h=[],f=0,g=d.length;g>f;f++)c=d[f],h.push(e.initTable(c));return h},initTable:function(a){var b,c,d,f,g,h;if(1===(null!=(h=a.tHead)?h.rows.length:void 0)&&"true"!==a.getAttribute("data-sortable-initialized")){for(a.setAttribute("data-sortable-initialized","true"),d=a.querySelectorAll("th"),b=f=0,g=d.length;g>f;b=++f)c=d[b],"false"!==c.getAttribute("data-sortable")&&e.setupClickableTH(a,c,b);return a}},setupClickableTH:function(a,d,f){var g,h,i,j,k,l;for(i=e.getColumnType(a,f),h=function(b){var c,g,h,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D;if(b.handled===!0)return!1;for(b.handled=!0,m="true"===this.getAttribute("data-sorted"),n=this.getAttribute("data-sorted-direction"),h=m?"ascending"===n?"descending":"ascending":i.defaultSortDirection,p=this.parentNode.querySelectorAll("th"),s=0,w=p.length;w>s;s++)d=p[s],d.setAttribute("data-sorted","false"),d.removeAttribute("data-sorted-direction");if(this.setAttribute("data-sorted","true"),this.setAttribute("data-sorted-direction",h),o=a.tBodies[0],l=[],m){for(D=o.rows,v=0,z=D.length;z>v;v++)g=D[v],l.push(g);for(l.reverse(),B=0,A=l.length;A>B;B++)k=l[B],o.appendChild(k)}else{for(r=null!=i.compare?i.compare:function(a,b){return b-a},c=function(a,b){return a[0]===b[0]?a[2]-b[2]:i.reverse?r(b[0],a[0]):r(a[0],b[0])},C=o.rows,j=t=0,x=C.length;x>t;j=++t)k=C[j],q=e.getNodeValue(k.cells[f]),null!=i.comparator&&(q=i.comparator(q)),l.push([q,k,j]);for(l.sort(c),u=0,y=l.length;y>u;u++)k=l[u],o.appendChild(k[1])}return"function"==typeof window.CustomEvent&&"function"==typeof a.dispatchEvent?a.dispatchEvent(new CustomEvent("Sortable.sorted",{bubbles:!0})):void 0},l=[],j=0,k=c.length;k>j;j++)g=c[j],l.push(b(d,g,h));return l},getColumnType:function(a,b){var c,d,f,g,h,i,j,k,l,m,n;if(d=null!=(l=a.querySelectorAll("th")[b])?l.getAttribute("data-sortable-type"):void 0,null!=d)return e.typesObject[d];for(m=a.tBodies[0].rows,h=0,j=m.length;j>h;h++)for(c=m[h],f=e.getNodeValue(c.cells[b]),n=e.types,i=0,k=n.length;k>i;i++)if(g=n[i],g.match(f))return g;return e.typesObject.alpha},getNodeValue:function(a){var b;return a?(b=a.getAttribute("data-value"),null!==b?b:"undefined"!=typeof a.innerText?a.innerText.replace(g,""):a.textContent.replace(g,"")):""},setupTypes:function(a){var b,c,d,f;for(e.types=a,e.typesObject={},f=[],c=0,d=a.length;d>c;c++)b=a[c],f.push(e.typesObject[b.name]=b);return f}},e.setupTypes([{name:"numeric",defaultSortDirection:"descending",match:function(a){return a.match(d)},comparator:function(a){if(a=="inf"){return Infinity}else{return parseFloat(a.replace(/^[^0-9\-]+/g,""),10)||0}}},{name:"date",defaultSortDirection:"ascending",reverse:!0,match:function(a){return!isNaN(Date.parse(a))},comparator:function(a){return Date.parse(a)||0}},{name:"alpha",defaultSortDirection:"ascending",match:function(){return!0},compare:function(a,b){return a.localeCompare(b)}}]),setTimeout(e.init,0),"function"==typeof define&&define.amd?define(function(){return e}):"undefined"!=typeof exports?module.exports=e:window.Sortable=e}).call(this);
+</script>
+</body>
