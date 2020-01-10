@@ -45,4 +45,5 @@ flake8
 flake8-bugbear
 pre-commit
 pytest
+pytest-cov
 twine

@@ -41,4 +41,5 @@ black
 flake8
 flake8-bugbear
 pytest
+pytest-cov
 twine
