@@ -1,0 +1,99 @@
+class MotifProgram(object):
+
+    """Motif program base class."""
+
+    config = MotifConfig()
+    local_bin = None
+
+    def __init__(self):
+        pass
+
+    def bin(self):
+        """
+        Get the command used to run the tool.
+
+        Returns
+        -------
+        command : str
+            The tool system command.
+        """
+        if self.local_bin:
+            return self.local_bin
+        else:
+            return self.config.bin(self.name)
+
+    def dir(self):
+        """
+        Get the installation directory of the tool.
+
+        Returns
+        -------
+        dir : str
+            The tool directory.
+        """
+        return self.config.dir(self.name)
+
+    def is_configured(self):
+        """
+        Check if the tool is configured.
+
+        Returns
+        -------
+        is_configured : bool
+            True if the tool is configured.
+        """
+        return self.config.is_configured(self.name)
+
+    def is_installed(self):
+        """
+        Check if the tool is installed.
+
+        Returns
+        -------
+        is_installed : bool
+            True if the tool is installed.
+        """
+        return self.is_configured() and os.access(self.bin(), os.X_OK)
+
+    def run(self, fastafile, params=None, tmp=None):
+        """
+        Run the tool and predict motifs from a FASTA file.
+
+        Parameters
+        ----------
+        fastafile : str
+            Name of the FASTA input file.
+
+        params : dict, optional
+            Optional parameters. For some of the tools required parameters
+            are passed using this dictionary.
+
+        tmp : str, optional
+            Directory to use for creation of temporary files.
+
+        Returns
+        -------
+        motifs : list of Motif instances
+            The predicted motifs.
+
+        stdout : str
+            Standard out of the tool.
+
+        stderr : str
+            Standard error of the tool.
+        """
+        if not self.is_configured():
+            raise ValueError("%s is not configured" % self.name)
+
+        if not self.is_installed():
+            raise ValueError(
+                "%s is not installed or not correctly configured" % self.name
+            )
+
+        self.tmpdir = mkdtemp(prefix="{0}.".format(self.name), dir=tmp)
+        fastafile = os.path.abspath(fastafile)
+
+        try:
+            return self._run_program(self.bin(), fastafile, params)
+        except KeyboardInterrupt:
+            return ([], "Killed", "Killed")
