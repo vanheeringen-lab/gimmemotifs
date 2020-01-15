@@ -8,7 +8,7 @@ from __future__ import print_function
 
 import sys
 
-from ..utils import which
+from ..shutils import which
 from .mdmodule import MDmodule
 from .meme import Meme
 from .memew import MemeW
