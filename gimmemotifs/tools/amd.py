@@ -21,25 +21,6 @@ class Amd(MotifProgram):
         self.use_width = False
         self.default_params = {"background": None}
 
-    def _parse_params(self, params=None):
-        """
-        Parse parameters.
-
-        Combine default and user-defined parameters.
-        """
-        prm = self.default_params.copy()
-        if params is not None:
-            prm.update(params)
-
-        # Background file is essential!
-        if not prm["background"]:
-            raise ValueError("Background file needed!")
-
-        # Absolute path, just to be sure
-        prm["background"] = os.path.abspath(prm["background"])
-
-        return prm
-
     def _run_program(self, bin, fastafile, params=None):
         """
         Run AMD and predict motifs from a FASTA file.
@@ -67,7 +48,7 @@ class Amd(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
-        params = self._parse_params(params)
+        params = self._parse_params(params, need_background=True)
 
         fgfile = os.path.join(self.tmpdir, "AMD.in.fa")
         outfile = fgfile + ".Matrix"

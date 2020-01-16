@@ -14,6 +14,25 @@ class MotifProgram(object):
     def __init__(self):
         pass
 
+    def _parse_params(self, params=None, needs_background=False):
+        """
+        Parse parameters.
+
+        Combine default and user-defined parameters.
+        """
+        prm = self.default_params.copy()
+        if params is not None:
+            prm.update(params)
+
+        # Background file is essential!
+        if "background" in prm:
+            # Absolute path, just to be sure
+            prm["background"] = os.path.abspath(prm["background"])
+        elif needs_background:
+            raise ValueError("Background file needed!")
+
+        return prm
+
     def bin(self):
         """
         Get the command used to run the tool.

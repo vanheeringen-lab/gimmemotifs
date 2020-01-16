@@ -1,6 +1,5 @@
 from .motifprogram import MotifProgram
 import os
-import sys
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 
@@ -33,17 +32,7 @@ class Homer(MotifProgram):
 
         Combine default and user-defined parameters.
         """
-        prm = self.default_params.copy()
-        if params is not None:
-            prm.update(params)
-
-        # Background file is essential!
-        if not prm["background"]:
-            print("Background file needed!")
-            sys.exit()
-
-        prm["background"] = os.path.abspath(prm["background"])
-
+        prm = super()._parse_params(params, needs_background=True)
         prm["strand"] = ""
         if prm["single"]:
             prm["strand"] = " -strand + "

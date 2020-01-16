@@ -1,7 +1,6 @@
 from .motifprogram import MotifProgram
 import glob
 import os
-import sys
 import shutil
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
@@ -29,18 +28,7 @@ class Trawler(MotifProgram):
 
         Combine default and user-defined parameters.
         """
-        prm = self.default_params.copy()
-        if params is not None:
-            prm.update(params)
-
-        # Background file is essential!
-        if not prm["background"]:
-            print("Background file needed!")
-            sys.exit()
-
-        # Absolute path, just to be sure
-        prm["background"] = os.path.abspath(prm["background"])
-
+        prm = super().parse_params(params)
         prm["strand"] = "double"
         if prm["single"]:
             prm["strand"] = "single"

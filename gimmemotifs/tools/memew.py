@@ -1,6 +1,5 @@
 from .motifprogram import MotifProgram
 import io
-import os
 import re
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
@@ -20,21 +19,6 @@ class MemeW(MotifProgram):
         self.name = "MEMEW"
         self.cmd = "meme"
         self.use_width = False
-
-    def _parse_params(self, params=None):
-        """
-        Parse parameters.
-
-        Combine default and user-defined parameters.
-        """
-        prm = self.default_params.copy()
-        if params is not None:
-            prm.update(params)
-
-        # Absolute path, just to be sure
-        prm["background"] = os.path.abspath(prm["background"])
-
-        return prm
 
     def _run_program(self, bin, fastafile, params=None):
         """

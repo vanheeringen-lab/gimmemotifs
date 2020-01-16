@@ -18,21 +18,6 @@ class Dreme(MotifProgram):
         self.cmd = "dreme-py3"
         self.use_width = True
 
-    def _parse_params(self, params=None):
-        """
-        Parse parameters.
-
-        Combine default and user-defined parameters.
-        """
-        prm = self.default_params.copy()
-        if params is not None:
-            prm.update(params)
-
-        # Absolute path, just to be sure
-        prm["background"] = os.path.abspath(prm["background"])
-
-        return prm
-
     def _run_program(self, bin, fastafile, params=None):
         """
         DREME Run  and predict motifs from a FASTA file.

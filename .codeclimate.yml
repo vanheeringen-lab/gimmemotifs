@@ -36,4 +36,4 @@ exclude_patterns:
   - "docs/*"
   - "src/*"
   - "test/*"
-
+  - script/download_motif_databases.py

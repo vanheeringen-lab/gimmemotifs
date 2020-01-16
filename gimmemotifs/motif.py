@@ -1408,6 +1408,47 @@ def parse_motifs(motifs):
     return list(motifs)
 
 
+def _add_factors_from_handle(motifs, handle):
+    """Add factors to motifs.
+
+    Reads the factor-motif association from a "motif2factors.txt" file.
+    """
+    if not handle.name:
+        return motifs
+
+    base = os.path.splitext(handle.name)[0]
+    map_file = base + ".motif2factors.txt"
+    if not os.path.exists(map_file):
+        return motifs
+
+    m2f_direct = {}
+    m2f_indirect = {}
+    for line in open(map_file):
+        try:
+            motif, *factor_info = line.strip().split("\t")
+            if len(factor_info) == 1:
+                m2f_direct[motif] = factor_info[0].split(",")
+            elif len(factor_info) == 3:
+                if factor_info[2] == "Y":
+                    m2f_direct[motif] = m2f_direct.get(motif, []) + [factor_info[0]]
+                else:
+                    m2f_indirect[motif] = m2f_indirect.get(motif, []) + [factor_info[0]]
+        except Exception:
+            pass
+
+    for motif in motifs:
+        if motif.id in m2f_direct:
+            motif.factors[DIRECT_NAME] = m2f_direct[motif.id]
+        if motif.id in m2f_indirect:
+            motif.factors[INDIRECT_NAME] = m2f_indirect[motif.id]
+
+    for motif in motifs:
+        for n in [DIRECT_NAME, INDIRECT_NAME]:
+            motif.factors[n] = list(set(motif.factors[n]))
+
+    return motifs
+
+
 def _read_motifs_from_filehandle(handle, fmt):
     """
     Read motifs from a file-like object.
@@ -1443,36 +1484,7 @@ def _read_motifs_from_filehandle(handle, fmt):
     for motif in motifs:
         motif.id = motif.id.split("\t")[0]
 
-    if handle.name:
-        base = os.path.splitext(handle.name)[0]
-        map_file = base + ".motif2factors.txt"
-        if os.path.exists(map_file):
-            m2f_direct = {}
-            m2f_indirect = {}
-            for line in open(map_file):
-                try:
-                    motif, *factor_info = line.strip().split("\t")
-                    if len(factor_info) == 1:
-                        m2f_direct[motif] = factor_info[0].split(",")
-                    elif len(factor_info) == 3:
-                        if factor_info[2] == "Y":
-                            m2f_direct[motif] = m2f_direct.get(motif, []) + [
-                                factor_info[0]
-                            ]
-                        else:
-                            m2f_indirect[motif] = m2f_indirect.get(motif, []) + [
-                                factor_info[0]
-                            ]
-                except Exception:
-                    pass
-            for motif in motifs:
-                if motif.id in m2f_direct:
-                    motif.factors[DIRECT_NAME] = m2f_direct[motif.id]
-                if motif.id in m2f_indirect:
-                    motif.factors[INDIRECT_NAME] = m2f_indirect[motif.id]
-        for motif in motifs:
-            for n in [DIRECT_NAME, INDIRECT_NAME]:
-                motif.factors[n] = list(set(motif.factors[n]))
+    motifs = _add_factors_from_handle(motifs, handle)
 
     return motifs
 

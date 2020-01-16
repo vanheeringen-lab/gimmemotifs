@@ -1,7 +1,6 @@
 from .motifprogram import MotifProgram
 import os
 import re
-import sys
 from subprocess import Popen, PIPE
 
 from gimmemotifs.motif import Motif
@@ -33,18 +32,7 @@ class BioProspector(MotifProgram):
 
         Combine default and user-defined parameters.
         """
-        prm = self.default_params.copy()
-        if params is not None:
-            prm.update(params)
-
-        # Background file is essential!
-        if not prm["background"]:
-            print("Background file needed!")
-            sys.exit()
-
-        # Absolute path, just to be sure
-        prm["background"] = os.path.abspath(prm["background"])
-
+        prm = super()._parse_params(params, needs_background=True)
         prm["strand"] = 2
         if prm["single"]:
             prm["strand"] = 1

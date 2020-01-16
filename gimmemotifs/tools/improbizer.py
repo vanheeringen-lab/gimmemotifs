@@ -1,7 +1,6 @@
 from .motifprogram import MotifProgram
 import os
 import re
-import sys
 from subprocess import Popen, PIPE
 
 from gimmemotifs.motif import Motif
@@ -27,18 +26,7 @@ class Improbizer(MotifProgram):
 
         Combine default and user-defined parameters.
         """
-        prm = self.default_params.copy()
-        if params is not None:
-            prm.update(params)
-
-        # Not strictly necessary, but recommended
-        if not params["background"]:
-            print("Background file needed!")
-            sys.exit()
-
-        # Absolute path, just to be sure
-        prm["background"] = os.path.abspath(prm["background"])
-
+        prm = super()._parse_params(params, need_background=True)
         prm["outfile"] = os.path.join(self.tmpdir, "improbizer.out.html")
         return prm
 

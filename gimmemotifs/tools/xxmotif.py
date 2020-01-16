@@ -31,13 +31,10 @@ class XXmotif(MotifProgram):
 
         Combine default and user-defined parameters.
         """
-        prm = self.default_params.copy()
-        if params is not None:
-            prm.update(params)
+        prm = super()._parse_params(params)
 
         if prm["background"]:
             # Absolute path, just to be sure
-            prm["background"] = os.path.abspath(prm["background"])
             prm["background"] = " --negSet {0} ".format(prm["background"])
 
         prm["strand"] = ""

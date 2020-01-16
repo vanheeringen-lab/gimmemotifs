@@ -25,16 +25,7 @@ class ProSampler(MotifProgram):
 
         Combine default and user-defined parameters.
         """
-        prm = self.default_params.copy()
-        if params is not None:
-            prm.update(params)
-
-        if prm["background"]:
-            # Absolute path, just to be sure
-            prm["background"] = os.path.abspath(prm["background"])
-        else:
-            raise ValueError("ProSampler needs a background file.")
-
+        prm = super()._parse_params(params, needs_background=True)
         prm["strand"] = " -p 2 "
         if prm["single"]:
             prm["strand"] = " -p 1 "

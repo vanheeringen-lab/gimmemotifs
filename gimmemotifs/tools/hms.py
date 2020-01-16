@@ -21,21 +21,6 @@ class Hms(MotifProgram):
         self.use_width = True
         self.default_params = {"background": None}
 
-    def _parse_params(self, params=None):
-        """
-        Parse parameters.
-
-        Combine default and user-defined parameters.
-        """
-        prm = self.default_params.copy()
-        if params is not None:
-            prm.update(params)
-
-        # Absolute path, just to be sure
-        prm["background"] = os.path.abspath(prm["background"])
-
-        return prm
-
     def _prepare_files(self, fastafile):
 
         hmsdir = self.dir()

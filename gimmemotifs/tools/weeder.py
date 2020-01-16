@@ -23,21 +23,6 @@ class Weeder(MotifProgram):
         self.use_width = False
         self.default_params = {"organism": "hg19", "single": False}
 
-    def _parse_params(self, params=None):
-        """
-        Parse parameters.
-
-        Combine default and user-defined parameters.
-        """
-        prm = self.default_params.copy()
-        if params is not None:
-            prm.update(params)
-
-        # Absolute path, just to be sure
-        prm["background"] = os.path.abspath(prm["background"])
-
-        return prm
-
     def _run_program(self, bin, fastafile, params=None):
         """
         Run Weeder and predict motifs from a FASTA file.

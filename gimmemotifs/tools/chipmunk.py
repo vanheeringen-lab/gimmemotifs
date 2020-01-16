@@ -20,18 +20,6 @@ class ChIPMunk(MotifProgram):
         self.use_width = True
         self.default_params = {}
 
-    def _parse_params(self, params=None):
-        """
-        Parse parameters.
-
-        Combine default and user-defined parameters.
-        """
-        prm = self.default_params.copy()
-        if params is not None:
-            prm.update(params)
-
-        return prm
-
     def _run_program(self, bin, fastafile, params=None):
         """
         Run ChIPMunk and predict motifs from a FASTA file.
