@@ -17,7 +17,6 @@ import mmap
 import random
 import six
 import tempfile
-from math import log
 import requests
 from subprocess import Popen
 from tempfile import NamedTemporaryFile
