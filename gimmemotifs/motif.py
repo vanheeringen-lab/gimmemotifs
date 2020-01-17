@@ -281,7 +281,7 @@ class Motif(object):
         m = "%s\t%s\t%s\n" % ("DE", self.id, "unknown")
         for i, (row, cons) in enumerate(zip(self.pfm, self.to_consensus())):
             m += "%i\t%s\t%s\n" % (i, "\t".join([str(int(x)) for x in row]), cons)
-        m += "XX"
+        m += "XX\n//"
         return m
 
     def to_meme(self):

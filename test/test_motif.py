@@ -1,9 +1,9 @@
 from __future__ import print_function
+from io import StringIO
 import unittest
-import tempfile
 import os
 import numpy as np
-from gimmemotifs.motif import *
+from gimmemotifs.motif import Motif, read_motifs
 from gimmemotifs.shutils import which
 
 
@@ -104,7 +104,7 @@ class TestMotif(unittest.TestCase):
         self.assertEqual(s2, m._pwm_to_str(precision=2))
         self.assertEqual(s3, m._pwm_to_str(precision=3))
 
-    def test8_pwm_to_str(self):
+    def test8_pwm_to_str_hash(self):
         pwm = [[0.01, 0.01, 0.01, 0.97], [0.123, 0.456, 0.222, 0.199]]
         m = Motif(pwm)
         h = "1f260320cac8c26a"
@@ -139,6 +139,58 @@ class TestMotif(unittest.TestCase):
         motifs = read_motifs(self.pwm2, fmt="pwm", as_dict=True)
         self.assertEqual(5, len(motifs))
         self.assertEqual(type({}), type(motifs))
+
+    def test11_slice_motif(self):
+        pfm = [
+            [120, 0, 0, 0],
+            [120, 0, 0, 0],
+            [0, 60, 60, 0],
+            [0, 0, 0, 120],
+            [0, 0, 0, 120],
+        ]
+
+        m = Motif(pfm)
+        m.to_consensus()
+
+        # take slice
+        m2 = m[1:-1]
+
+        self.assertEqual("AST", m2.consensus.upper())
+        self.assertEqual(pfm[1:-1], m2.pfm)
+
+    def test_motif_export_import(self):
+        pfm = [
+            [120, 0, 0, 0],
+            [120, 0, 0, 0],
+            [0, 60, 60, 0],
+            [0, 0, 0, 120],
+            [0, 0, 0, 120],
+        ]
+        motif = Motif(pfm)
+        motif.id = "test_motif"
+
+        f = StringIO(motif.to_transfac())
+        motif_from_file = read_motifs(f, fmt="transfac")[0]
+        self.assertEqual("AASTT", motif_from_file.to_consensus().upper())
+        self.assertEqual("test_motif", motif_from_file.id)
+
+        f = StringIO(motif.to_meme())
+        motif_from_file = read_motifs(f, fmt="meme")[0]
+        self.assertEqual("AASTT", motif_from_file.to_consensus().upper())
+        self.assertEqual("test_motif", motif_from_file.id)
+
+    def test_motif_from_alignment(self):
+        align = "AACTT\n" "AAGTA\n" "AACTC\n" "AAGTG\n"
+        f = StringIO(align)
+        motif = read_motifs(f, fmt="align")[0]
+
+        self.assertEqual("AASTN", motif.to_consensus().upper())
+
+    def test_motif_to_motevo(self):
+        pass  # to_motevo()
+
+    def test_read_motifs_xxmotifs(self):
+        pass  # read_motifs_xxmotif
 
     def tearDown(self):
         pass
