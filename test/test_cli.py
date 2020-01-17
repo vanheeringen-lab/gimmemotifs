@@ -38,20 +38,19 @@ def test_gimme_maelstrom():
         assert 1 == 1
 
 
-@pytest.mark.skipif(travis, reason="Skip CPU-intensive tests")
 @pytest.mark.parametrize(
     "arguments",
     [
         ["-c", "0.8"],
-        ["-t", "-g", "hg38"],
+        ["-t", "-g", "test/data/genomes/hg38sample/hg38sample.fa"],
         ["-T"],
-        ["-b", "-g" "hg38"],
-        ["-z", "--gc", "-g", "hg38"],
+        ["-b", "-g" "test/data/genomes/hg38sample/hg38sample.fa"],
+        ["-z", "--gc", "-g", "test/data/genomes/hg38sample/hg38sample.fa"],
     ],
 )
 def test_gimme_scan(arguments):
     cli(
-        ["scan", "test/data/pwmscan/promoters.fa", "-p", "test/data/pwmscan/TATA.pwm"]
+        ["scan", "test/data/pwmscan/10promoters.fa", "-p", "test/data/pwmscan/TATA.pwm"]
         + arguments
     )
 
