@@ -179,15 +179,17 @@ class TestMotif(unittest.TestCase):
         self.assertEqual("AASTT", motif_from_file.to_consensus().upper())
         self.assertEqual("test_motif", motif_from_file.id)
 
+        f = StringIO(motif.to_motevo())
+        motif_from_file = read_motifs(f, fmt="meme")[0]
+        self.assertEqual("AASTT", motif_from_file.to_consensus().upper())
+        self.assertEqual("test_motif", motif_from_file.id)
+
     def test_motif_from_alignment(self):
         align = "AACTT\n" "AAGTA\n" "AACTC\n" "AAGTG\n"
         f = StringIO(align)
         motif = read_motifs(f, fmt="align")[0]
 
         self.assertEqual("AASTN", motif.to_consensus().upper())
-
-    def test_motif_to_motevo(self):
-        pass  # to_motevo()
 
     def test_read_motifs_xxmotifs(self):
         pass  # read_motifs_xxmotif
