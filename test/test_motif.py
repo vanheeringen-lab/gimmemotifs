@@ -192,7 +192,12 @@ class TestMotif(unittest.TestCase):
         self.assertEqual("AASTN", motif.to_consensus().upper())
 
     def test_read_motifs_xxmotifs(self):
-        pass  # read_motifs_xxmotif
+        fname = "test/data/motifprogram/xxmotif.pwm"
+        motifs = read_motifs(fname, fmt="xxmotif")
+
+        self.assertEqual(4, len(motifs))
+        self.assertEqual(9, len(motifs[-1]))
+        self.assertEqual("RGGCAWGYC", motifs[-1].to_consensus().upper())
 
     def tearDown(self):
         pass
