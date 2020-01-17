@@ -1697,10 +1697,11 @@ def _read_motifs_transfac(handle):
             motif_id = m.group(2)
             motif_id = re.sub(r"\s+", "_", motif_id)
         elif line.startswith("//"):
-            motifs.append(Motif(pwm))
-            motifs[-1].id = motif_id
-            if metadata is not None:
-                motifs[-1].metadata = metadata
+            if len(pwm) != 0:
+                motifs.append(Motif(pwm))
+                motifs[-1].id = motif_id
+                if metadata is not None:
+                    motifs[-1].metadata = metadata
             pwm = []
         elif p.search(line):
             m = p.search(line)
@@ -1723,39 +1724,3 @@ def motifs_to_meme(motifs):
     for motif in motifs:
         m += motif.to_meme() + "\n"
     return m
-
-
-def alignfile_to_motifs(fname):
-    # this method should be deleted
-    msg = "alignfile_to_motifs is deprecated, please use read_motifs"
-    warn(msg, DeprecationWarning)
-
-    return read_motifs(open(fname), fmt="align")
-
-
-def pfmfile_to_motifs(fname):
-    # this method should be deleted
-    msg = "pfmfile_to_motifs is deprecated, please use read_motifs"
-    warn(msg, DeprecationWarning)
-
-    return read_motifs(open(fname), fmt="pwm")
-
-
-def transfac_to_motifs(fname):
-    # this method should be deleted
-    msg = "transfac_to_motifs is deprecated, please use read_motifs"
-    warn(msg, DeprecationWarning)
-
-    return read_motifs(open(fname), fmt="transfac")
-
-
-def xxmotif_to_motifs(fname):
-    # this method should be deleted
-    msg = "xxmotif_to_motifs is deprecated, please use read_motifs"
-    warn(msg, DeprecationWarning)
-
-    return read_motifs(open(fname), fmt="xxmotif")
-
-
-if __name__ == "__main__":
-    m = Motif()
