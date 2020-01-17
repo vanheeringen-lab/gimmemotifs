@@ -77,7 +77,7 @@ class ProSampler(MotifProgram):
         stderr += err.decode()
 
         motifs, stdout, stderr = self._read_and_label_motifs(
-            self, outfile, stdout, stderr, fmt="meme"
+            outfile, stdout, stderr, fmt="meme"
         )
 
         return motifs, stdout, stderr

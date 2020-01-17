@@ -91,7 +91,7 @@ class XXmotif(MotifProgram):
         stderr += err.decode()
 
         motifs, stdout, stderr = self._read_and_label_motifs(
-            self, outfile, stdout, stderr, fmt="xxmotif"
+            outfile, stdout, stderr, fmt="xxmotif"
         )
 
         return motifs, stdout, stderr
