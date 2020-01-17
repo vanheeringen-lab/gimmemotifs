@@ -26,7 +26,7 @@ class Improbizer(MotifProgram):
 
         Combine default and user-defined parameters.
         """
-        prm = super()._parse_params(params, need_background=True)
+        prm = super()._parse_params(params, needs_background=True)
         prm["outfile"] = os.path.join(self.tmpdir, "improbizer.out.html")
         return prm
 

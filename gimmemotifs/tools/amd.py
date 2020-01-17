@@ -48,7 +48,7 @@ class Amd(MotifProgram):
         stderr : str
             Standard error of the tool.
         """
-        params = self._parse_params(params, need_background=True)
+        params = self._parse_params(params, needs_background=True)
 
         fgfile = os.path.join(self.tmpdir, "AMD.in.fa")
         outfile = fgfile + ".Matrix"
