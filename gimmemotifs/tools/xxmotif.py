@@ -2,8 +2,6 @@ from .motifprogram import MotifProgram
 import os
 from subprocess import Popen, PIPE
 
-from gimmemotifs.motif import read_motifs
-
 
 class XXmotif(MotifProgram):
 
@@ -92,14 +90,8 @@ class XXmotif(MotifProgram):
         stdout += out.decode()
         stderr += err.decode()
 
-        motifs = []
-
-        if os.path.exists(outfile):
-            motifs = read_motifs(outfile, fmt="xxmotif")
-            for m in motifs:
-                m.id = "{0}_{1}".format(self.name, m.id)
-        else:
-            stdout += "\nMotif file {0} not found!\n".format(outfile)
-            stderr += "\nMotif file {0} not found!\n".format(outfile)
+        motifs, stdout, stderr = self._read_and_label_motifs(
+            self, outfile, stdout, stderr, fmt="xxmotif"
+        )
 
         return motifs, stdout, stderr

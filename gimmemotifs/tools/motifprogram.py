@@ -2,6 +2,7 @@ import os
 from tempfile import mkdtemp
 
 from gimmemotifs.config import MotifConfig
+from gimmemotifs.motif import read_motifs
 
 
 class MotifProgram(object):
@@ -10,9 +11,6 @@ class MotifProgram(object):
 
     config = MotifConfig()
     local_bin = None
-
-    def __init__(self):
-        pass
 
     def _parse_params(self, params=None, needs_background=False):
         """
@@ -32,6 +30,18 @@ class MotifProgram(object):
             raise ValueError("Background file needed!")
 
         return prm
+
+    def _read_and_label_motifs(self, outfile, stdout, stderr, fmt="meme"):
+        """Read output motifs and label with program name"""
+        if not os.path.exists(outfile):
+            stdout += "\nMotif file {0} not found!\n".format(outfile)
+            stderr += "\nMotif file {0} not found!\n".format(outfile)
+            return [], stdout, stderr
+
+        motifs = read_motifs(outfile, fmt="meme")
+        for m in motifs:
+            m.id = "{0}_{1}".format(self.name, m.id)
+        return motifs, stdout, stderr
 
     def bin(self):
         """
