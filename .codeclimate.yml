@@ -15,6 +15,9 @@ checks:
     enabled: false
     config:
       threshold: 250
+  method-complexity:
+    config:
+      threshold: 15
 
 exclude_patterns:
   - ".*"
