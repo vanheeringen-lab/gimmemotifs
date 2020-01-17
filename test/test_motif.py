@@ -180,7 +180,7 @@ class TestMotif(unittest.TestCase):
         self.assertEqual("test_motif", motif_from_file.id)
 
         f = StringIO(motif.to_motevo())
-        motif_from_file = read_motifs(f, fmt="meme")[0]
+        motif_from_file = read_motifs(f, fmt="transfac")[0]
         self.assertEqual("AASTT", motif_from_file.to_consensus().upper())
         self.assertEqual("test_motif", motif_from_file.id)
 
