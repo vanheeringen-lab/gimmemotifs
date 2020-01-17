@@ -293,6 +293,8 @@ class Motif(object):
             String of motif in MEME format.
         """
         motif_id = self.id.replace(" ", "_")
+        if motif_id == "":
+            motif_id = "unnamed"
         m = "MOTIF %s\n" % motif_id
         m += "BL   MOTIF %s width=0 seqs=0\n" % motif_id
         m += "letter-probability matrix: alength= 4 w= %s nsites= %s E= 0\n" % (
@@ -1413,7 +1415,7 @@ def _add_factors_from_handle(motifs, handle):
 
     Reads the factor-motif association from a "motif2factors.txt" file.
     """
-    if not handle.name:
+    if not (hasattr(handle, "name") and handle.name):
         return motifs
 
     base = os.path.splitext(handle.name)[0]
