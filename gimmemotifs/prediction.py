@@ -263,11 +263,13 @@ def pp_predict_motifs(
     )
 
     # Dynamically load all tools
+
     toolio = [
         x[1]()
         for x in inspect.getmembers(
             tool_classes,
-            lambda x: inspect.isclass(x) and issubclass(x, tool_classes.MotifProgram),
+            lambda x: inspect.isclass(x)
+            and issubclass(x, tool_classes.motifprogram.MotifProgram),
         )
         if x[0] != "MotifProgram"
     ]

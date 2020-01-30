@@ -1,4 +1,5 @@
 bedtools
+configparser
 diskcache
 feather-format
 future
@@ -26,7 +27,7 @@ seaborn
 six
 sklearn-contrib-lightning
 statsmodels
-tqdm
+tqdm >=4.27.0
 trawler
 ucsc-bigbedtobed
 ucsc-genepredtobed
@@ -40,4 +41,5 @@ black
 flake8
 flake8-bugbear
 pytest
+pytest-cov
 twine

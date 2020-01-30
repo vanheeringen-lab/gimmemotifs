@@ -1,0 +1,43 @@
+version: "2"
+
+plugins:
+  duplication:
+    enabled: true
+    config:
+      count_threshold: 3
+
+checks:
+  argument-count:
+    enabled: false
+    config:
+      threshold: 4
+  file-lines:
+    enabled: false
+    config:
+      threshold: 250
+  method-complexity:
+    config:
+      threshold: 15
+
+exclude_patterns:
+  - ".*"
+  - "*.md"
+  - "*.yml"
+  - "*.yaml"
+  - "*.cff"
+  - "*.txt"
+  - "*.cfg"
+  - "*.py"
+  - "COPYING"
+  - "INSTALL"
+  - "MANIFEST.in"
+  - "**/__*"
+  - "**/*.c"
+  - "**/*.ccp"
+  - "binder/*"
+  - "data/*"
+  - "docs/*"
+  - "src/*"
+  - "test/*"
+  - "script/download_motif_databases.py"
+  - "gimmemotifs/_version.py"
