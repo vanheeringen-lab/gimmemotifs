@@ -91,17 +91,25 @@ class MotifConfig(object):
                 cfg = self.config.read(self.configs)
             if not cfg:
                 raise ValueError("Configuration file not found," "could not create it!")
-    
+
         self._upgrade_config()
 
     def _upgrade_config(self, config_fname=None):
         if "width" in self.config["params"]:
-            if not "size" in self.config["params"]:
-                self.config.set(option="size", section="params", value=self.config["params"]["width"])
+            if "size" not in self.config["params"]:
+                self.config.set(
+                    option="size",
+                    section="params",
+                    value=self.config["params"]["width"],
+                )
             del self.config["params"]["width"]
         if "lwidth" in self.config["params"]:
-            if not "lsize" in self.config["params"]:
-                self.config.set(option="lsize", section="params", value=self.config["params"]["lwidth"])
+            if "lsize" not in self.config["params"]:
+                self.config.set(
+                    option="lsize",
+                    section="params",
+                    value=self.config["params"]["lwidth"],
+                )
             del self.config["params"]["lwidth"]
 
         if config_fname is None or not config_fname:
@@ -181,7 +189,7 @@ class MotifConfig(object):
         d = dict(self.config.items("params"))
         for k in ["use_strand", "use_cache"]:
             d[k] = self.config.getboolean("params", k)
-        
+
         if "size" not in d:
             d["size"] = d["width"]
         return d
