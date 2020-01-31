@@ -3,11 +3,6 @@
 Tutorials
 =========
 
-.. toctree::
-    :maxdepth: 2
-
-    tutorials
-
 While GimmeMotifs was originally developed to predict *de novo* motifs in ChIP-seq peaks, it is now a full-fledged suite of TF motif analysis tools. 
 You can still identify new motifs, but also scan for known motifs, find differential motifs in multiple sets of sequences, create sequence logos, calculate all kinds of enrichment statistics, and more!
 
@@ -76,13 +71,13 @@ For a UCSC genome, this is just a matter of running ``genomepy``.
 This will take some time. 
 The genome sequence will be downloaded and indexed, ready for use with GimmeMotifs.
 
-Having both an index genome and an input file, we can run ``gimme motifs``.
+Having both a genome and an input file, we can run ``gimme motifs``.
 
 :: 
 
     $ gimme motifs Gm12878.CTCF.top500.narrowPeak gimme.CTCF -g hg19 --denovo
 
-Once again, this will take some time. By specifying the `--denovo` flag, we will
+Once again, this will take some time. By specifying the ``--denovo`` flag, we will
 only look for *de novo* motifs. If this flag is not used, the sequences will also be
 scanned with known motifs.
 When ``gimme motifs``  is finished you can view the results in a web browser. 
@@ -106,7 +101,7 @@ Let's evaluate known motifs for one of the example files, ``TAp73alpha.fa``.
 
     $ gimme motifs TAp73alpha.fa TAp73alpha.motifs --known -g hg19
 
-You can also specify other motif files with the ``-p`` argument, for instance ``-p my_motifs.pfm``, ``-p HOMER`` or ``-p JASPAR2020_vertebrates``. The command will create an output directory with several output files and two directories. One contain the motif logos and the other the motif scan results.
+You can also specify other motif files with the ``-p`` argument, for instance ``-p my_motifs.pfm``, ``-p HOMER`` or ``-p JASPAR2020_vertebrates``. The command will create an output directory with several output files and two directories. One contains the motif logos and the other the motif scan results.
 
 :: 
 
