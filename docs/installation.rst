@@ -247,7 +247,6 @@ have a look at the options.
 
     [main]
     template_dir = /usr/share/gimmemotifs/templates
-    seqlogo = /usr/local/bin/seqlogo
     score_dir = /usr/share/gimmemotifs/score_dists
     motif_databases = /usr/share/gimmemotifs/motif_databases
     gene_dir = /usr/share/gimmemotifs/genes
@@ -255,8 +254,6 @@ have a look at the options.
 
 -  ``template_dir`` The location of the jinja2 html templates, used to
    generate the reports.
-
--  ``seqlogo`` The seqlogo executable.
 
 -  ``score_dir`` To generate p-values, a pre-calculated file with mean
    and sd of score distributions is needed. These are located here.

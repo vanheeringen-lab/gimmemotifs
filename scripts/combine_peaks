@@ -13,6 +13,63 @@ import seaborn as sns
 from sklearn.preprocessing import scale
 from pybedtools import BedTool
 
+from gimmemotifs.utils import determine_file_type
+
+
+def read_peak_file_to_df(fname):
+    """
+    Read a MACS2 summits.bed or narrowPeak file and return a DataFrame.
+
+    Parameters
+    ----------
+    fname : str
+        Filename.
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame with summits.
+    """
+    summit_header = ["chrom", "start", "end", "name", "value"]
+    ftype = determine_file_type(fname)
+    # Read MACS2 summit files
+    if ftype == "narrowpeak":
+        header = [
+            "chrom",
+            "start",
+            "end",
+            "name",
+            "value",
+            "strand",
+            "signalValue",
+            "pval",
+            "qval",
+            "peak",
+        ]
+        df = pd.read_table(fname, names=header)
+
+        # get the summit
+        df["start"] = df["start"].astype(int) + df["peak"].astype(int)
+        df["end"] = df["start"] + 1
+
+        # qva
+        df["value"] = df["qval"]
+        df = df[summit_header]
+    elif ftype == "bed":
+        df = pd.read_table(fname, names=summit_header)
+        if ((df["end"] - df["start"]) != 1).sum() != 0:
+            raise ValueError(f"{fname} does not contain summits.")
+    else:
+        raise ValueError(
+            f"Can't determine file type of {fname}. "
+            "Is the file a narrowPeak or summits.bed file?"
+        )
+
+    df["experiment"] = df.loc[0, "name"].replace("_peak_1", "")
+    df["log_value"] = np.log1p(df["value"])
+    df["log_value_scaled"] = scale(df[["log_value"]])
+    return df
+
 
 def combine_peaks(peaks, genome, window, scale_value):
     """
@@ -45,15 +102,7 @@ def combine_peaks(peaks, genome, window, scale_value):
     except Exception:
         pass
 
-    # Read MACS2 summit files
-    header = ["chrom", "start", "end", "name", "value"]
-    dfs = [pd.read_table(f, names=header) for f in peaks]
-
-    # Combine in one DataFrame
-    for i, df in enumerate(dfs):
-        df["experiment"] = df.loc[0, "name"].replace("_peak_1", "")
-        df["log_value"] = np.log1p(df["value"])
-        df["log_value_scaled"] = scale(df[["log_value"]])
+    dfs = [read_peak_file_to_df(fname) for fname in peaks]
     df_all = pd.concat(dfs)
 
     # Plot
@@ -64,6 +113,7 @@ def combine_peaks(peaks, genome, window, scale_value):
     if scale_value:
         check_col = "log_value_scaled"
 
+    # store summit location + associated value in col4
     df_all["col4"] = (
         df_all["chrom"]
         + ";"
@@ -80,8 +130,10 @@ def combine_peaks(peaks, genome, window, scale_value):
 
     b = BedTool(tmp)
     all_summits = []
+    # loop over merged peaks based on window size and collapse on col4 (summit + value)
     for f in b.slop(b=window // 2, g=genome).merge(c=4, o="collapse"):
         summits = [x.split(";") for x in f[3].split(",")]
+        # only keep the highest summit
         all_summits.append(sorted(summits, key=lambda x: float(x[3]))[-1][:3])
 
     df = pd.DataFrame(all_summits, columns=["chrom", "start", "end"])
@@ -103,8 +155,8 @@ if __name__ == "__main__":
         "--input",
         dest="peaks",
         required=True,
-        help="MACS2 summit files",
-        metavar="SUMMITS",
+        help="MACS2 summit or narrowPeak files",
+        metavar="FNAME",
         nargs="*",
     )
     parser.add_argument(

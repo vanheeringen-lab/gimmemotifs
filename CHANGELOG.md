@@ -7,6 +7,49 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+### Removed
+
+### Changed
+
+### Fixed
+
+
+## [0.14.2] - 2020-01-31
+
+Bugfix release
+
+### Added
+
+- The `combine_peaks` script now supports `.narrowPeak` files.
+
+### Removed
+
+- Removed seqlogo dependency.
+- Removed obsolete code.
+
+### Changed
+
+- Refactored the `tools` section.
+
+### Fixed
+
+- Configuration issue with `size` instead of `width` (#103).
+- Updated `tqdm` requirement (#98).
+
+
+## [0.14.1] - 2019-12-19
+
+Bugfix release
+
+### Fixed
+
+- Fix function for locating a pwm/pfm motif database.
+- Added configparser dependency
+
+## [0.14.0] - 2019-12-05
+
+### Added
+
 - The `gimme motifs` command supports new *de novo* motif prediction tools: DREME, ProSampler, YAMDA, DiNAMO and RPMCMC.
 - A set of non-redundant motifs is selected using recursive feature elimination for `gimme motifs`.
 - Motif scan results for non-redundant motifs are now included in the output.

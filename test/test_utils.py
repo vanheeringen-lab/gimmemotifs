@@ -96,6 +96,36 @@ class TestUtils(unittest.TestCase):
             ftype = os.path.basename(fname).split(".")[0]
             self.assertEqual(ftype, determine_file_type(fname))
 
+    def test_number_of_seqs_in_file(self):
+        fnames = [
+            "test/data/utils/test.fa",
+            "test/data/utils/test.bed",
+        ]
+
+        for fname in fnames:
+            self.assertEqual(3, number_of_seqs_in_file(fname))
+
+    def test_median_bed_len(self):
+        fname = "test/data/utils/test.narrowPeak"
+
+        self.assertAlmostEqual(204.5, median_bed_len(fname))
+
+    def test_check_genome(self):
+        fname = "test/data/genome_index/test.bed"
+        self.assertFalse(check_genome(fname))
+        fname = "test/data/genome_index/genome/genome.fa"
+        self.assertTrue(check_genome(fname))
+
+    # narrowpeak_to_bed
+
+    # get_jaspar_motif_info
+
+    # divide_file
+
+    # write_equalsize_bedfile
+
+    # median_bed_len
+
     def tearDown(self):
         pass
 

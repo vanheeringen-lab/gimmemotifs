@@ -3,11 +3,6 @@
 Tutorials
 =========
 
-.. toctree::
-    :maxdepth: 2
-
-    tutorials
-
 While GimmeMotifs was originally developed to predict *de novo* motifs in ChIP-seq peaks, it is now a full-fledged suite of TF motif analysis tools. 
 You can still identify new motifs, but also scan for known motifs, find differential motifs in multiple sets of sequences, create sequence logos, calculate all kinds of enrichment statistics, and more!
 
@@ -75,7 +70,7 @@ For a UCSC genome, this is just a matter of running ``genomepy``.
 This will take some time. 
 The genome sequence will be downloaded and indexed, ready for use with GimmeMotifs.
 
-Having both an index genome and an input file, we can run ``gimme motifs``.
+Having both a genome and an input file, we can run ``gimme motifs``.
 
 :: 
 
@@ -106,7 +101,7 @@ Let's evaluate known motifs for one of the example files, ``TAp73alpha.fa``.
 
     $ gimme motifs TAp73alpha.fa TAp73alpha.motifs --known -g hg19
 
-You can also specify other motif files with the ``-p`` argument, for instance ``-p my_motifs.pfm``, ``-p HOMER`` or ``-p JASPAR2020_vertebrates``. The command will create an output directory with several output files and two directories. One contain the motif logos and the other the motif scan results.
+You can also specify other motif files with the ``-p`` argument, for instance ``-p my_motifs.pfm``, ``-p HOMER`` or ``-p JASPAR2020_vertebrates``. The command will create an output directory with several output files and two directories. One contains the motif logos and the other the motif scan results.
 
 :: 
 

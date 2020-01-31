@@ -281,7 +281,7 @@ class Motif(object):
         m = "%s\t%s\t%s\n" % ("DE", self.id, "unknown")
         for i, (row, cons) in enumerate(zip(self.pfm, self.to_consensus())):
             m += "%i\t%s\t%s\n" % (i, "\t".join([str(int(x)) for x in row]), cons)
-        m += "XX"
+        m += "XX\n//"
         return m
 
     def to_meme(self):
@@ -293,6 +293,8 @@ class Motif(object):
             String of motif in MEME format.
         """
         motif_id = self.id.replace(" ", "_")
+        if motif_id == "":
+            motif_id = "unnamed"
         m = "MOTIF %s\n" % motif_id
         m += "BL   MOTIF %s width=0 seqs=0\n" % motif_id
         m += "letter-probability matrix: alength= 4 w= %s nsites= %s E= 0\n" % (
@@ -1408,6 +1410,47 @@ def parse_motifs(motifs):
     return list(motifs)
 
 
+def _add_factors_from_handle(motifs, handle):
+    """Add factors to motifs.
+
+    Reads the factor-motif association from a "motif2factors.txt" file.
+    """
+    if not (hasattr(handle, "name") and handle.name):
+        return motifs
+
+    base = os.path.splitext(handle.name)[0]
+    map_file = base + ".motif2factors.txt"
+    if not os.path.exists(map_file):
+        return motifs
+
+    m2f_direct = {}
+    m2f_indirect = {}
+    for line in open(map_file):
+        try:
+            motif, *factor_info = line.strip().split("\t")
+            if len(factor_info) == 1:
+                m2f_direct[motif] = factor_info[0].split(",")
+            elif len(factor_info) == 3:
+                if factor_info[2] == "Y":
+                    m2f_direct[motif] = m2f_direct.get(motif, []) + [factor_info[0]]
+                else:
+                    m2f_indirect[motif] = m2f_indirect.get(motif, []) + [factor_info[0]]
+        except Exception:
+            pass
+
+    for motif in motifs:
+        if motif.id in m2f_direct:
+            motif.factors[DIRECT_NAME] = m2f_direct[motif.id]
+        if motif.id in m2f_indirect:
+            motif.factors[INDIRECT_NAME] = m2f_indirect[motif.id]
+
+    for motif in motifs:
+        for n in [DIRECT_NAME, INDIRECT_NAME]:
+            motif.factors[n] = list(set(motif.factors[n]))
+
+    return motifs
+
+
 def _read_motifs_from_filehandle(handle, fmt):
     """
     Read motifs from a file-like object.
@@ -1443,36 +1486,7 @@ def _read_motifs_from_filehandle(handle, fmt):
     for motif in motifs:
         motif.id = motif.id.split("\t")[0]
 
-    if handle.name:
-        base = os.path.splitext(handle.name)[0]
-        map_file = base + ".motif2factors.txt"
-        if os.path.exists(map_file):
-            m2f_direct = {}
-            m2f_indirect = {}
-            for line in open(map_file):
-                try:
-                    motif, *factor_info = line.strip().split("\t")
-                    if len(factor_info) == 1:
-                        m2f_direct[motif] = factor_info[0].split(",")
-                    elif len(factor_info) == 3:
-                        if factor_info[2] == "Y":
-                            m2f_direct[motif] = m2f_direct.get(motif, []) + [
-                                factor_info[0]
-                            ]
-                        else:
-                            m2f_indirect[motif] = m2f_indirect.get(motif, []) + [
-                                factor_info[0]
-                            ]
-                except Exception:
-                    pass
-            for motif in motifs:
-                if motif.id in m2f_direct:
-                    motif.factors[DIRECT_NAME] = m2f_direct[motif.id]
-                if motif.id in m2f_indirect:
-                    motif.factors[INDIRECT_NAME] = m2f_indirect[motif.id]
-        for motif in motifs:
-            for n in [DIRECT_NAME, INDIRECT_NAME]:
-                motif.factors[n] = list(set(motif.factors[n]))
+    motifs = _add_factors_from_handle(motifs, handle)
 
     return motifs
 
@@ -1683,10 +1697,11 @@ def _read_motifs_transfac(handle):
             motif_id = m.group(2)
             motif_id = re.sub(r"\s+", "_", motif_id)
         elif line.startswith("//"):
-            motifs.append(Motif(pwm))
-            motifs[-1].id = motif_id
-            if metadata is not None:
-                motifs[-1].metadata = metadata
+            if len(pwm) != 0:
+                motifs.append(Motif(pwm))
+                motifs[-1].id = motif_id
+                if metadata is not None:
+                    motifs[-1].metadata = metadata
             pwm = []
         elif p.search(line):
             m = p.search(line)
@@ -1709,39 +1724,3 @@ def motifs_to_meme(motifs):
     for motif in motifs:
         m += motif.to_meme() + "\n"
     return m
-
-
-def alignfile_to_motifs(fname):
-    # this method should be deleted
-    msg = "alignfile_to_motifs is deprecated, please use read_motifs"
-    warn(msg, DeprecationWarning)
-
-    return read_motifs(open(fname), fmt="align")
-
-
-def pfmfile_to_motifs(fname):
-    # this method should be deleted
-    msg = "pfmfile_to_motifs is deprecated, please use read_motifs"
-    warn(msg, DeprecationWarning)
-
-    return read_motifs(open(fname), fmt="pwm")
-
-
-def transfac_to_motifs(fname):
-    # this method should be deleted
-    msg = "transfac_to_motifs is deprecated, please use read_motifs"
-    warn(msg, DeprecationWarning)
-
-    return read_motifs(open(fname), fmt="transfac")
-
-
-def xxmotif_to_motifs(fname):
-    # this method should be deleted
-    msg = "xxmotif_to_motifs is deprecated, please use read_motifs"
-    warn(msg, DeprecationWarning)
-
-    return read_motifs(open(fname), fmt="xxmotif")
-
-
-if __name__ == "__main__":
-    m = Motif()
