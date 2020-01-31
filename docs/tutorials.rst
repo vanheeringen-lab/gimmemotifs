@@ -19,12 +19,11 @@ And activate it!
     
     $ source activate gimme
 
-To locate the example files mentioned in the tutorial, locate the ``examples/`` directory of your GimmeMotifs installation. When using conda:
-
+To locate the example files mentioned in the tutorial, locate the ``examples/`` directory of your GimmeMotifs installation. 
 ::
 
-    $  echo `conda info | grep default | awk '{print $4}'`/share/gimmemotifs/examples
-    /home/simon/anaconda3/share/gimmemotifs/examples
+    $  python -c 'import pkg_resources; print(pkg_resources.resource_filename("gimmemotifs", "../data/examples/"))'
+    /home/simon/anaconda3/envs/gimme/lib/python3.6/site-packages/gimmemotifs-0.13.1-py3.6-linux-x86_64.egg/gimmemotifs/../data/examples/
 
 
 Alternatively, the example data is also available from figshare_ and you can download it from there.
@@ -83,9 +82,10 @@ scanned with known motifs.
 When ``gimme motifs``  is finished you can view the results in a web browser. 
 `gimme.CTCF/gimme.denovo.html`_ should look a lot like this.
 This is what an almost perfect motif looks like, with a ROC AUC close to 1.0.
+In this case we run `gimme motifs` with a `narrowPeak` file as input. Other options are FASTA or BED files, or text files with region specified as `chr:start-end`.
 The ``gimme motifs`` command also selects a minimal set of motifs that best explain 
-the data using recursive feature elimination. This file is called 
-`gimme.motifs.html <gimme.CTCF/gimme.motifs.html>`_.
+the data using recursive feature elimination. 
+You can find these in the file called `gimme.motifs.html <gimme.CTCF/gimme.motifs.html>`_.
 
 .. _`gimme.CTCF/gimme.denovo.html`: gimme.CTCF/gimme.denovo.html
 .. _`narrowPeak`: https://genome.ucsc.edu/FAQ/FAQformat.html#format12
