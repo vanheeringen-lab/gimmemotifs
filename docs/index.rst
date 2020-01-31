@@ -12,6 +12,9 @@ In addition, all this functionality is available from a Python API.
 GimmeMotifs is free and open source research software. 
 If you find it useful please cite our paper:
 
+-  Bruse N and van Heeringen SJ, **GimmeMotifs: an analysis framework for transcription factor motif analysis**,
+   bioRxiv, 2018. https://www.biorxiv.org/content/10.1101/474403v1.full. `doi: 10.1101/474403 <https://doi.org/10.1101/474403>`_. 
+
 -  van Heeringen SJ and Veenstra GJC, **GimmeMotifs: a de novo motif
    prediction pipeline for ChIP-sequencing experiments**,
    Bioinformatics. 2011 Jan 15;27(2):270-1. `doi: 10.1093/bioinformatics/btq636

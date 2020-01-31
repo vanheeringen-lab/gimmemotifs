@@ -1,0 +1,18 @@
+# JASPAR2020_urochordates motif database
+# Retrieved from:
+#     * http://jaspar.genereg.net/download/CORE/JASPAR2020_CORE_urochordates_non-redundant_pfms_transfac.txt
+#     * http://jaspar.genereg.net/download/collections/JASPAR2020_UNVALIDATED_urochordates_pfms_transfac.txt
+# Note: this file also contains the unvalidated motifs from JASPAR.
+#       These have not been confirmed by orthogonal evidence and have 
+#       a motif id that starts with UN.
+# Date: 2019-10-18
+>MA0118.1_Macho-1
+0.1191	0.3571	0.1429	0.3809
+0.2143	0.0476	0.5476	0.1905
+0.0000	0.0000	0.9999	0.0000
+0.0000	0.0000	0.9999	0.0000
+0.0714	0.0953	0.5476	0.2857
+0.0000	0.0000	0.9999	0.0000
+0.1191	0.1667	0.3571	0.3571
+0.1191	0.3333	0.0953	0.4524
+0.3095	0.3333	0.2381	0.1191

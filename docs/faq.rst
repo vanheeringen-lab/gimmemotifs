@@ -3,6 +3,20 @@
 FAQ
 ===
 
+
+'i' format requires -2147483648 <= number <= -2147483646
+-------------------------------------------------------
+
+If you get the following error with `gimme maelstrom`:
+
+```
+'i' format requires -2147483648 <= number <= -2147483646
+```
+
+this means that you should decrease the amount of input sequences. 
+It is a bug that should be solved with a newer version of Python. However, it might be bestg anyway to use a limited
+set of sequences (< ~100k) as input.
+
 Sorry, motif prediction tool [X] is not supported
 -------------------------------------------------
 
