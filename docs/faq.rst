@@ -3,6 +3,20 @@
 FAQ
 ===
 
+ImportError: dlopen: cannot load any more object with static TLS
+----------------------------------------------------------------
+
+This is `a bug <https://github.com/pytorch/pytorch/issues/2575#issuecomment-523667875>`_
+that will occur on Ubuntu 16.04 (Trusty). 
+The recommended solution is to upgrade Ubuntu as Trusty is no longer supported. 
+However, if you are unable to do so, there is a workaround.
+Run the following command:
+
+::
+
+    $ export LD_PRELOAD=$CONDA_PREFIX/lib/libgomp.so
+
+Now you should be able to run `gimme` as normal.
 
 'i' format requires -2147483648 <= number <= -2147483646
 -------------------------------------------------------
