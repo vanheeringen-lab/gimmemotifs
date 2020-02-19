@@ -253,13 +253,13 @@ def create_denovo_motif_report(
     )
 
 
-def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=2):
+def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=4):
     df = pd.read_table(infile, index_col=0)
     df = df[np.any(abs(df) >= threshold, 1)]
 
     motifs = read_motifs(pfmfile)
 
-    del df.index.name
+    df.rename_axis(None, inplace=True)
     cols = df.columns
 
     motifs = read_motifs(pfmfile)
