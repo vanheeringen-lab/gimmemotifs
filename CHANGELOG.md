@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## Unreleased
 
 ### Added
 
@@ -13,6 +13,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+## [0.14.3] - 2020-02-19
+
+### Fixed
+
+- Fixed 'AttributeError: can't delete attribute' in `gimme maelstrom` and `gimme motifs` (#108, #109).
 
 ## [0.14.2] - 2020-01-31
 
