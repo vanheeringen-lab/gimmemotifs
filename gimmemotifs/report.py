@@ -352,7 +352,7 @@ def roc_html_report(
     link_matches=False,
 ):
     df = pd.read_table(infile, index_col=0)
-    del df.index.name
+    df.rename_axis(None, inplace=True)
     df["corrected P-value"] = multipletests(df["P-value"], method="fdr_bh")[1]
 
     cols = [
