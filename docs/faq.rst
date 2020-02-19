@@ -3,6 +3,27 @@
 FAQ
 ===
 
+SQLite error when running on a cluster
+--------------------------------------
+
+The current implementation of the cache that GimmeMotifs uses does not play nice with concurrent access, for instance on
+ a cluster. The result is that the cache will get corrupted and that GimmeMotifs will fail. Until this is fixed, there i
+s a workaround. In your job submission script, use something like the following:
+
+::
+
+    NEW_CACHE=$TMPDIR/cache
+    mkdir -p $NEW_CACHE
+    if [ -z $XDG_CACHE_HOME ]; then
+        XDG_CACHE_HOME=$HOME/.cache
+    fi
+    cp -r $XDG_CACHE_HOME/gimmemotifs $NEW_CACHE/
+    export XDG_CACHE_HOME=$NEW_CACHE
+    echo 'Using $XDG_CACHE_HOME for cache'
+
+This will use a local directory to store the cache.
+
+
 ImportError: dlopen: cannot load any more object with static TLS
 ----------------------------------------------------------------
 
