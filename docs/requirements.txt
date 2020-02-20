@@ -1,10 +1,16 @@
 sphinx_bootstrap_theme
 configparser
+diskcache
+feather-format
 xdg
 numpydoc
+pillow
 jinja2
 pyyaml >= 3.10
-diskcache
 xxhash
 six
 future
+sklearn-contrib-lightning
+statsmodels
+tqdm
+xgboost >=0.71
