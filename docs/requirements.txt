@@ -10,7 +10,6 @@ pyyaml >= 3.10
 xxhash
 six
 future
-sklearn-contrib-lightning
 statsmodels
 tqdm
 xgboost >=0.71
