@@ -423,7 +423,6 @@ def roc_html_report(
         "log10 P-value",
         "ROC AUC",
         "PR AUC",
-        "MNCP",
         "Enr. at 1% FPR",
         "Recall at 10% FDR",
     ]
