@@ -13,4 +13,4 @@ future
 statsmodels
 tqdm
 xgboost >=0.71
-sklearn-contrib-lightning=0.4.0
+sklearn-contrib-lightning==0.4.0
