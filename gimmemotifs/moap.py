@@ -213,16 +213,6 @@ class Moap(object):
 register_predictor = Moap.register_predictor
 
 
-def br_fit(X, y):
-    model = BayesianRidge()
-    model.fit(X, y)
-    return model.coef_
-
-
-def br_fit_star(args):
-    return br_fit(*args)
-
-
 @register_predictor("BayesianRidge")
 class BayesianRidgeMoap(Moap):
     def __init__(self, scale=True, ncpus=None):
@@ -273,19 +263,12 @@ class BayesianRidgeMoap(Moap):
 
         X = df_X.loc[y.index]
 
+        model = BayesianRidge()
         logger.debug("Fitting model")
-        pool = Pool(self.ncpus)
-
-        coefs = [
-            x
-            for x in tqdm(
-                pool.imap(
-                    br_fit_star,
-                    izip(itertools.repeat(X), [y[col] for col in y.columns]),
-                ),
-                total=len(y.columns),
-            )
-        ]
+        coefs = []
+        for col in tqdm(y.columns, total=len(y.columns)):
+            model.fit(X, y[col])
+            coefs.append(model.coef_)
         logger.info("Done")
 
         self.act_ = pd.DataFrame(coefs, columns=X.columns, index=y.columns).T
