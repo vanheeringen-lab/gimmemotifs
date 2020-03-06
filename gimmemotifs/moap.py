@@ -24,9 +24,7 @@ try:
     from itertools import izip
 except ImportError:
     izip = zip
-import itertools
 import logging
-from multiprocessing import Pool
 
 import pandas as pd
 import numpy as np
