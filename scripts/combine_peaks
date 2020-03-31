@@ -47,6 +47,7 @@ def read_peak_file_to_df(fname):
             "peak",
         ]
         df = pd.read_table(fname, names=header)
+        df["chrom"] = df["chrom"].astype(str)
 
         # get the summit
         df["start"] = df["start"].astype(int) + df["peak"].astype(int)
