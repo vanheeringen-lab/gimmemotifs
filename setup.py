@@ -134,7 +134,7 @@ setup(
         "configparser",
         "six",
         "future",
-        "genomepy",
+        "genomepy >= 0.7.2",
         "tqdm",
         "pillow",
         "logomaker",
