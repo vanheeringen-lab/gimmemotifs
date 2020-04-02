@@ -622,6 +622,7 @@ class Scanner(object):
         if not self.background:
             self.set_background(gc=gc)
 
+        self.meanstd = {}
         seqs = self.background.seqs
         if gc:
             seq_bins = [s.split(" ")[-1] for s in self.background.ids]
@@ -906,6 +907,7 @@ class Scanner(object):
             else:
                 raise ValueError("Motif mean and std not initialized")
         else:
+            logger.warn(self.meanstd)
             for b in sorted(self.gc_bins, key=lambda x: x[0], reverse=True):
                 bstr = "{:.2f}-{:.2f}".format(b[0], b[1])
                 if bstr in self.meanstd:
@@ -922,7 +924,7 @@ class Scanner(object):
                             bstr
                         )
                     )
-                    self.meanstd[bstr] = v
+                    self.meanstd[bstr]= v
 
             return self.meanstd[gc_bin][motif]
 
@@ -942,8 +944,12 @@ class Scanner(object):
         it = self._scan_sequences(seqs.seqs, nreport, scan_rc)
 
         if zscore:
-            if len(self.meanstd) == 0:
-                self.set_meanstd(gc=gc)
+            if gc:
+                if len(self.meanstd) <= 1:
+                    self.set_meanstd(gc=gc)
+            else:
+                if len(self.meanstd) != 1:
+                    self.set_meanstd(gc=gc)
 
         gc_seqs = [self.get_seq_bin(seq) for seq in seqs.seqs]
 
