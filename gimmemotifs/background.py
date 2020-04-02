@@ -323,7 +323,7 @@ def create_gc_bin_index(genome, fname, min_bin_size=100):
     logger.info("Creating index for genomic GC frequencies.")
     g = Genome(genome)
     fasta = g.filename
-    sizes = g.filename + ".sizes"#props["sizes"]["sizes"]
+    sizes = g.filename + ".sizes"  # props["sizes"]["sizes"]
 
     with NamedTemporaryFile() as tmp:
         # pylint: disable=unexpected-keyword-arg
