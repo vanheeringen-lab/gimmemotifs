@@ -902,31 +902,30 @@ class Scanner(object):
 
     def get_motif_mean_std(self, gc_bin, motif):
         if gc_bin in self.meanstd:
-            if motif in self.meanstd[gc_bin]:
-                return self.meanstd[gc_bin][motif]
-            else:
+            if motif not in self.meanstd[gc_bin]:
                 raise ValueError("Motif mean and std not initialized")
         else:
-            logger.warn(self.meanstd)
-            for b in sorted(self.gc_bins, key=lambda x: x[0], reverse=True):
+            logger.warn(
+                "GC% {} not present in genome, setting to closest GC% bin".format(
+                    gc_bin
+                )
+            )
+            # Ideally this should not happen. If we get here, this means that
+            # a sequence has a GC% that does not occur in the genome. This
+            # can happen during tests with small genome, or when a sequence
+            # is scanned that does not originate from the genome.
+            # We use the closest GC% bin from the genome instead.
+            valid_bins = []
+            for b in self.gc_bins:
                 bstr = "{:.2f}-{:.2f}".format(b[0], b[1])
                 if bstr in self.meanstd:
-                    v = self.meanstd[bstr]
-                break
+                    valid_bins.append(((b[0] + b[1]) / 2, bstr))
 
-            for b in sorted(self.gc_bins, key=lambda x: x[0], reverse=True):
-                bstr = "{:.2f}-{:.2f}".format(b[0], b[1])
-                if bstr in self.meanstd:
-                    v = self.meanstd[bstr]
-                else:
-                    logger.warn(
-                        "GC% {} not present in genome, setting to closest GC% bin".format(
-                            bstr
-                        )
-                    )
-                    self.meanstd[bstr]= v
-
-            return self.meanstd[gc_bin][motif]
+            v = float(gc_bin.split("-")[1])
+            _, bstr = sorted(valid_bins, key=lambda x: abs(x[0] - v))[0]
+            logger.warn(f"Using {bstr}")
+            self.meanstd[gc_bin] = self.meanstd[bstr]
+        return self.meanstd[gc_bin][motif]
 
     def scan(self, seqs, nreport=100, scan_rc=True, zscore=False, gc=False):
         """
