@@ -330,7 +330,18 @@ def create_gc_bin_index(genome, fname, min_bin_size=100):
         pybedtools.BedTool().window_maker(g=sizes, w=min_bin_size).nucleotide_content(
             fi=fasta
         ).saveas(tmp.name)
-        df = pd.read_csv(tmp.name, sep="\t", usecols=[0, 1, 2, 4, 9])
+        df = pd.read_csv(
+            tmp.name,
+            sep="\t",
+            usecols=[0, 1, 2, 4, 9],
+            dtype={
+                "#1_usercol": "string",
+                "2_usercol": np.int64,
+                "3_usercol": np.int64,
+                "5_pct_gc": np.float32,
+                "10_num_N": np.int8,
+            },
+        )
 
     cols = [
         "chrom",
