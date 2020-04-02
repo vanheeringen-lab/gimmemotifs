@@ -13,6 +13,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+## [0.14.4] - 2020-04-02
+
+### Fixed
+
 - Fixed "TypeError: an integer is required (got type str)" when creating GC index.
 - Fixed `combine_peaks` with Ensembl chromosome names (thanks @JGAsmits). 
 - Fixed bug with pandas>=1.0.
