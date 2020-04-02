@@ -24,7 +24,7 @@ from gimmemotifs import mytmpdir
 # Matplotlib imports
 import matplotlib as mpl
 
-mpl.use("Agg", warn=False)
+mpl.use("Agg")
 
 sns.set_style("white")
 
