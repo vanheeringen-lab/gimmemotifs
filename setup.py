@@ -119,7 +119,7 @@ setup(
         "scipy >= 0.9.0",
         "matplotlib >= 2",
         "jinja2",
-        "pandas >= 1.03",
+        "pandas >= 1.0.3",
         "pyyaml >= 3.10",
         "pybedtools",
         "statsmodels",
