@@ -360,6 +360,11 @@ def create_gc_bin_index(genome, fname, min_bin_size=100):
         cols += ["w{}".format(min_bin_size * t), "n{}".format(min_bin_size * t)]
 
     df.columns = cols
+
+    # Make really sure that column 'chrom' is a string
+    df.dropna(subset=["chrom"], inplace=True)
+    df["chrom"] = df["chrom"].apply(str).astype("string")
+
     df.reset_index()[cols].to_feather(fname)
 
 
