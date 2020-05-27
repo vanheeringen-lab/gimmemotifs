@@ -669,11 +669,14 @@ def gimme_motifs(
         sorted_motifs = sorted(motifs, key=lambda x: rank[str(x)], reverse=True)
         final_motifs, stats = rename_motifs(sorted_motifs, result.stats)
 
-    with open(os.path.join(outdir, "gimme.denovo.pfm"), "w") as f:
-        for m in final_motifs:
-            f.write("{}\n".format(m.to_pwm()))
+    motifs_found = len(final_motifs) > 0
 
-    if create_report:
+    if motifs_found:
+        with open(os.path.join(outdir, "gimme.denovo.pfm"), "w") as f:
+            for m in final_motifs:
+                f.write("{}\n".format(m.to_pwm()))
+
+    if motifs_found and create_report:
         bg = dict([(b, os.path.join(tmpdir, "bg.{}.fa".format(b))) for b in background])
 
         create_denovo_motif_report(
@@ -700,7 +703,7 @@ def gimme_motifs(
 
     logger.info("finished")
     logger.info("output dir: %s", outdir)
-    if cluster:
+    if motifs_found and cluster:
         logger.info("de novo report: %s", os.path.join(outdir, "gimme.denovo.html"))
 
     return final_motifs
