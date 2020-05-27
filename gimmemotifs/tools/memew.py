@@ -57,6 +57,7 @@ class MemeW(MotifProgram):
         number = default_params["number"]
 
         cmd = [
+            "OMPI_MCA_plm_rsh_agent=sh",
             bin,
             fastafile,
             "-text",
