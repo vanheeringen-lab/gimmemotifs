@@ -15,7 +15,6 @@ import hashlib
 import logging
 import mmap
 import random
-import six
 import tempfile
 import requests
 from subprocess import Popen
@@ -88,7 +87,7 @@ def pfmfile_location(infile):
                 "database specified in the config file."
             )
 
-    if isinstance(infile, six.string_types):
+    if isinstance(infile, str):
         if not os.path.exists(infile):
             motif_dir = config.get_motif_dir()
             checkfile = os.path.join(motif_dir, infile)

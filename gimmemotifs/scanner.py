@@ -5,7 +5,6 @@ from functools import partial
 from tempfile import mkdtemp, NamedTemporaryFile
 import logging
 import multiprocessing as mp
-import six
 
 # "hidden" features, in development
 try:
@@ -341,7 +340,7 @@ def scan_to_best_match(
     if genome:
         s.set_genome(genome)
 
-    if isinstance(motifs, six.string_types):
+    if isinstance(motifs, str):
         motifs = read_motifs(motifs)
 
     logger.debug("scanning %s...", fname)

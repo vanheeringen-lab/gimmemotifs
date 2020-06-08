@@ -11,7 +11,6 @@ import sys
 import random
 from math import log, sqrt
 from warnings import warn
-import six
 
 from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 from gimmemotifs.c_metrics import pfmscan
@@ -1393,7 +1392,7 @@ def parse_motifs(motifs):
     motifs : list
         List of Motif instances.
     """
-    if isinstance(motifs, six.string_types):
+    if isinstance(motifs, str):
         with open(motifs) as f:
             if motifs.endswith("pwm") or motifs.endswith("pfm"):
                 motifs = read_motifs(f, fmt="pwm")
@@ -1518,7 +1517,7 @@ def read_motifs(infile=None, fmt="pfm", as_dict=False):
     if fmt == "pwm":
         fmt = "pfm"
 
-    if infile is None or isinstance(infile, six.string_types):
+    if infile is None or isinstance(infile, str):
         infile = pfmfile_location(infile)
         with open(infile) as f:
             motifs = _read_motifs_from_filehandle(f, fmt)
