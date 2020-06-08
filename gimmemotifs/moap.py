@@ -17,7 +17,6 @@ warnings.filterwarnings("ignore", message="sklearn.externals.joblib is deprecate
 
 import os
 import sys
-import shutil
 
 try:
     from itertools import izip
@@ -32,8 +31,8 @@ from statsmodels.sandbox.stats.multicomp import multipletests
 from tqdm.auto import tqdm
 
 # scikit-learn
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.linear_model import MultiTaskLasso, BayesianRidge
 from sklearn.preprocessing import scale, LabelEncoder
