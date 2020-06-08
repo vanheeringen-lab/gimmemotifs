@@ -1,5 +1,6 @@
 from .motifprogram import MotifProgram
 import io
+import os
 import re
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
@@ -58,7 +59,6 @@ class Meme(MotifProgram):
         number = default_params["number"]
 
         cmd = [
-            "OMPI_MCA_plm_rsh_agent=sh",  # Fix to run in Docker
             bin,
             fastafile,
             "-text",
@@ -76,8 +76,11 @@ class Meme(MotifProgram):
         if not default_params["single"]:
             cmd.append(strand)
 
-        # sys.stderr.write(" ".join(cmd) + "\n")
-        p = Popen(cmd, bufsize=1, stderr=PIPE, stdout=PIPE)
+        # Fix to run in Docker
+        env = os.environ.copy()
+        env["OMPI_MCA_plm_rsh_agent"] = "sh"
+
+        p = Popen(cmd, bufsize=1, stderr=PIPE, stdout=PIPE, env=env)
         stdout, stderr = p.communicate()
 
         motifs = []
