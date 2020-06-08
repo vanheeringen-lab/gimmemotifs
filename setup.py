@@ -124,7 +124,6 @@ setup(
         "pybedtools",
         "statsmodels",
         "scikit-learn",
-        "sklearn-contrib-lightning",
         "seaborn",
         "pysam",
         "xgboost >= 0.71",

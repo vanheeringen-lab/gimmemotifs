@@ -10,7 +10,6 @@ pyyaml >= 3.10
 pybedtools
 statsmodels
 scikit-learn
-sklearn-contrib-lightning
 seaborn
 pysam
 xgboost
