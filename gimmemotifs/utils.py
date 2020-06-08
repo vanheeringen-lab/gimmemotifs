@@ -5,8 +5,6 @@
 # distribution.
 
 """ Odds and ends that for which I didn't (yet) find another place """
-from __future__ import print_function
-
 # Python imports
 import os
 import re

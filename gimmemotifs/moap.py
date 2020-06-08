@@ -4,7 +4,6 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """ Module for motif activity prediction """
-from __future__ import print_function
 
 
 def warn(*args, **kwargs):

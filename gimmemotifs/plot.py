@@ -4,7 +4,6 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """ Various plotting functions """
-from __future__ import print_function
 from PIL import Image
 import seaborn as sns
 from mpl_toolkits.axes_grid1 import ImageGrid

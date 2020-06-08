@@ -16,6 +16,4 @@ pysam
 xgboost
 diskcache
 xxhash
-six
-future
 pillow

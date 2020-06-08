@@ -132,8 +132,6 @@ setup(
         "diskcache",
         "xxhash",
         "configparser",
-        "six",
-        "future",
         "genomepy >= 0.7.2",
         "tqdm",
         "pillow",

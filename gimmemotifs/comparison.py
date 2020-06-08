@@ -6,8 +6,6 @@
 """
 Module to compare DNA sequence motifs (positional frequency matrices)
 """
-from __future__ import print_function
-
 # Python imports
 import sys
 import os

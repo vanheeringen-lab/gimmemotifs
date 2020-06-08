@@ -11,8 +11,6 @@ Markov model and MatchedGenomicFasta, which generates a background with a
 similar genomic distribution as the input.
 
 """
-from __future__ import division
-
 # Python imports
 import gzip
 import os
