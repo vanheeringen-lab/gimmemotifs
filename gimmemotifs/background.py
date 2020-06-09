@@ -249,15 +249,17 @@ class MarkovFasta(Fasta):
         for _i in range(k - 1):
             new_init = []
             for x in init:
-                for l in alphabet:
-                    new_init.append(x + l)
+                for letter in alphabet:
+                    new_init.append(x + letter)
             init = new_init[:]
 
-        self.trans = dict([(word, dict([(l, 0.0) for l in alphabet])) for word in init])
+        self.trans = dict(
+            [(word, dict([(letter, 0.0) for letter in alphabet])) for word in init]
+        )
         new_init = []
         for x in init:
-            for l in alphabet:
-                new_init.append(x + l)
+            for letter in alphabet:
+                new_init.append(x + letter)
 
         kmercount = dict([(word, 0) for word in new_init])
         lettercount = dict([(word[:k], 0) for word in new_init])
@@ -284,9 +286,9 @@ class MarkovFasta(Fasta):
         for k, v in lettercount.items():
             self.init[k] = v / total
 
-    def _generate_sequence(self, l):
+    def _generate_sequence(self, length):
         sequence = list(self._weighted_random(list(self.init.items())))
-        for _ in range(l - self.k):
+        for _ in range(length - self.k):
             sequence.append(
                 self._weighted_random(
                     list(self.trans["".join(sequence[-self.k :])].items())
@@ -294,10 +296,10 @@ class MarkovFasta(Fasta):
             )
         return "".join(sequence)
 
-    def _weighted_random(self, l):
+    def _weighted_random(self, weighted_list):
         n = random.uniform(0, 1)
         item = None
-        for item, weight in l:  # noqa: B007
+        for item, weight in weighted_list:  # noqa: B007
             if n < weight:
                 break
             else:

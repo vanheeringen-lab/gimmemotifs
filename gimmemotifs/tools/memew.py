@@ -2,7 +2,6 @@ from .motifprogram import MotifProgram
 import io
 import os
 import re
-import sys
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 

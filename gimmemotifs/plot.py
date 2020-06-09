@@ -354,7 +354,7 @@ def _get_motif_tree(tree, data, circle=True, vmin=None, vmax=None):
     m = 25 / data.values.max()
 
     for node in t.traverse("levelorder"):
-        val = data[[l.name for l in node.get_leaves()]].values.mean()
+        val = data[[leaf.name for leaf in node.get_leaves()]].values.mean()
         style = NodeStyle()
         style["size"] = 0
 

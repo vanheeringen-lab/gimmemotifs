@@ -888,12 +888,14 @@ class MotifComparer(object):
         f = open(score_file, "w")
 
         all_scores = {}
-        for l in [len(motif) for motif in motifs]:
-            all_scores[l] = {}
+        for motif_len in [len(motif) for motif in motifs]:
+            all_scores[motif_len] = {}
 
         sorted_motifs = {}
-        for l in all_scores.keys():
-            sorted_motifs[l] = [motif for motif in motifs if len(motif) == l]
+        for motif_len in all_scores.keys():
+            sorted_motifs[motif_len] = [
+                motif for motif in motifs if len(motif) == motif_len
+            ]
 
         for l1 in all_scores.keys():
             for l2 in all_scores.keys():

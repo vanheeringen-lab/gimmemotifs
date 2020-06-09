@@ -536,11 +536,11 @@ def file_checksum(fname):
     return checksum
 
 
-def join_max(a, l, sep="", suffix=""):
+def join_max(a, length, sep="", suffix=""):
     lengths = [len(x) for x in a]
     total = 0
     for i, size in enumerate(lengths + [0]):
-        if total > (l - len(suffix)):
+        if total > (length - len(suffix)):
             return sep.join(a[: i - 1]) + suffix
         if i > 0:
             total += 1

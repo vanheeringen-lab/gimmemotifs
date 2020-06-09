@@ -151,7 +151,7 @@ def motifs(args):
     delete_sample = False
     if ftype == "narrowpeak":
         f = NamedTemporaryFile(delete=False)
-        logger.debug("Using %s as temporary BED file".format(f.name))
+        logger.debug("Using {} as temporary BED file".format(f.name))
         narrowpeak_to_bed(args.sample, f.name, size=args.size)
         sample = f.name
         delete_sample = True
