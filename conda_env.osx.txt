@@ -31,7 +31,7 @@ ucsc-bigbedtobed
 ucsc-genepredtobed
 weeder
 xdg
-xgboost >=0.71
+py-xgboost=0.90
 xxmotif
 
 # development-specific
