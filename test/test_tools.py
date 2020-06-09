@@ -35,6 +35,7 @@ def test_tool(tool_name):
         "trawler",  # unpredictable, sometimes doesn't find the motif
         "weeder",  # doesn't work at the moment
         "posmo",  # motif doesn't predictably look like AP1
+        "dreme",  # current dreme in bioconda is broken
     ]:
         return
 
