@@ -3,7 +3,7 @@ configparser
 diskcache
 feather-format
 gadem
-genomepy >=0.6.1
+genomepy >=0.8.3
 ghostscript
 homer
 jinja2
@@ -21,7 +21,7 @@ pysam
 python
 python-xxhash
 pyyaml >=3.10
-scikit-learn >=0.23
+scikit-learn
 scipy
 seaborn
 statsmodels
