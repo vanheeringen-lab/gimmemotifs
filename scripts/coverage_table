@@ -32,6 +32,7 @@ def make_table(
     topmethod="var",
     rmdup=True,
     rmrepeats=True,
+    ncpus=12
 ):
     for x in datafiles:
         if not os.path.isfile(x):
@@ -49,7 +50,7 @@ def make_table(
     data = {}
     try:
         # Load data in parallel
-        pool = multiprocessing.Pool(processes=12)
+        pool = multiprocessing.Pool(processes=ncpus)
         jobs = []
         for datafile in datafiles:
             jobs.append(
@@ -196,7 +197,14 @@ if __name__ == "__main__":
         action="store_false",
         default=True,
     )
-
+    parser.add_argument(
+        "--nthreads",
+        dest="ncpus",
+        help="Number of threads",
+        metavar="INT",
+        type=int,
+        default=12,
+    )
     args = parser.parse_args()
     peakfile = args.peakfile
     datafiles = args.datafiles
@@ -210,6 +218,7 @@ if __name__ == "__main__":
         topmethod=args.topmethod,
         rmdup=args.rmdup,
         rmrepeats=args.rmrepeats,
+        ncpus=args.ncpus
     )
 
 yesno = {True: "yes", False: "no"}
