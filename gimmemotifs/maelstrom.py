@@ -440,7 +440,9 @@ def run_maelstrom(
             for col in cols[::-1]:
                 df_p.insert(0, f"correlation {col}", 0)
                 for motif in df_p.index:
-                    df_p.loc[motif, f"correlation {col}"] = pearsonr(df[col], scores[motif])[0]
+                    df_p.loc[motif, f"correlation {col}"] = pearsonr(
+                        df[col], scores[motif]
+                    )[0]
 
         # Add percentage of input sequences with motif
         df_p.insert(0, "% with motif", counts[df_p.index].sum(0) / df.shape[0] * 100)
@@ -541,7 +543,7 @@ class MaelstromResult:
         figsize=None,
         max_len=50,
         aspect=1,
-        **kwargs
+        **kwargs,
     ):
         """Plot clustered heatmap of predicted motif activity.
 
