@@ -32,7 +32,7 @@ class TestMoap(unittest.TestCase):
         )
         df = pd.read_table(self.outfile, index_col=0, comment="#")
         print(df.shape)
-        self.assertEquals((623, 4), df.shape)
+        self.assertEquals((623, 5), df.shape)
 
         for fname in glob(os.path.join(self.outdir, "activity*")):
             os.unlink(fname)
