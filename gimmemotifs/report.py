@@ -52,6 +52,10 @@ def _wrap_html_str(x):
 
 
 class ExtraStyler(Styler):
+    """
+    Extra styles for a DataFrame or Series based on pandas.styler using HTML and CSS.
+    """
+
     loader = jinja2.ChoiceLoader(
         [jinja2.FileSystemLoader(MotifConfig().get_template_dir()), Styler.loader]
     )
@@ -82,6 +86,27 @@ class ExtraStyler(Styler):
         self._font = font_name
 
     def set_font(self, font_name):
+        """
+        Set the font that will be used.
+        
+        Parameters
+        ----------
+        font_name : str
+            Should be a font name available though the Google Font API.
+        
+        Returns
+        -------
+        self : ExtraStyler
+        
+        Notes
+        -----
+        ``font_name`` can contain spaces, eg. "Nunito Sans".
+        
+        Examples
+        --------
+        >>> df = pd.DataFrame(np.random.randn(4, 2), columns=['a', 'b'])
+        >>> ExtraStyler(df).font("Roboto)  
+        """
         self.font = font_name
         return self
 
@@ -205,12 +230,57 @@ class ExtraStyler(Styler):
     def _border(self, idx, location="left"):
         return [f"border-{location}: 2px solid #444;" for val in idx]
 
-    def border(self, subset=None, location="left", part="data"):
+    def border(
+        self,
+        subset=None,
+        location="bottom",
+        part="data",
+        width="2px",
+        style="solid",
+        color="#444",
+    ):
+        """
+        Add a border to data cells, columns or index.
+
+        Parameters
+        ----------
+        subset : IndexSlice, optional
+            An argument to ``DataFrame.loc`` that restricts which elements
+            ``border`` is applied to. If ``part`` is "columns" or "index"
+            subset should be present in either the columns or the index.
+        
+        location : str, optional
+            Location of the border, default is "bottom". Can be "top", "bottom",
+            "right" or "left".
+
+        part : str, optional
+            If ``part`` is "data", the border will be applied to the data cells.
+            Set part to "index" or to "column" to add a border to the index or 
+            header, respectively.
+
+        width : str, int or float, optional
+            Valid CSS value for border width.
+
+        style : str,  optional
+            Valid CSS value for border style.
+
+        color : str,  optional
+            Valid CSS value for border color.
+
+        Returns
+        -------
+        self : ExtraStyler
+        
+        Examples
+        --------
+        >>> df = pd.DataFrame(np.random.randn(4, 2), columns=['a', 'b'])
+        >>> ExtraStyler(df).border(part="columns)
+        """
         if part == "data":
             self.apply(self._border, subset=subset, location=location)
         else:
             self.col_heading_style["props"].append(
-                (f"border-{location}", "2px solid #444")
+                (f"border-{location}", f"{width} {style} {color}")
             )
         return self
 
@@ -218,6 +288,24 @@ class ExtraStyler(Styler):
         return ["text-align:center;" for val in idx]
 
     def center_align(self, subset=None, axis=0):
+        """
+        Center align text.
+
+        Parameters
+        ----------
+        subset : IndexSlice, optional
+            An argument to ``DataFrame.loc`` that restricts which elements
+            ``center_align`` is applied to. 
+
+        axis : {0 or 'index', 1 or 'columns', None}, default 0
+            Apply to each column (``axis=0`` or ``'index'``), to each row
+            (``axis=1`` or ``'columns'``), or to the entire DataFrame at once
+            with ``axis=None``.
+        
+        Returns
+        -------
+        self : ExtraStyler
+        """
         self.apply(self._center_align, subset=subset, axis=axis)
         return self
 
@@ -686,8 +774,6 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=4):
     # Add factors that can bind to the motif
     df.insert(0, "factors", motif_to_factor_series(df.index, pfmfile=pfmfile))
 
-    df["% with motif"] = df["% with motif"].astype(int)
-
     rename_columns = {"factors": FACTOR_TOOLTIP}
 
     df_styled = (
@@ -695,21 +781,37 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=4):
         .set_precision(2)
         .convert_to_image(subset=["logo"], height=30,)
         .scaled_background_gradient(
-            subset=corr_cols, cmap="PuOr_r", center_zero=True, scale_factor=1.75
-        )
-        .scaled_background_gradient(
             subset=value_cols, center_zero=True, scale_factor=1.75
         )
-        .border(subset=list(value_cols[:1]) + ["% with motif"], location="left")
+        .border(subset=list(value_cols[:1]), location="left")
         .border(part="columns", location="bottom")
-        .add_circle(subset=["% with motif"], palette="Purples", vmax=100, size=40)
         .set_table_attributes('class="sortable-theme-slick" data-sortable')
-        .center_align(subset=list(value_cols) + list(corr_cols) + ["% with motif"])
-        .wrap(subset=["% with motif"] + list(corr_cols))
+        .center_align(subset=list(value_cols))
         .set_font("Nunito Sans")
-        .rename(columns=rename_columns,)
-        .render()
+        .rename(columns=rename_columns)
     )
+
+    if len(corr_cols) > 0:
+        df_styled = (
+            df_styled.wrap(subset=list(corr_cols))
+            .center_align(subset=list(corr_cols))
+            .scaled_background_gradient(
+                subset=corr_cols, cmap="PuOr_r", center_zero=True, scale_factor=1.75
+            )
+        )
+
+    if "% with motif" in df.columns:
+        df["% with motif"] = df["% with motif"].astype(int)
+        df_styled = (
+            df_styled.add_circle(
+                subset=["% with motif"], palette="Purples", vmax=100, size=40
+            )
+            .wrap(subset=["% with motif"])
+            .center_align(subset=["% with motif"])
+            .border(subset=["% with motif"], location="left")
+        )
+
+    df_styled = df_styled.render()
 
     with open(outdir + "/gimme.maelstrom.report.html", "w", encoding="utf-8") as f:
         f.write(df_styled)
