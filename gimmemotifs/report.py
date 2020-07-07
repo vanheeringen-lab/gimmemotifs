@@ -414,25 +414,25 @@ class ExtraStyler(Styler):
 
     def add_circle(self, **kwargs):
         self._data_todo.append(
-            (lambda instance: getattr(instance, "_circle"), (), kwargs)
+            (lambda instance: instance._circle, (), kwargs)
         )
         return self
 
     def wrap(self, **kwargs):
         self._data_todo.append(
-            (lambda instance: getattr(instance, "_wrap"), (), kwargs)
+            (lambda instance: instance._wrap, (), kwargs)
         )
         return self
 
     def add_tooltip(self, tip, **kwargs):
         self._data_todo.append(
-            (lambda instance: getattr(instance, "_tooltip"), (tip,), kwargs)
+            (lambda instance: instance._tooltip, (tip,), kwargs)
         )
         return self
 
     def convert_to_image(self, **kwargs):
         self._data_todo.append(
-            (lambda instance: getattr(instance, "_convert_to_image"), (), kwargs)
+            (lambda instance: instance._convert_to_image, (), kwargs)
         )
         return self
 
