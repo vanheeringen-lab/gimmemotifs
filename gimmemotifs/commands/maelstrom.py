@@ -18,6 +18,7 @@ def maelstrom(args):
     methods = args.methods
     ncpus = args.ncpus
     zscore = args.zscore
+    center = args.center
     gc = args.gc
 
     if not os.path.exists(infile):
@@ -35,4 +36,5 @@ def maelstrom(args):
         ncpus=ncpus,
         zscore=zscore,
         gc=gc,
+        center=center,
     )

@@ -327,6 +327,13 @@ def cli(sys_args):
         metavar="pfmfile",
     )
     p.add_argument(
+        "--nocenter",
+        dest="center",
+        help="Don't mean-center the rows by default",
+        default=True,
+        action="store_false",
+    )
+    p.add_argument(
         "-m",
         "--methods",
         dest="methods",

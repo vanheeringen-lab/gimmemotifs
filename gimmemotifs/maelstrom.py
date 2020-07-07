@@ -22,6 +22,7 @@ from functools import partial
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import scale
+from scipy.stats import pearsonr
 from scipy.cluster import hierarchy
 from scipy.spatial.distance import pdist
 from scipy.cluster.hierarchy import linkage, dendrogram
@@ -220,6 +221,7 @@ def run_maelstrom(
     ncpus=None,
     zscore=True,
     gc=True,
+    center=False,
 ):
     """Run maelstrom on an input table.
 
@@ -264,6 +266,9 @@ def run_maelstrom(
 
     gc : bool, optional
         Use GC% bins to normalize motif scores.
+
+    center : bool, optional
+        Mean-center the input table.
     """
     logger.info("Starting maelstrom")
     if infile.endswith("feather"):
@@ -271,6 +276,20 @@ def run_maelstrom(
         df = df.set_index(df.columns[0])
     else:
         df = pd.read_table(infile, index_col=0, comment="#")
+
+    # Check if the input is mean-centered
+    if df.shape[1] > 1 and not np.allclose(df.mean(1), 0):
+        if center:
+            logger.info(
+                "Input is not mean-centered, setting the mean of all rows to 0."
+            )
+            logger.info("Use --nocenter to change this behavior")
+            df = df.sub(df.mean(axis=1), axis=0)
+        else:
+            logger.info("Input is not mean-centered, but --nocenter was specified.")
+            logger.info(
+                "Leaving the data as-is, but make sure this is what your really want."
+            )
 
     # Check for duplicates
     if df.index.duplicated(keep=False).any():
@@ -407,16 +426,31 @@ def run_maelstrom(
         except FileNotFoundError:
             logger.warn("Activity file for {} not found!\n".format(t))
 
+    counts = pd.read_csv(count_table, index_col=0, comment="#", sep="\t")
+    scores = pd.read_csv(score_table, index_col=0, comment="#", sep="\t")
+    
     if len(methods) > 1:
         logger.info("Rank aggregation")
         df_p = df_rank_aggregation(df, dfs, exps)
+        
+        # Add correlation between motif score and signal
+        logger.info("Correlation")
+        cols = df_p.columns
+        for col in cols[::-1]:
+            df_p.insert(0, f"correlation {col}", 0)
+            for motif in df_p.index:
+                df_p.loc[motif, f"correlation {col}"] = pearsonr(df[col], scores[motif])[0]
+        
+        # Add percentage of input sequences with motif
+        df_p.insert(0, "% with motif", counts[df_p.index].sum(0) / df.shape[0] * 100)
+        
         df_p.to_csv(os.path.join(outdir, "final.out.txt"), sep="\t")
     # df_p = df_p.join(m2f)
 
     # Write motif frequency table
 
     if df.shape[1] == 1:
-        mcount = df.join(pd.read_table(count_table, index_col=0, comment="#"))
+        mcount = df.join(counts)
         m_group = mcount.groupby(df.columns[0])
         freq = m_group.sum() / m_group.count()
         freq.to_csv(os.path.join(outdir, "motif.freq.txt"), sep="\t")

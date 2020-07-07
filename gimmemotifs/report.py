@@ -16,6 +16,9 @@ import jinja2
 import numpy as np
 import pandas as pd
 from statsmodels.stats.multitest import multipletests
+from pandas.core.indexing import _non_reducing_slice
+from pandas.io.formats.style import Styler
+import seaborn as sns
 
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.fasta import Fasta
@@ -27,6 +30,327 @@ from gimmemotifs import __version__
 from gimmemotifs.utils import motif_localization
 
 logger = logging.getLogger("gimme.report")
+
+FACTOR_TOOLTIP = "<div title='\"Direct\" means that there is direct evidence of binding or that this assignment is based on curated information. \"Predicted\" means that the motif comes from a non-curated ChIP-seq experiment or that the factor was computationally predicted to bind this motif based on its DNA binding domain.'>factors<br/>(<span style='color:black'>direct</span> or <span style='color:#666666'>predicted</span>)</div>"
+
+
+def _wrap_html_str(x):
+    if " " not in x:
+        return x
+
+    min_pos, max_pos = 0, len(x)
+    if ">" in x and "</" in x:
+        m = re.compile(r">[^<>]*<").search(x)
+        min_pos, max_pos = m.start(), m.end()
+
+    positions = [m.start() for m in re.compile(" ").finditer(x)]
+    positions = [p for p in positions if min_pos < p < max_pos]
+
+    pos = sorted(positions, key=lambda p: abs(p - len(x) / 2))[0]
+    x = x[:pos] + "<br/>" + x[pos + 1 :]
+    return x
+
+
+class ExtraStyler(Styler):
+    loader = jinja2.ChoiceLoader(
+        [jinja2.FileSystemLoader(MotifConfig().get_template_dir()), Styler.loader]
+    )
+    env = jinja2.Environment(loader=loader)
+    template = env.get_template("table.tpl")
+
+    def __init__(self, *args, **kwargs):
+        self._data_todo = []
+        self.circle_styles = None
+        self.palette_styles = None
+        self.col_heading_style = {
+            "name": "col_heading",
+            "props": [("border-bottom", "1px solid #e0e0e0")],
+        }
+        super(ExtraStyler, self).__init__(*args, **kwargs)
+        self.display_data = self.data.copy()
+
+        # self.template =
+
+        self._font = "Nunito Sans"
+
+    @property
+    def font(self):
+        return self._font
+
+    @font.setter
+    def font(self, font_name):
+        self._font = font_name
+
+    def set_font(self, font_name):
+        self.font = font_name
+        return self
+
+    def _current_index(self, subset, axis=0):
+        selected = self.data.loc[subset]
+        if axis == 0 or axis == "columns":
+            return self.data.columns.get_indexer(selected.columns)
+        if axis == 1 or axis == "index":
+            return self.data.index.get_indexer(selected.index)
+
+        raise ValueError(f"unknown axis {axis}")
+
+    def _translate(self):
+        self._compute_data()
+        d = super()._translate()
+        circle_styles = self.circle_styles or []
+        palette_styles = self.palette_styles or []
+        col_heading_style = self.col_heading_style or []
+        d.update(
+            {
+                "font": self.font,
+                "circle_styles": circle_styles,
+                "palette_styles": palette_styles,
+                "col_heading_style": col_heading_style,
+            }
+        )
+        return d
+
+    def _compute_data(self):
+        r = self
+        for func, args, kwargs in self._data_todo:
+            r = func(self)(*args, **kwargs)
+        r.data = r.display_data
+        return r
+
+    def _tooltip(self, tip, subset=None, part=None):
+        subset = pd.IndexSlice[:, :] if subset is None else subset
+        subset = _non_reducing_slice(subset)
+
+        if part is None:
+            part = "data"
+
+        if part == "data":
+            self.display_data.loc[subset] = (
+                "<div title='"
+                + tip
+                + "'>"
+                + self.display_data.loc[subset].astype(str)
+                + "</div>"
+            )
+        elif part == "columns":
+            idx = self._current_index(subset, axis="columns")
+            rename = dict(
+                zip(
+                    self.display_data.columns[idx],
+                    "<div title='"
+                    + tip
+                    + "'>"
+                    + self.display_data.columns[idx].astype(str)
+                    + "</div>",
+                )
+            )
+            self.display_data.rename(columns=rename, inplace=True)
+        elif part == "index":
+            idx = self._current_index(subset, axis="index")
+            rename = dict(
+                zip(
+                    self.display_data.index[idx],
+                    "<div title='"
+                    + tip
+                    + "'>"
+                    + self.display_data.index[idx].astype(str)
+                    + "</div>",
+                )
+            )
+            self.display_data.rename(index=rename, inplace=True)
+        else:
+            raise ValueError(f"unknown value for part: {part}")
+        return self
+
+    def _wrap_iterable(self, it):
+        return [_wrap_html_str(val) for val in it]
+
+    def _wrap(self, subset=None, axis=0):
+        subset = pd.IndexSlice[:, :] if subset is None else subset
+        subset = _non_reducing_slice(subset)
+
+        if axis in [0, "columns"]:
+            idx = self._current_index(subset, axis="columns")
+            rename = dict(
+                zip(
+                    self.display_data.columns[idx],
+                    self._wrap_iterable(self.display_data.columns[idx]),
+                )
+            )
+            self.display_data.rename(columns=rename, inplace=True)
+        elif axis in [1, "index"]:
+            idx = self._current_index(subset, axis="index")
+            rename = dict(
+                zip(
+                    self.display_data.index[idx],
+                    self._wrap_iterable(self.display_data.index[idx]),
+                )
+            )
+            self.display_data.rename(index=rename, inplace=True)
+        else:
+            raise ValueError(f"unknown value for axis: {axis}")
+        return self
+
+    def _convert_to_image(self, subset=None, height=30):
+        subset = pd.IndexSlice[:, :] if subset is None else subset
+        subset = _non_reducing_slice(subset)
+
+        self.display_data.loc[subset] = (
+            f'<div style="height:{height}px;object-fit:contain;"><img src="'
+            + self.data.loc[subset].astype(str)
+            + '" style="height:100%;width:100%;object-fit:contain;"/></div>'
+        )
+        return self
+
+    def _border(self, idx, location="left"):
+        return [f"border-{location}: 2px solid #444;" for val in idx]
+
+    def border(self, subset=None, location="left", part="data"):
+        if part == "data":
+            self.apply(self._border, subset=subset, location=location)
+        else:
+            self.col_heading_style["props"].append(
+                (f"border-{location}", "2px solid #444")
+            )
+        return self
+
+    def _center_align(self, idx):
+        return ["text-align:center;" for val in idx]
+
+    def center_align(self, subset=None, axis=0):
+        self.apply(self._center_align, subset=subset, axis=axis)
+        return self
+
+    def scaled_background_gradient(
+        self, subset=None, cmap="RdBu_r", scale_factor=1, center_zero=True
+    ):
+        subset = pd.IndexSlice[:, :] if subset is None else subset
+        subset = _non_reducing_slice(subset)
+        absmax = np.max(
+            (
+                abs(self.data.loc[subset].max().max()),
+                abs(self.data.loc[subset].min().min()),
+            )
+        )
+        target = absmax * scale_factor
+        r = self
+        for col in self.data.loc[subset].columns:
+            smin = self.data[col].min()
+            smax = self.data[col].max()
+            diff = smax - smin
+
+            if center_zero:
+                # Make sure center of palette is at 0
+                low = abs((-target - smin) / diff)
+                high = (target - smax) / diff
+            else:
+                high = 1 / scale_factor
+                low = 1 / scale_factor
+
+            r = r.background_gradient(cmap=cmap, low=low, high=high, subset=[col])
+        return r
+
+    def _circle(
+        self,
+        subset=None,
+        show_text=True,
+        color=None,
+        palette=None,
+        vmin=None,
+        vmax=None,
+        scale=False,
+        size=25,
+        min_size=5,
+        morph=False,
+    ):
+        subset = pd.IndexSlice[:, :] if subset is None else subset
+        subset = _non_reducing_slice(subset)
+        # Make sure we don't select text columns
+        subslice = pd.IndexSlice[
+            self.data.loc[subset].index,
+            self.data.loc[subset].select_dtypes(exclude=["object"]).columns,
+        ]
+
+        self.circle_styles = self.circle_styles or []
+        circle_id = len(self.circle_styles) + 1
+
+        props = [
+            ("height", f"{size}px"),
+            ("width", f"{size}px"),
+            ("border-radius", "50%"),
+            ("color", "#000"),
+            ("line-height", f"{size}px"),
+            ("display", "inline-block"),
+            ("text-align", "center"),
+            ("vertical-align", "middle"),
+        ]
+
+        if color:
+            palette = sns.color_palette([color])
+            # print(palette)
+        elif palette is None:
+            palette = sns.light_palette((210, 90, 60), input="husl", n_colors=10)
+        else:
+            # if isinstance(palette, str):
+            palette = sns.color_palette(palette)
+
+        self.circle_styles.append({"name": f"circle{circle_id}", "props": props})
+        self.palette_styles = self.palette_styles or []
+        for i, color in enumerate(palette.as_hex()):
+            props = [("background-color", color)]
+            if scale:
+                circle_size = min_size + ((size - min_size) / len(palette) * (i + 1))
+                props += [
+                    ("height", f"{circle_size}px"),
+                    ("width", f"{circle_size}px"),
+                    ("line-height", f"{circle_size}px"),
+                    ("text-align", "center"),
+                ]
+            if morph:
+                props += [("border-radius", f"{50 - int(50 / len(palette)) * i}%")]
+            self.palette_styles.append(
+                {"name": f"color{circle_id}_{i}", "props": props}
+            )
+
+        vmax = vmax or self.data.loc[subslice].max().max() * 1.01
+        text = self.display_data.loc[subslice].astype(str) if show_text else ""
+        self.display_data.loc[subslice] = (
+            f"<div class='circle{circle_id} color{circle_id}_"
+            + (self.data.loc[subslice] / (vmax / len(palette))).astype(int).astype(str)
+            + "'>"
+            + text
+            + "</div>"
+        )
+
+        return self
+
+    def add_circle(self, **kwargs):
+        self._data_todo.append(
+            (lambda instance: getattr(instance, "_circle"), (), kwargs)
+        )
+        return self
+
+    def wrap(self, **kwargs):
+        self._data_todo.append(
+            (lambda instance: getattr(instance, "_wrap"), (), kwargs)
+        )
+        return self
+
+    def add_tooltip(self, tip, **kwargs):
+        self._data_todo.append(
+            (lambda instance: getattr(instance, "_tooltip"), (tip,), kwargs)
+        )
+        return self
+
+    def convert_to_image(self, **kwargs):
+        self._data_todo.append(
+            (lambda instance: getattr(instance, "_convert_to_image"), (), kwargs)
+        )
+        return self
+
+    def rename(self, columns=None, index=None):
+        self.display_data = self.display_data.rename(columns=columns, index=index)
+        return self
 
 
 def get_roc_values(motif, fg_file, bg_file, genome):
@@ -167,8 +491,8 @@ def _create_graphical_report(
                 + os.path.basename(roc_img_file % (motif.id, bg))
                 + ".png"
             }
-            rm.bg[bg][u"roc_img_link"] = {
-                u"href": "images/"
+            rm.bg[bg]["roc_img_link"] = {
+                "href": "images/"
                 + os.path.basename(roc_img_file % (motif.id, bg))
                 + ".png"
             }
@@ -253,93 +577,142 @@ def create_denovo_motif_report(
     )
 
 
-def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=4):
-    df = pd.read_table(infile, index_col=0)
-    df = df[np.any(abs(df) >= threshold, 1)]
+def format_factors(motif, max_length=5):
+    fmt_d = "<span style='color:black'>{}</span>"
+    fmt_i = "<span style='color:#666666'>{}</span>"
 
-    motifs = read_motifs(pfmfile)
-
-    df.rename_axis(None, inplace=True)
-    cols = df.columns
-
-    motifs = read_motifs(pfmfile)
-    idx = [motif.id for motif in motifs]
-    direct = [
-        ",".join(sorted(set([x.upper() for x in motif.factors[DIRECT_NAME]])))
-        for motif in motifs
-    ]
-    indirect = [
-        ",".join(sorted(set([x.upper() for x in motif.factors[INDIRECT_NAME]])))
-        for motif in motifs
-    ]
-    m2f = pd.DataFrame({DIRECT_NAME: direct, INDIRECT_NAME: indirect}, index=idx)
-
-    factor_cols = [DIRECT_NAME, INDIRECT_NAME]
-    if True:
-        for factor_col in factor_cols:
-            f = m2f[factor_col].str.len() > 30
-            m2f[factor_col] = (
-                '<div title="'
-                + m2f[factor_col]
-                + '">'
-                + m2f[factor_col].str.slice(0, 30)
+    direct = sorted(list(set([x.upper() for x in motif.factors[DIRECT_NAME]])))
+    indirect = sorted(
+        list(
+            set(
+                [
+                    x.upper()
+                    for x in motif.factors[INDIRECT_NAME]
+                    if x.upper() not in direct
+                ]
             )
-            m2f.loc[f, factor_col] += "(...)"
-            m2f[factor_col] += "</div>"
-        df = df.join(m2f)
-
-    df["logo"] = [
-        '<img src="logos/{}.png" height=40/>'.format(re.sub("[()/]", "_", x))
-        for x in list(df.index)
-    ]
-
-    if not os.path.exists(outdir + "/logos"):
-        os.makedirs(outdir + "/logos")
-    for motif in motifs:
-        if motif.id in df.index:
-            motif.plot_logo(
-                fname=outdir + "/logos/{}.png".format(re.sub("[()/]", "_", motif.id))
-            )
-
-    template_dir = MotifConfig().get_template_dir()
-    js = open(
-        os.path.join(template_dir, "sortable/sortable.min.js"), encoding="utf-8"
-    ).read()
-    css = open(
-        os.path.join(template_dir, "sortable/sortable-theme-slick.css"),
-        encoding="utf-8",
-    ).read()
-    df = df[factor_cols + ["logo"] + list(cols)]
-
-    df_styled = df.style
-    absmax = np.max((abs(df[cols].max().max()), abs(df[cols].min().min())))
-    target = absmax * 1.75
-
-    for col in cols:
-        smin = df[col].min()
-        smax = df[col].max()
-        diff = smax - smin
-        low = abs((-target - smin) / diff)
-        high = (target - smax) / diff
-        df_styled = df_styled.background_gradient(
-            cmap="RdBu_r", low=low, high=high, subset=[col]
         )
+    )
 
-    df_styled = df_styled.set_precision(3)
-    df_styled = df_styled.set_table_attributes("data-sortable")
-    df_styled = df_styled.render()
-    df_styled = df_styled.replace(
-        "data-sortable", 'class="sortable-theme-slick" data-sortable'
+    if len(direct) > max_length:
+        show_factors = direct[:max_length]
+    else:
+        show_factors = direct[:]
+        for f in indirect:
+            if f not in show_factors:
+                show_factors.append(f)
+            if len(show_factors) >= max_length:
+                break
+    show_factors = sorted(show_factors)
+
+    factor_str = ",".join(
+        [fmt_d.format(f) if f in direct else fmt_i.format(f) for f in show_factors]
+    )
+
+    if len(direct + indirect) > max_length:
+        factor_str += ", (...)"
+
+    tooltip = ""
+    if len(direct) > 0:
+        tooltip += "direct: " + ",".join(sorted(direct))
+    if len(indirect) > 0:
+        if tooltip != "":
+            tooltip += "&#10;"
+        tooltip += "predicted: " + ",".join(sorted(indirect))
+
+    factor_str = '<div title="' + tooltip + '">' + factor_str + "</div>"
+
+    return factor_str
+
+
+def motif_to_factor_series(series, pfmfile=None, motifs=None):
+    if motifs is None:
+        motifs = read_motifs(pfmfile, as_dict=True)
+
+    if isinstance(series, pd.Index):
+        index = series
+    else:
+        index = series.index
+
+    factors = [format_factors(motifs[motif]) for motif in series]
+    return pd.Series(data=factors, index=index)
+
+
+def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="logos"):
+    if motifs is None:
+        motifs = read_motifs(pfmfile, as_dict=True)
+
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+    if not os.path.exists(os.path.join(outdir, subdir)):
+        os.makedirs(os.path.join(outdir, subdir))
+
+    img_series = []
+    for motif in series:
+        if motif not in motifs:
+            raise ValueError(f"Motif {motif} does not occur in motif database")
+        fname = subdir + "/{}.png".format(re.sub("[()/]", "_", motif))
+        if not os.path.exists(fname):
+            motifs[motif].plot_logo(fname=os.path.join(outdir, fname))
+        img_series.append(fname)
+
+    if isinstance(series, pd.Index):
+        index = series
+    else:
+        index = series.index
+    return pd.Series(data=img_series, index=index)
+
+
+def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=4):
+
+    # Read the maelstrom text report
+    df = pd.read_table(infile, index_col=0)
+
+    # Columns with maelstrom rank aggregation value
+    value_cols = df.columns[
+        ~df.columns.str.contains("correlation") & ~df.columns.isin(["% with motif"])
+    ]
+    # Columns with correlation values
+    corr_cols = df.columns[df.columns.str.contains("correlation")]
+
+    df = df[np.any(abs(df[value_cols]) >= threshold, 1)]
+
+    # Add motif logo's
+    df.insert(
+        0,
+        "logo",
+        motif_to_img_series(df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos"),
+    )
+    # Add factors that can bind to the motif
+    df.insert(0, "factors", motif_to_factor_series(df.index, pfmfile=pfmfile))
+
+    df["% with motif"] = df["% with motif"].astype(int)
+
+    rename_columns = {"factors": FACTOR_TOOLTIP}
+
+    df_styled = (
+        ExtraStyler(df)
+        .set_precision(2)
+        .convert_to_image(subset=["logo"], height=30,)
+        .scaled_background_gradient(
+            subset=corr_cols, cmap="PuOr_r", center_zero=True, scale_factor=1.75
+        )
+        .scaled_background_gradient(
+            subset=value_cols, center_zero=True, scale_factor=1.75
+        )
+        .border(subset=list(value_cols[:1]) + ["% with motif"], location="left")
+        .border(part="columns", location="bottom")
+        .add_circle(subset=["% with motif"], palette="Purples", vmax=100, size=40)
+        .set_table_attributes('class="sortable-theme-slick" data-sortable')
+        .center_align(subset=list(value_cols) + list(corr_cols) + ["% with motif"])
+        .wrap(subset=["% with motif"] + list(corr_cols))
+        .set_font("Nunito Sans")
+        .rename(columns=rename_columns,)
+        .render()
     )
 
     with open(outdir + "/gimme.maelstrom.report.html", "w", encoding="utf-8") as f:
-        f.write("<head>\n")
-        f.write("<style>{}</style>\n".format(css))
-        f.write("</head>\n")
-        f.write("<body>\n")
         f.write(df_styled)
-        f.write("<script>{}</script>\n".format(js))
-        f.write("</body>\n")
 
 
 def roc_html_report(
@@ -374,24 +747,10 @@ def roc_html_report(
 
     idx = [motif.id for motif in motifs]
     df = df.loc[idx]
-    direct = [",".join(motif.factors[DIRECT_NAME]) for motif in motifs]
-    indirect = [",".join(motif.factors[INDIRECT_NAME]) for motif in motifs]
-    m2f = pd.DataFrame({DIRECT_NAME: direct, INDIRECT_NAME: indirect}, index=idx)
 
-    factor_cols = [DIRECT_NAME, INDIRECT_NAME]
-    if True:
-        for factor_col in factor_cols:
-            f = m2f[factor_col].str.len() > 30
-            m2f[factor_col] = (
-                '<div title="'
-                + m2f[factor_col]
-                + '">'
-                + m2f[factor_col].str.slice(0, 30)
-            )
-            m2f.loc[f, factor_col] += "(...)"
-            m2f[factor_col] += "</div>"
-        df = df.join(m2f)
-        cols = factor_cols + cols
+    # Add factors that can bind to the motif
+    df.insert(0, "factors", motif_to_factor_series(df.index, pfmfile=pfmfile))
+    cols = ["factors"] + cols
 
     df = df[df["corrected P-value"] <= threshold]
 
@@ -410,6 +769,8 @@ def roc_html_report(
     ]
 
     df = df[cols]
+
+    df = df.rename(columns={"factors": FACTOR_TOOLTIP})
     if not os.path.exists(outdir + "/logos"):
         os.makedirs(outdir + "/logos")
     for motif in motifs:
@@ -441,10 +802,12 @@ def roc_html_report(
         f.write("<body>\n")
         if df.shape[0] > 0:
             f.write(
-                df.sort_values("ROC AUC", ascending=False)
+                df.reset_index()
+                .sort_values("ROC AUC", ascending=False)
                 .style.bar(bar_cols)
                 .set_precision(3)
                 .set_table_attributes("data-sortable")
+                .hide_index()
                 .render()
                 .replace("data-sortable", 'class="sortable-theme-slick" data-sortable')
             )
