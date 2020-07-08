@@ -20,6 +20,11 @@ from pandas.core.indexing import _non_reducing_slice
 from pandas.io.formats.style import Styler
 import seaborn as sns
 
+try:
+    import emoji
+except ImportError:
+    pass
+
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import read_motifs
@@ -88,36 +93,37 @@ class ExtraStyler(Styler):
     def set_font(self, font_name):
         """
         Set the font that will be used.
-        
+
         Parameters
         ----------
         font_name : str
             Should be a font name available though the Google Font API.
-        
+
         Returns
         -------
         self : ExtraStyler
-        
+
         Notes
         -----
         ``font_name`` can contain spaces, eg. "Nunito Sans".
-        
+
         Examples
         --------
         >>> df = pd.DataFrame(np.random.randn(4, 2), columns=['a', 'b'])
-        >>> ExtraStyler(df).font("Roboto)  
+        >>> ExtraStyler(df).font("Roboto)
         """
         self.font = font_name
         return self
 
-    def _current_index(self, subset, axis=0):
+    def _current_index(self, subset):
+        subset = pd.IndexSlice[:, :] if subset is None else subset
+        subset = _non_reducing_slice(subset)
         selected = self.data.loc[subset]
-        if axis == 0 or axis == "columns":
-            return self.data.columns.get_indexer(selected.columns)
-        if axis == 1 or axis == "index":
-            return self.data.index.get_indexer(selected.index)
-
-        raise ValueError(f"unknown axis {axis}")
+        idx_slice = pd.IndexSlice[
+            self.data.index.get_indexer(selected.index),
+            self.data.columns.get_indexer(selected.columns),
+        ]
+        return idx_slice
 
     def _translate(self):
         self._compute_data()
@@ -158,7 +164,7 @@ class ExtraStyler(Styler):
                 + "</div>"
             )
         elif part == "columns":
-            idx = self._current_index(subset, axis="columns")
+            idx = self._current_index(subset)[1]
             rename = dict(
                 zip(
                     self.display_data.columns[idx],
@@ -171,7 +177,7 @@ class ExtraStyler(Styler):
             )
             self.display_data.rename(columns=rename, inplace=True)
         elif part == "index":
-            idx = self._current_index(subset, axis="index")
+            idx = self._current_index(subset)[0]
             rename = dict(
                 zip(
                     self.display_data.index[idx],
@@ -195,7 +201,7 @@ class ExtraStyler(Styler):
         subset = _non_reducing_slice(subset)
 
         if axis in [0, "columns"]:
-            idx = self._current_index(subset, axis="columns")
+            idx = self._current_index(subset)[1]
             rename = dict(
                 zip(
                     self.display_data.columns[idx],
@@ -204,7 +210,7 @@ class ExtraStyler(Styler):
             )
             self.display_data.rename(columns=rename, inplace=True)
         elif axis in [1, "index"]:
-            idx = self._current_index(subset, axis="index")
+            idx = self._current_index(subset)[0]
             rename = dict(
                 zip(
                     self.display_data.index[idx],
@@ -248,14 +254,14 @@ class ExtraStyler(Styler):
             An argument to ``DataFrame.loc`` that restricts which elements
             ``border`` is applied to. If ``part`` is "columns" or "index"
             subset should be present in either the columns or the index.
-        
+
         location : str, optional
             Location of the border, default is "bottom". Can be "top", "bottom",
             "right" or "left".
 
         part : str, optional
             If ``part`` is "data", the border will be applied to the data cells.
-            Set part to "index" or to "column" to add a border to the index or 
+            Set part to "index" or to "column" to add a border to the index or
             header, respectively.
 
         width : str, int or float, optional
@@ -270,7 +276,7 @@ class ExtraStyler(Styler):
         Returns
         -------
         self : ExtraStyler
-        
+
         Examples
         --------
         >>> df = pd.DataFrame(np.random.randn(4, 2), columns=['a', 'b'])
@@ -284,29 +290,32 @@ class ExtraStyler(Styler):
             )
         return self
 
-    def _center_align(self, idx):
-        return ["text-align:center;" for val in idx]
+    def _align(self, idx, location="center"):
+        return [f"text-align:{location};" for val in idx]
 
-    def center_align(self, subset=None, axis=0):
+    def align(self, subset=None, location="center", axis=0):
         """
-        Center align text.
+        Align text.
 
         Parameters
         ----------
         subset : IndexSlice, optional
             An argument to ``DataFrame.loc`` that restricts which elements
-            ``center_align`` is applied to. 
+            ``center_align`` is applied to.
+
+        location : str, optional
+            "center", "left" or "right"
 
         axis : {0 or 'index', 1 or 'columns', None}, default 0
             Apply to each column (``axis=0`` or ``'index'``), to each row
             (``axis=1`` or ``'columns'``), or to the entire DataFrame at once
             with ``axis=None``.
-        
+
         Returns
         -------
         self : ExtraStyler
         """
-        self.apply(self._center_align, subset=subset, axis=axis)
+        self.apply(self._align, subset=subset, location=location, axis=axis)
         return self
 
     def scaled_background_gradient(
@@ -352,12 +361,13 @@ class ExtraStyler(Styler):
         morph=False,
     ):
         subset = pd.IndexSlice[:, :] if subset is None else subset
-        subset = _non_reducing_slice(subset)
+        subslice = _non_reducing_slice(subset)
         # Make sure we don't select text columns
-        subslice = pd.IndexSlice[
-            self.data.loc[subset].index,
-            self.data.loc[subset].select_dtypes(exclude=["object"]).columns,
-        ]
+        if scale or morph:
+            subslice = pd.IndexSlice[
+                self.data.loc[subset].index,
+                self.data.loc[subset].select_dtypes(exclude=["object"]).columns,
+            ]
 
         self.circle_styles = self.circle_styles or []
         circle_id = len(self.circle_styles) + 1
@@ -400,34 +410,36 @@ class ExtraStyler(Styler):
                 {"name": f"color{circle_id}_{i}", "props": props}
             )
 
-        vmax = vmax or self.data.loc[subslice].max().max() * 1.01
-        text = self.display_data.loc[subslice].astype(str) if show_text else ""
-        self.display_data.loc[subslice] = (
-            f"<div class='circle{circle_id} color{circle_id}_"
-            + (self.data.loc[subslice] / (vmax / len(palette))).astype(int).astype(str)
-            + "'>"
-            + text
-            + "</div>"
-        )
+        if scale or morph:
+            vmax = vmax or self.data.loc[subslice].max().max() * 1.01
+            text = self.display_data.loc[subslice].astype(str) if show_text else ""
+            self.display_data.loc[subslice] = (
+                f"<div class='circle{circle_id} color{circle_id}_"
+                + (self.data.loc[subslice] / (vmax / len(palette)))
+                .astype(int)
+                .astype(str)
+                + "'>"
+                + text
+                + "</div>"
+            )
+        else:
+            text = self.display_data.loc[subslice].astype(str) if show_text else ""
+            self.display_data.loc[subslice] = (
+                f"<div class='circle{circle_id} color{circle_id}_0'>" + text + "</div>"
+            )
 
         return self
 
     def add_circle(self, **kwargs):
-        self._data_todo.append(
-            (lambda instance: instance._circle, (), kwargs)
-        )
+        self._data_todo.append((lambda instance: instance._circle, (), kwargs))
         return self
 
     def wrap(self, **kwargs):
-        self._data_todo.append(
-            (lambda instance: instance._wrap, (), kwargs)
-        )
+        self._data_todo.append((lambda instance: instance._wrap, (), kwargs))
         return self
 
     def add_tooltip(self, tip, **kwargs):
-        self._data_todo.append(
-            (lambda instance: instance._tooltip, (tip,), kwargs)
-        )
+        self._data_todo.append((lambda instance: instance._tooltip, (tip,), kwargs))
         return self
 
     def convert_to_image(self, **kwargs):
@@ -438,6 +450,95 @@ class ExtraStyler(Styler):
 
     def rename(self, columns=None, index=None):
         self.display_data = self.display_data.rename(columns=columns, index=index)
+        return self
+
+    def _emoji_score(self, series, emoji_str=None, bins=None):
+        if emoji_str is None:
+            emoji_str = ":star:"
+        if bins is None:
+            bins = 3
+
+        if isinstance(bins, int):
+            labels = range(1, bins + 1)
+        else:
+            labels = range(1, len(bins))
+
+        return [
+            emoji.emojize(emoji_str * val, use_aliases=True)
+            for val in pd.cut(series, bins=bins, labels=labels)
+        ]
+
+    def _emoji_scale(self, series, emojis=None, bins=None):
+        emoji_dict = {
+            "thumbs": [":thumbsdown:", ":thumbsup:"],
+            "check": [":cross_mark:", ":white_check_mark:"],
+            "smiley": [
+                ":crying_face:",
+                ":slightly_frowning_face:",
+                ":neutral_face:",
+                ":slightly_smiling_face:",
+                ":grin:",
+            ],
+            "black_square": [
+                ":black_small_square:",
+                ":black_medium_small_square:",
+                ":black_medium_square:",
+                ":black_large_square:",
+            ],
+            "white_square": [
+                ":white_small_square:",
+                ":white_medium_small_square:",
+                ":white_medium_square:",
+                ":white_large_square:",
+            ],
+        }
+
+        if emojis is None:
+            emojis = "smiley"
+
+        if emojis in emoji_dict:
+            labels = emoji_dict[emojis]
+        if bins is None:
+            bins = len(labels)
+
+        return [
+            emoji.emojize(val, use_aliases=True)
+            for val in pd.cut(series, bins=bins, labels=labels)
+        ]
+
+    def emoji_scale(self, subset=None, emojis=None, bins=None, axis=0):
+        subset = pd.IndexSlice[:, :] if subset is None else subset
+        subset = _non_reducing_slice(subset)
+
+        idx = self._current_index(subset=subset)
+
+        result = self.display_data.iloc[idx].apply(
+            self._emoji_scale, axis=axis, result_type="expand", args=(emojis, bins)
+        )
+        self.display_data.iloc[idx] = result.values
+
+        return self.align(subset=subset, location="center", axis=axis)
+
+    def emoji_score(self, subset=None, emoji_str=None, bins=None, axis=0):
+        subset = pd.IndexSlice[:, :] if subset is None else subset
+        subset = _non_reducing_slice(subset)
+
+        idx = self._current_index(subset=subset)
+        result = self.display_data.iloc[idx].apply(
+            self._emoji_score, axis=axis, result_type="expand", args=(emoji_str, bins)
+        )
+        self.display_data.iloc[idx] = result.values
+
+        return self.align(subset=subset, location="left", axis=axis)
+
+    def emojify(self, subset=None):
+        subset = pd.IndexSlice[:, :] if subset is None else subset
+        subset = _non_reducing_slice(subset)
+
+        idx = self._current_index(subset=subset)
+        result = self.display_data.iloc[idx].applymap(emoji.emojize)
+        self.display_data.iloc[idx] = result.values
+
         return self
 
 
