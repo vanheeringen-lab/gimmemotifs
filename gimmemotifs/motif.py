@@ -1393,13 +1393,7 @@ def parse_motifs(motifs):
         List of Motif instances.
     """
     if isinstance(motifs, str):
-        with open(motifs) as f:
-            if motifs.endswith("pwm") or motifs.endswith("pfm"):
-                motifs = read_motifs(f, fmt="pwm")
-            elif motifs.endswith("transfac"):
-                motifs = read_motifs(f, fmt="transfac")
-            else:
-                motifs = read_motifs(f)
+        return read_motifs(motifs)
     elif isinstance(motifs, Motif):
         motifs = [motifs]
     else:
