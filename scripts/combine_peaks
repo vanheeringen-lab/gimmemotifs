@@ -116,7 +116,7 @@ def combine_peaks(peaks, genome, window, scale_value):
 
     # store summit location + associated value in col4
     df_all["col4"] = (
-        df_all["chrom"]
+        df_all["chrom"].astype(str)
         + ";"
         + df_all["start"].astype(str)
         + ";"
