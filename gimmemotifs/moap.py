@@ -34,8 +34,9 @@ from tqdm.auto import tqdm
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.multiclass import OneVsRestClassifier
-from sklearn.linear_model import MultiTaskLasso, BayesianRidge
+from sklearn.linear_model import MultiTaskLassoCV, BayesianRidge
 from sklearn.preprocessing import scale, LabelEncoder
+from sklearn.svm import SVR
 
 import xgboost
 
@@ -541,22 +542,16 @@ class RFMoap(Moap):
         logger.info("Done")
 
 
-@register_predictor("Lasso")
-class LassoMoap(Moap):
-    def __init__(self, scale=True, kfolds=4, alpha_stepsize=1.0, ncpus=None):
-        """Predict motif activities using Lasso MultiTask regression
+@register_predictor("MultiTaskLasso")
+class MultiTaskLassoMoap(Moap):
+    def __init__(self, scale=True, ncpus=None):
+        """Predict motif activities using MultiTaskLasso.
 
         Parameters
         ----------
         scale : boolean, optional, default True
             If ``True``, the motif scores will be scaled
-            before classification
-
-        kfolds : integer, optional, default 5
-            number of kfolds for parameter search
-
-        alpha_stepsize : float, optional, default 1.0
-            stepsize for use in alpha gridsearch
+            before classification.
 
         ncpus : int, optional
             Number of threads. Default is the number specified in the config.
@@ -564,101 +559,113 @@ class LassoMoap(Moap):
         Attributes
         ----------
         act_ : DataFrame, shape (n_motifs, n_clusters)
-            fitted motif activities
-
-        sig_ : DataFrame, shape (n_motifs,)
-            boolean values, if coefficients are higher/lower than
-            the 1%t from random permutation
+            Coefficients of the regression model.
         """
 
-        self.kfolds = kfolds
-        self.act_description = "activity values: coefficients from " "fitted model"
+        self.act_description = "activity values: coefficients of the" "regression model"
 
-        self.scale = scale
         if ncpus is None:
             ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
         self.ncpus = ncpus
-
-        # initialize attributes
+        self.scale = scale
         self.act_ = None
-        self.sig_ = None
-
-        mtk = MultiTaskLasso()
-        parameters = {"alpha": [np.exp(-x) for x in np.arange(0, 10, alpha_stepsize)]}
-        self.clf = GridSearchCV(
-            mtk, parameters, cv=kfolds, n_jobs=self.ncpus, scoring="r2"
-        )
         self.pref_table = "score"
         self.supported_tables = ["score", "count"]
         self.ptype = "regression"
 
-    def fit(self, df_X, df_y, permute=False):
-        logger.info("Fitting Lasso")
+    def fit(self, df_X, df_y):
+        logger.info("Fitting MultiTaskLasso")
+
         if not df_y.shape[0] == df_X.shape[0]:
             raise ValueError("number of regions is not equal")
 
         if self.scale:
+            logger.debug("Scaling motif scores")
             # Scale motif scores
-            df_X[:] = scale(df_X, axis=0)
+            df_X.loc[:,:] = scale(df_X, axis=0)
 
-        idx = list(range(df_y.shape[0]))
-        y = df_y.iloc[idx]
-        X = df_X.loc[y.index].values
-        y = y.values
+        # logger.debug("Scaling y")
 
-        # fit coefficients
-        coefs = self._get_coefs(X, y)
-        self.act_ = pd.DataFrame(coefs.T)
+        # Normalize across samples and features
+        # y = df_y.apply(scale, 1).apply(scale, 0)
+        y = df_y
 
-        # convert labels back to original names
-        self.act_.columns = df_y.columns
-        self.act_.index = df_X.columns
+        X = df_X.loc[y.index]
 
-        if permute:
-            # Permutations
-            logger.info("permutations\n")
-            random_dfs = []
-            for _ in range(10):
-                y_random = y[np.random.permutation(range(y.shape[0]))]
-                coefs = self._get_coefs(X, y_random)
-                random_dfs.append(pd.DataFrame(coefs.T))
-            random_df = pd.concat(random_dfs)
-
-            # Select cutoff based on percentile
-            high_cutoffs = random_df.quantile(0.99)
-            low_cutoffs = random_df.quantile(0.01)
-
-            # Set significance
-            self.sig_ = pd.DataFrame(index=df_X.columns)
-            self.sig_["sig"] = False
-
-            for col, c_high, c_low in zip(self.act_.columns, high_cutoffs, low_cutoffs):
-                self.sig_["sig"].loc[self.act_[col] >= c_high] = True
-                self.sig_["sig"].loc[self.act_[col] <= c_low] = True
-
+        model = MultiTaskLassoCV(selection="random", n_alphas=20, n_jobs=self.ncpus)
+        logger.debug("Fitting model")
+        coefs = []
+        model.fit(df_X, df_y)
         logger.info("Done")
 
-    def _get_coefs(self, X, y):
-        logger.info("set alpha through cross-validation\n")
-        # Determine best parameters based on CV
-        self.clf.fit(X, y)
+        self.act_ = pd.DataFrame(model.coef_, columns=X.columns, index=y.columns).T
 
-        logger.debug(
-            "average score ({} fold CV): {}".format(self.kfolds, self.clf.best_score_)
-        )
+    def predict(self, df_X):
+        return df_X.dot(self.act_.loc[df_X.columns])
 
-        logger.info("Estimate coefficients using bootstrapping\n")
+@register_predictor("SVR")
+class SVRMoap(Moap):
+    def __init__(self, scale=True, ncpus=None):
+        """Predict motif activities using Support Vector Regression.
 
-        n_samples = 0.75 * X.shape[0]
-        max_samples = X.shape[0]
-        m = self.clf.best_estimator_
+        Parameters
+        ----------
+        scale : boolean, optional, default True
+            If ``True``, the motif scores will be scaled
+            before classification.
+
+        ncpus : int, optional
+            Number of threads. Default is the number specified in the config.
+
+        Attributes
+        ----------
+        act_ : DataFrame, shape (n_motifs, n_clusters)
+            SVR weights.
+        """
+
+        self.act_description = "activity values: SVR weights"
+
+        if ncpus is None:
+            ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+        self.ncpus = ncpus
+        self.scale = scale
+        self.act_ = None
+        self.pref_table = "score"
+        self.supported_tables = ["score", "count"]
+        self.ptype = "regression"
+
+    def fit(self, df_X, df_y):
+        logger.info("Fitting SVR")
+
+        if not df_y.shape[0] == df_X.shape[0]:
+            raise ValueError("number of regions is not equal")
+
+        if self.scale:
+            logger.debug("Scaling motif scores")
+            # Scale motif scores
+            df_X.loc[:,:] = scale(df_X, axis=0)
+
+        # logger.debug("Scaling y")
+
+        # Normalize across samples and features
+        # y = df_y.apply(scale, 1).apply(scale, 0)
+        y = df_y
+        self.columns = df_y.columns
+        X = df_X.loc[y.index]
+
+        clf = SVR(kernel="linear")
+        self.model = MultiOutputRegressor(clf, n_jobs=1)
+        logger.debug("Fitting model")
         coefs = []
-        for _ in range(10):
-            idx = np.random.randint(0, n_samples, max_samples)
-            m.fit(X[idx], y[idx])
-            coefs.append(m.coef_)
-        coefs = np.array(coefs).mean(axis=0)
-        return coefs
+        self.model.fit(df_X, df_y)
+        logger.info("Done")
+
+        self.act_ = pd.DataFrame(model.coef_, columns=X.columns, index=y.columns).T
+
+    def predict(self, df_X):
+        #print(self.model.predict(df_X) )
+        
+        return pd.DataFrame(self.model.predict(df_X), index=df_X.index, columns=self.columns)
 
 
 def moap(
