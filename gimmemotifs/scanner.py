@@ -678,6 +678,19 @@ class Scanner(object):
                         self.meanstd[gcbin][motif.id] = mean, std
 
         lock.release()
+        for gc_bin in bins:
+            if gc_bin not in self.meanstd:
+                valid_bins = []
+                for b in self.gc_bins:
+                    bstr = "{:.2f}-{:.2f}".format(b[0], b[1])
+                    if bstr in self.meanstd:
+                        valid_bins.append(((b[0] + b[1]) / 2, bstr))
+
+                v = float(gc_bin.split("-")[1])
+                _, bstr = sorted(valid_bins, key=lambda x: abs(x[0] - v))[0]
+                logger.warn(f"Using {bstr}")
+                self.meanstd[gc_bin] = self.meanstd[bstr]
+
 
     def set_background(
         self, fname=None, genome=None, size=200, nseq=None, gc=False, gc_bins=None
@@ -994,15 +1007,13 @@ class Scanner(object):
 
         gc_bin_count = Counter(seq_gc_bins)
 
-        print(self.threshold)
-
-        _treshold = self.threshold
+        _threshold = self.threshold
         if zscore:
             grouped = _treshold.groupby(_treshold.index).apply(scale, axis=0)
             _threshold = pd.DataFrame(
                 np.vstack(grouped.values),
-                index=_treshold.index,
-                columns=_treshold.columns,
+                index=_threshold.index,
+                columns=_threshold.columns,
             )
 
         min_frac = min(gc_bin_count.values())
@@ -1012,12 +1023,9 @@ class Scanner(object):
             )
             for gc_bin, count in gc_bin_count.items()
         ]
-        print(dfs)
-        fpr_df = pd.concat(dfs)
-        print(fpr_df.shape)
+    
+        fpr_df = pd.concat(dfs)        
         t = fpr_df.quantile(0.99, interpolation="higher")
-        print(motifs)
-        print(t)
         maxt = pd.Series([m.pwm_max_score() for m in motifs], index=t.index)
         t[t >= maxt] = None
         # print(t)
@@ -1036,6 +1044,7 @@ class Scanner(object):
         motifs_meanstd = None
         if zscore:
             motifs_meanstd = self.meanstd
+
         scan_func = partial(
             scan_seq_mult,
             motifs=motifs,
