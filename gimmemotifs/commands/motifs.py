@@ -197,7 +197,9 @@ def motifs(args):
                         motif_stats[str(motif)]["matches_at_fpr"][0],
                         motif_stats[str(motif)]["matches_at_fpr"][0] / n_input * 100,
                         motif_stats[str(motif)]["matches_at_fpr"][1],
-                        motif_stats[str(motif)]["matches_at_fpr"][1] / n_background * 100,
+                        motif_stats[str(motif)]["matches_at_fpr"][1]
+                        / n_background
+                        * 100,
                         motif_stats[str(motif)]["phyper_at_fpr"],
                         log_pvalue,
                         motif_stats[str(motif)]["roc_auc"],
