@@ -926,7 +926,7 @@ def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="l
     return pd.Series(data=img_series, index=index)
 
 
-def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=4):
+def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
 
     # Read the maelstrom text report
     df = pd.read_table(infile, index_col=0)
@@ -950,13 +950,15 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=4):
     df.insert(0, "factors", motif_to_factor_series(df.index, pfmfile=pfmfile))
 
     rename_columns = {"factors": FACTOR_TOOLTIP}
+    if "% with motif" in df.columns:
+        df["% with motif"] = df["% with motif"].astype(int)
 
     df_styled = (
         ExtraStyler(df)
         .set_precision(2)
         .convert_to_image(subset=["logo"], height=30,)
         .scaled_background_gradient(
-            subset=value_cols, center_zero=True, min=1 / 1.75, max=1 / 1.75
+            subset=value_cols, center_zero=True, low=1 / 1.75, high=1 / 1.75
         )
         .border(subset=list(value_cols[:1]), location="left")
         .border(part="columns", location="bottom")
@@ -974,13 +976,12 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=4):
                 subset=corr_cols,
                 cmap="PuOr_r",
                 center_zero=True,
-                min=1 / 1.75,
-                max=1 / 1.75,
+                low=1 / 1.75,
+                high=1 / 1.75,
             )
         )
 
     if "% with motif" in df.columns:
-        df["% with motif"] = df["% with motif"].astype(int)
         df_styled = (
             df_styled.add_circle(
                 subset=["% with motif"], cmap="Purples", vmax=100, size=40

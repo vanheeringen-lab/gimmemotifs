@@ -342,6 +342,19 @@ def cli(sys_args):
         metavar="NAMES",
     )
     p.add_argument(
+        "-a",
+        "--aggregation",
+        dest="aggregation",
+        help=(
+            'How to combine motifs from individual methods. Default is "int_stouffer", '
+            "for inverse normal transform of ranks, followed by Stouffer's method to combine "
+            'z-scores. Alternatively, specify "stuart" for log-transformed rank aggregation '
+            "p-values."
+        ),
+        default="int_stouffer",
+        metavar="method",
+    )
+    p.add_argument(
         "-N",
         "--nthreads",
         dest="ncpus",

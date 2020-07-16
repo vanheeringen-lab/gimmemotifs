@@ -20,6 +20,7 @@ def maelstrom(args):
     zscore = args.zscore
     center = args.center
     gc = args.gc
+    aggregation = args.aggregation
 
     if not os.path.exists(infile):
         raise ValueError("file {} does not exist".format(infile))
@@ -37,4 +38,5 @@ def maelstrom(args):
         zscore=zscore,
         gc=gc,
         center=center,
+        aggregation=aggregation,
     )
