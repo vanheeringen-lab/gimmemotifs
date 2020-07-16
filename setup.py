@@ -135,5 +135,6 @@ setup(
         "tqdm",
         "pillow",
         "logomaker",
+        "qnorm",
     ],
 )

@@ -21,6 +21,7 @@ pysam
 python
 python-xxhash
 pyyaml >=3.10
+qnorm
 scikit-learn
 scipy
 seaborn
