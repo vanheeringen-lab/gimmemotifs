@@ -277,7 +277,13 @@ def run_maelstrom(
             logger.info(
                 "Input is not mean-centered, setting the mean of all rows to 0."
             )
-            logger.info("Use --nocenter to change this behavior")
+            logger.info("Use --nocenter if you know what you're doing and want to change this behavior.")
+            logger.info(
+                "Note that if you use count data (ChIP-seq, ATAC-seq) we recommend to "
+                "first transform your data, for instance using log2(), and to normalize "
+                "between samples. To create a table suitable for maelstrom you can use the "
+                "coverage_table script included with GimmeMotifs."
+            )
             df = df.sub(df.mean(axis=1), axis=0)
         else:
             logger.info("Input is not mean-centered, but --nocenter was specified.")
