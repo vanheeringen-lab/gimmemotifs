@@ -1009,7 +1009,7 @@ class Scanner(object):
 
         _threshold = self.threshold
         if zscore:
-            grouped = _treshold.groupby(_treshold.index).apply(scale, axis=0)
+            grouped = _threshold.groupby(_threshold.index).apply(scale, axis=0)
             _threshold = pd.DataFrame(
                 np.vstack(grouped.values),
                 index=_threshold.index,
