@@ -131,7 +131,7 @@ setup(
         "diskcache",
         "xxhash",
         "configparser",
-        "genomepy >= 0.7.2",
+        "genomepy >= 0.8.3",
         "tqdm",
         "pillow",
         "logomaker",
