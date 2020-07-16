@@ -51,10 +51,11 @@ def _wrap_html_str(x):
         min_pos, max_pos = m.start(), m.end()
 
     positions = [m.start() for m in re.compile(" ").finditer(x)]
-    if len(positions) == 0:
-        return x
 
     positions = [p for p in positions if min_pos < p < max_pos]
+
+    if len(positions) == 0:
+        return x
 
     pos = sorted(positions, key=lambda p: abs(p - len(x) / 2))[0]
     x = x[:pos] + "<br/>" + x[pos + 1 :]
