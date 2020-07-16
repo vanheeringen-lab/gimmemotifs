@@ -187,6 +187,7 @@ def _rank_agg_column(exps, dfs, e):
                 tmp_dfs[i][k] = (
                     v.sample(frac=1).sort_values(e, ascending=sort_order).index.values
                 )
+            
     return -np.log10(rankagg(tmp_dfs[0])) + np.log10(rankagg(tmp_dfs[1]))
 
 

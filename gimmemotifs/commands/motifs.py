@@ -13,6 +13,7 @@ import logging
 from tempfile import NamedTemporaryFile
 
 import numpy as np
+import pandas as pd
 
 from gimmemotifs.background import create_background_file
 from gimmemotifs.comparison import MotifComparer, select_nonredundant_motifs
@@ -142,7 +143,7 @@ def motifs(args):
 
     # Print the metrics
     f_out.write(
-        "Motif\t# matches\t# matches background\tP-value\tlog10 P-value\tROC AUC\tPR AUC\tEnr. at 1% FPR\tRecall at 10% FDR\n"
+        "Motif\t# matches\t% matches input\t# matches background\t%matches background\tP-value\tlog10 P-value\tROC AUC\tPR AUC\tEnr. at 1% FPR\tRecall at 10% FDR\n"
     )
 
     logger.info("creating motif scan tables")
@@ -174,6 +175,9 @@ def motifs(args):
             gcnorm=True,
         )
 
+    n_input = pd.read_csv(score_table, comment="#", sep="\t").shape[0]
+    n_background = pd.read_csv(bg_score_table, comment="#", sep="\t").shape[0]
+
     logger.info("calculating stats")
     for motif_stats in calc_stats_iterator(
         motifs=pfmfile,
@@ -188,10 +192,12 @@ def motifs(args):
                 if motif_stats[str(motif)]["phyper_at_fpr"] > 0:
                     log_pvalue = -np.log10(motif_stats[str(motif)]["phyper_at_fpr"])
                 f_out.write(
-                    "{}\t{:d}\t{:d}\t{:.2e}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.4f}\n".format(
+                    "{}\t{:d}\t{:.3f}\t{:d}\t{:.3f}\t{:.2e}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.2f}\t{:0.4f}\n".format(
                         motif.id,
                         motif_stats[str(motif)]["matches_at_fpr"][0],
+                        motif_stats[str(motif)]["matches_at_fpr"][0] / n_input * 100,
                         motif_stats[str(motif)]["matches_at_fpr"][1],
+                        motif_stats[str(motif)]["matches_at_fpr"][1] / n_background * 100,
                         motif_stats[str(motif)]["phyper_at_fpr"],
                         log_pvalue,
                         motif_stats[str(motif)]["roc_auc"],
@@ -203,7 +209,7 @@ def motifs(args):
     f_out.close()
 
     # Select a set of "non-redundant" motifs.
-    # Using Recursive Feature Elemination, a set of motifs is selected that
+    # Using Recursive Feature Elimination, a set of motifs is selected that
     # best explains the peaks in comparison to the background sequences.
     nr_motifs = select_nonredundant_motifs(
         args.outdir + "/gimme.roc.report.txt",

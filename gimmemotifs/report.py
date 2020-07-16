@@ -19,6 +19,8 @@ from statsmodels.stats.multitest import multipletests
 from pandas.core.indexing import _non_reducing_slice
 from pandas.io.formats.style import Styler
 import seaborn as sns
+from matplotlib import colors
+import matplotlib.pyplot as plt
 
 try:
     import emoji
@@ -318,41 +320,22 @@ class ExtraStyler(Styler):
         self.apply(self._align, subset=subset, location=location, axis=axis)
         return self
 
-    def scaled_background_gradient(
-        self, subset=None, cmap="RdBu_r", scale_factor=1, center_zero=True
-    ):
-        subset = pd.IndexSlice[:, :] if subset is None else subset
-        subset = _non_reducing_slice(subset)
-        absmax = np.max(
-            (
-                abs(self.data.loc[subset].max().max()),
-                abs(self.data.loc[subset].min().min()),
-            )
-        )
-        target = absmax * scale_factor
-        r = self
-        for col in self.data.loc[subset].columns:
-            smin = self.data[col].min()
-            smax = self.data[col].max()
-            diff = smax - smin
+    def _background_gradient(self, s, m, M, cmap='PuBu', low=0, high=0):
+        rng = M - m
+        norm = colors.Normalize(m - (rng * low),
+                            M + (rng * high))
+        normed = norm(s.values)
+        c = [colors.rgb2hex(x) for x in plt.cm.get_cmap(cmap)(normed)]
+        return ['background-color: %s' % color for color in c]
 
-            if center_zero:
-                # Make sure center of palette is at 0
-                low = abs((-target - smin) / diff)
-                high = (target - smax) / diff
-            else:
-                high = 1 / scale_factor
-                low = 1 / scale_factor
 
-            r = r.background_gradient(cmap=cmap, low=low, high=high, subset=[col])
-        return r
 
     def _circle(
         self,
         subset=None,
         show_text=True,
         color=None,
-        palette=None,
+        cmap=None,
         vmin=None,
         vmax=None,
         scale=False,
@@ -362,12 +345,23 @@ class ExtraStyler(Styler):
     ):
         subset = pd.IndexSlice[:, :] if subset is None else subset
         subslice = _non_reducing_slice(subset)
+        
+        if color:
+            palette = sns.color_palette([color])
+            # print(palette)
+        elif cmap is None:
+            palette = sns.light_palette((210, 90, 60), input="husl", n_colors=10)
+        else:
+            # if isinstance(palette, str):
+            palette = sns.color_palette(cmap)
+
         # Make sure we don't select text columns
-        if scale or morph:
+        if len(palette) > 1:
             subslice = pd.IndexSlice[
-                self.data.loc[subset].index,
-                self.data.loc[subset].select_dtypes(exclude=["object"]).columns,
+                self.data.loc[subslice].index,
+                self.data.loc[subslice].select_dtypes(exclude=["object"]).columns,
             ]
+
 
         self.circle_styles = self.circle_styles or []
         circle_id = len(self.circle_styles) + 1
@@ -383,14 +377,6 @@ class ExtraStyler(Styler):
             ("vertical-align", "middle"),
         ]
 
-        if color:
-            palette = sns.color_palette([color])
-            # print(palette)
-        elif palette is None:
-            palette = sns.light_palette((210, 90, 60), input="husl", n_colors=10)
-        else:
-            # if isinstance(palette, str):
-            palette = sns.color_palette(palette)
 
         self.circle_styles.append({"name": f"circle{circle_id}", "props": props})
         self.palette_styles = self.palette_styles or []
@@ -410,8 +396,8 @@ class ExtraStyler(Styler):
                 {"name": f"color{circle_id}_{i}", "props": props}
             )
 
-        if scale or morph:
-            vmax = vmax or self.data.loc[subslice].max().max() * 1.01
+        if len(palette) > 1:
+            vmax = self.data.loc[subslice].max().max() * 1.01 if vmax is None else vmax * 1.01
             text = self.display_data.loc[subslice].astype(str) if show_text else ""
             self.display_data.loc[subslice] = (
                 f"<div class='circle{circle_id} color{circle_id}_"
@@ -540,6 +526,33 @@ class ExtraStyler(Styler):
         self.display_data.iloc[idx] = result.values
 
         return self
+
+    def scaled_background_gradient(
+        self, subset=None, cmap="RdBu_r", low=0, high=0, center_zero=False, 
+        vmin=None, vmax=None
+    ):
+        subset = pd.IndexSlice[:, :] if subset is None else subset
+        subset = _non_reducing_slice(subset)
+
+        vmax = self.data.loc[subset].max().max() if vmax is None else vmax
+        vmin = self.data.loc[subset].min().min() if vmin is None else vmin
+
+        if center_zero:
+            vmax = max(abs(vmax), abs(vmin))
+            vmin = -vmax
+
+        r = self
+        for col in self.data.loc[subset].columns:
+            r = r.apply(self._background_gradient,
+                subset=pd.IndexSlice[subset[0], col],
+                cmap=cmap,
+                m=vmin,
+                M=vmax,
+                low=low,
+                high=high)
+
+        return r
+
 
 
 def get_roc_values(motif, fg_file, bg_file, genome):
@@ -882,12 +895,12 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=4):
         .set_precision(2)
         .convert_to_image(subset=["logo"], height=30,)
         .scaled_background_gradient(
-            subset=value_cols, center_zero=True, scale_factor=1.75
+            subset=value_cols, center_zero=True, min=1/1.75, max=1/1.75
         )
         .border(subset=list(value_cols[:1]), location="left")
         .border(part="columns", location="bottom")
         .set_table_attributes('class="sortable-theme-slick" data-sortable')
-        .center_align(subset=list(value_cols))
+        .align(subset=list(value_cols), location="center")
         .set_font("Nunito Sans")
         .rename(columns=rename_columns)
     )
@@ -895,9 +908,9 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=4):
     if len(corr_cols) > 0:
         df_styled = (
             df_styled.wrap(subset=list(corr_cols))
-            .center_align(subset=list(corr_cols))
+            .align(subset=list(corr_cols), location="center")
             .scaled_background_gradient(
-                subset=corr_cols, cmap="PuOr_r", center_zero=True, scale_factor=1.75
+                subset=corr_cols, cmap="PuOr_r", center_zero=True, min=1/1.75, max=1/1.75
             )
         )
 
@@ -905,10 +918,10 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=4):
         df["% with motif"] = df["% with motif"].astype(int)
         df_styled = (
             df_styled.add_circle(
-                subset=["% with motif"], palette="Purples", vmax=100, size=40
+                subset=["% with motif"], cmap="Purples", vmax=100, size=40
             )
             .wrap(subset=["% with motif"])
-            .center_align(subset=["% with motif"])
+            .align(subset=["% with motif"], location="center")
             .border(subset=["% with motif"], location="left")
         )
 
@@ -944,16 +957,11 @@ def roc_html_report(
         "Recall at 10% FDR",
     ]
 
-    motifs = read_motifs(pfmfile)
+    motifs = read_motifs(pfmfile, as_dict=True)
     if use_motifs is not None:
-        motifs = [m for m in motifs if m.id in use_motifs]
-
-    idx = [motif.id for motif in motifs]
+        motifs = {k:v for k,v in motifs.items() if k in use_motifs}
+    idx = list(motifs.keys())
     df = df.loc[idx]
-
-    # Add factors that can bind to the motif
-    df.insert(0, "factors", motif_to_factor_series(df.index, pfmfile=pfmfile))
-    cols = ["factors"] + cols
 
     df = df[df["corrected P-value"] <= threshold]
 
@@ -966,23 +974,17 @@ def roc_html_report(
             + "</a>"
         )
 
-    df["logo"] = [
-        '<img src="logos/{}.png" height=40/>'.format(re.sub(r"[^-_\w]+", "_", x))
-        for x in list(df.index)
-    ]
+    # Add motif logo's
+    df.insert(
+        0,
+        "logo",
+        motif_to_img_series(df.index, pfmfile=pfmfile, motifs=motifs, outdir=outdir, subdir="logos"),
+    )
+    # Add factors that can bind to the motif
+    df.insert(0, "factors", motif_to_factor_series(df.index, pfmfile=pfmfile, motifs=motifs))
 
-    df = df[cols]
-
-    df = df.rename(columns={"factors": FACTOR_TOOLTIP})
-    if not os.path.exists(outdir + "/logos"):
-        os.makedirs(outdir + "/logos")
-    for motif in motifs:
-        if motif.id in df.index:
-            motif.plot_logo(
-                fname=outdir
-                + "/logos/{}.png".format(re.sub(r"[^-_\w]+", "_", motif.id))
-            )
-
+    rename_columns = {"factors": FACTOR_TOOLTIP}
+    
     bar_cols = [
         "log10 P-value",
         "ROC AUC",
@@ -998,6 +1000,8 @@ def roc_html_report(
         os.path.join(template_dir, "sortable/sortable-theme-slick.css"),
         encoding="utf-8",
     ).read()
+    
+    df = df.reset_index().sort_values("ROC AUC", ascending=False)
     with open(os.path.join(outdir, outname), "w", encoding="utf-8") as f:
         f.write("<head>\n")
         f.write("<style>{}</style>\n".format(css))
@@ -1005,16 +1009,13 @@ def roc_html_report(
         f.write("<body>\n")
         if df.shape[0] > 0:
             f.write(
-                df.reset_index()
-                .sort_values("ROC AUC", ascending=False)
-                .style.bar(bar_cols)
-                .set_precision(3)
+                ExtraStyler(df)
+                .bar(bar_cols)
+                .set_precision(2)
                 .set_table_attributes("data-sortable")
                 .hide_index()
                 .render()
-                .replace("data-sortable", 'class="sortable-theme-slick" data-sortable')
             )
         else:
-            f.write("No enriched motifs found.")
-        f.write("<script>{}</script>\n".format(js))
-        f.write("</body>\n")
+            f.write("<body>No enriched motifs found.</body>")
+        
