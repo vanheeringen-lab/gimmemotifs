@@ -391,12 +391,11 @@ def scan_sequence(
                 result = [row for row in result if row[0] >= cutoff]
             else:
                 result = pwmscan(seq, motif.logodds, cutoff, nreport, scan_rc)
-                if cutoff <= motif.pwm_min_score() and len(result) == 0:
-                    result = [[motif.pwm_min_score(), 0, 1]] * nreport
+            if cutoff <= motif.pwm_min_score() and len(result) == 0:
+                result = [[motif.pwm_min_score(), 0, 1]] * nreport
 
             ret.append(result)
 
-    # return results
     return ret
 
 
@@ -678,7 +677,9 @@ class Scanner(object):
                         self.meanstd[gcbin][motif.id] = mean, std
 
         lock.release()
-        for gc_bin in bins:
+
+        for gc_bin in self.gc_bins:
+            gc_bin = "{:.2f}-{:.2f}".format(*gc_bin)
             if gc_bin not in self.meanstd:
                 valid_bins = []
                 for b in self.gc_bins:
@@ -690,7 +691,6 @@ class Scanner(object):
                 _, bstr = sorted(valid_bins, key=lambda x: abs(x[0] - v))[0]
                 logger.warn(f"Using {bstr}")
                 self.meanstd[gc_bin] = self.meanstd[bstr]
-
 
     def set_background(
         self, fname=None, genome=None, size=200, nseq=None, gc=False, gc_bins=None
@@ -1023,12 +1023,11 @@ class Scanner(object):
             )
             for gc_bin, count in gc_bin_count.items()
         ]
-    
-        fpr_df = pd.concat(dfs)        
+
+        fpr_df = pd.concat(dfs)
         t = fpr_df.quantile(0.99, interpolation="higher")
         maxt = pd.Series([m.pwm_max_score() for m in motifs], index=t.index)
         t[t >= maxt] = None
-        # print(t)
         return t.replace({np.nan: None}).to_dict()
 
     def _scan_sequences_with_motif(self, motifs, seqs, nreport, scan_rc):
