@@ -18,7 +18,6 @@ except ImportError:
 from genomepy import Genome
 from diskcache import Cache
 import numpy as np
-from scipy.stats import scoreatpercentile
 from sklearn.preprocessing import scale
 import pandas as pd
 
@@ -48,7 +47,6 @@ except Exception:
 # only used when using cache, should not be a requirement
 try:
     from dogpile.cache import make_region
-    from dogpile.cache.api import NO_VALUE
     import xxhash
 except ImportError:
     pass
@@ -819,13 +817,10 @@ class Scanner(object):
         if not self.motifs:
             raise ValueError("please run set_motifs() first")
 
-        thresholds = {}
         motifs = read_motifs(self.motifs)
         gc_bins = ["{:.2f}-{:.2f}".format(*gc_bin) for gc_bin in self.gc_bins]
 
         if threshold is not None:
-            data = []
-
             d = parse_threshold_values(self.motifs, threshold)
             self._threshold = pd.DataFrame(d, index=[0])
             self._threshold = self._threshold.join(
@@ -1052,7 +1047,7 @@ class Scanner(object):
             motifs_meanstd=motifs_meanstd,
             zscore=zscore,
         )
-        for seq, ret in self._scan_jobs(scan_func, seqs):
+        for _, ret in self._scan_jobs(scan_func, seqs):
             yield ret
 
     def _scan_jobs(self, scan_func, scan_seqs):

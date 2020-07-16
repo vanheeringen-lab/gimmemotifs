@@ -88,7 +88,7 @@ def _rank_int(series, c=3.0 / 8, stochastic=True):
             param1 (pandas.Series):   Series of values to transform
             param2 (Optional[float]): Constand parameter (Bloms constant)
             param3 (Optional[bool]):  Whether to randomise rank of ties
-        
+
         Returns:
             pandas.Series
     """
@@ -108,7 +108,7 @@ def _rank_int(series, c=3.0 / 8, stochastic=True):
     series = series.loc[~pd.isnull(series)]
 
     # Get ranks
-    if stochastic == True:
+    if stochastic:
         # Shuffle by index
         series = series.loc[np.random.permutation(series.index)]
         # Get rank, ties are determined by their position in the series (hence

@@ -31,10 +31,10 @@ from statsmodels.sandbox.stats.multicomp import multipletests
 from tqdm.auto import tqdm
 
 # scikit-learn
-from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.linear_model import MultiTaskLassoCV, BayesianRidge
+from sklearn.multioutput import MultiOutputRegressor
 from sklearn.preprocessing import scale, LabelEncoder
 from sklearn.svm import SVR
 
@@ -582,7 +582,7 @@ class MultiTaskLassoMoap(Moap):
         if self.scale:
             logger.debug("Scaling motif scores")
             # Scale motif scores
-            df_X.loc[:,:] = scale(df_X, axis=0)
+            df_X.loc[:, :] = scale(df_X, axis=0)
 
         # logger.debug("Scaling y")
 
@@ -594,7 +594,6 @@ class MultiTaskLassoMoap(Moap):
 
         model = MultiTaskLassoCV(selection="random", n_alphas=20, n_jobs=self.ncpus)
         logger.debug("Fitting model")
-        coefs = []
         model.fit(df_X, df_y)
         logger.info("Done")
 
@@ -602,6 +601,7 @@ class MultiTaskLassoMoap(Moap):
 
     def predict(self, df_X):
         return df_X.dot(self.act_.loc[df_X.columns])
+
 
 @register_predictor("SVR")
 class SVRMoap(Moap):
@@ -643,7 +643,7 @@ class SVRMoap(Moap):
         if self.scale:
             logger.debug("Scaling motif scores")
             # Scale motif scores
-            df_X.loc[:,:] = scale(df_X, axis=0)
+            df_X.loc[:, :] = scale(df_X, axis=0)
 
         # logger.debug("Scaling y")
 
@@ -656,16 +656,17 @@ class SVRMoap(Moap):
         clf = SVR(kernel="linear")
         self.model = MultiOutputRegressor(clf, n_jobs=1)
         logger.debug("Fitting model")
-        coefs = []
         self.model.fit(df_X, df_y)
         logger.info("Done")
 
-        self.act_ = pd.DataFrame(model.coef_, columns=X.columns, index=y.columns).T
+        self.act_ = pd.DataFrame(self.model.coef_, columns=X.columns, index=y.columns).T
 
     def predict(self, df_X):
-        #print(self.model.predict(df_X) )
-        
-        return pd.DataFrame(self.model.predict(df_X), index=df_X.index, columns=self.columns)
+        # print(self.model.predict(df_X) )
+
+        return pd.DataFrame(
+            self.model.predict(df_X), index=df_X.index, columns=self.columns
+        )
 
 
 def moap(

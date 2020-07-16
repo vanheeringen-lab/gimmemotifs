@@ -257,11 +257,11 @@ def run_maelstrom(
 
     center : bool, optional
         Mean-center the input table.
-    
+
     aggregation: str, optional
-        How to combine scores of the predictors. The default is "int_stouffer", for 
+        How to combine scores of the predictors. The default is "int_stouffer", for
         inverse normal transform followed by Stouffer's methods to combine z-scores.
-        Alternatively, "stuart" performs rank aggregation and reports the -log10 of 
+        Alternatively, "stuart" performs rank aggregation and reports the -log10 of
         the rank aggregation p-value.
     """
     logger.info("Starting maelstrom")
@@ -277,7 +277,9 @@ def run_maelstrom(
             logger.info(
                 "Input is not mean-centered, setting the mean of all rows to 0."
             )
-            logger.info("Use --nocenter if you know what you're doing and want to change this behavior.")
+            logger.info(
+                "Use --nocenter if you know what you're doing and want to change this behavior."
+            )
             logger.info(
                 "Note that if you use count data (ChIP-seq, ATAC-seq) we recommend to "
                 "first transform your data, for instance using log2(), and to normalize "
