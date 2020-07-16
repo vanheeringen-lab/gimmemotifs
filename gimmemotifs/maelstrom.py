@@ -173,35 +173,21 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pfmfile=None):
         plt.savefig(os.path.join(outdir, "motif.enrichment.png"), dpi=300)
 
 
-def _rank_agg_column(exps, dfs, e):
-    tmp_dfs = [pd.DataFrame(), pd.DataFrame()]
-
-    for i, sort_order in enumerate([False, True]):
-        for method, scoring, _ in exps:
-            k = "{}.{}".format(method, scoring)
-            if k in dfs:
-                v = dfs[k]
-                # Sample rows before sorting to shuffle
-                # Otherwise all ties will not have a random order due to inherent
-                # ordering of the motif dataframe
-                tmp_dfs[i][k] = (
-                    v.sample(frac=1).sort_values(e, ascending=sort_order).index.values
-                )
-            
-    return -np.log10(rankagg(tmp_dfs[0])) + np.log10(rankagg(tmp_dfs[1]))
-
-
-def df_rank_aggregation(df, dfs, exps):
+def df_rank_aggregation(df, dfs, exps, method="int_stouffer"):
     df_p = pd.DataFrame(index=list(dfs.values())[0].index)
     names = list(dfs.values())[0].columns
+    dfs = [
+        pd.concat([v[col].rename(k, inplace=True) for k, v in dfs.items()], axis=1)
+        for col in names
+    ]
     pool = Pool(16)
-    func = partial(_rank_agg_column, exps, dfs)
-    ret = pool.map(func, names)
+    func = partial(rankagg, method=method)
+    ret = pool.map(func, dfs)
     pool.close()
     pool.join()
 
-    for e, result in zip(names, ret):
-        df_p[e] = result
+    for name, result in zip(names, ret):
+        df_p[name] = result
 
     if df.shape[1] != 1:
         df_p = df_p[df.columns]
@@ -223,6 +209,7 @@ def run_maelstrom(
     zscore=True,
     gc=True,
     center=False,
+    aggregation="int_stouffer",
 ):
     """Run maelstrom on an input table.
 
@@ -270,6 +257,12 @@ def run_maelstrom(
 
     center : bool, optional
         Mean-center the input table.
+    
+    aggregation: str, optional
+        How to combine scores of the predictors. The default is "int_stouffer", for 
+        inverse normal transform followed by Stouffer's methods to combine z-scores.
+        Alternatively, "stuart" performs rank aggregation and reports the -log10 of 
+        the rank aggregation p-value.
     """
     logger.info("Starting maelstrom")
     if infile.endswith("feather"):
@@ -432,7 +425,7 @@ def run_maelstrom(
 
     if len(methods) > 1:
         logger.info("Rank aggregation")
-        df_p = df_rank_aggregation(df, dfs, exps)
+        df_p = df_rank_aggregation(df, dfs, exps, method=aggregation)
 
         if df.shape[1] > 1:
             # Add correlation between motif score and signal
