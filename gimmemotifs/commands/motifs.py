@@ -39,6 +39,19 @@ def motifs(args):
     if not os.path.exists(scan_dir):
         os.makedirs(scan_dir)
 
+    sample = args.sample
+    if args.size and args.size > 0:
+        file_type = determine_file_type(args.sample)
+        if file_type == "fasta":
+            logger.warn("size parameter will be ignored for FASTA input")
+        else:
+            outfile = os.path.join(args.outdir, f"input.w{args.size}.bed")
+            if file_type == "narrowpeak":
+                narrowpeak_to_bed(args.sample, outfile, size=args.size)
+            if file_type == "bed":
+                write_equalsize_bedfile(args.sample, args.size, outfile)
+            sample = outfile
+
     genome = args.genome
     if genome is None:
         args.zscore = False
@@ -71,7 +84,7 @@ def motifs(args):
             bg,
             fmt="fasta",
             genome=genome,
-            inputfile=args.sample,
+            inputfile=sample,
             size=size,
             number=10000,
         )
@@ -84,7 +97,7 @@ def motifs(args):
 
     if args.denovo:
         gimme_motifs(
-            args.sample,
+            sample,
             args.outdir,
             params={
                 "tools": args.tools,
@@ -147,15 +160,15 @@ def motifs(args):
     )
 
     logger.info("creating motif scan tables")
-    ftype = determine_file_type(args.sample)
-    sample = args.sample
-    delete_sample = False
-    if ftype == "narrowpeak":
-        f = NamedTemporaryFile(delete=False)
-        logger.debug("Using {} as temporary BED file".format(f.name))
-        narrowpeak_to_bed(args.sample, f.name, size=args.size)
-        sample = f.name
-        delete_sample = True
+    # ftype = determine_file_type(args.sample)
+    # sample = args.sample
+    # delete_sample = False
+    # if ftype == "narrowpeak":
+    #    f = NamedTemporaryFile(delete=False)
+    #    logger.debug("Using {} as temporary BED file".format(f.name))
+    #    narrowpeak_to_bed(args.sample, f.name, size=args.size)
+    #    sample = f.name
+    #    delete_sample = True
 
     # Create a table with the best score per motif for all motifs.
     # This has three reasons:
