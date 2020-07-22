@@ -360,6 +360,19 @@ class ExtraStyler(Styler):
             for color in c
         ]
 
+    def to_precision_str(self, subset=None, precision=0, include_zero=True):
+        subset = pd.IndexSlice[:, :] if subset is None else subset
+        subset = _non_reducing_slice(subset)
+
+        def precision_str(x, precision=precision):
+            if (include_zero or x > 0) and x <= 10 ** -precision:
+                return f"<{10**-precision}"
+            else:
+                return f"{{0:.{precision}f}}".format(x)
+
+        self.display_data.loc[subset] = self.data.loc[subset].applymap(precision_str)
+        return self
+
     def _circle(
         self,
         subset=None,
@@ -997,6 +1010,7 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
             .wrap(subset=["% with motif"])
             .align(subset=["% with motif"], location="center")
             .border(subset=["% with motif"], location="left")
+            .to_precision_str(subset=["% with motif"])
         )
 
     df_styled = df_styled.render()
@@ -1109,6 +1123,7 @@ def roc_html_report(
                 .wrap(subset=cols)
                 .align(subset=bar_cols, location="center")
                 .rename(columns=rename_columns)
+                .to_precision_str(subset=["% matches input", "%matches background"])
                 .render()
             )
         else:
