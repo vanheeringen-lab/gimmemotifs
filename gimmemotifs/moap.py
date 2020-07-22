@@ -36,7 +36,9 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.linear_model import MultiTaskLassoCV, BayesianRidge
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.preprocessing import scale, LabelEncoder
-from sklearn.svm import SVR
+from sklearn.svm import LinearSVR
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 
 import xgboost
 
@@ -592,12 +594,24 @@ class MultiTaskLassoMoap(Moap):
 
         X = df_X.loc[y.index]
 
-        model = MultiTaskLassoCV(selection="random", n_alphas=20, n_jobs=self.ncpus)
+        model = Pipeline(
+            [
+                ("scale", StandardScaler()),
+                (
+                    "reg",
+                    MultiTaskLassoCV(
+                        fit_intercept=False, n_alphas=20, n_jobs=self.ncpus
+                    ),
+                ),
+            ]
+        )
         logger.debug("Fitting model")
         model.fit(df_X, df_y)
         logger.info("Done")
 
-        self.act_ = pd.DataFrame(model.coef_, columns=X.columns, index=y.columns).T
+        self.act_ = pd.DataFrame(
+            model.steps[1][1].coef_, index=y.columns, columns=X.columns
+        ).T
 
     def predict(self, df_X):
         return df_X.dot(self.act_.loc[df_X.columns])
@@ -653,13 +667,16 @@ class SVRMoap(Moap):
         self.columns = df_y.columns
         X = df_X.loc[y.index]
 
-        clf = SVR(kernel="linear")
+        clf = LinearSVR()
         self.model = MultiOutputRegressor(clf, n_jobs=1)
         logger.debug("Fitting model")
         self.model.fit(df_X, df_y)
         logger.info("Done")
 
-        self.act_ = pd.DataFrame({c: e.coef_[0] for c, e in zip(df_y.columns, self.model.estimators_)}, index=X.columns)
+        self.act_ = pd.DataFrame(
+            {c: e.coef_ for c, e in zip(df_y.columns, self.model.estimators_)},
+            index=X.columns,
+        )
 
     def predict(self, df_X):
         # print(self.model.predict(df_X) )

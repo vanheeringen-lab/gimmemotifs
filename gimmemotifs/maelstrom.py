@@ -27,6 +27,7 @@ from scipy.cluster import hierarchy
 from scipy.spatial.distance import pdist
 from scipy.cluster.hierarchy import linkage, dendrogram
 from sklearn.cluster import FeatureAgglomeration
+
 # from scipy.spatial.distance import correlation
 
 # Plotting
@@ -99,7 +100,9 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pfmfile=None):
     mapfile = pfmfile.replace(".pwm", ".motif2factors.txt")
     if os.path.exists(mapfile):
 
-        m2f = pd.read_csv(mapfile, sep="\t", names=["motif", "factors"], index_col=0, comment="#")
+        m2f = pd.read_csv(
+            mapfile, sep="\t", names=["motif", "factors"], index_col=0, comment="#"
+        )
         m2f["factors"] = m2f["factors"].str[:50]
     else:
         motifs = [m.id for m in read_motifs(pfmfile)]
@@ -371,12 +374,26 @@ def run_maelstrom(
     if filter_redundant:
         logger.info("Selecting non-redundant motifs")
 
-        fa = FeatureAgglomeration(distance_threshold=filter_cutoff, n_clusters=None, affinity="correlation", linkage="complete", compute_full_tree=True)
+        fa = FeatureAgglomeration(
+            distance_threshold=filter_cutoff,
+            n_clusters=None,
+            affinity="correlation",
+            linkage="complete",
+            compute_full_tree=True,
+        )
         fa.fit(scores)
         X_cluster = pd.DataFrame({"motif": scores.columns, "label": fa.labels_})
         X_cluster = X_cluster.join(scores.var().to_frame(name="var"), on="motif")
-        selected_motifs = X_cluster.sort_values("var").drop_duplicates(subset=["label"], keep="last")["motif"].values
-        nr_motif = X_cluster.sort_values("var").drop_duplicates(subset=["label"], keep="last")[["label", "motif"]].set_index("label")
+        selected_motifs = (
+            X_cluster.sort_values("var")
+            .drop_duplicates(subset=["label"], keep="last")["motif"]
+            .values
+        )
+        nr_motif = (
+            X_cluster.sort_values("var")
+            .drop_duplicates(subset=["label"], keep="last")[["label", "motif"]]
+            .set_index("label")
+        )
         X_cluster = X_cluster.join(nr_motif, rsuffix="_nr", on="label")
         motif_map = X_cluster[["motif", "motif_nr"]].set_index("motif")
 
@@ -400,8 +417,12 @@ def run_maelstrom(
                 f.write(f"{motif.to_pfm()}\n")
         mapfile = pfmfile.replace(".pfm", ".motif2factors.txt")
         with open(mapfile, "w") as f:
-            f.write("# Note: this mapping is specifically created for this non-redundant set of motifs.\n")
-            f.write("# It also includes factors for motifs that were similar, but this can be\n")
+            f.write(
+                "# Note: this mapping is specifically created for this non-redundant set of motifs.\n"
+            )
+            f.write(
+                "# It also includes factors for motifs that were similar, but this can be\n"
+            )
             f.write("# specific to this analysis.\n")
 
         with open(mapfile, "a") as f:
