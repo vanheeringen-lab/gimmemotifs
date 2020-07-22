@@ -337,7 +337,7 @@ def cli(sys_args):
         "-F",
         "--filter_cutoff",
         dest="filter_cutoff",
-        help="Cutoff to select non-redundant motifs. Default is 0.8.",
+        help="Cutoff to select non-redundant motifs. Default is 0.8, increase this value to get fewer motifs.",
         default=0.8,
         type=float,
         metavar="FLOAT",
