@@ -15,6 +15,8 @@ def maelstrom(args):
     genome = args.genome
     outdir = args.outdir
     pfmfile = args.pfmfile
+    filter_redundant = args.filter_redundant
+    filter_cutoff = args.filter_cutoff
     methods = args.methods
     ncpus = args.ncpus
     zscore = args.zscore
@@ -33,6 +35,8 @@ def maelstrom(args):
         genome,
         outdir,
         pfmfile,
+        filter_redundant=filter_redundant,
+        filter_cutoff=filter_cutoff,
         methods=methods,
         ncpus=ncpus,
         zscore=zscore,

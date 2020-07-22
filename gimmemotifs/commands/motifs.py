@@ -253,9 +253,6 @@ def motifs(args):
                 gcnorm=True,
             )
 
-    if delete_sample:
-        os.unlink(sample)
-
     if args.report:
         logger.info("creating statistics report")
         if args.outdir:

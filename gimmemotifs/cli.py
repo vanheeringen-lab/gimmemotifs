@@ -327,6 +327,22 @@ def cli(sys_args):
         metavar="pfmfile",
     )
     p.add_argument(
+        "--no-filter",
+        dest="filter_redundant",
+        help="Don't remove redundant motifs.",
+        default=True,
+        action="store_false",
+    )
+    p.add_argument(
+        "-F",
+        "--filter_cutoff",
+        dest="filter_cutoff",
+        help="Cutoff to select non-redundant motifs. Default is 0.8.",
+        default=0.8,
+        type=float,
+        metavar="FLOAT",
+    )
+    p.add_argument(
         "--nocenter",
         dest="center",
         help="Don't mean-center the rows by default",

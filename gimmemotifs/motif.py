@@ -1419,6 +1419,8 @@ def _add_factors_from_handle(motifs, handle):
     m2f_direct = {}
     m2f_indirect = {}
     for line in open(map_file):
+        if line.startswith("#"):
+            continue
         try:
             motif, *factor_info = line.strip().split("\t")
             if len(factor_info) == 1:
@@ -1431,7 +1433,11 @@ def _add_factors_from_handle(motifs, handle):
         except Exception:
             pass
 
+    m2f = pd.read_csv(map_file, sep="\t", comment="#", index_col=0)
+
     for motif in motifs:
+        if motif.id in m2f.index:
+            motif.factor_info = m2f.loc[motif.id]
         if motif.id in m2f_direct:
             motif.factors[DIRECT_NAME] = m2f_direct[motif.id]
         if motif.id in m2f_indirect:

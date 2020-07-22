@@ -26,6 +26,8 @@ from scipy.stats import pearsonr
 from scipy.cluster import hierarchy
 from scipy.spatial.distance import pdist
 from scipy.cluster.hierarchy import linkage, dendrogram
+from sklearn.cluster import FeatureAgglomeration
+# from scipy.spatial.distance import correlation
 
 # Plotting
 import matplotlib.pyplot as plt
@@ -97,7 +99,7 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pfmfile=None):
     mapfile = pfmfile.replace(".pwm", ".motif2factors.txt")
     if os.path.exists(mapfile):
 
-        m2f = pd.read_csv(mapfile, sep="\t", names=["motif", "factors"], index_col=0)
+        m2f = pd.read_csv(mapfile, sep="\t", names=["motif", "factors"], index_col=0, comment="#")
         m2f["factors"] = m2f["factors"].str[:50]
     else:
         motifs = [m.id for m in read_motifs(pfmfile)]
@@ -200,6 +202,8 @@ def run_maelstrom(
     genome,
     outdir,
     pfmfile=None,
+    filter_redundant=True,
+    filter_cutoff=0.8,
     plot=True,
     cluster=False,
     score_table=None,
@@ -228,6 +232,12 @@ def run_maelstrom(
 
     pfmfile : str, optional
         Specify a PFM file for scanning.
+
+    filter_redundant : bool, optional
+        Create a non-redundant set of motifs based on correlation of motif scores in the input data.
+
+    filter_cutoff : float, optional
+        Cutoff to use for non-redundant motif selection. Default is 0.8.
 
     plot : bool, optional
         Create heatmaps.
@@ -355,6 +365,51 @@ def run_maelstrom(
         else:
             logger.info("Scores, using: %s", score_table)
 
+    counts = pd.read_csv(count_table, index_col=0, comment="#", sep="\t")
+    scores = pd.read_csv(score_table, index_col=0, comment="#", sep="\t")
+
+    if filter_redundant:
+        logger.info("Selecting non-redundant motifs")
+
+        fa = FeatureAgglomeration(distance_threshold=filter_cutoff, n_clusters=None, affinity="correlation", linkage="complete", compute_full_tree=True)
+        fa.fit(scores)
+        X_cluster = pd.DataFrame({"motif": scores.columns, "label": fa.labels_})
+        X_cluster = X_cluster.join(scores.var().to_frame(name="var"), on="motif")
+        selected_motifs = X_cluster.sort_values("var").drop_duplicates(subset=["label"], keep="last")["motif"].values
+        nr_motif = X_cluster.sort_values("var").drop_duplicates(subset=["label"], keep="last")[["label", "motif"]].set_index("label")
+        X_cluster = X_cluster.join(nr_motif, rsuffix="_nr", on="label")
+        motif_map = X_cluster[["motif", "motif_nr"]].set_index("motif")
+
+        scores = scores[selected_motifs]
+        counts = counts[selected_motifs]
+        score_table = os.path.join(outdir, "motif.nr.score.txt.gz")
+        scores.to_csv(score_table, sep="\t", compression="gzip")
+        count_table = os.path.join(outdir, "motif.nr.count.txt.gz")
+        counts.to_csv(count_table, sep="\t", compression="gzip")
+
+        m2f = pd.read_table(os.path.join(outdir, mapfile), comment="#")
+        m2f = m2f.join(motif_map, on="Motif")
+        m2f.loc[m2f["Motif"] != m2f["motif_nr"], "Curated"] = "N"
+        m2f["Motif"] = m2f["motif_nr"]
+        m2f = m2f.drop(columns=["motif_nr"])
+
+        motifs = read_motifs(pfmfile)
+        pfmfile = os.path.join(outdir, "nonredundant.motifs.pfm")
+        with open(pfmfile, "w") as f:
+            for motif in motifs:
+                f.write(f"{motif.to_pfm()}\n")
+        mapfile = pfmfile.replace(".pfm", ".motif2factors.txt")
+        with open(mapfile, "w") as f:
+            f.write("# Note: this mapping is specifically created for this non-redundant set of motifs.\n")
+            f.write("# It also includes factors for motifs that were similar, but this can be\n")
+            f.write("# specific to this analysis.\n")
+
+        with open(mapfile, "a") as f:
+            m2f.to_csv(f, index=False, sep="\t")
+        logger.info(f"Selected {len(selected_motifs)} motifs")
+        logger.info(f"Motifs: {pfmfile}")
+        logger.info(f"Factor mappings: {mapfile}")
+
     if cluster:
         cluster = False
         for method in methods:
@@ -401,17 +456,13 @@ def run_maelstrom(
 
     for method, scoring, fname in exps:
         try:
-            if scoring == "count" and count_table is not None:
+            if scoring == "count":
                 moap_with_table(
                     fname, count_table, outdir, method, scoring, ncpus=ncpus
                 )
-            elif scoring == "score" and score_table is not None:
+            elif scoring == "score":
                 moap_with_table(
                     fname, score_table, outdir, method, scoring, ncpus=ncpus
-                )
-            else:
-                moap_with_bg(
-                    fname, genome, outdir, method, scoring, pfmfile=pfmfile, ncpus=ncpus
                 )
 
         except Exception as e:
@@ -427,9 +478,6 @@ def run_maelstrom(
             dfs[t] = pd.read_table(fname, index_col=0, comment="#")
         except FileNotFoundError:
             logger.warn("Activity file for {} not found!\n".format(t))
-
-    counts = pd.read_csv(count_table, index_col=0, comment="#", sep="\t")
-    scores = pd.read_csv(score_table, index_col=0, comment="#", sep="\t")
 
     if len(methods) > 1:
         logger.info("Rank aggregation")

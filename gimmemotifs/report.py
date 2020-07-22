@@ -11,6 +11,7 @@ from multiprocessing import Pool
 import re
 import shutil
 import logging
+from collections import Counter
 
 import jinja2
 import numpy as np
@@ -835,12 +836,18 @@ def format_factors(motif, max_length=5):
     fmt_d = "<span style='color:black'>{}</span>"
     fmt_i = "<span style='color:#666666'>{}</span>"
 
+    if hasattr(motif, "factor_info"):
+        fcount = Counter([x.upper() for x in motif.factor_info["Factor"]])
+    else:
+        fcount = Counter(motif.factors[DIRECT_NAME] + motif.factors[INDIRECT_NAME])
+
     direct = sorted(
         list(
             set(
                 [x.upper() if x != "de novo" else x for x in motif.factors[DIRECT_NAME]]
             )
-        )
+        ),
+        key=lambda x: fcount[x], reverse=True
     )
     indirect = sorted(
         list(
@@ -851,23 +858,23 @@ def format_factors(motif, max_length=5):
                     if x.upper() not in direct
                 ]
             )
-        )
+        ), key=lambda x: fcount[x], reverse=True
     )
 
     if len(direct) > max_length:
         show_factors = direct[:max_length]
     else:
         show_factors = direct[:]
-        for f in indirect:
+        for f in sorted(indirect, key=lambda x: fcount[x], reverse=True):
             if f not in show_factors:
                 show_factors.append(f)
             if len(show_factors) >= max_length:
                 break
 
     if "de novo" in show_factors:
-        show_factors = ["de novo"] + sorted([f for f in show_factors if f != "de novo"])
+        show_factors = ["de novo"] + sorted([f for f in show_factors if f != "de novo"], key=lambda x: fcount[x], reverse=True)
     else:
-        show_factors = sorted(show_factors)
+        show_factors = sorted(show_factors, key=lambda x: fcount[x], reverse=True)
 
     factor_str = ",".join(
         [fmt_d.format(f) if f in direct else fmt_i.format(f) for f in show_factors]
