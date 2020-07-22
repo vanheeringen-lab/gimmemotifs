@@ -659,7 +659,7 @@ class SVRMoap(Moap):
         self.model.fit(df_X, df_y)
         logger.info("Done")
 
-        self.act_ = pd.DataFrame(self.model.coef_, columns=X.columns, index=y.columns).T
+        self.act_ = pd.DataFrame({c: e.coef_[0] for c, e in zip(df_y.columns, self.model.estimators_)}, index=X.columns)
 
     def predict(self, df_X):
         # print(self.model.predict(df_X) )
