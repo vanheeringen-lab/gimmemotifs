@@ -1012,18 +1012,27 @@ class Scanner(object):
             )
 
         min_frac = min(gc_bin_count.values())
-        dfs = [
-            _threshold.loc[gc_bin].sample(
-                int(count / min_frac * 1000), replace=True, random_state=42
-            )
-            for gc_bin, count in gc_bin_count.items()
-        ]
+        t = {}
+        maxt = pd.Series([m.pwm_max_score() for m in motifs], index=_threshold.columns)
+        # We do this in a loop as the DataFrame will get too big to fit in memory
+        # when the difference between the number of sequences per gc_bin is very
+        # high.
+        for motif in _threshold.columns:
+            dfs = [
+                _threshold.loc[gc_bin, motif].sample(
+                    int(count / min_frac * 1000), replace=True, random_state=42
+                )
+                for gc_bin, count in gc_bin_count.items()
+            ]
 
-        fpr_df = pd.concat(dfs)
-        t = fpr_df.quantile(0.99, interpolation="higher")
-        maxt = pd.Series([m.pwm_max_score() for m in motifs], index=t.index)
-        t[t >= maxt] = None
-        return t.replace({np.nan: None}).to_dict()
+            fpr_df = pd.concat(dfs)
+            val = fpr_df.quantile(0.99, interpolation="higher")
+            if val < maxt.loc[motif]:
+                t[motif] = val
+            else:
+                t[motif] = None
+
+        return t
 
     def _scan_sequences_with_motif(self, motifs, seqs, nreport, scan_rc):
         scan_func = partial(
