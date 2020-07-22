@@ -860,7 +860,8 @@ def format_factors(motif, max_length=5):
                 [x.upper() if x != "de novo" else x for x in motif.factors[DIRECT_NAME]]
             )
         ),
-        key=lambda x: fcount[x], reverse=True
+        key=lambda x: fcount[x],
+        reverse=True,
     )
     indirect = sorted(
         list(
@@ -871,7 +872,9 @@ def format_factors(motif, max_length=5):
                     if x.upper() not in direct
                 ]
             )
-        ), key=lambda x: fcount[x], reverse=True
+        ),
+        key=lambda x: fcount[x],
+        reverse=True,
     )
 
     if len(direct) > max_length:
@@ -885,7 +888,11 @@ def format_factors(motif, max_length=5):
                 break
 
     if "de novo" in show_factors:
-        show_factors = ["de novo"] + sorted([f for f in show_factors if f != "de novo"], key=lambda x: fcount[x], reverse=True)
+        show_factors = ["de novo"] + sorted(
+            [f for f in show_factors if f != "de novo"],
+            key=lambda x: fcount[x],
+            reverse=True,
+        )
     else:
         show_factors = sorted(show_factors, key=lambda x: fcount[x], reverse=True)
 
