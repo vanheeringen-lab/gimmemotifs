@@ -389,7 +389,7 @@ def cli(sys_args):
     p.add_argument(
         "--nogc",
         dest="gc",
-        help="Don't use GC% bins",
+        help="Don't use GC%% bins",
         action="store_false",
         default=True,
     )
