@@ -10,4 +10,6 @@ conda:
  
 python:
   version: 3.7
-  setup_py_install: true
+  install:
+    - method: pip
+      path: .
