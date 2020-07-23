@@ -845,9 +845,12 @@ def create_denovo_motif_report(
     )
 
 
-def format_factors(motif, max_length=5):
-    fmt_d = "<span style='color:black'>{}</span>"
-    fmt_i = "<span style='color:#666666'>{}</span>"
+def format_factors(motif, max_length=5, html=True, include_indirect=True, extra_str=", (...)"):
+    if html:
+        fmt_d = "<span style='color:black'>{}</span>"
+        fmt_i = "<span style='color:#666666'>{}</span>"
+    else:
+        fmt_d = fmt_i = "{}"
 
     if hasattr(motif, "factor_info"):
         fcount = Counter([x.upper() for x in motif.factor_info["Factor"]])
@@ -863,19 +866,22 @@ def format_factors(motif, max_length=5):
         key=lambda x: fcount[x],
         reverse=True,
     )
-    indirect = sorted(
-        list(
-            set(
-                [
-                    x.upper()
-                    for x in motif.factors[INDIRECT_NAME]
-                    if x.upper() not in direct
-                ]
-            )
-        ),
-        key=lambda x: fcount[x],
-        reverse=True,
-    )
+
+    indirect = []
+    if include_indirect:
+        indirect = sorted(
+            list(
+                set(
+                    [
+                        x.upper()
+                        for x in motif.factors[INDIRECT_NAME]
+                        if x.upper() not in direct
+                    ]
+                )
+            ),
+            key=lambda x: fcount[x],
+            reverse=True,
+        )
 
     if len(direct) > max_length:
         show_factors = direct[:max_length]
@@ -901,17 +907,18 @@ def format_factors(motif, max_length=5):
     )
 
     if len(direct + indirect) > max_length:
-        factor_str += ", (...)"
+        factor_str += extra_str
 
-    tooltip = ""
-    if len(direct) > 0:
-        tooltip += "direct: " + ",".join(sorted(direct))
-    if len(indirect) > 0:
-        if tooltip != "":
-            tooltip += "&#10;"
-        tooltip += "predicted: " + ",".join(sorted(indirect))
+    if html:
+        tooltip = ""
+        if len(direct) > 0:
+            tooltip += "direct: " + ",".join(sorted(direct))
+        if len(indirect) > 0:
+            if tooltip != "":
+                tooltip += "&#10;"
+            tooltip += "predicted: " + ",".join(sorted(indirect))
 
-    factor_str = '<div title="' + tooltip + '">' + factor_str + "</div>"
+        factor_str = '<div title="' + tooltip + '">' + factor_str + "</div>"
 
     return factor_str
 

@@ -41,7 +41,7 @@ from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 from gimmemotifs.moap import moap, Moap, scan_to_table
 from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.report import maelstrom_html_report
+from gimmemotifs.report import maelstrom_html_report, format_factors
 from gimmemotifs.utils import join_max, pfmfile_location
 
 from multiprocessing import Pool
@@ -563,7 +563,10 @@ class MaelstromResult:
             raise FileNotFoundError("No such directory: " + outdir)
 
         # Load motifs
-        fnames = glob.glob(os.path.join(outdir, "*.p[fw]m"))
+        fnames = glob.glob(os.path.join(outdir, "nonredundant*.p[fw]m"))
+        print(fnames)
+        if len(fnames) == 0:
+            fnames = glob.glob(os.path.join(outdir, "*.p[fw]m"))
         if len(fnames) > 0:
             pfmfile = fnames[0]
             with open(pfmfile) as fin:
@@ -582,6 +585,17 @@ class MaelstromResult:
         self.result = pd.read_table(
             os.path.join(outdir, "final.out.txt"), comment="#", index_col=0
         )
+        self.correlation = self.result.loc[
+            :, self.result.columns.str.contains("correlation")
+        ]
+        self.percent_match = self.result.loc[
+            :, self.result.columns.str.contains("% with motif")
+        ]
+        self.result = self.result.loc[
+            :,
+            ~self.result.columns.str.contains("correlation")
+            & ~self.result.columns.str.contains("% with motif"),
+        ]
 
         # Read motif results
         self.scores = pd.read_table(
@@ -610,10 +624,11 @@ class MaelstromResult:
         min_freq=0.01,
         threshold=2,
         name=True,
-        indirect=False,
+        indirect=True,
         figsize=None,
-        max_len=50,
+        max_number_factors=5,
         aspect=1,
+        cmap="RdBu_r",
         **kwargs,
     ):
         """Plot clustered heatmap of predicted motif activity.
@@ -622,7 +637,7 @@ class MaelstromResult:
         ----------
         kind : str, optional
             Which data type to use for plotting. Default is 'final', which will
-            plot the result of the rang aggregation. Other options are 'freq'
+            plot the result of the rank aggregation. Other options are 'freq'
             for the motif frequencies, or any of the individual activities such
             as 'rf.score'.
 
@@ -636,19 +651,22 @@ class MaelstromResult:
             Use factor names instead of motif names for plotting.
 
         indirect : bool, optional
-            Include indirect factors. Default is False.
+            Include indirect factors (computationally predicted or non-curated). Default is True.
 
-        max_len : int, optional
-            Truncate the list of factors to this maximum length.
+        max_number_factors : int, optional
+            Truncate the list of factors to this maximum size.
 
         figsize : tuple, optional
             Tuple of figure size (width, height).
 
         aspect : int, optional
             Aspect ratio for tweaking the plot.
+  
+        cmap : str, optional
+            Color paletter to use, RdBu_r by default.
 
         kwargs : other keyword arguments
-            All other keyword arguments are passed to sns.clustermap
+            All other keyword arguments are passed to sns.heatmap
 
         Returns
         -------
@@ -663,13 +681,17 @@ class MaelstromResult:
             filt = filt & (self.counts.sum() / self.counts.shape[0] > min_freq)
 
         idx = self.result.loc[filt].index
+
+        if idx.shape[0] == 0:
+            logger.warning("Empty matrix, try lowering the threshold")
+            return
+
         if idx.shape[0] >= 100:
             logger.warning("The filtered matrix has more than 100 rows.")
             logger.warning(
                 "It might be worthwhile to increase the threshold for visualization"
             )
 
-        cmap = "RdBu_r"
         if kind == "final":
             data = self.result
         elif kind == "freq":
@@ -687,18 +709,26 @@ class MaelstromResult:
         else:
             raise ValueError("Unknown dtype")
 
-        # print(data.head())
-        # plt.figure(
         m = data.loc[idx]
-        vmax = max(abs(np.percentile(m, 1)), np.percentile(m, 99))
-        vmin = -vmax
+
+        if "vmax" in kwargs:
+            vmax = kwargs.pop("vmax")
+        else:
+            vmax = max(abs(np.percentile(m, 1)), np.percentile(m, 99))
+
+        if "vmin" in kwargs:
+            vmin = kwargs.pop("vmin")
+        else:
+            vmin = -vmax
+
         if name:
             m["factors"] = [
-                join_max(
-                    _get_factor_list(self.motifs[n], indirect),
-                    max_len,
-                    ",",
-                    suffix=",(...)",
+                format_factors(
+                    self.motifs[n],
+                    max_length=max_number_factors,
+                    html=False,
+                    include_indirect=indirect,
+                    extra_str=",..",
                 )
                 for n in m.index
             ]
@@ -706,7 +736,8 @@ class MaelstromResult:
         h, w = m.shape
 
         if figsize is None:
-            figsize = (3 + m.shape[1] / 4, 1 + m.shape[0] / 3)
+            figsize = (4 + m.shape[1] / 4, 1 + m.shape[0] / 3)
+
         fig = plt.figure(figsize=figsize)
         npixels = 30
         g = GridSpec(
@@ -714,8 +745,8 @@ class MaelstromResult:
         )
         ax1 = fig.add_subplot(g[0, :])
         ax2 = fig.add_subplot(g[1, :])
-        ax2.set_title("Significance (-log10(p-value))")
-        dm = pdist(m, metric="euclidean")
+        ax2.set_title("aggregated z-score")
+        dm = pdist(m, metric="correlation")
         hc = linkage(dm, method="ward")
         leaves = dendrogram(hc, no_plot=True)["leaves"]
         cg = sns.heatmap(
@@ -727,10 +758,12 @@ class MaelstromResult:
             linewidths=1,
             vmin=vmin,
             vmax=vmax,
+            **kwargs,
         )
+        plt.setp(cg.axes.xaxis.get_majorticklabels(), rotation=90)
         plt.tight_layout()
         # cg.ax_col_dendrogram.set_visible(False)
-        # plt.setp(cg.ax_heatmap.yaxis.get_majorticklabels(), rotation=0)
+        # plt.setp(cg.ax_heatmap.xaxis.get_majorticklabels(), rotation=90)
         return cg
 
     def plot_scores(self, motifs, name=True, max_len=50):
