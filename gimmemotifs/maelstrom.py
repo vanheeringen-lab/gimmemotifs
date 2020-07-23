@@ -661,7 +661,7 @@ class MaelstromResult:
 
         aspect : int, optional
             Aspect ratio for tweaking the plot.
-  
+
         cmap : str, optional
             Color paletter to use, RdBu_r by default.
 

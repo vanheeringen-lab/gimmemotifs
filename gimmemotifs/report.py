@@ -30,7 +30,7 @@ except ImportError:
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
+from gimmemotifs.config import MotifConfig
 from gimmemotifs.plot import roc_plot
 from gimmemotifs.stats import calc_stats, add_star, write_stats
 from gimmemotifs import __version__
