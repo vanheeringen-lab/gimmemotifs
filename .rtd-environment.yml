@@ -29,3 +29,4 @@ dependencies:
   - tqdm >=4.27.0
   - xdg
   - xgboost >=0.71
+  - sphinx_bootstrap_theme
