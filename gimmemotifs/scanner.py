@@ -931,8 +931,11 @@ class Scanner(object):
             yield [m[0] for m in matches]
 
     def get_seq_bin(self, seq):
-        useq = seq.upper()
-        gc = round((useq.count("G") + useq.count("C")) / len(useq), 2)
+        if len(str(seq)) == 0:
+            gc = 0
+        else:
+            useq = seq.upper()
+            gc = round((useq.count("G") + useq.count("C")) / len(useq), 2)
         if gc == 0:
             gc = 0.01
         for b_start, b_end in self.gc_bins:
@@ -1011,29 +1014,23 @@ class Scanner(object):
                 columns=_threshold.columns,
             )
 
-        min_frac = min(gc_bin_count.values())
+        nseqs = int(20000 / np.sum(list(gc_bin_count.values())))
         t = {}
         maxt = pd.Series([m.pwm_max_score() for m in motifs], index=_threshold.columns)
         # We do this in a loop as the DataFrame will get too big to fit in memory
         # when the difference between the number of sequences per gc_bin is very
         # high.
-        for motif in _threshold.columns:
-            dfs = [
-                _threshold.loc[gc_bin, motif].sample(
-                    int(count / min_frac * 1000), replace=True, random_state=42
-                )
-                for gc_bin, count in gc_bin_count.items()
-            ]
-
-            fpr_df = pd.concat(dfs)
-            val = fpr_df.quantile(0.99, interpolation="higher")
+        _threshold = _threshold.reset_index()
+        idx = np.hstack([_threshold[_threshold[_threshold.columns[0]] == gc_bin].sample(nseqs * count, re
+place=True, random_state=42).index.values for gc_bin, count in gc_bin_count.items()])
+        for motif in _threshold.columns[1:]:
+            val = _threshold.loc[idx, motif].quantile(0.99, interpolation="higher")
             if val < maxt.loc[motif]:
                 t[motif] = val
             else:
                 t[motif] = None
-
         return t
-
+        
     def _scan_sequences_with_motif(self, motifs, seqs, nreport, scan_rc):
         scan_func = partial(
             scan_seq_mult, motifs=motifs, nreport=nreport, scan_rc=scan_rc
