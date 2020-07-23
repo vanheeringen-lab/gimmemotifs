@@ -26,13 +26,30 @@ class TestMoap(unittest.TestCase):
             self.clusters,
             "mm10",
             self.outdir,
+            filter_redundant=False,
             score_table=self.score_table,
             count_table=self.count_table,
             plot=False,
         )
         df = pd.read_table(self.outfile, index_col=0, comment="#")
         print(df.shape)
+
         self.assertEquals((623, 5), df.shape)
+        
+        # Filter redundant motifs
+        run_maelstrom(
+            self.clusters,
+            "mm10",
+            self.outdir,
+            filter_redundant=True,
+            score_table=self.score_table,
+            count_table=self.count_table,
+            plot=False,
+        )
+        df = pd.read_table(self.outfile, index_col=0, comment="#")
+        print(df.shape)
+        self.assertEquals((156, 5), df.shape)
+
 
         for fname in glob(os.path.join(self.outdir, "activity*")):
             os.unlink(fname)
