@@ -320,7 +320,7 @@ There is also a larger file, that contains more regions ``hg19.blood.most_variab
 
     $ gimme maelstrom hg19.blood.most_variable.1k.txt hg19 maelstrom.blood.1k.out
 
-There output directory contains several files:
+The output directory contains several files:
 
 ::
    
@@ -341,7 +341,6 @@ The file ``gimme.maelstrom.report.html`` contains a graphical summary of this fi
 .. image:: images/gimme.maelstrom.report.png
 
 You can sort on the different columns by clicking on them.
-
 
 The following Python snippet will create a heatmap of the results.
 
