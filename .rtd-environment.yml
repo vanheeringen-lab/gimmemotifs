@@ -30,3 +30,4 @@ dependencies:
   - xdg
   - xgboost >=0.71
   - sphinx_bootstrap_theme
+  - numpydoc
