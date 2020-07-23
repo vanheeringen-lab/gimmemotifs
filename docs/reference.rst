@@ -362,11 +362,26 @@ This command can be used to identify differential motifs between two or more dat
 ::
 
     -h, --help            show this help message and exit
-    -p PFMFILE, --pfmfile PFMFILE
+    -p pfmfile, --pfmfile pfmfile
                           PFM file with motifs (default:
-                          gimme.vertebrate.v5.0.pwm)
+                          gimme.vertebrate.v5.0.pfm)
+    --no-filter           Don't remove redundant motifs.
+    -F FLOAT, --filter_cutoff FLOAT
+                          Cutoff to select non-redundant motifs. Default is 0.8,
+                          increase this value to get fewer motifs.
+    --nocenter            Don't mean-center the rows by default
     -m NAMES, --methods NAMES
                           Run with specific methods
+    -a method, --aggregation method
+                          How to combine motifs from individual methods. Default
+                          is "int_stouffer", for inverse normal transform of
+                          ranks, followed by Stouffer's method to combine
+                          z-scores. Alternatively, specify "stuart" for log-
+                          transformed rank aggregation p-values.
+    -N INT, --nthreads INT
+                          Number of threads (default 12)
+    --rawscore            Don't z-score normalize motif scores
+    --nogc                Don't use GC% bins
 
 **Input file formats**
 
@@ -407,16 +422,23 @@ The second option looks like this:
 
 This is a tab-separated table, with a header describing the experiments. In case of sequencing data, such 
 as ChIP-seq, ATAC-seq or DNaseI seq, we recommend to use **log-transformed** read counts which are
-**mean-centered per row**. For optimal results, it is recommended to normalize between experiments (columns) after the log-transformatiion step, 
-for instance by quantile normalization or scaling.
+**mean-centered per row**. For optimal results, it is recommended to normalize between experiments (columns) after
+ the log-transformatiion step, for instance by quantile normalization or scaling.
+By default, ``gimme maelstrom`` will mean-center the input, disable this with ``--nocenter``. 
 
 The second input format generally gives better results than the first one and would be the recommended format.
 
 The output scores of ``gimme maelstrom`` represent the combined result of multiple methods. 
-The individual results from different methods are ranked from high-scoring motif to low-scoring motif
-and then aggregated using the rank aggregation method from `Kolde, 2012 <https://www.ncbi.nlm.nih.gov/pubmed/22247279>`_. 
-The score that is shown is the -log10(p-value), where the p-value comes from the rank aggregation.
-This procedure is then repeated with the ranking reversed. These are shown as negative values.
+This z-score represents the combined result of multiple methods.
+The individual results from different methods are ranked from high-scoring motif to low-scoring motif and converted
+to z-scores using the inverse normal transformation. The z-scores from individual methods are then combined using
+Stouffer's method. The score that is shown is the aggregated z-score. A higher z-score means that presence of 
+the motif or a higher motif score is associated with higher signal in a specific sample.
+
+By default, ``gimme maelstrom`` selects a non-redundant set of motifs by clustering the motifs based on scores in the set of
+input sequences. You can disable this by using the ``--no-filter`` argument. You can tweak the number of selected motifs by
+changing the ``--filter-cutoff`` parameter. By default this is set to ``0.8``. Increase this value to select fewer motifs, 
+decrease it to select more motifs. Keep in mind that you may start to lose biologically relevant motifs if you set this too high.
 
 .. _`gimme_scan`:
 

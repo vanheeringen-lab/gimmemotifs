@@ -1,15 +1,18 @@
 # Required
 version: 2
 
-# Build documentation in the docs/ directory with Sphinx
+conda:
+  environment: .rtd-environment.yml
+
+  # Build documentation in the docs/ directory with Sphinx
 sphinx:
   configuration: docs/conf.py
 
-conda:
-  environment: .rtd-environment.yml
+build:
+  image: latest
  
 python:
   version: 3.7
   install:
-    - method: pip
+    - method: setuptools
       path: .

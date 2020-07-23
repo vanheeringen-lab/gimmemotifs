@@ -330,11 +330,11 @@ There output directory contains several files:
 The two motif files, ``motif.count.txt.gz`` and ``motif.score.txt.gz`` contain the motif scan results. 
 The ``activity.*.out.txt`` files are tables with the results of the individual methods. 
 The main result is ``final.out.txt``, which integrates all individual methods in a final score. 
-This score represents the combined result of multiple methods.
-The individual results from different methods are ranked from high-scoring motif to low-scoring motif
-and then aggregated using the rank aggregation method from `Kolde, 2012 <https://www.ncbi.nlm.nih.gov/pubmed/22247279>`_.
-The score that is shown is the -log10(p-value).
-This procedure is then repeated with the ranking reversed. These are shown as negative values.
+This z-score represents the combined result of multiple methods.
+The individual results from different methods are ranked from high-scoring motif to low-scoring motif and converted
+to z-scores using the inverse normal transformation. The z-scores from individual methods are then combined using
+Stouffer's method. The score that is shown is the aggregated z-score. A higher z-score means that presence of 
+the motif or a higher motif score is associated with higher signal in a specific sample.
 
 The file ``gimme.maelstrom.report.html`` contains a graphical summary of this file that can be opened in your web browser.
 
@@ -359,7 +359,7 @@ This will show a heatmap like this:
 .. image:: images/heatmap.png
 
 We see that the expected motifs for different cell types are identified. GATA/TAL1 for Erythrocytes, CEBP for monocytes, LEF/TCF for T cells (ie. Wnt signaling), SPIB and PAX5 for B cells and so on. 
-Keep in mind that this shows only the most relevant motifs (-log10 p-value cutoff of 6), there are more relevant motifs. 
+Keep in mind that this shows only the most relevant motifs (z-score threshold of 6), there are more relevant motifs. 
 This example was run only on 1,000 variable enhancer. A file with more regions, ``hg19.blood.most_variable.10k.txt`` for this example, will usually yield better results.
 
 The Jupyter notebook example `maelstrom.ipynb <https://github.com/vanheeringen-lab/gimmemotifs/blob/master/docs/notebooks/maelstrom.ipynb>`_ shows a more extensive example on how to work with maelstrom results in Python.
