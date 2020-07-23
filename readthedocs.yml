@@ -6,7 +6,7 @@ sphinx:
   configuration: docs/conf.py
 
 conda:
-  file: .rtd-environment.yml
+  environment: .rtd-environment.yml
  
 python:
   version: 3.7
