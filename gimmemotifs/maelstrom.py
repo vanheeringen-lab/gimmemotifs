@@ -41,7 +41,7 @@ from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 from gimmemotifs.moap import moap, Moap, scan_to_table
 from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.report import maelstrom_html_report, format_factors
+from gimmemotifs.report import maelstrom_html_report
 from gimmemotifs.utils import join_max, pfmfile_location
 
 from multiprocessing import Pool
@@ -564,7 +564,7 @@ class MaelstromResult:
 
         # Load motifs
         fnames = glob.glob(os.path.join(outdir, "nonredundant*.p[fw]m"))
-        print(fnames)
+        
         if len(fnames) == 0:
             fnames = glob.glob(os.path.join(outdir, "*.p[fw]m"))
         if len(fnames) > 0:
@@ -723,8 +723,7 @@ class MaelstromResult:
 
         if name:
             m["factors"] = [
-                format_factors(
-                    self.motifs[n],
+                self.motifs[n].format_factors(
                     max_length=max_number_factors,
                     html=False,
                     include_indirect=indirect,

@@ -11,7 +11,6 @@ from multiprocessing import Pool
 import re
 import shutil
 import logging
-from collections import Counter
 
 import jinja2
 import numpy as np
@@ -845,84 +844,6 @@ def create_denovo_motif_report(
     )
 
 
-def format_factors(motif, max_length=5, html=True, include_indirect=True, extra_str=", (...)"):
-    if html:
-        fmt_d = "<span style='color:black'>{}</span>"
-        fmt_i = "<span style='color:#666666'>{}</span>"
-    else:
-        fmt_d = fmt_i = "{}"
-
-    if hasattr(motif, "factor_info"):
-        fcount = Counter([x.upper() for x in motif.factor_info["Factor"]])
-    else:
-        fcount = Counter(motif.factors[DIRECT_NAME] + motif.factors[INDIRECT_NAME])
-
-    direct = sorted(
-        list(
-            set(
-                [x.upper() if x != "de novo" else x for x in motif.factors[DIRECT_NAME]]
-            )
-        ),
-        key=lambda x: fcount[x],
-        reverse=True,
-    )
-
-    indirect = []
-    if include_indirect:
-        indirect = sorted(
-            list(
-                set(
-                    [
-                        x.upper()
-                        for x in motif.factors[INDIRECT_NAME]
-                        if x.upper() not in direct
-                    ]
-                )
-            ),
-            key=lambda x: fcount[x],
-            reverse=True,
-        )
-
-    if len(direct) > max_length:
-        show_factors = direct[:max_length]
-    else:
-        show_factors = direct[:]
-        for f in sorted(indirect, key=lambda x: fcount[x], reverse=True):
-            if f not in show_factors:
-                show_factors.append(f)
-            if len(show_factors) >= max_length:
-                break
-
-    if "de novo" in show_factors:
-        show_factors = ["de novo"] + sorted(
-            [f for f in show_factors if f != "de novo"],
-            key=lambda x: fcount[x],
-            reverse=True,
-        )
-    else:
-        show_factors = sorted(show_factors, key=lambda x: fcount[x], reverse=True)
-
-    factor_str = ",".join(
-        [fmt_d.format(f) if f in direct else fmt_i.format(f) for f in show_factors]
-    )
-
-    if len(direct + indirect) > max_length:
-        factor_str += extra_str
-
-    if html:
-        tooltip = ""
-        if len(direct) > 0:
-            tooltip += "direct: " + ",".join(sorted(direct))
-        if len(indirect) > 0:
-            if tooltip != "":
-                tooltip += "&#10;"
-            tooltip += "predicted: " + ",".join(sorted(indirect))
-
-        factor_str = '<div title="' + tooltip + '">' + factor_str + "</div>"
-
-    return factor_str
-
-
 def motif_to_factor_series(series, pfmfile=None, motifs=None):
     if motifs is None:
         motifs = read_motifs(pfmfile, as_dict=True)
@@ -932,7 +853,7 @@ def motif_to_factor_series(series, pfmfile=None, motifs=None):
     else:
         index = series.index
 
-    factors = [format_factors(motifs[motif]) for motif in series]
+    factors = [motifs[motif].format_factors(html=True) for motif in series]
     return pd.Series(data=factors, index=index)
 
 
