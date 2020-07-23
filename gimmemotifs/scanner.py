@@ -1021,8 +1021,14 @@ class Scanner(object):
         # when the difference between the number of sequences per gc_bin is very
         # high.
         _threshold = _threshold.reset_index()
-        idx = np.hstack([_threshold[_threshold[_threshold.columns[0]] == gc_bin].sample(nseqs * count, re
-place=True, random_state=42).index.values for gc_bin, count in gc_bin_count.items()])
+        idx = np.hstack(
+            [
+                _threshold[_threshold[_threshold.columns[0]] == gc_bin]
+                .sample(nseqs * count, replace=True, random_state=42)
+                .index.values
+                for gc_bin, count in gc_bin_count.items()
+            ]
+        )
         for motif in _threshold.columns[1:]:
             val = _threshold.loc[idx, motif].quantile(0.99, interpolation="higher")
             if val < maxt.loc[motif]:
@@ -1030,7 +1036,7 @@ place=True, random_state=42).index.values for gc_bin, count in gc_bin_count.item
             else:
                 t[motif] = None
         return t
-        
+
     def _scan_sequences_with_motif(self, motifs, seqs, nreport, scan_rc):
         scan_func = partial(
             scan_seq_mult, motifs=motifs, nreport=nreport, scan_rc=scan_rc

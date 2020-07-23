@@ -1304,7 +1304,9 @@ class Motif(object):
 
         return self.wiggled_pwm
 
-    def format_factors(self, max_length=5, html=False, include_indirect=True, extra_str=", (...)"):
+    def format_factors(
+        self, max_length=5, html=False, include_indirect=True, extra_str=", (...)"
+    ):
         if html:
             fmt_d = "<span style='color:black'>{}</span>"
             fmt_i = "<span style='color:#666666'>{}</span>"
@@ -1319,7 +1321,10 @@ class Motif(object):
         direct = sorted(
             list(
                 set(
-                    [x.upper() if x != "de novo" else x for x in self.factors[DIRECT_NAME]]
+                    [
+                        x.upper() if x != "de novo" else x
+                        for x in self.factors[DIRECT_NAME]
+                    ]
                 )
             ),
             key=lambda x: fcount[x],

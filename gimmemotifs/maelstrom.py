@@ -564,7 +564,7 @@ class MaelstromResult:
 
         # Load motifs
         fnames = glob.glob(os.path.join(outdir, "nonredundant*.p[fw]m"))
-        
+
         if len(fnames) == 0:
             fnames = glob.glob(os.path.join(outdir, "*.p[fw]m"))
         if len(fnames) > 0:
