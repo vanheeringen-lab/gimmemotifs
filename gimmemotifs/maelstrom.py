@@ -197,6 +197,10 @@ def df_rank_aggregation(df, dfs, exps, method="int_stouffer"):
     if df.shape[1] != 1:
         df_p = df_p[df.columns]
 
+    if method == "int_stouffer":
+        df_p.columns = ["z-score " + c for c in df_p.columns]
+    else:
+        df_p.columns = ["activity " + c for c in df_p.columns]
     return df_p
 
 
@@ -504,19 +508,16 @@ def run_maelstrom(
         logger.info("Rank aggregation")
         df_p = df_rank_aggregation(df, dfs, exps, method=aggregation)
 
+        # Add percentage of input sequences with motif
+        df_p["% with motif"] = counts[df_p.index].sum(0) / df.shape[0] * 100
+
         if df.shape[1] > 1:
             # Add correlation between motif score and signal
             logger.info("Correlation")
-            cols = df_p.columns
-            for col in cols[::-1]:
-                df_p.insert(0, f"correlation {col}", 0)
+            for col in df.columns:
+                df_p[f"corr {col}"] = 0
                 for motif in df_p.index:
-                    df_p.loc[motif, f"correlation {col}"] = pearsonr(
-                        df[col], scores[motif]
-                    )[0]
-
-        # Add percentage of input sequences with motif
-        df_p.insert(0, "% with motif", counts[df_p.index].sum(0) / df.shape[0] * 100)
+                    df_p.loc[motif, f"corr {col}"] = pearsonr(df[col], scores[motif])[0]
 
         df_p.to_csv(os.path.join(outdir, "final.out.txt"), sep="\t")
     # df_p = df_p.join(m2f)
@@ -585,15 +586,13 @@ class MaelstromResult:
         self.result = pd.read_table(
             os.path.join(outdir, "final.out.txt"), comment="#", index_col=0
         )
-        self.correlation = self.result.loc[
-            :, self.result.columns.str.contains("correlation")
-        ]
+        self.correlation = self.result.loc[:, self.result.columns.str.contains("corr")]
         self.percent_match = self.result.loc[
             :, self.result.columns.str.contains("% with motif")
         ]
         self.result = self.result.loc[
             :,
-            ~self.result.columns.str.contains("correlation")
+            ~self.result.columns.str.contains("corr")
             & ~self.result.columns.str.contains("% with motif"),
         ]
 

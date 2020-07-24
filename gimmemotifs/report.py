@@ -403,6 +403,7 @@ class ExtraStyler(Styler):
                 self.data.loc[subslice].index,
                 self.data.loc[subslice].select_dtypes(exclude=["object"]).columns,
             ]
+        idx = self._current_index(subslice)
 
         self.circle_styles = self.circle_styles or []
         circle_id = len(self.circle_styles) + 1
@@ -442,8 +443,8 @@ class ExtraStyler(Styler):
                 if vmax is None
                 else vmax * 1.01
             )
-            text = self.display_data.loc[subslice].astype(str) if show_text else ""
-            self.display_data.loc[subslice] = (
+            text = self.display_data.iloc[idx].astype(str) if show_text else ""
+            self.display_data.iloc[idx] = (
                 f"<div class='circle{circle_id} color{circle_id}_"
                 + (self.data.loc[subslice] / (vmax / len(palette)))
                 .astype(int)
@@ -453,8 +454,8 @@ class ExtraStyler(Styler):
                 + "</div>"
             )
         else:
-            text = self.display_data.loc[subslice].astype(str) if show_text else ""
-            self.display_data.loc[subslice] = (
+            text = self.display_data.iloc[idx].astype(str) if show_text else ""
+            self.display_data.iloc[idx] = (
                 f"<div class='circle{circle_id} color{circle_id}_0'>" + text + "</div>"
             )
 
@@ -889,10 +890,10 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
 
     # Columns with maelstrom rank aggregation value
     value_cols = df.columns[
-        ~df.columns.str.contains("correlation") & ~df.columns.isin(["% with motif"])
+        ~df.columns.str.contains("corr") & ~df.columns.isin(["% with motif"])
     ]
     # Columns with correlation values
-    corr_cols = df.columns[df.columns.str.contains("correlation")]
+    corr_cols = df.columns[df.columns.str.contains("corr")]
 
     df = df[np.any(abs(df[value_cols]) >= threshold, 1)]
 
@@ -921,6 +922,7 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
         .set_table_attributes('class="sortable-theme-slick" data-sortable')
         .align(subset=list(value_cols), location="center")
         .set_font("Nunito Sans")
+        .wrap()
         .rename(columns=rename_columns)
     )
 
