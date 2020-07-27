@@ -922,7 +922,6 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
         .set_table_attributes('class="sortable-theme-slick" data-sortable')
         .align(subset=list(value_cols), location="center")
         .set_font("Nunito Sans")
-        .wrap()
         .rename(columns=rename_columns)
     )
 
@@ -950,7 +949,7 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
             .to_precision_str(subset=["% with motif"])
         )
 
-    df_styled = df_styled.render()
+    df_styled = df_styled.wrap().render()
 
     with open(outdir + "/gimme.maelstrom.report.html", "w", encoding="utf-8") as f:
         f.write(df_styled)
