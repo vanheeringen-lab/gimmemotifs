@@ -23,7 +23,7 @@ from shutil import copyfile
 from scipy import special
 import numpy as np
 import pybedtools
-from genomepy import Genome
+from genomepy import Genome, list_installed_genomes
 
 
 # gimme imports
@@ -470,7 +470,7 @@ def get_seqs_type(seqs):
         - region file
         - BED file
     """
-    region_p = re.compile(r"^(.+):(\d+)-(\d+)$")
+    region_p = re.compile(r"^([^\s:]+\@)?(.+):(\d+)-(\d+)$")
     if isinstance(seqs, Fasta):
         return "fasta"
     elif isinstance(seqs, list) or isinstance(seqs, np.ndarray):
@@ -496,24 +496,51 @@ def get_seqs_type(seqs):
         raise ValueError("unknown type {}".format(type(seqs).__name__))
 
 
-def as_fasta(seqs, genome=None):
-    ftype = get_seqs_type(seqs)
+def as_fasta(input_seqs, genome=None):
+    ftype = get_seqs_type(input_seqs)
     if ftype == "fasta":
-        return seqs
+        return input_seqs
     elif ftype == "fastafile":
-        return Fasta(seqs)
+        return Fasta(input_seqs)
     else:
-        if genome is None:
-            raise ValueError("need genome to convert to FASTA")
+        if isinstance(input_seqs, np.ndarray):
+            seqs = list(input_seqs)
 
-        tmpfa = NamedTemporaryFile()
-        if isinstance(genome, str):
-            genome = Genome(genome)
+        genomic_regions = {}
+        if "@" in input_seqs[0]:
+            available = list_installed_genomes()
+            for seq in input_seqs:
+                genome, region = seq.split("@")
+                if genome not in genomic_regions:
+                    if genome not in available:
+                        raise ValueError(f"genome {genome} is not installed!")
+                    genomic_regions[genome] = []
+                genomic_regions[genome].append(region)
+        else:
+            if genome is None:
+                raise ValueError("need genome to convert to FASTA")
+            genomic_regions[genome] = input_seqs
 
-        if isinstance(seqs, np.ndarray):
-            seqs = list(seqs)
-        genome.track2fasta(seqs, tmpfa.name)
-        return Fasta(tmpfa.name)
+        tmpfa = NamedTemporaryFile(mode="w")
+        for genome, regions in genomic_regions.items():
+
+            if isinstance(genome, str):
+                genome = Genome(genome)
+
+            tmpfa2 = NamedTemporaryFile()
+            genome.track2fasta(regions, tmpfa2.name)
+
+            fa = Fasta(tmpfa2.name)
+            for name, seq in fa.items():
+                print(f">{genome.name}@{name}\n{fa._format_seq(seq)}", file=tmpfa)
+        tmpfa.flush()
+
+        # Open tempfile and restore original sequence order
+        fa = Fasta(tmpfa.name)
+        seqs = [fa[region] for region in input_seqs]
+        fa.ids = input_seqs[:]
+        fa.seqs = seqs[:]
+        return fa
 
 
 def file_checksum(fname):
