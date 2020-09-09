@@ -514,7 +514,9 @@ def run_maelstrom(
         else:
             bla = counts.join(df).groupby(df.columns[0]).mean() * 100
             bla = bla.T
-            bla = bla.rename(columns={col: f"{col} % with motif" for col in bla.columns})
+            bla = bla.rename(
+                columns={col: f"{col} % with motif" for col in bla.columns}
+            )
             df_p = df_p.join(bla)
 
         if df.shape[1] > 1:

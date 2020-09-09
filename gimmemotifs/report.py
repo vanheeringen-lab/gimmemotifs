@@ -871,7 +871,7 @@ def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="l
     for motif in series:
         if motif not in motifs:
             raise ValueError(f"Motif {motif} does not occur in motif database")
-        fname = subdir + "/{}.png".format(re.sub("[()/]", "_", motif))
+        fname = subdir + "/{}.png".format(re.sub(r"[^a-zA-Z0-9\-]+", "_", motif))
         if not os.path.exists(fname):
             motifs[motif].plot_logo(fname=os.path.join(outdir, fname))
         img_series.append(fname)
@@ -942,9 +942,7 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
     for col in df.columns:
         if "% with motif" in col:
             df_styled = (
-                df_styled.add_circle(
-                    subset=[col], cmap="Purples", vmax=100, size=40
-                )
+                df_styled.add_circle(subset=[col], cmap="Purples", vmax=100, size=40)
                 .wrap(subset=[col])
                 .align(subset=[col], location="center")
                 .border(subset=[col], location="left")
@@ -994,7 +992,7 @@ def roc_html_report(
     if link_matches:
         df["# matches"] = (
             "<a href=motif_scan_results/"
-            + df.index.to_series()
+            + df.index.to_series().str.replace(r"[^a-zA-Z0-9\-]+", "_")
             + ".matches.bed>"
             + df["# matches"].astype(str)
             + "</a>"

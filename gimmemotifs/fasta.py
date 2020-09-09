@@ -12,7 +12,7 @@ import numpy as np
 
 
 class Fasta(object):
-    def __init__(self, fname=None, split_whitespace=False):
+    def __init__(self, fname=None, split_whitespace=False, fdict=None):
         """ Instantiate fasta object. Optional Fasta-formatted file as argument"""
         self.ids = []
         self.seqs = []
@@ -35,6 +35,10 @@ class Fasta(object):
                     if p.match(sequence):
                         raise IOError("Not a valid FASTA file")
                     self.seqs.append(sequence)
+        elif fdict is not None:
+            for name, seq in fdict.items():
+                self.ids.append(name)
+                self.seqs.append(seq)
 
     def hardmask(self):
         """ Mask all lowercase nucleotides with N's """

@@ -15,15 +15,19 @@ import mmap
 import random
 import tempfile
 import requests
+from io import TextIOWrapper
+from functools import singledispatch
 from subprocess import Popen
 from tempfile import NamedTemporaryFile
 from shutil import copyfile
 
 # External imports
+import pyfaidx
 from scipy import special
 import numpy as np
 import pybedtools
-from genomepy import Genome, list_installed_genomes
+from genomepy import Genome
+from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 
 # gimme imports
@@ -496,51 +500,193 @@ def get_seqs_type(seqs):
         raise ValueError("unknown type {}".format(type(seqs).__name__))
 
 
-def as_fasta(input_seqs, genome=None):
-    ftype = get_seqs_type(input_seqs)
-    if ftype == "fasta":
-        return input_seqs
-    elif ftype == "fastafile":
-        return Fasta(input_seqs)
-    else:
-        if isinstance(input_seqs, np.ndarray):
-            seqs = list(input_seqs)
+# Regular expression to check for region (chr:start-end or genome@chr:start-end)
+region_p = re.compile(r"^[^@]+@([^\s]+):(\d+)-(\d+)$")
 
-        genomic_regions = {}
-        if "@" in input_seqs[0]:
-            available = list_installed_genomes()
-            for seq in input_seqs:
-                genome, region = seq.split("@")
-                if genome not in genomic_regions:
-                    if genome not in available:
-                        raise ValueError(f"genome {genome} is not installed!")
-                    genomic_regions[genome] = []
-                genomic_regions[genome].append(region)
-        else:
-            if genome is None:
-                raise ValueError("need genome to convert to FASTA")
-            genomic_regions[genome] = input_seqs
 
-        tmpfa = NamedTemporaryFile(mode="w")
-        for genome, regions in genomic_regions.items():
-
-            if isinstance(genome, str):
-                genome = Genome(genome)
-
-            tmpfa2 = NamedTemporaryFile()
-            genome.track2fasta(regions, tmpfa2.name)
-
-            fa = Fasta(tmpfa2.name)
-            for name, seq in fa.items():
-                print(f">{genome.name}@{name}\n{fa._format_seq(seq)}", file=tmpfa)
-        tmpfa.flush()
-
-        # Open tempfile and restore original sequence order
-        fa = Fasta(tmpfa.name)
-        seqs = [fa[region] for region in input_seqs]
-        fa.ids = input_seqs[:]
-        fa.seqs = seqs[:]
+def _check_minsize(fa, minsize):
+    """
+    Raise ValueError if there is any sequence that is shorter than minsize.
+    If minsize is None the size will not be checked.
+    """
+    if minsize is None:
         return fa
+
+    for name, seq in fa.items():
+        if len(seq) < minsize:
+            raise ValueError(f"sequence {name} is shorter than {minsize}")
+
+    return fa
+
+
+def _genomepy_convert(to_convert, genome, minsize=None):
+    """
+    Convert a variety of inputs using track2fasta().
+    """
+    if genome is None:
+        raise ValueError("input file is not a FASTA file, need a genome!")
+
+    g = Genome(genome)
+    tmpfile = NamedTemporaryFile()
+    g.track2fasta(to_convert, tmpfile.name)
+
+    fa = as_seqdict(tmpfile.name)
+    return _check_minsize(fa, minsize)
+
+
+def _as_seqdict_genome_regions(regions, minsize=None):
+    """
+    Accepts list of regions where the genome is encoded in the region,
+    using the genome@chrom:start-end format.
+    """
+    genomic_regions = {}
+    for region in regions:
+        genome, region = region.split("@")
+        if genome not in genomic_regions:
+            Genome(genome)
+            genomic_regions[genome] = []
+        genomic_regions[genome].append(region)
+
+    tmpfa = NamedTemporaryFile(mode="w", delete=False)
+    for genome, g_regions in genomic_regions.items():
+        g = Genome(genome)
+
+        fa = g.track2fasta(g_regions)
+
+        for seq in fa:
+            seq.name = f"{genome}@{seq.name}"
+            print(seq.__repr__(), file=tmpfa)
+
+    tmpfa.flush()
+
+    # Open tempfile and restore original sequence order
+    fa = as_seqdict(tmpfa.name)
+    fa = {region: fa[region] for region in regions}
+    return _check_minsize(fa, minsize)
+
+
+@singledispatch
+def as_seqdict(to_convert, genome=None, minsize=None):
+    """
+    Convert input to a dictionary with name as key and sequence as value.
+
+    If the input contains genomic coordinates, the genome needs to be
+    specified. If minsize is specified all sequences will be checked if they
+    are not shorter than minsize. If regions (or a region file) are used as
+    the input, the genome can optionally be specified in the region using the
+    following format: genome@chrom:start-end.
+
+    Current supported input types include:
+    * FASTA, BED and region files.
+    * List or numpy.ndarray of regions.
+    * pyfaidx.Fasta object.
+    * pybedtools.BedTool object.
+
+    Parameters
+    ----------
+    to_convert : list, str, pyfaidx.Fasta or pybedtools.BedTool
+        Input to convert to FASTA-like dictionary
+
+    genome : str, optional
+        Genomepy genome name.
+
+    minsize : int or None, optional
+        If specified, check if all sequences have at least size minsize.
+
+    Returns
+    -------
+        dict with sequence names as key and sequences as value.
+    """
+    raise NotImplementedError(f"Not implement for {type(to_convert)}")
+
+
+@as_seqdict.register(list)
+def _as_seqdict_list(to_convert, genome=None, minsize=None):
+    """
+    Accepts list of regions as input.
+    """
+    if region_p.match(to_convert[0]):
+        return _as_seqdict_genome_regions(to_convert, minsize)
+
+    return _genomepy_convert(to_convert, genome, minsize)
+
+
+@as_seqdict.register(TextIOWrapper)
+def _as_seqdict_file_object(to_convert, genome=None, minsize=None):
+    """
+    Accepts file object as input, should be a FASTA file.
+    """
+    fa = {x: y for x, y in SimpleFastaParser(to_convert)}
+    return _check_minsize(fa, minsize)
+
+
+@as_seqdict.register(str)
+def _as_seqdict_filename(to_convert, genome=None, minsize=None):
+    """
+    Accepts filename as input.
+    """
+    if not os.path.exists(to_convert):
+        raise ValueError("Assuming filename, but it does not exist")
+
+    f = open(to_convert)
+    fa = as_seqdict(f)
+
+    if any(fa):
+        return _check_minsize(fa, minsize)
+
+    with open(to_convert) as f:
+        line = ""
+        while True:
+            line = f.readline()
+            if line == "":
+                break
+            if not line.startswith("#"):
+                break
+
+        if line == "":
+            raise IOError(f"empty file {to_convert}")
+
+        if region_p.match(line.strip()):
+            regions = [l.strip() for l in [line] + f.readlines()]
+            return _as_seqdict_genome_regions(regions, minsize=None)
+
+    # Biopython parser resulted in empty dict
+    # Assuming it's a BED or region file
+    return _genomepy_convert(to_convert, genome, minsize)
+
+
+@as_seqdict.register(pyfaidx.Fasta)
+def _as_seqdict_pyfaidx(to_convert, genome=None, minsize=None):
+    """
+    Accepts pyfaidx.Fasta object as input.
+    """
+    fa = {k: str(v) for k, v in to_convert.items()}
+    return _check_minsize(fa, minsize)
+
+
+@as_seqdict.register(pybedtools.BedTool)
+def _as_seqdict_bedtool(to_convert, genome=None, minsize=None):
+    """
+    Accepts pybedtools.BedTool as input.
+    """
+    return _genomepy_convert(
+        ["{}:{}-{}".format(*f[:3]) for f in to_convert], genome, minsize
+    )
+
+
+@as_seqdict.register(np.ndarray)
+def _as_seqdict_array(to_convert, genome=None, minsize=None):
+    """
+    Accepts numpy.ndarray with regions as input.
+    """
+    return as_seqdict(list(to_convert), genome, minsize)
+
+
+def as_fasta(to_convert, genome=None, minsize=None):
+    if isinstance(to_convert, Fasta):
+        return to_convert
+
+    return Fasta(fdict=as_seqdict(to_convert, genome, minsize))
 
 
 def file_checksum(fname):
