@@ -890,7 +890,7 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
 
     # Columns with maelstrom rank aggregation value
     value_cols = df.columns[
-        ~df.columns.str.contains("corr") & ~df.columns.isin(["% with motif"])
+        ~df.columns.str.contains("corr") & ~df.columns.str.contains("% with motif")
     ]
     # Columns with correlation values
     corr_cols = df.columns[df.columns.str.contains("corr")]
@@ -907,8 +907,9 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
     df.insert(0, "factors", motif_to_factor_series(df.index, pfmfile=pfmfile))
 
     rename_columns = {"factors": FACTOR_TOOLTIP}
-    if "% with motif" in df.columns:
-        df["% with motif"] = df["% with motif"].astype(int)
+    for col in df.columns:
+        if "% with motif" in col:
+            df[col] = df[col].astype(int)
 
     df_styled = (
         ExtraStyler(df)
@@ -938,16 +939,17 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
             )
         )
 
-    if "% with motif" in df.columns:
-        df_styled = (
-            df_styled.add_circle(
-                subset=["% with motif"], cmap="Purples", vmax=100, size=40
+    for col in df.columns:
+        if "% with motif" in col:
+            df_styled = (
+                df_styled.add_circle(
+                    subset=[col], cmap="Purples", vmax=100, size=40
+                )
+                .wrap(subset=[col])
+                .align(subset=[col], location="center")
+                .border(subset=[col], location="left")
+                .to_precision_str(subset=[col])
             )
-            .wrap(subset=["% with motif"])
-            .align(subset=["% with motif"], location="center")
-            .border(subset=["% with motif"], location="left")
-            .to_precision_str(subset=["% with motif"])
-        )
 
     df_styled = df_styled.wrap().render()
 
