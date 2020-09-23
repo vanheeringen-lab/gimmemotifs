@@ -27,6 +27,7 @@ from scipy.cluster import hierarchy
 from scipy.spatial.distance import pdist
 from scipy.cluster.hierarchy import linkage, dendrogram
 from sklearn.cluster import FeatureAgglomeration
+from sklearn.decomposition import PCA
 
 # from scipy.spatial.distance import correlation
 
@@ -38,7 +39,8 @@ import seaborn as sns
 sns.set_style("white")
 
 from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
-from gimmemotifs.moap import moap, Moap, scan_to_table
+from gimmemotifs.moap import moap, Moap
+from gimmemotifs.scanner import scan_regionfile_to_table
 from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.report import maelstrom_html_report
@@ -339,7 +341,7 @@ def run_maelstrom(
         count_table = os.path.join(outdir, "motif.count.txt.gz")
         if not os.path.exists(count_table):
             logger.info("motif scanning (counts)")
-            counts = scan_to_table(
+            counts = scan_regionfile_to_table(
                 infile,
                 genome,
                 "count",
@@ -357,7 +359,7 @@ def run_maelstrom(
         score_table = os.path.join(outdir, "motif.score.txt.gz")
         if not os.path.exists(score_table):
             logger.info("motif scanning (scores)")
-            scores = scan_to_table(
+            scores = scan_regionfile_to_table(
                 infile,
                 genome,
                 "score",
@@ -377,32 +379,47 @@ def run_maelstrom(
 
     if filter_redundant:
         logger.info("Selecting non-redundant motifs")
-
+        p = PCA(n_components=100)
+        pcs = pd.DataFrame(p.fit_transform(scores.T), index=scores.columns)
         fa = FeatureAgglomeration(
-            distance_threshold=filter_cutoff,
-            n_clusters=None,
-            affinity="correlation",
-            linkage="complete",
-            compute_full_tree=True,
+            n_clusters=600, affinity="euclidean", linkage="complete",
         )
-        fa.fit(scores)
+        fa.fit(pcs.T)
+        # fa = FeatureAgglomeration(
+        #    distance_threshold=filter_cutoff,
+        #    n_clusters=None,
+        #    affinity="correlation",
+        #    linkage="complete",
+        #    compute_full_tree=True,
+        # )
+        # fa.fit(scores)
         X_cluster = pd.DataFrame({"motif": scores.columns, "label": fa.labels_})
         X_cluster = X_cluster.join(scores.var().to_frame(name="var"), on="motif")
+        # selected_motifs = (
+        #    X_cluster.sort_values("var")
+        #    .drop_duplicates(subset=["label"], keep="last")["motif"]
+        #    .values
+        # )
         selected_motifs = (
             X_cluster.sort_values("var")
-            .drop_duplicates(subset=["label"], keep="last")["motif"]
-            .values
-        )
-        nr_motif = (
-            X_cluster.sort_values("var")
-            .drop_duplicates(subset=["label"], keep="last")[["label", "motif"]]
+            .drop_duplicates(subset=["label"], keep="last")[["motif", "label"]]
             .set_index("label")
         )
-        X_cluster = X_cluster.join(nr_motif, rsuffix="_nr", on="label")
+
+        nr_scores = scores.T.join(X_cluster[["motif", "label"]].set_index("motif"))
+        nr_scores = nr_scores.groupby("label").mean()
+        nr_scores = nr_scores.join(selected_motifs).set_index("motif").T
+
+        # nr_motif = (
+        #    X_cluster.sort_values("var")
+        #    .drop_duplicates(subset=["label"], keep="last")[["label", "motif"]]
+        #    .set_index("label")
+        # )
+        X_cluster = X_cluster.join(selected_motifs, rsuffix="_nr", on="label")
         motif_map = X_cluster[["motif", "motif_nr"]].set_index("motif")
 
-        scores = scores[selected_motifs]
-        counts = counts[selected_motifs]
+        scores = nr_scores  # scores[selected_motifs]
+        counts = counts[scores.columns]
         score_table = os.path.join(outdir, "motif.nr.score.txt.gz")
         scores.to_csv(score_table, sep="\t", compression="gzip")
         count_table = os.path.join(outdir, "motif.nr.count.txt.gz")
