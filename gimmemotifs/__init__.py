@@ -52,3 +52,23 @@ from ._version import get_versions  # noqa: E402
 
 __version__ = get_versions()["version"]
 del get_versions
+
+# easier import of gimme (config and cli left out)
+from . import background
+from . import cluster
+from . import comparison
+from . import denovo
+from . import fasta
+from . import maelstrom
+from . import moap
+from . import motif
+from . import plot
+from . import prediction
+from . import rank
+from . import report
+from . import rocmetrics
+from . import scanner
+from . import shutils
+from . import stats
+from . import utils
+from . import validation
