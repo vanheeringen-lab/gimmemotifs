@@ -53,6 +53,7 @@ from ._version import get_versions  # noqa: E402
 __version__ = get_versions()["version"]
 del get_versions
 
+# fmt: off
 # easier import of gimme (config and cli left out)
 from . import background  # noqa: F401
 from . import cluster     # noqa: F401
@@ -72,3 +73,4 @@ from . import shutils     # noqa: F401
 from . import stats       # noqa: F401
 from . import utils       # noqa: F401
 from . import validation  # noqa: F401
+# fmt: on
