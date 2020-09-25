@@ -54,21 +54,21 @@ __version__ = get_versions()["version"]
 del get_versions
 
 # easier import of gimme (config and cli left out)
-from . import background
-from . import cluster
-from . import comparison
-from . import denovo
-from . import fasta
-from . import maelstrom
-from . import moap
-from . import motif
-from . import plot
-from . import prediction
-from . import rank
-from . import report
-from . import rocmetrics
-from . import scanner
-from . import shutils
-from . import stats
-from . import utils
-from . import validation
+from . import background  # noqa: F401
+from . import cluster     # noqa: F401
+from . import comparison  # noqa: F401
+from . import denovo      # noqa: F401
+from . import fasta       # noqa: F401
+from . import maelstrom   # noqa: F401
+from . import moap        # noqa: F401
+from . import motif       # noqa: F401
+from . import plot        # noqa: F401
+from . import prediction  # noqa: F401
+from . import rank        # noqa: F401
+from . import report      # noqa: F401
+from . import rocmetrics  # noqa: F401
+from . import scanner     # noqa: F401
+from . import shutils     # noqa: F401
+from . import stats       # noqa: F401
+from . import utils       # noqa: F401
+from . import validation  # noqa: F401
