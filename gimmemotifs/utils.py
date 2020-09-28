@@ -529,7 +529,7 @@ def _genomepy_convert(to_convert, genome, minsize=None):
         g = genome
     else:
         g = Genome(genome)
-    
+
     tmpfile = NamedTemporaryFile()
     g.track2fasta(to_convert, tmpfile.name)
 
