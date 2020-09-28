@@ -525,7 +525,11 @@ def _genomepy_convert(to_convert, genome, minsize=None):
     if genome is None:
         raise ValueError("input file is not a FASTA file, need a genome!")
 
-    g = Genome(genome)
+    if isinstance(genome, Genome):
+        g = genome
+    else:
+        g = Genome(genome)
+    
     tmpfile = NamedTemporaryFile()
     g.track2fasta(to_convert, tmpfile.name)
 
@@ -646,7 +650,7 @@ def _as_seqdict_filename(to_convert, genome=None, minsize=None):
             raise IOError(f"empty file {to_convert}")
 
         if region_p.match(line.strip()):
-            regions = [l.strip() for l in [line] + f.readlines()]
+            regions = [myline.strip() for myline in [line] + f.readlines()]
             return _as_seqdict_genome_regions(regions, minsize=None)
 
     # Biopython parser resulted in empty dict
