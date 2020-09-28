@@ -907,9 +907,6 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
     df.insert(0, "factors", motif_to_factor_series(df.index, pfmfile=pfmfile))
 
     rename_columns = {"factors": FACTOR_TOOLTIP}
-    for col in df.columns:
-        if "% with motif" in col:
-            df[col] = df[col].astype(int)
 
     df_styled = (
         ExtraStyler(df)
