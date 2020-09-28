@@ -871,7 +871,7 @@ def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="l
     for motif in series:
         if motif not in motifs:
             raise ValueError(f"Motif {motif} does not occur in motif database")
-        fname = subdir + "/{}.png".format(re.sub("[()/]", "_", motif))
+        fname = subdir + "/{}.png".format(re.sub(r"[^a-zA-Z0-9\-]+", "_", motif))
         if not os.path.exists(fname):
             motifs[motif].plot_logo(fname=os.path.join(outdir, fname))
         img_series.append(fname)
@@ -890,7 +890,7 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
 
     # Columns with maelstrom rank aggregation value
     value_cols = df.columns[
-        ~df.columns.str.contains("corr") & ~df.columns.isin(["% with motif"])
+        ~df.columns.str.contains("corr") & ~df.columns.str.contains("% with motif")
     ]
     # Columns with correlation values
     corr_cols = df.columns[df.columns.str.contains("corr")]
@@ -907,13 +907,14 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
     df.insert(0, "factors", motif_to_factor_series(df.index, pfmfile=pfmfile))
 
     rename_columns = {"factors": FACTOR_TOOLTIP}
-    if "% with motif" in df.columns:
-        df["% with motif"] = df["% with motif"].astype(int)
 
     df_styled = (
         ExtraStyler(df)
         .set_precision(2)
-        .convert_to_image(subset=["logo"], height=30,)
+        .convert_to_image(
+            subset=["logo"],
+            height=30,
+        )
         .scaled_background_gradient(
             subset=value_cols, center_zero=True, low=1 / 1.75, high=1 / 1.75
         )
@@ -922,7 +923,6 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
         .set_table_attributes('class="sortable-theme-slick" data-sortable')
         .align(subset=list(value_cols), location="center")
         .set_font("Nunito Sans")
-        .wrap()
         .rename(columns=rename_columns)
     )
 
@@ -939,18 +939,17 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
             )
         )
 
-    if "% with motif" in df.columns:
-        df_styled = (
-            df_styled.add_circle(
-                subset=["% with motif"], cmap="Purples", vmax=100, size=40
+    for col in df.columns:
+        if "% with motif" in col:
+            df_styled = (
+                df_styled.add_circle(subset=[col], cmap="Purples", vmax=100, size=40)
+                .wrap(subset=[col])
+                .align(subset=[col], location="center")
+                .border(subset=[col], location="left")
+                .to_precision_str(subset=[col])
             )
-            .wrap(subset=["% with motif"])
-            .align(subset=["% with motif"], location="center")
-            .border(subset=["% with motif"], location="left")
-            .to_precision_str(subset=["% with motif"])
-        )
 
-    df_styled = df_styled.render()
+    df_styled = df_styled.wrap().render()
 
     with open(outdir + "/gimme.maelstrom.report.html", "w", encoding="utf-8") as f:
         f.write(df_styled)
@@ -993,7 +992,7 @@ def roc_html_report(
     if link_matches:
         df["# matches"] = (
             "<a href=motif_scan_results/"
-            + df.index.to_series()
+            + df.index.to_series().str.replace(r"[^a-zA-Z0-9\-]+", "_")
             + ".matches.bed>"
             + df["# matches"].astype(str)
             + "</a>"
@@ -1034,7 +1033,10 @@ def roc_html_report(
         if df.shape[0] > 0:
             f.write(
                 ExtraStyler(df)
-                .convert_to_image(subset=["logo"], height=30,)
+                .convert_to_image(
+                    subset=["logo"],
+                    height=30,
+                )
                 .add_circle(
                     subset=["% matches input", "%matches background"],
                     vmax=100,

@@ -526,7 +526,15 @@ def run_maelstrom(
         df_p = df_rank_aggregation(df, dfs, exps, method=aggregation)
 
         # Add percentage of input sequences with motif
-        df_p["% with motif"] = counts[df_p.index].sum(0) / df.shape[0] * 100
+        if df.shape[1] > 1:
+            df_p["% with motif"] = counts[df_p.index].sum(0) / df.shape[0] * 100
+        else:
+            bla = counts.join(df).groupby(df.columns[0]).mean() * 100
+            bla = bla.T
+            bla = bla.rename(
+                columns={col: f"{col} % with motif" for col in bla.columns}
+            )
+            df_p = df_p.join(bla)
 
         if df.shape[1] > 1:
             # Add correlation between motif score and signal

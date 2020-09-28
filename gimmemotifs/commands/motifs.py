@@ -7,6 +7,7 @@
 """Command line function 'roc'."""
 from __future__ import print_function
 import os
+import re
 import sys
 import shutil
 import logging
@@ -246,10 +247,11 @@ def motifs(args):
         with NamedTemporaryFile(mode="w") as f:
             print(motif_dict[motif].to_pwm(), file=f)
             f.flush()
+            safe_name = re.sub(r"[^a-zA-Z0-9\-]+", "_", motif)
             scan_to_file(
                 sample,
                 f.name,
-                filepath_or_buffer=os.path.join(scan_dir, f"{motif}.matches.bed"),
+                filepath_or_buffer=os.path.join(scan_dir, f"{safe_name}.matches.bed"),
                 bed=True,
                 fpr=0.01,
                 genome=args.genome,

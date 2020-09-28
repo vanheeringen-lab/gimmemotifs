@@ -344,8 +344,7 @@ def scan_to_file(
     zscore=True,
     gcnorm=True,
 ):
-    """Scan an inputfile with motifs.
-    """
+    """Scan an inputfile with motifs."""
     should_close = False
     if filepath_or_buffer is None:
         fo = sys.stdout

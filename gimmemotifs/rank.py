@@ -81,16 +81,16 @@ def qStuart(r):
 def _rank_int(series, c=3.0 / 8, stochastic=True):
     # Based on code by Edward Mountjoy
     # See: https://github.com/edm1/rank-based-INT
-    """ Perform rank-based inverse normal transformation on pandas series.
-        If stochastic is True ties are given rank randomly, otherwise ties will
-        share the same value. NaN values are ignored.
-        Args:
-            param1 (pandas.Series):   Series of values to transform
-            param2 (Optional[float]): Constand parameter (Bloms constant)
-            param3 (Optional[bool]):  Whether to randomise rank of ties
+    """Perform rank-based inverse normal transformation on pandas series.
+    If stochastic is True ties are given rank randomly, otherwise ties will
+    share the same value. NaN values are ignored.
+    Args:
+        param1 (pandas.Series):   Series of values to transform
+        param2 (Optional[float]): Constand parameter (Bloms constant)
+        param3 (Optional[bool]):  Whether to randomise rank of ties
 
-        Returns:
-            pandas.Series
+    Returns:
+        pandas.Series
     """
 
     # Check input

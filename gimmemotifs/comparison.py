@@ -950,7 +950,11 @@ def select_nonredundant_motifs(
     y = np.hstack((np.ones(fg_table.shape[0]), np.zeros(bg_table.shape[0])))
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.4, random_state=2, shuffle=True,
+        X,
+        y,
+        test_size=0.4,
+        random_state=2,
+        shuffle=True,
     )
 
     X_bla = X_train[keep]
