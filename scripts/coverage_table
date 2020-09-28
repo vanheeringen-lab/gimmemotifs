@@ -106,7 +106,8 @@ def make_table(
         df[:] = scale(df, axis=0)
     if normalization == "quantile":
         print("Normalization by quantile normalization", file=sys.stderr)
-        df = qnorm.quantile_normalize(df)
+        # stay between 1-10 ncpus, after 10 diminishing returns
+        df = qnorm.quantile_normalize(df, ncpus=sorted(1, ncpus, 10)[1])
     else:
         print("No normalization", file=sys.stderr)
 
