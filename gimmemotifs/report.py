@@ -914,7 +914,10 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
     df_styled = (
         ExtraStyler(df)
         .set_precision(2)
-        .convert_to_image(subset=["logo"], height=30,)
+        .convert_to_image(
+            subset=["logo"],
+            height=30,
+        )
         .scaled_background_gradient(
             subset=value_cols, center_zero=True, low=1 / 1.75, high=1 / 1.75
         )
@@ -1033,7 +1036,10 @@ def roc_html_report(
         if df.shape[0] > 0:
             f.write(
                 ExtraStyler(df)
-                .convert_to_image(subset=["logo"], height=30,)
+                .convert_to_image(
+                    subset=["logo"],
+                    height=30,
+                )
                 .add_circle(
                     subset=["% matches input", "%matches background"],
                     vmax=100,

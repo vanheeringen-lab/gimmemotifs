@@ -50,8 +50,7 @@ def rc(seq):
 
 
 def narrowpeak_to_bed(inputfile, bedfile, size=0):
-    """Convert narrowPeak file to BED file.
-    """
+    """Convert narrowPeak file to BED file."""
     p = re.compile(r"^(#|track|browser)")
     warn_no_summit = True
     with open(bedfile, "w") as f_out:
@@ -133,7 +132,7 @@ def phyper_single(k, good, bad, N):
 
 
 def phyper(k, good, bad, N):
-    """ Current hypergeometric implementation in scipy is broken,
+    """Current hypergeometric implementation in scipy is broken,
     so here's the correct version.
     """
     pvalues = [phyper_single(x, good, bad, N) for x in range(k + 1, N + 1)]
@@ -294,8 +293,8 @@ def motif_localization(fastafile, motif, size, outfile, cutoff=0.9):
 
 
 def parse_cutoff(motifs, cutoff, default=0.9):
-    """ Provide either a file with one cutoff per motif or a single cutoff
-        returns a hash with motif id as key and cutoff as value
+    """Provide either a file with one cutoff per motif or a single cutoff
+    returns a hash with motif id as key and cutoff as value
     """
 
     cutoffs = {}
