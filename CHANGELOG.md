@@ -13,6 +13,33 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+## [0.15.0] - 2020-09-29
+
+### Added
+
+- Added additional columns to `gimme maelstrom` output for better intepretation (correlation of motif to signal and % of regions with motif).
+- Added support for multi-species input in `genome@chrom:start-end` format.
+- `gimme maelstrom` warns if data is not row-centered and will center by default.
+- `gimme maelstrom` selects a set of non-redundant (or less redundant) motifs by default.
+- Added SVR regressor for `gimme maelstrom`.
+- Added quantile normalization to `coverage_table`.
+
+### Removed
+
+- Removed the lightning classifiers and regressors as the package is no longer actively maintained.
+
+### Changed
+
+- Visually improved HTML output.
+- Score of `maelstrom` is now an aggregate z-score based on combining z-scores from individual methods using Stouffer's method. The z-scores of individual methods are generated using the inverse normal transform.
+- Reorganized some classes and functions.
+
+### Fixed
+
+- Fixed minor issues with sorting columns in HTML output.
+- `gimme motifs` doesn't crash when no motifs are found.
+- Fixed error with Ensembl chromosome names in `combine_peaks`.
+
 ## [0.14.4] - 2020-04-02
 
 ### Fixed
