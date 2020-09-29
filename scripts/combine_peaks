@@ -46,7 +46,7 @@ def read_peak_file_to_df(fname):
             "qval",
             "peak",
         ]
-        df = pd.read_table(fname, names=header)
+        df = pd.read_table(fname, names=header, dtype={"chrom": "str"})
         df["chrom"] = df["chrom"].astype(str)
 
         # get the summit
@@ -57,7 +57,7 @@ def read_peak_file_to_df(fname):
         df["value"] = df["qval"]
         df = df[summit_header]
     elif ftype == "bed":
-        df = pd.read_table(fname, names=summit_header)
+        df = pd.read_table(fname, names=summit_header, dtype={"chrom": "str"})
         if ((df["end"] - df["start"]) != 1).sum() != 0:
             raise ValueError(f"{fname} does not contain summits.")
     else:
@@ -116,7 +116,7 @@ def combine_peaks(peaks, genome, window, scale_value):
 
     # store summit location + associated value in col4
     df_all["col4"] = (
-        df_all["chrom"]
+        df_all["chrom"].astype(str)
         + ";"
         + df_all["start"].astype(str)
         + ";"

@@ -1,13 +1,9 @@
 import pkgutil
-import six
 import os
 
 dirname = os.path.split(__file__)[0]
 
-if six.PY3:
-    level = 0
-else:
-    level = -1
+level = 0
 
 # Dynamically load all commands
 for _importer, cmdname, _ in pkgutil.iter_modules([dirname]):

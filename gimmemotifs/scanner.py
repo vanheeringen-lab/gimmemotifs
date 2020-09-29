@@ -1,11 +1,11 @@
 import os
 import re
 import sys
+from collections import Counter
 from functools import partial
 from tempfile import mkdtemp, NamedTemporaryFile
 import logging
 import multiprocessing as mp
-import six
 
 # "hidden" features, in development
 try:
@@ -18,7 +18,8 @@ except ImportError:
 from genomepy import Genome
 from diskcache import Cache
 import numpy as np
-from scipy.stats import scoreatpercentile
+from sklearn.preprocessing import scale
+import pandas as pd
 
 from gimmemotifs import __version__
 from gimmemotifs.background import RandomGenomicFasta, gc_bin_bedfile
@@ -46,7 +47,6 @@ except Exception:
 # only used when using cache, should not be a requirement
 try:
     from dogpile.cache import make_region
-    from dogpile.cache.api import NO_VALUE
     import xxhash
 except ImportError:
     pass
@@ -250,8 +250,7 @@ def scan_to_file(
     zscore=True,
     gcnorm=True,
 ):
-    """Scan an inputfile with motifs.
-    """
+    """Scan an inputfile with motifs."""
     should_close = False
     if filepath_or_buffer is None:
         fo = sys.stdout
@@ -341,7 +340,7 @@ def scan_to_best_match(
     if genome:
         s.set_genome(genome)
 
-    if isinstance(motifs, six.string_types):
+    if isinstance(motifs, str):
         motifs = read_motifs(motifs)
 
     logger.debug("scanning %s...", fname)
@@ -370,7 +369,9 @@ def parse_threshold_values(motif_file, cutoff):
     return threshold
 
 
-def scan_sequence(seq, motifs, nreport, scan_rc):
+def scan_sequence(
+    seq, seq_gc_bin, motifs, nreport, scan_rc, motifs_meanstd=None, zscore=False
+):
 
     ret = []
     # scan for motifs
@@ -378,36 +379,37 @@ def scan_sequence(seq, motifs, nreport, scan_rc):
         if cutoff is None:
             ret.append([])
         else:
-            result = pwmscan(seq, motif.logodds, cutoff, nreport, scan_rc)
+            if zscore:
+                m_mean, m_std = motifs_meanstd[seq_gc_bin][motif.id]
+                result = pwmscan(
+                    seq, motif.logodds, motif.pwm_min_score(), nreport, scan_rc
+                )
+                result = [[(row[0] - m_mean) / m_std, row[1], row[2]] for row in result]
+                result = [row for row in result if row[0] >= cutoff]
+            else:
+                result = pwmscan(seq, motif.logodds, cutoff, nreport, scan_rc)
             if cutoff <= motif.pwm_min_score() and len(result) == 0:
                 result = [[motif.pwm_min_score(), 0, 1]] * nreport
+
             ret.append(result)
 
-    # return results
     return ret
 
 
-def scan_region(region, genome, motifs, nreport, scan_rc):
-
-    # retrieve sequence
-    chrom, start, end = re.split(r"[:-]", region)
-    seq = genome[chrom][int(start) : int(end)].seq.upper()
-
-    return scan_sequence(seq, motifs, nreport, scan_rc)
-
-
-def scan_seq_mult(seqs, motifs, nreport, scan_rc):
+def scan_seq_mult(
+    seqs, seq_gc_bins, motifs, nreport, scan_rc, motifs_meanstd=None, zscore=False
+):
     ret = []
-    for seq in seqs:
-        result = scan_sequence(seq.upper(), motifs, nreport, scan_rc)
-        ret.append(result)
-    return ret
-
-
-def scan_region_mult(regions, genome, motifs, nreport, scan_rc):
-    ret = []
-    for region in regions:
-        result = scan_region(region, genome, motifs, nreport, scan_rc)
+    for seq, seq_gc_bin in zip(seqs, seq_gc_bins):
+        result = scan_sequence(
+            seq.upper(),
+            seq_gc_bin,
+            motifs,
+            nreport,
+            scan_rc,
+            motifs_meanstd=motifs_meanstd,
+            zscore=zscore,
+        )
         ret.append(result)
     return ret
 
@@ -529,7 +531,7 @@ class Scanner(object):
 
     def __init__(self, ncpus=None):
         self.config = MotifConfig()
-        self.threshold = None
+        self._threshold = None
         self.genome = None
         self.background = None
         self.meanstd = {}
@@ -604,19 +606,15 @@ class Scanner(object):
 
     def _threshold_from_seqs(self, motifs, seqs, fpr):
         scan_motifs = [(m, m.pwm_min_score()) for m in motifs]
-
         table = []
-        for x in self._scan_sequences_with_motif(scan_motifs, seqs, 1, True):
-            table.append([row[0][0] for row in x])
+        seq_gc_bins = [self.get_seq_bin(seq) for seq in seqs]
+        for gc_bin, result in zip(
+            seq_gc_bins, self._scan_sequences_with_motif(scan_motifs, seqs, 1, True)
+        ):
+            table.append([gc_bin] + [row[0][0] for row in result])
 
-        for (motif, _), scores in zip(scan_motifs, np.array(table).transpose()):
-            if len(scores) > 0:
-                opt_score = scoreatpercentile(scores, 100 - (100 * fpr))
-                yield motif, opt_score  # cutoff
-            else:
-                raise ValueError(
-                    "Could not determine threshold for motif {}".format(motif)
-                )
+        df = pd.DataFrame(table, columns=["gc_bin"] + [m.id for m in motifs])
+        return df
 
     def set_meanstd(self, gc=False):
         if not self.background:
@@ -677,8 +675,22 @@ class Scanner(object):
 
         lock.release()
 
+        for gc_bin in self.gc_bins:
+            gc_bin = "{:.2f}-{:.2f}".format(*gc_bin)
+            if gc_bin not in self.meanstd:
+                valid_bins = []
+                for b in self.gc_bins:
+                    bstr = "{:.2f}-{:.2f}".format(b[0], b[1])
+                    if bstr in self.meanstd:
+                        valid_bins.append(((b[0] + b[1]) / 2, bstr))
+
+                v = float(gc_bin.split("-")[1])
+                _, bstr = sorted(valid_bins, key=lambda x: abs(x[0] - v))[0]
+                logger.warn(f"Using {bstr}")
+                self.meanstd[gc_bin] = self.meanstd[bstr]
+
     def set_background(
-        self, fname=None, genome=None, size=200, nseq=10000, gc=False, gc_bins=None
+        self, fname=None, genome=None, size=200, nseq=None, gc=False, gc_bins=None
     ):
         """Set the background to use for FPR and z-score calculations.
 
@@ -704,6 +716,16 @@ class Scanner(object):
             return
 
         size = int(size)
+
+        if gc_bins is None:
+            if gc:
+                gc_bins = [(0.0, 0.2), (0.8, 1)]
+                for b in np.arange(0.2, 0.799, 0.05):
+                    gc_bins.append((b, b + 0.05))
+            else:
+                gc_bins = [(0, 1)]
+        if nseq is None:
+            nseq = max(10000, len(gc_bins) * 1000)
 
         if genome and fname:
             raise ValueError("Need either genome or filename for background.")
@@ -736,12 +758,6 @@ class Scanner(object):
 
             if not fa:
                 if gc:
-
-                    if gc_bins is None:
-                        gc_bins = [(0.0, 0.2), (0.8, 1)]
-                        for b in np.arange(0.2, 0.799, 0.05):
-                            gc_bins.append((b, b + 0.05))
-
                     with NamedTemporaryFile() as tmp:
                         logger.info("using {} sequences".format(nseq))
                         gc_bin_bedfile(
@@ -756,6 +772,12 @@ class Scanner(object):
         self.background = fa
         if gc_bins:
             self.gc_bins = gc_bins
+
+    @property
+    def threshold(self):
+        if self._threshold is None:
+            self.set_threshold()
+        return self._threshold
 
     def set_threshold(self, fpr=None, threshold=None, gc=False):
         """Set motif scanning threshold based on background sequences.
@@ -775,6 +797,17 @@ class Scanner(object):
         if threshold and fpr:
             raise ValueError("Need either fpr or threshold.")
 
+        if threshold is None and fpr is None:
+            if self.genome:
+                fpr = 0.01
+                logger.info(f"Using default FPR of {fpr}")
+            else:
+                threshold = 0.95
+                logger.info(
+                    f"Genome not specified, using default threshold of {threshold}."
+                )
+                logger.info("This is likely not ideal.")
+
         if fpr:
             fpr = float(fpr)
             if not (0.0 < fpr < 1.0):
@@ -783,11 +816,16 @@ class Scanner(object):
         if not self.motifs:
             raise ValueError("please run set_motifs() first")
 
-        thresholds = {}
         motifs = read_motifs(self.motifs)
+        gc_bins = ["{:.2f}-{:.2f}".format(*gc_bin) for gc_bin in self.gc_bins]
 
         if threshold is not None:
-            self.threshold = parse_threshold_values(self.motifs, threshold)
+            d = parse_threshold_values(self.motifs, threshold)
+            self._threshold = pd.DataFrame(d, index=[0])
+            self._threshold = self._threshold.join(
+                pd.DataFrame(gc_bins, index=[0] * len(gc_bins), columns=["gc_bin"])
+            )
+            self._threshold = self._threshold.set_index("gc_bin")
             return
 
         if not self.background:
@@ -801,36 +839,41 @@ class Scanner(object):
         lock.acquire()
         with Cache(CACHE_DIR) as cache:
             scan_motifs = []
+            self._threshold = None
             for motif in motifs:
-                k = "{}|{}|{:.4f}".format(motif.hash(), self.background_hash, fpr)
-
-                threshold = cache.get(k)
-                if threshold is None:
+                k = "{}|{}|{:.4f}|{}".format(
+                    motif.hash(), self.background_hash, fpr, ",".join(sorted(gc_bins))
+                )
+                vals = cache.get(k)
+                if vals is None:
                     scan_motifs.append(motif)
                 else:
-                    if np.isclose(threshold, motif.pwm_max_score()):
-                        thresholds[motif.id] = None
-                    elif np.isclose(threshold, motif.pwm_min_score()):
-                        thresholds[motif.id] = 0.0
+                    if self._threshold is None:
+                        self._threshold = vals.to_frame()
                     else:
-                        thresholds[motif.id] = threshold
+                        self._threshold[motif.id] = vals
 
             if len(scan_motifs) > 0:
                 logger.info("determining FPR-based threshold")
-                for motif, threshold in self._threshold_from_seqs(
-                    scan_motifs, seqs, fpr
-                ):
-                    k = "{}|{}|{:.4f}".format(motif.hash(), self.background_hash, fpr)
-                    cache.set(k, threshold)
-                    if np.isclose(threshold, motif.pwm_max_score()):
-                        thresholds[motif.id] = None
-                    elif np.isclose(threshold, motif.pwm_min_score()):
-                        thresholds[motif.id] = 0.0
-                    else:
-                        thresholds[motif.id] = threshold
+                df = self._threshold_from_seqs(scan_motifs, seqs, fpr).set_index(
+                    "gc_bin"
+                )
+                if self._threshold is None:
+                    self._threshold = df
+                else:
+                    self._threshold = pd.concat((self._threshold, df), axis=1)
+                for motif in scan_motifs:
+                    k = "{}|{}|{:.4f}|{}".format(
+                        motif.hash(),
+                        self.background_hash,
+                        fpr,
+                        ",".join(sorted(gc_bins)),
+                    )
+                    cache.set(k, df[motif.id])
         lock.release()
-        self.threshold_str = "{}_{}_{}".format(fpr, threshold, self.background_hash)
-        self.threshold = thresholds
+        self.threshold_str = "{}_{}_{}_{}".format(
+            fpr, threshold, self.background_hash, ",".join(sorted(gc_bins))
+        )
 
     def set_genome(self, genome):
         """
@@ -887,8 +930,11 @@ class Scanner(object):
             yield [m[0] for m in matches]
 
     def get_seq_bin(self, seq):
-        useq = seq.upper()
-        gc = round((useq.count("G") + useq.count("C")) / len(useq), 2)
+        if len(str(seq)) == 0:
+            gc = 0
+        else:
+            useq = seq.upper()
+            gc = round((useq.count("G") + useq.count("C")) / len(useq), 2)
         if gc == 0:
             gc = 0.01
         for b_start, b_end in self.gc_bins:
@@ -931,16 +977,9 @@ class Scanner(object):
         """
         Scan a set of regions or sequences.
         """
-
-        if not self.threshold:
-            logger.info(
-                "Using default threshold of 0.95. " "This is likely not optimal!"
-            )
-            self.set_threshold(threshold=0.95)
-
         seqs = as_fasta(seqs, genome=self.genome)
 
-        it = self._scan_sequences(seqs.seqs, nreport, scan_rc)
+        it = self._scan_sequences(seqs.seqs, nreport, scan_rc, zscore=zscore)
 
         if zscore:
             if gc:
@@ -950,165 +989,90 @@ class Scanner(object):
                 if len(self.meanstd) != 1:
                     self.set_meanstd(gc=gc)
 
-        gc_seqs = [self.get_seq_bin(seq) for seq in seqs.seqs]
-
         logger.debug("Scanning")
-        for result, gc_seq in zip(it, gc_seqs):
-            if zscore:
-                zresult = []
-                for i, mrow in enumerate(result):
-                    try:
-                        m_mean, m_std = self.get_motif_mean_std(
-                            gc_seq, self.motif_ids[i]
-                        )
-                    except Exception:
-                        print(self.meanstd)
-                        print(gc_seq, self.motif_ids[i])
-                        raise
-                    mrow = [((x[0] - m_mean) / m_std, x[1], x[2]) for x in mrow]
-                    zresult.append(mrow)
-                yield zresult
-            else:
-                yield result
+        for result in it:
+            yield result
 
-    def _scan_regions(self, regions, nreport, scan_rc):
-        genome = self.genome
-        motif_file = self.motifs
-        motif_digest = self.checksum.get(motif_file, None)
+    def get_gc_thresholds(self, seqs, motifs=None, zscore=False):
+        # Simple case, only one threshold
+        if np.all(self.threshold.nunique(axis=0) == 1):
+            return self.threshold.iloc[0].to_dict()
 
-        # determine which regions are not in the cache
-        scan_regions = regions
-        if self.use_cache:
-            scan_regions = []
-            for region in regions:
-                key = str((region, genome, motif_digest, nreport, scan_rc))
-                ret = self.cache.get(key)
-                if ret == NO_VALUE:
-                    scan_regions.append(region)
+        if motifs is None:
+            motifs = read_motifs(self.motifs)
+        seq_gc_bins = [self.get_seq_bin(seq) for seq in seqs]
 
-        # scan the regions that are not in the cache
-        if len(scan_regions) > 0:
+        gc_bin_count = Counter(seq_gc_bins)
 
-            g = Genome(genome)
-
-            motifs = [(m, self.threshold[m.id]) for m in read_motifs(self.motifs)]
-            scan_func = partial(
-                scan_region_mult,
-                genome=g,
-                motifs=motifs,
-                nreport=nreport,
-                scan_rc=scan_rc,
+        _threshold = self.threshold
+        if zscore:
+            grouped = _threshold.groupby(_threshold.index).apply(scale, axis=0)
+            _threshold = pd.DataFrame(
+                np.vstack(grouped.values),
+                index=_threshold.index,
+                columns=_threshold.columns,
             )
 
-            for region, ret in self._scan_jobs(scan_func, scan_regions):
-                # return values or store values in cache
-                if self.use_cache:
-                    # store values in cache
-                    key = str(
-                        (
-                            region,
-                            genome,
-                            motif_digest,
-                            nreport,
-                            scan_rc,
-                            self.threshold_str,
-                        )
-                    )
-                    self.cache.set(key, ret)
-                else:
-                    # return values
-                    yield ret
-
-        if self.use_cache:
-            # return results from cache
-            for region in regions:
-                key = str(
-                    (region, genome, motif_digest, nreport, scan_rc, self.threshold_str)
-                )
-                ret = self.cache.get(key)
-                if ret == NO_VALUE or ret is None:
-                    raise Exception(
-                        "cache is not big enough to hold all "
-                        "results, try increasing the cache size "
-                        "or disable cache"
-                    )
-                yield ret
+        nseqs = int(20000 / np.sum(list(gc_bin_count.values())))
+        t = {}
+        maxt = pd.Series([m.pwm_max_score() for m in motifs], index=_threshold.columns)
+        # We do this in a loop as the DataFrame will get too big to fit in memory
+        # when the difference between the number of sequences per gc_bin is very
+        # high.
+        _threshold = _threshold.reset_index()
+        idx = np.hstack(
+            [
+                _threshold[_threshold[_threshold.columns[0]] == gc_bin]
+                .sample(nseqs * count, replace=True, random_state=42)
+                .index.values
+                for gc_bin, count in gc_bin_count.items()
+            ]
+        )
+        for motif in _threshold.columns[1:]:
+            val = _threshold.loc[idx, motif].quantile(0.99, interpolation="higher")
+            if val < maxt.loc[motif]:
+                t[motif] = val
+            else:
+                t[motif] = None
+        return t
 
     def _scan_sequences_with_motif(self, motifs, seqs, nreport, scan_rc):
         scan_func = partial(
             scan_seq_mult, motifs=motifs, nreport=nreport, scan_rc=scan_rc
         )
-
         for ret in self._scan_jobs(scan_func, seqs):
             yield ret[1]
 
-    def _scan_sequences(self, seqs, nreport, scan_rc):
+    def _scan_sequences(self, seqs, nreport, scan_rc, zscore=False):
+        thresholds = self.get_gc_thresholds(seqs, zscore=zscore)
+        motifs = [(m, thresholds[m.id]) for m in read_motifs(self.motifs)]
+        motifs_meanstd = None
+        if zscore:
+            motifs_meanstd = self.meanstd
 
-        motif_file = self.motifs
-        motif_digest = self.checksum.get(motif_file, None)
-
-        scan_seqs = seqs
-        if self.use_cache:
-            # determine which sequences are not in the cache
-            hashes = dict([(s.upper(), xxhash.xxh64(s.upper()).digest()) for s in seqs])
-            scan_seqs = []
-
-            for seq, seq_hash in hashes.items():
-                key = str(
-                    (seq_hash, motif_digest, nreport, scan_rc, self.threshold_str)
-                )
-                ret = self.cache.get(key)
-                if ret == NO_VALUE or ret is None:
-                    scan_seqs.append(seq.upper())
-
-        # scan the sequences that are not in the cache
-        if len(scan_seqs) > 0:
-            motifs = [(m, self.threshold[m.id]) for m in read_motifs(self.motifs)]
-            scan_func = partial(
-                scan_seq_mult, motifs=motifs, nreport=nreport, scan_rc=scan_rc
-            )
-
-            for seq, ret in self._scan_jobs(scan_func, scan_seqs):
-                if self.use_cache:
-                    h = hashes[seq]
-                    key = str((h, motif_digest, nreport, scan_rc, self.threshold_str))
-                    self.cache.set(key, ret)
-                else:
-                    yield ret
-
-        if self.use_cache:
-            # return results from cache
-            for seq in seqs:
-                key = str(
-                    (
-                        hashes[seq.upper()],
-                        motif_digest,
-                        nreport,
-                        scan_rc,
-                        self.threshold_str,
-                    )
-                )
-                ret = self.cache.get(key)
-                if ret == NO_VALUE or ret is None:
-                    raise Exception(
-                        "cache is not big enough to hold all "
-                        "results, try increasing the cache size "
-                        "or disable cache"
-                    )
-
-                yield ret
+        scan_func = partial(
+            scan_seq_mult,
+            motifs=motifs,
+            nreport=nreport,
+            scan_rc=scan_rc,
+            motifs_meanstd=motifs_meanstd,
+            zscore=zscore,
+        )
+        for _, ret in self._scan_jobs(scan_func, seqs):
+            yield ret
 
     def _scan_jobs(self, scan_func, scan_seqs):
         batchsize = 1000
+
         if self.ncpus > 1:
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
                 batch = scan_seqs[i * batchsize : (i + 1) * batchsize]
                 chunksize = len(batch) // self.ncpus + 1
                 jobs = []
                 for j in range((len(batch) - 1) // chunksize + 1):
-                    job = self.pool.apply_async(
-                        scan_func, (batch[j * chunksize : (j + 1) * chunksize],)
-                    )
+                    batch_seqs = batch[j * chunksize : (j + 1) * chunksize]
+                    seq_gc_bins = [self.get_seq_bin(seq) for seq in batch_seqs]
+                    job = self.pool.apply_async(scan_func, (batch_seqs, seq_gc_bins))
                     jobs.append(job)
 
                 for k, job in enumerate(jobs):
@@ -1117,7 +1081,8 @@ class Scanner(object):
                         yield region, ret
         else:
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
-                for _j, ret in enumerate(
-                    scan_func(scan_seqs[i * batchsize : (i + 1) * batchsize])
-                ):
+                batch_seqs = scan_seqs[i * batchsize : (i + 1) * batchsize]
+                seq_gc_bins = [self.get_seq_bin(seq) for seq in batch_seqs]
+
+                for _j, ret in enumerate(scan_func(batch_seqs, seq_gc_bins)):
                     yield scan_seqs[i], ret

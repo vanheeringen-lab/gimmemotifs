@@ -6,8 +6,6 @@
 """
 Module to compare DNA sequence motifs (positional frequency matrices)
 """
-from __future__ import print_function
-
 # Python imports
 import sys
 import os
@@ -890,12 +888,14 @@ class MotifComparer(object):
         f = open(score_file, "w")
 
         all_scores = {}
-        for l in [len(motif) for motif in motifs]:
-            all_scores[l] = {}
+        for motif_len in [len(motif) for motif in motifs]:
+            all_scores[motif_len] = {}
 
         sorted_motifs = {}
-        for l in all_scores.keys():
-            sorted_motifs[l] = [motif for motif in motifs if len(motif) == l]
+        for motif_len in all_scores.keys():
+            sorted_motifs[motif_len] = [
+                motif for motif in motifs if len(motif) == motif_len
+            ]
 
         for l1 in all_scores.keys():
             for l2 in all_scores.keys():
@@ -950,7 +950,11 @@ def select_nonredundant_motifs(
     y = np.hstack((np.ones(fg_table.shape[0]), np.zeros(bg_table.shape[0])))
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.4, random_state=2, shuffle=True,
+        X,
+        y,
+        test_size=0.4,
+        random_state=2,
+        shuffle=True,
     )
 
     X_bla = X_train[keep]

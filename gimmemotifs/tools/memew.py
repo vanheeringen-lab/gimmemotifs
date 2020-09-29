@@ -1,5 +1,6 @@
 from .motifprogram import MotifProgram
 import io
+import os
 import re
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
@@ -76,8 +77,12 @@ class MemeW(MotifProgram):
         if not default_params["single"]:
             cmd.append(strand)
 
+        # Fix to run in Docker
+        env = os.environ.copy()
+        env["OMPI_MCA_plm_rsh_agent"] = "sh"
+
         # sys.stderr.write(" ".join(cmd) + "\n")
-        p = Popen(cmd, bufsize=1, stderr=PIPE, stdout=PIPE)
+        p = Popen(cmd, bufsize=1, stderr=PIPE, stdout=PIPE, env=env)
         stdout, stderr = p.communicate()
 
         motifs = []

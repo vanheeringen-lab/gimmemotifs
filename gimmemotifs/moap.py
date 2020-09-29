@@ -4,7 +4,6 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """ Module for motif activity prediction """
-from __future__ import print_function
 
 
 def warn(*args, **kwargs):
@@ -18,7 +17,6 @@ warnings.filterwarnings("ignore", message="sklearn.externals.joblib is deprecate
 
 import os
 import sys
-import shutil
 
 try:
     from itertools import izip
@@ -33,13 +31,14 @@ from statsmodels.sandbox.stats.multicomp import multipletests
 from tqdm.auto import tqdm
 
 # scikit-learn
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.multiclass import OneVsRestClassifier
-from sklearn.linear_model import MultiTaskLasso, BayesianRidge
+from sklearn.linear_model import MultiTaskLassoCV, BayesianRidge
+from sklearn.multioutput import MultiOutputRegressor
 from sklearn.preprocessing import scale, LabelEncoder
-from lightning.classification import CDClassifier
-from lightning.regression import CDRegressor
+from sklearn.svm import LinearSVR
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 
 import xgboost
 
@@ -356,252 +355,6 @@ class XgboostRegressionMoap(Moap):
         logger.info("Done")
 
 
-@register_predictor("LightningRegressor")
-class LightningRegressionMoap(Moap):
-    def __init__(self, scale=True, cv=3, ncpus=None):
-        """Predict motif activities using lightning CDRegressor
-
-        Parameters
-        ----------
-        scale : boolean, optional, default True
-            If ``True``, the motif scores will be scaled
-            before classification
-
-        cv : int, optional, default 3
-            Cross-validation k-fold parameter.
-
-        ncpus : int, optional
-            Number of threads. Default is the number specified in the config.
-
-        Attributes
-        ----------
-        act_ : DataFrame, shape (n_motifs, n_clusters)
-            fitted coefficients
-
-        sig_ : DataFrame, shape (n_motifs,)
-            boolean values, if coefficients are higher/lower than
-            the 1%t from random permutation
-        """
-
-        self.act_description = "activity values: coefficients from " "fitted model"
-
-        if ncpus is None:
-            ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
-        self.ncpus = ncpus
-        self.kfolds = cv
-        self.scale = scale
-
-        self.act_ = None
-        self.pref_table = "score"
-        self.supported_tables = ["score", "count"]
-        self.ptype = "regression"
-
-    def fit(self, df_X, df_y, batch_size=50, shuffle=True, tmpdir=None):
-        logger.info("Fitting LightningRegression")
-
-        if self.scale:
-            # Scale motif scores
-            df_X[:] = scale(df_X, axis=0)
-
-        # Normalize across samples and features
-        # y = df_y.apply(scale, 1).apply(scale, 0)
-        y = df_y
-        X = df_X.loc[y.index]
-
-        if not y.shape[0] == X.shape[0]:
-            raise ValueError("number of regions is not equal")
-
-        # Define model
-        cd = CDRegressor(penalty="l1/l2", C=1.0)
-        parameters = {"alpha": [np.exp(-x) for x in np.arange(0, 10, 1 / 2)]}
-        clf = GridSearchCV(cd, parameters, n_jobs=self.ncpus)
-
-        if shuffle:
-            idx = list(y.sample(y.shape[1], axis=1, random_state=42).columns)
-        else:
-            idx = list(y.columns)
-
-        if tmpdir:
-            if not os.path.exists(tmpdir):
-                os.mkdir(tmpdir)
-
-        coefs = pd.DataFrame(index=X.columns)
-        start_i = 0
-        if tmpdir:
-            for i in range(0, len(idx), batch_size):
-                fname = os.path.join(tmpdir, "{}.feather".format(i))
-                if os.path.exists(fname) and os.path.exists(fname + ".done"):
-
-                    tmp = pd.read_feather(fname)
-                    tmp = tmp.set_index(tmp.columns[0])
-                    coefs = coefs.join(tmp)
-                else:
-                    logger.info("Resuming at batch {}".format(i))
-                    start_i = i
-                    break
-
-        for i in tqdm(range(start_i, len(idx), batch_size)):
-            split_y = y[idx[i : i + batch_size]]
-
-            # Fit model
-            clf.fit(X.values, split_y.values)
-            tmp = pd.DataFrame(
-                clf.best_estimator_.coef_.T, index=X.columns, columns=split_y.columns
-            )
-            if tmpdir:
-                fname = os.path.join(tmpdir, "{}.feather".format(i))
-                tmp.reset_index().rename(columns=str).to_feather(fname)
-                # Make sure we don't read corrupted files
-                open(fname + ".done", "a").close()
-            # Get coefficients
-            coefs = coefs.join(tmp)
-
-        # Get coefficients
-        self.act_ = coefs[y.columns]
-
-        logger.info("Done")
-
-
-@register_predictor("LightningClassification")
-class LightningClassificationMoap(Moap):
-    def __init__(self, scale=True, permute=False, ncpus=None):
-        """Predict motif activities using lightning CDClassifier
-
-        Parameters
-        ----------
-        scale : boolean, optional, default True
-            If ``True``, the motif scores will be scaled
-            before classification
-
-        ncpus : int, optional
-            Number of threads. Default is the number specified in the config.
-
-        Attributes
-        ----------
-        act_ : DataFrame, shape (n_motifs, n_clusters)
-            fitted coefficients
-
-        sig_ : DataFrame, shape (n_motifs,)
-            boolean values, if coefficients are higher/lower than
-            the 1%t from random permutation
-        """
-
-        self.act_description = "activity values: coefficients from " "fitted model"
-
-        # self.cdc = CDClassifier(random_state=args.seed)
-        self.cdc = CDClassifier()
-
-        self.parameters = {
-            "penalty": ["l1/l2"],
-            "loss": ["squared_hinge"],
-            "multiclass": [True],
-            "max_iter": [20],
-            "alpha": [np.exp(-x) for x in np.arange(0, 10, 1 / 3.0)],
-            "C": [0.001, 0.01, 0.1, 0.5, 1.0],
-            "tol": [1e-3],
-        }
-
-        self.kfolds = 10
-
-        if ncpus is None:
-            ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
-
-        self.clf = GridSearchCV(self.cdc, self.parameters, cv=self.kfolds, n_jobs=ncpus)
-
-        self.scale = scale
-        self.permute = permute
-
-        self.act_ = None
-        self.sig_ = None
-        self.pref_table = "score"
-        self.supported_tables = ["score", "count"]
-        self.ptype = "classification"
-
-    def fit(self, df_X, df_y):
-        logger.info("Fitting LightningClassification")
-
-        if not df_y.shape[0] == df_X.shape[0]:
-            raise ValueError("number of regions is not equal")
-        if df_y.shape[1] != 1:
-            raise ValueError("y needs to have 1 label column")
-
-        if self.scale:
-            # Scale motif scores
-            df_X[:] = scale(df_X, axis=0)
-
-        idx = list(range(df_y.shape[0]))
-
-        y = df_y.iloc[idx]
-        X = df_X.loc[y.index].values
-        y = y.values.flatten()
-
-        # Convert (putative) string labels
-        label = LabelEncoder()
-        y = label.fit_transform(y)
-
-        # Split data
-        X_train, X_test, y_train, y_test = train_test_split(X, y)
-
-        logger.debug("Setting parameters through cross-validation")
-        # Determine best parameters based on CV
-        self.clf.fit(X_train, y_train)
-
-        logger.debug(
-            "Average score ({} fold CV): {}".format(
-                self.kfolds, self.clf.score(X_test, y_test)
-            )
-        )
-
-        logger.debug("Estimate coefficients using bootstrapping")
-
-        # Estimate coefficients using bootstrappig
-        # b = BaggingClassifier(self.clf.best_estimator_,
-        #        max_samples=0.75, n_jobs=-1, random_state=state)
-        b = BaggingClassifier(self.clf.best_estimator_, max_samples=0.75, n_jobs=-1)
-        b.fit(X, y)
-
-        # Get mean coefficients
-        coeffs = np.array([e.coef_ for e in b.estimators_]).mean(axis=0)
-
-        # Create dataframe of predicted coefficients
-        if len(label.classes_) == 2:
-            self.act_ = pd.DataFrame(np.hstack((-coeffs.T, coeffs.T)))
-        else:
-            self.act_ = pd.DataFrame(coeffs.T)
-
-        # Convert labels back to original names
-        self.act_.columns = label.inverse_transform(range(len(label.classes_)))
-        self.act_.index = df_X.columns
-
-        if self.permute:
-            # Permutations
-            logger.debug("Permutations")
-            random_dfs = []
-            for _ in range(10):
-                y_random = np.random.permutation(y)
-                b.fit(X, y_random)
-                coeffs = np.array([e.coef_ for e in b.estimators_]).mean(axis=0)
-
-                if len(label.classes_) == 2:
-                    random_dfs.append(pd.DataFrame(np.hstack((-coeffs.T, coeffs.T))))
-                else:
-                    random_dfs.append(pd.DataFrame(coeffs.T))
-            random_df = pd.concat(random_dfs)
-
-            # Select cutoff based on percentile
-            high_cutoffs = random_df.quantile(0.99)
-            low_cutoffs = random_df.quantile(0.01)
-
-            # Set significance
-            self.sig_ = pd.DataFrame(index=df_X.columns)
-            self.sig_["sig"] = False
-
-            for col, c_high, c_low in zip(self.act_.columns, high_cutoffs, low_cutoffs):
-                self.sig_["sig"].loc[self.act_[col] >= c_high] = True
-                self.sig_["sig"].loc[self.act_[col] <= c_low] = True
-        logger.info("Done")
-
-
 @register_predictor("MWU")
 class MWUMoap(Moap):
     def __init__(self, *args, **kwargs):
@@ -791,22 +544,16 @@ class RFMoap(Moap):
         logger.info("Done")
 
 
-@register_predictor("Lasso")
-class LassoMoap(Moap):
-    def __init__(self, scale=True, kfolds=4, alpha_stepsize=1.0, ncpus=None):
-        """Predict motif activities using Lasso MultiTask regression
+@register_predictor("MultiTaskLasso")
+class MultiTaskLassoMoap(Moap):
+    def __init__(self, scale=True, ncpus=None):
+        """Predict motif activities using MultiTaskLasso.
 
         Parameters
         ----------
         scale : boolean, optional, default True
             If ``True``, the motif scores will be scaled
-            before classification
-
-        kfolds : integer, optional, default 5
-            number of kfolds for parameter search
-
-        alpha_stepsize : float, optional, default 1.0
-            stepsize for use in alpha gridsearch
+            before classification.
 
         ncpus : int, optional
             Number of threads. Default is the number specified in the config.
@@ -814,101 +561,129 @@ class LassoMoap(Moap):
         Attributes
         ----------
         act_ : DataFrame, shape (n_motifs, n_clusters)
-            fitted motif activities
-
-        sig_ : DataFrame, shape (n_motifs,)
-            boolean values, if coefficients are higher/lower than
-            the 1%t from random permutation
+            Coefficients of the regression model.
         """
 
-        self.kfolds = kfolds
-        self.act_description = "activity values: coefficients from " "fitted model"
+        self.act_description = "activity values: coefficients of the" "regression model"
 
-        self.scale = scale
         if ncpus is None:
             ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
         self.ncpus = ncpus
-
-        # initialize attributes
+        self.scale = scale
         self.act_ = None
-        self.sig_ = None
-
-        mtk = MultiTaskLasso()
-        parameters = {"alpha": [np.exp(-x) for x in np.arange(0, 10, alpha_stepsize)]}
-        self.clf = GridSearchCV(
-            mtk, parameters, cv=kfolds, n_jobs=self.ncpus, scoring="r2"
-        )
         self.pref_table = "score"
         self.supported_tables = ["score", "count"]
         self.ptype = "regression"
 
-    def fit(self, df_X, df_y, permute=False):
-        logger.info("Fitting Lasso")
+    def fit(self, df_X, df_y):
+        logger.info("Fitting MultiTaskLasso")
+
         if not df_y.shape[0] == df_X.shape[0]:
             raise ValueError("number of regions is not equal")
 
         if self.scale:
+            logger.debug("Scaling motif scores")
             # Scale motif scores
-            df_X[:] = scale(df_X, axis=0)
+            df_X.loc[:, :] = scale(df_X, axis=0)
 
-        idx = list(range(df_y.shape[0]))
-        y = df_y.iloc[idx]
-        X = df_X.loc[y.index].values
-        y = y.values
+        # logger.debug("Scaling y")
 
-        # fit coefficients
-        coefs = self._get_coefs(X, y)
-        self.act_ = pd.DataFrame(coefs.T)
+        # Normalize across samples and features
+        # y = df_y.apply(scale, 1).apply(scale, 0)
+        y = df_y
 
-        # convert labels back to original names
-        self.act_.columns = df_y.columns
-        self.act_.index = df_X.columns
+        X = df_X.loc[y.index]
 
-        if permute:
-            # Permutations
-            logger.info("permutations\n")
-            random_dfs = []
-            for _ in range(10):
-                y_random = y[np.random.permutation(range(y.shape[0]))]
-                coefs = self._get_coefs(X, y_random)
-                random_dfs.append(pd.DataFrame(coefs.T))
-            random_df = pd.concat(random_dfs)
-
-            # Select cutoff based on percentile
-            high_cutoffs = random_df.quantile(0.99)
-            low_cutoffs = random_df.quantile(0.01)
-
-            # Set significance
-            self.sig_ = pd.DataFrame(index=df_X.columns)
-            self.sig_["sig"] = False
-
-            for col, c_high, c_low in zip(self.act_.columns, high_cutoffs, low_cutoffs):
-                self.sig_["sig"].loc[self.act_[col] >= c_high] = True
-                self.sig_["sig"].loc[self.act_[col] <= c_low] = True
-
+        model = Pipeline(
+            [
+                ("scale", StandardScaler()),
+                (
+                    "reg",
+                    MultiTaskLassoCV(
+                        fit_intercept=False, n_alphas=20, n_jobs=self.ncpus
+                    ),
+                ),
+            ]
+        )
+        logger.debug("Fitting model")
+        model.fit(df_X, df_y)
         logger.info("Done")
 
-    def _get_coefs(self, X, y):
-        logger.info("set alpha through cross-validation\n")
-        # Determine best parameters based on CV
-        self.clf.fit(X, y)
+        self.act_ = pd.DataFrame(
+            model.steps[1][1].coef_, index=y.columns, columns=X.columns
+        ).T
 
-        logger.debug(
-            "average score ({} fold CV): {}".format(self.kfolds, self.clf.best_score_)
+    def predict(self, df_X):
+        return df_X.dot(self.act_.loc[df_X.columns])
+
+
+@register_predictor("SVR")
+class SVRMoap(Moap):
+    def __init__(self, scale=True, ncpus=None):
+        """Predict motif activities using Support Vector Regression.
+
+        Parameters
+        ----------
+        scale : boolean, optional, default True
+            If ``True``, the motif scores will be scaled
+            before classification.
+
+        ncpus : int, optional
+            Number of threads. Default is the number specified in the config.
+
+        Attributes
+        ----------
+        act_ : DataFrame, shape (n_motifs, n_clusters)
+            SVR weights.
+        """
+
+        self.act_description = "activity values: SVR weights"
+
+        if ncpus is None:
+            ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
+        self.ncpus = ncpus
+        self.scale = scale
+        self.act_ = None
+        self.pref_table = "score"
+        self.supported_tables = ["score", "count"]
+        self.ptype = "regression"
+
+    def fit(self, df_X, df_y):
+        logger.info("Fitting SVR")
+
+        if not df_y.shape[0] == df_X.shape[0]:
+            raise ValueError("number of regions is not equal")
+
+        if self.scale:
+            logger.debug("Scaling motif scores")
+            # Scale motif scores
+            df_X.loc[:, :] = scale(df_X, axis=0)
+
+        # logger.debug("Scaling y")
+
+        # Normalize across samples and features
+        # y = df_y.apply(scale, 1).apply(scale, 0)
+        y = df_y
+        self.columns = df_y.columns
+        X = df_X.loc[y.index]
+
+        clf = LinearSVR()
+        self.model = MultiOutputRegressor(clf, n_jobs=1)
+        logger.debug("Fitting model")
+        self.model.fit(df_X, df_y)
+        logger.info("Done")
+
+        self.act_ = pd.DataFrame(
+            {c: e.coef_ for c, e in zip(df_y.columns, self.model.estimators_)},
+            index=X.columns,
         )
 
-        logger.info("Estimate coefficients using bootstrapping\n")
+    def predict(self, df_X):
+        # print(self.model.predict(df_X) )
 
-        n_samples = 0.75 * X.shape[0]
-        max_samples = X.shape[0]
-        m = self.clf.best_estimator_
-        coefs = []
-        for _ in range(10):
-            idx = np.random.randint(0, n_samples, max_samples)
-            m.fit(X[idx], y[idx])
-            coefs.append(m.coef_)
-        coefs = np.array(coefs).mean(axis=0)
-        return coefs
+        return pd.DataFrame(
+            self.model.predict(df_X), index=df_X.index, columns=self.columns
+        )
 
 
 def moap(
@@ -935,7 +710,7 @@ def moap(
 
     method : str, optional
         Motif activity method to use. Any of 'hypergeom', 'lasso',
-        'lightningclassification', 'lightningregressor', 'bayesianridge',
+        'bayesianridge',
         'rf', 'xgboost'. Default is 'hypergeom'.
 
     scoring:  str, optional
@@ -1058,13 +833,7 @@ def moap(
 
     motifs = motifs.loc[df.index]
 
-    if method == "lightningregressor":
-        outdir = os.path.dirname(outfile)
-        tmpname = os.path.join(outdir, ".lightning.tmp")
-        clf.fit(motifs, df, tmpdir=tmpname)
-        shutil.rmtree(tmpname)
-    else:
-        clf.fit(motifs, df)
+    clf.fit(motifs, df)
 
     if outfile:
         with open(outfile, "w") as f:

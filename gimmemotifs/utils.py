@@ -5,8 +5,6 @@
 # distribution.
 
 """ Odds and ends that for which I didn't (yet) find another place """
-from __future__ import print_function
-
 # Python imports
 import os
 import re
@@ -15,18 +13,21 @@ import hashlib
 import logging
 import mmap
 import random
-import six
 import tempfile
 import requests
+from io import TextIOWrapper
+from functools import singledispatch
 from subprocess import Popen
 from tempfile import NamedTemporaryFile
 from shutil import copyfile
 
 # External imports
+import pyfaidx
 from scipy import special
 import numpy as np
 import pybedtools
 from genomepy import Genome
+from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 
 # gimme imports
@@ -49,8 +50,7 @@ def rc(seq):
 
 
 def narrowpeak_to_bed(inputfile, bedfile, size=0):
-    """Convert narrowPeak file to BED file.
-    """
+    """Convert narrowPeak file to BED file."""
     p = re.compile(r"^(#|track|browser)")
     warn_no_summit = True
     with open(bedfile, "w") as f_out:
@@ -88,7 +88,7 @@ def pfmfile_location(infile):
                 "database specified in the config file."
             )
 
-    if isinstance(infile, six.string_types):
+    if isinstance(infile, str):
         if not os.path.exists(infile):
             motif_dir = config.get_motif_dir()
             checkfile = os.path.join(motif_dir, infile)
@@ -132,7 +132,7 @@ def phyper_single(k, good, bad, N):
 
 
 def phyper(k, good, bad, N):
-    """ Current hypergeometric implementation in scipy is broken,
+    """Current hypergeometric implementation in scipy is broken,
     so here's the correct version.
     """
     pvalues = [phyper_single(x, good, bad, N) for x in range(k + 1, N + 1)]
@@ -293,8 +293,8 @@ def motif_localization(fastafile, motif, size, outfile, cutoff=0.9):
 
 
 def parse_cutoff(motifs, cutoff, default=0.9):
-    """ Provide either a file with one cutoff per motif or a single cutoff
-        returns a hash with motif id as key and cutoff as value
+    """Provide either a file with one cutoff per motif or a single cutoff
+    returns a hash with motif id as key and cutoff as value
     """
 
     cutoffs = {}
@@ -473,7 +473,7 @@ def get_seqs_type(seqs):
         - region file
         - BED file
     """
-    region_p = re.compile(r"^(.+):(\d+)-(\d+)$")
+    region_p = re.compile(r"^([^\s:]+\@)?(.+):(\d+)-(\d+)$")
     if isinstance(seqs, Fasta):
         return "fasta"
     elif isinstance(seqs, list) or isinstance(seqs, np.ndarray):
@@ -499,24 +499,197 @@ def get_seqs_type(seqs):
         raise ValueError("unknown type {}".format(type(seqs).__name__))
 
 
-def as_fasta(seqs, genome=None):
-    ftype = get_seqs_type(seqs)
-    if ftype == "fasta":
-        return seqs
-    elif ftype == "fastafile":
-        return Fasta(seqs)
+# Regular expression to check for region (chr:start-end or genome@chr:start-end)
+region_p = re.compile(r"^[^@]+@([^\s]+):(\d+)-(\d+)$")
+
+
+def _check_minsize(fa, minsize):
+    """
+    Raise ValueError if there is any sequence that is shorter than minsize.
+    If minsize is None the size will not be checked.
+    """
+    if minsize is None:
+        return fa
+
+    for name, seq in fa.items():
+        if len(seq) < minsize:
+            raise ValueError(f"sequence {name} is shorter than {minsize}")
+
+    return fa
+
+
+def _genomepy_convert(to_convert, genome, minsize=None):
+    """
+    Convert a variety of inputs using track2fasta().
+    """
+    if genome is None:
+        raise ValueError("input file is not a FASTA file, need a genome!")
+
+    if isinstance(genome, Genome):
+        g = genome
     else:
-        if genome is None:
-            raise ValueError("need genome to convert to FASTA")
+        g = Genome(genome)
 
-        tmpfa = NamedTemporaryFile()
-        if isinstance(genome, str):
-            genome = Genome(genome)
+    tmpfile = NamedTemporaryFile()
+    g.track2fasta(to_convert, tmpfile.name)
 
-        if isinstance(seqs, np.ndarray):
-            seqs = list(seqs)
-        genome.track2fasta(seqs, tmpfa.name)
-        return Fasta(tmpfa.name)
+    fa = as_seqdict(tmpfile.name)
+    return _check_minsize(fa, minsize)
+
+
+def _as_seqdict_genome_regions(regions, minsize=None):
+    """
+    Accepts list of regions where the genome is encoded in the region,
+    using the genome@chrom:start-end format.
+    """
+    genomic_regions = {}
+    for region in regions:
+        genome, region = region.split("@")
+        if genome not in genomic_regions:
+            Genome(genome)
+            genomic_regions[genome] = []
+        genomic_regions[genome].append(region)
+
+    tmpfa = NamedTemporaryFile(mode="w", delete=False)
+    for genome, g_regions in genomic_regions.items():
+        g = Genome(genome)
+
+        fa = g.track2fasta(g_regions)
+
+        for seq in fa:
+            seq.name = f"{genome}@{seq.name}"
+            print(seq.__repr__(), file=tmpfa)
+
+    tmpfa.flush()
+
+    # Open tempfile and restore original sequence order
+    fa = as_seqdict(tmpfa.name)
+    fa = {region: fa[region] for region in regions}
+    return _check_minsize(fa, minsize)
+
+
+@singledispatch
+def as_seqdict(to_convert, genome=None, minsize=None):
+    """
+    Convert input to a dictionary with name as key and sequence as value.
+
+    If the input contains genomic coordinates, the genome needs to be
+    specified. If minsize is specified all sequences will be checked if they
+    are not shorter than minsize. If regions (or a region file) are used as
+    the input, the genome can optionally be specified in the region using the
+    following format: genome@chrom:start-end.
+
+    Current supported input types include:
+    * FASTA, BED and region files.
+    * List or numpy.ndarray of regions.
+    * pyfaidx.Fasta object.
+    * pybedtools.BedTool object.
+
+    Parameters
+    ----------
+    to_convert : list, str, pyfaidx.Fasta or pybedtools.BedTool
+        Input to convert to FASTA-like dictionary
+
+    genome : str, optional
+        Genomepy genome name.
+
+    minsize : int or None, optional
+        If specified, check if all sequences have at least size minsize.
+
+    Returns
+    -------
+        dict with sequence names as key and sequences as value.
+    """
+    raise NotImplementedError(f"Not implement for {type(to_convert)}")
+
+
+@as_seqdict.register(list)
+def _as_seqdict_list(to_convert, genome=None, minsize=None):
+    """
+    Accepts list of regions as input.
+    """
+    if region_p.match(to_convert[0]):
+        return _as_seqdict_genome_regions(to_convert, minsize)
+
+    return _genomepy_convert(to_convert, genome, minsize)
+
+
+@as_seqdict.register(TextIOWrapper)
+def _as_seqdict_file_object(to_convert, genome=None, minsize=None):
+    """
+    Accepts file object as input, should be a FASTA file.
+    """
+    fa = {x: y for x, y in SimpleFastaParser(to_convert)}
+    return _check_minsize(fa, minsize)
+
+
+@as_seqdict.register(str)
+def _as_seqdict_filename(to_convert, genome=None, minsize=None):
+    """
+    Accepts filename as input.
+    """
+    if not os.path.exists(to_convert):
+        raise ValueError("Assuming filename, but it does not exist")
+
+    f = open(to_convert)
+    fa = as_seqdict(f)
+
+    if any(fa):
+        return _check_minsize(fa, minsize)
+
+    with open(to_convert) as f:
+        line = ""
+        while True:
+            line = f.readline()
+            if line == "":
+                break
+            if not line.startswith("#"):
+                break
+
+        if line == "":
+            raise IOError(f"empty file {to_convert}")
+
+        if region_p.match(line.strip()):
+            regions = [myline.strip() for myline in [line] + f.readlines()]
+            return _as_seqdict_genome_regions(regions, minsize=None)
+
+    # Biopython parser resulted in empty dict
+    # Assuming it's a BED or region file
+    return _genomepy_convert(to_convert, genome, minsize)
+
+
+@as_seqdict.register(pyfaidx.Fasta)
+def _as_seqdict_pyfaidx(to_convert, genome=None, minsize=None):
+    """
+    Accepts pyfaidx.Fasta object as input.
+    """
+    fa = {k: str(v) for k, v in to_convert.items()}
+    return _check_minsize(fa, minsize)
+
+
+@as_seqdict.register(pybedtools.BedTool)
+def _as_seqdict_bedtool(to_convert, genome=None, minsize=None):
+    """
+    Accepts pybedtools.BedTool as input.
+    """
+    return _genomepy_convert(
+        ["{}:{}-{}".format(*f[:3]) for f in to_convert], genome, minsize
+    )
+
+
+@as_seqdict.register(np.ndarray)
+def _as_seqdict_array(to_convert, genome=None, minsize=None):
+    """
+    Accepts numpy.ndarray with regions as input.
+    """
+    return as_seqdict(list(to_convert), genome, minsize)
+
+
+def as_fasta(to_convert, genome=None, minsize=None):
+    if isinstance(to_convert, Fasta):
+        return to_convert
+
+    return Fasta(fdict=as_seqdict(to_convert, genome, minsize))
 
 
 def file_checksum(fname):
@@ -539,11 +712,11 @@ def file_checksum(fname):
     return checksum
 
 
-def join_max(a, l, sep="", suffix=""):
+def join_max(a, length, sep="", suffix=""):
     lengths = [len(x) for x in a]
     total = 0
     for i, size in enumerate(lengths + [0]):
-        if total > (l - len(suffix)):
+        if total > (length - len(suffix)):
             return sep.join(a[: i - 1]) + suffix
         if i > 0:
             total += 1

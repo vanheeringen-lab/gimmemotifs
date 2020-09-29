@@ -327,12 +327,48 @@ def cli(sys_args):
         metavar="pfmfile",
     )
     p.add_argument(
+        "--no-filter",
+        dest="filter_redundant",
+        help="Don't remove redundant motifs.",
+        default=True,
+        action="store_false",
+    )
+    p.add_argument(
+        "-F",
+        "--filter_cutoff",
+        dest="filter_cutoff",
+        help="Cutoff to select non-redundant motifs. Default is 0.8, increase this value to get fewer motifs.",
+        default=0.8,
+        type=float,
+        metavar="FLOAT",
+    )
+    p.add_argument(
+        "--nocenter",
+        dest="center",
+        help="Don't mean-center the rows by default",
+        default=True,
+        action="store_false",
+    )
+    p.add_argument(
         "-m",
         "--methods",
         dest="methods",
         help="Run with specific methods",
         default=None,
         metavar="NAMES",
+    )
+    p.add_argument(
+        "-a",
+        "--aggregation",
+        dest="aggregation",
+        help=(
+            'How to combine motifs from individual methods. Default is "int_stouffer", '
+            "for inverse normal transform of ranks, followed by Stouffer's method to combine "
+            'z-scores. Alternatively, specify "stuart" for log-transformed rank aggregation '
+            "p-values."
+        ),
+        default="int_stouffer",
+        metavar="method",
     )
     p.add_argument(
         "-N",
@@ -353,7 +389,7 @@ def cli(sys_args):
     p.add_argument(
         "--nogc",
         dest="gc",
-        help="Don't use GC% bins",
+        help="Don't use GC%% bins",
         action="store_false",
         default=True,
     )

@@ -4,7 +4,6 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """ Various plotting functions """
-from __future__ import print_function
 from PIL import Image
 import seaborn as sns
 from mpl_toolkits.axes_grid1 import ImageGrid
@@ -33,8 +32,7 @@ VALID_EXTENSIONS = [".png", ".pdf", ".svg", ".ps"]
 
 
 def axes_off(ax):
-    """Get rid of all axis ticks, lines, etc.
-    """
+    """Get rid of all axis ticks, lines, etc."""
     ax.set_frame_on(False)
     ax.axes.get_yaxis().set_visible(False)
     ax.axes.get_xaxis().set_visible(False)
@@ -355,7 +353,7 @@ def _get_motif_tree(tree, data, circle=True, vmin=None, vmax=None):
     m = 25 / data.values.max()
 
     for node in t.traverse("levelorder"):
-        val = data[[l.name for l in node.get_leaves()]].values.mean()
+        val = data[[leaf.name for leaf in node.get_leaves()]].values.mean()
         style = NodeStyle()
         style["size"] = 0
 

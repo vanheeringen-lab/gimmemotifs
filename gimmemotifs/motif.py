@@ -10,8 +10,8 @@ import re
 import sys
 import random
 from math import log, sqrt
+from collections import Counter
 from warnings import warn
-import six
 
 from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 from gimmemotifs.c_metrics import pfmscan
@@ -1304,6 +1304,88 @@ class Motif(object):
 
         return self.wiggled_pwm
 
+    def format_factors(
+        self, max_length=5, html=False, include_indirect=True, extra_str=", (...)"
+    ):
+        if html:
+            fmt_d = "<span style='color:black'>{}</span>"
+            fmt_i = "<span style='color:#666666'>{}</span>"
+        else:
+            fmt_d = fmt_i = "{}"
+
+        if hasattr(self, "factor_info"):
+            fcount = Counter([x.upper() for x in self.factor_info["Factor"]])
+        else:
+            fcount = Counter(self.factors[DIRECT_NAME] + self.factors[INDIRECT_NAME])
+
+        direct = sorted(
+            list(
+                set(
+                    [
+                        x.upper() if x != "de novo" else x
+                        for x in self.factors[DIRECT_NAME]
+                    ]
+                )
+            ),
+            key=lambda x: fcount[x],
+            reverse=True,
+        )
+
+        indirect = []
+        if include_indirect:
+            indirect = sorted(
+                list(
+                    set(
+                        [
+                            x.upper()
+                            for x in self.factors[INDIRECT_NAME]
+                            if x.upper() not in direct
+                        ]
+                    )
+                ),
+                key=lambda x: fcount[x],
+                reverse=True,
+            )
+
+        if len(direct) > max_length:
+            show_factors = direct[:max_length]
+        else:
+            show_factors = direct[:]
+            for f in sorted(indirect, key=lambda x: fcount[x], reverse=True):
+                if f not in show_factors:
+                    show_factors.append(f)
+                if len(show_factors) >= max_length:
+                    break
+
+        if "de novo" in show_factors:
+            show_factors = ["de novo"] + sorted(
+                [f for f in show_factors if f != "de novo"],
+                key=lambda x: fcount[x],
+                reverse=True,
+            )
+        else:
+            show_factors = sorted(show_factors, key=lambda x: fcount[x], reverse=True)
+
+        factor_str = ",".join(
+            [fmt_d.format(f) if f in direct else fmt_i.format(f) for f in show_factors]
+        )
+
+        if len(direct + indirect) > max_length:
+            factor_str += extra_str
+
+        if html:
+            tooltip = ""
+            if len(direct) > 0:
+                tooltip += "direct: " + ",".join(sorted(direct))
+            if len(indirect) > 0:
+                if tooltip != "":
+                    tooltip += "&#10;"
+                tooltip += "predicted: " + ",".join(sorted(indirect))
+
+            factor_str = '<div title="' + tooltip + '">' + factor_str + "</div>"
+
+        return factor_str
+
 
 def default_motifs():
     """Return list of Motif instances from default motif database."""
@@ -1393,14 +1475,8 @@ def parse_motifs(motifs):
     motifs : list
         List of Motif instances.
     """
-    if isinstance(motifs, six.string_types):
-        with open(motifs) as f:
-            if motifs.endswith("pwm") or motifs.endswith("pfm"):
-                motifs = read_motifs(f, fmt="pwm")
-            elif motifs.endswith("transfac"):
-                motifs = read_motifs(f, fmt="transfac")
-            else:
-                motifs = read_motifs(f)
+    if isinstance(motifs, str):
+        return read_motifs(motifs)
     elif isinstance(motifs, Motif):
         motifs = [motifs]
     else:
@@ -1426,6 +1502,8 @@ def _add_factors_from_handle(motifs, handle):
     m2f_direct = {}
     m2f_indirect = {}
     for line in open(map_file):
+        if line.startswith("#"):
+            continue
         try:
             motif, *factor_info = line.strip().split("\t")
             if len(factor_info) == 1:
@@ -1438,7 +1516,11 @@ def _add_factors_from_handle(motifs, handle):
         except Exception:
             pass
 
+    m2f = pd.read_csv(map_file, sep="\t", comment="#", index_col=0)
+
     for motif in motifs:
+        if motif.id in m2f.index:
+            motif.factor_info = m2f.loc[motif.id]
         if motif.id in m2f_direct:
             motif.factors[DIRECT_NAME] = m2f_direct[motif.id]
         if motif.id in m2f_indirect:
@@ -1518,7 +1600,7 @@ def read_motifs(infile=None, fmt="pfm", as_dict=False):
     if fmt == "pwm":
         fmt = "pfm"
 
-    if infile is None or isinstance(infile, six.string_types):
+    if infile is None or isinstance(infile, str):
         infile = pfmfile_location(infile)
         with open(infile) as f:
             motifs = _read_motifs_from_filehandle(f, fmt)

@@ -21,8 +21,11 @@ before_install:
     fi
   - chmod +x miniconda.sh
   - ./miniconda.sh -b -p $HOME/miniconda -f
-  - export PATH=$HOME/miniconda/bin:$PATH
-  - conda config --set always_yes yes 
+  - source "$HOME/miniconda/etc/profile.d/conda.sh"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ulimit -S -n 4096; ulimit -a; fi
 
 install:
@@ -34,7 +37,8 @@ install:
     else
       conda env create -q -f conda_env.osx.txt -n gimme;
     fi
-  - source activate gimme
+  - conda activate gimme
+  - conda list
   - python setup.py build && pip install -e .
 
 before_script:

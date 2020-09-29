@@ -1,6 +1,7 @@
 /* line 2, ../sass/_sortable.sass */
 table[data-sortable] {
-  font-size: 80%;
+  font-family: 'Nunito Sans';
+  font-size: 90%;
   border-collapse: collapse;
   border-spacing: 0;
 }

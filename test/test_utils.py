@@ -13,7 +13,7 @@ class TestUtils(unittest.TestCase):
     """ A test class to test utils functions """
 
     def setUp(self):
-        self.genome_dir = "test/data/genome_index"
+        self.genomes_dir = "test/data/genome_index"
         self.datadir = "test/data/utils"
 
     def test1_phyper(self):
@@ -31,7 +31,7 @@ class TestUtils(unittest.TestCase):
         """ convert bed, regions, etc to Fasta """
         tmpdir = mkdtemp()
 
-        g = Genome("genome", genome_dir=self.genome_dir)
+        g = Genome("genome", genomes_dir=self.genomes_dir)
 
         fafile = os.path.join(self.datadir, "test.fa")
         fa = Fasta(fafile)

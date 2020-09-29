@@ -41,10 +41,10 @@ Compare motifs between data sets
     $ gimme maelstrom hg19.blood.most_variable.1k.txt hg19 maelstrom.out/
 
 The output scores of ``gimme maelstrom`` represent the combined result of multiple methods. 
-The individual results from different methods are ranked from high-scoring motif to low-scoring motif
-and then aggregated using rank aggregation. 
-The score that is shown is the -log10(p-value), where the p-value (from the rank aggregation) is corrected for multiple testing. 
-This procedure is then repeated with the ranking reversed. These are shown as negative values.
+The individual results from different methods are ranked from high-scoring motif to low-scoring motif and converted
+to z-scores using the inverse normal transformation. The z-scores from individual methods are then combined using
+Stouffer's method. The score that is shown is the aggregated z-score. A higher z-score means that presence of 
+the motif or a higher motif score is associated with higher signal in a specific sample.
 
 Create sequence logos
 ---------------------
