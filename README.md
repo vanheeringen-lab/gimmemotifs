@@ -82,7 +82,7 @@ genome_dir: /data/genomes
 To download a genome from UCSC:
 
 ```
-$ genomepy install hg38 UCSC --annotation
+$ genomepy install hg38 --annotation  # genomepy >=0.9.0
 ```
 
 Now you can specify this genome for GimmeMotifs by name.
