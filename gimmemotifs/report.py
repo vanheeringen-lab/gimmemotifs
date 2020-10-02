@@ -60,31 +60,6 @@ def _wrap_html_str(x):
     return x
 
 
-def relative_luminance(rgba):
-    """
-    Calculate relative luminance of a color.
-    The calculation adheres to the W3C standards
-    (https://www.w3.org/WAI/GL/wiki/Relative_luminance)
-    Parameters
-    ----------
-    color : rgb or rgba tuple
-    Returns
-    -------
-    float
-        The relative luminance as a value from 0 to 1
-    """
-    r, g, b = (
-        x / 12.92 if x <= 0.03928 else ((x + 0.055) / 1.055 ** 2.4) for x in rgba[:3]
-    )
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b
-
-
-def contrasting_text_color(color, text_color_threshold=0.408):
-    dark = relative_luminance(color) < text_color_threshold
-    text_color = "#f1f1f1" if dark else "#000000"
-    return text_color
-
-
 class ExtraStyler(Styler):
     """
     Extra styles for a DataFrame or Series based on pandas.styler using HTML and CSS.
@@ -594,13 +569,13 @@ class ExtraStyler(Styler):
             vmin = -vmax
 
         r = self.background_gradient(
-                subset=subset,
-                cmap=cmap,
-                vmin=vmin,
-                vmax=vmax,
-                low=low,
-                high=high,
-            )
+            subset=subset,
+            cmap=cmap,
+            vmin=vmin,
+            vmax=vmax,
+            low=low,
+            high=high,
+        )
 
         return r
 
