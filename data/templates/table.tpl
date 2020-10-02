@@ -155,7 +155,7 @@ table[data-sortable].sortable-theme-slick th[data-sorted="true"][data-sorted-dir
 {% block before_cellstyle %}{% endblock before_cellstyle %}
 {% block cellstyle %}
 {%- for s in cellstyle %}
-    #T_{{uuid}}{{s.selector}} {
+    {%- for selector in s.selectors -%}{%- if not loop.first -%},{%- endif -%}#T_{{uuid}}{{selector}}{%- endfor -%} {
     {% for p,val in s.props %}
         {{p}}: {{val}};
     {% endfor %}

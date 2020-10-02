@@ -19,8 +19,6 @@ from statsmodels.stats.multitest import multipletests
 from pandas.core.indexing import _non_reducing_slice
 from pandas.io.formats.style import Styler
 import seaborn as sns
-from matplotlib import colors
-import matplotlib.pyplot as plt
 
 try:
     import emoji
@@ -349,16 +347,6 @@ class ExtraStyler(Styler):
         self.apply(self._align, subset=subset, location=location, axis=axis)
         return self
 
-    def _background_gradient(self, s, m, M, cmap="PuBu", low=0, high=0):
-        rng = M - m
-        norm = colors.Normalize(m - (rng * low), M + (rng * high))
-        normed = norm(s.values)
-        c = plt.cm.get_cmap(cmap)(normed)
-        return [
-            f"background-color: {colors.rgb2hex(color)}; color: {contrasting_text_color(color)}"
-            for color in c
-        ]
-
     def to_precision_str(self, subset=None, precision=0, include_zero=True):
         subset = pd.IndexSlice[:, :] if subset is None else subset
         subset = _non_reducing_slice(subset)
@@ -582,38 +570,34 @@ class ExtraStyler(Styler):
         vmin=None,
         vmax=None,
     ):
-        subset = pd.IndexSlice[:, :] if subset is None else subset
-        subset = _non_reducing_slice(subset)
-
-        vmax = (
-            self.data.loc[subset]
-            .replace({np.inf: np.nan, -np.inf: np.nan})
-            .max(skipna=True)
-            .max()
-            if vmax is None
-            else vmax
-        )
-        vmin = (
-            self.data.loc[subset]
-            .replace({np.inf: np.nan, -np.inf: np.nan})
-            .min(skipna=True)
-            .min()
-            if vmin is None
-            else vmin
-        )
-
         if center_zero:
+            sub = pd.IndexSlice[:, :] if subset is None else subset
+            sub = _non_reducing_slice(sub)
+
+            vmax = (
+                self.data.loc[sub]
+                .replace({np.inf: np.nan, -np.inf: np.nan})
+                .max(skipna=True)
+                .max()
+                if vmax is None
+                else vmax
+            )
+            vmin = (
+                self.data.loc[sub]
+                .replace({np.inf: np.nan, -np.inf: np.nan})
+                .min(skipna=True)
+                .min()
+                if vmin is None
+                else vmin
+            )
             vmax = max(abs(vmax), abs(vmin))
             vmin = -vmax
 
-        r = self
-        for col in self.data.loc[subset].columns:
-            r = r.apply(
-                self._background_gradient,
-                subset=pd.IndexSlice[subset[0], col],
+        r = self.background_gradient(
+                subset=subset,
                 cmap=cmap,
-                m=vmin,
-                M=vmax,
+                vmin=vmin,
+                vmax=vmax,
                 low=low,
                 high=high,
             )
@@ -942,7 +926,7 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
     for col in df.columns:
         if "% with motif" in col:
             df_styled = (
-                df_styled.add_circle(subset=[col], cmap="Purples", vmax=100, size=40)
+                df_styled.add_circle(subset=[col], cmap="Purples", vmax=100, size=30)
                 .wrap(subset=[col])
                 .align(subset=[col], location="center")
                 .border(subset=[col], location="left")
