@@ -19,7 +19,6 @@ dependencies:
   - pyarrow >=0.16.0
   - pybedtools
   - python >=3
-  - python-xxhash
   - pyyaml >=3.10
   - qnorm
   - represent
