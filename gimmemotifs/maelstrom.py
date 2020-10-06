@@ -27,7 +27,6 @@ from scipy.cluster import hierarchy
 from scipy.spatial.distance import pdist
 from scipy.cluster.hierarchy import linkage, dendrogram
 from sklearn.cluster import FeatureAgglomeration
-from sklearn.decomposition import PCA
 
 # from scipy.spatial.distance import correlation
 
@@ -379,47 +378,32 @@ def run_maelstrom(
 
     if filter_redundant:
         logger.info("Selecting non-redundant motifs")
-        p = PCA(n_components=100)
-        pcs = pd.DataFrame(p.fit_transform(scores.T), index=scores.columns)
         fa = FeatureAgglomeration(
-            n_clusters=600, affinity="euclidean", linkage="complete",
+            distance_threshold=filter_cutoff,
+            n_clusters=None,
+            affinity="correlation",
+            linkage="complete",
+            compute_full_tree=True,
         )
-        fa.fit(pcs.T)
-        # fa = FeatureAgglomeration(
-        #    distance_threshold=filter_cutoff,
-        #    n_clusters=None,
-        #    affinity="correlation",
-        #    linkage="complete",
-        #    compute_full_tree=True,
-        # )
-        # fa.fit(scores)
+        fa.fit(scores)
         X_cluster = pd.DataFrame({"motif": scores.columns, "label": fa.labels_})
         X_cluster = X_cluster.join(scores.var().to_frame(name="var"), on="motif")
-        # selected_motifs = (
-        #    X_cluster.sort_values("var")
-        #    .drop_duplicates(subset=["label"], keep="last")["motif"]
-        #    .values
-        # )
         selected_motifs = (
             X_cluster.sort_values("var")
-            .drop_duplicates(subset=["label"], keep="last")[["motif", "label"]]
-            .set_index("label")
+            .drop_duplicates(subset=["label"], keep="last")["motif"]
+            .values
         )
 
-        nr_scores = scores.T.join(X_cluster[["motif", "label"]].set_index("motif"))
-        nr_scores = nr_scores.groupby("label").mean()
-        nr_scores = nr_scores.join(selected_motifs).set_index("motif").T
-
-        # nr_motif = (
-        #    X_cluster.sort_values("var")
-        #    .drop_duplicates(subset=["label"], keep="last")[["label", "motif"]]
-        #    .set_index("label")
-        # )
-        X_cluster = X_cluster.join(selected_motifs, rsuffix="_nr", on="label")
+        nr_motif = (
+            X_cluster.sort_values("var")
+            .drop_duplicates(subset=["label"], keep="last")[["label", "motif"]]
+            .set_index("label")
+        )
+        X_cluster = X_cluster.join(nr_motif, rsuffix="_nr", on="label")
         motif_map = X_cluster[["motif", "motif_nr"]].set_index("motif")
 
-        scores = nr_scores  # scores[selected_motifs]
-        counts = counts[scores.columns]
+        scores = scores[selected_motifs]
+        counts = counts[selected_motifs]
         score_table = os.path.join(outdir, "motif.nr.score.txt.gz")
         scores.to_csv(score_table, sep="\t", compression="gzip")
         count_table = os.path.join(outdir, "motif.nr.count.txt.gz")
