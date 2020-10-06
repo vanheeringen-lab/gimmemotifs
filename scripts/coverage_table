@@ -243,4 +243,4 @@ if args.top > 0:
     output.write("# Top {} regions selected by {}\n".format(args.top, args.topmethod))
 df.to_csv(output, sep="\t", float_format="%0.5f")
 output.seek(0)
-print(output.read())
+print(output.read(), end="")
