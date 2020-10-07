@@ -38,7 +38,8 @@ import seaborn as sns
 sns.set_style("white")
 
 from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
-from gimmemotifs.moap import moap, Moap, scan_to_table
+from gimmemotifs.moap import moap, Moap
+from gimmemotifs.scanner import scan_regionfile_to_table
 from gimmemotifs.rank import rankagg
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.report import maelstrom_html_report
@@ -339,7 +340,7 @@ def run_maelstrom(
         count_table = os.path.join(outdir, "motif.count.txt.gz")
         if not os.path.exists(count_table):
             logger.info("motif scanning (counts)")
-            counts = scan_to_table(
+            counts = scan_regionfile_to_table(
                 infile,
                 genome,
                 "count",
@@ -357,7 +358,7 @@ def run_maelstrom(
         score_table = os.path.join(outdir, "motif.score.txt.gz")
         if not os.path.exists(score_table):
             logger.info("motif scanning (scores)")
-            scores = scan_to_table(
+            scores = scan_regionfile_to_table(
                 infile,
                 genome,
                 "score",
@@ -377,7 +378,6 @@ def run_maelstrom(
 
     if filter_redundant:
         logger.info("Selecting non-redundant motifs")
-
         fa = FeatureAgglomeration(
             distance_threshold=filter_cutoff,
             n_clusters=None,
@@ -393,6 +393,7 @@ def run_maelstrom(
             .drop_duplicates(subset=["label"], keep="last")["motif"]
             .values
         )
+
         nr_motif = (
             X_cluster.sort_values("var")
             .drop_duplicates(subset=["label"], keep="last")[["label", "motif"]]

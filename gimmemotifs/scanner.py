@@ -53,7 +53,7 @@ except ImportError:
 
 logger = logging.getLogger("gimme.scanner")
 config = MotifConfig()
-
+FPR = 0.01
 lock = mp.Lock()
 
 
@@ -94,6 +94,100 @@ def _format_line(
             motif.id,
             seq[pos : pos + len(motif)],
         )
+
+
+def scan_regionfile_to_table(
+    input_table, genome, scoring, pfmfile=None, ncpus=None, zscore=True, gc=True
+):
+    """Scan regions in input table with motifs.
+
+    Parameters
+    ----------
+    input_table : str
+        Filename of input table. Can be either a text-separated tab file or a
+        feather file.
+
+    genome : str
+        Genome name. Can be either the name of a FASTA-formatted file or a
+        genomepy genome name.
+
+    scoring : str
+        "count" or "score"
+
+    pfmfile : str, optional
+        Specify a PFM file for scanning.
+
+    ncpus : int, optional
+        If defined this specifies the number of cores to use.
+
+    Returns
+    -------
+    table : pandas.DataFrame
+        DataFrame with motif ids as column names and regions as index. Values
+        are either counts or scores depending on the 'scoring' parameter.s
+    """
+    config = MotifConfig()
+
+    if pfmfile is None:
+        pfmfile = config.get_default_params().get("motif_db", None)
+        if pfmfile is not None:
+            pfmfile = os.path.join(config.get_motif_dir(), pfmfile)
+
+    if pfmfile is None:
+        raise ValueError("no pfmfile given and no default database specified")
+
+    logger.info("reading table")
+    if input_table.endswith("feather"):
+        df = pd.read_feather(input_table)
+        idx = df.iloc[:, 0].values
+    else:
+        df = pd.read_table(input_table, index_col=0, comment="#")
+        idx = df.index
+
+    regions = list(idx)
+    if len(regions) >= 1000:
+        check_regions = np.random.choice(regions, size=1000, replace=False)
+    else:
+        check_regions = regions
+
+    size = int(
+        np.median([len(seq) for seq in as_fasta(check_regions, genome=genome).seqs])
+    )
+    s = Scanner(ncpus=ncpus)
+    s.set_motifs(pfmfile)
+    s.set_genome(genome)
+    s.set_background(genome=genome, gc=gc, size=size)
+
+    scores = []
+    if scoring == "count":
+        logger.info("setting threshold")
+        s.set_threshold(fpr=FPR)
+        logger.info("creating count table")
+        for row in s.count(regions):
+            scores.append(row)
+        logger.info("done")
+    else:
+        s.set_threshold(threshold=0.0)
+        msg = "creating score table"
+        if zscore:
+            msg += " (z-score"
+            if gc:
+                msg += ", GC%"
+            msg += ")"
+        else:
+            msg += " (logodds)"
+        logger.info(msg)
+        for row in s.best_score(regions, zscore=zscore, gc=gc):
+            scores.append(row)
+        logger.info("done")
+
+    motif_names = [m.id for m in read_motifs(pfmfile)]
+    logger.info("creating dataframe")
+    df = pd.DataFrame(scores, index=idx, columns=motif_names)
+
+    # if filter_redundant:
+
+    return df
 
 
 def scan_table(

@@ -496,7 +496,13 @@ class Motif(object):
         return matches
 
     def plot_logo(
-        self, kind="information", fname=None, title=True, ylabel=True, add_left=0
+        self,
+        kind="information",
+        fname=None,
+        title=True,
+        ylabel=True,
+        add_left=0,
+        ax=None,
     ):
         """Plot motif logo
 
@@ -520,49 +526,58 @@ class Motif(object):
         total = sum(self.pfm[0]) / 4
         pfm = [[total] * 4] * add_left + self.pfm
         matrix = pd.DataFrame(pfm, columns=["A", "C", "G", "T"])
+
         if kind == "ensembl":
             self.plot_ensembl_logo(fname=fname, title=title)
             return
-        elif kind == "information":
-            matrix = lm.transform_matrix(
-                matrix, from_type="counts", to_type="information"
-            )
-            logo = lm.Logo(
-                matrix,
-                figsize=(fig_width * matrix.shape[0], fig_height),
-                show_spines=False,
-                vpad=0.02,
-            )
+
+        logo_params = {
+            "information": {
+                "df": lm.transform_matrix(
+                    matrix, from_type="counts", to_type="information"
+                ),
+                "figsize": (fig_width * matrix.shape[0], fig_height),
+                "show_spines": False,
+                "vpad": 0.02,
+            },
+            "frequency": {
+                "df": lm.transform_matrix(
+                    matrix, from_type="counts", to_type="probability"
+                ),
+                "figsize": (fig_width * matrix.shape[0], fig_height),
+                "show_spines": False,
+                "vpad": 0.02,
+                "font_name": "DejaVu Sans Mono",
+            },
+            "energy": {
+                "df": lm.transform_matrix(
+                    lm.transform_matrix(matrix, from_type="counts", to_type="weight"),
+                    center_values=True,
+                ),
+                "figsize": (fig_width * matrix.shape[0], fig_height * 2),
+                "fade_below": 0.7,
+                "shade_below": 0.3,
+                "flip_below": False,
+                "show_spines": False,
+            },
+        }
+
+        if ax is not None:
+            logo_params[kind]["ax"] = ax
+            del logo_params[kind]["figsize"]
+
+        logo = lm.Logo(**logo_params[kind])
+
+        if kind == "information":
             if ylabel:
                 logo.ax.set_ylabel("Bits", fontsize=16)
             logo.ax.set_ylim(0, 2)
             logo.ax.set_yticks([0, 0.5, 1, 1.5, 2], minor=False)
         elif kind == "frequency":
-            matrix = lm.transform_matrix(
-                matrix, from_type="counts", to_type="probability"
-            )
-            logo = lm.Logo(
-                matrix,
-                font_name="DejaVu Sans Mono",
-                figsize=(fig_width * matrix.shape[0], fig_height),
-                show_spines=False,
-                vpad=0.02,
-            )
             if ylabel:
                 logo.ax.set_ylabel("Frequency", fontsize=16)
             logo.ax.set_ylim(0, 1)
-
         elif kind == "energy":
-            matrix = lm.transform_matrix(matrix, from_type="counts", to_type="weight")
-            matrix = lm.transform_matrix(matrix, center_values=True)
-            logo = lm.Logo(
-                matrix,
-                fade_below=0.7,
-                shade_below=0.3,
-                flip_below=False,
-                show_spines=False,
-                figsize=(fig_width * matrix.shape[0], fig_height * 2),
-            )
             if ylabel:
                 logo.ax.set_ylabel(r"$\Delta \Delta G$/RT", labelpad=-1, fontsize=16)
         else:
