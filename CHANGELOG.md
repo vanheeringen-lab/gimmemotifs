@@ -13,6 +13,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+## [0.15.1] - 2020-10-07
+
+### Added
+
+- `Motif.plot_logo()` accepts an `ax` argument.
+
+### Fixed
+
+- Support for pandas>=1.1
+- `coverage_table` doesn't add a newline at the end of the file.
+
 ## [0.15.0] - 2020-09-29
 
 ### Added
