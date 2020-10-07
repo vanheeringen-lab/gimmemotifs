@@ -15,10 +15,10 @@ dependencies:
   - numpy
   - pandas >=1.0.3
   - pillow
+  - pip
   - pyarrow >=0.16.0
   - pybedtools
   - python >=3
-  - python-xxhash
   - pyyaml >=3.10
   - qnorm
   - represent
@@ -31,3 +31,5 @@ dependencies:
   - xgboost >=0.71
   - sphinx_bootstrap_theme
   - numpydoc
+  - pip:
+    - xxhash
