@@ -26,9 +26,9 @@ import pyfaidx
 from scipy import special
 import numpy as np
 import pybedtools
+
 from genomepy import Genome
 from Bio.SeqIO.FastaIO import SimpleFastaParser
-
 
 # gimme imports
 from gimmemotifs.fasta import Fasta
