@@ -21,6 +21,7 @@ import pandas as pd
 from pybedtools import BedTool
 from sklearn.preprocessing import scale
 import qnorm
+from tqdm.auto import tqdm
 
 # gimme imports
 from gimmemotifs.utils import determine_file_type
@@ -52,7 +53,7 @@ def coverage_table(
             )
             pysam.index(x)
 
-    print("Loading data", file=sys.stderr)
+    logger.info("Loading data")
     data = {}
     try:
         # Load data in parallel
@@ -77,13 +78,13 @@ def coverage_table(
                     ),
                 )
             )
-        for job in jobs:
+        for job in tqdm(jobs):
             track, regions, profile, guard = job.get()
             data[os.path.splitext(track)[0]] = profile[:, 0]
     except Exception as e:
         sys.stderr.write("Error loading data in parallel, trying serial\n")
         sys.stderr.write("Error: {}\n".format(e))
-        for datafile in datafiles:
+        for datafile in tqdm(datafiles):
             track, regions, profile, guard = load_heatmap_data(
                 peakfile,
                 datafile,
@@ -104,16 +105,16 @@ def coverage_table(
     df = pd.DataFrame(data, index=regions)
 
     if log_transform:
-        print("Log transform", file=sys.stderr)
+        logger.info("Log transform")
         df = np.log1p(df)
     if normalization == "scale":
-        print("Normalization by scaling", file=sys.stderr)
+        logger.info("Normalization by scaling")
         df[:] = scale(df, axis=0)
     if normalization == "quantile":
-        print("Normalization by quantile normalization", file=sys.stderr)
+        logger.info("Normalization by quantile normalization")
         df = qnorm.quantile_normalize(df)
     else:
-        print("No normalization", file=sys.stderr)
+        logger.info("No normalization")
 
     if top > 0:
         if topmethod == "var":
