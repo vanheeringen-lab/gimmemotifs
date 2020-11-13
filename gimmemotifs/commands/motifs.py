@@ -56,7 +56,7 @@ def motifs(args):
         elif file_type == "bed":
             write_equalsize_bedfile(args.sample, args.size, outfile)
             sample = outfile
-    
+
     genome = args.genome
     if genome is None:
         args.zscore = False

@@ -39,7 +39,7 @@ def coverage_table(
     topmethod="var",
     rmdup=True,
     rmrepeats=True,
-    ncpus=12
+    ncpus=12,
 ):
     for x in datafiles:
         if not os.path.isfile(x):
