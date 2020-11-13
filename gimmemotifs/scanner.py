@@ -1072,9 +1072,6 @@ class Scanner(object):
         Scan a set of regions or sequences.
         """
         seqs = as_fasta(seqs, genome=self.genome)
-
-        it = self._scan_sequences(seqs.seqs, nreport, scan_rc, zscore=zscore)
-
         if zscore:
             if gc:
                 if len(self.meanstd) <= 1:
@@ -1083,9 +1080,17 @@ class Scanner(object):
                 if len(self.meanstd) != 1:
                     self.set_meanstd(gc=gc)
 
+        batch_size = 10000
         logger.debug("Scanning")
-        for result in it:
-            yield result
+        for batch_idx in range(0, len(seqs), batch_size):
+            it = self._scan_sequences(
+                seqs.seqs[batch_idx : batch_idx + batch_size],
+                nreport,
+                scan_rc,
+                zscore=zscore,
+            )
+            for result in it:
+                yield result
 
     def get_gc_thresholds(self, seqs, motifs=None, zscore=False):
         # Simple case, only one threshold
