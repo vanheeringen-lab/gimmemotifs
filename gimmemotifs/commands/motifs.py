@@ -44,17 +44,17 @@ def motifs(args):
     if not os.path.exists(scan_dir):
         os.makedirs(scan_dir)
 
+    file_type = determine_file_type(args.sample)
+    outfile = os.path.join(args.outdir, f"input.w{args.size}.bed")
     sample = args.sample
-    if args.size and args.size > 0:
-        file_type = determine_file_type(args.sample)
+    if file_type == "narrowpeak":
+        narrowpeak_to_bed(args.sample, outfile, size=args.size)
+        sample = outfile
+    elif args.size and args.size > 0:
         if file_type == "fasta":
             logger.warn("size parameter will be ignored for FASTA input")
-        else:
-            outfile = os.path.join(args.outdir, f"input.w{args.size}.bed")
-            if file_type == "narrowpeak":
-                narrowpeak_to_bed(args.sample, outfile, size=args.size)
-            if file_type == "bed":
-                write_equalsize_bedfile(args.sample, args.size, outfile)
+        elif file_type == "bed":
+            write_equalsize_bedfile(args.sample, args.size, outfile)
             sample = outfile
 
     genome = args.genome

@@ -488,7 +488,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
             raise
 
     # Get the median size of the sequences
-    if size is None:
+    if size is None or size == 0:
         size = int(np.median(sizes))
         if np.std(sizes) > size * 0.05:
             sys.stderr.write("Sequences do not seem to be of equal size.\n")

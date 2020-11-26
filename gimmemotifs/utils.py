@@ -26,9 +26,9 @@ import pyfaidx
 from scipy import special
 import numpy as np
 import pybedtools
+
 from genomepy import Genome
 from Bio.SeqIO.FastaIO import SimpleFastaParser
-
 
 # gimme imports
 from gimmemotifs.fasta import Fasta
@@ -206,8 +206,9 @@ def write_equalsize_bedfile(bedfile, size, outfile):
     """Read input from <bedfile>, set the size of all entries to <size> and
     write the result to <outfile>.
     Input file needs to be in BED or WIG format."""
-    if size <= 0:
+    if size is None or size <= 0:
         copyfile(bedfile, outfile)
+        return
 
     BUFSIZE = 10000
     f = open(bedfile)
@@ -414,10 +415,13 @@ def determine_file_type(fname):
         Filename in lower-case.
     """
     if not (isinstance(fname, str)):
-        raise ValueError("{} is not a file name!", fname)
+        raise ValueError(f"{fname} is not a string, does not represent a file name")
+
+    if not os.path.exists(fname):
+        raise ValueError(f"File {fname} does not exist!")
 
     if not os.path.isfile(fname):
-        raise ValueError("{} is not a file!", fname)
+        raise ValueError(f"{fname} is not a file!")
 
     ext = os.path.splitext(fname)[1].lower()
     if ext in [".bed"]:

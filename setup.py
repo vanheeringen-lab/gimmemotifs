@@ -114,6 +114,7 @@ setup(
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
     install_requires=[
+        "biofluff",
         "setuptools >= 0.7",
         "numpy",
         "scipy >= 0.9.0",

@@ -13,6 +13,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+## [0.15.2] - 2020-11-26
+
+### Changed
+
+- Refactoring to make `coverage_table` and `combine_peaks` available via API.
+
+### Fixed
+
+- Fix issue with -s parameter of `gimme motifs` (#146)
+- Fix issues (hopefully) with scanning large input files.
+
 ## [0.15.1] - 2020-10-07
 
 ### Added
