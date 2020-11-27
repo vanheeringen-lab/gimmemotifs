@@ -512,7 +512,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
         )
 
     rest = number - sum(bin_count)
-    for i in range(rest):
+    for i in range(min(rest, len(bin_count))):
         bin_count[i] += 1
 
     nseqs = max(bin_count) * len(bins)
