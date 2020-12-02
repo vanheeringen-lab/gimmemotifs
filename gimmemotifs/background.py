@@ -511,9 +511,15 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
             int(np.sum((gc > round(b_start, 2)) & (gc <= round(b_end, 2))) * fraction)
         )
 
+    # To make te requested number, divide remaining over
+    # all bins that have counts
     rest = number - sum(bin_count)
-    for i in range(rest):
-        bin_count[i] += 1
+    i = 0
+    for _ in range(rest):
+        while bin_count[i % len(bins)] == 0:
+            i += 1
+        bin_count[i % len(bins)] += 1
+        i += 1
 
     nseqs = max(bin_count) * len(bins)
 
@@ -533,6 +539,8 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
         pass
     with open(bedfile, "a") as f:
         for (b_start, b_end), n in zip(bins, bin_count):
+            if n == 0:
+                continue
             # print(b_start, b_end, n)
             b = "{:.2f}-{:.2f}".format(b_start, b_end)
             df.loc[df["bin"] == b, ["chrom", "start", "end"]].sample(n).to_csv(
