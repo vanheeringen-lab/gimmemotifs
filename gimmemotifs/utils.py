@@ -19,7 +19,6 @@ from io import TextIOWrapper
 from functools import singledispatch
 from subprocess import Popen
 from tempfile import NamedTemporaryFile
-from shutil import copyfile
 
 # External imports
 import pyfaidx
