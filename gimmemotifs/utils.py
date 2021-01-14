@@ -207,7 +207,17 @@ def write_equalsize_bedfile(bedfile, size, outfile):
     write the result to <outfile>.
     Input file needs to be in BED or WIG format."""
     if size is None or size <= 0:
-        copyfile(bedfile, outfile)
+        bed = pybedtools.BedTool(bedfile)
+        filtered_bed = pybedtools.BedTool(
+            bed.filter(lambda x: len(x) >= 10).saveas().fn
+        )
+
+        if len(bed) != len(filtered_bed):
+            logger.warn(
+                "Using original size of input file regions, however, some regions are smaller than 10nt!"
+            )
+            logger.warn("Removing all these smaller regions.")
+        filtered_bed.saveas(outfile)
         return
 
     BUFSIZE = 10000

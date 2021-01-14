@@ -26,6 +26,7 @@ import numpy as np
 import pandas as pd
 import pybedtools
 from genomepy import Genome
+from pyarrow.lib import ArrowInvalid
 
 # GimmeMotifs imports
 from gimmemotifs import mytmpdir
@@ -397,12 +398,13 @@ def gc_bin_bedfile(
     fname = os.path.join(
         CACHE_DIR, "{}.gcfreq.{}.feather".format(os.path.basename(genome), min_bin_size)
     )
-    if not os.path.exists(fname):
+    try:
+        df = pd.read_feather(fname)
+    except (ArrowInvalid, FileNotFoundError):
         if not os.path.exists(CACHE_DIR):
             os.makedirs(CACHE_DIR)
         create_gc_bin_index(genome, fname, min_bin_size=min_bin_size)
-
-    df = pd.read_feather(fname)
+        df = pd.read_feather(fname)
 
     if length >= min_bin_size:
         col = "w{}".format(
@@ -477,7 +479,10 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
         try:
             # pylint: disable=unexpected-keyword-arg
             fields = pd.read_csv(matchfile, comment="#", nrows=10, sep="\t").shape[1]
-            bed = pybedtools.BedTool(matchfile)
+            tmp = (
+                pybedtools.BedTool(matchfile).filter(lambda x: len(x) >= 10).saveas().fn
+            )
+            bed = pybedtools.BedTool(tmp)
             gc = np.array(
                 [float(x[fields + 1]) for x in bed.nucleotide_content(fi=genome_fa)]
             )
