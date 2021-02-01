@@ -1329,7 +1329,7 @@ class Motif(object):
             fmt_d = fmt_i = "{}"
 
         if hasattr(self, "factor_info"):
-            fcount = Counter([x.upper() for x in self.factor_info["Factor"]])
+            fcount = Counter([x.upper() for x in self.factor_info.get("Factor", "")])
         else:
             fcount = Counter(self.factors[DIRECT_NAME] + self.factors[INDIRECT_NAME])
 
