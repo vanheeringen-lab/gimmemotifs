@@ -26,6 +26,7 @@ import numpy as np
 import pandas as pd
 import pybedtools
 from genomepy import Genome
+from pyarrow.lib import ArrowInvalid
 
 # GimmeMotifs imports
 from gimmemotifs import mytmpdir
@@ -397,12 +398,13 @@ def gc_bin_bedfile(
     fname = os.path.join(
         CACHE_DIR, "{}.gcfreq.{}.feather".format(os.path.basename(genome), min_bin_size)
     )
-    if not os.path.exists(fname):
+    try:
+        df = pd.read_feather(fname)
+    except (ArrowInvalid, FileNotFoundError):
         if not os.path.exists(CACHE_DIR):
             os.makedirs(CACHE_DIR)
         create_gc_bin_index(genome, fname, min_bin_size=min_bin_size)
-
-    df = pd.read_feather(fname)
+        df = pd.read_feather(fname)
 
     if length >= min_bin_size:
         col = "w{}".format(
@@ -477,7 +479,10 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
         try:
             # pylint: disable=unexpected-keyword-arg
             fields = pd.read_csv(matchfile, comment="#", nrows=10, sep="\t").shape[1]
-            bed = pybedtools.BedTool(matchfile)
+            tmp = (
+                pybedtools.BedTool(matchfile).filter(lambda x: len(x) >= 10).saveas().fn
+            )
+            bed = pybedtools.BedTool(tmp)
             gc = np.array(
                 [float(x[fields + 1]) for x in bed.nucleotide_content(fi=genome_fa)]
             )
@@ -511,9 +516,15 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
             int(np.sum((gc > round(b_start, 2)) & (gc <= round(b_end, 2))) * fraction)
         )
 
+    # To make te requested number, divide remaining over
+    # all bins that have counts
     rest = number - sum(bin_count)
-    for i in range(rest):
-        bin_count[i] += 1
+    i = 0
+    for _ in range(rest):
+        while bin_count[i % len(bins)] == 0:
+            i += 1
+        bin_count[i % len(bins)] += 1
+        i += 1
 
     nseqs = max(bin_count) * len(bins)
 
@@ -533,6 +544,8 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
         pass
     with open(bedfile, "a") as f:
         for (b_start, b_end), n in zip(bins, bin_count):
+            if n == 0:
+                continue
             # print(b_start, b_end, n)
             b = "{:.2f}-{:.2f}".format(b_start, b_end)
             df.loc[df["bin"] == b, ["chrom", "start", "end"]].sample(n).to_csv(

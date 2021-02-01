@@ -13,6 +13,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+## [0.15.3] - 2021-02-01
+
+### Fixed
+
+* `_non_reducing_slice` vs `non_reducing_slice` for pandas>=1.2 (#168)
+* When using original region size, skip regions smaller than 10bp and warn if no
+  regions are left. 
+* Fixed creating statistics report crashed with `KeyError: 'Factor'` (#170)
+* Fixed bug with creating GC bins for a genome with unusual GC% (like Plasmodium).
+* Fixed bug that occurs when upgrading pyarrow with an existing GimmeMotifs
+  cache.
+
+
 ## [0.15.2] - 2020-11-26
 
 ### Changed

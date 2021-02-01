@@ -16,7 +16,12 @@ import jinja2
 import numpy as np
 import pandas as pd
 from statsmodels.stats.multitest import multipletests
-from pandas.core.indexing import _non_reducing_slice
+
+try:
+    from pandas.core.indexing import non_reducing_slice
+except ImportError:
+    from pandas.core.indexing import _non_reducing_slice as non_reducing_slice
+
 from pandas.io.formats.style import Styler
 import seaborn as sns
 
@@ -121,7 +126,7 @@ class ExtraStyler(Styler):
 
     def _current_index(self, subset):
         subset = pd.IndexSlice[:, :] if subset is None else subset
-        subset = _non_reducing_slice(subset)
+        subset = non_reducing_slice(subset)
         selected = self.data.loc[subset]
         idx_slice = pd.IndexSlice[
             self.data.index.get_indexer(selected.index),
@@ -154,7 +159,7 @@ class ExtraStyler(Styler):
 
     def _tooltip(self, tip, subset=None, part=None):
         subset = pd.IndexSlice[:, :] if subset is None else subset
-        subset = _non_reducing_slice(subset)
+        subset = non_reducing_slice(subset)
 
         if part is None:
             part = "data"
@@ -202,7 +207,7 @@ class ExtraStyler(Styler):
 
     def _wrap(self, subset=None, axis=0):
         subset = pd.IndexSlice[:, :] if subset is None else subset
-        subset = _non_reducing_slice(subset)
+        subset = non_reducing_slice(subset)
 
         if axis in [0, "columns"]:
             idx = self._current_index(subset)[1]
@@ -228,7 +233,7 @@ class ExtraStyler(Styler):
 
     def _convert_to_image(self, subset=None, height=30):
         subset = pd.IndexSlice[:, :] if subset is None else subset
-        subset = _non_reducing_slice(subset)
+        subset = non_reducing_slice(subset)
 
         self.display_data.loc[subset] = (
             f'<div style="height:{height}px;object-fit:contain;"><img src="'
@@ -324,7 +329,7 @@ class ExtraStyler(Styler):
 
     def to_precision_str(self, subset=None, precision=0, include_zero=True):
         subset = pd.IndexSlice[:, :] if subset is None else subset
-        subset = _non_reducing_slice(subset)
+        subset = non_reducing_slice(subset)
 
         def precision_str(x, precision=precision):
             if (include_zero or x > 0) and x <= 10 ** -precision:
@@ -349,7 +354,7 @@ class ExtraStyler(Styler):
         morph=False,
     ):
         subset = pd.IndexSlice[:, :] if subset is None else subset
-        subslice = _non_reducing_slice(subset)
+        subslice = non_reducing_slice(subset)
 
         if color:
             palette = sns.color_palette([color])
@@ -502,7 +507,7 @@ class ExtraStyler(Styler):
 
     def emoji_scale(self, subset=None, emojis=None, bins=None, axis=0):
         subset = pd.IndexSlice[:, :] if subset is None else subset
-        subset = _non_reducing_slice(subset)
+        subset = non_reducing_slice(subset)
 
         idx = self._current_index(subset=subset)
 
@@ -515,7 +520,7 @@ class ExtraStyler(Styler):
 
     def emoji_score(self, subset=None, emoji_str=None, bins=None, axis=0):
         subset = pd.IndexSlice[:, :] if subset is None else subset
-        subset = _non_reducing_slice(subset)
+        subset = non_reducing_slice(subset)
 
         idx = self._current_index(subset=subset)
         result = self.display_data.iloc[idx].apply(
@@ -527,7 +532,7 @@ class ExtraStyler(Styler):
 
     def emojify(self, subset=None):
         subset = pd.IndexSlice[:, :] if subset is None else subset
-        subset = _non_reducing_slice(subset)
+        subset = non_reducing_slice(subset)
 
         idx = self._current_index(subset=subset)
         result = self.display_data.iloc[idx].applymap(emoji.emojize)
@@ -547,7 +552,7 @@ class ExtraStyler(Styler):
     ):
         if center_zero:
             sub = pd.IndexSlice[:, :] if subset is None else subset
-            sub = _non_reducing_slice(sub)
+            sub = non_reducing_slice(sub)
 
             vmax = (
                 self.data.loc[sub]
