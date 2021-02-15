@@ -58,19 +58,19 @@ def motif2factor_from_orthologs(
     outdir = "/vol/gimmetest"
     genomes_dir = genomes_dir if genomes_dir is not None else outdir
 
-    #     # download all required genomes
-    #     _download_genomes_with_annot(all_genomes, genomes_dir)
+    # download all required genomes
+    _download_genomes_with_annot(all_genomes, genomes_dir)
 
-    #     # convert each genome + annotation into the primary transcripts (longest protein per gene)
-    #     for genome in all_genomes:
-    #         annot2primpep(genome, outdir)
+    # convert each genome + annotation into the primary transcripts (longest protein per gene)
+    for genome in all_genomes:
+        annot2primpep(genome, outdir)
 
-    #     # run ortho...
-    #     orthofinder_result = _orthofinder(f"{outdir}/prim_genes")
+    # run ortho...
+    orthofinder_result = _orthofinder(f"{outdir}/prim_genes")
 
     # now parse the output of orthofinder
     # TODO remove
-    orthofinder_result = "/vol/gimmetest/prim_genes/OrthoFinder/Results_Feb12"
+    orthofinder_result = "/vol/gimmetest/prim_genes/OrthoFinder/Results_Feb15"
     orthogroup_db = f"{outdir}/orthologs.sqlite"
     load_orthogroups_in_db(orthogroup_db, all_genomes, orthofinder_result)
 
@@ -80,7 +80,7 @@ def motif2factor_from_orthologs(
 
     # process the references
     for genome in new_reference:
-        make_motif2factors(f"{outdir}/{genome}.{database}.pfm", new_reference=genome,
+        make_motif2factors(f"{outdir}/{genome}.{database}.motif2factors.txt", new_reference=genome,
                            database_references=database_references, motifsandfactors=motifsandfactors,
                            database=orthogroup_db)
 
@@ -214,8 +214,10 @@ def load_orthogroups_in_db(db, genomes, orthofinder_result):
                  CREATE TABLE IF NOT EXISTS genes
                  (
                  id integer PRIMARY KEY,
-                 gene text NOT NULL,
-                 gene_lower text NOT NULL,
+                 gene_name text,
+                 gene_name_lower text,
+                 gene_id text,
+                 gene_id_lower text,
                  assembly NOT NULL,
                  orthogroup,
                  FOREIGN KEY (orthogroup) REFERENCES orthogroups (id),
@@ -241,12 +243,13 @@ def load_orthogroups_in_db(db, genomes, orthofinder_result):
 
             for gene in genes.split(", "):
                 gene_name, gene_id = gene.split("|")
+                #                 print(gene, gene_name, gene_id, gene_name != ".", orthogroup)
                 if gene_name != ".":
                     conn.execute(
-                        f"INSERT INTO genes VALUES(NULL, '{gene_name}', '{gene_name.lower()}', '{assembly}', '{orthogroup}')")
-                if gene_id != ".":
+                        f"INSERT INTO genes VALUES(NULL, '{gene_name}', '{gene_name.lower()}', '{gene_id}', '{gene_id.lower()}', '{assembly}', '{orthogroup}')")
+                else:
                     conn.execute(
-                        f"INSERT INTO genes VALUES(NULL, '{gene_id}', '{gene_id.lower()}', '{assembly}', '{orthogroup}')")
+                        f"INSERT INTO genes VALUES(NULL, NULL, NULL, '{gene_id}', '{gene_id.lower()}', '{assembly}', '{orthogroup}')")
 
     # also add unasigned genes
     for assembly in all_genomes:
@@ -254,13 +257,20 @@ def load_orthogroups_in_db(db, genomes, orthofinder_result):
             if isinstance(gene, float) and np.isnan(gene):
                 continue
 
-            conn.execute(f"INSERT INTO genes VALUES(NULL, '{gene}', '{gene.lower()}', '{assembly}', NULL)")
+            gene_name, gene_id = gene.split("|")
+            if gene_name != ".":
+                conn.execute(
+                    f"INSERT INTO genes VALUES(NULL, '{gene_name}', '{gene_name.lower()}', '{gene_id}', '{gene_id.lower()}', '{assembly}', NULL)")
+            else:
+                conn.execute(
+                    f"INSERT INTO genes VALUES(NULL, NULL, NULL, '{gene_id}', '{gene_id.lower()}', '{assembly}', NULL)")
 
     conn.commit()
     cur = conn.cursor()
 
-    cur.execute("CREATE INDEX idx_gene_lower ON genes (gene_lower, assembly)")
-    cur.execute("CREATE INDEX idx_gene ON genes (gene)")
+    cur.execute("CREATE INDEX idx_name_lower ON genes (gene_name_lower, assembly)")
+    cur.execute("CREATE INDEX idx_id_lower ON genes (gene_id_lower, assembly)")
+    #     cur.execute("CREATE INDEX idx_gene ON genes (gene)")
     #     cur.execute("CREATE INDEX idx_orthogroup ON orthogroups (orthogroup)")
     cur.execute("CREATE INDEX idx_orthogroup_assembly ON genes (orthogroup, assembly)")
     conn.commit()
@@ -306,7 +316,7 @@ def _factor2orthogroups_sql(factor, references, database):
     res = cur.execute(
         f"SELECT orthogroup FROM genes "
         f"WHERE (" + " OR ".join(f"assembly='{assembly}'" for assembly in references) + ")" +
-        f"    AND gene_lower='{factor.lower()}'"
+        f"    AND (gene_name_lower='{factor.lower()}' OR gene_id_lower='{factor.lower()}')"
     ).fetchall()
 
     for orthogroup in res:
@@ -358,8 +368,11 @@ def make_motif2factors(outfile, new_reference, database_references, motifsandfac
                     ).fetchall()
 
                     if len(res):
-                        for _, gene, gene_lower, assembly, orthogroup in res:
+                        for _, gene_name, _, gene_id, *_ in res:
                             motif_set = True
-                            f.write(f"{motif}\t{gene}\tOrthologs\tN\n")
+                            if gene_name is not None:
+                                f.write(f"{motif}\t{gene_name}\tOrthologs\tN\n")
+                            else:
+                                f.write(f"{motif}\t{gene_id}\tOrthologs\tN\n")
             if not motif_set:
                 f.write(f"{motif}\tNO ORTHOLOGS FOUND\tOrthologs\tN\n")
