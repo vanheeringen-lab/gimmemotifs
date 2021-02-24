@@ -32,21 +32,21 @@ RENAME_TFS = {"NR1A4": "NR4A1", "SREBP1a": "SREBF1"}
 
 
 def motif2factor_from_orthologs(
-        database: str = "gimme.vertebrate.v5.0",
-        database_references: List[str] = ["GRCh38.p13", "GRCm38.p6"],
-        extra_orthologs_references: List[str] = [
-            "danRer11",
-            "UCB_Xtro_10.0",
-            "GRCg6a",
-            "BraLan2",
-            "ASM318616v1",
-            "Astyanax_mexicanus-2.0",
-            "oryLat2",
-        ],
-        new_reference: List[str] = None,
-        genomes_dir: str = None,
-        tmpdir: str = None,
-        outdir: str = ".",
+    database: str = "gimme.vertebrate.v5.0",
+    database_references: List[str] = ["GRCh38.p13", "GRCm38.p6"],
+    extra_orthologs_references: List[str] = [
+        "danRer11",
+        "UCB_Xtro_10.0",
+        "GRCg6a",
+        "BraLan2",
+        "ASM318616v1",
+        "Astyanax_mexicanus-2.0",
+        "oryLat2",
+    ],
+    new_reference: List[str] = None,
+    genomes_dir: str = None,
+    tmpdir: str = None,
+    outdir: str = ".",
 ):
     """
 
@@ -111,7 +111,7 @@ def _download_genomes_with_annot(genomes, genomes_dir):
     """
     no_annotations = [genome for genome in genomes if not _has_annotation(genome)]
     assert (
-            len(no_annotations) == 0
+        len(no_annotations) == 0
     ), f"genome(s): {','.join(no_annotations)} seem not to have an annotation for it."
 
     # download the genomes
@@ -260,7 +260,7 @@ def load_orthogroups_in_db(db, genomes, orthofinder_result):
     # all genes per species
     for assembly in genomes:
         for orthogroup, genes in zip(
-                orthogroups["HOG"], orthogroups[f"{assembly}.pep"]
+            orthogroups["HOG"], orthogroups[f"{assembly}.pep"]
         ):
             if isinstance(genes, float) and np.isnan(genes):
                 continue
@@ -372,14 +372,19 @@ def factor2orthogroups(factor, references, database):
 
     # if still none found, we try a very broad myinfo query (higher chance of false positive)
     if len(orthogroups) == 0:
-        gene_symbols = _unknownfactor2symbols(factor, fields=["alias",
-                                                              "other_names",
-                                                              "accession",
-                                                              "accession.protein",
-                                                              "refseq",
-                                                              "refseq.protein",
-                                                              "ensembl",
-                                                              "ensembl.gene", ])
+        gene_symbols = _unknownfactor2symbols(
+            factor,
+            fields=[
+                "alias",
+                "other_names",
+                "accession",
+                "accession.protein",
+                "refseq",
+                "refseq.protein",
+                "ensembl",
+                "ensembl.gene",
+            ],
+        )
         for gene_symbol in gene_symbols:
             orthogroups += _factor2orthogroups_sql(gene_symbol, references, database)
 
@@ -392,7 +397,7 @@ def factor2orthogroups(factor, references, database):
 
 
 def make_motif2factors(
-        outfile, new_reference, database_references, motifsandfactors, database
+    outfile, new_reference, database_references, motifsandfactors, database
 ):
     conn = sqlite3.connect(database)
     cur = conn.cursor()
