@@ -27,7 +27,7 @@ import logging
 import pandas as pd
 import numpy as np
 from scipy.stats import hypergeom, mannwhitneyu
-from statsmodels.sandbox.stats.multicomp import multipletests
+from statsmodels.stats.multitest import multipletests
 from tqdm.auto import tqdm
 
 # scikit-learn
