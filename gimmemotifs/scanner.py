@@ -183,7 +183,7 @@ def scan_regionfile_to_table(
 
     motif_names = [m.id for m in read_motifs(pfmfile)]
     logger.info("creating dataframe")
-    df = pd.DataFrame(scores, index=idx, columns=motif_names)
+    df = pd.DataFrame(scores, index=idx, columns=motif_names, dtype="float16")
 
     # if filter_redundant:
 
