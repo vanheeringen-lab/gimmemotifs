@@ -1,3 +1,8 @@
+"""
+Make a new motifs2factors file based on orthology. This gets complicated
+because not all factors in the motifs2factors file are based on gene names;
+some factors are gene ids, and some are aliases or other symbols.
+"""
 import os
 import re
 import json
