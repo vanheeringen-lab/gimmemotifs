@@ -38,7 +38,7 @@ class MotifProgram(object):
             stderr += "\nMotif file {0} not found!\n".format(outfile)
             return [], stdout, stderr
 
-        motifs = read_motifs(outfile, fmt="meme")
+        motifs = read_motifs(outfile, fmt)
         for m in motifs:
             m.id = "{0}_{1}".format(self.name, m.id)
         return motifs, stdout, stderr
