@@ -68,7 +68,7 @@ class Yamda(MotifProgram):
         stdout = ""
         stderr = ""
 
-        cmd = "%s -i %s -j %s -n %s -w %s -oc %s  %s" % (
+        cmd = "python %s -i %s -j %s -n %s -w %s -oc %s  %s" % (
             bin,
             fastafile,
             params["background"],
