@@ -28,7 +28,7 @@ class Yamda(MotifProgram):
 
         Combine default and user-defined parameters.
         """
-        prm = super._parse_params(params, needs_background=True)
+        prm = super()._parse_params(params, needs_background=True)
         prm["strand"] = ""
         if not prm["single"]:
             prm["strand"] = " --revcomp "
