@@ -121,6 +121,7 @@ setup(
         "matplotlib >= 2",
         "jinja2",
         "pandas >= 1.1",
+        "pyarrow >= 0.16.0",
         "pyyaml >= 3.10",
         "pybedtools",
         "statsmodels",
