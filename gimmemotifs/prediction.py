@@ -334,13 +334,16 @@ def predict_motifs(infile, bgfile, outfile, params=None, stats_fg=None, stats_bg
         "use_strand",
         "max_time",
     ]
+
+    default_params = parse_denovo_params()
     if params is None:
-        params = parse_denovo_params()
+        params = default_params
     else:
         for p in required_params:
-            if p not in params:
-                params = parse_denovo_params()
-                break
+            if p not in params and p in default_params:
+                if p == "genome":
+                    logger.info(f"Using default genome {default_params[p]}")
+                params[p] = default_params[p]
 
     if "genome" not in params:
         logger.error("Need a genome for de novo motif prediction")

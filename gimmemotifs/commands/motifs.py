@@ -111,6 +111,8 @@ def motifs(args):
                 "custom_background": bgfile,
                 "genome": args.genome,
                 "size": args.size,
+                "fraction": args.fraction,
+                "use_strand": not (args.single),
             },
         )
         denovo = read_motifs(os.path.join(args.outdir, "gimme.denovo.pfm"))
