@@ -195,10 +195,12 @@ def scan_regionfile_to_table(
         logger.info("done")
 
     motif_names = [m.id for m in read_motifs(pfmfile)]
-    logger.info("creating dataframe")
-    df = pd.DataFrame(scores, index=idx, columns=motif_names, dtype="float16")
 
-    # if filter_redundant:
+    logger.info("creating dataframe")
+    dtype = "float16"
+    if scoring == "count":
+        dtype = int
+    df = pd.DataFrame(scores, index=idx, columns=motif_names, dtype=dtype)
 
     return df
 
