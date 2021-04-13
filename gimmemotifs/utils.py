@@ -549,7 +549,7 @@ def _genomepy_convert(to_convert, genome, minsize=None):
     except TypeError:
         logger.error("Input file type not recognized!")
         logger.error(
-            "This can happen if ÿou use regions and your regions are not in chrom:start-end format."
+            "This can happen if you use regions and your regions are not in chrom:start-end format."
         )
         logger.error(
             "Another common issue is spaces instead of tabs, or extra spaces in addition to tabs."
