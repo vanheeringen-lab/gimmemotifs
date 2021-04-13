@@ -5,7 +5,6 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Command line function 'roc'."""
-from __future__ import print_function
 import os
 import re
 import sys

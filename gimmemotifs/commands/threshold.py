@@ -4,7 +4,6 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Command line function 'threshold'"""
-from __future__ import print_function
 import sys
 
 from gimmemotifs.motif import read_motifs

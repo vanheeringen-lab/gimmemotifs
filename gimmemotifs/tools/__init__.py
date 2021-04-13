@@ -4,8 +4,6 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Interface module for all motif programs."""
-from __future__ import print_function
-
 import sys
 
 from ..shutils import which

@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 # Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
 #
 # This module is free software. You can redistribute it and/or modify it under
