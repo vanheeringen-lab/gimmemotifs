@@ -1,6 +1,8 @@
 import os
 import re
 import sys
+import time
+import math
 from collections import Counter
 from functools import partial
 from tempfile import mkdtemp, NamedTemporaryFile
@@ -1164,20 +1166,31 @@ class Scanner(object):
         batchsize = 1000
 
         if self.ncpus > 1:
-            for i in range((len(scan_seqs) - 1) // batchsize + 1):
-                batch = scan_seqs[i * batchsize : (i + 1) * batchsize]
-                chunksize = len(batch) // self.ncpus + 1
-                jobs = []
-                for j in range((len(batch) - 1) // chunksize + 1):
-                    batch_seqs = batch[j * chunksize : (j + 1) * chunksize]
-                    seq_gc_bins = [self.get_seq_bin(seq) for seq in batch_seqs]
-                    job = self.pool.apply_async(scan_func, (batch_seqs, seq_gc_bins))
-                    jobs.append(job)
+            k = 0
+            chunksize = len(batchsize) // self.ncpus + 1
+            max_queue_size = 5 * self.ncpus
+            jobs = []
+            for i in range(math.ceil(len(scan_seqs) / chunksize)):
+                batch_seqs = scan_seqs[i * chunksize : (i + 1) * chunksize]
+                seq_gc_bins = [self.get_seq_bin(seq) for seq in batch_seqs]
+                job = self.pool.apply_async(scan_func, (batch_seqs, seq_gc_bins))
+                jobs.append(job)
 
-                for k, job in enumerate(jobs):
-                    for ret in job.get():
-                        region = batch[k]
-                        yield region, ret
+                while (len(jobs) > max_queue_size) and not jobs[0].ready():
+                    time.sleep(0.05)
+                    if jobs[0].ready():
+                        for ret in jobs[0].get():
+                            region = scan_seqs[k]
+                            k += 1
+                            yield region, ret
+                    jobs = jobs[1:]
+
+            while len(jobs) > 0:
+                for ret in jobs[0].get():
+                    region = scan_seqs[k]
+                    k += 1
+                    yield region, ret
+                jobs = jobs[1:]
         else:
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
                 batch_seqs = scan_seqs[i * batchsize : (i + 1) * batchsize]
