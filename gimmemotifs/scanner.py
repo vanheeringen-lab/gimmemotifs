@@ -1167,8 +1167,8 @@ class Scanner(object):
 
         if self.ncpus > 1:
             k = 0
-            chunksize = len(batchsize) // self.ncpus + 1
-            max_queue_size = 1 * self.ncpus
+            chunksize = batchsize // self.ncpus + 1
+            max_queue_size = self.ncpus
             jobs = []
             for i in range(math.ceil(len(scan_seqs) / chunksize)):
                 batch_seqs = scan_seqs[i * chunksize : (i + 1) * chunksize]
