@@ -1166,32 +1166,39 @@ class Scanner(object):
         batchsize = 1000
 
         if self.ncpus > 1:
+            # prepare for parallel processing
             k = 0
             chunksize = len(batchsize) // self.ncpus + 1
-            max_queue_size = 1 * self.ncpus
+            max_queue_size = 2 * self.ncpus
             jobs = []
+
+            # loop over each job/chunk, and keep adding them to the queue
             for i in range(math.ceil(len(scan_seqs) / chunksize)):
                 batch_seqs = scan_seqs[i * chunksize : (i + 1) * chunksize]
                 seq_gc_bins = [self.get_seq_bin(seq) for seq in batch_seqs]
                 job = self.pool.apply_async(scan_func, (batch_seqs, seq_gc_bins))
                 jobs.append(job)
 
-                while (len(jobs) > max_queue_size) and not jobs[0].ready():
+                # if our queue is full, wait until oldest job finishes
+                while (len(jobs) >= max_queue_size) and not jobs[0].ready():
                     time.sleep(0.05)
-                    if jobs[0].ready():
-                        for ret in jobs[0].get():
-                            region = scan_seqs[k]
-                            k += 1
-                            yield region, ret
+
+                # resolve oldest job if finished
+                if jobs[0].ready():
+                    for ret in jobs[0].get():
+                        region = scan_seqs[k]
+                        k += 1
+                        yield region, ret
                     jobs = jobs[1:]
 
+            # cleanup the last jobs that did not get resolved in the for loop
             while len(jobs) > 0:
                 for ret in jobs[0].get():
                     region = scan_seqs[k]
-                    k += 1
                     yield region, ret
                 jobs = jobs[1:]
         else:
+            # non-parallel job scanning
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
                 batch_seqs = scan_seqs[i * batchsize : (i + 1) * batchsize]
                 seq_gc_bins = [self.get_seq_bin(seq) for seq in batch_seqs]
