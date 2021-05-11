@@ -1168,7 +1168,7 @@ class Scanner(object):
         if self.ncpus > 1:
             # prepare for parallel processing
             k = 0
-            chunksize = len(batchsize) // self.ncpus + 1
+            chunksize = batchsize // self.ncpus + 1
             max_queue_size = 2 * self.ncpus
             jobs = []
 
