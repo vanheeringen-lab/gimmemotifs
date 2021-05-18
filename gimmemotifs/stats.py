@@ -347,7 +347,8 @@ def write_stats(stats, fname, header=None):
         f.write("{}\t{}\n".format("Motif", "\t".join(stat_keys)))
 
         for motif in stats:
-            m_stats = stats.get(str(motif), {}).get(bg)
+            motif = str(motif)
+            m_stats = stats.get(motif, {}).get(bg)
             if m_stats:
                 f.write(
                     "{}\t{}\n".format(
@@ -357,7 +358,7 @@ def write_stats(stats, fname, header=None):
                 )
             else:
                 logger.warn(
-                    "No stats for motif {0}, skipping this motif!".format(motif.id)
+                    "No stats for motif {0}, skipping this motif!".format(motif)
                 )
             # motifs.remove(motif)
         f.close()
