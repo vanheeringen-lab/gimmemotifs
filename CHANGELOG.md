@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+Many bugfixes, thanks to @kirbyziegler, @irzhegalova, @wangmhan and @fgualdr for reporting and proposing solutions!
+
 ### Added
 
 ### Removed
@@ -12,6 +14,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 ### Fixed
+
+* Fix issues with running Trawler (#181)
+* Fix issues with running YAMDA (#180)
+* Fix issues with parsing XXmotif output (#178)
+* Fix issue where command line argument (such as single strand) are ignored (#177)
+* Fix pyarrow dependency (#176)
+* The correct % of regions with motif is now reported (#162)
+* Fix issue with running `gimme motifs` with the HOMER database (#135)
+* Fix issue with the `--size` parameter in `gimme motifs`, which now works as expected (#128)
 
 ## [0.15.3] - 2021-02-01
 
