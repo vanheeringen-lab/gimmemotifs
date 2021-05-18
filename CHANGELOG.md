@@ -5,13 +5,20 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
-Many bugfixes, thanks to @kirbyziegler, @irzhegalova, @wangmhan and @fgualdr for reporting and proposing solutions!
+Many bugfixes, thanks to @kirbyziegler, @irzhegalova, @wangmhan, @ClarissaFeuersteinAkgoz and @fgualdr for reporting and proposing solutions!
 
 ### Added
+
+* Print an informative error message if the cache is corrupted, with link on how to solve this.
+* Print an informative error message if the input file is not in the correct format.
 
 ### Removed
 
 ### Changed
+
+* Faster motif scanning! (thanks @Maarten-vd-Sande!)
+* Size of input regions is now automatically adjusted (#123, #128, #129)
+* Quantile normalization in `coverage_table` now uses multiple CPUs.
 
 ### Fixed
 
