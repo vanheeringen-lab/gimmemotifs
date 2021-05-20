@@ -869,8 +869,8 @@ However the main advantage of this method is that it is a easy and fast way to g
 not require any special expertise or infrastructure to work.
 
 The method starts by downloading the genome assemblies of your species-of-interest (new-reference), the species the database is based on
-(database-references), and some other related species for better orthology inference (ortholog-references). From each of these assemblies,
-for each gene the longest protein is taken, and compared with orthofinder for orthology:
+(database-references), and some other related species for better orthology inference (ortholog-references); by default a selection of vertebrate
+species. From each of these assemblies, for each gene the longest protein is taken, and compared with orthofinder for orthology:
 
 .. _`David M. Emms & Steven Kelly 2019`: https://doi.org/10.1186/s13059-019-1832-y
 
