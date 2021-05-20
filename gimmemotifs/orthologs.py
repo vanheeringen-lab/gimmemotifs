@@ -70,9 +70,14 @@ def motif2factor_from_orthologs(
     Finally, based on these orthologs, a new motifs2factors file is created from
     the old one.
     """
-    tmpdir = tempfile.mkdtemp() if tmpdir is None else tmpdir
-    tmpdir = outdir
+    _check_install()
 
+    tmpdir = tempfile.mkdtemp() if tmpdir is None else tmpdir
+
+    logger.info(f"Making a new reference for: {' & '.join(new_reference)}.")
+    logger.info(f"The original motif2factors is based on: {' & '.join(database_references)}.")
+    logger.info(f"For better orthology inference we are also using these assemblies: {' & '.join(extra_orthologs_references)}.")
+    logger.info(f"Using strategy: {strategy} for orthology/name inference.")
     all_genomes = set(database_references + extra_orthologs_references + new_reference)
 
     # download all required genomes
@@ -109,12 +114,17 @@ def motif2factor_from_orthologs(
             database_references=database_references,
             motifsandfactors=motifsandfactors,
             database=orthogroup_db,
+            strategy=strategy,
+            motifs=motifs
         )
+
+    # cleanup
+    shutil.rmtree(tmpdir)
 
 
 def _check_install():
     dependencies = ["gffread", "orthofinder"]
-    if not all(shutil.which(dependency) is not None for dependency in dependencies):
+    if any(shutil.which(dependency) is None for dependency in dependencies):
         logger.warning(
 f"""Running gimme motif2factors requires {" & ".join(dependencies)} to be installed.
 
@@ -360,7 +370,7 @@ def load_orthogroups_in_db(db, genomes, orthofinder_result):
 
 
 def make_motif2factors(
-    prefix, new_reference, database_references, motifsandfactors, database
+    prefix, new_reference, database_references, motifsandfactors, database, strategy, motifs
 ):
     """
     Make a motifs2factors file based on an existing ortholog database.
@@ -389,7 +399,7 @@ def make_motif2factors(
                 item
                 for factor in factors
                 for item in factor2orthogroups(
-                    factor, tuple(database_references), database
+                    factor, tuple(database_references), database, strategy
                 )
             }
             if len(orthologousgroups) > 0:
@@ -407,11 +417,15 @@ def make_motif2factors(
                                 f.write(f"{motif}\t{gene_id}\tOrthologs\tN\n")
             if not motif_set:
                 f.write(f"{motif}\tNO ORTHOLOGS FOUND\tOrthologs\tN\n")
-    shutil.copyfile(f"{__file__}/data", f"{prefix}.pfm")
+
+    with open(f"{prefix}.pfm", "w") as f:
+        for motif in motifs:
+            print(motif.to_pfm(), file=f)
+
 
 
 @lru_cache(maxsize=99999)
-def factor2orthogroups(factor, references, database):
+def factor2orthogroups(factor, references, database, strategy):
     """
     Returns all the orthogroups a factor belongs to. This is NOT a trivial task.
 
@@ -431,31 +445,34 @@ def factor2orthogroups(factor, references, database):
         factor = RENAME_TFS[factor]
 
     # see if the factor is in the original database
-    orthogroups = _factor2orthogroups_sql(factor, references, database)
+    if strategy in ["strict", "medium", "lenient"]:
+        orthogroups = _factor2orthogroups_sql(factor, references, database)
 
     # if not, check if we can find anything by quering mygene.info
-    if len(orthogroups) == 0:
-        gene_symbols = _unknownfactor2symbols(factor, fields=["name", "symbol"])
-        for gene_symbol in gene_symbols:
-            orthogroups += _factor2orthogroups_sql(gene_symbol, references, database)
+    if strategy in ["medium", "lenient"]:
+        if len(orthogroups) == 0:
+            gene_symbols = _unknownfactor2symbols(factor, fields=["name", "symbol"])
+            for gene_symbol in gene_symbols:
+                orthogroups += _factor2orthogroups_sql(gene_symbol, references, database)
 
     # if still none found, we try a very broad myinfo query (higher chance of false positive)
-    if len(orthogroups) == 0:
-        gene_symbols = _unknownfactor2symbols(
-            factor,
-            fields=[
-                "alias",
-                "other_names",
-                "accession",
-                "accession.protein",
-                "refseq",
-                "refseq.protein",
-                "ensembl",
-                "ensembl.gene",
-            ],
-        )
-        for gene_symbol in gene_symbols:
-            orthogroups += _factor2orthogroups_sql(gene_symbol, references, database)
+    if strategy in ["lenient"]:
+        if len(orthogroups) == 0:
+            gene_symbols = _unknownfactor2symbols(
+                factor,
+                fields=[
+                    "alias",
+                    "other_names",
+                    "accession",
+                    "accession.protein",
+                    "refseq",
+                    "refseq.protein",
+                    "ensembl",
+                    "ensembl.gene",
+                ],
+            )
+            for gene_symbol in gene_symbols:
+                orthogroups += _factor2orthogroups_sql(gene_symbol, references, database)
 
     orthogroups = list(set(orthogroups))
 
