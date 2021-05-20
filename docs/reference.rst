@@ -21,6 +21,7 @@ List of tools
 * :ref:`gimme threshold<gimme_threshold>`
 * :ref:`gimme location<gimme_location>`
 * :ref:`gimme diff<gimme_diff>`
+* :ref:`gimme motif2factors<gimme_motif2factors>`
 
 
 Input formats
@@ -855,3 +856,45 @@ Compare for instance an FPR of 1% vs an FPR of 5%.
                           BED file with clusters as inputfile.
 
 
+.. _`gimme_motif2factors`:
+
+Command: gimme motif2factors
+-------------------
+
+With motif2factors you can convert an existing motif database to a motif database for your species of interest. This conversion is done by orthology,
+which is not the ideal way to do this. When converting the original database to a database of your favourite critter, only the relations between motifs
+and transcription factors are changed. A method like this; based on orthology is not capable of inferring whether or not the motif has changed.
+
+However the main advantage of this method is that it is a easy and fast way to get a species-specific database, works surprisingly well, and does
+not require any special expertise or infrastructure to work.
+
+The method starts by downloading the genome assemblies of your species-of-interest (new-reference), the species the database is based on
+(database-references), and some other related species for better orthology inference (ortholog-references). From each of these assemblies,
+for each gene the longest protein is taken, and compared with orthofinder for orthology:
+
+.. _`David M. Emms & Steven Kelly 2019`: https://doi.org/10.1186/s13059-019-1832-y
+
+Then based on orthology, we can replace the names of transcription factors in the original database with the names of our new species.
+One problem with this method is that the names of transcription factors in the database not necessarily (necessarily not, bioinformatics...)
+have to overlap with the names used in the genome assembly. To overcome this problem mygene.info is queried to still link differently
+named TFs can still be linked to genes and thus to orthologs. We tested this for gimme.vertebrate.v5.0, and worked well in our case.
+However it might be possible that this generates too many false positives in your case, and you can tweak the lookup on mygene.info
+with the --strict/--medium/--lenient flags.
+
+**Optional arguments:**
+
+::
+
+    --new-reference ASSEMBLY [ASSEMBLY ...]
+                          The assembly the new motif2factors file will be based on.
+    --database db         The database you want to change convert to your species of interest. (default is gimme.vertebrate.v5.0)
+    --database-references ASSEMBLY [ASSEMBLY ...]
+                          The assembly(s) on which the orginal motif2factors is based on. (default is human and mouse)
+    --ortholog-references ASSEMBLY [ASSEMBLY ...]
+                          Extra assemblies for better orthology inference between the new reference and database reference. (default is a range of vertebrate species)
+    --tmpdir DIR          Where to place intermediate files. Defaults to system temp.
+    --outdir OUTDIR       Where to save the results to. Defaults to current working directory.
+    --strict, --medium, --lenient
+                          How strict should the names of the genes in the assembly be followed. Strict: base names only on what is in the annotation file; Medium: base on annotation file, as well as on
+                          mygene.info name and symbol query; Lenient: based on annotation file, and mygeneinfo name, symbol, alias, other_names, accession, accession.protein, refseq, refseq.protein,
+                          ensembl, ensembl.gene. Lenient is the default, but in case of false-positive hits you can tune this stricter.
