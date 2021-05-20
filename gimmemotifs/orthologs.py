@@ -78,6 +78,9 @@ def motif2factor_from_orthologs(
     logger.info(f"The original motif2factors is based on: {' & '.join(database_references)}.")
     logger.info(f"For better orthology inference we are also using these assemblies: {' & '.join(extra_orthologs_references)}.")
     logger.info(f"Using strategy: {strategy} for orthology/name inference.")
+    logger.info(f"tmpdir: {tmpdir}.")
+    logger.info(f"outdir: {outdir}.")
+
     all_genomes = set(database_references + extra_orthologs_references + new_reference)
 
     # download all required genomes
@@ -169,11 +172,15 @@ def _download_genomes_with_annot(genomes, genomes_dir):
                 os.path.exists(f"{default_genomes_dir}/{genome}/{genome}.{extension}") for extension in ["fa", "annotation.gtf"]
         ):
             logger.info(f"{genome} was already downloaded, using that version.")
-            os.mkdir(f"{genomes_dir}/{genome}")
-            os.symlink(f"{default_genomes_dir}/{genome}/{genome}.fa",
-                       f"{genomes_dir}/{genome}/{genome}.fa")
-            os.symlink(f"{default_genomes_dir}/{genome}/{genome}.annotation.gtf",
-                       f"{genomes_dir}/{genome}/{genome}.annotation.gtf")
+            # if except, probably a continuation from previous run
+            try:
+                os.mkdir(f"{genomes_dir}/{genome}")
+                os.symlink(f"{default_genomes_dir}/{genome}/{genome}.fa",
+                           f"{genomes_dir}/{genome}/{genome}.fa")
+                os.symlink(f"{default_genomes_dir}/{genome}/{genome}.annotation.gtf",
+                           f"{genomes_dir}/{genome}/{genome}.annotation.gtf")
+            except:
+                pass
         else:
             logger.info(f"Downloading {genome} through genomepy.")
             genomepy.install_genome(genome, annotation=True, genomes_dir=genomes_dir)
@@ -420,7 +427,7 @@ def make_motif2factors(
 
     with open(f"{prefix}.pfm", "w") as f:
         for motif in motifs:
-            print(motif.to_pfm(), file=f)
+            print(motif.to_pwm(), file=f)
 
 
 
