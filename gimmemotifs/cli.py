@@ -26,17 +26,19 @@ def cli(sys_args):
 
     epilog = """
     commands:
-        motifs      identify enriched motifs (known and/or de novo)
-        scan        scan for known motifs
-        maelstrom   find differential motifs
-        match       find motif matches in database
-        logo        create sequence logo(s)
-        cluster     cluster similar motifs
-        background  create a background file
-        threshold   calculate motif scan threshold
-        location    motif location histograms
-        diff        compare motif frequency and enrichment
-                    between fasta files
+        motifs          identify enriched motifs (known and/or de novo)
+        scan            scan for known motifs
+        maelstrom       find differential motifs
+        match           find motif matches in database
+        logo            create sequence logo(s)
+        cluster         cluster similar motifs
+        background      create a background file
+        threshold       calculate motif scan threshold
+        location        motif location histograms
+        diff            compare motif frequency and enrichment
+                        between fasta files
+        motif2factors   generate a motif database based on orthology for any
+                        species
 
     type `gimme <command> -h` for more details
     """
@@ -628,6 +630,28 @@ def cli(sys_args):
         metavar="FILE",
     )
     p.set_defaults(func=commands.prediction)
+
+    class Strictness(argparse.Action):
+        def __call__(self, parser, ns, values, option):
+            if
+            setattr(ns, self.dest, "include" in option)
+
+    p = subparsers.add_parser("motif2factors")
+    p.add_argument("--new-reference", help="", metavar="ASSEMBLY")
+    p.add_argument("--ortholog-references", help="", metavar="ASSEMBLY")
+    p.add_argument("--tmpdir", help="", metavar="DIR")
+    p.add_argument("--outdir", help="", metavar="OUTDIR")
+    p.add_argument(
+        "--strict",
+        "--medium",
+        "--lenient",
+        default="lenient",
+        help="",
+        dest="strategy",
+        action=Strictness,
+        nargs=0,
+    )
+    p.set_defaults(func=commands.motif2factors)
 
     if len(sys_args) == 0:
         parser.print_help()

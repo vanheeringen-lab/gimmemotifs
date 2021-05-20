@@ -1,11 +1,13 @@
 """
-Make a new motifs2factors file based on orthology. This gets complicated
-because not all factors in the motifs2factors file are based on gene names;
+Make a new motif2factors file based on orthology. This gets complicated
+because not all factors in the motif2factors file are based on gene names;
 some factors are gene ids, and some are aliases or other symbols.
 """
 import os
 import re
 import json
+import shutil
+import sys
 import urllib
 import sqlite3
 import pathlib
@@ -16,22 +18,23 @@ from typing import List
 from textwrap import wrap
 from functools import lru_cache
 from urllib.error import HTTPError
-from gimmemotifs.motif import read_motifs
 
 import pyfaidx
-import logging
 import genomepy
 import numpy as np
 import pandas as pd
+from loguru import logger
+from genomepy.utils import get_genomes_dir
 
-# TODO: actually use logger
-logger = logging.getLogger("gimme.orthologs")
+from gimmemotifs.motif import read_motifs
+
 
 FASTA_LINEWIDTH = 80
 BLACKLIST_TFS = [
-    "Dobox4",  # does not exist
-    "Dobox5",  # does not exist
-    "FOXA",  # not sure which FOXA(1,2,3)
+    "dobox4",  # does not exist
+    "dobox5",  # does not exist
+    "foxa",    # not sure which FOXA(1,2,3)
+    "ep300",
 ]
 RENAME_TFS = {"NR1A4": "NR4A1", "SREBP1a": "SREBF1"}
 
@@ -40,55 +43,54 @@ def motif2factor_from_orthologs(
     database: str = "gimme.vertebrate.v5.0",
     database_references: List[str] = ["GRCh38.p13", "GRCm38.p6"],
     extra_orthologs_references: List[str] = [
-        "danRer11",  # zebrafish
-        "UCB_Xtro_10.0",  # xenopus
-        "GRCg6a",  # chicken
-        "BraLan2",  # lancet fish (out-group ish)
-        "ASM318616v1",  # turbot
-        "Astyanax_mexicanus-2.0",  # cave fish
-        "oryLat2",  # medaka
-        "ARS-UCD1.2",  # cow
+        "danRer11",          # zebrafish
+        "UCB_Xtro_10.0",     # xenopus
+        "GRCg6a",            # chicken
+        "BraLan2",           # lancet fish (out-group ish)
+        "oryLat2",           # medaka
+        "ARS-UCD1.2",        # cow
         "phaCin_unsw_v4.1",  # koala
-        "rCheMyd1.pri",  # turtle
+        "rCheMyd1.pri",      # turtle
     ],
     new_reference: List[str] = None,
-    genomes_dir: str = None,
     tmpdir: str = None,
     outdir: str = ".",
+    strategy: str = "lenient"
 ):
     """
-    Make a motifs2factors file based on gene ortology.
+    Make a motifs2factors file based on gene orthology.
 
     This function first downloads the genomes of the new reference, the old
     reference (human and mouse), and a wide range of different vertebrate
-    genomes (a range of genomes is necessary to get a better ortolog inference)
+    genomes (a range of genomes is necessary to get a better ortholog inference)
 
     Then the peptide sequence of each gene is extracted from the genome +
-    annotation, and ortologs between these are derived by orthofinder.
+    annotation, and orthologs between these are derived by orthofinder.
 
-    Finally, based on these ortologs, a new motifs2factors file is created from
+    Finally, based on these orthologs, a new motifs2factors file is created from
     the old one.
     """
+    tmpdir = tempfile.mkdtemp() if tmpdir is None else tmpdir
+    tmpdir = outdir
+
     all_genomes = set(database_references + extra_orthologs_references + new_reference)
 
-    # TODO use tmpdir
-    # TODO set outdir from args
-    # outdir = tempfile.mkdtemp(dir=tmpdir)
-    outdir = "/vol/gimmetest"
-    genomes_dir = genomes_dir if genomes_dir is not None else outdir
-
     # download all required genomes
-    _download_genomes_with_annot(all_genomes, genomes_dir)
+    logger.info("Downloading all assemblies.")
+    _download_genomes_with_annot(all_genomes, tmpdir)
 
     # convert each genome + annotation into the primary genes (longest protein per gene)
+    logger.info("Taking the longest protein per gene per assembly.")
     for genome in all_genomes:
-        annot2primpep(genome, outdir)
+        annot2primpep(genome, tmpdir)
 
     # run orthofinder on our primary genes
-    orthofinder_result = _orthofinder(f"{outdir}/prim_genes")
+    logger.info("Running orthofinder to find orthologs.")
+    orthofinder_result = _orthofinder(f"{tmpdir}/prim_genes")
 
     # now parse the output of orthofinder
-    orthogroup_db = f"{outdir}/orthologs.sqlite"
+    logger.info("Storing everything in a database.")
+    orthogroup_db = f"{tmpdir}/orthologs.sqlite"
     load_orthogroups_in_db(orthogroup_db, all_genomes, orthofinder_result)
 
     # get all motifs and related factors from motif database
@@ -99,14 +101,27 @@ def motif2factor_from_orthologs(
     }
 
     # process the references
+    logger.info("Now writing your motif2factors files.")
     for genome in new_reference:
         make_motif2factors(
-            f"{outdir}/{genome}.{database}.motif2factors.txt",
+            f"{outdir}/{genome}.{database}",
             new_reference=genome,
             database_references=database_references,
             motifsandfactors=motifsandfactors,
             database=orthogroup_db,
         )
+
+
+def _check_install():
+    dependencies = ["gffread", "orthofinder"]
+    if not all(shutil.which(dependency) is not None for dependency in dependencies):
+        logger.warning(
+f"""Running gimme motif2factors requires {" & ".join(dependencies)} to be installed.
+
+You can easily install these dependencies with conda in the environment where gimmemotifs is installed:
+conda install {" ".join(dependencies)}"""
+        )
+        sys.exit(1)
 
 
 def _orthofinder(peptide_folder):
@@ -118,9 +133,8 @@ def _orthofinder(peptide_folder):
         [f"orthofinder", f"-f", peptide_folder], capture_output=True
     )
 
-    # TODO error handling
-    print(result.stdout.decode("utf-8"))
-    print(result.stderr.decode("utf-8"))
+    logger.debug(f"""stdout of orthofinder:\n {result.stdout.decode("utf-8")}""")
+    logger.debug(f"""stderr of orthofinder:\n {result.stderr.decode("utf-8")}""")
 
     orthofinder_result = re.search(
         "Results:\n    (.*)", result.stdout.decode("utf-8")
@@ -137,13 +151,28 @@ def _download_genomes_with_annot(genomes, genomes_dir):
 
     # download the genomes
     # add check to see if not already in genomes dir?
+    default_genomes_dir = get_genomes_dir(check_exist=False)
+    logger.debug(f"using default genome dir: {default_genomes_dir}")
     for genome in genomes:
-        genomepy.install_genome(genome, annotation=True, genomes_dir=genomes_dir)
-        result = subprocess.run(
-            ["gunzip", f"{genomes_dir}/{genome}/{genome}.annotation.gtf.gz"],
-            capture_output=True,
-        )
-        # TODO error handling
+        # check if already in default genomes dir, if so, skip downloading and directly copy
+        if all(
+                os.path.exists(f"{default_genomes_dir}/{genome}/{genome}.{extension}") for extension in ["fa", "annotation.gtf"]
+        ):
+            logger.info(f"{genome} was already downloaded, using that version.")
+            os.mkdir(f"{genomes_dir}/{genome}")
+            os.symlink(f"{default_genomes_dir}/{genome}/{genome}.fa",
+                       f"{genomes_dir}/{genome}/{genome}.fa")
+            os.symlink(f"{default_genomes_dir}/{genome}/{genome}.annotation.gtf",
+                       f"{genomes_dir}/{genome}/{genome}.annotation.gtf")
+        else:
+            logger.info(f"Downloading {genome} through genomepy.")
+            genomepy.install_genome(genome, annotation=True, genomes_dir=genomes_dir)
+            result = subprocess.run(
+                ["gunzip", f"{genomes_dir}/{genome}/{genome}.annotation.gtf.gz"],
+                capture_output=True,
+            )
+            logger.debug(f"""stdout of genomepy:\n {result.stdout.decode("utf-8")}""")
+            logger.debug(f"""stderr of genomepy:\n {result.stderr.decode("utf-8")}""")
 
 
 def annot2primpep(genome, outdir):
@@ -177,10 +206,8 @@ def annot2primpep(genome, outdir):
         ],
         capture_output=True,
     )
-    # TODO error handling
-    print(genome)
-    print(result.stdout.decode("utf-8"))
-    print(result.stderr.decode("utf-8"))
+    logger.debug(f"""stdout of gffread:\n {result.stdout.decode("utf-8")}""")
+    logger.debug(f"""stderr of gffread:\n {result.stderr.decode("utf-8")}""")
 
     # read the resulting .pep.fa
     proteins = pyfaidx.Fasta(f"{outdir}/{genome}/{genome}.pep.fa", read_long_names=True)
@@ -196,8 +223,8 @@ def annot2primpep(genome, outdir):
 
         # skip proteins with stop codon
         # (probably mitochondrial protein since they have a different codon table)
-        # TODO report this?
         if "*" in protein:
+            logger.debug(f"skipping {prot_name} since it contains a * symbol (probably mitochondrial read).")
             continue
 
         # skip when we already have a longer edition of the same gene
@@ -219,9 +246,9 @@ def load_orthogroups_in_db(db, genomes, orthofinder_result):
     """
     Save the results of orthofinder (tsv file) in a relational database
     (SQLite). This makes it possible to easily switch between genes and
-    ortogroups.
+    orthogroups.
 
-    We create three tables; genes, ortogroups, and assemblies.
+    We create three tables; genes, orthogroups, and assemblies.
     """
     orthogroups = pd.read_table(
         f"{orthofinder_result}/Phylogenetic_Hierarchical_Orthogroups/N0.tsv"
@@ -333,10 +360,10 @@ def load_orthogroups_in_db(db, genomes, orthofinder_result):
 
 
 def make_motif2factors(
-    outfile, new_reference, database_references, motifsandfactors, database
+    prefix, new_reference, database_references, motifsandfactors, database
 ):
     """
-    Make a motifs2factors file based on an existing ortolog database.
+    Make a motifs2factors file based on an existing ortholog database.
 
     We loop over each motif, find which factors belong to it in the old
     reference, then find all the orthogroups those belong to, and finally assign
@@ -348,7 +375,7 @@ def make_motif2factors(
     conn = sqlite3.connect(database)
     cur = conn.cursor()
 
-    with open(outfile, "w") as f:
+    with open(f"{prefix}.motif2factors.txt", "w") as f:
         f.write(f"Motif\tFactor\tEvidence\tCurated\n")
         for motif, factors in motifsandfactors.items():
             # remember if we found any orthologs for all the factors belonging
@@ -380,6 +407,7 @@ def make_motif2factors(
                                 f.write(f"{motif}\t{gene_id}\tOrthologs\tN\n")
             if not motif_set:
                 f.write(f"{motif}\tNO ORTHOLOGS FOUND\tOrthologs\tN\n")
+    shutil.copyfile(f"{__file__}/data", f"{prefix}.pfm")
 
 
 @lru_cache(maxsize=99999)
@@ -391,12 +419,12 @@ def factor2orthogroups(factor, references, database):
     ambiguous name that should be renamed, and in general the factor naming is
     inconsistent.
 
-    We first check whether or not it fits in our ortogroup database (easy!), if
+    We first check whether or not it fits in our orthogroup database (easy!), if
     not, we start querying mygeneinfo to get more gene aliases to search for in
-    our ortogroups. If that didn't work we query mygeneinfo again, but with a
+    our orthogroups. If that didn't work we query mygeneinfo again, but with a
     **very** lenient query, and hope that works.
     """
-    if factor in BLACKLIST_TFS:
+    if factor.lower() in BLACKLIST_TFS:
         return []
 
     if factor in RENAME_TFS:
@@ -431,9 +459,8 @@ def factor2orthogroups(factor, references, database):
 
     orthogroups = list(set(orthogroups))
 
-    # TODO what to do with these cases?
     if len(orthogroups) == 0:
-        print(factor)
+        logger.info(f"No orthologs found for TF {factor}.")
 
     return orthogroups
 
@@ -479,6 +506,7 @@ def _unknownfactor2symbols(factor, fields):
     hits = p.map(mygeneinfo, fields)
     hits = [item for sublist in hits for item in sublist]
     symbols = set()
+
     # only keep aliases, gene names and HGNC symbols
     for hit in hits:
         for field in ["alias", "name", "symbol"]:
