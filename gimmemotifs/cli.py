@@ -657,6 +657,7 @@ def cli(sys_args):
         action=Strictness,
         nargs=0,
     )
+    p.add_argument("--threads", help="Maximum number of parallel threads used.", metavar="INT", default=24)
     p.set_defaults(func=commands.motif2factors)
 
     if len(sys_args) == 0:

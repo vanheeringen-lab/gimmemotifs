@@ -898,3 +898,4 @@ with the --strict/--medium/--lenient flags.
                           How strict should the names of the genes in the assembly be followed. Strict: base names only on what is in the annotation file; Medium: base on annotation file, as well as on
                           mygene.info name and symbol query; Lenient: based on annotation file, and mygeneinfo name, symbol, alias, other_names, accession, accession.protein, refseq, refseq.protein,
                           ensembl, ensembl.gene. Lenient is the default, but in case of false-positive hits you can tune this stricter.
+    --threads INT         Maximum number of parallel threads used.

@@ -55,7 +55,8 @@ def motif2factor_from_orthologs(
     new_reference: List[str] = None,
     tmpdir: str = None,
     outdir: str = ".",
-    strategy: str = "lenient"
+    strategy: str = "lenient",
+    threads: int = 24
 ):
     """
     Make a motifs2factors file based on gene orthology.
@@ -75,7 +76,7 @@ def motif2factor_from_orthologs(
     tmpdir = tempfile.mkdtemp() if tmpdir is None else tmpdir
 
     logger.info(f"Making a new reference for: {' & '.join(new_reference)}.")
-    logger.info(f"The original motif2factors is based on: {' & '.join(database_references)}.")
+    logger.info(f"You say the {database} database is based on: {' & '.join(database_references)}.")
     logger.info(f"For better orthology inference we are also using these assemblies: {' & '.join(extra_orthologs_references)}.")
     logger.info(f"Using strategy: {strategy} for orthology/name inference.")
     logger.info(f"tmpdir: {tmpdir}.")
@@ -94,7 +95,7 @@ def motif2factor_from_orthologs(
 
     # run orthofinder on our primary genes
     logger.info("Running orthofinder to find orthologs.")
-    orthofinder_result = _orthofinder(f"{tmpdir}/prim_genes")
+    orthofinder_result = _orthofinder(f"{tmpdir}/prim_genes", threads)
 
     # now parse the output of orthofinder
     logger.info("Storing everything in a database.")
@@ -137,13 +138,13 @@ conda install {" ".join(dependencies)}"""
         sys.exit(1)
 
 
-def _orthofinder(peptide_folder):
+def _orthofinder(peptide_folder, threads):
     """
     Run orthofinder on the peptide folder
     """
     # run orthofinder on the primary transcripts
     result = subprocess.run(
-        [f"orthofinder", f"-f", peptide_folder], capture_output=True
+        [f"orthofinder", f"-f", peptide_folder, "-t", threads], capture_output=True
     )
 
     logger.debug(f"""stdout of orthofinder:\n {result.stdout.decode("utf-8")}""")
@@ -385,8 +386,6 @@ def make_motif2factors(
     We loop over each motif, find which factors belong to it in the old
     reference, then find all the orthogroups those belong to, and finally assign
     all the genes of the new reference species that belong to those orthogroups.
-
-    However
     """
     factor2orthogroups.cache_clear()
     conn = sqlite3.connect(database)
@@ -515,9 +514,8 @@ def _unknownfactor2symbols(factor, fields):
     """
     Query mygeneinfo for different aliases of our gene
     """
-
     def mygeneinfo(field):
-        request = f"http://mygene.info/v3/query?q={field}:{factor}&fields=entrezgene,name,symbol,taxid,other_names"
+        request = f"http://mygene.info/v3/query?q={field}:{factor}&fields=entrezgene,name,symbol,taxid,other_names,ensembl.gene"
         try:
             with urllib.request.urlopen(request) as url:
                 data = json.loads(url.read().decode())
@@ -533,9 +531,15 @@ def _unknownfactor2symbols(factor, fields):
 
     # only keep aliases, gene names and HGNC symbols
     for hit in hits:
-        for field in ["alias", "name", "symbol"]:
-            if field in hit and not "'" in hit[field]:
-                symbols.add(hit[field])
+        for field in ["alias", "name", "symbol", "ensembl"]:
+            if field in hit:
+                if not "'" in hit[field]:
+                    if field == "ensembl" and "gene" in hit[field]:
+                        symbols.add(hit[field]["gene"])
+                    else:
+                        symbols.add(hit[field])
+                elif isinstance(hit[field], list):
+                    symbols.update({each["gene"] for each in hit[field] if "gene" in each})
     return list(symbols)
 
 
