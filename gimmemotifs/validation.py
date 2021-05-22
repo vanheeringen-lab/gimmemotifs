@@ -12,7 +12,7 @@ logger = logging.getLogger()
 
 
 def check_bed_file(fname):
-    """ Check if the inputfile is a valid bed-file """
+    """Check if the inputfile is a valid bed-file"""
     if not os.path.exists(fname):
         logger.error("Inputfile %s does not exist!", fname)
         sys.exit(1)

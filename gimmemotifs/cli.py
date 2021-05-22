@@ -640,13 +640,46 @@ def cli(sys_args):
             if "lenient" in option:
                 setattr(ns, self.dest, "lenient")
 
-    p = subparsers.add_parser("motif2factors", help="Generate a motif2factors file based on orthology for your species of interest.")
-    p.add_argument("--new-reference", help="The assembly the new motif2factors file will be based on.", metavar="ASSEMBLY", required=True, nargs="+")
-    p.add_argument("--database", help="The database you want to change convert to your species of interest. (default is gimme.vertebrate.v5.0)", metavar="db", default="gimme.vertebrate.v5.0")
-    p.add_argument("--database-references", help="The assembly(s) on which the orginal motif2factors is based on. (default is human and mouse)", metavar="ASSEMBLY", nargs="+")
-    p.add_argument("--ortholog-references", help="Extra assemblies for better orthology inference between the new reference and database reference. (default is a range of vertebrate species)", metavar="ASSEMBLY", nargs="+")
-    p.add_argument("--tmpdir", help="Where to place intermediate files. Defaults to system temp.", metavar="DIR")
-    p.add_argument("--outdir", help="Where to save the results to. Defaults to current working directory.", metavar="OUTDIR", default=".")
+    p = subparsers.add_parser(
+        "motif2factors",
+        help="Generate a motif2factors file based on orthology for your species of interest.",
+    )
+    p.add_argument(
+        "--new-reference",
+        help="The assembly the new motif2factors file will be based on.",
+        metavar="ASSEMBLY",
+        required=True,
+        nargs="+",
+    )
+    p.add_argument(
+        "--database",
+        help="The database you want to change convert to your species of interest. (default is gimme.vertebrate.v5.0)",
+        metavar="db",
+        default="gimme.vertebrate.v5.0",
+    )
+    p.add_argument(
+        "--database-references",
+        help="The assembly(s) on which the orginal motif2factors is based on. (default is human and mouse)",
+        metavar="ASSEMBLY",
+        nargs="+",
+    )
+    p.add_argument(
+        "--ortholog-references",
+        help="Extra assemblies for better orthology inference between the new reference and database reference. (default is a range of vertebrate species)",
+        metavar="ASSEMBLY",
+        nargs="+",
+    )
+    p.add_argument(
+        "--tmpdir",
+        help="Where to place intermediate files. Defaults to system temp.",
+        metavar="DIR",
+    )
+    p.add_argument(
+        "--outdir",
+        help="Where to save the results to. Defaults to current working directory.",
+        metavar="OUTDIR",
+        default=".",
+    )
     p.add_argument(
         "--strict",
         "--medium",
@@ -657,7 +690,12 @@ def cli(sys_args):
         action=Strictness,
         nargs=0,
     )
-    p.add_argument("--threads", help="Maximum number of parallel threads used.", metavar="INT", default=24)
+    p.add_argument(
+        "--threads",
+        help="Maximum number of parallel threads used.",
+        metavar="INT",
+        default=24,
+    )
     p.set_defaults(func=commands.motif2factors)
 
     if len(sys_args) == 0:

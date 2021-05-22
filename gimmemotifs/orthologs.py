@@ -41,17 +41,8 @@ RENAME_TFS = {"NR1A4": "NR4A1", "SREBP1a": "SREBF1"}
 
 def motif2factor_from_orthologs(
     database: str = "gimme.vertebrate.v5.0",
-    database_references: List[str] = ["GRCh38.p13", "GRCm38.p6"],
-    extra_orthologs_references: List[str] = [
-        "danRer11",  # zebrafish
-        "UCB_Xtro_10.0",  # xenopus
-        "GRCg6a",  # chicken
-        "BraLan2",  # lancet fish (out-group ish)
-        "oryLat2",  # medaka
-        "ARS-UCD1.2",  # cow
-        "phaCin_unsw_v4.1",  # koala
-        "rCheMyd1.pri",  # turtle
-    ],
+    database_references: List[str] = None,
+    extra_orthologs_references: List[str] = None,
     new_reference: List[str] = None,
     tmpdir: str = None,
     outdir: str = ".",
@@ -71,6 +62,21 @@ def motif2factor_from_orthologs(
     Finally, based on these orthologs, a new motifs2factors file is created from
     the old one.
     """
+    if not database_references:
+        database_references = ["GRCh38.p13", "GRCm38.p6"]
+
+    if not extra_orthologs_references:
+        extra_orthologs_references = [
+            "danRer11",  # zebrafish
+            "UCB_Xtro_10.0",  # xenopus
+            "GRCg6a",  # chicken
+            "BraLan2",  # lancet fish (out-group ish)
+            "oryLat2",  # medaka
+            "ARS-UCD1.2",  # cow
+            "phaCin_unsw_v4.1",  # koala
+            "rCheMyd1.pri",  # turtle
+        ]
+
     _check_install()
 
     tmpdir = tempfile.mkdtemp() if tmpdir is None else tmpdir

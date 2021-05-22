@@ -43,7 +43,7 @@ lgam = special.gammaln
 
 
 def rc(seq):
-    """ Return reverse complement of sequence """
+    """Return reverse complement of sequence"""
     d = str.maketrans("actgACTG", "tgacTGAC")
     return seq[::-1].translate(d)
 
