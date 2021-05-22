@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+* `gimme motif2factors` command to annotate a motif database with TFs from different specie
+  based on orthogroups.
+
 ### Removed
 
 ### Changed
