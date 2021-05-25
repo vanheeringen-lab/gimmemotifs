@@ -7,7 +7,7 @@ travis = os.environ.get("TRAVIS") == "true"
 
 def test_black_formatting():
     if not travis:
-        sp.check_call("gimmemotifs/ setup.py scripts/", shell=True)
+        sp.check_call("black gimmemotifs/ setup.py scripts/", shell=True)
         pass
 
     try:
@@ -16,12 +16,9 @@ def test_black_formatting():
         )
     except sp.CalledProcessError as e:
         msg = e.output.decode("utf-8")
-        msg = "\n".join(msg.split("\n")[:-3])  # multi line error
-        print("Black output:")
-        print(msg)
-
-        msg = ", ".join(msg.split("\n"))[:-2]  # single line error
-        pytest.fail(msg)
+        msg = msg.split("\n")[:-3]
+        msg = "\n".join(["Black output:"] + msg)
+        pytest.fail(msg, False)
 
 
 def test_flake8_formatting():
@@ -30,9 +27,6 @@ def test_flake8_formatting():
             "flake8 setup.py gimmemotifs/ scripts/", stderr=sp.STDOUT, shell=True
         )
     except sp.CalledProcessError as e:
-        msg = e.output.decode("utf-8")  # multi line error
-        print("Flake8 output:")
-        print(msg)
-
-        msg = ", ".join(msg.split("\n"))[:-2]  # single line error
-        pytest.fail(msg)
+        msg = e.output.decode("utf-8")
+        msg = "Flake8 output:\n" + msg
+        pytest.fail(msg, False)
