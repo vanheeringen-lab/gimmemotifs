@@ -14,7 +14,7 @@ def motif2factors(args):
         "outdir": args.outdir,
         "strategy": args.strategy,
         "database": args.database,
-        "threads": args.threads
+        "threads": args.threads,
     }
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
     motif2factor_from_orthologs(**kwargs)
