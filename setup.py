@@ -137,5 +137,6 @@ setup(
         "pillow",
         "logomaker",
         "qnorm",
+        "loguru",
     ],
 )

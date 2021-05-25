@@ -33,7 +33,7 @@ FASTA_LINEWIDTH = 80
 BLACKLIST_TFS = [
     "dobox4",  # does not exist
     "dobox5",  # does not exist
-    "foxa",    # not sure which FOXA(1,2,3)
+    "foxa",  # not sure which FOXA(1,2,3)
     "ep300",
 ]
 RENAME_TFS = {"NR1A4": "NR4A1", "SREBP1a": "SREBF1"}
@@ -43,20 +43,20 @@ def motif2factor_from_orthologs(
     database: str = "gimme.vertebrate.v5.0",
     database_references: List[str] = ["GRCh38.p13", "GRCm38.p6"],
     extra_orthologs_references: List[str] = [
-        "danRer11",          # zebrafish
-        "UCB_Xtro_10.0",     # xenopus
-        "GRCg6a",            # chicken
-        "BraLan2",           # lancet fish (out-group ish)
-        "oryLat2",           # medaka
-        "ARS-UCD1.2",        # cow
+        "danRer11",  # zebrafish
+        "UCB_Xtro_10.0",  # xenopus
+        "GRCg6a",  # chicken
+        "BraLan2",  # lancet fish (out-group ish)
+        "oryLat2",  # medaka
+        "ARS-UCD1.2",  # cow
         "phaCin_unsw_v4.1",  # koala
-        "rCheMyd1.pri",      # turtle
+        "rCheMyd1.pri",  # turtle
     ],
     new_reference: List[str] = None,
     tmpdir: str = None,
     outdir: str = ".",
     strategy: str = "lenient",
-    threads: int = 24
+    threads: int = 24,
 ):
     """
     Make a motifs2factors file based on gene orthology.
@@ -76,8 +76,12 @@ def motif2factor_from_orthologs(
     tmpdir = tempfile.mkdtemp() if tmpdir is None else tmpdir
 
     logger.info(f"Making a new reference for: {' & '.join(new_reference)}.")
-    logger.info(f"You say the {database} database is based on: {' & '.join(database_references)}.")
-    logger.info(f"For better orthology inference we are also using these assemblies: {' & '.join(extra_orthologs_references)}.")
+    logger.info(
+        f"You say the {database} database is based on: {' & '.join(database_references)}."
+    )
+    logger.info(
+        f"For better orthology inference we are also using these assemblies: {' & '.join(extra_orthologs_references)}."
+    )
     logger.info(f"Using strategy: {strategy} for orthology/name inference.")
     logger.info(f"tmpdir: {tmpdir}.")
     logger.info(f"outdir: {outdir}.")
@@ -119,7 +123,7 @@ def motif2factor_from_orthologs(
             motifsandfactors=motifsandfactors,
             database=orthogroup_db,
             strategy=strategy,
-            motifs=motifs
+            motifs=motifs,
         )
 
     # cleanup
@@ -130,7 +134,7 @@ def _check_install():
     dependencies = ["gffread", "orthofinder"]
     if any(shutil.which(dependency) is None for dependency in dependencies):
         logger.warning(
-f"""Running gimme motif2factors requires {" & ".join(dependencies)} to be installed.
+            f"""Running gimme motif2factors requires {" & ".join(dependencies)} to be installed.
 
 You can easily install these dependencies with conda in the environment where gimmemotifs is installed:
 conda install {" ".join(dependencies)}"""
@@ -144,7 +148,7 @@ def _orthofinder(peptide_folder, threads):
     """
     # run orthofinder on the primary transcripts
     result = subprocess.run(
-        [f"orthofinder", f"-f", peptide_folder, "-t", threads], capture_output=True
+        ["orthofinder", "-f", peptide_folder, "-t", threads], capture_output=True
     )
 
     logger.debug(f"""stdout of orthofinder:\n {result.stdout.decode("utf-8")}""")
@@ -170,17 +174,22 @@ def _download_genomes_with_annot(genomes, genomes_dir):
     for genome in genomes:
         # check if already in default genomes dir, if so, skip downloading and directly copy
         if all(
-                os.path.exists(f"{default_genomes_dir}/{genome}/{genome}.{extension}") for extension in ["fa", "annotation.gtf"]
+            os.path.exists(f"{default_genomes_dir}/{genome}/{genome}.{extension}")
+            for extension in ["fa", "annotation.gtf"]
         ):
             logger.info(f"{genome} was already downloaded, using that version.")
             # if except, probably a continuation from previous run
             try:
                 os.mkdir(f"{genomes_dir}/{genome}")
-                os.symlink(f"{default_genomes_dir}/{genome}/{genome}.fa",
-                           f"{genomes_dir}/{genome}/{genome}.fa")
-                os.symlink(f"{default_genomes_dir}/{genome}/{genome}.annotation.gtf",
-                           f"{genomes_dir}/{genome}/{genome}.annotation.gtf")
-            except:
+                os.symlink(
+                    f"{default_genomes_dir}/{genome}/{genome}.fa",
+                    f"{genomes_dir}/{genome}/{genome}.fa",
+                )
+                os.symlink(
+                    f"{default_genomes_dir}/{genome}/{genome}.annotation.gtf",
+                    f"{genomes_dir}/{genome}/{genome}.annotation.gtf",
+                )
+            except Exception:
                 pass
         else:
             logger.info(f"Downloading {genome} through genomepy.")
@@ -212,15 +221,15 @@ def annot2primpep(genome, outdir):
     # use gffread to convert our annotation.gtf into all possible peptides
     result = subprocess.run(
         [
-            f"gffread",
-            f"-y",
+            "gffread",
+            "-y",
             f"{outdir}/{genome}/{genome}.pep.fa",
-            f"-g",
+            "-g",
             f"{outdir}/{genome}/{genome}.fa",
             f"{outdir}/{genome}/{genome}.annotation.gtf",
-            f"-S",
-            f"--table",
-            f"gene_name,gene_id",
+            "-S",
+            "--table",
+            "gene_name,gene_id",
         ],
         capture_output=True,
     )
@@ -242,7 +251,9 @@ def annot2primpep(genome, outdir):
         # skip proteins with stop codon
         # (probably mitochondrial protein since they have a different codon table)
         if "*" in protein:
-            logger.debug(f"skipping {prot_name} since it contains a * symbol (probably mitochondrial read).")
+            logger.debug(
+                f"skipping {prot_name} since it contains a * symbol (probably mitochondrial read)."
+            )
             continue
 
         # skip when we already have a longer edition of the same gene
@@ -257,7 +268,7 @@ def annot2primpep(genome, outdir):
         for record, sequence in records.items():
             f.write(f">{record}\n")
             f.write("\n".join(wrap(sequence, width=FASTA_LINEWIDTH)))
-            f.write(f"\n")
+            f.write("\n")
 
 
 def load_orthogroups_in_db(db, genomes, orthofinder_result):
@@ -283,7 +294,7 @@ def load_orthogroups_in_db(db, genomes, orthofinder_result):
         """
         CREATE TABLE IF NOT EXISTS orthogroups
         (
-        id integer PRIMARY KEY, 
+        id integer PRIMARY KEY,
         orthogroup text UNIQUE NOT NULL
         )
         """
@@ -293,7 +304,7 @@ def load_orthogroups_in_db(db, genomes, orthofinder_result):
         """
         CREATE TABLE IF NOT EXISTS assemblies
         (
-        id integer PRIMARY KEY, 
+        id integer PRIMARY KEY,
         assembly text
         )
         """
@@ -320,7 +331,7 @@ def load_orthogroups_in_db(db, genomes, orthofinder_result):
     # all orthogroups
     for orthogroup in orthogroups["HOG"]:  # <-- all Hierarchical OrthoGroups
         conn.execute(f"INSERT INTO orthogroups VALUES(NULL, '{orthogroup}')")
-    conn.execute(f"INSERT INTO orthogroups VALUES(NULL, 'UNASSIGNED')")
+    conn.execute("INSERT INTO orthogroups VALUES(NULL, 'UNASSIGNED')")
 
     # all assemblies
     for assembly in genomes:
@@ -378,7 +389,13 @@ def load_orthogroups_in_db(db, genomes, orthofinder_result):
 
 
 def make_motif2factors(
-    prefix, new_reference, database_references, motifsandfactors, database, strategy, motifs
+    prefix,
+    new_reference,
+    database_references,
+    motifsandfactors,
+    database,
+    strategy,
+    motifs,
 ):
     """
     Make a motifs2factors file based on an existing ortholog database.
@@ -392,7 +409,7 @@ def make_motif2factors(
     cur = conn.cursor()
 
     with open(f"{prefix}.motif2factors.txt", "w") as f:
-        f.write(f"Motif\tFactor\tEvidence\tCurated\n")
+        f.write("Motif\tFactor\tEvidence\tCurated\n")
         for motif, factors in motifsandfactors.items():
             # remember if we found any orthologs for all the factors belonging
             # to our motif
@@ -429,7 +446,6 @@ def make_motif2factors(
             print(motif.to_pwm(), file=f)
 
 
-
 @lru_cache(maxsize=99999)
 def factor2orthogroups(factor, references, database, strategy):
     """
@@ -459,7 +475,9 @@ def factor2orthogroups(factor, references, database, strategy):
         if len(orthogroups) == 0:
             gene_symbols = _unknownfactor2symbols(factor, fields=["name", "symbol"])
             for gene_symbol in gene_symbols:
-                orthogroups += _factor2orthogroups_sql(gene_symbol, references, database)
+                orthogroups += _factor2orthogroups_sql(
+                    gene_symbol, references, database
+                )
 
     # if still none found, we try a very broad myinfo query (higher chance of false positive)
     if strategy in ["lenient"]:
@@ -478,7 +496,9 @@ def factor2orthogroups(factor, references, database, strategy):
                 ],
             )
             for gene_symbol in gene_symbols:
-                orthogroups += _factor2orthogroups_sql(gene_symbol, references, database)
+                orthogroups += _factor2orthogroups_sql(
+                    gene_symbol, references, database
+                )
 
     orthogroups = list(set(orthogroups))
 
@@ -497,8 +517,8 @@ def _factor2orthogroups_sql(factor, references, database):
 
     orthogroups = list()
     res = cur.execute(
-        f"SELECT orthogroup FROM genes "
-        f"WHERE ("
+        "SELECT orthogroup FROM genes "
+        "WHERE ("
         + " OR ".join(f"assembly='{assembly}'" for assembly in references)
         + ")"
         + f"    AND (gene_name_lower='{factor.lower()}' OR gene_id_lower='{factor.lower()}')"
@@ -514,6 +534,7 @@ def _unknownfactor2symbols(factor, fields):
     """
     Query mygeneinfo for different aliases of our gene
     """
+
     def mygeneinfo(field):
         request = f"http://mygene.info/v3/query?q={field}:{factor}&fields=entrezgene,name,symbol,taxid,other_names,ensembl.gene"
         try:
@@ -533,13 +554,15 @@ def _unknownfactor2symbols(factor, fields):
     for hit in hits:
         for field in ["alias", "name", "symbol", "ensembl"]:
             if field in hit:
-                if not "'" in hit[field]:
+                if "'" not in hit[field]:
                     if field == "ensembl" and "gene" in hit[field]:
                         symbols.add(hit[field]["gene"])
                     else:
                         symbols.add(hit[field])
                 elif isinstance(hit[field], list):
-                    symbols.update({each["gene"] for each in hit[field] if "gene" in each})
+                    symbols.update(
+                        {each["gene"] for each in hit[field] if "gene" in each}
+                    )
     return list(symbols)
 
 
