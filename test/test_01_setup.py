@@ -1,15 +1,8 @@
-import os
 import pytest
 import subprocess as sp
 
-travis = os.environ.get("TRAVIS") == "true"
-
 
 def test_black_formatting():
-    if not travis:
-        sp.check_call("gimmemotifs/ setup.py scripts/", shell=True)
-        pass
-
     try:
         sp.check_output(
             "black --check gimmemotifs/ setup.py scripts/", stderr=sp.STDOUT, shell=True
