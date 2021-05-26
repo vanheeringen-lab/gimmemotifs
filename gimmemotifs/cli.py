@@ -26,17 +26,19 @@ def cli(sys_args):
 
     epilog = """
     commands:
-        motifs      identify enriched motifs (known and/or de novo)
-        scan        scan for known motifs
-        maelstrom   find differential motifs
-        match       find motif matches in database
-        logo        create sequence logo(s)
-        cluster     cluster similar motifs
-        background  create a background file
-        threshold   calculate motif scan threshold
-        location    motif location histograms
-        diff        compare motif frequency and enrichment
-                    between fasta files
+        motifs          identify enriched motifs (known and/or de novo)
+        scan            scan for known motifs
+        maelstrom       find differential motifs
+        match           find motif matches in database
+        logo            create sequence logo(s)
+        cluster         cluster similar motifs
+        background      create a background file
+        threshold       calculate motif scan threshold
+        location        motif location histograms
+        diff            compare motif frequency and enrichment
+                        between fasta files
+        motif2factors   generate a motif database based on orthology for any
+                        species
 
     type `gimme <command> -h` for more details
     """
@@ -628,6 +630,35 @@ def cli(sys_args):
         metavar="FILE",
     )
     p.set_defaults(func=commands.prediction)
+
+    class Strictness(argparse.Action):
+        def __call__(self, parser, ns, values, option):
+            if "strict" in option:
+                setattr(ns, self.dest, "strict")
+            if "medium" in option:
+                setattr(ns, self.dest, "medium")
+            if "lenient" in option:
+                setattr(ns, self.dest, "lenient")
+
+    p = subparsers.add_parser("motif2factors", help="Generate a motif2factors file based on orthology for your species of interest.")
+    p.add_argument("--new-reference", help="The assembly the new motif2factors file will be based on.", metavar="ASSEMBLY", required=True, nargs="+")
+    p.add_argument("--database", help="The database you want to change convert to your species of interest. (default is gimme.vertebrate.v5.0)", metavar="db", default="gimme.vertebrate.v5.0")
+    p.add_argument("--database-references", help="The assembly(s) on which the orginal motif2factors is based on. (default is human and mouse)", metavar="ASSEMBLY", nargs="+")
+    p.add_argument("--ortholog-references", help="Extra assemblies for better orthology inference between the new reference and database reference. (default is a range of vertebrate species)", metavar="ASSEMBLY", nargs="+")
+    p.add_argument("--tmpdir", help="Where to place intermediate files. Defaults to system temp.", metavar="DIR")
+    p.add_argument("--outdir", help="Where to save the results to. Defaults to current working directory.", metavar="OUTDIR", default=".")
+    p.add_argument(
+        "--strict",
+        "--medium",
+        "--lenient",
+        default="lenient",
+        help="How strict should the names of the genes in the assembly be followed. Strict: base names only on what is in the annotation file; Medium: base on annotation file, as well as on mygene.info name and symbol query; Lenient: based on annotation file, and mygeneinfo name, symbol, alias, other_names, accession, accession.protein, refseq, refseq.protein, ensembl, ensembl.gene. Lenient is the default, but in case of false-positive hits you can tune this stricter.",
+        dest="strategy",
+        action=Strictness,
+        nargs=0,
+    )
+    p.add_argument("--threads", help="Maximum number of parallel threads used.", metavar="INT", default=24)
+    p.set_defaults(func=commands.motif2factors)
 
     if len(sys_args) == 0:
         parser.print_help()

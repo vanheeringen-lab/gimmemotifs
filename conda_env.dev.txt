@@ -9,6 +9,7 @@ homer
 ipywidgets  # Necessary for progress bar in Jupyter notebook
 jinja2
 logomaker
+loguru
 matplotlib >=2.0
 meme >=5
 ncurses
