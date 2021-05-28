@@ -9,6 +9,5 @@ jinja2
 pyyaml >= 3.10
 xxhash
 six
-future
 statsmodels
 tqdm

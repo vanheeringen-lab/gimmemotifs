@@ -5,7 +5,6 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Command line function 'roc'."""
-from __future__ import print_function
 import os
 import re
 import sys
@@ -35,7 +34,7 @@ logger = logging.getLogger("gimme.motifs")
 
 
 def motifs(args):
-    """ Calculate ROC_AUC and other metrics and optionally plot ROC curve."""
+    """Calculate ROC_AUC and other metrics and optionally plot ROC curve."""
     if args.outdir is None:
         raise ValueError("an output directory is required!")
     if not os.path.exists(args.outdir):
@@ -52,13 +51,20 @@ def motifs(args):
         sample = outfile
     elif args.size and args.size > 0:
         if file_type == "fasta":
-            logger.warn("size parameter will be ignored for FASTA input")
+            logger.warn(
+                "Will use the sequences from the FASTA input. If size is specified, this will be ignored."
+            )
         elif file_type == "bed":
             write_equalsize_bedfile(args.sample, args.size, outfile)
             sample = outfile
 
     genome = args.genome
     if genome is None:
+        logger.warn("Genome is not specified!")
+        logger.warn(
+            "This means the z-score transformation and GC% normalization of the motif scores cannot be performed."
+        )
+        logger.warn("Will continue, but performance may be impacted.")
         args.zscore = False
         args.gc = False
 
@@ -111,6 +117,8 @@ def motifs(args):
                 "custom_background": bgfile,
                 "genome": args.genome,
                 "size": args.size,
+                "fraction": args.fraction,
+                "use_strand": not (args.single),
             },
         )
         denovo = read_motifs(os.path.join(args.outdir, "gimme.denovo.pfm"))
@@ -189,8 +197,8 @@ def motifs(args):
             filepath_or_buffer=outfile,
             score_table=True,
             genome=args.genome,
-            zscore=True,
-            gcnorm=True,
+            zscore=args.zscore,
+            gcnorm=args.gc,
         )
 
     n_input = pd.read_csv(score_table, comment="#", sep="\t").shape[0]
@@ -255,8 +263,9 @@ def motifs(args):
                 bed=True,
                 fpr=0.01,
                 genome=args.genome,
-                zscore=True,
-                gcnorm=True,
+                zscore=args.zscore,
+                gcnorm=args.gc,
+                bgfile=bgfile,
             )
 
     if args.report:

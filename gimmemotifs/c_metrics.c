@@ -45,6 +45,35 @@ void fill_matrix(double matrix[][4], PyObject *matrix_o) {
 	}
 }
 
+void fill_matrix_with_n(double matrix[][6], PyObject *matrix_o) {
+	// Parse a PyObject matrix into a C array	
+	// Structure of the matrix is as follows: [[freqA, freqC, freqG, freqT], ...]
+	int matrix_len = PyList_Size(matrix_o);
+	int i,j;
+	PyObject *item;
+	for (i = 0; i < matrix_len; i++) {
+		PyObject *row = PyList_GetItem(matrix_o, i);
+		if (!PyList_Check(row)) {
+			PyErr_SetString( PyExc_TypeError, "wrong matrix structure");
+			return;
+		}	
+		if (PyList_Size(row) != 4) {
+			PyErr_SetString( PyExc_TypeError, "4 nucleotides!");
+			return;
+		}
+
+		matrix[i][0] = 10;
+		for (j = 0; j < 4; j++) {
+			item = PyList_GetItem(row, j);
+			matrix[i][j + 1] = PyFloat_AsDouble(item);
+			if (matrix[i][j + 1] < matrix[i][0]) {
+				matrix[i][0] = matrix[i][j + 1];
+			}
+		}
+		matrix[i][5] = matrix[i][0];
+	}
+}
+
 
 double mean(double array[], double length) {
 	double sum = 0;
@@ -458,79 +487,73 @@ static PyObject * c_metrics_max_subtotal(PyObject *self, PyObject * args)
 
 static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 {
-	
-        PyObject *pwm_o;
-        PyObject *cutoff_o;
-        char *seq;
-        int seq_len;
-        int n_report;
-        int pwm_len;
-        int i, j;
-        int scan_rc;
-        int return_all = 0;
+	char *seq_o;
+	PyObject *pwm_o;
+	PyObject *cutoff_o;
+	int seq_len;
+	int n_report;
+	int pwm_len;
+	int i, j;
+	int scan_rc;
+	int return_all = 0;
 
-        if (!PyArg_ParseTuple(args, "sOOii|i", &seq, &pwm_o, &cutoff_o, &n_report, &scan_rc, &return_all))
-                return NULL;
+	if (!PyArg_ParseTuple(args, "sOOii|i", &seq_o, &pwm_o, &cutoff_o, &n_report, &scan_rc, &return_all))
+			return NULL;
 
-        seq_len = strlen(seq);
+	// Retrieve frequency matrix
+	if (!PyList_Check(pwm_o))
+			return NULL;
 
-        // Retrieve frequency matrix
-        if (!PyList_Check(pwm_o))
-                return NULL;
+	// Weight matrices
+	pwm_len = PyList_Size(pwm_o);
+	double pwm[pwm_len][6];
+	fill_matrix_with_n(pwm, pwm_o);
+	//Py_DECREF(pwm_o);
 
-        // Weight matrices
-        pwm_len = PyList_Size(pwm_o);
-        double pwm[pwm_len][4];
-        fill_matrix(pwm, pwm_o);
-        //Py_DECREF(pwm_o);
+	seq_len = strlen(seq_o);
+	int seq[seq_len];
+	for (i = 0; i < seq_len; i++) {
+		switch(seq_o[i]) {
+            case 'A':
+				seq[i] = 1;
+                break;
+			case 'T':
+				seq[i] = 4;
+                break;
+			case 'C':
+				seq[i] = 2;
+                break;
+			case 'G':
+				seq[i] = 3;
+                break;
+			case 'N':
+			 	seq[i] = 0;
+                break;
+		}
+	}
+	//Py_DECREF(seq_o);
 
-        // Cutoff for every spacer length
-        double cutoff;
-        cutoff = PyFloat_AsDouble(cutoff_o);
+	// Cutoff for every spacer length
+	double cutoff;
+	cutoff = PyFloat_AsDouble(cutoff_o);
 
-        // Scan sequence
-        int j_max = seq_len - pwm_len + 1;
-        double score_matrix[j_max];
-        double rc_score_matrix[j_max];
-        double score, rc_score;
+	// Scan sequence
+	int j_max = seq_len - pwm_len + 1;
+	double score_matrix[j_max];
+	double rc_score_matrix[j_max];
+	double score, rc_score;
 
-        if (j_max < 0) { j_max = 0;}
-        int m;
+	if (j_max < 0) { j_max = 0;}
+	int m;
 	int c;
 	double pwm_min = -50;	
 	for (j = 0; j < j_max; j++) {
 		score = 0;
 		rc_score = 0;
-		for (m = 0; m < pwm_len; m++) {
-			switch(seq[j + m]) {
-                                case 'A':
-                                        score += pwm[m][0];
-                                        rc_score += pwm[pwm_len - m - 1][3];
-                                        break;
-                                case 'C':
-                                        score += pwm[m][1];
-                                        rc_score += pwm[pwm_len - m - 1][2];
-                                        break;
-                                case 'G':
-                                        score += pwm[m][2];
-                                        rc_score += pwm[pwm_len - m - 1][1];
-                                        break;
-                                case 'T':
-                                        score += pwm[m][3];
-                                        rc_score += pwm[pwm_len - m - 1][0];
-                                        break;
-				case 'N':
-					pwm_min = pwm[m][0];
-					for (c = 1; c < 4; c++) {
-						if (pwm[m][c] < pwm_min) {
-							pwm_min = pwm[m][c];
-						}
-					}
-					score += pwm_min;
-					rc_score += pwm_min; 
-					break;
-			}
 		
+		for (m = 0; m < pwm_len; m++) {
+			score += pwm[m][seq[j + m]];
+			rc_score += pwm[pwm_len - m - 1][5 - seq[j + m]];		
 		}
 		score_matrix[j] = score;
 		rc_score_matrix[j] = rc_score;
@@ -555,7 +578,6 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 		maxStrand[j] = 1;
 	}
 	PyObject*  return_list = PyList_New(0);
-
 
 
 	int p,q;

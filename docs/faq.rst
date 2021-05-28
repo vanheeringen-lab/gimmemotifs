@@ -3,6 +3,40 @@
 FAQ
 ===
 
+ValueError: Shape of passed values is (13933, 1796), indices imply (14, 1796)
+-----------------------------------------------------------------------------
+
+If you get an error like the following after upgrading to GimmeMotifs >=0.15, you can 
+fix it by deleting the GimmeMotifs cache directory `~/.cache/gimmemotifs`.
+
+::
+
+    Traceback (most recent call last):
+    File "/home/simon/anaconda3/envs/gimme-0.15.1/bin/gimme", line 11, in <module>
+        cli(sys.argv[1:])
+    File "/home/simon/anaconda3/envs/gimme-0.15.1/lib/python3.8/site-packages/gimmemotifs/cli.py", line 661, in cli
+        args.func(args)
+    File "/home/simon/anaconda3/envs/gimme-0.15.1/lib/python3.8/site-packages/gimmemotifs/commands/maelstrom.py", line 33, in maelstrom
+        run_maelstrom(
+    File "/home/simon/anaconda3/envs/gimme-0.15.1/lib/python3.8/site-packages/gimmemotifs/maelstrom.py", line 343, in run_maelstrom
+        counts = scan_regionfile_to_table(
+    File "/home/simon/anaconda3/envs/gimme-0.15.1/lib/python3.8/site-packages/gimmemotifs/scanner.py", line 164, in scan_regionfile_to_table
+        s.set_threshold(fpr=FPR)
+    File "/home/simon/anaconda3/envs/gimme-0.15.1/lib/python3.8/site-packages/gimmemotifs/scanner.py", line 958, in set_threshold
+        self._threshold = pd.concat((self._threshold, df), axis=1)
+    File "/home/simon/anaconda3/envs/gimme-0.15.1/lib/python3.8/site-packages/pandas/core/reshape/concat.py", line 287, in concat
+        return op.get_result()
+    File "/home/simon/anaconda3/envs/gimme-0.15.1/lib/python3.8/site-packages/pandas/core/reshape/concat.py", line 502, in get_result
+        new_data = concatenate_block_managers(
+    File "/home/simon/anaconda3/envs/gimme-0.15.1/lib/python3.8/site-packages/pandas/core/internals/concat.py", line 84, in concatenate_block_managers
+        return BlockManager(blocks, axes)
+    File "/home/simon/anaconda3/envs/gimme-0.15.1/lib/python3.8/site-packages/pandas/core/internals/managers.py", line 149, in __init__
+        self._verify_integrity()
+    File "/home/simon/anaconda3/envs/gimme-0.15.1/lib/python3.8/site-packages/pandas/core/internals/managers.py", line 326, in _verify_integrity
+        raise construction_error(tot_items, block.shape[1:], self.axes)
+    ValueError: Shape of passed values is (13933, 1796), indices imply (14, 1796)
+        
+
 SQLite error when running on a cluster
 --------------------------------------
 
@@ -22,7 +56,6 @@ s a workaround. In your job submission script, use something like the following:
     echo 'Using $XDG_CACHE_HOME for cache'
 
 This will use a local directory to store the cache.
-
 
 ImportError: dlopen: cannot load any more object with static TLS
 ----------------------------------------------------------------

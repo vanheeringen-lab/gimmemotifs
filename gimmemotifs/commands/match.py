@@ -5,7 +5,6 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 
-from __future__ import print_function
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.motif import read_motifs, Motif
 from gimmemotifs.plot import match_plot

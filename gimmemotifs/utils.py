@@ -43,7 +43,7 @@ lgam = special.gammaln
 
 
 def rc(seq):
-    """ Return reverse complement of sequence """
+    """Return reverse complement of sequence"""
     d = str.maketrans("actgACTG", "tgacTGAC")
     return seq[::-1].translate(d)
 
@@ -544,7 +544,17 @@ def _genomepy_convert(to_convert, genome, minsize=None):
         g = Genome(genome)
 
     tmpfile = NamedTemporaryFile()
-    g.track2fasta(to_convert, tmpfile.name)
+    try:
+        g.track2fasta(to_convert, tmpfile.name)
+    except TypeError:
+        logger.error("Input file type not recognized!")
+        logger.error(
+            "This can happen if you use regions and your regions are not in chrom:start-end format."
+        )
+        logger.error(
+            "Another common issue is spaces instead of tabs, or extra spaces in addition to tabs."
+        )
+        sys.exit(1)
 
     fa = as_seqdict(tmpfile.name)
     return _check_minsize(fa, minsize)

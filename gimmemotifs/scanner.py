@@ -1,6 +1,8 @@
 import os
 import re
 import sys
+import time
+import math
 from collections import Counter
 from functools import partial
 from tempfile import mkdtemp, NamedTemporaryFile
@@ -20,6 +22,7 @@ from diskcache import Cache
 import numpy as np
 from sklearn.preprocessing import scale
 import pandas as pd
+import sqlite3
 
 from gimmemotifs import __version__
 from gimmemotifs.background import RandomGenomicFasta, gc_bin_bedfile
@@ -55,6 +58,18 @@ logger = logging.getLogger("gimme.scanner")
 config = MotifConfig()
 FPR = 0.01
 lock = mp.Lock()
+
+
+def print_cluster_error_message():
+    logger.error("Cache is corrupted.")
+    logger.error(
+        "This can happen when you try to run a GimmeMotifs tool in parallel on a cluster."
+    )
+    logger.error(f"To solve this, delete the GimmeMotifs cache directory: {CACHE_DIR}")
+    logger.error("and then see here for a workaround:")
+    logger.error(
+        "https://gimmemotifs.readthedocs.io/en/master/faq.html#sqlite-error-when-running-on-a-cluster"
+    )
 
 
 def _format_line(
@@ -182,10 +197,12 @@ def scan_regionfile_to_table(
         logger.info("done")
 
     motif_names = [m.id for m in read_motifs(pfmfile)]
-    logger.info("creating dataframe")
-    df = pd.DataFrame(scores, index=idx, columns=motif_names)
 
-    # if filter_redundant:
+    logger.info("creating dataframe")
+    dtype = "float16"
+    if scoring == "count":
+        dtype = int
+    df = pd.DataFrame(scores, index=idx, columns=motif_names, dtype=dtype)
 
     return df
 
@@ -727,46 +744,54 @@ class Scanner(object):
 
         motifs = read_motifs(self.motifs)
         lock.acquire()
-        with Cache(CACHE_DIR) as cache:
-            scan_motifs = []
-            for bin in bins:
-                if bin not in self.meanstd:
-                    self.meanstd[bin] = {}
-                bin_seqs = [s for s, b in zip(seqs, seq_bins) if b == bin]
 
-                for motif in motifs:
-                    k = "e{}|{}|{}".format(motif.hash(), self.background_hash, bin)
+        try:
+            with Cache(CACHE_DIR) as cache:
+                scan_motifs = []
+                for bin in bins:
+                    if bin not in self.meanstd:
+                        self.meanstd[bin] = {}
+                    bin_seqs = [s for s, b in zip(seqs, seq_bins) if b == bin]
 
-                    results = cache.get(k)
-                    if results is None:
-                        scan_motifs.append(motif)
-                    else:
-                        self.meanstd[bin][motif.id] = results
-
-                if len(scan_motifs) > 0:
-                    logger.debug("Determining mean and stddev for motifs.")
-                    for motif, mean, std in self._meanstd_from_seqs(
-                        scan_motifs, bin_seqs
-                    ):
+                    for motif in motifs:
                         k = "e{}|{}|{}".format(motif.hash(), self.background_hash, bin)
-                        cache.set(k, [mean, std])
-                        self.meanstd[bin][motif.id] = mean, std
 
-            # Prevent std of 0
-            # This should only happen in testing
-            for motif in motifs:
-                stds = np.array([self.meanstd[gcbin][motif.id][1] for gcbin in bins])
-                idx = stds == 0
-                if True in idx:
-                    std = np.mean(stds[~idx])
-                    for gcbin in np.array(bins)[idx]:
-                        k = "e{}|{}|{}".format(
-                            motif.hash(), self.background_hash, gcbin
-                        )
-                        mean = self.meanstd[gcbin][motif.id][0]
-                        cache.set(k, [mean, std])
-                        self.meanstd[gcbin][motif.id] = mean, std
+                        results = cache.get(k)
+                        if results is None:
+                            scan_motifs.append(motif)
+                        else:
+                            self.meanstd[bin][motif.id] = results
 
+                    if len(scan_motifs) > 0:
+                        logger.debug("Determining mean and stddev for motifs.")
+                        for motif, mean, std in self._meanstd_from_seqs(
+                            scan_motifs, bin_seqs
+                        ):
+                            k = "e{}|{}|{}".format(
+                                motif.hash(), self.background_hash, bin
+                            )
+                            cache.set(k, [mean, std])
+                            self.meanstd[bin][motif.id] = mean, std
+
+                # Prevent std of 0
+                # This should only happen in testing
+                for motif in motifs:
+                    stds = np.array(
+                        [self.meanstd[gcbin][motif.id][1] for gcbin in bins]
+                    )
+                    idx = stds == 0
+                    if True in idx:
+                        std = np.mean(stds[~idx])
+                        for gcbin in np.array(bins)[idx]:
+                            k = "e{}|{}|{}".format(
+                                motif.hash(), self.background_hash, gcbin
+                            )
+                            mean = self.meanstd[gcbin][motif.id][0]
+                            cache.set(k, [mean, std])
+                            self.meanstd[gcbin][motif.id] = mean, std
+        except sqlite3.DatabaseError:
+            print_cluster_error_message()
+            sys.exit(1)
         lock.release()
 
         for gc_bin in self.gc_bins:
@@ -840,27 +865,31 @@ class Scanner(object):
 
         logger.debug("using background: genome {} with size {}".format(genome, size))
         lock.acquire()
-        with Cache(CACHE_DIR) as cache:
-            self.background_hash = "d{}:{}:{}:{}".format(
-                genome, int(size), gc, str(gc_bins)
-            )
-            c = cache.get(self.background_hash)
-            if c:
-                fa, gc_bins = c
-            else:
-                fa = None
-
-            if not fa:
-                if gc:
-                    with NamedTemporaryFile() as tmp:
-                        logger.info("using {} sequences".format(nseq))
-                        gc_bin_bedfile(
-                            tmp.name, genome, number=nseq, length=size, bins=gc_bins
-                        )
-                        fa = as_fasta(tmp.name, genome=genome)
+        try:
+            with Cache(CACHE_DIR) as cache:
+                self.background_hash = "d{}:{}:{}:{}".format(
+                    genome, int(size), gc, str(gc_bins)
+                )
+                c = cache.get(self.background_hash)
+                if c:
+                    fa, gc_bins = c
                 else:
-                    fa = RandomGenomicFasta(genome, size, nseq)
-                cache.set(self.background_hash, (fa, gc_bins))
+                    fa = None
+
+                if not fa:
+                    if gc:
+                        with NamedTemporaryFile() as tmp:
+                            logger.info("using {} sequences".format(nseq))
+                            gc_bin_bedfile(
+                                tmp.name, genome, number=nseq, length=size, bins=gc_bins
+                            )
+                            fa = as_fasta(tmp.name, genome=genome)
+                    else:
+                        fa = RandomGenomicFasta(genome, size, nseq)
+                    cache.set(self.background_hash, (fa, gc_bins))
+        except sqlite3.DatabaseError:
+            print_cluster_error_message()
+            sys.exit(1)
         lock.release()
 
         self.background = fa
@@ -931,39 +960,46 @@ class Scanner(object):
         seqs = self.background.seqs
 
         lock.acquire()
-        with Cache(CACHE_DIR) as cache:
-            scan_motifs = []
-            self._threshold = None
-            for motif in motifs:
-                k = "{}|{}|{:.4f}|{}".format(
-                    motif.hash(), self.background_hash, fpr, ",".join(sorted(gc_bins))
-                )
-                vals = cache.get(k)
-                if vals is None:
-                    scan_motifs.append(motif)
-                else:
-                    if self._threshold is None:
-                        self._threshold = vals.to_frame()
-                    else:
-                        self._threshold[motif.id] = vals
-
-            if len(scan_motifs) > 0:
-                logger.info("determining FPR-based threshold")
-                df = self._threshold_from_seqs(scan_motifs, seqs, fpr).set_index(
-                    "gc_bin"
-                )
-                if self._threshold is None:
-                    self._threshold = df
-                else:
-                    self._threshold = pd.concat((self._threshold, df), axis=1)
-                for motif in scan_motifs:
+        try:
+            with Cache(CACHE_DIR) as cache:
+                scan_motifs = []
+                self._threshold = None
+                for motif in motifs:
                     k = "{}|{}|{:.4f}|{}".format(
                         motif.hash(),
                         self.background_hash,
                         fpr,
                         ",".join(sorted(gc_bins)),
                     )
-                    cache.set(k, df[motif.id])
+                    vals = cache.get(k)
+                    if vals is None:
+                        scan_motifs.append(motif)
+                    else:
+                        if self._threshold is None:
+                            self._threshold = vals.to_frame()
+                        else:
+                            self._threshold[motif.id] = vals
+
+                if len(scan_motifs) > 0:
+                    logger.info("determining FPR-based threshold")
+                    df = self._threshold_from_seqs(scan_motifs, seqs, fpr).set_index(
+                        "gc_bin"
+                    )
+                    if self._threshold is None:
+                        self._threshold = df
+                    else:
+                        self._threshold = pd.concat((self._threshold, df), axis=1)
+                    for motif in scan_motifs:
+                        k = "{}|{}|{:.4f}|{}".format(
+                            motif.hash(),
+                            self.background_hash,
+                            fpr,
+                            ",".join(sorted(gc_bins)),
+                        )
+                        cache.set(k, df[motif.id])
+        except sqlite3.DatabaseError:
+            print_cluster_error_message()
+            sys.exit(1)
         lock.release()
         self.threshold_str = "{}_{}_{}_{}".format(
             fpr, threshold, self.background_hash, ",".join(sorted(gc_bins))
@@ -1080,7 +1116,7 @@ class Scanner(object):
                 if len(self.meanstd) != 1:
                     self.set_meanstd(gc=gc)
 
-        batch_size = 10000
+        batch_size = 50000
         logger.debug("Scanning")
         for batch_idx in range(0, len(seqs), batch_size):
             it = self._scan_sequences(
@@ -1161,24 +1197,42 @@ class Scanner(object):
             yield ret
 
     def _scan_jobs(self, scan_func, scan_seqs):
-        batchsize = 1000
-
         if self.ncpus > 1:
-            for i in range((len(scan_seqs) - 1) // batchsize + 1):
-                batch = scan_seqs[i * batchsize : (i + 1) * batchsize]
-                chunksize = len(batch) // self.ncpus + 1
-                jobs = []
-                for j in range((len(batch) - 1) // chunksize + 1):
-                    batch_seqs = batch[j * chunksize : (j + 1) * chunksize]
-                    seq_gc_bins = [self.get_seq_bin(seq) for seq in batch_seqs]
-                    job = self.pool.apply_async(scan_func, (batch_seqs, seq_gc_bins))
-                    jobs.append(job)
+            median_len = np.median([len(x) for x in scan_seqs])
+            chunksize = 200000 // int(median_len)  # 1000 seqs for len 200
+            # prepare for parallel processing
+            k = 0
+            max_queue_size = 2 * self.ncpus
+            jobs = []
 
-                for k, job in enumerate(jobs):
-                    for ret in job.get():
-                        region = batch[k]
+            # loop over each job/chunk, and keep adding them to the queue
+            for i in range(math.ceil(len(scan_seqs) / chunksize)):
+                batch_seqs = scan_seqs[i * chunksize : (i + 1) * chunksize]
+                seq_gc_bins = [self.get_seq_bin(seq) for seq in batch_seqs]
+                job = self.pool.apply_async(scan_func, (batch_seqs, seq_gc_bins))
+                jobs.append(job)
+
+                # if our queue is full, wait until oldest job finishes
+                while (len(jobs) >= max_queue_size) and not jobs[0].ready():
+                    time.sleep(0.05)
+
+                # resolve oldest job if finished
+                if jobs[0].ready():
+                    for ret in jobs[0].get():
+                        region = scan_seqs[k]
+                        k += 1
                         yield region, ret
+                    jobs = jobs[1:]
+
+            # cleanup the last jobs that did not get resolved in the for loop
+            while len(jobs) > 0:
+                for ret in jobs[0].get():
+                    region = scan_seqs[k]
+                    yield region, ret
+                jobs = jobs[1:]
         else:
+            # non-parallel job scanning
+            batchsize = 1000
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
                 batch_seqs = scan_seqs[i * batchsize : (i + 1) * batchsize]
                 seq_gc_bins = [self.get_seq_bin(seq) for seq in batch_seqs]

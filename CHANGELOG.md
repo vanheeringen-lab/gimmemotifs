@@ -5,23 +5,35 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
-Many bugfixes, thanks to @kirbyziegler, @irzhegalova, @wangmhan, @ClarissaFeuersteinAkgoz and @fgualdr for reporting and proposing solutions!
-
 ### Added
 
-* Print an informative error message if the cache is corrupted, with link on how to solve this.
-* Print an informative error message if the input file is not in the correct format.
+### Changed
 
 ### Removed
 
 ### Changed
 
-* Faster motif scanning! (thanks @Maarten-vd-Sande!)
+## [0.16.0] - 2021-05-28
+
+Many bugfixes, thanks to @kirbyziegler, @irzhegalova, @wangmhan, @ClarissaFeuersteinAkgoz and @fgualdr for reporting and proposing solutions!
+Thanks to @Maarten-vd-Sande for the speed improvements.
+
+### Added
+
+* `gimme motif2factors` command to annotate a motif database with TFs from different species
+  based on orthogroups.
+* Informative error message with link to fix when cache is corrupted (running on a cluster).
+* Print an informative error message if the input file is not in the correct format.
+
+### Changed
+
+* Speed improvements to motif scanning, which is now up to 2X faster!
 * Size of input regions is now automatically adjusted (#123, #128, #129)
 * Quantile normalization in `coverage_table` now uses multiple CPUs.
 
 ### Fixed
 
+* Fixes issue where % of motif occurence would be incorrectly reported in `gimme maelstrom` output (#162).
 * Fix issues with running Trawler (#181)
 * Fix issues with running YAMDA (#180)
 * Fix issues with parsing XXmotif output (#178)

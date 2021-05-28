@@ -28,7 +28,7 @@ class Yamda(MotifProgram):
 
         Combine default and user-defined parameters.
         """
-        prm = super._parse_params(params, needs_background=True)
+        prm = super()._parse_params(params, needs_background=True)
         prm["strand"] = ""
         if not prm["single"]:
             prm["strand"] = " --revcomp "
@@ -68,7 +68,7 @@ class Yamda(MotifProgram):
         stdout = ""
         stderr = ""
 
-        cmd = "%s -i %s -j %s -n %s -w %s -oc %s  %s" % (
+        cmd = "python %s -i %s -j %s -n %s -w %s -oc %s  %s" % (
             bin,
             fastafile,
             params["background"],

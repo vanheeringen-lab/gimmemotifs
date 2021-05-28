@@ -112,7 +112,8 @@ def coverage_table(
         df[:] = scale(df, axis=0)
     if normalization == "quantile":
         logger.info("Normalization by quantile normalization")
-        df = qnorm.quantile_normalize(df)
+        # stay between 1-4 ncpus, after 4 highly diminishing returns
+        df = qnorm.quantile_normalize(df, ncpus=sorted(1, ncpus, 4)[1])
     else:
         logger.info("No normalization")
 

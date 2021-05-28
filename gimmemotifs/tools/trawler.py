@@ -17,7 +17,7 @@ class Trawler(MotifProgram):
     """
 
     def __init__(self):
-        self.name = "trawler"
+        self.name = "Trawler"
         self.cmd = "trawler"
         self.use_width = False
         self.default_params = {"single": False, "background": None}
@@ -28,7 +28,7 @@ class Trawler(MotifProgram):
 
         Combine default and user-defined parameters.
         """
-        prm = super().parse_params(params)
+        prm = super()._parse_params(params)
         prm["strand"] = "double"
         if prm["single"]:
             prm["strand"] = "single"

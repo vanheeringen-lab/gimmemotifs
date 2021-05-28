@@ -419,7 +419,9 @@ def run_maelstrom(
         pfmfile = os.path.join(outdir, "nonredundant.motifs.pfm")
         with open(pfmfile, "w") as f:
             for motif in motifs:
-                f.write(f"{motif.to_pfm()}\n")
+                if motif.id in m2f["Motif"]:
+                    f.write(f"{motif.to_pfm()}\n")
+
         mapfile = pfmfile.replace(".pfm", ".motif2factors.txt")
         with open(mapfile, "w") as f:
             f.write(
@@ -511,7 +513,7 @@ def run_maelstrom(
 
         # Add percentage of input sequences with motif
         if df.shape[1] > 1:
-            df_p["% with motif"] = counts[df_p.index].sum(0) / df.shape[0] * 100
+            df_p["% with motif"] = (counts[df_p.index] > 0).sum(0) / df.shape[0] * 100
         else:
             bla = counts.join(df).groupby(df.columns[0]).mean() * 100
             bla = bla.T
