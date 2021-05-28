@@ -16,7 +16,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## [0.16.0] - 2021-05-28
 
-Thanks to @kirbyziegler for proposing many fixes and @Maarten-vs-Sande for the speed improvements.
+Thanks to @kirbyziegler for proposing many fixes and @Maarten-vd-Sande for the speed improvements.
 
 ### Added
 
