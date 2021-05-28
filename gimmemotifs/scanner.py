@@ -1116,7 +1116,7 @@ class Scanner(object):
                 if len(self.meanstd) != 1:
                     self.set_meanstd(gc=gc)
 
-        batch_size = 10000
+        batch_size = 50000
         logger.debug("Scanning")
         for batch_idx in range(0, len(seqs), batch_size):
             it = self._scan_sequences(
@@ -1197,12 +1197,11 @@ class Scanner(object):
             yield ret
 
     def _scan_jobs(self, scan_func, scan_seqs):
-        batchsize = 1000
-
         if self.ncpus > 1:
+            median_len = np.median([len(x) for x in scan_seqs])
+            chunksize = 200000 // int(median_len)  # 1000 seqs for len 200
             # prepare for parallel processing
             k = 0
-            chunksize = batchsize // self.ncpus + 1
             max_queue_size = 2 * self.ncpus
             jobs = []
 
@@ -1233,6 +1232,7 @@ class Scanner(object):
                 jobs = jobs[1:]
         else:
             # non-parallel job scanning
+            batchsize = 1000
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
                 batch_seqs = scan_seqs[i * batchsize : (i + 1) * batchsize]
                 seq_gc_bins = [self.get_seq_bin(seq) for seq in batch_seqs]
