@@ -7,34 +7,41 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+### Changed
+
 ### Removed
 
 ### Changed
 
-### Fixed
-
-
 ## [0.16.0] - 2021-05-28
 
-Thanks to @kirbyziegler for proposing many fixes and @Maarten-vd-Sande for the speed improvements.
+Many bugfixes, thanks to @kirbyziegler, @irzhegalova, @wangmhan, @ClarissaFeuersteinAkgoz and @fgualdr for reporting and proposing solutions!
+Thanks to @Maarten-vd-Sande for the speed improvements.
 
 ### Added
 
 * `gimme motif2factors` command to annotate a motif database with TFs from different species
   based on orthogroups.
 * Informative error message with link to fix when cache is corrupted (running on a cluster).
+* Print an informative error message if the input file is not in the correct format.
 
 ### Changed
 
 * Speed improvements to motif scanning, which is now up to 2X faster!
+* Size of input regions is now automatically adjusted (#123, #128, #129)
+* Quantile normalization in `coverage_table` now uses multiple CPUs.
 
 ### Fixed
 
-* Fixed issues where command line parameters to `gimme motifs` would be ignored (#177).
-* Fixed issues with trawler (#181).
-* Fixed issues with YAMDA (#180).
-* Fixed issues with XXmotif (#178).
 * Fixes issue where % of motif occurence would be incorrectly reported in `gimme maelstrom` output (#162).
+* Fix issues with running Trawler (#181)
+* Fix issues with running YAMDA (#180)
+* Fix issues with parsing XXmotif output (#178)
+* Fix issue where command line argument (such as single strand) are ignored (#177)
+* Fix pyarrow dependency (#176)
+* The correct % of regions with motif is now reported (#162)
+* Fix issue with running `gimme motifs` with the HOMER database (#135)
+* Fix issue with the `--size` parameter in `gimme motifs`, which now works as expected (#128)
 
 ## [0.15.3] - 2021-02-01
 
