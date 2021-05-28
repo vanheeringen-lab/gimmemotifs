@@ -34,7 +34,7 @@ logger = logging.getLogger("gimme.motifs")
 
 
 def motifs(args):
-    """ Calculate ROC_AUC and other metrics and optionally plot ROC curve."""
+    """Calculate ROC_AUC and other metrics and optionally plot ROC curve."""
     if args.outdir is None:
         raise ValueError("an output directory is required!")
     if not os.path.exists(args.outdir):
