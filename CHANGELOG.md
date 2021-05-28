@@ -7,14 +7,34 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-* `gimme motif2factors` command to annotate a motif database with TFs from different specie
-  based on orthogroups.
-
 ### Removed
 
 ### Changed
 
 ### Fixed
+
+
+## [0.16.0] - 2021-05-28
+
+Thanks to @kirbyziegler for proposing many fixes and @Maarten-vs-Sande for the speed improvements.
+
+### Added
+
+* `gimme motif2factors` command to annotate a motif database with TFs from different species
+  based on orthogroups.
+* Informative error message with link to fix when cache is corrupted (running on a cluster).
+
+### Changed
+
+* Speed improvements to motif scanning, which is now up to 2X faster!
+
+### Fixed
+
+* Fixed issues where command line parameters to `gimme motifs` would be ignored (#177).
+* Fixed issues with trawler (#181).
+* Fixed issues with YAMDA (#180).
+* Fixed issues with XXmotif (#178).
+* Fixes issue where % of motif occurence would be incorrectly reported in `gimme maelstrom` output (#162).
 
 ## [0.15.3] - 2021-02-01
 
