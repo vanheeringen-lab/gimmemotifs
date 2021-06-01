@@ -93,6 +93,7 @@ def motif2factor_from_orthologs(
     logger.info(f"outdir: {outdir}.")
 
     all_genomes = set(database_references + extra_orthologs_references + new_reference)
+    threads = str(threads)
 
     # download all required genomes
     logger.info("Downloading all assemblies.")
