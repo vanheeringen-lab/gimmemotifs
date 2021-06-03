@@ -440,9 +440,9 @@ def gc_bin_bedfile(
             # print(col, b_start, b_end)
             df_bin = df[(df[col] > b_start) & (df[col] <= b_end)]
             # print(df_bin)
+            df_bin["start"] = df_bin["end"] - length
+            df_bin = df_bin[df_bin["start"] > 0]
             if df_bin.shape[0] > 0:
-                df_bin["start"] = df_bin["end"] - length
-                df_bin = df_bin[df_bin["start"] > 0]
                 df_bin = df_bin.sample(n, replace=True, random_state=random_state)
                 df_bin["bin"] = "{:.2f}-{:.2f}".format(b_start, b_end)
                 df_bin[["chrom", "start", "end", "bin"]].to_csv(
