@@ -1125,29 +1125,31 @@ class Scanner(object):
         logger.debug("Scanning")
         if not thresholds:
             thresholds = self.get_gc_thresholds(seqs, motifs=motifs, zscore=zscore)
-            thresholds = [thresholds[m.id] for m in motifs]
+            thresholds = [thresholds.get(m.id, None) for m in motifs]
         
         flat_list = [float(item) for sublist in self.gc_bins for item in sublist]
         with SharedMemoryManager() as smm:
             scandata = get_scandata(smm, motifs, seqs, flat_list, thresholds, zscore)
             seq_ids = list(range(len(seqs)))
             batch = 50
-            with ProcessPoolExecutor(self.ncpus) as exe:
-                fs = [
-                    exe.submit(
-                        scan_seqs_worker,
-                        scandata,
-                        seq_ids[i : i + batch],
-                        nreport=nreport,
-                        scan_rc=scan_rc,
-                        motifs_meanstd=self.meanstd,
-                        zscore=zscore,
-                    )
-                    for i in range(0, len(seqs), batch)
-                ]
-                for future in tqdm(as_completed(fs), total=len(seqs) // batch):
-                    for row in future.result():
-                        yield row
+            for j in range(0, len(seqs), 2000):
+                subseqs = seqs[j:j+2000]
+                with ProcessPoolExecutor(self.ncpus) as exe:
+                    fs = [
+                        exe.submit(
+                            scan_seqs_worker,
+                            scandata,
+                            seq_ids[j * 2000 + i : j * 2000 + i + batch],
+                            nreport=nreport,
+                            scan_rc=scan_rc,
+                            motifs_meanstd=self.meanstd,
+                            zscore=zscore,
+                        )
+                        for i in range(0, len(subseqs), batch)
+                    ]
+                    for future in tqdm(as_completed(fs), total=len(subseqs) // batch):
+                        for row in future.result():
+                            yield row
 
     def get_gc_thresholds(self, seqs, motifs=None, zscore=False):
         # Simple case, only one threshold
