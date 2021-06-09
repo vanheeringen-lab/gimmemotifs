@@ -27,8 +27,6 @@ def pfmscan(args):
         scan_rc=args.scan_rc,
         table=args.table,
         score_table=args.score_table,
-        moods=args.moods,
-        pvalue=args.pvalue,
         bgfile=args.bgfile,
         genome=args.genome,
         ncpus=args.ncpus,
