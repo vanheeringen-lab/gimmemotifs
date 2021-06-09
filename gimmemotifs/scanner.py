@@ -158,7 +158,7 @@ def scan_seqs_worker(
             if zscore:
 
                 seq_gc_bin = get_seq_bin(seq, gc_bin_list)
-                print(seq_gc_bin)
+                
                 m_mean, m_std = motifs_meanstd[seq_gc_bin][i]
                 result = pwmscan(seq, pwm, cutoff * m_std + m_mean, nreport, scan_rc)
                 result = [[(row[0] - m_mean) / m_std, row[1], row[2]] for row in result]
@@ -688,16 +688,17 @@ class Scanner(object):
 
     def _meanstd_from_seqs(self, motifs, seqs):
         table = []
-        for x in self.scan(seqs, motifs=motifs, nreport=1, scan_rc=True):
+        thresholds = [m.pwm_min_score() for m in motifs]
+        for x in self.scan(seqs, motifs=motifs, thresholds=thresholds, nreport=1, scan_rc=True):
             table.append([row[0][0] for row in x])
 
-        for (motif, _), scores in zip(motifs, np.array(table).transpose()):
+        for motif, scores in zip(motifs, np.array(table).transpose()):
             yield motif, np.mean(scores), np.std(scores)  # cutoff
 
     def _threshold_from_seqs(self, motifs, seqs, fpr):
         table = []
         seq_gc_bins = [self.get_seq_bin(seq) for seq in seqs]
-        thresholds = [m.pwm_min_score for m in motifs]
+        thresholds = [m.pwm_min_score() for m in motifs]
         for gc_bin, result in zip(
             seq_gc_bins, self.scan(seqs, motifs=motifs, thresholds=thresholds, nreport=1, scan_rc=True)
         ):
@@ -1130,7 +1131,7 @@ class Scanner(object):
         with SharedMemoryManager() as smm:
             scandata = get_scandata(smm, motifs, seqs, flat_list, thresholds, zscore)
             seq_ids = list(range(len(seqs)))
-            batch = 5
+            batch = 50
             with ProcessPoolExecutor(self.ncpus) as exe:
                 fs = [
                     exe.submit(
