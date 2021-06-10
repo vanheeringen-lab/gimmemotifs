@@ -7,11 +7,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+* Added warning when the number of sequences used for de novo motif prediction is low.
+
 ### Changed
+
+### Fixed
+
+* Fixed bugs related to runs where no (significant) motifs is found.
 
 ### Removed
 
-### Changed
 
 ## [0.16.0] - 2021-05-28
 
