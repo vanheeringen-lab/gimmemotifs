@@ -700,7 +700,7 @@ class Scanner(object):
         seq_gc_bins = [self.get_seq_bin(seq) for seq in seqs]
         thresholds = [m.pwm_min_score() for m in motifs]
         for gc_bin, result in zip(
-            seq_gc_bins, self.scan(seqs, motifs=motifs, thresholds=thresholds, nreport=1, scan_rc=True)
+            seq_gc_bins, self.scan(seqs, motifs=motifs, thresholds=thresholds, nreport=1, scan_rc=True, progress=False)
         ):
             try:
                 table.append([gc_bin] + [row[0][0] for row in result])
@@ -869,7 +869,7 @@ class Scanner(object):
                 if not fa:
                     if gc:
                         with NamedTemporaryFile() as tmp:
-                            logger.info("using {} sequences".format(nseq))
+                            logger.debug("using {} sequences".format(nseq))
                             gc_bin_bedfile(
                                 tmp.name, genome, number=nseq, length=size, bins=gc_bins
                             )
@@ -1101,6 +1101,7 @@ class Scanner(object):
         scan_rc=True,
         zscore=False,
         gc=False,
+        progress=True,
     ):
         """
         Scan a set of regions or sequences.
@@ -1131,28 +1132,42 @@ class Scanner(object):
         with SharedMemoryManager() as smm:
             scandata = get_scandata(smm, motifs, seqs, flat_list, thresholds, zscore)
             seq_ids = list(range(len(seqs)))
-            batch = 5
+
+            chunk = 5000 #min(5000, len(seqs) // self.ncpus + (len(seqs) % self.ncpus > 0))
+            batch = 50
+            c = 0
+            if progress:
+                pbar = tqdm(total=len(seqs))
             with ProcessPoolExecutor(self.ncpus) as exe:
-                for j in tqdm(range(0, len(seqs), 200)):            
+                # We submit in chunks to keep memory use in check. 
+                # If everything is submitted at once, memory explodes as the memory claimed
+                # by the futures is not released.
+                result = []
+                for j in range(0, len(seqs), chunk):                    
                     fs = [
                         exe.submit(
                             scan_seqs_worker,
                             scandata,
-                            seq_ids[j * 2000 + i : j * 2000 + i + batch],
+                            seq_ids[j + i : j + i + batch],
                             nreport=nreport,
                             scan_rc=scan_rc,
                             motifs_meanstd=self.meanstd,
                             zscore=zscore,
                         )
-                        for i in range(0, 2000, batch)
+                        for i in range(0, chunk, batch)
                     ]
                     for future in as_completed(fs):
+                        
+                                                
                         for row in future.result():
                             yield row
-                    
-                        #del fs[future]
-                        #del future
                         
+                        if progress:
+                            pbar.update(batch)
+                        
+                        del future
+            if progress:
+                pbar.close()   
 
 
     def get_gc_thresholds(self, seqs, motifs=None, zscore=False):
