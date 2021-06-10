@@ -7,7 +7,7 @@ from gimmemotifs.shutils import which
 
 
 class TestMotif(unittest.TestCase):
-    """ A test class for Motif """
+    """A test class for Motif"""
 
     def setUp(self):
         self.data_dir = "test/data/motif"
@@ -28,28 +28,28 @@ class TestMotif(unittest.TestCase):
         ]
 
     def test1_motif_instance(self):
-        """ Creation of Motif instance """
+        """Creation of Motif instance"""
         m = Motif()
 
         self.assertTrue(type(m))
 
     def test2_motif_instance_pfm(self):
-        """ Creation of Motif instance from pfm"""
+        """Creation of Motif instance from pfm"""
         m = Motif(self.pfm)
         self.assertTrue(m)
 
     def test3_motif_length(self):
-        """ Motif length """
+        """Motif length"""
         m = Motif(self.pfm)
         self.assertEqual(10, len(m))
 
     def test4_motif_consensus(self):
-        """ Motif length """
+        """Motif length"""
         m = Motif(self.pfm)
         self.assertEqual("ACGTmskrwy", m.to_consensus())
 
     def test5_motif_to_img(self):
-        """ Motif to img """
+        """Motif to img"""
         seqlogo = which("seqlogo")
         if seqlogo:
             m = Motif(self.pfm)

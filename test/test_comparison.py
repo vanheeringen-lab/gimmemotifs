@@ -6,13 +6,13 @@ from time import sleep
 
 
 class TestComparison(unittest.TestCase):
-    """ A test class to test comparison funcitonality """
+    """A test class to test comparison funcitonality"""
 
     def setUp(self):
         pass
 
     def test1_closest_match(self):
-        """ Closest match """
+        """Closest match"""
         mc = MotifComparer()
 
         pwm = "test/data/pwmscan/TATA.pwm"

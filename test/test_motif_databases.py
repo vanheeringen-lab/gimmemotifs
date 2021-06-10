@@ -3,7 +3,7 @@ from gimmemotifs.db import MotifDb
 
 
 class TestMotifDatabases(unittest.TestCase):
-    """ A test class for motif database functionality """
+    """A test class for motif database functionality"""
 
     def setUp(self):
         pass

@@ -654,8 +654,8 @@ def _as_seqdict_filename(to_convert, genome=None, minsize=None):
     if not os.path.exists(to_convert):
         raise ValueError("Assuming filename, but it does not exist")
 
-    f = open(to_convert)
-    fa = as_seqdict(f)
+    with open(to_convert) as f:
+        fa = as_seqdict(f)
 
     if any(fa):
         return _check_minsize(fa, minsize)

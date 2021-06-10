@@ -52,11 +52,15 @@ def stat_functions():
             "gc": False,
             "zscore": False,
         },
-        {"motifs": motifs, "fg_table": fg_table, "bg_table": bg_table,},
+        {
+            "motifs": motifs,
+            "fg_table": fg_table,
+            "bg_table": bg_table,
+        },
     ],
 )
 def test1_stats(kwargs, stat_functions):
-    """ Calculate motif statistics """
+    """Calculate motif statistics"""
     for ncpus in [1, 2]:
         kwargs["ncpus"] = ncpus
         stats = calc_stats(**kwargs)
@@ -125,7 +129,7 @@ def test_one_statistic(kwargs):
     ],
 )
 def test2_stats_single_motif(kwargs):
-    """ Calculate motif statistics """
+    """Calculate motif statistics"""
 
     m_id = "p53_Average_8_CATGyCnGGrCATGy"
 

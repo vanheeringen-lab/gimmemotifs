@@ -115,7 +115,10 @@ def pwms_from_scandata(scandata):
 def get_scandata(smm, motifs, seqs, gc_bin_list, thresholds=None, zscore=False):
     seq_list = smm.ShareableList([seq.upper() for seq in seqs])
     motif_name, motif_shape, motif_dtype = motifs_to_shareable_array(
-        smm, motifs, thresholds, zscore,
+        smm,
+        motifs,
+        thresholds,
+        zscore,
     )
     gc_bin_list = smm.ShareableList(gc_bin_list)
     scandata = ScanData(
@@ -158,14 +161,14 @@ def scan_seqs_worker(
             if zscore:
 
                 seq_gc_bin = get_seq_bin(seq, gc_bin_list)
-                
+
                 m_mean, m_std = motifs_meanstd[seq_gc_bin][i]
                 result = pwmscan(seq, pwm, cutoff * m_std + m_mean, nreport, scan_rc)
                 result = [[(row[0] - m_mean) / m_std, row[1], row[2]] for row in result]
                 # result = [row for row in result if row[0] >= cutoff]
             else:
                 result = pwmscan(seq, pwm, cutoff, nreport, scan_rc)
-                
+
             if len(result) == 0 and (cutoff is None or cutoff <= pwm_min_score):
                 result = [[pwm_min_score, 0, 1]] * nreport
             row.append(result)
@@ -280,9 +283,8 @@ def scan_regionfile_to_table(
     else:
         check_regions = regions
 
-    size = int(
-        np.median([len(seq) for seq in as_fasta(check_regions, genome=genome).seqs])
-    )
+    seqs = as_fasta(check_regions, genome=genome).seqs
+    size = int(np.median([len(seq) for seq in seqs]))
     s = Scanner(ncpus=ncpus)
     s.set_motifs(pfmfile)
     s.set_genome(genome)
@@ -293,7 +295,7 @@ def scan_regionfile_to_table(
         logger.info("setting threshold")
         s.set_threshold(fpr=FPR)
         logger.info("creating count table")
-        for row in s.count(regions):
+        for row in s.count(seqs):
             scores.append(row)
         logger.info("done")
     else:
@@ -307,7 +309,7 @@ def scan_regionfile_to_table(
         else:
             msg += " (logodds)"
         logger.info(msg)
-        for row in s.best_score(regions, zscore=zscore, gc=gc):
+        for row in s.best_score(seqs, zscore=zscore, gc=gc):
             scores.append(row)
         logger.info("done")
 
@@ -336,7 +338,7 @@ def scan_score_table(s, fa, motifs, scan_rc, zscore=False, gcnorm=False):
 
     s.set_threshold(threshold=0.0, gc=gcnorm)
     # get iterator
-    result_it = s.best_score(fa, scan_rc, zscore=zscore, gc=gcnorm)
+    result_it = s.best_score(fa, scan_rc=scan_rc, zscore=zscore, gc=gcnorm)
     # header
     yield "\t{}".format("\t".join([m.id for m in motifs]))
     # score table
@@ -539,21 +541,23 @@ def scan_to_best_match(
     if genome:
         s.set_genome(genome)
 
-    if isinstance(motifs, str):
+    if motifs is None or isinstance(motifs, str):
         motifs = read_motifs(motifs)
 
     logger.debug("scanning %s...", fname)
     result = dict([(m.id, []) for m in motifs])
+
+    print(f"to seqs: {fname}")
+    print(f" genome: {genome}")
+    seqs = as_fasta(fname, genome=genome).seqs
+
     if score:
-        it = s.best_score(fname, zscore=zscore, gc=gc)
+        it = s.best_score(seqs, zscore=zscore, gc=gc)
     else:
-        it = s.best_match(fname, zscore=zscore, gc=gc)
+        it = s.best_match(seqs, zscore=zscore, gc=gc)
     for scores in it:
         for motif, score in zip(motifs, scores):
             result[motif.id].append(score)
-
-    # Close the pool and reclaim memory
-    del s
 
     return result
 
@@ -689,7 +693,9 @@ class Scanner(object):
     def _meanstd_from_seqs(self, motifs, seqs):
         table = []
         thresholds = [m.pwm_min_score() for m in motifs]
-        for x in self.scan(seqs, motifs=motifs, thresholds=thresholds, nreport=1, scan_rc=True):
+        for x in self.scan(
+            seqs, motifs=motifs, thresholds=thresholds, nreport=1, scan_rc=True
+        ):
             table.append([row[0][0] for row in x])
 
         for motif, scores in zip(motifs, np.array(table).transpose()):
@@ -700,7 +706,15 @@ class Scanner(object):
         seq_gc_bins = [self.get_seq_bin(seq) for seq in seqs]
         thresholds = [m.pwm_min_score() for m in motifs]
         for gc_bin, result in zip(
-            seq_gc_bins, self.scan(seqs, motifs=motifs, thresholds=thresholds, nreport=1, scan_rc=True, progress=False)
+            seq_gc_bins,
+            self.scan(
+                seqs,
+                motifs=motifs,
+                thresholds=thresholds,
+                nreport=1,
+                scan_rc=True,
+                progress=False,
+            ),
         ):
             try:
                 table.append([gc_bin] + [row[0][0] for row in result])
@@ -1032,7 +1046,9 @@ class Scanner(object):
         returns an iterator of lists containing floats
         """
         self.set_threshold(threshold=0.0, gc=gc)
-        for matches in self.scan(seqs, nreport=1, scan_rc=scan_rc, zscore=zscore, gc=gc):
+        for matches in self.scan(
+            seqs, nreport=1, scan_rc=scan_rc, zscore=zscore, gc=gc
+        ):
             scores = np.array(
                 [sorted(m, key=lambda x: x[0])[0][0] for m in matches if len(m) > 0]
             )
@@ -1045,7 +1061,9 @@ class Scanner(object):
         (score, position, strand)
         """
         self.set_threshold(threshold=0.0)
-        for matches in self.scan(seqs, nreport=1, scan_rc=scan_rc, zscore=zscore, gc=gc):
+        for matches in self.scan(
+            seqs, nreport=1, scan_rc=scan_rc, zscore=zscore, gc=gc
+        ):
             yield [m[0] for m in matches]
 
     def get_seq_bin(self, seq):
@@ -1109,11 +1127,11 @@ class Scanner(object):
         if motifs is None:
             motifs = read_motifs(self.motifs)
 
-        try:
-            for char in set(seqs[0].upper()):
-                assert char in " ACGTN"
-        except Exception:
-            seqs = as_fasta(seqs).seqs
+        if isinstance(seqs, str):
+            seqs = Fasta(seqs).seqs
+
+        if isinstance(seqs, Fasta):
+            seqs = seqs.seqs
 
         if zscore:
             if gc:
@@ -1127,23 +1145,22 @@ class Scanner(object):
         if not thresholds:
             thresholds = self.get_gc_thresholds(seqs, motifs=motifs, zscore=zscore)
             thresholds = [thresholds.get(m.id, None) for m in motifs]
-        
+
         flat_list = [float(item) for sublist in self.gc_bins for item in sublist]
         with SharedMemoryManager() as smm:
             scandata = get_scandata(smm, motifs, seqs, flat_list, thresholds, zscore)
             seq_ids = list(range(len(seqs)))
 
-            chunk = 5000 #min(5000, len(seqs) // self.ncpus + (len(seqs) % self.ncpus > 0))
-            batch = 50
-            c = 0
+            batch = 100
+            chunk = batch * self.ncpus
+
             if progress:
                 pbar = tqdm(total=len(seqs))
             with ProcessPoolExecutor(self.ncpus) as exe:
-                # We submit in chunks to keep memory use in check. 
+                # We submit in chunks to keep memory use in check.
                 # If everything is submitted at once, memory explodes as the memory claimed
                 # by the futures is not released.
-                result = []
-                for j in range(0, len(seqs), chunk):                    
+                for j in range(0, len(seqs), chunk):
                     fs = [
                         exe.submit(
                             scan_seqs_worker,
@@ -1157,18 +1174,15 @@ class Scanner(object):
                         for i in range(0, chunk, batch)
                     ]
                     for future in as_completed(fs):
-                        
-                                                
                         for row in future.result():
                             yield row
-                        
+
                         if progress:
                             pbar.update(batch)
-                        
+
                         del future
             if progress:
-                pbar.close()   
-
+                pbar.close()
 
     def get_gc_thresholds(self, seqs, motifs=None, zscore=False):
         # Simple case, only one threshold
