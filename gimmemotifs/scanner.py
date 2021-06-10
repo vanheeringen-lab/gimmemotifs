@@ -805,7 +805,7 @@ class Scanner(object):
 
                 v = float(gc_bin.split("-")[1])
                 _, bstr = sorted(valid_bins, key=lambda x: abs(x[0] - v))[0]
-                logger.warn(f"Using {bstr}")
+                # logger.warn(f"Using {bstr}")
                 self.meanstd[gc_bin] = self.meanstd[bstr]
 
     def set_background(
@@ -847,7 +847,8 @@ class Scanner(object):
             nseq = max(10000, len(gc_bins) * 1000)
 
         if genome and fname:
-            raise ValueError("Need either genome or filename for background.")
+            logger.debug("using genome for background")
+            fname = None
 
         if fname:
             if not os.path.exists(fname):

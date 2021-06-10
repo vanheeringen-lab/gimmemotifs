@@ -106,6 +106,17 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
     pred_bedfile = os.path.join(outdir, "prediction.bed")
     val_bedfile = os.path.join(outdir, "validation.bed")
 
+    with open(bedfile) as f:
+        n_regions = len(f.readlines())
+
+    if n_regions < 500 and fraction <= 0.2:
+        logger.warn(
+            f"You have {n_regions} input regions and only {int(fraction * n_regions)} will be used for motif prediction."
+        )
+        logger.warn(
+            "You may consider to increase the fraction for prediction (-f, --fraction)"
+        )
+
     # Split input into prediction and validation set
     logger.debug(
         "Splitting %s into prediction set (%s) and validation set (%s)",
@@ -144,6 +155,18 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
     logger.info("preparing input (FASTA)")
 
     pred_fa = os.path.join(outdir, "prediction.fa")
+
+    fa = Fasta(inputfile)
+    n_regions = len(fa)
+
+    if n_regions < 500 and fraction <= 0.2:
+        logger.warn(
+            f"You have {n_regions} input regions and only {int(fraction * n_regions)} will be used for motif prediction."
+        )
+        logger.warn(
+            "You may consider to increase the fraction for prediction (-f, --fraction)"
+        )
+
     val_fa = os.path.join(outdir, "validation.fa")
     loc_fa = os.path.join(outdir, "localization.fa")
 
@@ -450,21 +473,22 @@ def best_motif_in_cluster(
     motifs = dict([(str(m), m) for m in motifs])
 
     # get the statistics for those motifs that were not yet checked
-    clustered_motifs = []
+    eval_motifs = []
     for clus, singles in clusters:
         for motif in set([clus] + singles):
             if str(motif) not in stats:
-                clustered_motifs.append(motifs[str(motif)])
+                eval_motifs.append(motifs[str(motif)])
 
-    new_stats = {}
-    for bg, bg_fa in background.items():
-        for m, s in calc_stats(
-            fg_file=fg_fa, bg_file=bg_fa, motifs=clustered_motifs, genome=genome
-        ).items():
-            if m not in new_stats:
-                new_stats[m] = {}
-            new_stats[m][bg] = s
-    stats.update(new_stats)
+    if len(eval_motifs) > 0:
+        new_stats = {}
+        for bg, bg_fa in background.items():
+            for m, s in calc_stats(
+                fg_file=fg_fa, bg_file=bg_fa, motifs=eval_motifs, genome=genome
+            ).items():
+                if m not in new_stats:
+                    new_stats[m] = {}
+                new_stats[m][bg] = s
+        stats.update(new_stats)
 
     rank = rank_motifs(stats, metrics)
 
@@ -620,7 +644,7 @@ def gimme_motifs(
     )
 
     if len(result.motifs) == 0:
-        logger.info("finished")
+        logger.info("de novo finished")
         return []
 
     # Write statistics
@@ -634,7 +658,7 @@ def gimme_motifs(
         )
         if len(motifs) == 0:
             logger.info("no significant motifs")
-            return
+            return []
 
         pfmfile = os.path.join(tmpdir, "significant_motifs.pfm")
     else:
@@ -701,7 +725,7 @@ def gimme_motifs(
         )
         shutil.rmtree(tmpdir)
 
-    logger.info("finished")
+    logger.info("de novo finished")
     logger.info("output dir: %s", outdir)
     if motifs_found and cluster:
         logger.info("de novo report: %s", os.path.join(outdir, "gimme.denovo.html"))
