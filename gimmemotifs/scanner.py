@@ -1131,10 +1131,9 @@ class Scanner(object):
         with SharedMemoryManager() as smm:
             scandata = get_scandata(smm, motifs, seqs, flat_list, thresholds, zscore)
             seq_ids = list(range(len(seqs)))
-            batch = 50
-            for j in range(0, len(seqs), 2000):
-                subseqs = seqs[j:j+2000]
-                with ProcessPoolExecutor(self.ncpus) as exe:
+            batch = 5
+            with ProcessPoolExecutor(self.ncpus) as exe:
+                for j in tqdm(range(0, len(seqs), 200)):            
                     fs = [
                         exe.submit(
                             scan_seqs_worker,
@@ -1145,11 +1144,16 @@ class Scanner(object):
                             motifs_meanstd=self.meanstd,
                             zscore=zscore,
                         )
-                        for i in range(0, len(subseqs), batch)
+                        for i in range(0, 2000, batch)
                     ]
-                    for future in tqdm(as_completed(fs), total=len(subseqs) // batch):
+                    for future in as_completed(fs):
                         for row in future.result():
                             yield row
+                    
+                        #del fs[future]
+                        #del future
+                        
+
 
     def get_gc_thresholds(self, seqs, motifs=None, zscore=False):
         # Simple case, only one threshold
