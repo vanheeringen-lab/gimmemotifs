@@ -571,7 +571,7 @@ def _unknownfactor2symbols(factor, fields):
                 elif isinstance(subhit, dict) and "gene" in subhit:
                     symbols.add(subhit["gene"])
                 else:
-                    assert False
+                    raise AssertionError()
 
     return [symbol for symbol in symbols if "'" not in symbol]
 
