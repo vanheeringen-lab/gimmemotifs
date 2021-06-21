@@ -419,7 +419,7 @@ def run_maelstrom(
         pfmfile = os.path.join(outdir, "nonredundant.motifs.pfm")
         with open(pfmfile, "w") as f:
             for motif in motifs:
-                if motif.id in m2f["Motif"]:
+                if motif.id in selected_motifs:
                     f.write(f"{motif.to_pfm()}\n")
 
         mapfile = pfmfile.replace(".pfm", ".motif2factors.txt")
