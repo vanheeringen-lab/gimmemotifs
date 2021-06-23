@@ -35,6 +35,7 @@ class TestScanner(unittest.TestCase):
             self.assertEqual([1, 1, 1], nmatches)
 
             s.set_threshold(threshold=0.99)
+            print(s._threshold)
             nmatches = [
                 len(m[0])
                 for m in s.scan(f.seqs, nreport=1, scan_rc=False, progress=False)

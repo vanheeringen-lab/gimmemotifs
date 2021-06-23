@@ -212,7 +212,6 @@ def pp_predict_motifs(
     single=False,
     background="",
     tools=None,
-    job_server=None,
     ncpus=8,
     max_time=-1,
     stats_fg=None,
@@ -247,77 +246,76 @@ def pp_predict_motifs(
         sys.stderr.write("Setting analysis xs to small")
         analysis = "small"
 
-    if not job_server:
-        n_cpus = int(config.get_default_params()["ncpus"])
-        job_server = Pool(processes=n_cpus, maxtasksperchild=1000)
+    n_cpus = int(config.get_default_params()["ncpus"])
+    with Pool(processes=n_cpus, maxtasksperchild=1000) as job_server:
 
-    jobs = {}
+        jobs = {}
 
-    result = PredictionResult(
-        outfile,
-        organism,
-        fg_file=stats_fg,
-        background=stats_bg,
-        gc=gc,
-        job_server=job_server,
-    )
-
-    # Dynamically load all tools
-
-    toolio = [
-        x[1]()
-        for x in inspect.getmembers(
-            tool_classes,
-            lambda x: inspect.isclass(x)
-            and issubclass(x, tool_classes.motifprogram.MotifProgram),
+        result = PredictionResult(
+            outfile,
+            organism,
+            fg_file=stats_fg,
+            background=stats_bg,
+            gc=gc,
+            job_server=job_server,
         )
-        if x[0] != "MotifProgram"
-    ]
 
-    # TODO:
-    # Add warnings for running time: Weeder, GADEM
+        # Dynamically load all tools
 
-    # Add all jobs to the job_server
-    params = {
-        "analysis": analysis,
-        "background": background,
-        "single": single,
-        "organism": organism,
-    }
-
-    # Tools that don't use a specified width usually take longer
-    # ie. GADEM, XXmotif, MEME
-    # Start these first.
-    for t in [tool for tool in toolio if not tool.use_width]:
-        if t.name in tools and tools[t.name]:
-            logger.debug("Starting %s job", t.name)
-            job_name = t.name
-            jobs[job_name] = job_server.apply_async(
-                _run_tool, (job_name, t, fastafile, params), callback=result.add_motifs
+        toolio = [
+            x[1]()
+            for x in inspect.getmembers(
+                tool_classes,
+                lambda x: inspect.isclass(x)
+                and issubclass(x, tool_classes.motifprogram.MotifProgram),
             )
-        else:
-            logger.debug("Skipping %s", t.name)
+            if x[0] != "MotifProgram"
+        ]
 
-    for t in [tool for tool in toolio if tool.use_width]:
-        if t.name in tools and tools[t.name]:
-            for i in range(wmin, wmax + 1, step):
-                logger.debug("Starting %s job, width %s", t.name, i)
-                job_name = "%s_width_%s" % (t.name, i)
-                my_params = params.copy()
-                my_params["width"] = i
+        # TODO:
+        # Add warnings for running time: Weeder, GADEM
+
+        # Add all jobs to the job_server
+        params = {
+            "analysis": analysis,
+            "background": background,
+            "single": single,
+            "organism": organism,
+        }
+
+        # Tools that don't use a specified width usually take longer
+        # ie. GADEM, XXmotif, MEME
+        # Start these first.
+        for t in [tool for tool in toolio if not tool.use_width]:
+            if t.name in tools and tools[t.name]:
+                logger.debug("Starting %s job", t.name)
+                job_name = t.name
                 jobs[job_name] = job_server.apply_async(
-                    _run_tool,
-                    (job_name, t, fastafile, my_params),
-                    callback=result.add_motifs,
+                    _run_tool, (job_name, t, fastafile, params), callback=result.add_motifs
                 )
-        else:
-            logger.debug("Skipping %s", t.name)
+            else:
+                logger.debug("Skipping %s", t.name)
 
-    logger.info("all jobs submitted")
-    for job in jobs.values():
-        job.get()
+        for t in [tool for tool in toolio if tool.use_width]:
+            if t.name in tools and tools[t.name]:
+                for i in range(wmin, wmax + 1, step):
+                    logger.debug("Starting %s job, width %s", t.name, i)
+                    job_name = "%s_width_%s" % (t.name, i)
+                    my_params = params.copy()
+                    my_params["width"] = i
+                    jobs[job_name] = job_server.apply_async(
+                        _run_tool,
+                        (job_name, t, fastafile, my_params),
+                        callback=result.add_motifs,
+                    )
+            else:
+                logger.debug("Skipping %s", t.name)
 
-    result.wait_for_stats()
+        logger.info("all jobs submitted")
+        for job in jobs.values():
+            job.get()
+
+        result.wait_for_stats()
 
     return result
 

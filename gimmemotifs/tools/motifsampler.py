@@ -4,7 +4,9 @@ from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 
 from gimmemotifs.motif import Motif
+import logging
 
+logger = logging.getLogger("gimme.tools.motifsampler")
 
 class MotifSampler(MotifProgram):
 
@@ -100,6 +102,10 @@ class MotifSampler(MotifProgram):
         # print cmd
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
+
+        if b"Segmentation" in stderr:
+            logger.error("MotifSampler failed, segmentation fault")
+            return [], stdout, stderr
 
         # stdout,stderr = "",""
         # p = Popen(cmd, shell=True)

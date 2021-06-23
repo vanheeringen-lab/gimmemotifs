@@ -1495,6 +1495,8 @@ def parse_motifs(motifs):
     elif isinstance(motifs, Motif):
         motifs = [motifs]
     else:
+        if len(list(motifs)) == 0:
+            raise ValueError("Empty list of motifs")
         if not isinstance(list(motifs)[0], Motif):
             raise ValueError("Not a list of motifs")
 
