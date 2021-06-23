@@ -291,7 +291,9 @@ def pp_predict_motifs(
                 logger.debug("Starting %s job", t.name)
                 job_name = t.name
                 jobs[job_name] = job_server.apply_async(
-                    _run_tool, (job_name, t, fastafile, params), callback=result.add_motifs
+                    _run_tool,
+                    (job_name, t, fastafile, params),
+                    callback=result.add_motifs,
                 )
             else:
                 logger.debug("Skipping %s", t.name)

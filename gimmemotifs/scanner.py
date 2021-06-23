@@ -192,7 +192,7 @@ def scan_seqs_worker(
         for i, pwm in enumerate(pwms):
             pwm_min_score = motifs[i][1]
             cutoff = motifs[i][2]
-            
+
             if zscore:
                 seq_gc_bin = get_seq_bin(seq, gc_bin_list)
 
@@ -885,7 +885,9 @@ class Scanner(object):
             nseq = max(10000, len(gc_bins) * 1000)
 
         if genome and fname:
-            logger.warn("Genome and FASTA filename specified for background. Using custom FASTA file.")
+            logger.warn(
+                "Genome and FASTA filename specified for background. Using custom FASTA file."
+            )
 
         if fname:
             if not os.path.exists(fname):
@@ -1179,7 +1181,7 @@ class Scanner(object):
         if not thresholds:
             thresholds = self.get_gc_thresholds(seqs, motifs=motifs, zscore=zscore)
             thresholds = [thresholds.get(m.id, None) for m in motifs]
-        
+
         flat_list = [float(item) for sublist in self.gc_bins for item in sublist]
         if self.ncpus == 1:
             for row in scan_seqs(

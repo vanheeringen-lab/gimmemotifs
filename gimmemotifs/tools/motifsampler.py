@@ -8,6 +8,7 @@ import logging
 
 logger = logging.getLogger("gimme.tools.motifsampler")
 
+
 class MotifSampler(MotifProgram):
 
     """
