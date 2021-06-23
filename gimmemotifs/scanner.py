@@ -131,6 +131,40 @@ def get_scandata(smm, motifs, seqs, gc_bin_list, thresholds=None, zscore=False):
     return scandata
 
 
+def scan_seqs(
+    seqs,
+    motifs,
+    thresholds,
+    gc_bin_list,
+    nreport=1,
+    scan_rc=True,
+    motifs_meanstd=None,
+    zscore=False,
+):
+    for seq in seqs:
+        row = []
+        seq = seq.upper()
+        for i, (motif, cutoff) in enumerate(zip(motifs, thresholds)):
+            pwm_min_score = motif.pwm_min_score()
+            cutoff = cutoff
+            if zscore:
+                seq_gc_bin = get_seq_bin(seq, gc_bin_list)
+                m_mean, m_std = motifs_meanstd[seq_gc_bin][i]
+                result = pwmscan(
+                    seq, motif.logodds, cutoff * m_std + m_mean, nreport, scan_rc
+                )
+                result = [[(row[0] - m_mean) / m_std, row[1], row[2]] for row in result]
+                # result = [row for row in result if row[0] >= cutoff]
+            else:
+                result = pwmscan(seq, motif.logodds, cutoff, nreport, scan_rc)
+
+            if len(result) == 0 and (cutoff is None or cutoff <= pwm_min_score):
+                result = [[pwm_min_score, 0, 1]] * nreport
+            row.append(result)
+
+        yield row
+
+
 def scan_seqs_worker(
     scandata, seq_ids, nreport=1, scan_rc=True, motifs_meanstd=None, zscore=False
 ):
@@ -158,8 +192,8 @@ def scan_seqs_worker(
         for i, pwm in enumerate(pwms):
             pwm_min_score = motifs[i][1]
             cutoff = motifs[i][2]
+            
             if zscore:
-
                 seq_gc_bin = get_seq_bin(seq, gc_bin_list)
 
                 m_mean, m_std = motifs_meanstd[seq_gc_bin][i]
@@ -851,7 +885,7 @@ class Scanner(object):
             nseq = max(10000, len(gc_bins) * 1000)
 
         if genome and fname:
-            raise ValueError("Need either genome or filename for background.")
+            logger.warn("Genome and FASTA filename specified for background. Using custom FASTA file.")
 
         if fname:
             if not os.path.exists(fname):
@@ -1145,44 +1179,58 @@ class Scanner(object):
         if not thresholds:
             thresholds = self.get_gc_thresholds(seqs, motifs=motifs, zscore=zscore)
             thresholds = [thresholds.get(m.id, None) for m in motifs]
-
+        
         flat_list = [float(item) for sublist in self.gc_bins for item in sublist]
-        with SharedMemoryManager() as smm:
-            scandata = get_scandata(smm, motifs, seqs, flat_list, thresholds, zscore)
-            seq_ids = list(range(len(seqs)))
+        if self.ncpus == 1:
+            for row in scan_seqs(
+                seqs,
+                motifs,
+                thresholds,
+                self.gc_bins,
+                nreport=nreport,
+                scan_rc=scan_rc,
+                motifs_meanstd=self.meanstd,
+                zscore=zscore,
+            ):
+                yield row
+        else:
+            with SharedMemoryManager() as smm:
+                scandata = get_scandata(
+                    smm, motifs, seqs, flat_list, thresholds, zscore
+                )
+                seq_ids = list(range(len(seqs)))
+                batch = 100
+                chunk = batch * self.ncpus
 
-            batch = 100
-            chunk = batch * self.ncpus
+                if progress:
+                    pbar = tqdm(total=len(seqs))
+                with ProcessPoolExecutor(self.ncpus) as exe:
+                    # We submit in chunks to keep memory use in check.
+                    # If everything is submitted at once, memory explodes as the memory claimed
+                    # by the futures is not released.
+                    for j in range(0, len(seqs), chunk):
+                        fs = [
+                            exe.submit(
+                                scan_seqs_worker,
+                                scandata,
+                                seq_ids[j + i : j + i + batch],
+                                nreport=nreport,
+                                scan_rc=scan_rc,
+                                motifs_meanstd=self.meanstd,
+                                zscore=zscore,
+                            )
+                            for i in range(0, chunk, batch)
+                        ]
+                        for future in as_completed(fs):
+                            for row in future.result():
+                                yield row
 
-            if progress:
-                pbar = tqdm(total=len(seqs))
-            with ProcessPoolExecutor(self.ncpus) as exe:
-                # We submit in chunks to keep memory use in check.
-                # If everything is submitted at once, memory explodes as the memory claimed
-                # by the futures is not released.
-                for j in range(0, len(seqs), chunk):
-                    fs = [
-                        exe.submit(
-                            scan_seqs_worker,
-                            scandata,
-                            seq_ids[j + i : j + i + batch],
-                            nreport=nreport,
-                            scan_rc=scan_rc,
-                            motifs_meanstd=self.meanstd,
-                            zscore=zscore,
-                        )
-                        for i in range(0, chunk, batch)
-                    ]
-                    for future in as_completed(fs):
-                        for row in future.result():
-                            yield row
+                            if progress:
+                                pbar.update(batch)
 
-                        if progress:
-                            pbar.update(batch)
-
-                        del future
-            if progress:
-                pbar.close()
+                            del future
+                if progress:
+                    pbar.close()
 
     def get_gc_thresholds(self, seqs, motifs=None, zscore=False):
         # Simple case, only one threshold
