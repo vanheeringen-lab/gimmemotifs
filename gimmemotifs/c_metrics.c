@@ -13,6 +13,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #if PY_MAJOR_VERSION >= 3
     #define PyInt_FromLong PyLong_FromLong
@@ -567,31 +568,60 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 
 	if (j_max < 0) { j_max = 0;}
 	int m;
-
+	int nuc;
 	double pwm_min = -50;	
 	double running_cutoff = cutoff + 0.01;
+	bool stop_forward;
+	bool stop_reverse;
+	float s;
+
+	// Don't bother with early stopping if the cutoff is lenient
+	bool do_early_stopping = running_cutoff > 5;
+	bool update_cutoff = n_report == 1;
+
 	for (j = 0; j < j_max; j++) {
 		score = 0;
 		rc_score = 0;
 		
 		for (m = 0; m < pwm_len; m++) {
-			score += pwm[m][seq[j + m]];
-			rc_score += pwm[pwm_len - m - 1][5 - seq[j + m]];
+			nuc = seq[j + m];
+			score += pwm[m][nuc];
+			rc_score += pwm[pwm_len - m - 1][5 - nuc];
 	
 			if (m < pwm_len - 1) {
-				if ((running_cutoff - score >= pwm_max_left[m]) && (running_cutoff - rc_score >= pwm_max_left_rc[m])){
-					//printf("Stop early pos %d left:%f diff:%f\n", m,pwm_max_left_rc[m ], cutoff - rc_score );
-					break;
+				if (do_early_stopping) {
+					if (!stop_forward) {
+						stop_forward = running_cutoff - score >= pwm_max_left[m];
+					}
+					if (!stop_reverse) {
+						stop_reverse = running_cutoff - rc_score >= pwm_max_left_rc[m];
+					}
+					if (stop_forward && stop_reverse){
+						//printf("Stop early pos %d left:%f diff:%f\n", m,pwm_max_left_rc[m ], cutoff - rc_score );
+						break;
+					}
 				}
 			} 
 			else {
 				// Update the minimum score for early stopping. 
-				if (n_report == 1) {
-					if (score > running_cutoff) {
-						running_cutoff = score + 0.01;
+				if (update_cutoff) {
+					if (!stop_forward) {
+						s = score + 0.01;
+						if (s > running_cutoff) {
+							running_cutoff = s;
+							if (running_cutoff > 5) {
+								do_early_stopping = true;
+							}
+						}
 					}
-					if (rc_score > running_cutoff) {
-						running_cutoff = rc_score + 0.01;
+					if (!stop_reverse) {
+						s = rc_score + 0.01;
+						if (s > running_cutoff) {
+							running_cutoff = s;
+							if (running_cutoff > 5) {
+								do_early_stopping = true;
+							}
+						}
 					}
 				}
 			}

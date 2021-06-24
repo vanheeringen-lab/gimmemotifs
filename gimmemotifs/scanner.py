@@ -156,6 +156,7 @@ def scan_seqs(
                 result = [[(row[0] - m_mean) / m_std, row[1], row[2]] for row in result]
                 # result = [row for row in result if row[0] >= cutoff]
             else:
+                logger.error(f"{seq} {motif.logodds} {cutoff} {nreport} {scan_rc}")
                 result = pwmscan(seq, motif.logodds, cutoff, nreport, scan_rc)
 
             if len(result) == 0 and (cutoff is None or cutoff <= pwm_min_score):
@@ -1201,6 +1202,8 @@ class Scanner(object):
                 seq_ids = list(range(len(seqs)))
                 batch = 200
                 chunk = batch * self.ncpus
+                if chunk > len(seqs):
+                    chunk = len(seqs)
 
                 if progress:
                     pbar = tqdm(total=len(seqs))
@@ -1227,27 +1230,26 @@ class Scanner(object):
                         for future in as_completed(fs):
                             # Need to return the scanning results in order, but they may come back
                             # unordered.
-                            for row in future.result():
-                                if row[0] == seq_idx:
-                                    yield row[1]
-                                    seq_idx += 1
-                                else:
-                                    hold[row[0]] = row[1]
+                            rows = future.result()
+                            hold[rows[0][0]] = rows
+                            # for row in future.result():
+                            #     if row[0] == seq_idx:
+                            #         yield row[1]
+                            #         seq_idx += 1
+                            #     else:
+                            #         hold[row[0]] = row[1]
 
-                            while seq_idx in hold:
-                                yield hold[seq_idx]
-                                del hold[seq_idx]
-                                seq_idx += 1
+                            # while seq_idx in hold:
+                            #     yield hold[seq_idx]
+                            #     seq_idx += 1
 
                             if progress:
                                 pbar.update(batch)
 
                             del future
-                        
-                        while seq_idx in hold:
-                                yield hold[seq_idx]
-                                del hold[seq_idx]
-                                seq_idx += 1
+                        for idx in sorted(hold.keys()):
+                            for i, row in hold[idx]:
+                                yield row
 
                 if progress:
                     pbar.close()
