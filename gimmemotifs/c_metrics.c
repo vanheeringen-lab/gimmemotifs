@@ -576,7 +576,7 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 	float s;
 
 	// Don't bother with early stopping if the cutoff is lenient
-	bool do_early_stopping = running_cutoff > 5;
+	bool do_early_stopping = running_cutoff > pwm_len * 1;
 	bool update_cutoff = n_report == 1;
 
 	for (j = 0; j < j_max; j++) {
@@ -589,7 +589,7 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 			rc_score += pwm[pwm_len - m - 1][5 - nuc];
 	
 			if (m < pwm_len - 1) {
-					if (do_early_stopping) {
+					// if (do_early_stopping) {
 						if (!stop_forward) {
 							stop_forward = running_cutoff - score >= pwm_max_left[m];
 						}
@@ -600,7 +600,7 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 							//printf("Stop early pos %d left:%f diff:%f\n", m,pwm_max_left_rc[m ], cutoff - rc_score );
 							break;
 						}
-					}
+					// }
 			} 
 			else {
 				// Update the minimum score for early stopping. 
@@ -609,18 +609,18 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 						s = score + 0.01;
 						if (s > running_cutoff) {
 							running_cutoff = s;
-							if (running_cutoff > 5) {
-								do_early_stopping = true;
-							}
+							// if (running_cutoff > pwm_len * 1) {
+							// 	do_early_stopping = true;
+							// }
 						}
 					}
 					if (!stop_reverse) {
 						s = rc_score + 0.01;
 						if (s > running_cutoff) {
 							running_cutoff = s;
-							if (running_cutoff > 5) {
-								do_early_stopping = true;
-							}
+							// if (running_cutoff > pwm_len * 1) {
+							// 	do_early_stopping = true;
+							// }
 						}
 					}
 				}
