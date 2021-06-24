@@ -589,18 +589,18 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 			rc_score += pwm[pwm_len - m - 1][5 - nuc];
 	
 			if (m < pwm_len - 1) {
-				if (do_early_stopping) {
-					if (!stop_forward) {
-						stop_forward = running_cutoff - score >= pwm_max_left[m];
+					if (do_early_stopping) {
+						if (!stop_forward) {
+							stop_forward = running_cutoff - score >= pwm_max_left[m];
+						}
+						if (!stop_reverse) {
+							stop_reverse = running_cutoff - rc_score >= pwm_max_left_rc[m];
+						}
+						if (stop_forward && stop_reverse){
+							//printf("Stop early pos %d left:%f diff:%f\n", m,pwm_max_left_rc[m ], cutoff - rc_score );
+							break;
+						}
 					}
-					if (!stop_reverse) {
-						stop_reverse = running_cutoff - rc_score >= pwm_max_left_rc[m];
-					}
-					if (stop_forward && stop_reverse){
-						//printf("Stop early pos %d left:%f diff:%f\n", m,pwm_max_left_rc[m ], cutoff - rc_score );
-						break;
-					}
-				}
 			} 
 			else {
 				// Update the minimum score for early stopping. 

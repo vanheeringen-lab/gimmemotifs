@@ -1200,7 +1200,7 @@ class Scanner(object):
                     smm, motifs, seqs, flat_list, thresholds, zscore
                 )
                 seq_ids = list(range(len(seqs)))
-                batch = 200
+                batch = 50
                 chunk = batch * self.ncpus
                 if chunk > len(seqs):
                     chunk = len(seqs)
@@ -1212,7 +1212,7 @@ class Scanner(object):
                     # If everything is submitted at once, memory explodes as the memory claimed
                     # by the futures is not released.
                     seq_idx = 0
-                    
+
                     for j in range(0, len(seqs), chunk):
                         hold = {}
                         fs = [
@@ -1231,7 +1231,8 @@ class Scanner(object):
                             # Need to return the scanning results in order, but they may come back
                             # unordered.
                             rows = future.result()
-                            hold[rows[0][0]] = rows
+                            if len(rows) > 0 and len(rows[0]) > 0:
+                                hold[rows[0][0]] = rows
                             # for row in future.result():
                             #     if row[0] == seq_idx:
                             #         yield row[1]
