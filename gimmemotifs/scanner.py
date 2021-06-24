@@ -207,7 +207,7 @@ def scan_seqs_worker(
                 result = [[pwm_min_score, 0, 1]] * nreport
             row.append(result)
 
-        ret.append(row)
+        ret.append((idx, row))
 
     return ret
 
@@ -581,8 +581,6 @@ def scan_to_best_match(
     logger.debug("scanning %s...", fname)
     result = dict([(m.id, []) for m in motifs])
 
-    print(f"to seqs: {fname}")
-    print(f" genome: {genome}")
     seqs = as_fasta(fname, genome=genome).seqs
 
     if score:
@@ -1201,7 +1199,7 @@ class Scanner(object):
                     smm, motifs, seqs, flat_list, thresholds, zscore
                 )
                 seq_ids = list(range(len(seqs)))
-                batch = 100
+                batch = 200
                 chunk = batch * self.ncpus
 
                 if progress:
@@ -1210,7 +1208,10 @@ class Scanner(object):
                     # We submit in chunks to keep memory use in check.
                     # If everything is submitted at once, memory explodes as the memory claimed
                     # by the futures is not released.
+                    seq_idx = 0
+                    
                     for j in range(0, len(seqs), chunk):
+                        hold = {}
                         fs = [
                             exe.submit(
                                 scan_seqs_worker,
@@ -1224,13 +1225,30 @@ class Scanner(object):
                             for i in range(0, chunk, batch)
                         ]
                         for future in as_completed(fs):
+                            # Need to return the scanning results in order, but they may come back
+                            # unordered.
                             for row in future.result():
-                                yield row
+                                if row[0] == seq_idx:
+                                    yield row[1]
+                                    seq_idx += 1
+                                else:
+                                    hold[row[0]] = row[1]
+
+                            while seq_idx in hold:
+                                yield hold[seq_idx]
+                                del hold[seq_idx]
+                                seq_idx += 1
 
                             if progress:
                                 pbar.update(batch)
 
                             del future
+                        
+                        while seq_idx in hold:
+                                yield hold[seq_idx]
+                                del hold[seq_idx]
+                                seq_idx += 1
+
                 if progress:
                     pbar.close()
 

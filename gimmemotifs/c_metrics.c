@@ -493,7 +493,7 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 	int seq_len;
 	int n_report;
 	int pwm_len;
-	int i, j;
+	int i, j, c;
 	int scan_rc;
 	int return_all = 0;
 
@@ -509,6 +509,29 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 	double pwm[pwm_len][6];
 	fill_matrix_with_n(pwm, pwm_o);
 	//Py_DECREF(pwm_o);
+
+	double pwm_max[pwm_len];
+	double pwm_max_left[pwm_len];
+	double pwm_max_left_rc[pwm_len];
+	double total = 0.0;
+	pwm_max_left[pwm_len - 1] = 0;
+	pwm_max_left_rc[0] = 0;
+	for (i = 0; i < pwm_len; i++){
+		pwm_max[i] = pwm[i][1];
+		for (c = 2; c < 5; c++) {
+			if (pwm_max[i] < pwm[i][c]) {
+				pwm_max[i] = pwm[i][c];
+			}
+		}
+	}
+
+	pwm_max_left[pwm_len - 1] = 0;
+	pwm_max_left_rc[pwm_len - 1] = 0;
+	for (i = 0; i < pwm_len - 1; i++){
+		j = pwm_len - i - 1;
+		pwm_max_left[j - 1] = pwm_max_left[j] + pwm_max[j];
+		pwm_max_left_rc[j - 1] = pwm_max_left_rc[j] + pwm_max[i];
+	}
 
 	seq_len = strlen(seq_o);
 	int seq[seq_len];
@@ -536,7 +559,6 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 	// Cutoff for every spacer length
 	double cutoff;
 	cutoff = PyFloat_AsDouble(cutoff_o);
-
 	// Scan sequence
 	int j_max = seq_len - pwm_len + 1;
 	double score_matrix[j_max];
@@ -545,7 +567,6 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 
 	if (j_max < 0) { j_max = 0;}
 	int m;
-	int c;
 	double pwm_min = -50;	
 	for (j = 0; j < j_max; j++) {
 		score = 0;
@@ -553,7 +574,13 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 		
 		for (m = 0; m < pwm_len; m++) {
 			score += pwm[m][seq[j + m]];
-			rc_score += pwm[pwm_len - m - 1][5 - seq[j + m]];		
+			rc_score += pwm[pwm_len - m - 1][5 - seq[j + m]];
+			if ((m < pwm_len - 1) && 
+				(cutoff - score - 0.01 >= pwm_max_left[m]) && 
+				(cutoff - rc_score - 0.01 >= pwm_max_left_rc[m])){
+				//printf("Stop early pos %d left:%f diff:%f\n", m,pwm_max_left_rc[m ], cutoff - rc_score );
+				break;
+			}
 		}
 		score_matrix[j] = score;
 		rc_score_matrix[j] = rc_score;
