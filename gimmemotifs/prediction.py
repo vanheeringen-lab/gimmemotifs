@@ -323,7 +323,7 @@ def pp_predict_motifs(
 
 
 def predict_motifs(infile, bgfile, outfile, params=None, stats_fg=None, stats_bg=None):
-    """ Predict motifs, input is a FASTA-file"""
+    """Predict motifs, input is a FASTA-file"""
 
     # Parse parameters
     required_params = [

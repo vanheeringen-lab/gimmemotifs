@@ -8,6 +8,7 @@ ghostscript
 homer
 jinja2
 logomaker
+loguru
 llvm-openmp
 matplotlib >=2.0
 meme >=5

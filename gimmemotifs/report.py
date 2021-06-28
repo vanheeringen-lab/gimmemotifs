@@ -932,12 +932,24 @@ def roc_html_report(
     df.rename_axis(None, inplace=True)
 
     motifs = read_motifs(pfmfile, as_dict=True)
+    if use_motifs is not None and len(use_motifs) == 0:
+        with open(os.path.join(outdir, outname), "w", encoding="utf-8") as f:
+            f.write("<body>No enriched motifs found.</body>")
+            return
+
     if use_motifs is not None:
         motifs = {k: v for k, v in motifs.items() if k in use_motifs}
+
     idx = list(motifs.keys())
     df = df.loc[idx]
 
-    df.insert(2, "corrected P-value", multipletests(df["P-value"], method="fdr_bh")[1])
+    try:
+        df.insert(
+            2, "corrected P-value", multipletests(df["P-value"], method="fdr_bh")[1]
+        )
+    except ZeroDivisionError:
+        logger.error(f"ZeroDivisionError when correcting {df['P-value']}")
+        df.insert(2, "corrected P-value", df["P-value"])
     df.insert(3, "-log10 P-value", -np.log10(df["corrected P-value"]))
     df = df[df["corrected P-value"] <= threshold]
 

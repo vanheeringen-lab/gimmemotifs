@@ -13,7 +13,7 @@ import numpy as np
 
 class Fasta(object):
     def __init__(self, fname=None, split_whitespace=False, fdict=None):
-        """ Instantiate fasta object. Optional Fasta-formatted file as argument"""
+        """Instantiate fasta object. Optional Fasta-formatted file as argument"""
         self.ids = []
         self.seqs = []
         p = re.compile(r"[^abcdefghiklmnpqrstuvwyzxABCDEFGHIKLMNPQRSTUVWXYZ]")
@@ -41,14 +41,14 @@ class Fasta(object):
                 self.seqs.append(seq)
 
     def hardmask(self):
-        """ Mask all lowercase nucleotides with N's """
+        """Mask all lowercase nucleotides with N's"""
         p = re.compile("a|c|g|t|n")
         for seq_id in self.ids:
             self[seq_id] = p.sub("N", self[seq_id])
         return self
 
     def get_random(self, n, length=None):
-        """ Return n random sequences from this Fasta object """
+        """Return n random sequences from this Fasta object"""
         random_f = Fasta()
         if length:
             ids = self.ids[:]
@@ -120,7 +120,7 @@ class Fasta(object):
         return "%s sequences" % len(self.ids)
 
     def writefasta(self, fname):
-        """ Write sequences to FASTA formatted file"""
+        """Write sequences to FASTA formatted file"""
         f = open(fname, "w")
         fa_str = "\n".join(
             [">%s\n%s" % (id, self._format_seq(seq)) for id, seq in self.items()]

@@ -4,6 +4,7 @@ channels:
   - bioconda
   - conda-forge
 dependencies:
+  - biofluff
   - configparser
   - diskcache
   - feather-format
@@ -18,6 +19,7 @@ dependencies:
   - pip
   - pyarrow >=0.16.0
   - pybedtools
+  - pybigwig
   - python >=3
   - pyyaml >=3.10
   - qnorm

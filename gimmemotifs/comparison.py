@@ -940,6 +940,10 @@ def select_nonredundant_motifs(
         )
         result = result[motif]
         redundant_motifs += [m for m in result.keys() if result[m][0] >= 0.7]
+
+    if len(keep) < 2:
+        return keep
+
     logger.debug(f"Selected {len(keep)} motifs for feature elimination")
 
     # Read motif scan results

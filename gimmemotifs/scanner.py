@@ -1,6 +1,8 @@
 import os
 import re
 import sys
+import time
+import math
 from collections import Counter
 from functools import partial
 from tempfile import mkdtemp, NamedTemporaryFile
@@ -803,7 +805,7 @@ class Scanner(object):
 
                 v = float(gc_bin.split("-")[1])
                 _, bstr = sorted(valid_bins, key=lambda x: abs(x[0] - v))[0]
-                logger.warn(f"Using {bstr}")
+                # logger.warn(f"Using {bstr}")
                 self.meanstd[gc_bin] = self.meanstd[bstr]
 
     def set_background(
@@ -845,7 +847,8 @@ class Scanner(object):
             nseq = max(10000, len(gc_bins) * 1000)
 
         if genome and fname:
-            raise ValueError("Need either genome or filename for background.")
+            logger.debug("using genome for background")
+            fname = None
 
         if fname:
             if not os.path.exists(fname):
@@ -1114,7 +1117,7 @@ class Scanner(object):
                 if len(self.meanstd) != 1:
                     self.set_meanstd(gc=gc)
 
-        batch_size = 10000
+        batch_size = 50000
         logger.debug("Scanning")
         for batch_idx in range(0, len(seqs), batch_size):
             it = self._scan_sequences(
@@ -1195,24 +1198,42 @@ class Scanner(object):
             yield ret
 
     def _scan_jobs(self, scan_func, scan_seqs):
-        batchsize = 1000
-
         if self.ncpus > 1:
-            for i in range((len(scan_seqs) - 1) // batchsize + 1):
-                batch = scan_seqs[i * batchsize : (i + 1) * batchsize]
-                chunksize = len(batch) // self.ncpus + 1
-                jobs = []
-                for j in range((len(batch) - 1) // chunksize + 1):
-                    batch_seqs = batch[j * chunksize : (j + 1) * chunksize]
-                    seq_gc_bins = [self.get_seq_bin(seq) for seq in batch_seqs]
-                    job = self.pool.apply_async(scan_func, (batch_seqs, seq_gc_bins))
-                    jobs.append(job)
+            median_len = np.median([len(x) for x in scan_seqs])
+            chunksize = 200000 // int(median_len)  # 1000 seqs for len 200
+            # prepare for parallel processing
+            k = 0
+            max_queue_size = 2 * self.ncpus
+            jobs = []
 
-                for k, job in enumerate(jobs):
-                    for ret in job.get():
-                        region = batch[k]
+            # loop over each job/chunk, and keep adding them to the queue
+            for i in range(math.ceil(len(scan_seqs) / chunksize)):
+                batch_seqs = scan_seqs[i * chunksize : (i + 1) * chunksize]
+                seq_gc_bins = [self.get_seq_bin(seq) for seq in batch_seqs]
+                job = self.pool.apply_async(scan_func, (batch_seqs, seq_gc_bins))
+                jobs.append(job)
+
+                # if our queue is full, wait until oldest job finishes
+                while (len(jobs) >= max_queue_size) and not jobs[0].ready():
+                    time.sleep(0.05)
+
+                # resolve oldest job if finished
+                if jobs[0].ready():
+                    for ret in jobs[0].get():
+                        region = scan_seqs[k]
+                        k += 1
                         yield region, ret
+                    jobs = jobs[1:]
+
+            # cleanup the last jobs that did not get resolved in the for loop
+            while len(jobs) > 0:
+                for ret in jobs[0].get():
+                    region = scan_seqs[k]
+                    yield region, ret
+                jobs = jobs[1:]
         else:
+            # non-parallel job scanning
+            batchsize = 1000
             for i in range((len(scan_seqs) - 1) // batchsize + 1):
                 batch_seqs = scan_seqs[i * batchsize : (i + 1) * batchsize]
                 seq_gc_bins = [self.get_seq_bin(seq) for seq in batch_seqs]
