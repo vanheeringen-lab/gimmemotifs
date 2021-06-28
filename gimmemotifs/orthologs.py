@@ -154,7 +154,7 @@ def _orthofinder(peptide_folder, threads):
     """
     # run orthofinder on the primary transcripts
     result = subprocess.run(
-        ["orthofinder", "-f", peptide_folder, "-t", threads], capture_output=True
+        ["orthofinder", "-f", peptide_folder, "-t", str(threads)], capture_output=True
     )
 
     logger.debug(f"""stdout of orthofinder:\n {result.stdout.decode("utf-8")}""")
@@ -559,17 +559,21 @@ def _unknownfactor2symbols(factor, fields):
     # only keep aliases, gene names and HGNC symbols
     for hit in hits:
         for field in ["alias", "name", "symbol", "ensembl"]:
-            if field in hit:
-                if "'" not in hit[field]:
-                    if field == "ensembl" and "gene" in hit[field]:
-                        symbols.add(hit[field]["gene"])
-                    else:
-                        symbols.add(hit[field])
-                elif isinstance(hit[field], list):
-                    symbols.update(
-                        {each["gene"] for each in hit[field] if "gene" in each}
-                    )
-    return list(symbols)
+            if field not in hit:
+                continue
+
+            if isinstance(hit[field], str):
+                hit[field] = [hit[field]]
+
+            for subhit in hit[field]:
+                if isinstance(subhit, str):
+                    symbols.add(subhit)
+                elif isinstance(subhit, dict) and "gene" in subhit:
+                    symbols.add(subhit["gene"])
+                else:
+                    raise AssertionError()
+
+    return [symbol for symbol in symbols if "'" not in symbol]
 
 
 def _has_annotation(genome):

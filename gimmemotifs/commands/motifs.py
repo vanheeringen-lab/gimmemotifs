@@ -107,7 +107,7 @@ def motifs(args):
         motifs = read_motifs(pfmfile, fmt="pfm")
 
     if args.denovo:
-        gimme_motifs(
+        denovo = gimme_motifs(
             sample,
             args.outdir,
             params={
@@ -121,10 +121,10 @@ def motifs(args):
                 "use_strand": not (args.single),
             },
         )
-        denovo = read_motifs(os.path.join(args.outdir, "gimme.denovo.pfm"))
-        mc = MotifComparer()
-        result = mc.get_closest_match(denovo, dbmotifs=pfmfile, metric="seqcor")
-        match_motifs = read_motifs(pfmfile, as_dict=True)
+        if len(denovo) > 0:
+            mc = MotifComparer()
+            result = mc.get_closest_match(denovo, dbmotifs=pfmfile, metric="seqcor")
+            match_motifs = read_motifs(pfmfile, as_dict=True)
         new_map_file = os.path.join(args.outdir, "combined.motif2factors.txt")
         base = os.path.splitext(pfmfile)[0]
         map_file = base + ".motif2factors.txt"
@@ -152,6 +152,10 @@ def motifs(args):
                         )
     else:
         logger.info("skipping de novo")
+
+    if len(motifs) == 0:
+        logger.info("no motifs to report!")
+        sys.exit()
 
     stats = [
         "phyper_at_fpr",

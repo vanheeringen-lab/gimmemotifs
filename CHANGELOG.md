@@ -9,9 +9,24 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+### Fixed
+
 ### Removed
 
-### Changed
+
+## [0.16.1] - 2021-06-28
+
+Bugfix release.
+
+### Added
+
+* Added warning when the number of sequences used for de novo motif prediction is low.
+
+### Fixed
+
+* Fixed bug with `gimme motif2factors`.
+* Fixed "Motif does not occur in motif database when running maelstrom" (#192).
+* Fixed bugs related to runs where no (significant) motifs is found.
 
 ## [0.16.0] - 2021-05-28
 
