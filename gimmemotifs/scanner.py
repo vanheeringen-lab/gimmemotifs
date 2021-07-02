@@ -1130,9 +1130,14 @@ class Scanner(object):
                 yield result
 
     def get_gc_thresholds(self, seqs, motifs=None, zscore=False):
+        MAX_SEQS = 20000
+
         # Simple case, only one threshold
         if np.all(self.threshold.nunique(axis=0) == 1):
             return self.threshold.iloc[0].to_dict()
+
+        if len(seqs) > MAX_SEQS:
+            seqs = np.random.choice(seqs, size=MAX_SEQS)
 
         if motifs is None:
             motifs = read_motifs(self.motifs)
@@ -1149,7 +1154,7 @@ class Scanner(object):
                 columns=_threshold.columns,
             )
 
-        nseqs = int(20000 / np.sum(list(gc_bin_count.values())))
+        nseqs = int(MAX_SEQS / np.sum(list(gc_bin_count.values())))
         t = {}
         maxt = pd.Series([m.pwm_max_score() for m in motifs], index=_threshold.columns)
         # We do this in a loop as the DataFrame will get too big to fit in memory
