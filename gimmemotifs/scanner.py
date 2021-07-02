@@ -1234,6 +1234,7 @@ class Scanner(object):
             while len(jobs) > 0:
                 for ret in jobs[0].get():
                     region = scan_seqs[k]
+                    k += 1
                     yield region, ret
                 jobs = jobs[1:]
         else:
