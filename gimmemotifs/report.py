@@ -18,9 +18,13 @@ import pandas as pd
 from statsmodels.stats.multitest import multipletests
 
 try:
+    # pandas >= 1.3
+    from pandas.io.formats.style_render import non_reducing_slice
+except ImportError:
     from pandas.core.indexing import non_reducing_slice
 except ImportError:
     from pandas.core.indexing import _non_reducing_slice as non_reducing_slice
+
 
 from pandas.io.formats.style import Styler
 import seaborn as sns

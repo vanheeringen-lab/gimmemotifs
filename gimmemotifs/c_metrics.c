@@ -514,19 +514,33 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 	int seq[seq_len];
 	for (i = 0; i < seq_len; i++) {
 		switch(seq_o[i]) {
-            case 'A':
+			case 'A':  
 				seq[i] = 1;
                 break;
-			case 'T':
+		case 'T': 
 				seq[i] = 4;
                 break;
-			case 'C':
+		case 'C':
 				seq[i] = 2;
                 break;
-			case 'G':
+		case 'G': 
 				seq[i] = 3;
                 break;
-			case 'N':
+		case 'a':  
+				seq[i] = 1;
+                break;
+		case 't': 
+				seq[i] = 4;
+                break;
+		case 'c':
+				seq[i] = 2;
+                break;
+		case 'g': 
+				seq[i] = 3;
+                break;
+
+
+			default:
 			 	seq[i] = 0;
                 break;
 		}
