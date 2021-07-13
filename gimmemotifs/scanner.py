@@ -647,6 +647,7 @@ class Scanner(object):
         self.background = None
         self.meanstd = {}
         self.gc_bins = [(0, 1)]
+        self.fpr = None
 
         if ncpus is None:
             self.ncpus = int(MotifConfig().get_default_params()["ncpus"])
@@ -936,6 +937,7 @@ class Scanner(object):
             fpr = float(fpr)
             if not (0.0 < fpr < 1.0):
                 raise ValueError("Parameter fpr should be between 0 and 1")
+            self.fpr = fpr
 
         if not self.motifs:
             raise ValueError("please run set_motifs() first")
@@ -1170,7 +1172,9 @@ class Scanner(object):
             ]
         )
         for motif in _threshold.columns[1:]:
-            val = _threshold.loc[idx, motif].quantile(0.99, interpolation="higher")
+            val = _threshold.loc[idx, motif].quantile(
+                1 - self.fpr, interpolation="higher"
+            )
             if val < maxt.loc[motif]:
                 t[motif] = val
             else:
