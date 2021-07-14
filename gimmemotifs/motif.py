@@ -12,6 +12,7 @@ import random
 from math import log, sqrt
 from collections import Counter
 from warnings import warn
+from functools import cached_property
 
 from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 from gimmemotifs.c_metrics import pfmscan
@@ -1400,6 +1401,17 @@ class Motif(object):
             factor_str = '<div title="' + tooltip + '">' + factor_str + "</div>"
 
         return factor_str
+
+    @cached_property
+    def thresholds(self):
+        """
+
+        """
+        logodds = np.array(self.logodds)
+        f_cumlogodds = list(np.flip(np.cumsum(np.flip(np.max(logodds, axis=1)))))
+        r_cumlogodds = list(np.cumsum(np.max(logodds, axis=1)))
+
+        return [f_cumlogodds, r_cumlogodds]
 
 
 def default_motifs():
