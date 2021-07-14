@@ -517,18 +517,11 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
     for (i = 0; i < 2; i++) {
 //        printf("filling cumlogodds\n");
 		PyObject *row = PyList_GetItem(cumlogodds_o, i);
-        for (j = 0; j < pwm_len; j++) {
+        for (j = 0; j < pwm_len + 1; j++) {
             item = PyList_GetItem(row, j);
             cumlogodds[i][j] = PyFloat_AsDouble(item);
         }
     }
-
-//    for(i = 0; i < 2; i++) {
-//        for(j = 0; j < pwm_len; j++) {
-//            printf("%f ", cumlogodds[i][j]);
-//        }
-//        printf("\n");
-//    }
 
 	seq_len = strlen(seq_o);
 	int seq[seq_len];
@@ -585,18 +578,30 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 
     // scan
     int full_scan;
+    int forward, reverse;
 	for (j = 0; j < j_max; j++) {
 //	    printf("going at it again!\n");
 
 		score = 0;
 		rc_score = 0;
         full_scan = 1;  // true
+        forward = 1;
+        reverse = 1;
 
 		for (m = 0; m < pwm_len; m++) {
-			score += pwm[m][seq[j + m]];
-			rc_score += pwm[pwm_len - m - 1][5 - seq[j + m]];
-			if (score + cumlogodds[0][m]               < early_stop_scores[n_report] &&
-			 rc_score + cumlogodds[1][pwm_len - m - 1] < early_stop_scores[n_report]) {
+			if (forward) {
+    			score += pwm[m][seq[j + m]];
+			    if (score + cumlogodds[0][m + 1]           < early_stop_scores[n_report]) {
+			        forward = 0;
+			    }
+			}
+            if (reverse) {
+    			rc_score += pwm[pwm_len - m - 1][5 - seq[j + m]];
+    			if (rc_score + cumlogodds[1][pwm_len - m - 2] < early_stop_scores[n_report]) {
+    			    reverse = 0;
+    			}
+            }
+            if (forward && reverse == 0) {
 			    full_scan = 0; // false
 			    break;
 			}

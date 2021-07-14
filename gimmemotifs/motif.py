@@ -1408,8 +1408,8 @@ class Motif(object):
 
         """
         logodds = np.array(self.logodds)
-        f_cumlogodds = list(np.flip(np.cumsum(np.flip(np.max(logodds, axis=1)))))
-        r_cumlogodds = list(np.cumsum(np.max(logodds, axis=1)))
+        f_cumlogodds = list(np.flip(np.cumsum(np.flip(np.max(logodds, axis=1))))) + [0]
+        r_cumlogodds = [0] + list(np.cumsum(np.max(logodds, axis=1)))
 
         return [f_cumlogodds, r_cumlogodds]
 
