@@ -45,6 +45,7 @@ def motif2factor_from_orthologs(
     extra_orthologs_references: List[str] = None,
     new_reference: List[str] = None,
     tmpdir: str = None,
+    keep_intermediate: bool = False,
     outdir: str = ".",
     strategy: str = "lenient",
     threads: int = 24,
@@ -79,6 +80,9 @@ def motif2factor_from_orthologs(
 
     _check_install()
 
+    # Check if we can write output before we do a lot of work
+    os.makedirs(outdir, exist_ok=True)
+
     tmpdir = tempfile.mkdtemp() if tmpdir is None else tmpdir
 
     logger.info(f"Making a new reference for: {' & '.join(new_reference)}.")
@@ -101,6 +105,7 @@ def motif2factor_from_orthologs(
     # convert each genome + annotation into the primary genes (longest protein per gene)
     logger.info("Taking the longest protein per gene per assembly.")
     for genome in all_genomes:
+        logger.info(f"Processing {genome}.")
         annot2primpep(genome, tmpdir)
 
     # run orthofinder on our primary genes
@@ -133,7 +138,8 @@ def motif2factor_from_orthologs(
         )
 
     # cleanup
-    shutil.rmtree(tmpdir)
+    if not keep_intermediate:
+        shutil.rmtree(tmpdir)
 
 
 def _check_install():
@@ -167,45 +173,72 @@ def _orthofinder(peptide_folder, threads):
 
 
 def _download_genomes_with_annot(genomes, genomes_dir):
-    # make sure each genome has a gene annotation
-    no_annotations = [genome for genome in genomes if not _has_annotation(genome)]
-    assert (
-        len(no_annotations) == 0
-    ), f"genome(s): {','.join(no_annotations)} seem not to have an annotation for it."
-
     # download the genomes
     # add check to see if not already in genomes dir?
     default_genomes_dir = get_genomes_dir(check_exist=False)
     logger.debug(f"using default genome dir: {default_genomes_dir}")
+    existing_genomes = []
     for genome in genomes:
         # check if already in default genomes dir, if so, skip downloading and directly copy
         if all(
-            os.path.exists(f"{default_genomes_dir}/{genome}/{genome}.{extension}")
+            os.path.exists(f"{default_genomes_dir}/{genome}/{genome}.{extension}") or 
+            os.path.exists(f"{default_genomes_dir}/{genome}/{genome}.{extension}.gz")
             for extension in ["fa", "annotation.gtf"]
         ):
             logger.info(f"{genome} was already downloaded, using that version.")
             # if except, probably a continuation from previous run
             try:
                 os.mkdir(f"{genomes_dir}/{genome}")
-                os.symlink(
-                    f"{default_genomes_dir}/{genome}/{genome}.fa",
-                    f"{genomes_dir}/{genome}/{genome}.fa",
-                )
-                os.symlink(
-                    f"{default_genomes_dir}/{genome}/{genome}.annotation.gtf",
-                    f"{genomes_dir}/{genome}/{genome}.annotation.gtf",
-                )
+                pep = f"{default_genomes_dir}/{genome}/{genome}.pep.fa"
+                if os.path.exists(pep):
+                    logger.info(f"found peptide fa for {genome}")
+                    os.symlink(
+                        pep,
+                        f"{genomes_dir}/{genome}/{genome}.pep.fa",
+                    )
+                else:
+                    os.symlink(
+                        f"{default_genomes_dir}/{genome}/{genome}.fa",
+                        f"{genomes_dir}/{genome}/{genome}.fa",
+                    )
+                
+                    anno = f"{default_genomes_dir}/{genome}/{genome}.annotation.gtf"
+                    if os.path.exists(anno):
+                        os.symlink(
+                            f"{default_genomes_dir}/{genome}/{genome}.annotation.gtf",
+                            f"{genomes_dir}/{genome}/{genome}.annotation.gtf",
+                        )
+                    elif os.path.exists(f"{anno}.gz"):
+                        shutil.copyfile(f"{anno}.gz", f"{genomes_dir}/{genome}/{genome}.annotation.gtf.gz")
+                    else:
+                        # no annotation found, even if genome already exists
+                        continue
+                existing_genomes.append(genome)
             except Exception:
                 pass
-        else:
-            logger.info(f"Downloading {genome} through genomepy.")
-            genomepy.install_genome(genome, annotation=True, genomes_dir=genomes_dir)
+
+    # make sure each genome to download has a gene annotation
+    download_genomes = [genome for genome in genomes if genome not in existing_genomes]
+    no_annotations = [genome for genome in download_genomes if not _has_annotation(genome)]
+    assert (
+        len(no_annotations) == 0
+    ), f"genome(s): {','.join(no_annotations)} seem not to have an annotation for it."
+
+    
+    # download missing genomes, or genomes with missing annotation
+    for genome in download_genomes:
+        logger.info(f"Downloading {genome} through genomepy.")
+        genomepy.install_genome(genome, annotation=True, genomes_dir=genomes_dir)
+        
+    for genome in genomes:
+        gzipped_anno = f"{genomes_dir}/{genome}/{genome}.annotation.gtf.gz"
+        if os.path.exists(gzipped_anno):
             result = subprocess.run(
-                ["gunzip", f"{genomes_dir}/{genome}/{genome}.annotation.gtf.gz"],
+                ["gunzip", gzipped_anno],
                 capture_output=True,
-            )
-            logger.debug(f"""stdout of genomepy:\n {result.stdout.decode("utf-8")}""")
-            logger.debug(f"""stderr of genomepy:\n {result.stderr.decode("utf-8")}""")
+         )
+            logger.debug(f"""stdout of gunzip:\n {result.stdout.decode("utf-8")}""")
+            logger.debug(f"""stderr of gunzip:\n {result.stderr.decode("utf-8")}""")
 
 
 def annot2primpep(genome, outdir):
@@ -223,24 +256,25 @@ def annot2primpep(genome, outdir):
     # setup our result folder
     pathlib.Path(f"{outdir}/prim_genes").mkdir(parents=True, exist_ok=True)
 
-    # for each genome, make a .pep.fa. This pep.fa contains the LONGEST protein for each gene
-    # use gffread to convert our annotation.gtf into all possible peptides
-    result = subprocess.run(
-        [
-            "gffread",
-            "-y",
-            f"{outdir}/{genome}/{genome}.pep.fa",
-            "-g",
-            f"{outdir}/{genome}/{genome}.fa",
-            f"{outdir}/{genome}/{genome}.annotation.gtf",
-            "-S",
-            "--table",
-            "gene_name,gene_id",
-        ],
-        capture_output=True,
-    )
-    logger.debug(f"""stdout of gffread:\n {result.stdout.decode("utf-8")}""")
-    logger.debug(f"""stderr of gffread:\n {result.stderr.decode("utf-8")}""")
+    if not os.path.exists(f"{outdir}/{genome}/{genome}.pep.fa"):
+        # for each genome, make a .pep.fa. This pep.fa contains the LONGEST protein for each gene
+        # use gffread to convert our annotation.gtf into all possible peptides
+        result = subprocess.run(
+            [
+                "gffread",
+                "-y",
+                f"{outdir}/{genome}/{genome}.pep.fa",
+                "-g",
+                f"{outdir}/{genome}/{genome}.fa",
+                f"{outdir}/{genome}/{genome}.annotation.gtf",
+                "-S",
+                "--table",
+                "gene_name,gene_id",
+            ],
+            capture_output=True,
+        )
+        logger.debug(f"""stdout of gffread:\n {result.stdout.decode("utf-8")}""")
+        logger.debug(f"""stderr of gffread:\n {result.stderr.decode("utf-8")}""")
 
     # read the resulting .pep.fa
     proteins = pyfaidx.Fasta(f"{outdir}/{genome}/{genome}.pep.fa", read_long_names=True)
@@ -249,10 +283,10 @@ def annot2primpep(genome, outdir):
     records = dict()
     for record in proteins:
         # get the gene name and gene id of the protein
-        prot_name = "|".join(record.long_name.split("\t")[1:])
+        prot_name = "|".join(re.split(r'[\s|~]+', record.long_name)[1:3])
 
-        # get the protein sequence
-        protein = str(record)
+        # get the protein sequence (remove ending stop codon if present)
+        protein = str(record).strip("*")
 
         # skip proteins with stop codon
         # (probably mitochondrial protein since they have a different codon table)
@@ -580,12 +614,17 @@ def _has_annotation(genome):
     """
     Return True if a genome has an annotation for it, else False
     """
+    if hasattr(genomepy, "Provider"):
+        base = genomepy.Provider
+    else:
+        base = genomepy.ProviderBase
     providers = [
-        genomepy.ProviderBase.create(provider)
+        base.create(provider)
         for provider in ["ensembl", "ucsc", "ncbi"]
     ]
     for provider in providers:
         if genome in provider.genomes:
             link = provider.get_annotation_download_link(genome)
             return link is not None
+    logger.warning(f"No annotation found for {genome}")
     return False
