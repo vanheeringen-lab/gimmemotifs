@@ -179,6 +179,19 @@ def _download_genomes_with_annot(genomes, genomes_dir):
     logger.debug(f"using default genome dir: {default_genomes_dir}")
     existing_genomes = []
     for genome in genomes:
+        os.makedirs(f"{genomes_dir}/{genome}", exist_ok=True)
+
+        # first check if the user supplied a pep.fa
+        pep = f"{default_genomes_dir}/{genome}/{genome}.pep.fa"
+        if os.path.exists(pep):
+            logger.info(f"found pep.fa for {genome}, using that one.")
+            os.symlink(
+                pep,
+                f"{genomes_dir}/{genome}/{genome}.pep.fa",
+            )
+            existing_genomes.append(genome)
+            continue
+
         # check if already in default genomes dir, if so, skip downloading and directly copy
         if all(
             os.path.exists(f"{default_genomes_dir}/{genome}/{genome}.{extension}") or 
@@ -188,31 +201,22 @@ def _download_genomes_with_annot(genomes, genomes_dir):
             logger.info(f"{genome} was already downloaded, using that version.")
             # if except, probably a continuation from previous run
             try:
-                os.mkdir(f"{genomes_dir}/{genome}")
-                pep = f"{default_genomes_dir}/{genome}/{genome}.pep.fa"
-                if os.path.exists(pep):
-                    logger.info(f"found peptide fa for {genome}")
+                os.symlink(
+                    f"{default_genomes_dir}/{genome}/{genome}.fa",
+                    f"{genomes_dir}/{genome}/{genome}.fa",
+                )
+
+                anno = f"{default_genomes_dir}/{genome}/{genome}.annotation.gtf"
+                if os.path.exists(anno):
                     os.symlink(
-                        pep,
-                        f"{genomes_dir}/{genome}/{genome}.pep.fa",
+                        f"{default_genomes_dir}/{genome}/{genome}.annotation.gtf",
+                        f"{genomes_dir}/{genome}/{genome}.annotation.gtf",
                     )
+                elif os.path.exists(f"{anno}.gz"):
+                    shutil.copyfile(f"{anno}.gz", f"{genomes_dir}/{genome}/{genome}.annotation.gtf.gz")
                 else:
-                    os.symlink(
-                        f"{default_genomes_dir}/{genome}/{genome}.fa",
-                        f"{genomes_dir}/{genome}/{genome}.fa",
-                    )
-                
-                    anno = f"{default_genomes_dir}/{genome}/{genome}.annotation.gtf"
-                    if os.path.exists(anno):
-                        os.symlink(
-                            f"{default_genomes_dir}/{genome}/{genome}.annotation.gtf",
-                            f"{genomes_dir}/{genome}/{genome}.annotation.gtf",
-                        )
-                    elif os.path.exists(f"{anno}.gz"):
-                        shutil.copyfile(f"{anno}.gz", f"{genomes_dir}/{genome}/{genome}.annotation.gtf.gz")
-                    else:
-                        # no annotation found, even if genome already exists
-                        continue
+                    # no annotation found, even if genome already exists
+                    continue
                 existing_genomes.append(genome)
             except Exception:
                 pass
@@ -224,7 +228,6 @@ def _download_genomes_with_annot(genomes, genomes_dir):
         len(no_annotations) == 0
     ), f"genome(s): {','.join(no_annotations)} seem not to have an annotation for it."
 
-    
     # download missing genomes, or genomes with missing annotation
     for genome in download_genomes:
         logger.info(f"Downloading {genome} through genomepy.")
@@ -282,8 +285,12 @@ def annot2primpep(genome, outdir):
     # and only keep the longest protein per gene
     records = dict()
     for record in proteins:
-        # get the gene name and gene id of the protein
-        prot_name = "|".join(re.split(r'[\s|~]+', record.long_name)[1:3])
+        # get the gene name and gene id of the protein (last two identifiers)
+        prot_name = re.split(r'[\s|~]+', record.long_name)[-2:]
+        # if we have only one identifier (user-defined pep.fa) just add a dot to indicate missing
+        if len(prot_name) == 1:
+           prot_name.append(".")
+        prot_name = "|".join(prot_name)
 
         # get the protein sequence (remove ending stop codon if present)
         protein = str(record).strip("*")
