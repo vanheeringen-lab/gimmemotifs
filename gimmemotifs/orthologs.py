@@ -160,7 +160,9 @@ def _orthofinder(peptide_folder, threads):
     """
     # run orthofinder on the primary transcripts
     result = subprocess.run(
-        ["orthofinder", "-f", peptide_folder, "-t", str(threads)], capture_output=True
+        ["orthofinder", "-f", peptide_folder, "-t", str(threads)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
 
     logger.debug(f"""stdout of orthofinder:\n {result.stdout.decode("utf-8")}""")
@@ -194,8 +196,8 @@ def _download_genomes_with_annot(genomes, genomes_dir):
 
         # check if already in default genomes dir, if so, skip downloading and directly copy
         if all(
-            os.path.exists(f"{default_genomes_dir}/{genome}/{genome}.{extension}") or 
-            os.path.exists(f"{default_genomes_dir}/{genome}/{genome}.{extension}.gz")
+            os.path.exists(f"{default_genomes_dir}/{genome}/{genome}.{extension}")
+            or os.path.exists(f"{default_genomes_dir}/{genome}/{genome}.{extension}.gz")
             for extension in ["fa", "annotation.gtf"]
         ):
             logger.info(f"{genome} was already downloaded, using that version.")
@@ -213,7 +215,10 @@ def _download_genomes_with_annot(genomes, genomes_dir):
                         f"{genomes_dir}/{genome}/{genome}.annotation.gtf",
                     )
                 elif os.path.exists(f"{anno}.gz"):
-                    shutil.copyfile(f"{anno}.gz", f"{genomes_dir}/{genome}/{genome}.annotation.gtf.gz")
+                    shutil.copyfile(
+                        f"{anno}.gz",
+                        f"{genomes_dir}/{genome}/{genome}.annotation.gtf.gz",
+                    )
                 else:
                     # no annotation found, even if genome already exists
                     continue
@@ -223,7 +228,9 @@ def _download_genomes_with_annot(genomes, genomes_dir):
 
     # make sure each genome to download has a gene annotation
     download_genomes = [genome for genome in genomes if genome not in existing_genomes]
-    no_annotations = [genome for genome in download_genomes if not _has_annotation(genome)]
+    no_annotations = [
+        genome for genome in download_genomes if not _has_annotation(genome)
+    ]
     assert (
         len(no_annotations) == 0
     ), f"genome(s): {','.join(no_annotations)} seem not to have an annotation for it."
@@ -232,14 +239,15 @@ def _download_genomes_with_annot(genomes, genomes_dir):
     for genome in download_genomes:
         logger.info(f"Downloading {genome} through genomepy.")
         genomepy.install_genome(genome, annotation=True, genomes_dir=genomes_dir)
-        
+
     for genome in genomes:
         gzipped_anno = f"{genomes_dir}/{genome}/{genome}.annotation.gtf.gz"
         if os.path.exists(gzipped_anno):
             result = subprocess.run(
                 ["gunzip", gzipped_anno],
-                capture_output=True,
-         )
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
             logger.debug(f"""stdout of gunzip:\n {result.stdout.decode("utf-8")}""")
             logger.debug(f"""stderr of gunzip:\n {result.stderr.decode("utf-8")}""")
 
@@ -274,7 +282,8 @@ def annot2primpep(genome, outdir):
                 "--table",
                 "gene_name,gene_id",
             ],
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
         logger.debug(f"""stdout of gffread:\n {result.stdout.decode("utf-8")}""")
         logger.debug(f"""stderr of gffread:\n {result.stderr.decode("utf-8")}""")
@@ -286,10 +295,10 @@ def annot2primpep(genome, outdir):
     records = dict()
     for record in proteins:
         # get the gene name and gene id of the protein (last two identifiers)
-        prot_name = re.split(r'[\s|~]+', record.long_name)[-2:]
+        prot_name = re.split(r"[\s|~]+", record.long_name)[-2:]
         # if we have only one identifier (user-defined pep.fa) just add a dot to indicate missing
         if len(prot_name) == 1:
-           prot_name.append(".")
+            prot_name.append(".")
         prot_name = "|".join(prot_name)
 
         # get the protein sequence (remove ending stop codon if present)
@@ -625,10 +634,7 @@ def _has_annotation(genome):
         base = genomepy.Provider
     else:
         base = genomepy.ProviderBase
-    providers = [
-        base.create(provider)
-        for provider in ["ensembl", "ucsc", "ncbi"]
-    ]
+    providers = [base.create(provider) for provider in ["ensembl", "ucsc", "ncbi"]]
     for provider in providers:
         if genome in provider.genomes:
             link = provider.get_annotation_download_link(genome)
