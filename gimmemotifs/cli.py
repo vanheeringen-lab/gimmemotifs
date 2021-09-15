@@ -701,7 +701,7 @@ def cli(sys_args):
         dest="keep_intermediate",
         help="Keep temporary files, do not delete tmpdir.",
         default=False,
-        action="store_true"
+        action="store_true",
     )
     p.set_defaults(func=commands.motif2factors)
 
