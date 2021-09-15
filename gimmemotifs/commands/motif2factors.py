@@ -15,6 +15,7 @@ def motif2factors(args):
         "strategy": args.strategy,
         "database": args.database,
         "threads": args.threads,
+        "keep_intermediate": args.keep_intermediate,
     }
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
     motif2factor_from_orthologs(**kwargs)

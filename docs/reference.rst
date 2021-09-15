@@ -881,6 +881,24 @@ named TFs can still be linked to genes and thus to orthologs. We tested this for
 However it might be possible that this generates too many false positives in your case, and you can tweak the lookup on mygene.info
 with the --strict/--medium/--lenient flags.
 
+If you happen to work with e.g. a non-public genome or a genome with a different type of annotation, you can supply your own peptide
+file that the command can work with. You should store that file under `{genome_dir}/{genome_name}/{genome_name}.pep.fa`, where the
+`genome_dir` is the default gimmemotifs genome dir (use `genomepy config show` to get this location), and the `genome_name` the name
+of the assembly/genome you use, e.g. hg38 for human. The peptide file should be of the format:
+
+>identifier1
+MKNTMKKQSGVVDTFKKAITAKSQWHDKDEFLDVIYWFKQIIGVILGLLWGFIPLKGFLG
+>identifier2
+MRPLRIIIQRKGKSYGELHGYGQIYKSKMPVSKILLAVNEKRNNHNNISILDDFRRVSSI
+
+where the identifier can be any
+
+* 1
+* 1|2
+* 3|1|2
+
+and gimmemotifs will use key 1. Usually 1 represents the gene_name, 2 the gene_id, and 3 the transcript_id.
+
 **Optional arguments:**
 
 ::
@@ -899,3 +917,5 @@ with the --strict/--medium/--lenient flags.
                           mygene.info name and symbol query; Lenient: based on annotation file, and mygeneinfo name, symbol, alias, other_names, accession, accession.protein, refseq, refseq.protein,
                           ensembl, ensembl.gene. Lenient is the default, but in case of false-positive hits you can tune this stricter.
     --threads INT         Maximum number of parallel threads used.
+    --keep-intermediate   Keep temporary files, do not delete tmpdir.
+

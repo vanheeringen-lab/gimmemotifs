@@ -696,6 +696,13 @@ def cli(sys_args):
         metavar="INT",
         default=24,
     )
+    p.add_argument(
+        "--keep-intermediate",
+        dest="keep_intermediate",
+        help="Keep temporary files, do not delete tmpdir.",
+        default=False,
+        action="store_true",
+    )
     p.set_defaults(func=commands.motif2factors)
 
     if len(sys_args) == 0:
