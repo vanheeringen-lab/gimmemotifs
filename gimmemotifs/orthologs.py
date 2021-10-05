@@ -126,6 +126,8 @@ def motif2factor_from_orthologs(
 
     # process the references
     logger.info("Now writing your motif2factors files.")
+    # make sure the output dir exists
+    pathlib.Path(f"{outdir}").mkdir(parents=True, exist_ok=True)
     for genome in new_reference:
         make_motif2factors(
             f"{outdir}/{genome}.{database}",
