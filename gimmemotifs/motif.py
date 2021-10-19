@@ -1401,6 +1401,22 @@ class Motif(object):
 
         return factor_str
 
+    def sample(self, n_seqs):
+        """Sample n_seqs random sequences from a motif. The sequences
+        follow the distribution of the motif pwm. 
+
+        Parameters
+        ----------
+        n_seqs : int
+            number of sequences to sample
+        Returns
+        -------
+        sequences : List[str]
+            A list of all the samples sequences
+        """
+        nucs = [random.choices("ACGT", weights=self.pwm[i], k=n_seqs) for i in range(len(self.pwm))]
+        seqs = ["".join(nuc) for nuc in zip(*nucs)]
+        return seqs
 
 def default_motifs():
     """Return list of Motif instances from default motif database."""
