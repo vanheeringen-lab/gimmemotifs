@@ -1409,6 +1409,7 @@ class Motif(object):
         ----------
         n_seqs : int
             number of sequences to sample
+
         Returns
         -------
         sequences : List[str]
