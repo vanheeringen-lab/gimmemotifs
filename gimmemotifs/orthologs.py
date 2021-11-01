@@ -99,7 +99,10 @@ def motif2factor_from_orthologs(
     logger.info(f"outdir: {outdir}.")
 
     # ignore file paths, we search only in the genomepy_genomes_dir
-    all_genomes = [os.path.basename(g) for g in set(database_references + extra_orthologs_references + new_reference)]
+    all_genomes = [
+        os.path.basename(g.strip()) for g in
+        set(database_references + extra_orthologs_references + new_reference)
+    ]
 
     # download all required genomes
     logger.info("Downloading all assemblies.")
@@ -245,8 +248,6 @@ def _download_genomes_with_annot(genomes, genomepy_genomes_dir, tpmdir):
     for genome in download_genomes:
         logger.info(f"Downloading {genome} through genomepy.")
         genomepy.install_genome(genome, annotation=True, genomes_dir=genomepy_genomes_dir)
-
-    for genome in download_genomes:
         _prepare_genomes_with_annot(genome, genomepy_genomes_dir, tpmdir)
 
 
