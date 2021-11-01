@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 * `gimme motif2factors` can now unzip genome fastas.
-* `gimme motif2factors` will will sanitize genome names.
+* `gimme motif2factors` will sanitize genome names.
 
 ### Removed
 
