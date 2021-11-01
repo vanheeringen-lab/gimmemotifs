@@ -44,6 +44,7 @@ def motif2factor_from_orthologs(
     database_references: List[str] = None,
     extra_orthologs_references: List[str] = None,
     new_reference: List[str] = None,
+    genomes_dir: str = None,
     tmpdir: str = None,
     keep_intermediate: bool = False,
     outdir: str = ".",
@@ -82,7 +83,7 @@ def motif2factor_from_orthologs(
 
     # Check if we can write output before we do a lot of work
     os.makedirs(outdir, exist_ok=True)
-
+    genomepy_genomes_dir = get_genomes_dir(genomes_dir, check_exist=False)
     tmpdir = tempfile.mkdtemp() if tmpdir is None else tmpdir
 
     logger.info(f"Making a new reference for: {' & '.join(new_reference)}.")
@@ -92,15 +93,17 @@ def motif2factor_from_orthologs(
     logger.info(
         f"For better orthology inference we are also using these assemblies: {' & '.join(extra_orthologs_references)}."
     )
-    logger.info(f"Using strategy: {strategy} for orthology/name inference.")
+    logger.info(f"Using '{strategy}' strategy for orthology/name inference.")
+    logger.info(f"genomes_dir: {genomepy_genomes_dir}.")
     logger.info(f"tmpdir: {tmpdir}.")
     logger.info(f"outdir: {outdir}.")
 
-    all_genomes = set(database_references + extra_orthologs_references + new_reference)
+    # ignore file paths, we search only in the genomepy_genomes_dir
+    all_genomes = [os.path.basename(g) for g in set(database_references + extra_orthologs_references + new_reference)]
 
     # download all required genomes
     logger.info("Downloading all assemblies.")
-    _download_genomes_with_annot(all_genomes, tmpdir)
+    _download_genomes_with_annot(all_genomes, genomepy_genomes_dir, tmpdir)
 
     # convert each genome + annotation into the primary genes (longest protein per gene)
     logger.info("Taking the longest protein per gene per assembly.")
@@ -174,54 +177,57 @@ def _orthofinder(peptide_folder, threads):
     return orthofinder_result
 
 
-def _download_genomes_with_annot(genomes, genomes_dir):
+def _prepare_genomes_with_annot(genome, genomepy_genomes_dir, tpmdir):
+    # unzip genome and gtf (if needed) and symlink these in the tmpdir
+    fasta = f"{genomepy_genomes_dir}/{genome}/{genome}.fa"
+    anno = f"{genomepy_genomes_dir}/{genome}/{genome}.annotation.gtf"
+    for gp_file in [fasta, anno]:
+        # unzip files if needed
+        if not os.path.exists(gp_file):
+            gzipped_gp_file = gp_file + ".gz"
+            result = subprocess.run(
+                ["gunzip", gzipped_gp_file],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            logger.debug(f"""stdout of gunzip:\n {result.stdout.decode("utf-8")}""")
+            logger.debug(f"""stderr of gunzip:\n {result.stderr.decode("utf-8")}""")
+        # symlink files in tmpdir
+        os.symlink(
+            gp_file,
+            f"{tpmdir}/{genome}/{os.path.basename(gp_file)}",
+        )
+
+
+def _download_genomes_with_annot(genomes, genomepy_genomes_dir, tpmdir):
     # download the genomes
     # add check to see if not already in genomes dir?
-    default_genomes_dir = get_genomes_dir(check_exist=False)
-    logger.debug(f"using default genome dir: {default_genomes_dir}")
+    logger.debug(f"using genomes dir: {genomepy_genomes_dir}")
     existing_genomes = []
     for genome in genomes:
-        os.makedirs(f"{genomes_dir}/{genome}", exist_ok=True)
+        os.makedirs(f"{tpmdir}/{genome}", exist_ok=True)
 
         # first check if the user supplied a pep.fa
-        pep = f"{default_genomes_dir}/{genome}/{genome}.pep.fa"
+        pep = f"{genomepy_genomes_dir}/{genome}/{genome}.pep.fa"
         if os.path.exists(pep):
             logger.info(f"found pep.fa for {genome}, using that one.")
             os.symlink(
                 pep,
-                f"{genomes_dir}/{genome}/{genome}.pep.fa",
+                f"{tpmdir}/{genome}/{genome}.pep.fa",
             )
             existing_genomes.append(genome)
             continue
 
         # check if already in default genomes dir, if so, skip downloading and directly copy
         if all(
-            os.path.exists(f"{default_genomes_dir}/{genome}/{genome}.{extension}")
-            or os.path.exists(f"{default_genomes_dir}/{genome}/{genome}.{extension}.gz")
+            os.path.exists(f"{genomepy_genomes_dir}/{genome}/{genome}.{extension}")
+            or os.path.exists(f"{genomepy_genomes_dir}/{genome}/{genome}.{extension}.gz")
             for extension in ["fa", "annotation.gtf"]
         ):
             logger.info(f"{genome} was already downloaded, using that version.")
-            # if except, probably a continuation from previous run
+            # if except, probably a continuation from previous run or NTFS related issues
             try:
-                os.symlink(
-                    f"{default_genomes_dir}/{genome}/{genome}.fa",
-                    f"{genomes_dir}/{genome}/{genome}.fa",
-                )
-
-                anno = f"{default_genomes_dir}/{genome}/{genome}.annotation.gtf"
-                if os.path.exists(anno):
-                    os.symlink(
-                        f"{default_genomes_dir}/{genome}/{genome}.annotation.gtf",
-                        f"{genomes_dir}/{genome}/{genome}.annotation.gtf",
-                    )
-                elif os.path.exists(f"{anno}.gz"):
-                    shutil.copyfile(
-                        f"{anno}.gz",
-                        f"{genomes_dir}/{genome}/{genome}.annotation.gtf.gz",
-                    )
-                else:
-                    # no annotation found, even if genome already exists
-                    continue
+                _prepare_genomes_with_annot(genome, genomepy_genomes_dir, tpmdir)
                 existing_genomes.append(genome)
             except Exception:
                 pass
@@ -238,18 +244,10 @@ def _download_genomes_with_annot(genomes, genomes_dir):
     # download missing genomes, or genomes with missing annotation
     for genome in download_genomes:
         logger.info(f"Downloading {genome} through genomepy.")
-        genomepy.install_genome(genome, annotation=True, genomes_dir=genomes_dir)
+        genomepy.install_genome(genome, annotation=True, genomes_dir=genomepy_genomes_dir)
 
-    for genome in genomes:
-        gzipped_anno = f"{genomes_dir}/{genome}/{genome}.annotation.gtf.gz"
-        if os.path.exists(gzipped_anno):
-            result = subprocess.run(
-                ["gunzip", gzipped_anno],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            logger.debug(f"""stdout of gunzip:\n {result.stdout.decode("utf-8")}""")
-            logger.debug(f"""stderr of gunzip:\n {result.stderr.decode("utf-8")}""")
+    for genome in download_genomes:
+        _prepare_genomes_with_annot(genome, genomepy_genomes_dir, tpmdir)
 
 
 def annot2primpep(genome, outdir):

@@ -22,6 +22,7 @@ website/**/*
 .pytest_cache/
 .cache/
 **/.ipynb_checkpoints/
+.idea/
 .vscode
 .coverage*
 coverage.xml
