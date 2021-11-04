@@ -23,6 +23,7 @@ import numpy as np
 from sklearn.preprocessing import scale
 import pandas as pd
 import sqlite3
+from tqdm.auto import trange
 
 from gimmemotifs import __version__
 from gimmemotifs.background import RandomGenomicFasta, gc_bin_bedfile
@@ -1121,7 +1122,7 @@ class Scanner(object):
 
         batch_size = 50000
         logger.debug("Scanning")
-        for batch_idx in range(0, len(seqs), batch_size):
+        for batch_idx in trange(0, len(seqs), batch_size, unit=f"{batch_size} sequences"):
             it = self._scan_sequences(
                 seqs.seqs[batch_idx : batch_idx + batch_size],
                 nreport,
