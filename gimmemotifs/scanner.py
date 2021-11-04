@@ -130,7 +130,7 @@ def scan_regionfile_to_table(
         "count" or "score"
 
     pfmfile : str, optional
-        Specify a PFM file for scanning.
+        Specify a PFM file for scanning (or a list of Motif instances).
 
     ncpus : int, optional
         If defined this specifies the number of cores to use.
@@ -196,7 +196,7 @@ def scan_regionfile_to_table(
             scores.append(row)
         logger.info("done")
 
-    motif_names = [m.id for m in read_motifs(pfmfile)]
+    motif_names = s.motif_ids
 
     logger.info("creating dataframe")
     dtype = "float16"
