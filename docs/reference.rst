@@ -879,24 +879,25 @@ One problem with this method is that the names of transcription factors in the d
 have to overlap with the names used in the genome assembly. To overcome this problem mygene.info is queried to still link differently
 named TFs can still be linked to genes and thus to orthologs. We tested this for gimme.vertebrate.v5.0, and worked well in our case.
 However it might be possible that this generates too many false positives in your case, and you can tweak the lookup on mygene.info
-with the --strict/--medium/--lenient flags.
+with the ``--strict``/``--medium``/``--lenient`` flags.
 
 If you happen to work with e.g. a non-public genome or a genome with a different type of annotation, you can supply your own files.
 This can either be:
 
 * a fasta and gtf file with the naming schemes
 
-  * `{genomes_dir}/{genome_name}/{genome_name}.fa`
+  * ``{genomes_dir}/{genome_name}/{genome_name}.fa``
 
-  * `{genomes_dir}/{genome_name}/{genome_name}.annotation.gtf`
+  * ``{genomes_dir}/{genome_name}/{genome_name}.annotation.gtf``
 
 * a peptide file with the naming scheme
 
-  * `{genomes_dir}/{genome_name}/{genome_name}.pep.fa`
+  * ``{genomes_dir}/{genome_name}/{genome_name}.pep.fa``
 
-The `genomes_dir` can be specified on the command line, else the default gimmemotifs genome dir is used
-(use `genomepy config show` to get this location).
-The `genome_name` can be the name of the assembly/genome you use, e.g. hg38 for human.
+The ``genome_name`` can be the name of the assembly/genome you use, e.g. hg38 for human.
+The ``genomes_dir`` can optionally be specified on the command line. 
+Otherwise the default genomes dir is used (use `genomepy config show` to get this location).
+If one or more genomes were previously installed with genomepy, their full path can be used as well (regardless of the ``genomes_dir``). 
 The peptide file should be of the format:
 
 ::
