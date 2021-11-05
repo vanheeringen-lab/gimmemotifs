@@ -1130,7 +1130,7 @@ class Scanner(object):
 
         batch_size = 50000
         logger.debug("Scanning")
-        for batch_idx in range(0, len(seqs)):
+        for batch_idx in range(0, len(seqs), batch_size):
             it = self._scan_sequences(
                 seqs.seqs[batch_idx : batch_idx + batch_size],
                 nreport,
