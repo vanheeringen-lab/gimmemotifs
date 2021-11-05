@@ -61,9 +61,9 @@ class Motif(object):
             if np.sum(pfm[0]) > 2:
                 self.pfm = [list(x) for x in pfm]
                 self.pwm = self.pfm_to_pwm(pfm)
-                self.pwm = [iteround.saferound(x, places) for x in self.pwm]
+                self.pwm = [iteround.saferound([float(x) for x in y], places) for y in self.pwm]
             else:
-                self.pwm = [iteround.saferound(list(x), places) for x in pfm]
+                self.pwm = [iteround.saferound([float(x) for x in y], places) for y in pfm]
                 self.pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in pfm]
             self.logodds = [
                 [np.log(n / self.G + self.Z) for n in col] for col in self.pwm
