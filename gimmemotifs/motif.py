@@ -61,9 +61,13 @@ class Motif(object):
             if np.sum(pfm[0]) > 2:
                 self.pfm = [list(x) for x in pfm]
                 self.pwm = self.pfm_to_pwm(pfm)
-                self.pwm = [iteround.saferound([float(x) for x in y], places) for y in self.pwm]
+                self.pwm = [
+                    iteround.saferound([float(x) for x in y], places) for y in self.pwm
+                ]
             else:
-                self.pwm = [iteround.saferound([float(x) for x in y], places) for y in pfm]
+                self.pwm = [
+                    iteround.saferound([float(x) for x in y], places) for y in pfm
+                ]
                 self.pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in pfm]
             self.logodds = [
                 [np.log(n / self.G + self.Z) for n in col] for col in self.pwm
@@ -1405,7 +1409,7 @@ class Motif(object):
 
     def sample(self, n_seqs):
         """Sample n_seqs random sequences from a motif. The sequences
-        follow the distribution of the motif pwm. 
+        follow the distribution of the motif pwm.
 
         Parameters
         ----------
@@ -1417,9 +1421,13 @@ class Motif(object):
         sequences : List[str]
             A list of all the samples sequences
         """
-        nucs = [random.choices("ACGT", weights=self.pwm[i], k=n_seqs) for i in range(len(self.pwm))]
+        nucs = [
+            random.choices("ACGT", weights=self.pwm[i], k=n_seqs)
+            for i in range(len(self.pwm))
+        ]
         seqs = ["".join(nuc) for nuc in zip(*nucs)]
         return seqs
+
 
 def default_motifs():
     """Return list of Motif instances from default motif database."""
