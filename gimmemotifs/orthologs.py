@@ -83,7 +83,6 @@ def motif2factor_from_orthologs(
 
     # Check if we can write output before we do a lot of work
     os.makedirs(outdir, exist_ok=True)
-    genomepy_genomes_dir = get_genomes_dir(genomes_dir, check_exist=False)
     tmpdir = tempfile.mkdtemp() if tmpdir is None else tmpdir
 
     logger.info(f"Making a new reference for: {' & '.join(new_reference)}.")
@@ -93,15 +92,16 @@ def motif2factor_from_orthologs(
     logger.info(
         f"For better orthology inference we are also using these assemblies: {' & '.join(extra_orthologs_references)}."
     )
-    logger.info(f"Using '{strategy}' strategy for orthology/name inference.")
-    logger.info(f"genomes_dir: {genomepy_genomes_dir}.")
+    logger.info(f"Using {strategy} strategy for orthology/name inference.")
     logger.info(f"tmpdir: {tmpdir}.")
     logger.info(f"outdir: {outdir}.")
 
     # download all required genomes
     logger.info("Downloading all assemblies.")
-    all_genomes = list(set(database_references + extra_orthologs_references + new_reference))
-    all_genomes = _download_genomes_with_annot(all_genomes, genomepy_genomes_dir, tmpdir)
+    all_genomes = list(
+        set(database_references + extra_orthologs_references + new_reference)
+    )
+    all_genomes = _download_genomes_with_annot(all_genomes, genomes_dir, tmpdir)
 
     # convert each genome + annotation into the primary genes (longest protein per gene)
     logger.info("Taking the longest protein per gene per assembly.")
@@ -197,7 +197,7 @@ def _prepare_genomes_with_annot(genome, genome_dir, outdir):
         )
 
 
-def _download_genomes_with_annot(genomes, genomepy_genomes_dir, tpmdir):
+def _download_genomes_with_annot(genomes, genomes_dir, tpmdir):
     """
     Download missing genomes/annotations.
     Accepts genome names, genomepy genome directories, and fasta filepaths.
@@ -208,15 +208,16 @@ def _download_genomes_with_annot(genomes, genomepy_genomes_dir, tpmdir):
     genomes : list
         a list of genome names, filepaths & suffixes removed (if any)
     """
-    logger.debug(f"saving new genomes in: {genomepy_genomes_dir}")
+    genomes_dir = get_genomes_dir(genomes_dir, check_exist=False)
+    logger.debug(f"Saving new genomes in: {genomes_dir}.")
     existing_genomes = []
     for i, genome in enumerate(genomes):
         try:
-            gp = genomepy.Genome(genome, genomepy_genomes_dir)
+            gp = genomepy.Genome(genome, genomes_dir)
             genomes[i] = genome = gp.name  # filepath -> name
             genome_dir = gp.genome_dir
         except FileNotFoundError:
-            genome_dir = os.path.join(genomepy_genomes_dir, genome)
+            genome_dir = os.path.join(genomes_dir, genome)
         outdir = os.path.join(tpmdir, genome)
         os.makedirs(outdir, exist_ok=True)
 
@@ -232,8 +233,13 @@ def _download_genomes_with_annot(genomes, genomepy_genomes_dir, tpmdir):
             continue
 
         # check if already in default genomes dir, if so, skip downloading and directly copy
-        required = [os.path.join(genome_dir, f"{genome}.{ext}") for ext in ["fa", "annotation.gtf"]]
-        if all(os.path.exists(file) or os.path.exists(f"{file}.gz") for file in required):
+        required = [
+            os.path.join(genome_dir, f"{genome}.{ext}")
+            for ext in ["fa", "annotation.gtf"]
+        ]
+        if all(
+            os.path.exists(file) or os.path.exists(f"{file}.gz") for file in required
+        ):
             # if except, probably a continuation from previous run or NTFS related issues
             try:
                 _prepare_genomes_with_annot(genome, genome_dir, outdir)
@@ -254,7 +260,7 @@ def _download_genomes_with_annot(genomes, genomepy_genomes_dir, tpmdir):
     # download missing genomes, or genomes with missing annotation
     for genome in download_genomes:
         logger.info(f"Downloading {genome} through genomepy.")
-        genomepy.install_genome(genome, annotation=True, genomes_dir=genomepy_genomes_dir)
+        genomepy.install_genome(genome, annotation=True, genomes_dir=genomes_dir)
         _prepare_genomes_with_annot(genome, genome_dir, outdir)
 
     return genomes  # all names clean
