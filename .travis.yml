@@ -32,10 +32,11 @@ install:
   - conda config --add channels defaults
   - conda config --add channels bioconda
   - conda config --add channels conda-forge
+  - conda install mamba -y
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      conda env create -q -f conda_env.dev.txt -n gimme;
+      mamba env create -q -f conda_env.dev.txt -n gimme;
     else
-      conda env create -q -f conda_env.osx.txt -n gimme;
+      mamba env create -q -f conda_env.osx.txt -n gimme;
     fi
   - conda activate gimme
   - conda list
