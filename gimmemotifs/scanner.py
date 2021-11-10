@@ -23,6 +23,7 @@ import numpy as np
 from sklearn.preprocessing import scale
 import pandas as pd
 import sqlite3
+from tqdm.auto import tqdm
 
 from gimmemotifs import __version__
 from gimmemotifs.background import RandomGenomicFasta, gc_bin_bedfile
@@ -1119,6 +1120,14 @@ class Scanner(object):
                 if len(self.meanstd) != 1:
                     self.set_meanstd(gc=gc)
 
+        # progress bar
+        pbar = tqdm(
+            desc="scanning",
+            unit=" sequences",
+            total=len(seqs),
+            disable=False,  # can be silenced
+        )
+
         batch_size = 50000
         logger.debug("Scanning")
         for batch_idx in range(0, len(seqs), batch_size):
@@ -1130,6 +1139,8 @@ class Scanner(object):
             )
             for result in it:
                 yield result
+                pbar.update(1)
+        pbar.close()
 
     def get_gc_thresholds(self, seqs, motifs=None, zscore=False):
         MAX_SEQS = 20000
