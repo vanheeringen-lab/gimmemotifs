@@ -670,6 +670,11 @@ def cli(sys_args):
         nargs="+",
     )
     p.add_argument(
+        "--genomes_dir",
+        help="Where to find/store genomepy genomes. Defaults to the genomepy config settings.",
+        metavar="DIR",
+    )
+    p.add_argument(
         "--tmpdir",
         help="Where to place intermediate files. Defaults to system temp.",
         metavar="DIR",

@@ -23,6 +23,7 @@ website/**/*
 .cache/
 .idea/
 **/.ipynb_checkpoints/
+.idea/
 .vscode
 .coverage*
 coverage.xml
