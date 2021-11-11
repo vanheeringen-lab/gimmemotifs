@@ -29,6 +29,9 @@ import pandas as pd
 import iteround
 
 
+NUCS = "ACGT"
+
+
 class Motif(object):
 
     """
@@ -48,89 +51,201 @@ class Motif(object):
 
     """
 
-    PSEUDO_PFM_COUNT = 1000  # Jaspar mean
+    PSEUDO_PFM_COUNT = 1000  # JASPAR mean
     PSEUDO_PWM = 1e-6
     G = 0.25
     Z = 0.01
 
+    # IUPAC table
+    iupac = {
+        "A": "A",
+        "C": "C",
+        "G": "G",
+        "T": "T",
+        "S": "CG",
+        "R": "AG",
+        "W": "AT",
+        "Y": "CT",
+        "K": "GT",
+        "M": "AC",
+        "B": "CGT",
+        "H": "ACT",
+        "D": "AGT",
+        "V": "ACG",
+        "N": "ACTG",
+    }
+    iupac_rev = {v: k for k, v in iupac.items()}
+    iupac_ppm = {
+        k: [int(nuc in v) / len(v) for nuc in "ACGT"] for k, v in iupac.items()
+    }
+
     def __init__(self, pfm=None, places=4):
-        if pfm is None:
-            pfm = []
 
-        if len(pfm) > 0:
-            if np.sum(pfm[0]) > 2:
-                self.pfm = [list(x) for x in pfm]
-                self.pwm = self.pfm_to_pwm(pfm)
-                self.pwm = [iteround.saferound(x, places) for x in self.pwm]
-            else:
-                self.pwm = [iteround.saferound(list(x), places) for x in pfm]
-                self.pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in pfm]
-            self.logodds = [
-                [np.log(n / self.G + self.Z) for n in col] for col in self.pwm
-            ]
-        else:
-            self.pwm = []
-            self.pfm = []
+        self._places = places
+        self.pfm = pfm
 
-        self.wiggled_pwm = None
         self.factors = {DIRECT_NAME: [], INDIRECT_NAME: []}
-        self.seqs = []
-        self.consensus = ""
-        self.min_score = None
-        self.max_score = None
 
-        self.id = ""
+        self.id = "unnamed_motif"
         self.config = MotifConfig()
 
-        self.nucs = "ACGT"
+    @property
+    def pfm(self):
+        return self._pfm
 
-        self.iupac_rev = {
-            "CG": "S",
-            "AG": "R",
-            "AT": "W",
-            "CT": "Y",
-            "GT": "K",
-            "AC": "M",
-            "CGT": "B",
-            "ACT": "H",
-            "AGT": "D",
-            "ACG": "V",
-        }
+    @property
+    def pwm(self):
+        return self._ppm
 
-        self.iupac = {
-            "A": ["A"],
-            "C": ["C"],
-            "G": ["G"],
-            "T": ["T"],
-            "S": ["C", "G"],
-            "R": ["A", "G"],
-            "W": ["A", "T"],
-            "Y": ["C", "T"],
-            "K": ["G", "T"],
-            "M": ["A", "C"],
-            "B": ["C", "G", "T"],
-            "H": ["A", "C", "T"],
-            "D": ["A", "G", "T"],
-            "V": ["A", "C", "G"],
-            "N": ["A", "C", "G", "T"],
-        }
-        self.iupac_pwm = {
-            "A": [1, 0, 0, 0],
-            "C": [0, 1, 0, 0],
-            "G": [0, 0, 1, 0],
-            "T": [0, 0, 0, 1],
-            "S": [0, 0.5, 0.5, 0],
-            "R": [0.5, 0, 0.5, 0],
-            "W": [0.5, 0, 0, 0.5],
-            "Y": [0, 0.5, 0, 0.5],
-            "K": [0, 0, 0.5, 0.5],
-            "M": [0.5, 0.5, 0, 0],
-            "B": [0, 0.33, 0.33, 0.33],
-            "H": [0.33, 0.33, 0, 0.33],
-            "D": [0.33, 0, 0.33, 0.33],
-            "V": [0.33, 0.33, 0.33, 0],
-            "N": [0.25, 0.25, 0.25, 0.25],
-        }
+    @property
+    def ppm(self):
+        return self._ppm
+
+    @property
+    def logodds(self):
+        return self._logodds
+
+    @pfm.setter
+    def pfm(self, mtx):
+        if mtx is not None and len(mtx) > 0:
+            if np.sum(mtx[0]) > 2:
+                self._pfm = [list(x) for x in mtx]
+                self._ppm = self.pfm_to_pwm(mtx)
+                self._ppm = [iteround.saferound(x, self._places) for x in self._ppm]
+            else:
+                self._ppm = [iteround.saferound(list(x), self._places) for x in mtx]
+                self._pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in mtx]
+        else:
+            self._ppm = []
+            self._pfm = []
+
+        self._logodds = [
+            [np.log(n / self.G + self.Z) for n in col] for col in self._ppm
+        ]
+
+        self._pfm = np.array(self._pfm)
+        self._ppm = np.array(self._ppm)
+        self._logodds = np.array(self._logodds)
+        self._consensus = self.to_consensus(self.pwm)
+        if len(self) > 0:
+            self._max_score = self.logodds.max(1).sum()
+            self._min_score = self.logodds.min(1).sum()
+        else:
+            self._max_score = 0
+            self._min_score = 0
+
+    @property
+    def consensus(self):
+        """Motif converted to consensus sequence.
+
+        Returns
+        -------
+        str
+            Consensus sequence.
+        """
+        if not hasattr(self, "_consensus"):
+            self._consensus = self.to_consensus(self.pwm)
+
+        return self._consensus
+
+    def to_consensus(self, ppm=None, precision=4):
+        """Convert position probability matrix to consensus sequence.
+
+        Parameters
+        ----------
+        ppm : array_like, optional
+            If not supplied, the ppm of the Motif object will be used.
+
+        precision : int, optional
+            Precision used for rounding.
+
+        Returns
+        -------
+        str
+            Consensus sequence.
+        """
+        if ppm is None:
+            ppm = self.ppm
+
+        if len(ppm) == 0:
+            return ""
+
+        consensus = ""
+        for row in ppm:
+            weights = sorted(zip(NUCS, row), key=lambda x: x[1])
+            if (
+                round(weights[-1][1], precision) >= 0.5
+                and weights[-1][1] > 2 * weights[-2][1]
+            ):
+                consensus += weights[-1][0]
+            elif (
+                round(weights[-1][1], precision) + round(weights[-2][1], precision)
+                >= 0.75
+            ):
+                consensus += self.iupac_rev[
+                    "".join(sorted([weights[-1][0], weights[-2][0]]))
+                ].lower()
+            else:
+                consensus += "n"
+
+        return consensus
+
+    @property
+    def max_score(self):
+        """Return the maximum logodds score.
+
+        Returns
+        -------
+        score : float
+            Maximum logodds score.
+        """
+        return self._max_score
+
+    @property
+    def min_score(self):
+        """Return the minimum logodds score.
+
+        Returns
+        -------
+        score : float
+            Minimum logodds score.
+        """
+        return self._min_score
+
+    def pwm_min_score(self):
+        """Return the minimum PWM score.
+
+        DEPRECATED: use min_score instead.
+
+        Returns
+        -------
+        score : float
+            Minimum PWM score.
+        """
+        warn(
+            "The pwm_min_score() Function is deprecated and will be removed in future release."
+            "Please use the min_score property instead.",
+            DeprecationWarning,
+        )
+        return self.min_score
+
+    def pwm_max_score(self):
+        """Return the maximum PWM score.
+
+        DEPRECATED: use max_score instead.
+
+        Returns
+        -------
+        score : float
+            Maximum PWM score.
+        """
+        warn(
+            "The pwm_max_score() Function is deprecated and will be removed in future release."
+            "Please use the max_score property instead.",
+            DeprecationWarning,
+        )
+
+        return self.max_score
 
     def __getitem__(self, x):
         """
@@ -141,16 +256,7 @@ class Motif(object):
         motif : Motif instance
             Slice of the motif.
         """
-        m = Motif()
-        if self.pwm:
-            m.pwm = self.pwm[x]
-        if self.pfm:
-            m.pfm = self.pfm[x]
-        if self.seqs:
-            m.seqs = [seq[x] for seq in self.seqs]
-        if self.consensus:
-            m.consensus = self.consensus[x]
-        return m
+        return Motif(pfm=self.pfm[x])
 
     def __len__(self):
         """
@@ -158,63 +264,29 @@ class Motif(object):
 
         Returns
         -------
-        len : int
+        int
             Motif length.
         """
-        return len(self.to_consensus())
+        return self.pfm.shape[0]
 
     def __repr__(self):
         return "{}_{}".format(self.id, self.to_consensus())
 
+    @property
     def information_content(self):
         """Return the total information content of the motif.
 
-        Return
-        ------
-        ic : float
+        Returns
+        -------
+        float
             Motif information content.
         """
-        ic = 0
-        for row in self.pwm:
-            ic += 2.0 + np.sum(
-                [row[x] * log(row[x]) / log(2) for x in range(4) if row[x] > 0]
-            )
-        return ic
-
-    def pwm_min_score(self):
-        """Return the minimum PWM score.
-
-        Returns
-        -------
-        score : float
-            Minimum PWM score.
-        """
-        if self.min_score is None:
-            score = 0
-            for row in self.pwm:
-                score += log(min(row) / 0.25 + 0.01)
-            self.min_score = score
-
-        return self.min_score
-
-    def pwm_max_score(self):
-        """Return the maximum PWM score.
-
-        Returns
-        -------
-        score : float
-            Maximum PWM score.
-        """
-        if self.max_score is None:
-            score = 0
-            for row in self.pwm:
-                score += log(max(row) / 0.25 + 0.01)
-            self.max_score = score
-
-        return self.max_score
+        return ((self.ppm * np.log2(self.ppm)).sum(1) + 2).sum()
 
     def score_kmer(self, kmer):
         """Calculate the log-odds score for a specific k-mer.
+
+        Note: this is not necessarily the fastest way for scanning.
 
         Parameters
         ----------
@@ -226,23 +298,22 @@ class Motif(object):
         score : float
             Log-odd score.
         """
-        if len(kmer) != len(self.pwm):
-            raise Exception("incorrect k-mer length")
+        if len(kmer) != len(self):
+            raise ValueError(
+                f"Length of the k-mer should be the same as the motif length ({len(self)})"
+            )
 
-        score = 0.0
-        d = {"A": 0, "C": 1, "G": 2, "T": 3}
-        for nuc, row in zip(kmer.upper(), self.pwm):
-            score += log(row[d[nuc]] / 0.25 + 0.01)
+        score = self.logodds[np.arange(len(self)), [NUCS.index(n) for n in kmer]].sum()
 
         return score
 
     def pfm_to_pwm(self, pfm, pseudo=0.001):
-        """Convert PFM with counts to a PFM with fractions.
+        """Convert PFM with counts to a PFM with fractions (PPM).
 
         Parameters
         ----------
-        pfm : list
-            2-dimensional list with counts.
+        pfm : array_like
+            2-dimensional array_like with counts.
         pseudo : float
             Pseudocount used in conversion.
 
@@ -353,12 +424,10 @@ class Motif(object):
 
         Returns
         -------
-        m : Motif instance
+        Motif instance
             New Motif instance with the reverse complement of the input motif.
         """
-        m = Motif()
-        m.pfm = [row[::-1] for row in self.pfm[::-1]]
-        m.pwm = [row[::-1] for row in self.pwm[::-1]]
+        m = Motif(pfm=self.pfm[::-1, ::-1])
         m.id = self.id + "_revcomp"
         return m
 
@@ -377,21 +446,18 @@ class Motif(object):
         -------
         m : Motif instance
         """
-        pwm = self.pwm[:]
-        while len(pwm) > 0 and self.ic_pos(pwm[0]) < edge_ic_cutoff:
-            pwm = pwm[1:]
-            self.pwm = self.pwm[1:]
-            self.pfm = self.pfm[1:]
-        while len(pwm) > 0 and self.ic_pos(pwm[-1]) < edge_ic_cutoff:
-            pwm = pwm[:-1]
-            self.pwm = self.pwm[:-1]
-            self.pfm = self.pfm[:-1]
+        left_idx = 0
+        while left_idx < len(self) and self.ic_pos(self.ppm[left_idx]) < edge_ic_cutoff:
+            left_idx += 1
 
-        self.consensus = None
-        self.min_score = None
-        self.max_score = None
-        self.wiggled_pwm = None
+        right_idx = len(self)
+        while (
+            right_idx > left_idx
+            and self.ic_pos(self.ppm[right_idx - 1]) < edge_ic_cutoff
+        ):
+            right_idx -= 1
 
+        self.pfm = self.pfm[left_idx:right_idx]
         return self
 
     def consensus_scan(self, fa):
@@ -1136,36 +1202,13 @@ class Motif(object):
         rows = np.array(self.pwm).transpose()
         rows = [" ".join([str(x) for x in row]) for row in rows]
         if version == 2:
-            rows = ["{} [{} ]".format(n, row) for n, row in zip(self.nucs, rows)]
+            rows = ["{} [{} ]".format(n, row) for n, row in zip(NUCS, rows)]
 
         str_out = "\n".join(rows)
         if header:
             str_out = "\n".join([self.id, str_out])
 
         return str_out
-
-    def to_consensus(self, precision=4):
-        if not self.consensus:
-            consensus = ""
-            for row in self.pwm:
-                weights = sorted(zip(["A", "C", "G", "T"], row), key=lambda x: x[1])
-                if (
-                    round(weights[-1][1], precision) >= 0.5
-                    and weights[-1][1] > 2 * weights[-2][1]
-                ):
-                    consensus += weights[-1][0]
-                elif (
-                    round(weights[-1][1], precision) + round(weights[-2][1], precision)
-                    >= 0.75
-                ):
-                    consensus += self.iupac_rev[
-                        "".join(sorted([weights[-1][0], weights[-2][0]]))
-                    ].lower()
-                else:
-                    consensus += "n"
-            self.consensus = consensus
-
-        return self.consensus
 
     def to_consensusv2(self):
         if self.consensus:
@@ -1234,7 +1277,7 @@ class Motif(object):
         Returns:
         hash : str
         """
-        return xxhash.xxh64(self._pwm_to_str(3)).hexdigest()
+        return xxhash.xxh64(self._ppm_to_str(3)).hexdigest()
 
     def to_pwm(self, precision=4, extra_str=""):
         """Return pwm as string.
@@ -1258,9 +1301,9 @@ class Motif(object):
             motif_id += "_%s" % extra_str
 
         if not self.pwm:
-            self.pwm = [self.iupac_pwm[char] for char in self.consensus.upper()]
+            self.pwm = [self.iupac_ppm[char] for char in self.consensus.upper()]
 
-        return ">%s\n%s" % (motif_id, self._pwm_to_str(precision))
+        return ">%s\n%s" % (motif_id, self._ppm_to_str(precision))
 
     def to_img(self, fname, fmt="PNG", add_left=0, seqlogo=None, height=6):
         """Create a sequence logo using seqlogo.
@@ -1311,15 +1354,6 @@ class Motif(object):
         motif = Motif(pfm=random_pfm)
         motif.id = "random"
         return motif
-
-    def wiggle_pwm(self):
-        if self.wiggled_pwm is None:
-            self.wiggled_pwm = [
-                np.array(row) + (np.random.random(4) / 1e6) for row in self.pwm
-            ]
-            self.wiggled_pwm = [list(row / np.sum(row)) for row in self.wiggled_pwm]
-
-        return self.wiggled_pwm
 
     def format_factors(
         self, max_length=5, html=False, include_indirect=True, extra_str=", (...)"
@@ -1405,7 +1439,7 @@ class Motif(object):
 
     def sample(self, n_seqs):
         """Sample n_seqs random sequences from a motif. The sequences
-        follow the distribution of the motif pwm. 
+        follow the distribution of the motif pwm.
 
         Parameters
         ----------
@@ -1417,9 +1451,13 @@ class Motif(object):
         sequences : List[str]
             A list of all the samples sequences
         """
-        nucs = [random.choices("ACGT", weights=self.pwm[i], k=n_seqs) for i in range(len(self.pwm))]
+        nucs = [
+            random.choices(NUCS, weights=self.pwm[i], k=n_seqs)
+            for i in range(len(self.pwm))
+        ]
         seqs = ["".join(nuc) for nuc in zip(*nucs)]
         return seqs
+
 
 def default_motifs():
     """Return list of Motif instances from default motif database."""
@@ -1699,21 +1737,21 @@ def _read_motifs_jaspar(handle):
 
         if line.startswith(">"):
             motif_id = line[1:]
-        if line[0] in "ACGT":
+        if line[0] in NUCS:
             m = p.search(line)
             try:
                 nuc = m.group(1)
                 counts = re.split(r"\s+", m.group(2).strip())
                 pwm[nuc] = [float(x) for x in counts]
                 if nuc == "T":
-                    motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
+                    motif = Motif(np.array([pwm[n] for n in NUCS]).transpose())
                     motif.id = motif_id
                     motifs.append(motif)
             except Exception:
                 raise ValueError("Can't parse line\n" + line)
 
     if motif_id and motifs[-1].id != motif_id:
-        motif = Motif(np.array([pwm[n] for n in "ACGT"]).transpose())
+        motif = Motif(np.array([pwm[n] for n in NUCS]).transpose())
         motif.id = motif_id
         motifs.append(motif)
 
