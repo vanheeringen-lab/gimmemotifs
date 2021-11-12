@@ -119,6 +119,7 @@ setup(
         "numpy",
         "scipy >= 0.9.0",
         "matplotlib >= 2",
+        "iteround",
         "jinja2",
         "pandas >= 1.1",
         "pyarrow >= 0.16.0",
