@@ -494,12 +494,12 @@ def scan_sequence(
             if zscore:
                 m_mean, m_std = motifs_meanstd[seq_gc_bin][motif.id]
                 result = pwmscan(
-                    seq, motif.logodds, motif.min_score, nreport, scan_rc
+                    seq, motif.logodds.tolist(), motif.min_score, nreport, scan_rc
                 )
                 result = [[(row[0] - m_mean) / m_std, row[1], row[2]] for row in result]
                 result = [row for row in result if row[0] >= cutoff]
             else:
-                result = pwmscan(seq, motif.logodds, cutoff, nreport, scan_rc)
+                result = pwmscan(seq, motif.logodds.tolist(), cutoff, nreport, scan_rc)
             if cutoff <= motif.min_score and len(result) == 0:
                 result = [[motif.min_score, 0, 1]] * nreport
 
@@ -592,7 +592,7 @@ def scan_it_moods(
     for motif in motifs:
         pfmname = os.path.join(tmpdir, "{}.pfm".format(motif.id))
         with open(pfmname, "w") as f:
-            matrix = np.array(motif.pwm).transpose()
+            matrix = np.array(motif.ppm).transpose()
             for line in [" ".join([str(x) for x in row]) for row in matrix]:
                 f.write("{}\n".format(line))
 
