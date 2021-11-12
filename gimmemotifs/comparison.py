@@ -259,11 +259,11 @@ def seqcor(m1, m2, seq=None):
     L = len(seq)
 
     # Scan RC de Bruijn sequence
-    result1 = pfmscan(seq, m1.pwm, m1.pwm_min_score(), len(seq), False, True)
-    result2 = pfmscan(seq, m2.pwm, m2.pwm_min_score(), len(seq), False, True)
+    result1 = pfmscan(seq, m1.pwm, m1.min_score, len(seq), False, True)
+    result2 = pfmscan(seq, m2.pwm, m2.min_score, len(seq), False, True)
 
     # Reverse complement of motif 2
-    result3 = pfmscan(seq, m2.rc().pwm, m2.rc().pwm_min_score(), len(seq), False, True)
+    result3 = pfmscan(seq, m2.rc().pwm, m2.rc().min_score, len(seq), False, True)
 
     result1 = np.array(result1)
     result2 = np.array(result2)

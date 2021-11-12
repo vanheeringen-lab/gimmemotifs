@@ -24,10 +24,10 @@ def threshold(args):
 
     print("Motif\tScore\tCutoff")
     for motif in motifs:
-        min_score = motif.pwm_min_score()
-        max_score = motif.pwm_max_score()
+        min_score = motif.min_score
+        max_score = motif.max_score
         opt_score = s.threshold[motif.id]
         if opt_score is None:
-            opt_score = motif.pwm_max_score()
+            opt_score = motif.max_score
         threshold = (opt_score - min_score) / (max_score - min_score)
         print("{0}\t{1}\t{2}".format(motif.id, opt_score, threshold))
