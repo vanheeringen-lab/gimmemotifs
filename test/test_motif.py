@@ -73,6 +73,32 @@ def test_score_kmer(my_motif):
     np.testing.assert_almost_equal(my_motif.score_kmer("AACGTACGAACA"), my_motif.max_score)
     np.testing.assert_almost_equal(my_motif.score_kmer("CGTAGCGTTTAT"), -24.584, decimal=3)
 
+
+def test_motif_shuffle(my_motif):
+    shuffled = my_motif.shuffle()
+    assert sorted(my_motif.consensus) == sorted(shuffled.consensus)
+
+    check = [my_motif.shuffle().consensus != my_motif.consensus for _ in range(10)]
+    assert np.any(check)
+    
+
+def test_motif_hash(my_motif):
+    
+    assert my_motif.hash == "fb543845f4e50436"
+
+    # different id should not result in different hash
+    my_motif.id = "Different ID"
+    assert my_motif.hash == "fb543845f4e50436"
+
+    # slight changes should not result in different hash
+    ppm = my_motif.ppm
+    for i in range(len(ppm)):
+        ppm[i, np.random.randint(0, 3)] += np.random.random() / 1e4
+
+    assert Motif(ppm).hash == "fb543845f4e50436"
+
+
+
 # class TestMotif(unittest.TestCase):
 #     """ A test class for Motif """
 

@@ -503,8 +503,10 @@ class MotifComparer(object):
         return [1 - norm.cdf(score[0], m, s), score[1], score[2]]
 
     def score_matrices(self, matrix1, matrix2, metric, combine):
+
+
         if metric in self.metrics and combine in self.combine:
-            s = score(matrix1, matrix2, metric, combine)
+            s = score(matrix1.tolist(), matrix2.tolist(), metric, combine)
 
             if s != s:
                 return None
@@ -544,14 +546,14 @@ class MotifComparer(object):
         # return c_max_subtotal(matrix1, matrix2, metric, combine)
 
         for i in range(-(len(matrix2) - min_overlap), len(matrix1) - min_overlap + 1):
-            p1, p2 = self.make_equal_length_truncate(matrix1, matrix2, i)
+            p1, p2 = make_equal_length(matrix1, matrix2, i, truncate="both")
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, 1])
 
         rev_matrix2 = [row[::-1] for row in matrix2[::-1]]
         for i in range(-(len(matrix2) - min_overlap), len(matrix1) - min_overlap + 1):
-            p1, p2 = self.make_equal_length_truncate(matrix1, rev_matrix2, i)
+            p1, p2 = make_equal_length(matrix1, rev_matrix2, i, truncate="both")
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, -1])
@@ -563,16 +565,16 @@ class MotifComparer(object):
     def max_partial(self, matrix1, matrix2, metric, combine):
 
         scores = []
-
+    
         for i in range(-(len(matrix2) - 1), len(matrix1)):
-            p1, p2 = self.make_equal_length_truncate_second(matrix1, matrix2, i)
+            p1, p2 = make_equal_length(matrix1, matrix2, i, truncate="first")
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, 1])
-
+        
         rev_matrix2 = [row[::-1] for row in matrix2[::-1]]
         for i in range(-(len(matrix2) - 1), len(matrix1)):
-            p1, p2 = self.make_equal_length_truncate_second(matrix1, rev_matrix2, i)
+            p1, p2 = make_equal_length(matrix1, rev_matrix2, i, truncate="first")
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, -1])
@@ -585,14 +587,14 @@ class MotifComparer(object):
         scores = []
 
         for i in range(-(len(matrix2) - 1), len(matrix1)):
-            p1, p2 = self.make_equal_length(matrix1, matrix2, i)
+            p1, p2 = make_equal_length(matrix1, matrix2, i)
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, 1])
 
         rev_matrix2 = [row[::-1] for row in matrix2[::-1]]
         for i in range(-(len(matrix2) - 1), len(matrix1)):
-            p1, p2 = self.make_equal_length(matrix1, rev_matrix2, i)
+            p1, p2 = make_equal_length(matrix1, rev_matrix2, i)
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, -1])
@@ -601,60 +603,6 @@ class MotifComparer(object):
             sys.stdout.write("No score {} {}".format(matrix1, matrix2))
             return []
         return sorted(scores, key=lambda x: x[0])[-1]
-
-    def make_equal_length(self, pwm1, pwm2, pos, bg=None):
-        if bg is None:
-            bg = [0.25, 0.25, 0.25, 0.25]
-
-        p1 = pwm1[:]
-        p2 = pwm2[:]
-
-        if pos < 1:
-            p1 = [bg for _ in range(-pos)] + p1
-        else:
-            p2 = [bg for _ in range(pos)] + p2
-
-        diff = len(p1) - len(p2)
-        if diff > 0:
-            p2 += [bg for _ in range(diff)]
-        elif diff < 0:
-            p1 += [bg for _ in range(-diff)]
-
-        return p1, p2
-
-    def make_equal_length_truncate(self, pwm1, pwm2, pos):
-        p1 = pwm1[:]
-        p2 = pwm2[:]
-
-        if pos < 0:
-            p2 = p2[-pos:]
-        elif pos > 0:
-            p1 = p1[pos:]
-
-        if len(p1) > len(p2):
-            p1 = p1[: len(p2)]
-        else:
-            p2 = p2[: len(p1)]
-        return p1, p2
-
-    def make_equal_length_truncate_second(self, pwm1, pwm2, pos, bg=None):
-        if bg is None:
-            bg = [0.25, 0.25, 0.25, 0.25]
-
-        p1 = pwm1[:]
-        p2 = pwm2[:]
-
-        if pos < 0:
-            p2 = p2[-pos:]
-        else:
-            p2 = [bg for _ in range(pos)] + p2
-
-        diff = len(p1) - len(p2)
-        if diff > 0:
-            p2 += [bg for _ in range(diff)]
-        elif diff < 0:
-            p2 = p2[: len(p1)]
-        return p1, p2
 
     def get_all_scores(
         self,
@@ -1001,6 +949,47 @@ def select_nonredundant_motifs(
         f"selected {len(selected_features)} non-redundant motifs: ROC AUC {roc_auc:.3f}, PR AUC {pr_auc:.3f}"
     )
     return selected_features
+
+def make_equal_length(a, b, pos, truncate=None, bg=None):
+    if bg is None:
+        bg = [0.25, 0.25, 0.25, 0.25]
+
+    if truncate is not None and truncate not in ["both", "first", "second"]:
+        raise ValueError("Valid values for truncate are None, 'first', second' or 'both'")
+    
+    truncate_first = False 
+    truncate_second = False 
+    if truncate in ["both", "first"]:
+        truncate_first = True    
+    if truncate in ["both", "second"]:
+        truncate_second = True
+        
+    len_a = len(a)
+    len_b = len(b)
+    
+    second_pos = max(pos, 0)
+    first_pos = max(-1 * pos, 0)
+    mtx_len = len_a + len_b + abs(pos) - max(min(len_b, first_pos + 1), min(len_a, second_pos + 1))
+    
+    first = np.array([bg.copy() for x in range(mtx_len)])
+    first[first_pos:first_pos + len_a] = a
+    
+    second = np.array([bg.copy() for x in range(mtx_len)])
+    second[second_pos:second_pos + len_b] = b
+    
+    mask_first = np.zeros(mtx_len, dtype=bool)
+    mask_second = np.zeros(mtx_len, dtype=bool)
+    if truncate_first:
+        mask_second[first_pos:first_pos + len_a] = True
+    else: 
+        mask_second[:] = True
+        
+    if truncate_second:
+        mask_first[second_pos:second_pos + len_b] = True
+    else: 
+        mask_first[:] = True
+
+    return first[mask_second & mask_first], second[mask_second & mask_first]
 
 
 # import here is necessary as workaround

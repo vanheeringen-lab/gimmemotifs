@@ -9,7 +9,6 @@ import os
 import re
 import sys
 import random
-from math import log, sqrt
 from collections import Counter
 from warnings import warn
 
@@ -48,6 +47,8 @@ class Motif(object):
 
     """
 
+    from ._comparison import ic, pcc, other_ic, matrix_ic, max_ic, max_pcc
+    from ._plotting import plot_logo, plot_ensembl_logo, to_img
     from ._scanning import (
         pwm_scan,
         pwm_scan_all,
@@ -56,7 +57,6 @@ class Motif(object):
         pwm_scan_score,
         pwm_scan_to_gff,
     )
-    from ._plotting import plot_logo, plot_ensembl_logo
 
     PSEUDO_PFM_COUNT = 1000  # JASPAR mean
     PSEUDO_PPM = 1e-6
@@ -100,18 +100,6 @@ class Motif(object):
     def pfm(self):
         return self._pfm
 
-    @property
-    def pwm(self):
-        return self._ppm
-
-    @property
-    def ppm(self):
-        return self._ppm
-
-    @property
-    def logodds(self):
-        return self._logodds
-
     @pfm.setter
     def pfm(self, mtx):
         if mtx is not None and len(mtx) > 0:
@@ -140,6 +128,18 @@ class Motif(object):
         else:
             self._max_score = 0
             self._min_score = 0
+
+    @property
+    def pwm(self):
+        return self._ppm
+
+    @property
+    def ppm(self):
+        return self._ppm
+
+    @property
+    def logodds(self):
+        return self._logodds
 
     @property
     def consensus(self):
@@ -219,6 +219,33 @@ class Motif(object):
         """
         return self._min_score
 
+    @property
+    def information_content(self):
+        """Return the total information content of the motif.
+
+        Returns
+        -------
+        float
+            Motif information content.
+        """
+        return ((self.ppm * np.log2(self.ppm)).sum(1) + 2).sum()
+
+    @property
+    def hash(self):
+        """Return hash of motif.
+
+        This is an unique identifier of a motif, regardless of the id.
+
+        Returns
+        -------
+        str
+            Hash of motif.
+        """
+        if not hasattr(self, "_hash") or self._hash is None:
+            self._hash = xxhash.xxh64(self._ppm_to_str(3)).hexdigest()
+
+        return self._hash
+
     def pwm_min_score(self):
         """Return the minimum PWM score.
 
@@ -279,16 +306,17 @@ class Motif(object):
     def __repr__(self):
         return "{}_{}".format(self.id, self.to_consensus())
 
-    @property
-    def information_content(self):
-        """Return the total information content of the motif.
+    def rc(self):
+        """Return the reverse complemented motif.
 
         Returns
         -------
-        float
-            Motif information content.
+        Motif instance
+            New Motif instance with the reverse complement of the input motif.
         """
-        return ((self.ppm * np.log2(self.ppm)).sum(1) + 2).sum()
+        m = Motif(pfm=self.pfm[::-1, ::-1])
+        m.id = self.id + "_revcomp"
+        return m
 
     def score_kmer(self, kmer):
         """Calculate the log-odds score for a specific k-mer.
@@ -313,6 +341,39 @@ class Motif(object):
         score = self.logodds[np.arange(len(self)), [NUCS.index(n) for n in kmer]].sum()
 
         return score
+
+    def randomize(self):
+        """Create a new motif with shuffled positions.
+
+        Shuffle the positions of this motif and return a new Motif instance.
+
+        Returns
+        -------
+        m : Motif instance
+            Motif instance with shuffled positions.
+        """
+        warn(
+            "The randomize() method is deprecated and will be removed in future release."
+            "Please use the shuffle() method instead.",
+            DeprecationWarning,
+        )
+        return self.shuffle()
+
+    def shuffle(self):
+        """Create a new motif with shuffled positions.
+
+        Shuffle the positions of this motif and return a new Motif instance.
+
+        Returns
+        -------
+        Motif instance
+            Motif instance with shuffled positions.
+        """
+        m = Motif(pfm=np.random.permutation(self.pfm))
+        m.id = f"{self.id}_shuffled"
+        return m
+
+    # To be checked, documented, tested and refactored after here
 
     def pfm_to_ppm(self, pfm, pseudo=0.001):
         """Convert PFM with counts to a PFM with fractions (PPM).
@@ -382,60 +443,6 @@ class Motif(object):
             np.sum(self.pfm[0]),
         )
         m += "\n".join(["\t".join(["%s" % x for x in row]) for row in self.ppm])
-        return m
-
-    def ic_pos(self, row1, row2=None):
-        """Calculate the information content of one position.
-
-        Returns
-        -------
-        score : float
-            Information content.
-        """
-        if row2 is None:
-            row2 = [0.25, 0.25, 0.25, 0.25]
-
-        score = 0
-        for a, b in zip(row1, row2):
-            if a > 0:
-                score += a * log(a / b) / log(2)
-        return score
-
-    def pcc_pos(self, row1, row2):
-        """Calculate the Pearson correlation coefficient of one position
-        compared to another position.
-
-        Returns
-        -------
-        score : float
-            Pearson correlation coefficient.
-        """
-        mean1 = np.mean(row1)
-        mean2 = np.mean(row2)
-
-        a = 0
-        x = 0
-        y = 0
-        for n1, n2 in zip(row1, row2):
-            a += (n1 - mean1) * (n2 - mean2)
-            x += (n1 - mean1) ** 2
-            y += (n2 - mean2) ** 2
-
-        if a == 0:
-            return 0
-        else:
-            return a / sqrt(x * y)
-
-    def rc(self):
-        """Return the reverse complemented motif.
-
-        Returns
-        -------
-        Motif instance
-            New Motif instance with the reverse complement of the input motif.
-        """
-        m = Motif(pfm=self.pfm[::-1, ::-1])
-        m.id = self.id + "_revcomp"
         return m
 
     def trim(self, edge_ic_cutoff=0.4):
@@ -585,231 +592,6 @@ class Motif(object):
         m.id = m.to_consensus()
         return m
 
-    def other_ic_pos(self, row1, row2, bg=None):
-        if bg is None:
-            bg = [0.25, 0.25, 0.25, 0.25]
-
-        score = 0
-        score_a = 0
-        score_b = 0
-
-        for a, b, pbg in zip(row1, row2, bg):
-            score += abs(a * log(a / pbg) / log(2) - b * log(b / pbg) / log(2))
-            score_a += a * log(a / pbg) / log(2)
-            score_b += b * log(b / pbg) / log(2)
-
-        return (score_a + score_b) / 2 - score
-
-    def pcc(self, ppm1, ppm2, pos):
-        # xxCATGYT
-        # GGCTTGYx
-        # pos = -2
-        ppm1 = ppm1[:]
-        ppm2 = ppm2[:]
-
-        na = []
-        if pos > 0:
-            na = ppm1[:pos]
-            ppm1 = ppm1[pos:]
-        elif pos < 0:
-            na = ppm2[:-pos]
-            ppm2 = ppm2[-pos:]
-
-        if len(ppm1) > len(ppm2):
-            na += ppm1[len(ppm2) :]
-            ppm1 = ppm1[: len(ppm2)]
-        elif len(ppm2) > len(ppm1):
-            na += ppm2[len(ppm1) :]
-            ppm2 = ppm2[: len(ppm1)]
-
-        # Aligned parts of the motif
-        score = 0
-        for a, b in zip(ppm1, ppm2):
-            score += self.pcc_pos(a, b)
-
-        return score
-
-    def ic(self, ppm1, ppm2, pos, bg=None, bg_factor=1):
-        if bg is None:
-            bg = [0.25, 0.25, 0.25, 0.25]
-
-        # xxCATGYT
-        # GGCTTGYx
-        # pos = -2
-        ppm1 = ppm1[:]
-        ppm2 = ppm2[:]
-
-        na = []
-        if pos > 0:
-            na = ppm1[:pos]
-            ppm1 = ppm1[pos:]
-        elif pos < 0:
-            na = ppm2[:-pos]
-            ppm2 = ppm2[-pos:]
-
-        if len(ppm1) > len(ppm2):
-            na += ppm1[len(ppm2) :]
-            ppm1 = ppm1[: len(ppm2)]
-        elif len(ppm2) > len(ppm1):
-            na += ppm2[len(ppm1) :]
-            ppm2 = ppm2[: len(ppm1)]
-
-        # print "COMPARE"
-        # print Motif(ppm1).to_consensus()
-        # print Motif(ppm2).to_consensus()
-
-        # Aligned parts of the motif
-        score = 0
-        for a, b in zip(ppm1, ppm2):
-            score += (
-                self.ic_pos(a)
-                + self.ic_pos(b)
-                - (self.ic_pos(a, b) + self.ic_pos(b, a))
-            )
-
-        # print "SCORE: %s" % score
-        # Parts aligned to the background
-        for x in na:
-            score += (
-                self.ic_pos(x)
-                + self.ic_pos(bg)
-                - (self.ic_pos(x, bg) + self.ic_pos(bg, x))
-            ) * bg_factor
-
-        #    print "SCORE WITH BG: %s" % score
-        return score
-
-    def other_ic(self, ppm1, ppm2, pos, bg=None, bg_factor=0.8):
-        if bg is None:
-            bg = [0.25, 0.25, 0.25, 0.25]
-
-        # xxCATGYT
-        # GGCTTGYx
-        # pos = -2
-        ppm1 = ppm1[:]
-        ppm2 = ppm2[:]
-
-        na = []
-        if pos > 0:
-            na = ppm1[:pos]
-            ppm1 = ppm1[pos:]
-        elif pos < 0:
-            na = ppm2[:-pos]
-            ppm2 = ppm2[-pos:]
-
-        if len(ppm1) > len(ppm2):
-            na += ppm1[len(ppm2) :]
-            ppm1 = ppm1[: len(ppm2)]
-        elif len(ppm2) > len(ppm1):
-            na += ppm2[len(ppm1) :]
-            ppm2 = ppm2[: len(ppm1)]
-
-        # Aligned parts of the motif
-        score = 0
-        for a, b in zip(ppm1, ppm2):
-            score += self.other_ic_pos(a, b)
-
-        for x in na:
-            score += self.other_ic_pos(x, bg) * bg_factor
-
-        return score
-
-    def matrix_ic(self, ppm1, ppm2, bg=None):
-        if bg is None:
-            bg = [0.25, 0.25, 0.25, 0.25]
-
-        # xxCATGYT
-        # GGCTTGYx
-        # pos = -2
-        ppm1 = np.array(ppm1)
-        ppm2 = np.array(ppm2)
-        ppm2_rev = np.array([row[::-1] for row in ppm2[::-1]])
-        bg = np.array(bg)
-
-        a = ppm1 * np.log2(ppm1 / bg)
-        b = ppm2 * np.log2(ppm2 / bg)
-
-        b_rev = ppm2_rev * np.log2(ppm2_rev / bg)
-
-        scores = []
-        l1 = len(ppm1)
-        l2 = len(ppm2)
-        for pos in range(-(l2 - 1), l1):
-
-            ppm1_start, ppm2_start = 0, 0
-            ppm1_end, ppm2_end = l1, l2
-            if pos > 0:
-                ppm1_start = pos
-                if l1 - pos > l2:
-                    ppm1_end = l2 + pos
-                elif l1 - pos < l2:
-                    ppm2_end = l1 - pos
-            elif pos < 0:
-                ppm2_start = -pos
-                if l2 + pos > l1:
-                    ppm2_end = l1
-                elif l2 + pos < l1:
-                    ppm1_end = l2 + pos
-            else:
-                if l2 > l1:
-                    ppm2_end = l1
-                elif l2 < l1:
-                    ppm1_end = l2
-
-            score = np.sum(
-                (np.sum(a[ppm1_start:ppm1_end], 1) + np.sum(b[ppm2_start:ppm2_end], 1))
-                / 2
-                - np.sum(np.abs(a[ppm1_start:ppm1_end] - b[ppm2_start:ppm2_end]), 1)
-            )
-            scores.append([score, pos, 1])
-
-            score = np.sum(
-                (
-                    np.sum(a[ppm1_start:ppm1_end], 1)
-                    + np.sum(b_rev[ppm2_start:ppm2_end], 1)
-                )
-                / 2
-                - np.sum(np.abs(a[ppm1_start:ppm1_end] - b_rev[ppm2_start:ppm2_end]), 1)
-            )
-            scores.append([score, pos, -1])
-
-        return sorted(scores, key=lambda x: x[0])[-1]
-
-    def max_ic(self, other, revcomp=True, bg_factor=0.8):
-        ppm1 = self.ppm
-        ppm2 = other.ppm
-
-        scores = []
-
-        for i in range(-(len(ppm2) - 1), len(ppm1)):
-            scores.append((self.other_ic(ppm1, ppm2, i, bg_factor=bg_factor), i, 1))
-
-        if revcomp:
-            rev_ppm2 = [row[::-1] for row in ppm2[::-1]]
-            for i in range(-(len(ppm2) - 1), len(ppm1)):
-                scores.append(
-                    (self.other_ic(ppm1, rev_ppm2, i, bg_factor=bg_factor), i, -1)
-                )
-
-        return sorted(scores, key=lambda x: x[0])[-1]
-
-    def max_pcc(self, other, revcomp=True):
-        ppm1 = self.ppm
-        ppm2 = other.ppm
-
-        scores = []
-
-        for i in range(-(len(ppm2) - 1), len(ppm1)):
-            scores.append((self.pcc(ppm1, ppm2, i), i, 1))
-
-        if revcomp:
-            rev_ppm2 = [row[::-1] for row in ppm2[::-1]]
-            for i in range(-(len(ppm2) - 1), len(ppm1)):
-                scores.append((self.pcc(ppm1, rev_ppm2, i), i, -1))
-
-        # print scores
-        return sorted(scores, key=lambda x: x[0])[-1]
-
     def _format_jaspar(self, version=1, header=True):
         rows = np.array(self.ppm).transpose()
         rows = [" ".join([str(x) for x in row]) for row in rows]
@@ -881,16 +663,6 @@ class Motif(object):
         fmt = "{{:.{:d}f}}".format(precision)
         return "\n".join(["\t".join([fmt.format(p) for p in row]) for row in self.ppm])
 
-    def hash(self):
-        """Return hash of motif.
-
-        This is an unique identifier of a motif, regardless of the id.
-
-        Returns:
-        hash : str
-        """
-        return xxhash.xxh64(self._ppm_to_str(3)).hexdigest()
-
     def to_ppm(self, precision=4, extra_str=""):
         """Return ppm as string.
 
@@ -916,56 +688,6 @@ class Motif(object):
             self.ppm = [self.iupac_ppm[char] for char in self.consensus.upper()]
 
         return ">%s\n%s" % (motif_id, self._ppm_to_str(precision))
-
-    def to_img(self, fname, fmt="PNG", add_left=0, seqlogo=None, height=6):
-        """Create a sequence logo using seqlogo.
-
-        Create a sequence logo and save it to a file. Valid formats are: PNG,
-        EPS, GIF and PDF.
-
-        Parameters
-        ----------
-        fname : str
-            Output filename.
-        fmt : str , optional
-            Output format (case-insensitive). Valid formats are PNG, EPS, GIF
-            and PDF.
-        add_left : int , optional
-            Pad motif with empty positions on the left side.
-        seqlogo : str
-            Location of the seqlogo executable. By default the seqlogo version
-            that is included with GimmeMotifs is used.
-        height : float
-            Height of the image
-        """
-        warn("Method to_img() is replaced by plot_logo()", DeprecationWarning)
-        self.plot_logo(fname=fname, kind="information")
-
-    def randomize(self):
-        """Create a new motif with shuffled positions.
-
-        Shuffle the positions of this motif and return a new Motif instance.
-
-        Returns
-        -------
-        m : Motif instance
-            Motif instance with shuffled positions.
-        """
-        random_pfm = [[c for c in row] for row in self.pfm]
-        random.shuffle(random_pfm)
-        m = Motif(pfm=random_pfm)
-        m.id = "random"
-        return m
-
-    def randomize_dimer(self):
-        length = len(self.pfm)
-        random_pfm = []
-        for _ in range(length / 2):
-            pos = random.randint(0, length - 1)
-            random_pfm += [[c for c in row] for row in self.pfm[pos : pos + 2]]
-        motif = Motif(pfm=random_pfm)
-        motif.id = "random"
-        return motif
 
     def format_factors(
         self, max_length=5, html=False, include_indirect=True, extra_str=", (...)"

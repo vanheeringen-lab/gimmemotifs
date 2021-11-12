@@ -5,6 +5,9 @@
 # distribution.
 """Scanning functions for Motif class"""
 
+from warnings import warn
+
+
 import logomaker as lm
 import matplotlib.pyplot as plt
 import numpy as np
@@ -229,3 +232,28 @@ def plot_ensembl_logo(self, fname=None, ic=True, title=True, letters=True, heigh
         plt.close()
     else:
         return ax
+
+
+def to_img(self, fname, fmt="PNG", add_left=0, seqlogo=None, height=6):
+    """Create a sequence logo using seqlogo.
+
+    Create a sequence logo and save it to a file. Valid formats are: PNG,
+    EPS, GIF and PDF.
+
+    Parameters
+    ----------
+    fname : str
+        Output filename.
+    fmt : str , optional
+        Output format (case-insensitive). Valid formats are PNG, EPS, GIF
+        and PDF.
+    add_left : int , optional
+        Pad motif with empty positions on the left side.
+    seqlogo : str
+        Location of the seqlogo executable. By default the seqlogo version
+        that is included with GimmeMotifs is used.
+    height : float
+        Height of the image
+    """
+    warn("Method to_img() is replaced by plot_logo()", DeprecationWarning)
+    self.plot_logo(fname=fname, kind="information")
