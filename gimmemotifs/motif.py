@@ -41,7 +41,7 @@ class Motif(object):
     --------
 
     >>> motif = Motif([[0,1,0,0], [0.5,0,0,0.5], [0,0,1,0]])
-    >>> print(motif.to_pwm())
+    >>> print(motif.to_ppm())
     >
     0   1   0   0
     0.5 0   0   0.5
@@ -52,7 +52,7 @@ class Motif(object):
     """
 
     PSEUDO_PFM_COUNT = 1000  # JASPAR mean
-    PSEUDO_PWM = 1e-6
+    PSEUDO_PPM = 1e-6
     G = 0.25
     Z = 0.01
 
@@ -110,7 +110,7 @@ class Motif(object):
         if mtx is not None and len(mtx) > 0:
             if np.sum(mtx[0]) > 2:
                 self._pfm = [list(x) for x in mtx]
-                self._ppm = self.pfm_to_pwm(mtx)
+                self._ppm = self.pfm_to_ppm(mtx)
                 self._ppm = [iteround.saferound(x, self._places) for x in self._ppm]
             else:
                 self._ppm = [iteround.saferound(list(x), self._places) for x in mtx]
@@ -126,7 +126,7 @@ class Motif(object):
         self._pfm = np.array(self._pfm)
         self._ppm = np.array(self._ppm)
         self._logodds = np.array(self._logodds)
-        self._consensus = self.to_consensus(self.pwm)
+        self._consensus = self.to_consensus(self.ppm)
         if len(self) > 0:
             self._max_score = self.logodds.max(1).sum()
             self._min_score = self.logodds.min(1).sum()
@@ -144,7 +144,7 @@ class Motif(object):
             Consensus sequence.
         """
         if not hasattr(self, "_consensus"):
-            self._consensus = self.to_consensus(self.pwm)
+            self._consensus = self.to_consensus(self.ppm)
 
         return self._consensus
 
@@ -307,7 +307,7 @@ class Motif(object):
 
         return score
 
-    def pfm_to_pwm(self, pfm, pseudo=0.001):
+    def pfm_to_ppm(self, pfm, pseudo=0.001):
         """Convert PFM with counts to a PFM with fractions (PPM).
 
         Parameters
@@ -319,8 +319,8 @@ class Motif(object):
 
         Returns
         -------
-        pwm : list
-            2-dimensional list with fractions.
+        array_like
+            2-dimensional array with probability count matrix
         """
         return [
             [(x + pseudo) / (float(np.sum(row)) + pseudo * 4) for x in row]
@@ -374,7 +374,7 @@ class Motif(object):
             len(self),
             np.sum(self.pfm[0]),
         )
-        m += "\n".join(["\t".join(["%s" % x for x in row]) for row in self.pwm])
+        m += "\n".join(["\t".join(["%s" % x for x in row]) for row in self.ppm])
         return m
 
     def ic_pos(self, row1, row2=None):
@@ -486,6 +486,15 @@ class Motif(object):
         return matches
 
     def pwm_scan(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
+        warn("Method pwm_scan() is replaced by scan() and will be removed in the next release.", DeprecationWarning)
+        self.pwm_scan(fa, cutoff=cutoff, nreport=nreport, scan_rc=scan_rc)
+    
+    def pwm_scan_all(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
+        warn("Method pwm_scan_all() is replaced by scan_all() and will be removed in the next release.", DeprecationWarning)
+        self.pwm_scan_all(fa, cutoff=cutoff, nreport=nreport, scan_rc=scan_rc)
+
+
+    def scan(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
         """Scan sequences with this motif.
 
         Scan sequences from a FASTA object with this motif. Less efficient
@@ -512,19 +521,19 @@ class Motif(object):
             returned.
         """
         c = (
-            self.pwm_min_score()
-            + (self.pwm_max_score() - self.pwm_min_score()) * cutoff
+            self.min_score
+            + (self.max_score - self.min_score) * cutoff
         )
-        pwm = self.pwm
+        ppm = self.ppm
         matches = {}
         for name, seq in fa.items():
             matches[name] = []
-            result = pfmscan(seq.upper(), pwm, c, nreport, scan_rc)
+            result = pfmscan(seq.upper(), ppm, c, nreport, scan_rc)
             for _, pos, _ in result:
                 matches[name].append(pos)
         return matches
 
-    def pwm_scan_all(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
+    def scan_all(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
         """Scan sequences with this motif.
 
         Scan sequences from a FASTA object with this motif. Less efficient
@@ -551,14 +560,14 @@ class Motif(object):
             every match is returned.
         """
         c = (
-            self.pwm_min_score()
-            + (self.pwm_max_score() - self.pwm_min_score()) * cutoff
+            self.min_score
+            + (self.max_score - self.min_score) * cutoff
         )
-        pwm = self.pwm
+        ppm = self.ppm
         matches = {}
         for name, seq in fa.items():
             matches[name] = []
-            result = pfmscan(seq.upper(), pwm, c, nreport, scan_rc)
+            result = pfmscan(seq.upper(), ppm, c, nreport, scan_rc)
             for score, pos, strand in result:
                 matches[name].append((pos, score, strand))
         return matches
@@ -686,14 +695,14 @@ class Motif(object):
         """
         width = 0.94
 
-        pfm = self.pwm
+        ppm = self.ppm
         nucs = np.array(["A", "C", "G", "T"])
 
-        neg_matrix = np.zeros((len(pfm), 4))
+        neg_matrix = np.zeros((len(ppm), 4))
 
         pos_matrix = []
-        nuc_pfm = []
-        for row in pfm:
+        nuc_ppm = []
+        for row in ppm:
             if ic:
                 ylabel = "bits"
                 ic_row = []
@@ -710,7 +719,7 @@ class Motif(object):
                 y_max = 1
             idx = np.argsort(ic_row)
             pos_matrix.append(np.array(ic_row)[idx])
-            nuc_pfm.append(nucs[idx])
+            nuc_ppm.append(nucs[idx])
 
         colors = {
             "A": (0.308, 0.709, 0.280),
@@ -723,7 +732,7 @@ class Motif(object):
         # x_min = -np.min([np.sum(row) for row in neg_matrix])
         # neg_matrix = neg_matrix / x_min * x_max
 
-        plt.figure(figsize=(len(pfm) * 0.3, height))
+        plt.figure(figsize=(len(ppm) * 0.3, height))
         for (sign, matrix) in [(1, pos_matrix), (-1, neg_matrix)]:
             minbottom = np.zeros(len(matrix))
             alpha = 1
@@ -732,14 +741,14 @@ class Motif(object):
                 alpha = 0.5
 
             # Print the bars
-            for i in range(0, len(pfm[0])):
+            for i in range(0, len(ppm[0])):
 
                 pheight = [abs(r[i]) for r in matrix]
                 bottom = minbottom + [sum(np.abs(r[:i])) for r in matrix]
 
-                c = [colors[r[i]] for r in nuc_pfm]
+                c = [colors[r[i]] for r in nuc_ppm]
                 plt.bar(
-                    range(1, len(pfm) + 1),
+                    range(1, len(ppm) + 1),
                     width=width,
                     height=pheight,
                     bottom=bottom,
@@ -749,11 +758,11 @@ class Motif(object):
 
             if letters:
                 # Print the letters
-                for i in range(len(pfm)):
+                for i in range(len(ppm)):
                     for n in range(4):
                         x = i + 1
                         y = matrix[i][n] / 2 + sum(matrix[i][:n])
-                        nuc = nuc_pfm[i][n]
+                        nuc = nuc_ppm[i][n]
                         c = "white"
                         if abs(matrix[i][n]) * height >= 0.5:
                             plt.text(
@@ -774,7 +783,7 @@ class Motif(object):
         if title:
             plt.title(self.id)
         plt.xlim(0.47, len(self) + 0.5)
-        plt.xticks(range(1, len(pfm) + 1))
+        plt.xticks(range(1, len(ppm) + 1))
         plt.ylabel(ylabel)
 
         if fname:
@@ -810,14 +819,14 @@ class Motif(object):
             returned.
         """
         c = (
-            self.pwm_min_score()
-            + (self.pwm_max_score() - self.pwm_min_score()) * cutoff
+            self.min_score
+            + (self.max_score - self.min_score) * cutoff
         )
-        pwm = self.pwm
+        ppm = self.ppm
         matches = {}
         for name, seq in fa.items():
             matches[name] = []
-            result = pfmscan(seq.upper(), pwm, c, nreport, scan_rc)
+            result = pfmscan(seq.upper(), ppm, c, nreport, scan_rc)
             for score, _, _ in result:
                 matches[name].append(score)
         return matches
@@ -854,10 +863,10 @@ class Motif(object):
             out = open(gfffile, "w")
 
         c = (
-            self.pwm_min_score()
-            + (self.pwm_max_score() - self.pwm_min_score()) * cutoff
+            self.min_score
+            + (self.max_score - self.min_score) * cutoff
         )
-        pwm = self.pwm
+        ppm = self.ppm
 
         strandmap = {-1: "-", "-1": "-", "-": "-", "1": "+", 1: "+", "+": "+"}
         gff_line = (
@@ -865,17 +874,17 @@ class Motif(object):
             'motif_name "{}" ; motif_instance "{}"\n'
         )
         for name, seq in fa.items():
-            result = pfmscan(seq.upper(), pwm, c, nreport, scan_rc)
+            result = pfmscan(seq.upper(), ppm, c, nreport, scan_rc)
             for score, pos, strand in result:
                 out.write(
                     gff_line.format(
                         name,
                         pos,
-                        pos + len(pwm),
+                        pos + len(ppm),
                         score,
                         strandmap[strand],
                         self.id,
-                        seq[pos : pos + len(pwm)],
+                        seq[pos : pos + len(ppm)],
                     )
                 )
         out.close()
@@ -988,67 +997,67 @@ class Motif(object):
 
         return (score_a + score_b) / 2 - score
 
-    def pcc(self, pwm1, pwm2, pos):
+    def pcc(self, ppm1, ppm2, pos):
         # xxCATGYT
         # GGCTTGYx
         # pos = -2
-        pwm1 = pwm1[:]
-        pwm2 = pwm2[:]
+        ppm1 = ppm1[:]
+        ppm2 = ppm2[:]
 
         na = []
         if pos > 0:
-            na = pwm1[:pos]
-            pwm1 = pwm1[pos:]
+            na = ppm1[:pos]
+            ppm1 = ppm1[pos:]
         elif pos < 0:
-            na = pwm2[:-pos]
-            pwm2 = pwm2[-pos:]
+            na = ppm2[:-pos]
+            ppm2 = ppm2[-pos:]
 
-        if len(pwm1) > len(pwm2):
-            na += pwm1[len(pwm2) :]
-            pwm1 = pwm1[: len(pwm2)]
-        elif len(pwm2) > len(pwm1):
-            na += pwm2[len(pwm1) :]
-            pwm2 = pwm2[: len(pwm1)]
+        if len(ppm1) > len(ppm2):
+            na += ppm1[len(ppm2) :]
+            ppm1 = ppm1[: len(ppm2)]
+        elif len(ppm2) > len(ppm1):
+            na += ppm2[len(ppm1) :]
+            ppm2 = ppm2[: len(ppm1)]
 
         # Aligned parts of the motif
         score = 0
-        for a, b in zip(pwm1, pwm2):
+        for a, b in zip(ppm1, ppm2):
             score += self.pcc_pos(a, b)
 
         return score
 
-    def ic(self, pwm1, pwm2, pos, bg=None, bg_factor=1):
+    def ic(self, ppm1, ppm2, pos, bg=None, bg_factor=1):
         if bg is None:
             bg = [0.25, 0.25, 0.25, 0.25]
 
         # xxCATGYT
         # GGCTTGYx
         # pos = -2
-        pwm1 = pwm1[:]
-        pwm2 = pwm2[:]
+        ppm1 = ppm1[:]
+        ppm2 = ppm2[:]
 
         na = []
         if pos > 0:
-            na = pwm1[:pos]
-            pwm1 = pwm1[pos:]
+            na = ppm1[:pos]
+            ppm1 = ppm1[pos:]
         elif pos < 0:
-            na = pwm2[:-pos]
-            pwm2 = pwm2[-pos:]
+            na = ppm2[:-pos]
+            ppm2 = ppm2[-pos:]
 
-        if len(pwm1) > len(pwm2):
-            na += pwm1[len(pwm2) :]
-            pwm1 = pwm1[: len(pwm2)]
-        elif len(pwm2) > len(pwm1):
-            na += pwm2[len(pwm1) :]
-            pwm2 = pwm2[: len(pwm1)]
+        if len(ppm1) > len(ppm2):
+            na += ppm1[len(ppm2) :]
+            ppm1 = ppm1[: len(ppm2)]
+        elif len(ppm2) > len(ppm1):
+            na += ppm2[len(ppm1) :]
+            ppm2 = ppm2[: len(ppm1)]
 
         # print "COMPARE"
-        # print Motif(pwm1).to_consensus()
-        # print Motif(pwm2).to_consensus()
+        # print Motif(ppm1).to_consensus()
+        # print Motif(ppm2).to_consensus()
 
         # Aligned parts of the motif
         score = 0
-        for a, b in zip(pwm1, pwm2):
+        for a, b in zip(ppm1, ppm2):
             score += (
                 self.ic_pos(a)
                 + self.ic_pos(b)
@@ -1067,34 +1076,34 @@ class Motif(object):
         #    print "SCORE WITH BG: %s" % score
         return score
 
-    def other_ic(self, pwm1, pwm2, pos, bg=None, bg_factor=0.8):
+    def other_ic(self, ppm1, ppm2, pos, bg=None, bg_factor=0.8):
         if bg is None:
             bg = [0.25, 0.25, 0.25, 0.25]
 
         # xxCATGYT
         # GGCTTGYx
         # pos = -2
-        pwm1 = pwm1[:]
-        pwm2 = pwm2[:]
+        ppm1 = ppm1[:]
+        ppm2 = ppm2[:]
 
         na = []
         if pos > 0:
-            na = pwm1[:pos]
-            pwm1 = pwm1[pos:]
+            na = ppm1[:pos]
+            ppm1 = ppm1[pos:]
         elif pos < 0:
-            na = pwm2[:-pos]
-            pwm2 = pwm2[-pos:]
+            na = ppm2[:-pos]
+            ppm2 = ppm2[-pos:]
 
-        if len(pwm1) > len(pwm2):
-            na += pwm1[len(pwm2) :]
-            pwm1 = pwm1[: len(pwm2)]
-        elif len(pwm2) > len(pwm1):
-            na += pwm2[len(pwm1) :]
-            pwm2 = pwm2[: len(pwm1)]
+        if len(ppm1) > len(ppm2):
+            na += ppm1[len(ppm2) :]
+            ppm1 = ppm1[: len(ppm2)]
+        elif len(ppm2) > len(ppm1):
+            na += ppm2[len(ppm1) :]
+            ppm2 = ppm2[: len(ppm1)]
 
         # Aligned parts of the motif
         score = 0
-        for a, b in zip(pwm1, pwm2):
+        for a, b in zip(ppm1, ppm2):
             score += self.other_ic_pos(a, b)
 
         for x in na:
@@ -1102,104 +1111,104 @@ class Motif(object):
 
         return score
 
-    def matrix_ic(self, pwm1, pwm2, bg=None):
+    def matrix_ic(self, ppm1, ppm2, bg=None):
         if bg is None:
             bg = [0.25, 0.25, 0.25, 0.25]
 
         # xxCATGYT
         # GGCTTGYx
         # pos = -2
-        pwm1 = np.array(pwm1)
-        pwm2 = np.array(pwm2)
-        pwm2_rev = np.array([row[::-1] for row in pwm2[::-1]])
+        ppm1 = np.array(ppm1)
+        ppm2 = np.array(ppm2)
+        ppm2_rev = np.array([row[::-1] for row in ppm2[::-1]])
         bg = np.array(bg)
 
-        a = pwm1 * np.log2(pwm1 / bg)
-        b = pwm2 * np.log2(pwm2 / bg)
+        a = ppm1 * np.log2(ppm1 / bg)
+        b = ppm2 * np.log2(ppm2 / bg)
 
-        b_rev = pwm2_rev * np.log2(pwm2_rev / bg)
+        b_rev = ppm2_rev * np.log2(ppm2_rev / bg)
 
         scores = []
-        l1 = len(pwm1)
-        l2 = len(pwm2)
+        l1 = len(ppm1)
+        l2 = len(ppm2)
         for pos in range(-(l2 - 1), l1):
 
-            pwm1_start, pwm2_start = 0, 0
-            pwm1_end, pwm2_end = l1, l2
+            ppm1_start, ppm2_start = 0, 0
+            ppm1_end, ppm2_end = l1, l2
             if pos > 0:
-                pwm1_start = pos
+                ppm1_start = pos
                 if l1 - pos > l2:
-                    pwm1_end = l2 + pos
+                    ppm1_end = l2 + pos
                 elif l1 - pos < l2:
-                    pwm2_end = l1 - pos
+                    ppm2_end = l1 - pos
             elif pos < 0:
-                pwm2_start = -pos
+                ppm2_start = -pos
                 if l2 + pos > l1:
-                    pwm2_end = l1
+                    ppm2_end = l1
                 elif l2 + pos < l1:
-                    pwm1_end = l2 + pos
+                    ppm1_end = l2 + pos
             else:
                 if l2 > l1:
-                    pwm2_end = l1
+                    ppm2_end = l1
                 elif l2 < l1:
-                    pwm1_end = l2
+                    ppm1_end = l2
 
             score = np.sum(
-                (np.sum(a[pwm1_start:pwm1_end], 1) + np.sum(b[pwm2_start:pwm2_end], 1))
+                (np.sum(a[ppm1_start:ppm1_end], 1) + np.sum(b[ppm2_start:ppm2_end], 1))
                 / 2
-                - np.sum(np.abs(a[pwm1_start:pwm1_end] - b[pwm2_start:pwm2_end]), 1)
+                - np.sum(np.abs(a[ppm1_start:ppm1_end] - b[ppm2_start:ppm2_end]), 1)
             )
             scores.append([score, pos, 1])
 
             score = np.sum(
                 (
-                    np.sum(a[pwm1_start:pwm1_end], 1)
-                    + np.sum(b_rev[pwm2_start:pwm2_end], 1)
+                    np.sum(a[ppm1_start:ppm1_end], 1)
+                    + np.sum(b_rev[ppm2_start:ppm2_end], 1)
                 )
                 / 2
-                - np.sum(np.abs(a[pwm1_start:pwm1_end] - b_rev[pwm2_start:pwm2_end]), 1)
+                - np.sum(np.abs(a[ppm1_start:ppm1_end] - b_rev[ppm2_start:ppm2_end]), 1)
             )
             scores.append([score, pos, -1])
 
         return sorted(scores, key=lambda x: x[0])[-1]
 
     def max_ic(self, other, revcomp=True, bg_factor=0.8):
-        pwm1 = self.pwm
-        pwm2 = other.pwm
+        ppm1 = self.ppm
+        ppm2 = other.ppm
 
         scores = []
 
-        for i in range(-(len(pwm2) - 1), len(pwm1)):
-            scores.append((self.other_ic(pwm1, pwm2, i, bg_factor=bg_factor), i, 1))
+        for i in range(-(len(ppm2) - 1), len(ppm1)):
+            scores.append((self.other_ic(ppm1, ppm2, i, bg_factor=bg_factor), i, 1))
 
         if revcomp:
-            rev_pwm2 = [row[::-1] for row in pwm2[::-1]]
-            for i in range(-(len(pwm2) - 1), len(pwm1)):
+            rev_ppm2 = [row[::-1] for row in ppm2[::-1]]
+            for i in range(-(len(ppm2) - 1), len(ppm1)):
                 scores.append(
-                    (self.other_ic(pwm1, rev_pwm2, i, bg_factor=bg_factor), i, -1)
+                    (self.other_ic(ppm1, rev_ppm2, i, bg_factor=bg_factor), i, -1)
                 )
 
         return sorted(scores, key=lambda x: x[0])[-1]
 
     def max_pcc(self, other, revcomp=True):
-        pwm1 = self.pwm
-        pwm2 = other.pwm
+        ppm1 = self.ppm
+        ppm2 = other.ppm
 
         scores = []
 
-        for i in range(-(len(pwm2) - 1), len(pwm1)):
-            scores.append((self.pcc(pwm1, pwm2, i), i, 1))
+        for i in range(-(len(ppm2) - 1), len(ppm1)):
+            scores.append((self.pcc(ppm1, ppm2, i), i, 1))
 
         if revcomp:
-            rev_pwm2 = [row[::-1] for row in pwm2[::-1]]
-            for i in range(-(len(pwm2) - 1), len(pwm1)):
-                scores.append((self.pcc(pwm1, rev_pwm2, i), i, -1))
+            rev_ppm2 = [row[::-1] for row in ppm2[::-1]]
+            for i in range(-(len(ppm2) - 1), len(ppm1)):
+                scores.append((self.pcc(ppm1, rev_ppm2, i), i, -1))
 
         # print scores
         return sorted(scores, key=lambda x: x[0])[-1]
 
     def _format_jaspar(self, version=1, header=True):
-        rows = np.array(self.pwm).transpose()
+        rows = np.array(self.ppm).transpose()
         rows = [" ".join([str(x) for x in row]) for row in rows]
         if version == 2:
             rows = ["{} [{} ]".format(n, row) for n, row in zip(NUCS, rows)]
@@ -1215,7 +1224,7 @@ class Motif(object):
             return self.consensus
         else:
             consensus = ""
-            for row in self.pwm:
+            for row in self.ppm:
                 weights = sorted(zip(["A", "C", "G", "T"], row), key=lambda x: x[1])
                 if weights[-1][1] >= 0.5:
                     if weights[-2][1] >= 0.25:
@@ -1245,14 +1254,14 @@ class Motif(object):
                 "\n".join(["\t".join(["%s" % x for x in row]) for row in self.pfm]),
             )
         else:
-            pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in self.pwm]
+            pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in self.ppm]
             return ">%s\n%s" % (
                 self.id,
                 "\n".join(["\t".join(["%s" % x for x in row]) for row in pfm]),
             )
 
-    def _pwm_to_str(self, precision=4):
-        """Return string representation of pwm.
+    def _ppm_to_str(self, precision=4):
+        """Return string representation of ppm.
 
         Parameters
         ----------
@@ -1261,13 +1270,13 @@ class Motif(object):
 
         Returns
         -------
-        pwm_string : str
+        ppm_string : str
         """
-        if not self.pwm:
+        if not self.ppm:
             return ""
 
         fmt = "{{:.{:d}f}}".format(precision)
-        return "\n".join(["\t".join([fmt.format(p) for p in row]) for row in self.pwm])
+        return "\n".join(["\t".join([fmt.format(p) for p in row]) for row in self.ppm])
 
     def hash(self):
         """Return hash of motif.
@@ -1279,8 +1288,8 @@ class Motif(object):
         """
         return xxhash.xxh64(self._ppm_to_str(3)).hexdigest()
 
-    def to_pwm(self, precision=4, extra_str=""):
-        """Return pwm as string.
+    def to_ppm(self, precision=4, extra_str=""):
+        """Return ppm as string.
 
         Parameters
         ----------
@@ -1293,15 +1302,15 @@ class Motif(object):
         Returns
         -------
         motif_str : str
-            Motif formatted in PWM format.
+            Motif formatted in ppm format.
         """
         motif_id = self.id
 
         if extra_str:
             motif_id += "_%s" % extra_str
 
-        if not self.pwm:
-            self.pwm = [self.iupac_ppm[char] for char in self.consensus.upper()]
+        if not self.ppm:
+            self.ppm = [self.iupac_ppm[char] for char in self.consensus.upper()]
 
         return ">%s\n%s" % (motif_id, self._ppm_to_str(precision))
 
@@ -1439,7 +1448,7 @@ class Motif(object):
 
     def sample(self, n_seqs):
         """Sample n_seqs random sequences from a motif. The sequences
-        follow the distribution of the motif pwm.
+        follow the distribution of the motif ppm.
 
         Parameters
         ----------
@@ -1452,8 +1461,8 @@ class Motif(object):
             A list of all the samples sequences
         """
         nucs = [
-            random.choices(NUCS, weights=self.pwm[i], k=n_seqs)
-            for i in range(len(self.pwm))
+            random.choices(NUCS, weights=self.ppm[i], k=n_seqs)
+            for i in range(len(self.ppm))
         ]
         seqs = ["".join(nuc) for nuc in zip(*nucs)]
         return seqs
@@ -1729,7 +1738,7 @@ def _read_motifs_jaspar(handle):
     p = re.compile(r"([ACGT])\s*\[?([^\]]+)\]?")
     motifs = []
     motif_id = ""
-    pwm = {}
+    pfm = {}
     for line in handle:
         line = line.strip()
         if len(line) == 0:
@@ -1742,16 +1751,16 @@ def _read_motifs_jaspar(handle):
             try:
                 nuc = m.group(1)
                 counts = re.split(r"\s+", m.group(2).strip())
-                pwm[nuc] = [float(x) for x in counts]
+                pfm[nuc] = [float(x) for x in counts]
                 if nuc == "T":
-                    motif = Motif(np.array([pwm[n] for n in NUCS]).transpose())
+                    motif = Motif(np.array([pfm[n] for n in NUCS]).transpose())
                     motif.id = motif_id
                     motifs.append(motif)
             except Exception:
                 raise ValueError("Can't parse line\n" + line)
 
     if motif_id and motifs[-1].id != motif_id:
-        motif = Motif(np.array([pwm[n] for n in NUCS]).transpose())
+        motif = Motif(np.array([pfm[n] for n in NUCS]).transpose())
         motif.id = motif_id
         motifs.append(motif)
 
@@ -1804,8 +1813,8 @@ def _read_motifs_xxmotif(handle):
                 line = handle.readline()
                 freqs.append([float(x) for x in line.strip().split("\t")])
 
-            pwm = np.array(freqs).transpose()
-            motif = Motif(pwm)
+            pfm = np.array(freqs).transpose()
+            motif = Motif(pfm)
             motif.id = mid.replace(" ", "_")
             motifs.append(motif)
 
@@ -1842,7 +1851,7 @@ def _read_motifs_transfac(handle):
     p = re.compile(r"\d+\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s*\w?")
     p_id = re.compile(r"^(NA|ID|DE)\s+([^\s]+( [^\s]+)?)")
     motifs = []
-    pwm = []
+    pfm = []
     motif_id = ""
     metadata = None
     for line in handle.readlines():
@@ -1851,22 +1860,22 @@ def _read_motifs_transfac(handle):
             motif_id = m.group(2)
             motif_id = re.sub(r"\s+", "_", motif_id)
         elif line.startswith("//"):
-            if len(pwm) != 0:
-                motifs.append(Motif(pwm))
+            if len(pfm) != 0:
+                motifs.append(Motif(pfm))
                 motifs[-1].id = motif_id
                 if metadata is not None:
                     motifs[-1].metadata = metadata
-            pwm = []
+            pfm = []
         elif p.search(line):
             m = p.search(line)
-            pwm.append([float(x) for x in m.group(1, 2, 3, 4)])
+            pfm.append([float(x) for x in m.group(1, 2, 3, 4)])
         elif line.startswith("CC"):
             # CC tax_group:vertebrates; pubmed_ids:7592839; uniprot_ids:P30561,P53762; data_type:SELEX
             metadata = line.replace("CC ", "").split(";")
             metadata = dict([x.strip().split(":") for x in metadata])
     # If there's only one matrix, and the format is not complete
-    if len(pwm) != 0:
-        motifs.append(Motif(pwm))
+    if len(pfm) != 0:
+        motifs.append(Motif(pfm))
 
     return motifs
 
