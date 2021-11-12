@@ -49,7 +49,7 @@ class TestScanner(unittest.TestCase):
         for f in self.fa, self.bed, self.regions:
             result = scan_to_best_match(f, self.motifs, genome=genome)
 
-            scores = [-20.08487, 9.029220, 9.029220]
+            scores = [-20.05276, 9.028887, 9.028887]
 
             self.assertIn("AP1", result)
 
@@ -59,7 +59,7 @@ class TestScanner(unittest.TestCase):
     def test3_scan_to_best_score(self):
         result = scan_to_best_match(self.fa, self.motifs, score=True)
 
-        scores = [-20.08487, 9.029220, 9.029220]
+        scores = [-20.05276, 9.028887, 9.028887]
 
         self.assertIn("AP1", result)
         for score, match in zip(scores, result["AP1"]):

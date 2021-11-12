@@ -1097,7 +1097,7 @@ class Motif(object):
         -------
         ppm_string : str
         """
-        if not self.ppm:
+        if self.ppm is None or len(self.ppm) == 0:
             return ""
 
         fmt = "{{:.{:d}f}}".format(precision)
