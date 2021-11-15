@@ -15,7 +15,7 @@ def pwm_scan(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
         "Method pwm_scan() is replaced by scan() and will be removed in the next release.",
         DeprecationWarning,
     )
-    self.scan(fa, cutoff=cutoff, nreport=nreport, scan_rc=scan_rc)
+    return self.scan(fa, cutoff=cutoff, nreport=nreport, scan_rc=scan_rc)
 
 
 def pwm_scan_all(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
@@ -23,7 +23,7 @@ def pwm_scan_all(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
         "Method pwm_scan_all() is replaced by scan_all() and will be removed in the next release.",
         DeprecationWarning,
     )
-    self.scan_all(fa, cutoff=cutoff, nreport=nreport, scan_rc=scan_rc)
+    return self.scan_all(fa, cutoff=cutoff, nreport=nreport, scan_rc=scan_rc)
 
 
 def scan(self, fa, cutoff=0.9, nreport=50, scan_rc=True):

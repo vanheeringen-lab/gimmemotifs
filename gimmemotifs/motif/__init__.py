@@ -47,7 +47,7 @@ class Motif(object):
 
     """
 
-    from ._comparison import ic, pcc, other_ic, matrix_ic, max_ic, max_pcc
+    from ._comparison import ic, pcc, other_ic, matrix_ic, max_ic, max_pcc, ic_pos
     from ._plotting import plot_logo, plot_ensembl_logo, to_img
     from ._scanning import (
         pwm_scan,
@@ -535,8 +535,10 @@ class Motif(object):
         # xxCATGYT
         # GGCTTGYx
         # pos = -2
-        pfm1 = self.pfm[:]
-        pfm2 = other.pfm[:]
+
+        # TODO: don't convert back to list, but make sure this works for arrays
+        pfm1 = [x.tolist() for x in self.pfm]
+        pfm2 = [x.tolist() for x in other.pfm]
 
         if orientation < 0:
             pfm2 = [row[::-1] for row in pfm2[::-1]]
@@ -633,7 +635,7 @@ class Motif(object):
             return consensus
 
     def to_pfm(self):
-        if self.pfm:
+        if len(self.pfm) > 0:
             return ">%s\n%s" % (
                 self.id,
                 "\n".join(["\t".join(["%s" % x for x in row]) for row in self.pfm]),
@@ -684,7 +686,7 @@ class Motif(object):
         if extra_str:
             motif_id += "_%s" % extra_str
 
-        if not self.ppm:
+        if self.ppm is None or len(self.ppm) == 0:
             self.ppm = [self.iupac_ppm[char] for char in self.consensus.upper()]
 
         return ">%s\n%s" % (motif_id, self._ppm_to_str(precision))
@@ -1027,7 +1029,7 @@ def _read_motifs_pfm(handle):
     pfm = []
     motif_id = ""
     seen_id = {}
-
+    print(handle)
     for n, line in enumerate(handle.readlines()):
         if line.startswith("#") or line.strip() == "":
             continue

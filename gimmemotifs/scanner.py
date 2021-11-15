@@ -691,10 +691,10 @@ class Scanner(object):
     def set_motifs(self, motifs):
         try:
             # Check if motifs is a list of Motif instances
-            motifs[0].to_pwm()
+            motifs[0].to_ppm()
             tmp = NamedTemporaryFile(mode="w", delete=False)
             for m in motifs:
-                tmp.write("{}\n".format(m.to_pwm()))
+                tmp.write("{}\n".format(m.to_ppm()))
             tmp.close()
             motif_file = tmp.name
         except AttributeError:
@@ -756,7 +756,7 @@ class Scanner(object):
                     bin_seqs = [s for s, b in zip(seqs, seq_bins) if b == bin]
 
                     for motif in motifs:
-                        k = "e{}|{}|{}".format(motif.hash(), self.background_hash, bin)
+                        k = "e{}|{}|{}".format(motif.hash, self.background_hash, bin)
 
                         results = cache.get(k)
                         if results is None:
@@ -770,7 +770,7 @@ class Scanner(object):
                             scan_motifs, bin_seqs
                         ):
                             k = "e{}|{}|{}".format(
-                                motif.hash(), self.background_hash, bin
+                                motif.hash, self.background_hash, bin
                             )
                             cache.set(k, [mean, std])
                             self.meanstd[bin][motif.id] = mean, std
@@ -786,7 +786,7 @@ class Scanner(object):
                         std = np.mean(stds[~idx])
                         for gcbin in np.array(bins)[idx]:
                             k = "e{}|{}|{}".format(
-                                motif.hash(), self.background_hash, gcbin
+                                motif.hash, self.background_hash, gcbin
                             )
                             mean = self.meanstd[gcbin][motif.id][0]
                             cache.set(k, [mean, std])
@@ -970,7 +970,7 @@ class Scanner(object):
                 self._threshold = None
                 for motif in motifs:
                     k = "{}|{}|{:.4f}|{}".format(
-                        motif.hash(),
+                        motif.hash,
                         self.background_hash,
                         fpr,
                         ",".join(sorted(gc_bins)),
@@ -995,7 +995,7 @@ class Scanner(object):
                         self._threshold = pd.concat((self._threshold, df), axis=1)
                     for motif in scan_motifs:
                         k = "{}|{}|{:.4f}|{}".format(
-                            motif.hash(),
+                            motif.hash,
                             self.background_hash,
                             fpr,
                             ",".join(sorted(gc_bins)),

@@ -504,7 +504,6 @@ class MotifComparer(object):
 
     def score_matrices(self, matrix1, matrix2, metric, combine):
 
-
         if metric in self.metrics and combine in self.combine:
             s = score(matrix1.tolist(), matrix2.tolist(), metric, combine)
 
@@ -565,13 +564,13 @@ class MotifComparer(object):
     def max_partial(self, matrix1, matrix2, metric, combine):
 
         scores = []
-    
+
         for i in range(-(len(matrix2) - 1), len(matrix1)):
             p1, p2 = make_equal_length(matrix1, matrix2, i, truncate="first")
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, 1])
-        
+
         rev_matrix2 = [row[::-1] for row in matrix2[::-1]]
         for i in range(-(len(matrix2) - 1), len(matrix1)):
             p1, p2 = make_equal_length(matrix1, rev_matrix2, i, truncate="first")
@@ -950,43 +949,51 @@ def select_nonredundant_motifs(
     )
     return selected_features
 
+
 def make_equal_length(a, b, pos, truncate=None, bg=None):
     if bg is None:
         bg = [0.25, 0.25, 0.25, 0.25]
 
     if truncate is not None and truncate not in ["both", "first", "second"]:
-        raise ValueError("Valid values for truncate are None, 'first', second' or 'both'")
-    
-    truncate_first = False 
-    truncate_second = False 
+        raise ValueError(
+            "Valid values for truncate are None, 'first', second' or 'both'"
+        )
+
+    truncate_first = False
+    truncate_second = False
     if truncate in ["both", "first"]:
-        truncate_first = True    
+        truncate_first = True
     if truncate in ["both", "second"]:
         truncate_second = True
-        
+
     len_a = len(a)
     len_b = len(b)
-    
+
     second_pos = max(pos, 0)
     first_pos = max(-1 * pos, 0)
-    mtx_len = len_a + len_b + abs(pos) - max(min(len_b, first_pos + 1), min(len_a, second_pos + 1))
-    
+    mtx_len = (
+        len_a
+        + len_b
+        + abs(pos)
+        - max(min(len_b, first_pos + 1), min(len_a, second_pos + 1))
+    )
+
     first = np.array([bg.copy() for x in range(mtx_len)])
-    first[first_pos:first_pos + len_a] = a
-    
+    first[first_pos : first_pos + len_a] = a
+
     second = np.array([bg.copy() for x in range(mtx_len)])
-    second[second_pos:second_pos + len_b] = b
-    
+    second[second_pos : second_pos + len_b] = b
+
     mask_first = np.zeros(mtx_len, dtype=bool)
     mask_second = np.zeros(mtx_len, dtype=bool)
     if truncate_first:
-        mask_second[first_pos:first_pos + len_a] = True
-    else: 
+        mask_second[first_pos : first_pos + len_a] = True
+    else:
         mask_second[:] = True
-        
+
     if truncate_second:
-        mask_first[second_pos:second_pos + len_b] = True
-    else: 
+        mask_first[second_pos : second_pos + len_b] = True
+    else:
         mask_first[:] = True
 
     return first[mask_second & mask_first], second[mask_second & mask_first]
