@@ -1,3 +1,4 @@
+import os
 import pytest
 import numpy as np
 
@@ -95,42 +96,17 @@ def test_motif_hash(my_motif):
     for i in range(len(ppm)):
         ppm[i, np.random.randint(0, 3)] += np.random.random() / 1e4
 
-    assert Motif(ppm).hash == "fb543845f4e50436"
+    assert Motif(ppm=ppm).hash == "fb543845f4e50436"
+
+@pytest.mark.parametrize("kind", ["information", "frequency", "ensembl", "energy"])
+def test_plot_logo(my_motif, kind):
+    for add_left in [0, 1]:
+        my_motif.plot_logo(fname="test/test.png", kind=kind, add_left=add_left)
+        assert os.path.exists("test/test.png")
+        os.unlink("test/test.png")
 
 
 
-# class TestMotif(unittest.TestCase):
-#     """ A test class for Motif """
-
-#     def setUp(self):
-#         self.data_dir = "test/data/motif"
-#         self.pwm = os.path.join(self.data_dir, "test.pwm")
-#         self.pwm2 = "test/data/pwms/motifs.pwm"
-#         self.jaspar = "test/data/pwms/test.jaspar"
-#         self.pfm = [
-#             [1, 0, 0, 0],
-#             [0, 1, 0, 0],
-#             [0, 0, 1, 0],
-#             [0, 0, 0, 1],
-#             [1, 1, 0, 0],
-#             [0, 1, 1, 0],
-#             [0, 0, 1, 1],
-#             [2, 0, 2, 0],
-#             [3, 0, 0, 3],
-#             [0, 1, 0, 1],
-#         ]
-
-
-#     def test5_motif_to_img(self):
-#         """ Motif to img """
-#         seqlogo = which("seqlogo")
-#         if seqlogo:
-#             m = Motif(self.pfm)
-#             m.to_img("test/test.png", fmt="png", seqlogo=seqlogo)
-#             self.assertTrue(os.path.exists("test/test.png"))
-#             os.unlink("test/test.png")
-#         else:
-#             print("seqlogo not found, skipping.")
 
 #     def test6_pcc(self):
 #         pfm1 = [[5, 0, 0, 0], [0, 5, 0, 0], [0, 5, 0, 0], [0, 0, 0, 5]]
