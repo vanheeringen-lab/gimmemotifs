@@ -93,8 +93,8 @@ def motif2factor_from_orthologs(
         f"For better orthology inference we are also using these assemblies: {' & '.join(extra_orthologs_references)}."
     )
     logger.info(f"Using {strategy} strategy for orthology/name inference.")
-    logger.info(f"tmpdir: {tmpdir}.")
-    logger.info(f"outdir: {outdir}.")
+    logger.info(f"tmpdir: {tmpdir}")
+    logger.info(f"outdir: {outdir}")
 
     # download all required genomes
     logger.info("Downloading all assemblies.")
