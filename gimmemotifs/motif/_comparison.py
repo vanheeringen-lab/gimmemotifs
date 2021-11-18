@@ -9,6 +9,7 @@ from math import log
 import numpy as np
 from scipy.stats import pearsonr
 
+from gimmemotifs.utils import make_equal_length
 
 def ic_pos(self, row1, row2=None):
     """Calculate the information content of one position.
@@ -49,23 +50,7 @@ def pcc(self, ppm1, ppm2, pos):
     # xxCATGYT
     # GGCTTGYx
     # pos = -2
-    ppm1 = ppm1[:]
-    ppm2 = ppm2[:]
-
-    na = []
-    if pos > 0:
-        na = ppm1[:pos]
-        ppm1 = ppm1[pos:]
-    elif pos < 0:
-        na = ppm2[:-pos]
-        ppm2 = ppm2[-pos:]
-
-    if len(ppm1) > len(ppm2):
-        na += ppm1[len(ppm2) :]
-        ppm1 = ppm1[: len(ppm2)]
-    elif len(ppm2) > len(ppm1):
-        na += ppm2[len(ppm1) :]
-        ppm2 = ppm2[: len(ppm1)]
+    ppm1, ppm2 = make_equal_length(ppm1, ppm2, pos, truncate="both")
 
     # Compute pearson correlation between aligned parts of the motif
     r = np.array([pearsonr(x, y)[0] for x, y in zip(ppm1, ppm2)])
@@ -81,8 +66,8 @@ def ic(self, ppm1, ppm2, pos, bg=None, bg_factor=1):
     # xxCATGYT
     # GGCTTGYx
     # pos = -2
-    ppm1 = ppm1[:]
-    ppm2 = ppm2[:]
+    ppm1 = ppm1.copy()
+    ppm2 = ppm2.copy()
 
     na = []
     if pos > 0:
@@ -128,8 +113,8 @@ def other_ic(self, ppm1, ppm2, pos, bg=None, bg_factor=0.8):
     # xxCATGYT
     # GGCTTGYx
     # pos = -2
-    ppm1 = ppm1[:]
-    ppm2 = ppm2[:]
+    ppm1 = ppm1.copy()
+    ppm2 = ppm2.copy
 
     na = []
     if pos > 0:
@@ -241,6 +226,7 @@ def max_pcc(self, other, revcomp=True):
     scores = []
 
     for i in range(-(len(ppm2) - 1), len(ppm1)):
+        print(i, self.pcc(ppm1, ppm2, i))
         scores.append((self.pcc(ppm1, ppm2, i), i, 1))
 
     if revcomp:
