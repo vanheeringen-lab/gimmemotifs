@@ -87,7 +87,7 @@ def test1_stats(kwargs, stat_functions):
             assert stats[m2]["ks_pvalue"] < 0.001
 
         assert stats[m1]["phyper_at_fpr"] > 0.1
-        assert stats[m2]["phyper_at_fpr"] < 1e-13
+        assert stats[m2]["phyper_at_fpr"] < 1e-12
 
 
 @pytest.mark.parametrize(
