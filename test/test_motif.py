@@ -186,6 +186,7 @@ def ppm_to_str(self):
     assert s2 == m._pwm_to_str(precision=2)
     assert s3 == m._pwm_to_str(precision=3)
 
+
 def test_logodds_matrix():
     pwm = [[0.5, 0.4, 0.1, 0.0], [0.25, 0.25, 0.25, 0.25]]
 
@@ -197,6 +198,7 @@ def test_logodds_matrix():
     )
     m = Motif(pwm)
     np.testing.assert_almost_equal(logodds, np.array(m.logodds), decimal=5)
+
 
 def test_read_motifs(pfmfile2):
 
@@ -236,12 +238,14 @@ def test_motif_export_import():
     assert "AASTT" == motif_from_file.to_consensus().upper()
     assert "test_motif" == motif_from_file.id
 
+
 def test_motif_from_alignment():
     align = "AACTT\n" "AAGTA\n" "AACTC\n" "AAGTG\n"
     f = StringIO(align)
     motif = read_motifs(f, fmt="align")[0]
 
     assert "AASTN" == motif.to_consensus().upper()
+
 
 def test_read_motifs_xxmotifs():
     fname = "test/data/motifprogram/xxmotif.pwm"
@@ -260,4 +264,3 @@ def test6_pcc():
     m2 = Motif(pfm2)
 
     assert 4 == m1.max_pcc(m2)[0]
-

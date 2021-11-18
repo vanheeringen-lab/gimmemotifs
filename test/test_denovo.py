@@ -7,13 +7,13 @@ from tempfile import mkdtemp
 
 
 class TestDenovo(unittest.TestCase):
-    """ A test class to test gimme_motifs denovo """
+    """A test class to test gimme_motifs denovo"""
 
     def setUp(self):
         self.outdir = mkdtemp()
 
     def test1_denovo(self):
-        """ de novo motif prediction """
+        """de novo motif prediction"""
         gimme_motifs(
             "test/data/denovo/input.fa",
             self.outdir,

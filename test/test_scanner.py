@@ -7,7 +7,7 @@ from time import sleep
 
 
 class TestScanner(unittest.TestCase):
-    """ A test class to test scanner funcitonality """
+    """A test class to test scanner funcitonality"""
 
     def setUp(self):
         self.data_dir = "test/data/scanner"
@@ -20,7 +20,7 @@ class TestScanner(unittest.TestCase):
         self.tmpdir = tempfile.mkdtemp()
 
     def test1_scan_sequences(self):
-        """ Scanner """
+        """Scanner"""
         for ncpus in [1, 2, 3]:
             s = Scanner(ncpus=ncpus)
             s.set_motifs(self.motifs)

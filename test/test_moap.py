@@ -5,7 +5,7 @@ from gimmemotifs.moap import moap
 
 
 class TestMoap(unittest.TestCase):
-    """ A test class to test Moap functionality"""
+    """A test class to test Moap functionality"""
 
     def setUp(self):
         self.data_dir = "test/data/moap"
@@ -18,7 +18,7 @@ class TestMoap(unittest.TestCase):
         self.motifs_score2 = os.path.join(self.data_dir, "2clusters.motifs.score.txt")
 
     def test1_moap(self):
-        """ Test motif activity prediction """
+        """Test motif activity prediction"""
 
         for method in ["mwu", "rf"]:
             df = moap(
@@ -39,7 +39,7 @@ class TestMoap(unittest.TestCase):
             self.assertEquals((623, 4), df.shape)
 
     def test2_moap(self):
-        """ Test motif activity prediction for two clusters """
+        """Test motif activity prediction for two clusters"""
 
         for method in ["mwu", "rf"]:
             df = moap(

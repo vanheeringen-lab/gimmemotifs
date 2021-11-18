@@ -11,6 +11,7 @@ from scipy.stats import pearsonr
 
 from gimmemotifs.utils import make_equal_length
 
+
 def ic_pos(self, row1, row2=None):
     """Calculate the information content of one position.
 

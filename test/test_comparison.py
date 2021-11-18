@@ -1,45 +1,46 @@
-
 import numpy as np
 import pytest
 
-from gimmemotifs import comparison 
+from gimmemotifs import comparison
+
 
 @pytest.fixture
 def pfm1():
-    return  [
-            [3, 3, 3, 3],
-            [12, 0, 0, 0],
-            [0, 12, 0, 0],
-            [0, 0, 12, 0],
-            [0, 0, 0, 12],
-            [6, 6, 0, 0],
-            [0, 6, 6, 0],
-            [0, 0, 6, 6],
-            [6, 0, 6, 0],
-            [6, 0, 0, 6],
-            [0, 6, 0, 6],
-            [3, 3, 3, 3],
-        ]
+    return [
+        [3, 3, 3, 3],
+        [12, 0, 0, 0],
+        [0, 12, 0, 0],
+        [0, 0, 12, 0],
+        [0, 0, 0, 12],
+        [6, 6, 0, 0],
+        [0, 6, 6, 0],
+        [0, 0, 6, 6],
+        [6, 0, 6, 0],
+        [6, 0, 0, 6],
+        [0, 6, 0, 6],
+        [3, 3, 3, 3],
+    ]
 
 
 @pytest.fixture
 def pfm2():
-    return  [
-            [12, 0, 0, 0],
-            [0, 12, 0, 0],
-            [0, 0, 12, 0],
-            [0, 0, 0, 12],
-        ]
+    return [
+        [12, 0, 0, 0],
+        [0, 12, 0, 0],
+        [0, 0, 12, 0],
+        [0, 0, 0, 12],
+    ]
+
 
 def test_make_equal_length(pfm1, pfm2):
     r1, r2 = comparison.make_equal_length(pfm1, pfm2, pos=1)
-    
+
     assert len(r1) == len(r2)
     np.testing.assert_allclose(r2[0], [0.25, 0.25, 0.25, 0.25])
     np.testing.assert_allclose(r2[-1], [0.25, 0.25, 0.25, 0.25])
 
     r1, r2 = comparison.make_equal_length(np.array(pfm1), np.array(pfm2), pos=1)
-    
+
     assert len(r1) == len(r2)
     np.testing.assert_allclose(r2[0], [0.25, 0.25, 0.25, 0.25])
     np.testing.assert_allclose(r2[-1], [0.25, 0.25, 0.25, 0.25])

@@ -8,7 +8,7 @@ from time import sleep
 
 
 class TestStats(unittest.TestCase):
-    """ A test class to test motif stats """
+    """A test class to test motif stats"""
 
     def setUp(self):
         self.data_dir = "test/data/stats"
@@ -18,7 +18,7 @@ class TestStats(unittest.TestCase):
         self.bg_fa = os.path.join(self.data_dir, "random.w200.fa")
 
     def test1_prediction_result(self):
-        """ Calculates statistics of motifs """
+        """Calculates statistics of motifs"""
         tmp = tempfile.NamedTemporaryFile().name
 
         p = PredictionResult(tmp, fg_file=self.fg_fa, background={"random": self.bg_fa})
