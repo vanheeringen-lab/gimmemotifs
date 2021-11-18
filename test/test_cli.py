@@ -83,7 +83,7 @@ def test_gimme_cluster():
     pfm = "test/data/cli/cluster.pfm"
 
     with TemporaryDirectory() as d:
-        cli(["cluster", pfm, d])
+        cli(["cluster", pfm, d, "-t", "0.99"])
         out_pfm = os.path.join(d, "clustered_motifs.pfm")
         assert os.path.exists(out_pfm)
         cons = ["ACCGTTAACsGy", "ATGACkyA", "TTGCGnAA"]

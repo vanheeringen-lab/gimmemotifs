@@ -51,8 +51,8 @@ class MotifTree(object):
             if self.left:
                 self.left.printFrontiers()
                 self.right.printFrontiers()
-        # else:
-        #    self.motif.pwm = self.motif.pfm_to_pwm(self.motif.pwm)
+        else:
+            self.motif.ppm = self.motif.pfm_to_ppm(self.motif.ppm)
 
     def get_clustered_motifs(self):
         if self.frontier:

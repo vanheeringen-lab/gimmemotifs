@@ -90,6 +90,11 @@ class Motif(object):
 
         self._places = places
 
+        if np.all(np.isclose(np.sum(pfm, 1), 1)) and ppm is None:
+            # PFM is actually a PPM. We don't mind.
+            ppm = pfm
+            pfm = None    
+
         if pfm is None:
             pfm = []
         if ppm is None:
