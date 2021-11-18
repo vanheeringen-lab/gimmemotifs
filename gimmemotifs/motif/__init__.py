@@ -86,10 +86,21 @@ class Motif(object):
         k: [int(nuc in v) / len(v) for nuc in "ACGT"] for k, v in iupac.items()
     }
 
-    def __init__(self, pfm=None, places=4):
+    def __init__(self, pfm=None, ppm=None, places=4):
 
         self._places = places
+
+        if pfm is None:
+            pfm = []
+        if ppm is None:
+            ppm = []
+
         self.pfm = pfm
+        if len(ppm) > 0:
+            if len(pfm) > 0:
+                self._set_ppm(ppm, update_pfm=False)
+            else:
+                self.ppm = ppm
 
         self.factors = {DIRECT_NAME: [], INDIRECT_NAME: []}
 
@@ -100,26 +111,34 @@ class Motif(object):
     def pfm(self):
         return self._pfm
 
-    @pfm.setter
-    def pfm(self, mtx):
+    @property
+    def pwm(self):
+        return self._ppm
+
+    @property
+    def ppm(self):
+        return self._ppm
+
+    def _set_ppm(self, mtx, update_pfm=True):
         if mtx is not None and len(mtx) > 0:
-            if np.sum(mtx[0]) > 2:
-                self._pfm = [list(x) for x in mtx]
-                self._ppm = self.pfm_to_ppm(mtx)
-                self._ppm = [iteround.saferound(x, self._places) for x in self._ppm]
-            else:
-                self._ppm = [iteround.saferound(list(x), self._places) for x in mtx]
+            if update_pfm:
                 self._pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in mtx]
+            self._ppm = [
+                iteround.saferound([float(n) for n in x], self._places) for x in mtx
+            ]
         else:
             self._ppm = []
-            self._pfm = []
-
-        self._logodds = [
-            [np.log(n / self.G + self.Z) for n in col] for col in self._ppm
-        ]
+            if update_pfm:
+                self._pfm = []
 
         self._pfm = np.array(self._pfm)
         self._ppm = np.array(self._ppm)
+        self._update_associated()
+
+    def _update_associated(self):
+        self._logodds = [
+            [np.log(n / self.G + self.Z) for n in col] for col in self._ppm
+        ]
         self._logodds = np.array(self._logodds)
         self._consensus = self.to_consensus(self.ppm)
         if len(self) > 0:
@@ -129,13 +148,47 @@ class Motif(object):
             self._max_score = 0
             self._min_score = 0
 
-    @property
-    def pwm(self):
-        return self._ppm
+    def _set_pfm(self, mtx, update_ppm=True):
+        if mtx is not None and len(mtx) > 0:
+            self._pfm = [list(x) for x in mtx]
+            self._set_ppm(self.pfm_to_ppm(mtx), update_pfm=False)
 
-    @property
-    def ppm(self):
-        return self._ppm
+    @ppm.setter
+    def ppm(self, mtx):
+        self._set_ppm(mtx)
+
+    @pfm.setter
+    def pfm(self, mtx):
+        self._set_pfm(mtx)
+
+    # @pfm.setter
+    # def pfm(self, mtx):
+    #     if mtx is not None and len(mtx) > 0:
+    #         if np.sum(mtx[0]) > 2:
+    #             self._pfm = [list(x) for x in mtx]
+    #             self._ppm = self.pfm_to_ppm(mtx)
+    #             self._ppm = [iteround.saferound(x, self._places) for x in self._ppm]
+    #         else:
+    #             self._ppm = [iteround.saferound(list(x), self._places) for x in mtx]
+    #             self._pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in mtx]
+    #     else:
+    #         self._ppm = []
+    #         self._pfm = []
+
+    #     self._logodds = [
+    #         [np.log(n / self.G + self.Z) for n in col] for col in self._ppm
+    #     ]
+
+    #     self._pfm = np.array(self._pfm)
+    #     self._ppm = np.array(self._ppm)
+    #     self._logodds = np.array(self._logodds)
+    #     self._consensus = self.to_consensus(self.ppm)
+    #     if len(self) > 0:
+    #         self._max_score = self.logodds.max(1).sum()
+    #         self._min_score = self.logodds.min(1).sum()
+    #     else:
+    #         self._max_score = 0
+    #         self._min_score = 0
 
     @property
     def logodds(self):
@@ -690,6 +743,29 @@ class Motif(object):
             self.ppm = [self.iupac_ppm[char] for char in self.consensus.upper()]
 
         return ">%s\n%s" % (motif_id, self._ppm_to_str(precision))
+
+    def to_pwm(self, precision=4, extra_str=""):
+        """Return ppm as string.
+
+        Parameters
+        ----------
+        precision : int, optional, default 4
+            Floating-point precision.
+
+        extra_str |: str, optional
+            Extra text to include with motif id line.
+
+        Returns
+        -------
+        motif_str : str
+            Motif formatted in ppm format.
+        """
+        warn(
+            "The to_pwm() function is deprecated and will be removed in a future release."
+            "Please use the to_ppm() function instead.",
+            DeprecationWarning,
+        )
+        self.to_ppm(precision=precision, extra_str=extra_str)
 
     def format_factors(
         self, max_length=5, html=False, include_indirect=True, extra_str=", (...)"
