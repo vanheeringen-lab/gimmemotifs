@@ -23,7 +23,7 @@ class DuplicateFilter(logging.Filter):
         if record.module not in self.logs:
             self.logs[record.module] = {}
 
-        if record.msg in self.logs[record.module]:Formatter
+        if record.msg in self.logs[record.module]:
             return False
         else:
             self.logs[record.module][record.msg] = 1
