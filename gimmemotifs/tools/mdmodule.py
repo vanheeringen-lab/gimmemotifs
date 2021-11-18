@@ -120,26 +120,24 @@ class MDmodule(MotifProgram):
         p = re.compile(r"(\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)")
         pf = re.compile(r">.+\s+[bf]\d+\s+(\w+)")
 
-        pwm = []
+        ppm = []
         pfm = []
         align = []
         m_id = ""
         for line in fo.readlines():
             if line.startswith("Motif"):
                 if m_id:
-                    motifs.append(Motif())
+                    motifs.append(Motif(pfm=pfm, ppm=ppm))
                     motifs[-1].id = m_id
-                    motifs[-1].pwm = pwm
-                    motifs[-1].pfm = pfm
                     motifs[-1].align = align
-                    pwm = []
+                    ppm = []
                     pfm = []
                     align = []
                 m_id = line.split("\t")[0]
             else:
                 m = p.search(line)
                 if m:
-                    pwm.append([float(m.group(x)) / 100 for x in [2, 3, 4, 5]])
+                    ppm.append([float(m.group(x)) / 100 for x in [2, 3, 4, 5]])
                 m = pf.search(line)
                 if m:
                     if not pfm:
@@ -149,11 +147,9 @@ class MDmodule(MotifProgram):
 
                     align.append(m.group(1))
 
-        if pwm:
-            motifs.append(Motif())
+        if ppm:
+            motifs.append(Motif(pfm=pfm, ppm=ppm))
             motifs[-1].id = m_id
-            motifs[-1].pwm = pwm
-            motifs[-1].pfm = pfm
             motifs[-1].align = align
 
         return motifs
