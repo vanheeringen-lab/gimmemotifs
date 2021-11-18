@@ -16,8 +16,8 @@ import pandas as pd
 
 def plot_logo(
     self,
-    kind="information",
     fname=None,
+    kind="information",
     title=True,
     ylabel=True,
     add_left=0,
@@ -27,11 +27,11 @@ def plot_logo(
 
     Parameters
     ----------
+    fname : str, optional
+        If fname is set, the plot will be saved with fname as filename.
     kind : str, optional
         Type of logo to plot, can be 'information', 'frequency', 'energy' or
         'ensembl'.
-    fname : str, optional
-        If fname is set, the plot will be saved with fname as filename.
     title : bool, optional
         Plot the motif id as the title.
     ylabel : bool, optional
@@ -42,8 +42,12 @@ def plot_logo(
     fig_height = 3
     fig_width = 0.45
 
-    total = sum(self.pfm[0]) / 4
-    pfm = [[total] * 4] * add_left + self.pfm
+    if add_left > 0:
+        total = sum(self.pfm[0]) / 4
+        pfm = np.vstack(([[total] * 4] * add_left, self.pfm))
+    else:
+        pfm = self.pfm
+
     matrix = pd.DataFrame(pfm, columns=["A", "C", "G", "T"])
 
     if kind == "ensembl":
