@@ -90,22 +90,24 @@ class Motif(object):
 
         self._places = places
 
-        if np.all(np.isclose(np.sum(pfm, 1), 1)) and ppm is None:
-            # PFM is actually a PPM. We don't mind.
-            ppm = pfm
-            pfm = None    
-
         if pfm is None:
-            pfm = []
-        if ppm is None:
-            ppm = []
-
-        self.pfm = pfm
-        if len(ppm) > 0:
-            if len(pfm) > 0:
-                self._set_ppm(ppm, update_pfm=False)
-            else:
+            # PFM is not specified
+            if ppm is not None and len(ppm) > 0:
+                # PPM is specified
                 self.ppm = ppm
+            else:
+                self.pfm = []
+        else:
+            if np.all(np.isclose(np.sum(pfm, 1), 1)) and ppm is None:
+                print("Well, actually")
+                # PFM is specified actually a PPM. We don't mind.
+                self.ppm = pfm
+            else:
+                # PFM is really a PFM
+                self.pfm = pfm
+                if ppm is not None and len(ppm) > 0:
+                    # And we got a PPM as well, so set it but don't update the PFM
+                    self._set_ppm(ppm, update_pfm=False)
 
         self.factors = {DIRECT_NAME: [], INDIRECT_NAME: []}
 
@@ -363,6 +365,130 @@ class Motif(object):
 
     def __repr__(self):
         return "{}_{}".format(self.id, self.to_consensus())
+
+    def __lshift__(self, other):
+        """Return the motif shifted left.
+
+        Parameters
+        ----------
+        other : integer
+            Number of positions to shift.
+
+        Returns
+        -------
+        Motif instance
+            Shifted Motif.
+        """
+        total = self.pfm[0].sum()
+        bg = [[total / 4 for _ in range(4)]] * other
+        m = Motif(
+            pfm=np.vstack((self.pfm, bg)),
+            ppm=np.vstack((self.ppm, [[0.25] * 4] * other)),
+        )
+        m.id = m.consensus
+        return m
+
+    def __rshift__(self, other):
+        """Return the motif shifted right.
+
+        Parameters
+        ----------
+        other : integer
+            Number of positions to shift.
+
+        Returns
+        -------
+        Motif instance
+            Shifted Motif.
+        """
+        total = self.pfm[0].sum()
+        bg = [[total / 4 for _ in range(4)]] * other
+        m = Motif(
+            pfm=np.vstack((bg, self.pfm)),
+            ppm=np.vstack(([[0.25] * 4] * other, self.ppm)),
+        )
+        m.id = m.consensus
+        return m
+
+    def __invert__(self):
+        """Return the reverse complemented motif.
+
+        Returns
+        -------
+        Motif instance
+            New Motif instance with the reverse complement of the input motif.
+        """
+        return self.rc()
+
+    def __add__(self, other):
+        """Return the average of two motifs.
+
+        Combine this motif with another motif and return the average as a new
+        Motif object. This method works on the pfm, which means that motifs with
+        higher frequences will be weighed more heavily.
+
+        Parameters
+        ----------
+        other : Motif object
+            Other Motif object.
+
+        Returns
+        -------
+        motif : motif object
+            New Motif object containing average motif.
+        """
+        diff = len(self) - len(other)
+        if diff > 0:
+            new = Motif((other << diff).pfm + self.pfm)
+        elif diff < 0:
+            new = Motif((self << diff).pf + other.pfm)
+        else:
+            new = Motif(self.pfm + other.pfm)
+
+        new.id = new.consensus
+        return new
+
+    def __mul__(self, other):
+        """Return motif with pfm multiplied by an value.
+
+        Parameters
+        ----------
+        other : int
+
+        Returns
+        -------
+        motif : motif object
+            New Motif object containing average motif.
+        """
+        return Motif(pfm=self.pfm * other, ppm=self.ppm)
+
+    def __and__(self, other):
+        """Return the average of two motifs.
+
+        Combine this motif with another motif and return the average as a new
+        Motif object. This method works on the ppm, which means that motifs will
+        be weighed equally.
+
+        Parameters
+        ----------
+        other : Motif object
+            Other Motif object.
+
+        Returns
+        -------
+        motif : motif object
+            New Motif object containing average motif.
+        """
+        diff = len(self) - len(other)
+        if diff > 0:
+            new = Motif(ppm=((other << diff).ppm + self.ppm))
+        elif diff < 0:
+            new = Motif(ppm=((self << diff).ppm + other.ppm))
+        else:
+            new = Motif(ppm=(self.ppm + other.ppm))
+
+        new.id = new.consensus
+        return new
 
     def rc(self):
         """Return the reverse complemented motif.
@@ -944,7 +1070,8 @@ def motif_from_consensus(cons, n=1200):
     for i, char in enumerate(cons):
         for nuc in m.iupac[char.upper()]:
             pfm[i][nucs[nuc]] = n / len(m.iupac[char.upper()])
-    m = Motif(pfm)
+
+    m = Motif(pfm=pfm)
     m.id = cons
     return m
 

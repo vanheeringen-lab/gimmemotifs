@@ -3,7 +3,7 @@ import os
 import pytest
 import numpy as np
 
-from gimmemotifs.motif import Motif, read_motifs
+from gimmemotifs.motif import Motif, read_motifs, motif_from_consensus
 
 
 @pytest.fixture
@@ -192,7 +192,7 @@ def test_logodds_matrix():
 
     logodds = np.array(
         [
-            [0.69614, 0.47474, -0.88576, -4.2687],
+            [0.69813, 0.47623, -0.8916, -4.60517],
             [0.00995, 0.00995, 0.00995, 0.00995],
         ]
     )
@@ -264,3 +264,42 @@ def test6_pcc():
     m2 = Motif(pfm2)
 
     assert 4 == m1.max_pcc(m2)[0]
+
+
+def test_add_operator():
+    m1 = motif_from_consensus("AAA")
+    m2 = motif_from_consensus("TCG")
+
+    assert (m1 + m2).consensus.upper() == "WMR"
+
+    m2 = Motif([[0, 0, 0, 2], [0, 2, 0, 0], [0, 0, 2, 0]])
+    assert (m1 + m2).consensus.upper() == "AAA"
+
+
+def test_and_operator():
+    m1 = motif_from_consensus("AAA")
+    m2 = motif_from_consensus("TCG")
+
+    assert (m1 & m2).consensus.upper() == "WMR"
+
+
+def test_mul_operator():
+    m1 = motif_from_consensus("AAA")
+    m2 = motif_from_consensus("TCG")
+
+    assert ((m1 * 10) + m2).consensus.upper() == "AAA"
+
+
+def test_shift_operators():
+    m = motif_from_consensus("AA")
+
+    assert (m >> 1).consensus.upper() == "NAA"
+    assert (m >> 2).consensus.upper() == "NNAA"
+    assert (m << 1).consensus.upper() == "AAN"
+    assert (m << 2).consensus.upper() == "AANN"
+
+
+def test_invert_operator():
+    m = motif_from_consensus("WMR")
+
+    assert (~m).consensus.upper() == "YKW"

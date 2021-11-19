@@ -58,7 +58,7 @@ def test_motif_comparer():
     assert "GM.5.0.TBP.0001" == match[0]
 
     scores = match[1]
-    np.testing.assert_almost_equal(-0.1008, scores[0], 4)
+    np.testing.assert_almost_equal(-0.1314, scores[0], 4)
     assert 0 == scores[1]
     assert 1 == scores[2]
     np.testing.assert_almost_equal(3.1666e-8, scores[3])
