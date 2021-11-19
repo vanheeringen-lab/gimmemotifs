@@ -1,3 +1,9 @@
+# run travis on these branches (and all PRs)
+branches:
+  only:
+  - master
+  - develop
+
 matrix:
   allow_failures:
     - os: osx
