@@ -264,7 +264,9 @@ def _download_genomes_with_annot(genomes, genomes_dir, tpmdir):
     for genome in download_genomes:
         logger.info(f"Downloading {genome} through genomepy.")
         genomepy.install_genome(genome, annotation=True, genomes_dir=genomes_dir)
-        _prepare_genomes_with_annot(genome, genomes_dir, os.path.join(tpmdir, genome))
+        genome_dir = os.path.join(genomes_dir, genome)
+        outdir = os.path.join(tpmdir, genome)
+        _prepare_genomes_with_annot(genome, genome_dir, outdir)
 
     return genomes  # all names clean
 
