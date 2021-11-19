@@ -4,6 +4,7 @@ from setuptools import Extension
 import os
 from io import open
 from compile_externals import compile_all
+import subprocess as sp
 import versioneer
 
 CONFIG_NAME = "gimmemotifs.cfg"
@@ -68,12 +69,20 @@ class build_tools(my_build_py):
             self.copy_tree(
                 os.path.join(src_dir, "HMS"), os.path.join(target_dir, "HMS")
             )
+
+            arch = "x86_64"
+            try:
+                sp.check_call(f"src/MotifSampler/MotifSampler_{arch}")
+            except sp.CalledProcessError as e:
+                if "died" in str(e):
+                    arch = "i386"
+
             self.copy_file(
-                os.path.join(src_dir, "MotifSampler/MotifSampler_x86_64"),
+                os.path.join(src_dir, f"MotifSampler/MotifSampler_{arch}"),
                 os.path.join(target_dir, "MotifSampler"),
             )
             self.copy_file(
-                os.path.join(src_dir, "MotifSampler/CreateBackgroundModel_x86_64"),
+                os.path.join(src_dir, f"MotifSampler/CreateBackgroundModel_{arch}"),
                 os.path.join(target_dir, "CreateBackgroundModel"),
             )
             self.copy_file(
