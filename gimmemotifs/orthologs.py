@@ -94,8 +94,8 @@ def motif2factor_from_orthologs(
     )
     logger.info(f"Using {strategy} strategy for orthology/name inference.")
     logger.info(f"genomes_dir: {genomes_dir}")
-    logger.info(f"tmpdir: {tmpdir}.")
-    logger.info(f"outdir: {outdir}.")
+    logger.info(f"tmpdir: {tmpdir}")
+    logger.info(f"outdir: {outdir}")
 
     # download all required genomes
     logger.info("Downloading all assemblies.")
