@@ -93,6 +93,7 @@ def motif2factor_from_orthologs(
         f"For better orthology inference we are also using these assemblies: {' & '.join(extra_orthologs_references)}."
     )
     logger.info(f"Using {strategy} strategy for orthology/name inference.")
+    logger.info(f"genomes_dir: {genomes_dir}")
     logger.info(f"tmpdir: {tmpdir}.")
     logger.info(f"outdir: {outdir}.")
 
@@ -263,7 +264,7 @@ def _download_genomes_with_annot(genomes, genomes_dir, tpmdir):
     for genome in download_genomes:
         logger.info(f"Downloading {genome} through genomepy.")
         genomepy.install_genome(genome, annotation=True, genomes_dir=genomes_dir)
-        _prepare_genomes_with_annot(genome, genome_dir, outdir)
+        _prepare_genomes_with_annot(genome, genomes_dir, os.path.join(tpmdir, genome))
 
     return genomes  # all names clean
 
