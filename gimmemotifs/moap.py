@@ -50,7 +50,7 @@ from gimmemotifs.utils import pfmfile_location
 
 import warnings
 
-warnings.filterwarnings("ignore", category=DeprecationWarning)
+# warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 logger = logging.getLogger("gimme.maelstrom")
 

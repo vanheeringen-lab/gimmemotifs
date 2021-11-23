@@ -144,7 +144,7 @@ class JasparMotifDb(MotifDb):
                 print("#       a motif id that starts with UN.", file=f)
                 print("# Date: {}".format(self.date), file=f)
                 for motif in motifs:
-                    print(motif.to_pwm(), file=f)
+                    print(motif.to_ppm(), file=f)
 
             # if group == "_vertebrates":
             self.create_annotation(
@@ -351,7 +351,7 @@ class FactorbookMotifDb(MotifDb):
         motifs = read_motifs(infile)
         with open(outfile, "w") as f:
             for motif in motifs:
-                print(motif.to_pwm(), file=f)
+                print(motif.to_ppm(), file=f)
         anno = self.annotate_factors(motifs)
         self.create_annotation(os.path.join(outdir, self.NAME), anno)
 
@@ -448,7 +448,7 @@ class ImageMotifDb(MotifDb):
             print("# Retrieved from: {}".format(self.URL), file=f)
             print("# Date: {}".format(self.date), file=f)
             for motif in motifs:
-                print(motif.to_pwm(), file=f)
+                print(motif.to_ppm(), file=f)
         shutil.rmtree(tmpdir)
 
         motifs = read_motifs(outfile)
@@ -507,7 +507,7 @@ class CisbpMotifDb(MotifDb):
             print("# Retrieved from: {}".format(self.URL), file=f)
             print("# Date: {}".format(self.date), file=f)
             for motif in motifs:
-                print(motif.to_pwm(), file=f)
+                print(motif.to_ppm(), file=f)
 
         shutil.rmtree(tmpdir)
 
@@ -561,7 +561,7 @@ class RsatMotifDb(MotifDb):
                 print("# Retrieved from: {}".format(url), file=f)
                 print("# Date: {}".format(self.date), file=f)
                 for motif in motifs:
-                    print(motif.to_pwm(), file=f)
+                    print(motif.to_ppm(), file=f)
 
             anno = self.annotate_factors(motifs)
             self.create_annotation(os.path.join(outdir, self.NAME.format(tax)), anno)

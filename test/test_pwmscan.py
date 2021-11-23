@@ -7,7 +7,7 @@ from time import sleep
 
 
 class TestMotifPwm(unittest.TestCase):
-    """ A test class to test Motif pwmscan functionality and related things """
+    """A test class to test Motif pwmscan functionality and related things"""
 
     def setUp(self):
         self.data_dir = "test/data/pwmscan"
@@ -22,14 +22,14 @@ class TestMotifPwm(unittest.TestCase):
         self.tmp = NamedTemporaryFile().name
 
     def test1_pwm_scan(self):
-        """ Scan a FASTA file with PWM of motif """
+        """Scan a FASTA file with PWM of motif"""
         result = self.motif.pwm_scan(self.prom, nreport=1)
 
         # Every sequence should have a TATA match
         self.assertEqual(len(result), len(self.prom))
 
     def test2_pwm_scan_to_gff(self):
-        """ Scan a FASTA file with PWM of motif, and produce GFF """
+        """Scan a FASTA file with PWM of motif, and produce GFF"""
 
         self.motif.pwm_scan_to_gff(self.prom, self.tmp)
         with open(self.tmp) as f:

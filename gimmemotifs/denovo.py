@@ -698,7 +698,7 @@ def gimme_motifs(
     if motifs_found:
         with open(os.path.join(outdir, "gimme.denovo.pfm"), "w") as f:
             for m in final_motifs:
-                f.write("{}\n".format(m.to_pwm()))
+                f.write("{}\n".format(m.to_ppm()))
 
     if motifs_found and create_report:
         bg = dict([(b, os.path.join(tmpdir, "bg.{}.fa".format(b))) for b in background])

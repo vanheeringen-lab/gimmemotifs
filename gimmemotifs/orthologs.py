@@ -515,7 +515,7 @@ def make_motif2factors(
 
     with open(f"{prefix}.pfm", "w") as f:
         for motif in motifs:
-            print(motif.to_pwm(), file=f)
+            print(motif.to_ppm(), file=f)
 
 
 @lru_cache(maxsize=99999)

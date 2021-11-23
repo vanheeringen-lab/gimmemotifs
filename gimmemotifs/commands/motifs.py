@@ -135,7 +135,7 @@ def motifs(args):
         pfmfile = os.path.join(args.outdir, "combined.pfm")
         with open(pfmfile, "w") as f:
             for m in motifs:
-                print(m.to_pwm(), file=f)
+                print(m.to_ppm(), file=f)
 
         with open(new_map_file, "a") as f:
             for m in denovo:
@@ -257,7 +257,7 @@ def motifs(args):
     motif_dict = dict([(m.id, m) for m in motifs])
     for motif in nr_motifs:
         with NamedTemporaryFile(mode="w") as f:
-            print(motif_dict[motif].to_pwm(), file=f)
+            print(motif_dict[motif].to_ppm(), file=f)
             f.flush()
             safe_name = re.sub(r"[^a-zA-Z0-9\-]+", "_", motif)
             scan_to_file(

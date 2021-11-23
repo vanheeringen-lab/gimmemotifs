@@ -10,14 +10,14 @@ from shutil import rmtree
 
 
 class TestUtils(unittest.TestCase):
-    """ A test class to test utils functions """
+    """A test class to test utils functions"""
 
     def setUp(self):
         self.genomes_dir = "test/data/genome_index"
         self.datadir = "test/data/utils"
 
     def test1_phyper(self):
-        """ Hypergeometric p-value """
+        """Hypergeometric p-value"""
         p = phyper(59, 500, 500, 100)
         self.assertAlmostEqual(0.02238075, p)
 
@@ -28,7 +28,7 @@ class TestUtils(unittest.TestCase):
         self.assertAlmostEqual(0.02838217, p)
 
     def test2_as_fasta(self):
-        """ convert bed, regions, etc to Fasta """
+        """convert bed, regions, etc to Fasta"""
         tmpdir = mkdtemp()
 
         g = Genome("genome", genomes_dir=self.genomes_dir)
