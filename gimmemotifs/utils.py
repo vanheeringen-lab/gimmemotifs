@@ -775,14 +775,14 @@ def make_equal_length(a, b, pos, truncate=None, bg=None):
     matrix. The `truncate` argument can be either None, "first", "second" or
     "both"
 
-    If `a` would represent the consensus "TGA" and `b` would represent "GAT", 
+    If `a` would represent the consensus "TGA" and `b` would represent "GAT",
     the result, represented as consensus, for the different truncate arguments
     would be:
 
         `None`    : "TGAN", "NGAT"
         `"first"` : "TGA", "NGA"
         `"second"`: "GAN", "GAT"
-        `"both"`  : "GA", "GA"  
+        `"both"`  : "GA", "GA"
 
     Parameters
     ----------
@@ -795,7 +795,7 @@ def make_equal_length(a, b, pos, truncate=None, bg=None):
     truncate : str or None, optional
         How to truncate the resulting matrices. Valid options are `None`,
         `"first"`, `"second"` or `"both"`.
-    
+
     bg : array_like, optional
         The background frequences, default `[0.25, 0.25, 0.25, 0.25]`.
 
