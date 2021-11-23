@@ -198,7 +198,7 @@ def matrix_ic(self, ppm1, ppm2, bg=None):
         )
         scores.append([score, pos, -1])
 
-    return sorted(scores, key=lambda x: x[0])[-1]
+    return max(scores, key=lambda x: x[0])
 
 
 def max_ic(self, other, revcomp=True, bg_factor=0.8):
@@ -217,7 +217,7 @@ def max_ic(self, other, revcomp=True, bg_factor=0.8):
                 (self.other_ic(ppm1, rev_ppm2, i, bg_factor=bg_factor), i, -1)
             )
 
-    return sorted(scores, key=lambda x: x[0])[-1]
+    return max(scores, key=lambda x: x[0])
 
 
 def max_pcc(self, other, revcomp=True):
