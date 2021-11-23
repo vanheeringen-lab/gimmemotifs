@@ -768,6 +768,44 @@ def check_genome(genome):
 
 
 def make_equal_length(a, b, pos, truncate=None, bg=None):
+    """Align two weight matrices and make sure they are of equal length.
+
+    Align two matrices according to a specific position shift and either
+    extend the shorted with background frequences, or truncate the longer
+    matrix. The `truncate` argument can be either None, "first", "second" or
+    "both"
+
+    If `a` would represent the consensus "TGA" and `b` would represent "GAT", 
+    the result, represented as consensus, for the different truncate arguments
+    would be:
+
+        `None`    : "TGAN", "NGAT"
+        `"first"` : "TGA", "NGA"
+        `"second"`: "GAN", "GAT"
+        `"both"`  : "GA", "GA"  
+
+    Parameters
+    ----------
+    a : array_like
+        Position-specific scoring, weight or probability matrix.
+
+    b : array_like
+        Position-specific scoring, weight or probability matrix.
+
+    truncate : str or None, optional
+        How to truncate the resulting matrices. Valid options are `None`,
+        `"first"`, `"second"` or `"both"`.
+    
+    bg : array_like, optional
+        The background frequences, default `[0.25, 0.25, 0.25, 0.25]`.
+
+    Returns
+    -------
+    array_like, array_like
+        The matrices `a` and `b` shifted, and truncated according to the arguments.
+        Regardless of the arguments, the matrices are of equal length.
+
+    """
     if bg is None:
         bg = [0.25, 0.25, 0.25, 0.25]
 
@@ -778,22 +816,15 @@ def make_equal_length(a, b, pos, truncate=None, bg=None):
 
     truncate_first = False
     truncate_second = False
-    if truncate in ["both", "first"]:
-        truncate_first = True
-    if truncate in ["both", "second"]:
-        truncate_second = True
+    truncate_first = truncate in ["both", "first"]
+    truncate_second = truncate in ["both", "second"]
 
     len_a = len(a)
     len_b = len(b)
+    mtx_len = max(len_a - pos, len_b) if pos < 0 else max(len_a, len_b + pos)
 
     second_pos = max(pos, 0)
     first_pos = max(-1 * pos, 0)
-    mtx_len = (
-        len_a
-        + len_b
-        + abs(pos)
-        - max(min(len_b, first_pos + 1), min(len_a, second_pos + 1))
-    )
 
     first = np.array([bg.copy() for x in range(mtx_len)])
     first[first_pos : first_pos + len_a] = a
@@ -812,5 +843,7 @@ def make_equal_length(a, b, pos, truncate=None, bg=None):
         mask_first[second_pos : second_pos + len_b] = True
     else:
         mask_first[:] = True
+
+    #   if not truncate_first and not truncate_second:
 
     return first[mask_second & mask_first], second[mask_second & mask_first]
