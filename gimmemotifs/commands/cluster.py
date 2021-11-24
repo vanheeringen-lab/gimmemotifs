@@ -33,10 +33,10 @@ def _write_report(outdir, ids, tree, clusters):
 
     f = open(os.path.join(outdir, "clustered_motifs.pfm"), "w")
     if len(clusters) == 1 and len(clusters[0][1]) == 1:
-        f.write("%s\n" % clusters[0][0].to_pwm())
+        f.write("%s\n" % clusters[0][0].to_ppm())
     else:
         for motif in tree.get_clustered_motifs():
-            f.write("%s\n" % motif.to_pwm())
+            f.write("%s\n" % motif.to_ppm())
     f.close()
 
 

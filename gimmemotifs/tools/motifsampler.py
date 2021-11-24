@@ -131,7 +131,7 @@ class MotifSampler(MotifProgram):
         """
         motifs = []
 
-        pwm = []
+        ppm = []
         info = {}
         for line in fo.readlines():
             if line.startswith("#"):
@@ -139,14 +139,13 @@ class MotifSampler(MotifProgram):
                 if len(vals) > 1:
                     info[vals[0]] = vals[1]
             elif len(line) > 1:
-                pwm.append([float(x) for x in line.strip().split("\t")])
+                ppm.append([float(x) for x in line.strip().split("\t")])
             else:
-                motifs.append(Motif())
+                motifs.append(Motif(ppm=ppm[:]))
                 motifs[-1].consensus = info["Consensus"]
                 motifs[-1].width = info["W"]
                 motifs[-1].id = info["ID"]
-                motifs[-1].pwm = pwm[:]
-                pwm = []
+                ppm = []
 
         return motifs
 
@@ -194,11 +193,9 @@ class MotifSampler(MotifProgram):
                 for i in range(len(row)):
                     pfm[i][nucs[row[i]]] += 1
             total = float(len(align))
-            pwm = [[(x + pseudo / 4) / total + (pseudo) for x in row] for row in pfm]
-            m = Motif()
+            ppm = [[(x + pseudo / 4) / total + (pseudo) for x in row] for row in pfm]
+            m = Motif(pfm=pfm, ppm=ppm)
             m.align = align[:]
-            m.pwm = pwm[:]
-            m.pfm = pfm[:]
             m.id = m_id
             motifs.append(m)
         return motifs

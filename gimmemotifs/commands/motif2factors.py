@@ -10,6 +10,7 @@ def motif2factors(args):
     kwargs = {
         "new_reference": args.new_reference,
         "extra_orthologs_references": args.ortholog_references,
+        "genomes_dir": args.genomes_dir,
         "tmpdir": args.tmpdir,
         "outdir": args.outdir,
         "strategy": args.strategy,

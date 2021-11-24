@@ -7,14 +7,14 @@ import numpy as np
 
 
 class TestBackground(unittest.TestCase):
-    """ A test class to test generation of background sequences"""
+    """A test class to test generation of background sequences"""
 
     def setUp(self):
         self.data_dir = "test/data/background"
         self.genome = "test/data/background/genome.fa"
 
     def test1_gc_matched_background(self):
-        """ Generate GC matched background """
+        """Generate GC matched background"""
         tmp = tempfile.NamedTemporaryFile(delete=False)
 
         gc_bed1 = os.path.join(self.data_dir, "test_gc1.bed")

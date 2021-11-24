@@ -20,19 +20,19 @@ def fasta_obj(fasta_file):
 
 
 def test1_index(fasta_obj):
-    """ Fasta as a dictionary """
+    """Fasta as a dictionary"""
     assert fasta_obj["seq1"] == "AAAA"
     assert fasta_obj["seq2"] == "ACGT"
     assert fasta_obj["seq3"] == "CCCCGGGG"
 
 
 def test2_items(fasta_obj):
-    """ Fasta.items() """
+    """Fasta.items()"""
     assert len(list(fasta_obj.items())) == 3
 
 
 def test3_writefasta(fasta_file, fasta_obj):
-    """ Write fasta-formatted file"""
+    """Write fasta-formatted file"""
     temp = tempfile.NamedTemporaryFile()
     tempname = temp.name
     fasta_obj.writefasta(tempname)
