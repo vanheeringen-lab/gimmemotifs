@@ -922,7 +922,7 @@ def select_nonredundant_motifs(
     logger.info("selecting non-redundant motifs")
     n_features = 1
     for i in range(1, X_bla.shape[1], step):
-        rfe = RFE(model, i)
+        rfe = RFE(model, n_features_to_select=i)
         fit = rfe.fit(X_bla, y_train)
         mean_score = np.mean(
             cross_val_score(
@@ -938,7 +938,7 @@ def select_nonredundant_motifs(
             break
         mean_scores.append(mean_score)
 
-    rfe = RFE(model, n_features)
+    rfe = RFE(model, n_features_to_select=n_features)
     fit = rfe.fit(X_bla, y_train)
 
     selected_features = X_bla.columns[fit.support_]
