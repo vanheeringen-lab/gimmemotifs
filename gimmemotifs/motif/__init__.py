@@ -895,7 +895,7 @@ class Motif(object):
             "Please use the to_ppm() function instead.",
             DeprecationWarning,
         )
-        self.to_ppm(precision=precision, extra_str=extra_str)
+        return self.to_ppm(precision=precision, extra_str=extra_str)
 
     def format_factors(
         self, max_length=5, html=False, include_indirect=True, extra_str=", (...)"
