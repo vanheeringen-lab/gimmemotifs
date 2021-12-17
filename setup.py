@@ -73,7 +73,7 @@ class build_tools(my_build_py):
             arch = "x86_64"
             try:
                 sp.check_call(f"src/MotifSampler/MotifSampler_{arch}")
-            except sp.CalledProcessError as e:
+            except (sp.CalledProcessError, OSError) as e:
                 if "died" in str(e):
                     arch = "i386"
 
