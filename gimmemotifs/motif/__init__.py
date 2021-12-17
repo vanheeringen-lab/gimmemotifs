@@ -979,7 +979,7 @@ class Motif(object):
 
         return factor_str
 
-    def sample(self, n_seqs):
+    def sample(self, n_seqs, rng=None):
         """Sample n_seqs random sequences from a motif. The sequences
         follow the distribution of the motif ppm.
 
@@ -987,18 +987,29 @@ class Motif(object):
         ----------
         n_seqs : int
             number of sequences to sample
+        rng : np.random.Generator
+            random number generator, optional
 
         Returns
         -------
         sequences : List[str]
             A list of all the samples sequences
         """
-        nucs = [
-            random.choices(NUCS, weights=self.ppm[i], k=n_seqs)
-            for i in range(len(self.ppm))
-        ]
-        seqs = ["".join(nuc) for nuc in zip(*nucs)]
-        return seqs
+        if rng is None:
+            rng = np.random.default_rng()
+        cumsum = np.expand_dims(np.cumsum(self.ppm, axis=1), axis=1)
+        unif = rng.uniform(0, 1, size=(self.ppm.shape[0], n_seqs, 1))
+        # strings is aggregated into a (motif_len, n_seqs) array that will have
+        # 0 for "A", 1 for "C", etc. (as in NUCS)
+        strings = 4 - (unif < cumsum).sum(axis=2, dtype="i1")
+        # the values are now replaced with the ASCII ordinals to be
+        # reinterpreted as characters
+        for i, n in enumerate(NUCS):
+            strings[strings == i] = ord(n)
+        # allocate a Python string for each of the results
+        # TODO: will the following slicing be faster if the in-memory alignment
+        # is correct (i.e., FORTRAN vs C)?
+        return [strings[:, i].tobytes().decode("UTF-8") for i in range(n_seqs)]
 
 
 def default_motifs():
