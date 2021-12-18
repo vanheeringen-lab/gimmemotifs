@@ -90,9 +90,7 @@ class JasparMotifDb(MotifDb):
     """
     JASPAR motif database
     """
-
-    URL = "http://jaspar.genereg.net/download/CORE/JASPAR{0}_CORE{1}_non-redundant_pfms_transfac.txt"
-    UNVALIDATED_URL = "http://jaspar.genereg.net/download/collections/JASPAR{}_UNVALIDATED{}_pfms_transfac.txt"
+    URL = "https://jaspar.genereg.net/download/data/{0}/CORE/JASPAR{0}_CORE{1}_non-redundant_pfms_transfac.txt"
     NAME = "JASPAR{}{}.pfm"
     GROUPS = [
         "",
@@ -104,14 +102,14 @@ class JasparMotifDb(MotifDb):
         "urochordates",
     ]
 
-    def download(self, version="2020", outdir=DEFAULT_OUT):
+    def download(self, version="2022", outdir=DEFAULT_OUT):
         # JASPAR
         for group in self.GROUPS:
             if group != "":
                 group = "_" + group
             outfile = os.path.join(outdir, self.NAME.format(version, group))
 
-            for i, base_url in enumerate([self.URL, self.UNVALIDATED_URL]):
+            for i, base_url in enumerate([self.URL]):
                 url = base_url.format(version, group)
                 if i == 0:
                     mode = "w"
@@ -124,27 +122,16 @@ class JasparMotifDb(MotifDb):
                             if line.startswith(">"):
                                 line = "_".join(line.split("\t")[:2])
                             print(line, file=f)
-
+            
             motifs = read_motifs(outfile, fmt="transfac")
 
             anno = self.annotate_factors(motifs)
             with open(outfile, "w") as f:
                 print("# JASPAR{}{} motif database".format(version, group), file=f)
-                print("# Retrieved from:", file=f)
-                for base_url in [self.URL, self.UNVALIDATED_URL]:
-                    print("#     * {}".format(base_url.format(version, group)), file=f)
-                print(
-                    "# Note: this file also contains the unvalidated motifs from JASPAR.",
-                    file=f,
-                )
-                print(
-                    "#       These have not been confirmed by orthogonal evidence and have ",
-                    file=f,
-                )
-                print("#       a motif id that starts with UN.", file=f)
+                print(f"# Retrieved from: {base_url.format(version, group)}", file=f)
                 print("# Date: {}".format(self.date), file=f)
                 for motif in motifs:
-                    print(motif.to_ppm(), file=f)
+                    print(motif.to_pfm(), file=f)
 
             # if group == "_vertebrates":
             self.create_annotation(
@@ -187,7 +174,7 @@ class HomerMotifDb(MotifDb):
         # Homer
         pfm_out = os.path.join(outdir, self.NAME)
         with open(pfm_out, "w") as f:
-            print("# Homer motif database (v4.10)", file=f)
+            print("# Homer motif database (v4.11)", file=f)
             print("# Retrieved from: {}".format(self.URL), file=f)
             print("# Date: {}".format(self.date), file=f)
             with urlopen(self.URL) as response:
@@ -226,25 +213,19 @@ class HomerMotifDb(MotifDb):
 @register_db("hocomoco")
 class HocomocoMotifDb(MotifDb):
     """
-    HOCOMOCO motif database
+    HOCOMOCO v11 motif database
     """
-
-    # BASE_URL = "http://hocomoco11.autosome.ru/final_bundle/hocomoco11/core/{0}/mono/"
-    # ANNO_URL = BASE_URL + "HOCOMOCOv11_core_annotation_{0}_mono.tsv"
-    # URL = BASE_URL + "HOCOMOCOv11_core_pcms_{0}_mono.txt"
-    # NAME = "HOCOMOCOv11_{}.pfm"
-
-    BASE_URL = "http://hocomoco10.autosome.ru/final_bundle/{0}/mono/"
-    ANNO_URL = BASE_URL + "HOCOMOCOv10_annotation_{0}_mono.tsv"
-    URL = BASE_URL + "HOCOMOCOv10_pcms_{0}_mono.txt"
-    NAME = "HOCOMOCOv10_{}.pfm"
+    BASE_URL = "https://hocomoco11.autosome.ru/final_bundle/hocomoco11/core/{0}/mono/"
+    ANNO_URL = BASE_URL + "HOCOMOCOv11_core_annotation_{0}_mono.tsv"
+    URL = BASE_URL + "/HOCOMOCOv11_core_pcms_{0}_mono.txt"
+    NAME = "HOCOMOCOv11_{}.pfm"
 
     def download(self, outdir=DEFAULT_OUT):
         for group in ["HUMAN", "MOUSE"]:
             outfile = os.path.join(outdir, self.NAME.format(group))
             url = self.URL.format(group)
             with open(outfile, "w") as f:
-                print("# HOCOMOCOv10_{} motif database".format(group), file=f)
+                print("# HOCOMOCOv11_{} motif database".format(group), file=f)
                 print("# Retrieved from: {}".format(url), file=f)
                 print("# Date: {}".format(self.date), file=f)
                 with urlopen(url) as response:
@@ -404,7 +385,7 @@ class SwissregulonMotifDb(MotifDb):
             print("# Date: {}".format(self.date), file=f)
             for motif in motifs:
                 if len(motif) > 0:
-                    print(motif.to_pwm(), file=f)
+                    print(motif.to_ppm(), file=f)
 
         motifs = read_motifs(outfile)
         anno = self.annotate_factors(motifs)

@@ -1417,7 +1417,8 @@ def _read_motifs_transfac(handle):
         elif line.startswith("CC"):
             # CC tax_group:vertebrates; pubmed_ids:7592839; uniprot_ids:P30561,P53762; data_type:SELEX
             metadata = line.replace("CC ", "").split(";")
-            metadata = dict([x.strip().split(":") for x in metadata])
+            metadata = [x.strip().split(":") for x in metadata]
+            metadata = dict([x for x in metadata if len(x) == 2])
     # If there's only one matrix, and the format is not complete
     if len(pfm) != 0:
         motifs.append(Motif(pfm))
