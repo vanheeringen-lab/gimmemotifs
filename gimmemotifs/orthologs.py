@@ -84,6 +84,7 @@ def motif2factor_from_orthologs(
     # Check if we can write output before we do a lot of work
     os.makedirs(outdir, exist_ok=True)
     tmpdir = tempfile.mkdtemp() if tmpdir is None else tmpdir
+    genomes_dir = get_genomes_dir(genomes_dir, check_exist=False)
 
     logger.info(f"Making a new reference for: {' & '.join(new_reference)}.")
     logger.info(
@@ -130,7 +131,8 @@ def motif2factor_from_orthologs(
     logger.info("Now writing your motif2factors files.")
     # make sure the output dir exists
     pathlib.Path(f"{outdir}").mkdir(parents=True, exist_ok=True)
-    for genome in new_reference:
+    for reference in new_reference:
+        genome = genomepy.Genome(reference, genomes_dir, build_index=False).name
         make_motif2factors(
             f"{outdir}/{genome}.{database}",
             new_reference=genome,
@@ -194,9 +196,13 @@ def _prepare_genomes_with_annot(genome, genome_dir, outdir):
             logger.debug(f"""stdout of gunzip:\n {result.stdout.decode("utf-8")}""")
             logger.debug(f"""stderr of gunzip:\n {result.stderr.decode("utf-8")}""")
         # symlink files in tmpdir
+        tmp_file = os.path.join(outdir, f"{os.path.basename(gp_file)}")
+        if os.path.exists(tmp_file):
+            # in case of a (partial) rerun
+            os.unlink(tmp_file)
         os.symlink(
             gp_file,
-            os.path.join(outdir, f"{os.path.basename(gp_file)}"),
+            tmp_file,
         )
 
 
@@ -211,8 +217,6 @@ def _download_genomes_with_annot(genomes, genomes_dir, tpmdir):
     genomes : list
         a list of genome names, filepaths & suffixes removed (if any)
     """
-    genomes_dir = get_genomes_dir(genomes_dir, check_exist=False)
-    logger.debug(f"Saving new genomes in: {genomes_dir}.")
     existing_genomes = []
     for i, genome in enumerate(genomes):
         try:
@@ -226,11 +230,15 @@ def _download_genomes_with_annot(genomes, genomes_dir, tpmdir):
 
         # first check if the user supplied a pep.fa
         pep = os.path.join(genome_dir, f"{genome}.pep.fa")
+        tmp_pep = os.path.join(outdir, f"{genome}.pep.fa")
         if os.path.exists(pep):
             logger.info(f"found pep.fa for {genome}, using that one.")
+            if os.path.exists(tmp_pep):
+                # in case of a (partial) rerun
+                os.unlink(tmp_pep)
             os.symlink(
                 pep,
-                os.path.join(outdir, f"{genome}.pep.fa"),
+                tmp_pep,
             )
             existing_genomes.append(genome)
             continue
