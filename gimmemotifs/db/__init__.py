@@ -90,6 +90,7 @@ class JasparMotifDb(MotifDb):
     """
     JASPAR motif database
     """
+
     URL = "https://jaspar.genereg.net/download/data/{0}/CORE/JASPAR{0}_CORE{1}_non-redundant_pfms_transfac.txt"
     NAME = "JASPAR{}{}.pfm"
     GROUPS = [
@@ -122,7 +123,7 @@ class JasparMotifDb(MotifDb):
                             if line.startswith(">"):
                                 line = "_".join(line.split("\t")[:2])
                             print(line, file=f)
-            
+
             motifs = read_motifs(outfile, fmt="transfac")
 
             anno = self.annotate_factors(motifs)
@@ -215,6 +216,7 @@ class HocomocoMotifDb(MotifDb):
     """
     HOCOMOCO v11 motif database
     """
+
     BASE_URL = "https://hocomoco11.autosome.ru/final_bundle/hocomoco11/core/{0}/mono/"
     ANNO_URL = BASE_URL + "HOCOMOCOv11_core_annotation_{0}_mono.tsv"
     URL = BASE_URL + "/HOCOMOCOv11_core_pcms_{0}_mono.txt"

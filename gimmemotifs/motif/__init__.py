@@ -1247,7 +1247,7 @@ def _read_motifs_pfm(handle):
     pfm = []
     motif_id = ""
     seen_id = {}
-    
+
     for n, line in enumerate(handle.readlines()):
         if line.startswith("#") or line.strip() == "":
             continue
