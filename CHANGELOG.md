@@ -19,7 +19,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   * `>>` - "shift" motif right (adding a non-informative position to the left side)
   * `~` - reverse complement
   * `*` - multiply the pfm by a value
-
+* Progress bar for scanning.
+* `list_installed_libraries()` to list available motif libraries.
 
 ### Changed
 
@@ -27,6 +28,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   * Split into multiple files with coherent function.
   * Uses `numpy.array` internally.
   * All functions that mention `pwm` renamed to `ppm` (position-probability matrix), as the definition of a PWM is usually a log-odds matrix, not a probability matrix.
+    * `to_pwm()` is deprecated, use `to_ppm()` instead.
   * Changed functions `pwm_min_score()` and `pwm_max_score()` to properties `max_score` and `min_score`.
   * All internal data is correctly updated when `Motif()` is changed, for instance by trimming (#218).
 
@@ -39,6 +41,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 * Fixed unhandled `OSError` during installation on Mac.
 * Fixed bug related to `RFE()` (#226).
 * Positional probability matrix now sum to 1 over all positions (#209).
+* Fixed issue with pandas >= 1.3.
+* Fixed issue with `non_reducing_slice` import from pandas.
+* Fix threshold calculation if more than 20,000 sequences are supplied.
+* Fix issue with config file getting corrupted.
+* Fix FPR threshold calculation.
 
 ### Removed
 
