@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.17.0] - 2021-12-22
+
+### Added
+
 * Added `--genomes_dir` argument to `gimme motif2factors`.
 * Added `--version` flag.
 * Function `sample()` for fast sequence sampling from a `Motif()` instance.
