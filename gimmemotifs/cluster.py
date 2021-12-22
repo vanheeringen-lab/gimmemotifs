@@ -52,7 +52,7 @@ class MotifTree(object):
                 self.left.printFrontiers()
                 self.right.printFrontiers()
         else:
-            self.motif.pwm = self.motif.pfm_to_pwm(self.motif.pwm)
+            self.motif.ppm = self.motif.pfm_to_ppm(self.motif.ppm)
 
     def get_clustered_motifs(self):
         if self.frontier:
@@ -343,10 +343,10 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
 
     f = open(outfile, "w")
     if len(clusters) == 1 and len(clusters[0][1]) == 1:
-        f.write("%s\n" % clusters[0][0].to_pwm())
+        f.write("%s\n" % clusters[0][0].to_ppm())
     else:
         for motif in tree.get_clustered_motifs():
-            f.write("%s\n" % motif.to_pwm())
+            f.write("%s\n" % motif.to_ppm())
     f.close()
 
     logger.debug("Clustering done. See the result in %s", cluster_report)

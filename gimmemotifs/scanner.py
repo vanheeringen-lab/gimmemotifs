@@ -23,6 +23,7 @@ import numpy as np
 from sklearn.preprocessing import scale
 import pandas as pd
 import sqlite3
+from tqdm.auto import tqdm
 
 from gimmemotifs import __version__
 from gimmemotifs.background import RandomGenomicFasta, gc_bin_bedfile
@@ -130,7 +131,7 @@ def scan_regionfile_to_table(
         "count" or "score"
 
     pfmfile : str, optional
-        Specify a PFM file for scanning.
+        Specify a PFM file for scanning (or a list of Motif instances).
 
     ncpus : int, optional
         If defined this specifies the number of cores to use.
@@ -196,7 +197,7 @@ def scan_regionfile_to_table(
             scores.append(row)
         logger.info("done")
 
-    motif_names = [m.id for m in read_motifs(pfmfile)]
+    motif_names = s.motif_ids
 
     logger.info("creating dataframe")
     dtype = "float16"
@@ -475,7 +476,7 @@ def parse_threshold_values(motif_file, cutoff):
     d = parse_cutoff(motifs, cutoff)
     threshold = {}
     for m in motifs:
-        c = m.pwm_min_score() + (m.pwm_max_score() - m.pwm_min_score()) * d[m.id]
+        c = m.min_score + (m.max_score - m.min_score) * d[m.id]
         threshold[m.id] = c
     return threshold
 
@@ -493,14 +494,14 @@ def scan_sequence(
             if zscore:
                 m_mean, m_std = motifs_meanstd[seq_gc_bin][motif.id]
                 result = pwmscan(
-                    seq, motif.logodds, motif.pwm_min_score(), nreport, scan_rc
+                    seq, motif.logodds.tolist(), motif.min_score, nreport, scan_rc
                 )
                 result = [[(row[0] - m_mean) / m_std, row[1], row[2]] for row in result]
                 result = [row for row in result if row[0] >= cutoff]
             else:
-                result = pwmscan(seq, motif.logodds, cutoff, nreport, scan_rc)
-            if cutoff <= motif.pwm_min_score() and len(result) == 0:
-                result = [[motif.pwm_min_score(), 0, 1]] * nreport
+                result = pwmscan(seq, motif.logodds.tolist(), cutoff, nreport, scan_rc)
+            if cutoff <= motif.min_score and len(result) == 0:
+                result = [[motif.min_score, 0, 1]] * nreport
 
             ret.append(result)
 
@@ -591,7 +592,7 @@ def scan_it_moods(
     for motif in motifs:
         pfmname = os.path.join(tmpdir, "{}.pfm".format(motif.id))
         with open(pfmname, "w") as f:
-            matrix = np.array(motif.pwm).transpose()
+            matrix = np.array(motif.ppm).transpose()
             for line in [" ".join([str(x) for x in row]) for row in matrix]:
                 f.write("{}\n".format(line))
 
@@ -647,6 +648,7 @@ class Scanner(object):
         self.background = None
         self.meanstd = {}
         self.gc_bins = [(0, 1)]
+        self.fpr = None
 
         if ncpus is None:
             self.ncpus = int(MotifConfig().get_default_params()["ncpus"])
@@ -689,10 +691,10 @@ class Scanner(object):
     def set_motifs(self, motifs):
         try:
             # Check if motifs is a list of Motif instances
-            motifs[0].to_pwm()
+            motifs[0].to_ppm()
             tmp = NamedTemporaryFile(mode="w", delete=False)
             for m in motifs:
-                tmp.write("{}\n".format(m.to_pwm()))
+                tmp.write("{}\n".format(m.to_ppm()))
             tmp.close()
             motif_file = tmp.name
         except AttributeError:
@@ -706,7 +708,7 @@ class Scanner(object):
             self.checksum[self.motifs] = chksum
 
     def _meanstd_from_seqs(self, motifs, seqs):
-        scan_motifs = [(m, m.pwm_min_score()) for m in motifs]
+        scan_motifs = [(m, m.min_score) for m in motifs]
 
         table = []
         for x in self._scan_sequences_with_motif(scan_motifs, seqs, 1, True):
@@ -716,7 +718,7 @@ class Scanner(object):
             yield motif, np.mean(scores), np.std(scores)  # cutoff
 
     def _threshold_from_seqs(self, motifs, seqs, fpr):
-        scan_motifs = [(m, m.pwm_min_score()) for m in motifs]
+        scan_motifs = [(m, m.min_score) for m in motifs]
         table = []
         seq_gc_bins = [self.get_seq_bin(seq) for seq in seqs]
         for gc_bin, result in zip(
@@ -754,7 +756,7 @@ class Scanner(object):
                     bin_seqs = [s for s, b in zip(seqs, seq_bins) if b == bin]
 
                     for motif in motifs:
-                        k = "e{}|{}|{}".format(motif.hash(), self.background_hash, bin)
+                        k = "e{}|{}|{}".format(motif.hash, self.background_hash, bin)
 
                         results = cache.get(k)
                         if results is None:
@@ -768,7 +770,7 @@ class Scanner(object):
                             scan_motifs, bin_seqs
                         ):
                             k = "e{}|{}|{}".format(
-                                motif.hash(), self.background_hash, bin
+                                motif.hash, self.background_hash, bin
                             )
                             cache.set(k, [mean, std])
                             self.meanstd[bin][motif.id] = mean, std
@@ -784,7 +786,7 @@ class Scanner(object):
                         std = np.mean(stds[~idx])
                         for gcbin in np.array(bins)[idx]:
                             k = "e{}|{}|{}".format(
-                                motif.hash(), self.background_hash, gcbin
+                                motif.hash, self.background_hash, gcbin
                             )
                             mean = self.meanstd[gcbin][motif.id][0]
                             cache.set(k, [mean, std])
@@ -936,6 +938,7 @@ class Scanner(object):
             fpr = float(fpr)
             if not (0.0 < fpr < 1.0):
                 raise ValueError("Parameter fpr should be between 0 and 1")
+            self.fpr = fpr
 
         if not self.motifs:
             raise ValueError("please run set_motifs() first")
@@ -967,7 +970,7 @@ class Scanner(object):
                 self._threshold = None
                 for motif in motifs:
                     k = "{}|{}|{:.4f}|{}".format(
-                        motif.hash(),
+                        motif.hash,
                         self.background_hash,
                         fpr,
                         ",".join(sorted(gc_bins)),
@@ -992,7 +995,7 @@ class Scanner(object):
                         self._threshold = pd.concat((self._threshold, df), axis=1)
                     for motif in scan_motifs:
                         k = "{}|{}|{:.4f}|{}".format(
-                            motif.hash(),
+                            motif.hash,
                             self.background_hash,
                             fpr,
                             ",".join(sorted(gc_bins)),
@@ -1117,6 +1120,14 @@ class Scanner(object):
                 if len(self.meanstd) != 1:
                     self.set_meanstd(gc=gc)
 
+        # progress bar
+        pbar = tqdm(
+            desc="scanning",
+            unit=" sequences",
+            total=len(seqs),
+            disable=False,  # can be silenced
+        )
+
         batch_size = 50000
         logger.debug("Scanning")
         for batch_idx in range(0, len(seqs), batch_size):
@@ -1128,11 +1139,18 @@ class Scanner(object):
             )
             for result in it:
                 yield result
+                pbar.update(1)
+        pbar.close()
 
     def get_gc_thresholds(self, seqs, motifs=None, zscore=False):
+        MAX_SEQS = 20000
+
         # Simple case, only one threshold
         if np.all(self.threshold.nunique(axis=0) == 1):
             return self.threshold.iloc[0].to_dict()
+
+        if len(seqs) > MAX_SEQS:
+            seqs = np.random.choice(seqs, size=MAX_SEQS)
 
         if motifs is None:
             motifs = read_motifs(self.motifs)
@@ -1149,9 +1167,9 @@ class Scanner(object):
                 columns=_threshold.columns,
             )
 
-        nseqs = int(20000 / np.sum(list(gc_bin_count.values())))
+        nseqs = int(MAX_SEQS / np.sum(list(gc_bin_count.values())))
         t = {}
-        maxt = pd.Series([m.pwm_max_score() for m in motifs], index=_threshold.columns)
+        maxt = pd.Series([m.max_score for m in motifs], index=_threshold.columns)
         # We do this in a loop as the DataFrame will get too big to fit in memory
         # when the difference between the number of sequences per gc_bin is very
         # high.
@@ -1165,7 +1183,9 @@ class Scanner(object):
             ]
         )
         for motif in _threshold.columns[1:]:
-            val = _threshold.loc[idx, motif].quantile(0.99, interpolation="higher")
+            val = _threshold.loc[idx, motif].quantile(
+                1 - self.fpr, interpolation="higher"
+            )
             if val < maxt.loc[motif]:
                 t[motif] = val
             else:
@@ -1229,6 +1249,7 @@ class Scanner(object):
             while len(jobs) > 0:
                 for ret in jobs[0].get():
                     region = scan_seqs[k]
+                    k += 1
                     yield region, ret
                 jobs = jobs[1:]
         else:

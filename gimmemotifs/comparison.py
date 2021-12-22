@@ -26,7 +26,7 @@ import pandas as pd
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.c_metrics import pfmscan, score
 from gimmemotifs.motif import parse_motifs, read_motifs
-from gimmemotifs.utils import pfmfile_location
+from gimmemotifs.utils import pfmfile_location, make_equal_length
 
 # pool import is at the bottom
 
@@ -259,11 +259,13 @@ def seqcor(m1, m2, seq=None):
     L = len(seq)
 
     # Scan RC de Bruijn sequence
-    result1 = pfmscan(seq, m1.pwm, m1.pwm_min_score(), len(seq), False, True)
-    result2 = pfmscan(seq, m2.pwm, m2.pwm_min_score(), len(seq), False, True)
+    result1 = pfmscan(seq, m1.pwm.tolist(), m1.min_score, len(seq), False, True)
+    result2 = pfmscan(seq, m2.pwm.tolist(), m2.min_score, len(seq), False, True)
 
     # Reverse complement of motif 2
-    result3 = pfmscan(seq, m2.rc().pwm, m2.rc().pwm_min_score(), len(seq), False, True)
+    result3 = pfmscan(
+        seq, m2.rc().pwm.tolist(), m2.rc().min_score, len(seq), False, True
+    )
 
     result1 = np.array(result1)
     result2 = np.array(result2)
@@ -503,8 +505,9 @@ class MotifComparer(object):
         return [1 - norm.cdf(score[0], m, s), score[1], score[2]]
 
     def score_matrices(self, matrix1, matrix2, metric, combine):
+
         if metric in self.metrics and combine in self.combine:
-            s = score(matrix1, matrix2, metric, combine)
+            s = score(matrix1.tolist(), matrix2.tolist(), metric, combine)
 
             if s != s:
                 return None
@@ -544,14 +547,14 @@ class MotifComparer(object):
         # return c_max_subtotal(matrix1, matrix2, metric, combine)
 
         for i in range(-(len(matrix2) - min_overlap), len(matrix1) - min_overlap + 1):
-            p1, p2 = self.make_equal_length_truncate(matrix1, matrix2, i)
+            p1, p2 = make_equal_length(matrix1, matrix2, i, truncate="both")
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, 1])
 
         rev_matrix2 = [row[::-1] for row in matrix2[::-1]]
         for i in range(-(len(matrix2) - min_overlap), len(matrix1) - min_overlap + 1):
-            p1, p2 = self.make_equal_length_truncate(matrix1, rev_matrix2, i)
+            p1, p2 = make_equal_length(matrix1, rev_matrix2, i, truncate="both")
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, -1])
@@ -565,14 +568,14 @@ class MotifComparer(object):
         scores = []
 
         for i in range(-(len(matrix2) - 1), len(matrix1)):
-            p1, p2 = self.make_equal_length_truncate_second(matrix1, matrix2, i)
+            p1, p2 = make_equal_length(matrix1, matrix2, i, truncate="first")
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, 1])
 
         rev_matrix2 = [row[::-1] for row in matrix2[::-1]]
         for i in range(-(len(matrix2) - 1), len(matrix1)):
-            p1, p2 = self.make_equal_length_truncate_second(matrix1, rev_matrix2, i)
+            p1, p2 = make_equal_length(matrix1, rev_matrix2, i, truncate="first")
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, -1])
@@ -585,14 +588,14 @@ class MotifComparer(object):
         scores = []
 
         for i in range(-(len(matrix2) - 1), len(matrix1)):
-            p1, p2 = self.make_equal_length(matrix1, matrix2, i)
+            p1, p2 = make_equal_length(matrix1, matrix2, i)
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, 1])
 
         rev_matrix2 = [row[::-1] for row in matrix2[::-1]]
         for i in range(-(len(matrix2) - 1), len(matrix1)):
-            p1, p2 = self.make_equal_length(matrix1, rev_matrix2, i)
+            p1, p2 = make_equal_length(matrix1, rev_matrix2, i)
             s = self.score_matrices(p1, p2, metric, combine)
             if s:
                 scores.append([s, i, -1])
@@ -601,60 +604,6 @@ class MotifComparer(object):
             sys.stdout.write("No score {} {}".format(matrix1, matrix2))
             return []
         return sorted(scores, key=lambda x: x[0])[-1]
-
-    def make_equal_length(self, pwm1, pwm2, pos, bg=None):
-        if bg is None:
-            bg = [0.25, 0.25, 0.25, 0.25]
-
-        p1 = pwm1[:]
-        p2 = pwm2[:]
-
-        if pos < 1:
-            p1 = [bg for _ in range(-pos)] + p1
-        else:
-            p2 = [bg for _ in range(pos)] + p2
-
-        diff = len(p1) - len(p2)
-        if diff > 0:
-            p2 += [bg for _ in range(diff)]
-        elif diff < 0:
-            p1 += [bg for _ in range(-diff)]
-
-        return p1, p2
-
-    def make_equal_length_truncate(self, pwm1, pwm2, pos):
-        p1 = pwm1[:]
-        p2 = pwm2[:]
-
-        if pos < 0:
-            p2 = p2[-pos:]
-        elif pos > 0:
-            p1 = p1[pos:]
-
-        if len(p1) > len(p2):
-            p1 = p1[: len(p2)]
-        else:
-            p2 = p2[: len(p1)]
-        return p1, p2
-
-    def make_equal_length_truncate_second(self, pwm1, pwm2, pos, bg=None):
-        if bg is None:
-            bg = [0.25, 0.25, 0.25, 0.25]
-
-        p1 = pwm1[:]
-        p2 = pwm2[:]
-
-        if pos < 0:
-            p2 = p2[-pos:]
-        else:
-            p2 = [bg for _ in range(pos)] + p2
-
-        diff = len(p1) - len(p2)
-        if diff > 0:
-            p2 += [bg for _ in range(diff)]
-        elif diff < 0:
-            p2 = p2[: len(p1)]
-        return p1, p2
 
     def get_all_scores(
         self,
@@ -973,7 +922,7 @@ def select_nonredundant_motifs(
     logger.info("selecting non-redundant motifs")
     n_features = 1
     for i in range(1, X_bla.shape[1], step):
-        rfe = RFE(model, i)
+        rfe = RFE(model, n_features_to_select=i)
         fit = rfe.fit(X_bla, y_train)
         mean_score = np.mean(
             cross_val_score(
@@ -989,7 +938,7 @@ def select_nonredundant_motifs(
             break
         mean_scores.append(mean_score)
 
-    rfe = RFE(model, n_features)
+    rfe = RFE(model, n_features_to_select=n_features)
     fit = rfe.fit(X_bla, y_train)
 
     selected_features = X_bla.columns[fit.support_]

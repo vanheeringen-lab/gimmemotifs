@@ -1,0 +1,154 @@
+Motif	Factor	Evidence	Curated
+MA0010.1_MA0010.1.br	MA0010.1.br	COMPILED	Y
+MA0011.1_MA0011.1.br	MA0011.1.br	COMPILED	Y
+MA0012.1_MA0012.1.br	MA0012.1.br	COMPILED	Y
+MA0013.1_MA0013.1.br	MA0013.1.br	COMPILED	Y
+MA0015.1_MA0015.1.Cf2	MA0015.1.Cf2	SELEX	Y
+MA0016.1_MA0016.1.usp	MA0016.1.usp	SELEX	Y
+MA0022.1_MA0022.1.dl	MA0022.1.dl	SELEX	Y
+MA0023.1_MA0023.1.dl	MA0023.1.dl	SELEX	Y
+MA0026.1_MA0026.1.Eip74EF	MA0026.1.Eip74EF	SELEX	Y
+MA0049.1_MA0049.1.hb	MA0049.1.hb	COMPILED	Y
+MA0085.1_MA0085.1.Su(H)	MA0085.1.Su	COMPILED	Y
+MA0126.1_MA0126.1.ovo	MA0126.1.ovo	SELEX	Y
+MA0165.1_MA0165.1.Abd-B	MA0165.1.Abd-B	bacterial 1-hybrid	Y
+MA0166.1_MA0166.1.Antp	MA0166.1.Antp	bacterial 1-hybrid	Y
+MA0167.1_MA0167.1.Awh	MA0167.1.Awh	bacterial 1-hybrid	Y
+MA0168.1_MA0168.1.B-H1	MA0168.1.B-H1	bacterial 1-hybrid	Y
+MA0169.1_MA0169.1.B-H2	MA0169.1.B-H2	bacterial 1-hybrid	Y
+MA0170.1_MA0170.1.C15	MA0170.1.C15	bacterial 1-hybrid	Y
+MA0171.1_MA0171.1.CG11085	MA0171.1.CG11085	bacterial 1-hybrid	Y
+MA0172.1_MA0172.1.CG11294	MA0172.1.CG11294	bacterial 1-hybrid	Y
+MA0173.1_MA0173.1.CG11617	MA0173.1.CG11617	bacterial 1-hybrid	Y
+MA0174.1_MA0174.1.Dbx	MA0174.1.Dbx	bacterial 1-hybrid	Y
+MA0175.1_MA0175.1.lms	MA0175.1.lms	bacterial 1-hybrid	Y
+MA0176.1_MA0176.1.CG15696-RA	MA0176.1.CG15696-RA	bacterial 1-hybrid	Y
+MA0177.1_MA0177.1.CG18599	MA0177.1.CG18599	bacterial 1-hybrid	Y
+MA0178.1_MA0178.1.CG32105	MA0178.1.CG32105	bacterial 1-hybrid	Y
+MA0179.1_MA0179.1.CG32532	MA0179.1.CG32532	bacterial 1-hybrid	Y
+MA0180.1_MA0180.1.Vsx2	MA0180.1.Vsx2	bacterial 1-hybrid	Y
+MA0181.1_MA0181.1.Vsx1	MA0181.1.Vsx1	bacterial 1-hybrid	Y
+MA0182.1_MA0182.1.CG4328-RA	MA0182.1.CG4328-RA	bacterial 1-hybrid	Y
+MA0183.1_MA0183.1.HHEX	MA0183.1.HHEX	bacterial 1-hybrid	Y
+MA0184.1_MA0184.1.CG9876	MA0184.1.CG9876	bacterial 1-hybrid	Y
+MA0185.1_MA0185.1.Deaf1	MA0185.1.Deaf1	DNaseI footprinting	Y
+MA0186.1_MA0186.1.Dfd	MA0186.1.Dfd	bacterial 1-hybrid	Y
+MA0187.1_MA0187.1.Dll	MA0187.1.Dll	bacterial 1-hybrid	Y
+MA0188.1_MA0188.1.Dr	MA0188.1.Dr	bacterial 1-hybrid	Y
+MA0189.1_MA0189.1.E5	MA0189.1.E5	bacterial 1-hybrid	Y
+MA0190.1_MA0190.1.Gsc	MA0190.1.Gsc	bacterial 1-hybrid	Y
+MA0191.1_MA0191.1.HGTX	MA0191.1.HGTX	bacterial 1-hybrid	Y
+MA0192.1_MA0192.1.Hmx	MA0192.1.Hmx	bacterial 1-hybrid	Y
+MA0193.1_MA0193.1.schlank	MA0193.1.schlank	bacterial 1-hybrid	Y
+MA0194.1_MA0194.1.Lim1	MA0194.1.Lim1	bacterial 1-hybrid	Y
+MA0195.1_MA0195.1.Lim3	MA0195.1.Lim3	bacterial 1-hybrid	Y
+MA0196.1_MA0196.1.NK7.1	MA0196.1.NK7.1	bacterial 1-hybrid	Y
+MA0198.1_MA0198.1.OdsH	MA0198.1.OdsH	bacterial 1-hybrid	Y
+MA0199.1_MA0199.1.Optix	MA0199.1.Optix	bacterial 1-hybrid	Y
+MA0200.1_MA0200.1.Pph13	MA0200.1.Pph13	bacterial 1-hybrid	Y
+MA0201.1_MA0201.1.Ptx1	MA0201.1.Ptx1	bacterial 1-hybrid	Y
+MA0202.1_MA0202.1.Rx	MA0202.1.Rx	bacterial 1-hybrid	Y
+MA0203.1_MA0203.1.Scr	MA0203.1.Scr	bacterial 1-hybrid	Y
+MA0204.1_MA0204.1.Six4	MA0204.1.Six4	bacterial 1-hybrid	Y
+MA0206.1_MA0206.1.abd-A	MA0206.1.abd-A	bacterial 1-hybrid	Y
+MA0207.1_MA0207.1.achi	MA0207.1.achi	bacterial 1-hybrid	Y
+MA0208.1_MA0208.1.al	MA0208.1.al	bacterial 1-hybrid	Y
+MA0209.1_MA0209.1.ap	MA0209.1.ap	bacterial 1-hybrid	Y
+MA0210.1_MA0210.1.ara	MA0210.1.ara	bacterial 1-hybrid	Y
+MA0211.1_MA0211.1.bap	MA0211.1.bap	bacterial 1-hybrid	Y
+MA0212.1_MA0212.1.bcd	MA0212.1.bcd	bacterial 1-hybrid	Y
+MA0213.1_MA0213.1.brk	MA0213.1.brk	DNaseI footprinting	Y
+MA0214.1_MA0214.1.bsh	MA0214.1.bsh	bacterial 1-hybrid	Y
+MA0215.1_MA0215.1.btn	MA0215.1.btn	bacterial 1-hybrid	Y
+MA0217.1_MA0217.1.caup	MA0217.1.caup	bacterial 1-hybrid	Y
+MA0218.1_MA0218.1.ct	MA0218.1.ct	bacterial 1-hybrid	Y
+MA0219.1_MA0219.1.ems	MA0219.1.ems	bacterial 1-hybrid	Y
+MA0220.1_MA0220.1.en	MA0220.1.en	bacterial 1-hybrid	Y
+MA0221.1_MA0221.1.eve	MA0221.1.eve	bacterial 1-hybrid	Y
+MA0222.1_MA0222.1.exd	MA0222.1.exd	bacterial 1-hybrid	Y
+MA0224.1_MA0224.1.exex	MA0224.1.exex	bacterial 1-hybrid	Y
+MA0225.1_MA0225.1.ftz	MA0225.1.ftz	bacterial 1-hybrid	Y
+MA0226.1_MA0226.1.hbn	MA0226.1.hbn	bacterial 1-hybrid	Y
+MA0227.1_MA0227.1.hth	MA0227.1.hth	bacterial 1-hybrid	Y
+MA0228.1_MA0228.1.ind	MA0228.1.ind	bacterial 1-hybrid	Y
+MA0229.1_MA0229.1.inv	MA0229.1.inv	bacterial 1-hybrid	Y
+MA0230.1_MA0230.1.lab	MA0230.1.lab	bacterial 1-hybrid	Y
+MA0231.1_MA0231.1.lbe	MA0231.1.lbe	bacterial 1-hybrid	Y
+MA0232.1_MA0232.1.lbl	MA0232.1.lbl	bacterial 1-hybrid	Y
+MA0233.1_MA0233.1.mirr	MA0233.1.mirr	bacterial 1-hybrid	Y
+MA0234.1_MA0234.1.oc	MA0234.1.oc	bacterial 1-hybrid	Y
+MA0235.1_MA0235.1.onecut	MA0235.1.onecut	bacterial 1-hybrid	Y
+MA0236.1_MA0236.1.otp	MA0236.1.otp	bacterial 1-hybrid	Y
+MA0238.1_MA0238.1.pb	MA0238.1.pb	bacterial 1-hybrid	Y
+MA0239.1_MA0239.1.prd	MA0239.1.prd	bacterial 1-hybrid	Y
+MA0240.1_MA0240.1.repo	MA0240.1.repo	bacterial 1-hybrid	Y
+MA0241.1_MA0241.1.ro	MA0241.1.ro	bacterial 1-hybrid	Y
+MA0242.1_MA0242.1.Bgb::run	MA0242.1.Bgb	bacterial 1-hybrid	Y
+MA0242.1_MA0242.1.Bgb::run	run	bacterial 1-hybrid	Y
+MA0243.1_MA0243.1.sd	MA0243.1.sd	DNaseI footprinting	Y
+MA0244.1_MA0244.1.slbo	MA0244.1.slbo	DNaseI footprinting	Y
+MA0245.1_MA0245.1.slou	MA0245.1.slou	bacterial 1-hybrid	Y
+MA0246.1_MA0246.1.so	MA0246.1.so	bacterial 1-hybrid	Y
+MA0248.1_MA0248.1.tup	MA0248.1.tup	bacterial 1-hybrid	Y
+MA0250.1_MA0250.1.unc-4	MA0250.1.unc-4	bacterial 1-hybrid	Y
+MA0251.1_MA0251.1.unpg	MA0251.1.unpg	bacterial 1-hybrid	Y
+MA0252.1_MA0252.1.vis	MA0252.1.vis	bacterial 1-hybrid	Y
+MA0253.1_MA0253.1.vnd	MA0253.1.vnd	bacterial 1-hybrid	Y
+MA0254.1_MA0254.1.vvl	MA0254.1.vvl	DNaseI footprinting	Y
+MA0255.1_MA0255.1.z	MA0255.1.z	DNaseI footprinting	Y
+MA0256.1_MA0256.1.zen	MA0256.1.zen	bacterial 1-hybrid	Y
+MA0257.1_MA0257.1.zen2	MA0257.1.zen2	bacterial 1-hybrid	Y
+MA0094.2_MA0094.2.Ubx	MA0094.2.Ubx	bacterial 1-hybrid	Y
+MA0443.1_MA0443.1.btd	MA0443.1.btd	bacterial 1-hybrid	Y
+MA0444.1_MA0444.1.CG34031	MA0444.1.CG34031	bacterial 1-hybrid	Y
+MA0445.1_MA0445.1.D	MA0445.1.D	bacterial 1-hybrid	Y
+MA0446.1_MA0446.1.fkh	MA0446.1.fkh	bacterial 1-hybrid	Y
+MA0447.1_MA0447.1.gt	MA0447.1.gt	bacterial 1-hybrid	Y
+MA0448.1_MA0448.1.H2.0	MA0448.1.H2.0	bacterial 1-hybrid	Y
+MA0449.1_MA0449.1.h	MA0449.1.h	bacterial 1-hybrid	Y
+MA0450.1_MA0450.1.hkb	MA0450.1.hkb	bacterial 1-hybrid	Y
+MA0451.1_MA0451.1.kni	MA0451.1.kni	bacterial 1-hybrid	Y
+MA0197.2_MA0197.2.nub	MA0197.2.nub	bacterial 1-hybrid	Y
+MA0454.1_MA0454.1.odd	MA0454.1.odd	bacterial 1-hybrid	Y
+MA0456.1_MA0456.1.opa	MA0456.1.opa	bacterial 1-hybrid	Y
+MA0457.1_MA0457.1.PHDP	MA0457.1.PHDP	bacterial 1-hybrid	Y
+MA0458.1_MA0458.1.slp1	MA0458.1.slp1	bacterial 1-hybrid	Y
+MA0459.1_MA0459.1.tll	MA0459.1.tll	bacterial 1-hybrid	Y
+MA0460.1_MA0460.1.ttk	MA0460.1.ttk	bacterial 1-hybrid	Y
+MA0216.2_MA0216.2.cad	MA0216.2.cad	ChIP-chip	Y
+MA0530.1_MA0530.1.cnc::maf-S	MA0530.1.cnc	ChIP-chip	Y
+MA0530.1_MA0530.1.cnc::maf-S	maf-S	ChIP-chip	Y
+MA0531.1_MA0531.1.CTCF	MA0531.1.CTCF	ChIP-chip	Y
+MA0452.2_MA0452.2.Kr	MA0452.2.Kr	ChIP-chip	Y
+MA0532.1_MA0532.1.Stat92E	MA0532.1.Stat92E	ChIP-chip	Y
+MA0533.1_MA0533.1.su(Hw)	MA0533.1.su	ChIP-chip	Y
+MA0534.1_MA0534.1.EcR::usp	MA0534.1.EcR	ChIP-seq	Y
+MA0534.1_MA0534.1.EcR::usp	usp	ChIP-seq	Y
+MA0237.2_MA0237.2.pan	MA0237.2.pan	ChIP-chip	Y
+MA0535.1_MA0535.1.Mad	MA0535.1.Mad	ChIP-chip	Y
+MA0536.1_MA0536.1.pnr	MA0536.1.pnr	ChIP-chip	Y
+MA0247.2_MA0247.2.tin	MA0247.2.tin	ChIP-chip	Y
+MA0915.1_MA0915.1.dve	MA0915.1.dve	PBM	Y
+MA0916.1_MA0916.1.Ets21C	MA0916.1.Ets21C	PBM	Y
+MA0917.1_MA0917.1.gcm2	MA0917.1.gcm2	PBM	Y
+MA0086.2_MA0086.2.sna	MA0086.2.sna	SMiLE-seq	Y
+MA1455.1_MA1455.1.dmrt99B	MA1455.1.dmrt99B	HT-SELEX	Y
+MA1456.1_MA1456.1.Dref	MA1456.1.Dref	ChIP-seq	Y
+MA1457.1_MA1457.1.grh	MA1457.1.grh	ChIP-seq	Y
+MA1458.1_MA1458.1.Hsf	MA1458.1.Hsf	ChIP-seq	Y
+MA1459.1_MA1459.1.M1BP	MA1459.1.M1BP	ChIP-seq	Y
+MA1460.1_MA1460.1.pho	MA1460.1.pho	ChIP-seq	Y
+MA1461.1_MA1461.1.sv	MA1461.1.sv	HT-SELEX	Y
+MA1462.1_MA1462.1.vfl	MA1462.1.vfl	ChIP-seq	Y
+MA0529.2_MA0529.2.BEAF-32	MA0529.2.BEAF-32	ChIP-seq	Y
+MA0205.2_MA0205.2.Trl	MA0205.2.Trl	ChIP-seq	Y
+MA0249.2_MA0249.2.twi	MA0249.2.twi	ChIP-seq	Y
+MA1700.1_MA1700.1.Clamp	MA1700.1.Clamp	ChIP-seq	Y
+MA1702.1_MA1702.1.Pdp1	MA1702.1.Pdp1	ChIP-seq	Y
+MA2013.1_MA2013.1.GATAd	MA2013.1.GATAd		Y
+MA2014.1_MA2014.1.kn	MA2014.1.kn		Y
+MA2015.1_MA2015.1.gcm	MA2015.1.gcm		Y
+MA2016.1_MA2016.1.dsx	MA2016.1.dsx		Y
+MA2017.1_MA2017.1.Elba1	MA2017.1.Elba1		Y
+MA2018.1_MA2018.1.Elba2	MA2018.1.Elba2		Y
+MA2019.1_MA2019.1.msl-1	MA2019.1.msl-1		Y

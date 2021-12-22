@@ -1,3 +1,9 @@
+# run travis on these branches (and all PRs)
+branches:
+  only:
+  - master
+  - develop
+
 matrix:
   allow_failures:
     - os: osx
@@ -32,10 +38,11 @@ install:
   - conda config --add channels defaults
   - conda config --add channels bioconda
   - conda config --add channels conda-forge
+  - conda install mamba -y
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      conda env create -q -f conda_env.dev.txt -n gimme;
+      mamba env create -q -f conda_env.dev.txt -n gimme;
     else
-      conda env create -q -f conda_env.osx.txt -n gimme;
+      conda env create -q -f conda_env.osx.txt -n gimme;  # somehow mamba timesout on osx
     fi
   - conda activate gimme
   - conda list
@@ -52,10 +59,8 @@ before_script:
   - ./cc-test-reporter before-build
 
 script:
-  - black --check gimmemotifs/ setup.py scripts/
-  - flake8 setup.py gimmemotifs/ scripts/
   - python -c 'from gimmemotifs.config import CACHE_DIR;print(CACHE_DIR)'
-  - pytest -v --disable-pytest-warnings --cov=scripts --cov=gimmemotifs --cov-report=xml test/
+  - pytest -vv --disable-pytest-warnings --cov=scripts --cov=gimmemotifs --cov-report=xml test/
 
 after_script:
   # upload test coverage data to Code Climate

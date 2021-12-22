@@ -53,7 +53,7 @@ There are several ways to create a Motif instance.
     # Or from a consensus sequence
     from gimmemotifs.motif import motif_from_consensus
     ap1 = motif_from_consensus("TGASTCA")
-    print(ap1.to_pwm())
+    print(ap1.to_ppm())
 
 ::
     
@@ -80,7 +80,7 @@ You can convert a motif to several formats.
     motifs = read_motifs("example.pfm")
 
     # pwm
-    print(motifs[0].to_pwm())   
+    print(motifs[0].to_ppm())   
 
 :: 
 

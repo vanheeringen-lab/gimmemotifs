@@ -10,6 +10,7 @@ import glob
 import sys
 import xdg
 import os
+import pathlib
 import logging
 import pkg_resources
 import inspect
@@ -95,6 +96,7 @@ class MotifConfig(object):
         self._upgrade_config()
 
     def _upgrade_config(self, config_fname=None):
+        changed = False
         if "width" in self.config["params"]:
             if "size" not in self.config["params"]:
                 self.config.set(
@@ -103,6 +105,7 @@ class MotifConfig(object):
                     value=self.config["params"]["width"],
                 )
             del self.config["params"]["width"]
+            changed = True
         if "lwidth" in self.config["params"]:
             if "lsize" not in self.config["params"]:
                 self.config.set(
@@ -111,11 +114,13 @@ class MotifConfig(object):
                     value=self.config["params"]["lwidth"],
                 )
             del self.config["params"]["lwidth"]
+            changed = True
 
         if config_fname is None or not config_fname:
             config_fname = self.configs[0]
-        with open(config_fname, "w") as f:
-            self.write(f)
+        if changed:
+            with open(config_fname, "w") as f:
+                self.write(f)
 
     def create_default_config(self):
         logger.info("Creating new config.")
@@ -288,6 +293,15 @@ class MotifConfig(object):
 
     def write(self, fo):
         self.config.write(fo)
+
+    def list_installed_libraries(self):
+        """Return a list of all motif libraries installed in this distribution.
+
+        Each returned string is suitable for use with `gimmemotifs.motif.read_motifs()`.
+        """
+        libraries_dir = pathlib.Path(self.get_motif_dir()).resolve()
+        library_paths = glob.glob(str(libraries_dir / "*.pfm"))
+        return sorted([pathlib.Path(p).name for p in library_paths])
 
 
 def parse_denovo_params(user_params=None):

@@ -4,7 +4,7 @@ from gimmemotifs.cluster import cluster_motifs
 
 
 class TestMotifPwm(unittest.TestCase):
-    """ A test class to test motif clustering """
+    """A test class to test motif clustering"""
 
     def setUp(self):
         self.data_dir = "test/data/pwms"
@@ -12,7 +12,7 @@ class TestMotifPwm(unittest.TestCase):
         self.pwm = os.path.join(self.data_dir, "motifs.pwm")
 
     def test1_cluster_motifs(self):
-        """ cluster a pwm file with motifs """
+        """cluster a pwm file with motifs"""
         # Run clustering
         tree = cluster_motifs(
             self.pwm, "total", "wic", "mean", True, threshold=0.95, include_bg=True

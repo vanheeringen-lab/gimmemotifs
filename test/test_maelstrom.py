@@ -10,7 +10,7 @@ from gimmemotifs.maelstrom import run_maelstrom
 
 
 class TestMoap(unittest.TestCase):
-    """ A test class to test maelstrom"""
+    """A test class to test maelstrom"""
 
     def setUp(self):
         self.outdir = "test/data/maelstrom"
@@ -20,7 +20,7 @@ class TestMoap(unittest.TestCase):
         self.outfile = os.path.join(self.outdir, "final.out.txt")
 
     def test1_maelstrom(self):
-        """ Test Motif Activity by Ensemble Learning (maelstrom) """
+        """Test Motif Activity by Ensemble Learning (maelstrom)"""
 
         run_maelstrom(
             self.clusters,
@@ -35,7 +35,7 @@ class TestMoap(unittest.TestCase):
         print(df.shape)
 
         self.assertEquals((623, 8), df.shape)
-        
+
         # Filter redundant motifs
         run_maelstrom(
             self.clusters,
@@ -49,7 +49,6 @@ class TestMoap(unittest.TestCase):
         df = pd.read_table(self.outfile, index_col=0, comment="#")
         print(df.shape)
         self.assertEquals((156, 8), df.shape)
-
 
         for fname in glob(os.path.join(self.outdir, "activity*")):
             os.unlink(fname)

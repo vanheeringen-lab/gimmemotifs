@@ -51,6 +51,9 @@ def cli(sys_args):
         epilog=epilog,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    parser.add_argument(
+        "-v", "--version", action="version", version=f"GimmeMotifs v{__version__}"
+    )
     subparsers = parser.add_subparsers()  # title='subcommands', metavar="<command>")
 
     # gimme_motifs.py
@@ -670,6 +673,11 @@ def cli(sys_args):
         nargs="+",
     )
     p.add_argument(
+        "--genomes_dir",
+        help="Where to find/store genomepy genomes. Defaults to the genomepy config settings.",
+        metavar="DIR",
+    )
+    p.add_argument(
         "--tmpdir",
         help="Where to place intermediate files. Defaults to system temp.",
         metavar="DIR",
@@ -696,6 +704,13 @@ def cli(sys_args):
         metavar="INT",
         default=24,
     )
+    p.add_argument(
+        "--keep-intermediate",
+        dest="keep_intermediate",
+        help="Keep temporary files, do not delete tmpdir.",
+        default=False,
+        action="store_true",
+    )
     p.set_defaults(func=commands.motif2factors)
 
     if len(sys_args) == 0:
@@ -709,7 +724,8 @@ def cli(sys_args):
         print("$ gimme motifs <inputfile> <outdir> --known")
         sys.exit(1)
     else:
-        if len(sys_args) == 1:
+        ignored = ["-v", "--version", "-h", "--help"]
+        if len(sys_args) == 1 and sys_args[0] not in ignored:
             print(
                 "\033[93mtype `gimme {} -h` for more details\033[0m\n".format(
                     sys_args[-1]
