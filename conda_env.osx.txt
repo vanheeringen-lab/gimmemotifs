@@ -33,7 +33,7 @@ ucsc-bigbedtobed
 ucsc-genepredtobed
 weeder
 xdg
-xgboost=0.72
+xgboost >=0.72
 xxmotif
 iteround
 
