@@ -8,13 +8,37 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 
 * Added `--genomes_dir` argument to `gimme motif2factors`.
+* Added `--version` flag.
+* Function `sample()` for fast sequence sampling from a `Motif()` instance.
+* Added JASPAR 2022 motif databases.
+* Updated Homer motif database.
+* Operators:
+  * `+` - take the combination of two motifs (average), based on pfm, which means that motifs with higher counts will be weighed more heavily.
+  * `&` - take the combination of two motifs (average), based on the ppm, which means that both motifs will be weighed equally.
+  * `<<` - "shift" motif left (adding a non-informative position to the right side)
+  * `>>` - "shift" motif right (adding a non-informative position to the left side)
+  * `~` - reverse complement
+  * `*` - multiply the pfm by a value
+
 
 ### Changed
+
+* `Motif()` class completely restructured:
+  * Split into multiple files with coherent function.
+  * Uses `numpy.array` internally.
+  * All functions that mention `pwm` renamed to `ppm` (position-probability matrix), as the definition of a PWM is usually a log-odds matrix, not a probability matrix.
+  * Changed functions `pwm_min_score()` and `pwm_max_score()` to properties `max_score` and `min_score`.
+  * All internal data is correctly updated when `Motif()` is changed, for instance by trimming (#218).
+
 
 ### Fixed
 
 * `gimme motif2factors` can now unzip genome fastas.
 * `gimme motif2factors` will sanitize genome names.
+* Fixed bugs related to partial rerun of `gimme motif2factors`.
+* Fixed unhandled `OSError` during installation on Mac.
+* Fixed bug related to `RFE()` (#226).
+* Positional probability matrix now sum to 1 over all positions (#209).
 
 ### Removed
 
