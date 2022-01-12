@@ -141,9 +141,9 @@ class ExtraStyler(Styler):
         ]
         return idx_slice
 
-    def _translate(self):
+    def _translate(self, *args, **kwargs):
         self._compute_data()
-        d = super()._translate()
+        d = super()._translate(*args, **kwargs)
         circle_styles = self.circle_styles or []
         palette_styles = self.palette_styles or []
         col_heading_style = self.col_heading_style or []
