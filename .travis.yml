@@ -1,4 +1,4 @@
-# run travis on these branches (and all PRs)
+## run travis on these branches (and all PRs)
 branches:
   only:
   - master
@@ -42,7 +42,7 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       mamba env create -q -f conda_env.dev.txt -n gimme;
     else
-      conda env create -q -f conda_env.osx.txt -n gimme;  # somehow mamba timesout on osx
+      conda env create -q -f conda_env.osx.txt -n gimme; 
     fi
   - conda activate gimme
   - conda list
