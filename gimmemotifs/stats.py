@@ -130,7 +130,13 @@ def calc_stats_iterator(
 
         if fg_table is None:
             fg_total = scan_to_best_match(
-                fg_file, motifs, ncpus=ncpus, genome=genome, zscore=zscore, gc=gc
+                fg_file,
+                motifs,
+                ncpus=ncpus,
+                genome=genome,
+                zscore=zscore,
+                gc=gc,
+                progress=False,
             )
         else:
             fg_total = pd.read_csv(
@@ -141,7 +147,13 @@ def calc_stats_iterator(
 
         if bg_table is None:
             bg_total = scan_to_best_match(
-                bg_file, motifs, ncpus=ncpus, genome=genome, zscore=zscore, gc=gc
+                bg_file,
+                motifs,
+                ncpus=ncpus,
+                genome=genome,
+                zscore=zscore,
+                gc=gc,
+                progress=False,
             )
         else:
             bg_total = pd.read_csv(

@@ -14,6 +14,7 @@ from tempfile import NamedTemporaryFile
 
 import numpy as np
 import pandas as pd
+from tqdm.auto import tqdm
 
 from gimmemotifs.background import create_background_file
 from gimmemotifs.comparison import MotifComparer, select_nonredundant_motifs
@@ -255,7 +256,8 @@ def motifs(args):
     # At the moment this is not ideal, as scanning is now performed twice
     # for this set of non-redundant motifs.
     motif_dict = dict([(m.id, m) for m in motifs])
-    for motif in nr_motifs:
+    logger.info("creating BED files with scan results")
+    for motif in tqdm(nr_motifs):
         with NamedTemporaryFile(mode="w") as f:
             print(motif_dict[motif].to_ppm(), file=f)
             f.flush()
@@ -270,6 +272,7 @@ def motifs(args):
                 zscore=args.zscore,
                 gcnorm=args.gc,
                 bgfile=bgfile,
+                progress=False,
             )
 
     if args.report:

@@ -113,7 +113,14 @@ def _format_line(
 
 
 def scan_regionfile_to_table(
-    input_table, genome, scoring, pfmfile=None, ncpus=None, zscore=True, gc=True
+    input_table,
+    genome,
+    scoring,
+    pfmfile=None,
+    ncpus=None,
+    zscore=True,
+    gc=True,
+    progress=True,
 ):
     """Scan regions in input table with motifs.
 
@@ -179,7 +186,7 @@ def scan_regionfile_to_table(
         logger.info("setting threshold")
         s.set_threshold(fpr=FPR)
         logger.info("creating count table")
-        for row in s.count(regions):
+        for row in s.count(regions, progress=progress):
             scores.append(row)
         logger.info("done")
     else:
@@ -193,7 +200,7 @@ def scan_regionfile_to_table(
         else:
             msg += " (logodds)"
         logger.info(msg)
-        for row in s.best_score(regions, zscore=zscore, gc=gc):
+        for row in s.best_score(regions, zscore=zscore, gc=gc, progress=progress):
             scores.append(row)
         logger.info("done")
 
@@ -209,7 +216,17 @@ def scan_regionfile_to_table(
 
 
 def scan_table(
-    s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods
+    s,
+    inputfile,
+    fa,
+    motifs,
+    cutoff,
+    bgfile,
+    nreport,
+    scan_rc,
+    pvalue,
+    moods,
+    progress=True,
 ):
     # header
     yield "\t{}".format("\t".join([m.id for m in motifs]))
@@ -222,17 +239,17 @@ def scan_table(
             yield "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
     else:
         # get iterator
-        result_it = s.count(fa, nreport, scan_rc)
+        result_it = s.count(fa, nreport, scan_rc, progress=progress)
         # counts table
         for i, counts in enumerate(result_it):
             yield "{}\t{}".format(fa.ids[i], "\t".join([str(x) for x in counts]))
 
 
-def scan_score_table(s, fa, motifs, scan_rc, zscore=False, gcnorm=False):
+def scan_score_table(s, fa, motifs, scan_rc, zscore=False, gcnorm=False, progress=True):
 
     s.set_threshold(threshold=0.0, gc=gcnorm)
     # get iterator
-    result_it = s.best_score(fa, scan_rc, zscore=zscore, gc=gcnorm)
+    result_it = s.best_score(fa, scan_rc, zscore=zscore, gc=gcnorm, progress=progress)
     # header
     yield "\t{}".format("\t".join([m.id for m in motifs]))
     # score table
@@ -254,6 +271,7 @@ def scan_normal(
     bed,
     zscore,
     gcnorm,
+    progress=True,
 ):
 
     table = False
@@ -268,7 +286,7 @@ def scan_normal(
                         fa[seq_id], seq_id, motif, score, pos, strand, bed=bed
                     )
     else:
-        result_it = s.scan(fa, nreport, scan_rc, zscore, gc=gcnorm)
+        result_it = s.scan(fa, nreport, scan_rc, zscore, gc=gcnorm, progress=progress)
         for i, result in enumerate(result_it):
             seq_id = fa.ids[i]
             seq = fa[seq_id]
@@ -294,6 +312,7 @@ def command_scan(
     ncpus=None,
     zscore=False,
     gcnorm=False,
+    progress=True,
 ):
     motifs = read_motifs(pfmfile)
 
@@ -318,10 +337,22 @@ def command_scan(
 
     if table:
         it = scan_table(
-            s, inputfile, fa, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, moods
+            s,
+            inputfile,
+            fa,
+            motifs,
+            cutoff,
+            bgfile,
+            nreport,
+            scan_rc,
+            pvalue,
+            moods,
+            progress=progress,
         )
     elif score_table:
-        it = scan_score_table(s, fa, motifs, scan_rc, zscore=zscore, gcnorm=gcnorm)
+        it = scan_score_table(
+            s, fa, motifs, scan_rc, zscore=zscore, gcnorm=gcnorm, progress=progress
+        )
     else:
         it = scan_normal(
             s,
@@ -337,6 +368,7 @@ def command_scan(
             bed,
             zscore=zscore,
             gcnorm=gcnorm,
+            progress=progress,
         )
 
     for row in it:
@@ -361,6 +393,7 @@ def scan_to_file(
     ncpus=None,
     zscore=True,
     gcnorm=True,
+    progress=True,
 ):
     """Scan an inputfile with motifs."""
     should_close = False
@@ -415,6 +448,7 @@ def scan_to_file(
         ncpus=ncpus,
         zscore=zscore,
         gcnorm=gcnorm,
+        progress=progress,
     ):
         print(line, file=fo)
 
@@ -426,7 +460,14 @@ def scan_to_file(
 
 
 def scan_to_best_match(
-    fname, motifs, ncpus=None, genome=None, score=False, zscore=False, gc=False
+    fname,
+    motifs,
+    ncpus=None,
+    genome=None,
+    score=False,
+    zscore=False,
+    gc=False,
+    progress=True,
 ):
     """Scan a FASTA file with motifs.
 
@@ -458,9 +499,9 @@ def scan_to_best_match(
     logger.debug("scanning %s...", fname)
     result = dict([(m.id, []) for m in motifs])
     if score:
-        it = s.best_score(fname, zscore=zscore, gc=gc)
+        it = s.best_score(fname, zscore=zscore, gc=gc, progress=progress)
     else:
-        it = s.best_match(fname, zscore=zscore, gc=gc)
+        it = s.best_match(fname, zscore=zscore, gc=gc, progress=progress)
     for scores in it:
         for motif, score in zip(motifs, scores):
             result[motif.id].append(score)
@@ -668,8 +709,11 @@ class Scanner(object):
 
     def __del__(self):
         # Close the pool because of memory leak
-        if hasattr(self, "pool"):
-            self.pool.close()
+        try:
+            if hasattr(self, "pool"):
+                self.pool.close()
+        except Exception:
+            pass
 
     def _init_cache(self):
         try:
@@ -728,6 +772,35 @@ class Scanner(object):
 
         df = pd.DataFrame(table, columns=["gc_bin"] + [m.id for m in motifs])
         return df
+
+    # the functions below are conceptually simpler (and faster?) but don't work due to
+    # multiprocessing.Pool not being able to be used from another Pool.
+    # Future improvement to fix this.
+    # def _meanstd_from_seqs(self, motifs, seqs):
+    #     # We need a new scanner instance, as this may be a subset of motifs
+    #     s = Scanner()
+    #     s.set_genome(self.genome)
+    #     s.set_motifs(motifs)
+    #     table = np.array(list(s.best_score(seqs, scan_rc=True, zscore=False, gc=False, progress=False)))
+
+    #     for motif, scores in zip(motifs, table.transpose()):
+    #         yield motif, np.mean(scores), np.std(scores)  # cutoff
+
+    # def _threshold_from_seqs(self, motifs, seqs, fpr):
+    #     # We need a new scanner instance, as this may be a subset of motifs
+    #     s = Scanner()
+    #     s.set_genome(self.genome)
+    #     s.set_motifs(motifs)
+    #     table = []
+    #     seq_gc_bins = [self.get_seq_bin(seq) for seq in seqs]
+    #     for gc_bin, row in zip(
+    #         seq_gc_bins, list(s.best_score(seqs, scan_rc=True, zscore=False, gc=False, progress=False))
+    #     ):
+    #         print(row)
+    #         table.append([gc_bin] + list(row)
+
+    #     df = pd.DataFrame(table, columns=["gc_bin"] + [m.id for m in motifs])
+    #     return df
 
     def set_meanstd(self, gc=False):
         if not self.background:
@@ -985,7 +1058,7 @@ class Scanner(object):
                             self._threshold[motif.id] = vals
 
                 if len(scan_motifs) > 0:
-                    logger.info("determining FPR-based threshold")
+                    logger.debug("determining FPR-based threshold")
                     df = self._threshold_from_seqs(scan_motifs, seqs, fpr).set_index(
                         "gc_bin"
                     )
@@ -1023,44 +1096,50 @@ class Scanner(object):
 
         self.genome = genome
 
-    def count(self, seqs, nreport=100, scan_rc=True):
+    def count(self, seqs, nreport=100, scan_rc=True, progress=True):
         """
         count the number of matches above the cutoff
         returns an iterator of lists containing integer counts
         """
-        for matches in self.scan(seqs, nreport, scan_rc):
+        for matches in self.scan(seqs, nreport, scan_rc, progress=progress):
             counts = [len(m) for m in matches]
             yield counts
 
-    def total_count(self, seqs, nreport=100, scan_rc=True):
+    def total_count(self, seqs, nreport=100, scan_rc=True, progress=True):
         """
         count the number of matches above the cutoff
         returns an iterator of lists containing integer counts
         """
 
-        count_table = [counts for counts in self.count(seqs, nreport, scan_rc)]
+        count_table = [
+            counts for counts in self.count(seqs, nreport, scan_rc, progress=progress)
+        ]
         return np.sum(np.array(count_table), 0)
 
-    def best_score(self, seqs, scan_rc=True, zscore=False, gc=False):
+    def best_score(self, seqs, scan_rc=True, zscore=False, gc=False, progress=True):
         """
         give the score of the best match of each motif in each sequence
         returns an iterator of lists containing floats
         """
         self.set_threshold(threshold=0.0, gc=gc)
-        for matches in self.scan(seqs, 1, scan_rc, zscore=zscore, gc=gc):
+        for matches in self.scan(
+            seqs, 1, scan_rc, zscore=zscore, gc=gc, progress=progress
+        ):
             scores = np.array(
                 [sorted(m, key=lambda x: x[0])[0][0] for m in matches if len(m) > 0]
             )
             yield scores
 
-    def best_match(self, seqs, scan_rc=True, zscore=False, gc=False):
+    def best_match(self, seqs, scan_rc=True, zscore=False, gc=False, progress=True):
         """
         give the best match of each motif in each sequence
         returns an iterator of nested lists containing tuples:
         (score, position, strand)
         """
         self.set_threshold(threshold=0.0)
-        for matches in self.scan(seqs, 1, scan_rc, zscore=zscore, gc=gc):
+        for matches in self.scan(
+            seqs, 1, scan_rc, zscore=zscore, gc=gc, progress=progress
+        ):
             yield [m[0] for m in matches]
 
     def get_seq_bin(self, seq):
@@ -1107,7 +1186,9 @@ class Scanner(object):
             self.meanstd[gc_bin] = self.meanstd[bstr]
         return self.meanstd[gc_bin][motif]
 
-    def scan(self, seqs, nreport=100, scan_rc=True, zscore=False, gc=False):
+    def scan(
+        self, seqs, nreport=100, scan_rc=True, zscore=False, gc=False, progress=True
+    ):
         """
         Scan a set of regions or sequences.
         """
@@ -1125,7 +1206,7 @@ class Scanner(object):
             desc="scanning",
             unit=" sequences",
             total=len(seqs),
-            disable=False,  # can be silenced
+            disable=not progress,  # can be silenced
         )
 
         batch_size = 50000
