@@ -456,9 +456,8 @@ class MotifComparer(object):
                         self.max_total(m1.pwm, m2.pwm, metric, combine),
                     )
                 elif metric in ["pcc", "akl"]:
-                    # Slightly randomize the weight matrix
                     return self.max_total(
-                        m1.wiggle_pwm(), m2.wiggle_pwm(), metric, combine
+                        m1.pwm, m2.pwm, metric, combine
                     )
                 elif metric in ["ed", "distance", "wic", "chisq", "pcc", "ssd"]:
                     return self.max_total(m1.pwm, m2.pwm, metric, combine)
