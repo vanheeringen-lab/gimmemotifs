@@ -204,7 +204,10 @@ def chisq(p1, p2):
     -------
     score : float
     """
-    return chi2_contingency([p1, p2])[1]
+    try:
+        return chi2_contingency([p1, p2])[1]
+    except ValueError:  # zero element in expected frequencies
+        return 0.0
 
 
 def ssd(p1, p2):
