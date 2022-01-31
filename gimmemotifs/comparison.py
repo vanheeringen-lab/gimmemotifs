@@ -459,9 +459,7 @@ class MotifComparer(object):
                         self.max_total(m1.pwm, m2.pwm, metric, combine),
                     )
                 elif metric in ["pcc", "akl"]:
-                    return self.max_total(
-                        m1.pwm, m2.pwm, metric, combine
-                    )
+                    return self.max_total(m1.pwm, m2.pwm, metric, combine)
                 elif metric in ["ed", "distance", "wic", "chisq", "pcc", "ssd"]:
                     return self.max_total(m1.pwm, m2.pwm, metric, combine)
                 else:
