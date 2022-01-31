@@ -207,7 +207,7 @@ def chisq(p1, p2):
     try:
         return chi2_contingency([p1, p2])[1]
     except ValueError:  # zero element in expected frequencies
-        return 0.0
+        return chi2_contingency([p1 + 1e-12, p2 + 1e-12])[1]
 
 
 def ssd(p1, p2):
