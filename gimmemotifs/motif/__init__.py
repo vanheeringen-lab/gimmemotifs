@@ -8,7 +8,6 @@
 import os
 import re
 import sys
-import random
 from collections import Counter
 from warnings import warn
 
