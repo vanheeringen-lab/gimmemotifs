@@ -431,6 +431,7 @@ def load_orthogroups_in_db(db, genomes, orthofinder_result):
             for gene in genes.split(", "):
                 # for each gene we store its gene_name (if present,
                 # otherwise .) and gene_id. We load them both in the database.
+                gene = gene.replace("'", "")
                 gene_name, gene_id = gene.split("|")
                 if gene_name != ".":
                     conn.execute(
@@ -449,6 +450,7 @@ def load_orthogroups_in_db(db, genomes, orthofinder_result):
 
             # for each gene we store its gene_name (if present,
             # otherwise .) and gene_id. We load them both in the database.
+            gene = gene.replace("'", "")
             gene_name, gene_id = gene.split("|")
             if gene_name != ".":
                 conn.execute(
