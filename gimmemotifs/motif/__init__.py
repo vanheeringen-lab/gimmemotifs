@@ -98,7 +98,7 @@ class Motif(object):
             else:
                 self.pfm = []
         else:
-            if np.all(np.isclose(np.sum(pfm, 1), 1)) and ppm is None:
+            if np.all(np.isclose(np.sum(pfm, 1), 1, atol=1e-3)) and ppm is None:
                 # PFM is specified actually a PPM. We don't mind.
                 self.ppm = pfm
             else:
