@@ -168,8 +168,6 @@ def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
     except Exception:
         logging.exception("_get_all_scores failed")
 
-
-def akl(p1, p2):
     """Calculates motif position similarity based on average Kullback-Leibler similarity.
 
     See Mahony, 2007.
@@ -186,6 +184,15 @@ def akl(p1, p2):
     -------
     score : float
     """
+
+    if 0 in p1:
+        p1 = p1 + 1e-6
+        p1 = p1 / sum(p1)
+
+    if 0 in p2:
+        p2 = p2 + 1e-6
+        p2 = p2 / sum(p2)
+
     return 10 - (entropy(p1, p2) + entropy(p2, p1)) / 2.0
 
 
@@ -455,12 +462,16 @@ class MotifComparer(object):
                         combine,
                         self.max_total(m1.pwm, m2.pwm, metric, combine),
                     )
-                elif metric in ["pcc", "akl"]:
-                    # Slightly randomize the weight matrix
-                    return self.max_total(
-                        m1.wiggle_pwm(), m2.wiggle_pwm(), metric, combine
-                    )
-                elif metric in ["ed", "distance", "wic", "chisq", "pcc", "ssd"]:
+                elif metric in [
+                    "ed",
+                    "distance",
+                    "wic",
+                    "chisq",
+                    "pcc",
+                    "ssd",
+                    "akl",
+                    "pcc",
+                ]:
                     return self.max_total(m1.pwm, m2.pwm, metric, combine)
                 else:
                     return self.max_total(m1.pfm, m2.pfm, metric, combine)
