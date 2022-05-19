@@ -132,6 +132,10 @@ def cluster_motifs(
     if type([]) != type(motifs):
         motifs = read_motifs(motifs, fmt="pfm")
 
+    # All motifs must have unique ids, used in dictionary below
+    motif_ids = list(map(lambda x: x.id, motifs))
+    assert len(motif_ids) == len(set(motif_ids)), "Motif ids must be unique"
+
     mc = MotifComparer()
 
     # Trim edges with low information content
