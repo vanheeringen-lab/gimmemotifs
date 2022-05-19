@@ -74,7 +74,9 @@ def plot_logo(
         },
         "energy": {
             "df": lm.transform_matrix(
-                lm.transform_matrix(matrix, from_type="counts", to_type="weight", pseudocount=0.01),
+                lm.transform_matrix(
+                    matrix, from_type="counts", to_type="weight", pseudocount=0.01
+                ),
                 center_values=True,
             ),
             "figsize": (fig_width * matrix.shape[0], fig_height * 2),
