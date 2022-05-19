@@ -26,7 +26,7 @@ import pandas as pd
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.c_metrics import pfmscan, score
 from gimmemotifs.motif import parse_motifs, read_motifs
-from gimmemotifs.utils import pfmfile_location, make_equal_length
+from gimmemotifs.utils import pfmfile_location, make_equal_length, ppm_pseudocount
 
 # pool import is at the bottom
 
@@ -184,15 +184,6 @@ def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
     -------
     score : float
     """
-
-    if 0 in p1:
-        p1 = p1 + 1e-6
-        p1 = p1 / sum(p1)
-
-    if 0 in p2:
-        p2 = p2 + 1e-6
-        p2 = p2 / sum(p2)
-
     return 10 - (entropy(p1, p2) + entropy(p2, p1)) / 2.0
 
 
@@ -211,6 +202,7 @@ def chisq(p1, p2):
     -------
     score : float
     """
+
     return chi2_contingency([p1, p2])[1]
 
 
@@ -447,8 +439,13 @@ class MotifComparer(object):
                         combine,
                         self.max_partial(m1.pwm, m2.pwm, metric, combine),
                     )
-                elif metric in ["pcc", "ed", "distance", "wic", "chisq", "ssd"]:
-                    return self.max_partial(m1.pwm, m2.pwm, metric, combine)
+                elif metric in ["pcc", "ed", "distance", "wic", "chisq", "ssd", "akl"]:
+                    return self.max_partial(
+                        ppm_pseudocount(m1.pwm),
+                        ppm_pseudocount(m2.pwm),
+                        metric,
+                        combine,
+                    )
                 else:
                     return self.max_partial(m1.pfm, m2.pfm, metric, combine)
 

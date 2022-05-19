@@ -861,3 +861,22 @@ def make_equal_length(a, b, pos, truncate=None, bg=None):
     #   if not truncate_first and not truncate_second:
 
     return first[mask_second & mask_first], second[mask_second & mask_first]
+
+
+def ppm_pseudocount(ppm, pseudo=1e-6):
+    """Return position-specific probability matrix with added pseudocount.
+
+    Parameters
+    ----------
+    ppm : array_like
+        Position-specific probability matrix.
+
+    pseudo : float
+        Pseudocount
+
+    Returns
+    -------
+    array_like
+        Position-specific probability matrix with added pseudocount.
+    """
+    return (ppm + pseudo) / (ppm + pseudo).sum(1)[:, None]
