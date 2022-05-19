@@ -168,6 +168,7 @@ def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
     except Exception:
         logging.exception("_get_all_scores failed")
 
+def akl(p1, p2):
     """Calculates motif position similarity based on average Kullback-Leibler similarity.
 
     See Mahony, 2007.
