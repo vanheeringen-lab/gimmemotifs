@@ -57,7 +57,7 @@ def plot_logo(
     logo_params = {
         "information": {
             "df": lm.transform_matrix(
-                matrix, from_type="counts", to_type="information"
+                matrix, from_type="counts", to_type="information", pseudocount=0.01
             ),
             "figsize": (fig_width * matrix.shape[0], fig_height),
             "show_spines": False,
@@ -65,7 +65,7 @@ def plot_logo(
         },
         "frequency": {
             "df": lm.transform_matrix(
-                matrix, from_type="counts", to_type="probability"
+                matrix, from_type="counts", to_type="probability", pseudocount=0.01
             ),
             "figsize": (fig_width * matrix.shape[0], fig_height),
             "show_spines": False,
@@ -74,7 +74,7 @@ def plot_logo(
         },
         "energy": {
             "df": lm.transform_matrix(
-                lm.transform_matrix(matrix, from_type="counts", to_type="weight"),
+                lm.transform_matrix(matrix, from_type="counts", to_type="weight", pseudocount=0.01),
                 center_values=True,
             ),
             "figsize": (fig_width * matrix.shape[0], fig_height * 2),
