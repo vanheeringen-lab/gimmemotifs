@@ -168,6 +168,7 @@ def _get_all_scores(mc, motifs, dbmotifs, match, metric, combine, pval):
     except Exception:
         logging.exception("_get_all_scores failed")
 
+
 def akl(p1, p2):
     """Calculates motif position similarity based on average Kullback-Leibler similarity.
 
@@ -470,13 +471,23 @@ class MotifComparer(object):
                     "akl",
                     "pcc",
                 ]:
-                    return self.max_total(m1.pwm, m2.pwm, metric, combine)
+                    return self.max_total(
+                        ppm_pseudocount(m1.pwm),
+                        ppm_pseudocount(m2.pwm),
+                        metric,
+                        combine,
+                    )
                 else:
                     return self.max_total(m1.pfm, m2.pfm, metric, combine)
 
             elif match == "subtotal":
                 if metric in ["pcc", "ed", "distance", "wic", "chisq", "ssd"]:
-                    return self.max_subtotal(m1.pwm, m2.pwm, metric, combine)
+                    return self.max_subtotal(
+                        ppm_pseudocount(m1.pwm),
+                        ppm_pseudocount(m2.pwm),
+                        metric,
+                        combine,
+                    )
                 else:
                     return self.max_subtotal(m1.pfm, m2.pfm, metric, combine)
         else:
