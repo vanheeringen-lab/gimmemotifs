@@ -57,7 +57,7 @@ def plot_logo(
     logo_params = {
         "information": {
             "df": lm.transform_matrix(
-                matrix, from_type="counts", to_type="information"
+                matrix, from_type="probability", to_type="information"
             ),
             "figsize": (fig_width * matrix.shape[0], fig_height),
             "show_spines": False,
