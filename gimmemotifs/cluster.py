@@ -133,7 +133,8 @@ def cluster_motifs(
         motifs = read_motifs(motifs, fmt="pfm")
 
     # All motifs must have unique ids, used in dictionary below
-    assert len(motif_ids) == len({motif.id for motif in motifs}), "Motif ids must be unique"
+    motif_ids = [motif.id for motif in motifs]
+    assert len(motif_ids) == len(set(motif_ids)), "Motif ids must be unique"
 
     mc = MotifComparer()
 
