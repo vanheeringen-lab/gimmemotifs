@@ -8,8 +8,8 @@ matrix:
   allow_failures:
     - os: osx
   include:
-    - os: osx
-      language: generic
+#    - os: osx
+#      language: generic
     - os: linux
       language: python
       python: "3.6"
@@ -40,7 +40,7 @@ install:
   - conda config --add channels conda-forge
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       conda install mamba -y;
-      mamba env create -q -f conda_env.dev.txt -n gimme;
+      mamba env create -q -f requirements.yaml;
     else
       conda env create -q -f conda_env.osx.txt -n gimme; 
     fi
@@ -60,7 +60,7 @@ before_script:
 
 script:
   - python -c 'from gimmemotifs.config import CACHE_DIR;print(CACHE_DIR)'
-  - pytest -vv --disable-pytest-warnings --cov=scripts --cov=gimmemotifs --cov-report=xml test/
+  - pytest -vvv --disable-pytest-warnings --cov=scripts --cov=gimmemotifs --cov-report=xml test/
 
 after_script:
   # upload test coverage data to Code Climate
