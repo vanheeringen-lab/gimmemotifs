@@ -339,7 +339,7 @@ class ExtraStyler(Styler):
         subset = non_reducing_slice(subset)
 
         def precision_str(x, precision=precision):
-            if (include_zero or x > 0) and x <= 10 ** -precision:
+            if (include_zero or x > 0) and x <= 10**-precision:
                 return f"<{10**-precision}"
             else:
                 return f"{{0:.{precision}f}}".format(x)

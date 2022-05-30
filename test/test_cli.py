@@ -9,31 +9,38 @@ from gimmemotifs.motif import read_motifs
 travis = "TRAVIS" in os.environ and os.environ["TRAVIS"] == "true"
 
 
-@pytest.mark.skipif(travis, reason="Skip CPU-intensive tests")
+# @pytest.mark.skipif(travis, reason="Skip CPU-intensive tests")
 @pytest.mark.parametrize(
-    "denovo_known",
+    "motif_argument",
     [
-        ["-p", "test/data/cli/motifs.pfm", "-t", "MDmodule"],
-        ["--denovo", "-t", "MDmodule"],
-        ["--known", "-p", "test/data/cli/motifs.pfm"],
+        pytest.param(["--known"], id="known"),
+        pytest.param(["--denovo"], id="denovo"),
+        pytest.param([], id="default"),
     ],
 )
-def test_gimme_motifs(denovo_known):
+def test_gimme_motifs(motif_argument):
     with TemporaryDirectory() as d:
         print(d)
         cli(
-            ["motifs", "test/data/cli/Gm12878.CTCF.top200.fa", d, "-g", "hg19"]
-            + denovo_known
+            ["motifs", "test/data/denovo/input.fa", d] +  # test/data/cli/Gm12878.CTCF.top200.fa
+            ["-p", "test/data/cli/motifs.pfm"] +
+            ["-g", "test/data/background/genome.fa"] +
+            ["-a", "small", "-t", "MEME", "--nogc", "-N", "1"] +
+            motif_argument
         )
 
         assert 1 == 1
 
 
-@pytest.mark.skipif(travis, reason="Skip CPU-intensive tests")
+# @pytest.mark.skipif(travis, reason="Skip CPU-intensive tests")
 def test_gimme_maelstrom():
     with TemporaryDirectory() as d:
         print(d)
-        cli(["maelstrom", "test/data/maelstrom/input.table.txt", "mm10", d])
+        cli(
+            ["maelstrom", "test/data/maelstrom/input_table.txt"] +  # test/data/maelstrom/input.table.txt
+            ["test/data/background/genome.fa", d] +
+            ["--nogc", "-m", "RF"]  # "--no-filter",
+        )
 
         assert 1 == 1
 
@@ -42,10 +49,10 @@ def test_gimme_maelstrom():
     "arguments",
     [
         ["-c", "0.8"],
-        ["-t", "-g", "test/data/genomes/hg38sample/hg38sample.fa"],
+        ["-t", "-g", "test/data/genomes/hg38sample.fa"],
         ["-T"],
-        ["-b", "-g" "test/data/genomes/hg38sample/hg38sample.fa"],
-        ["-z", "--gc", "-g", "test/data/genomes/hg38sample/hg38sample.fa"],
+        ["-b", "-g" "test/data/genomes/hg38sample.fa"],
+        ["-z", "--gc", "-g", "test/data/genomes/hg38sample.fa"],
     ],
 )
 def test_gimme_scan(arguments):

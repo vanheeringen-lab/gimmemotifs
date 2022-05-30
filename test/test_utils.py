@@ -1,7 +1,9 @@
 import unittest
-import tempfile
 import os
 import glob
+
+import pytest
+
 from gimmemotifs.utils import *
 from gimmemotifs.fasta import Fasta
 from genomepy import Genome
@@ -112,11 +114,33 @@ class TestUtils(unittest.TestCase):
 
     def test_check_genome(self):
         fname = "test/data/genome_index/test.bed"
-        self.assertFalse(check_genome(fname))
+        with pytest.raises(Exception):
+            check_genome(fname)
         fname = "test/data/genome_index/genome/genome.fa"
         self.assertTrue(check_genome(fname))
 
     # narrowpeak_to_bed
+
+    def test_pfmfile_location(self):
+        # default pfm
+        pfmfile = pfmfile_location()
+        assert os.path.exists(pfmfile)
+
+        # pfmfile in the default db
+        pfmfile = pfmfile_location("HOMER.pfm")
+        assert os.path.exists(pfmfile)
+
+        # pfmfile prefix
+        pfmfile = pfmfile_location("HOMER")
+        assert os.path.abspath(pfmfile) == os.path.abspath("data/motif_databases/HOMER.pfm")
+
+        # pfmfile with path
+        pfmfile = pfmfile_location("test/data/pwms/motifs.pwm")
+        assert os.path.exists(pfmfile)
+
+        # incorrect file
+        with pytest.raises(FileNotFoundError):
+            pfmfile_location("not_a_file")
 
     # get_jaspar_motif_info
 

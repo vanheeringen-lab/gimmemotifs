@@ -76,7 +76,8 @@ def narrowpeak_to_bed(inputfile, bedfile, size=0):
                 f_out.write("{}\t{}\t{}\t{}\n".format(vals[0], start, end, vals[6]))
 
 
-def pfmfile_location(infile):
+def pfmfile_location(infile=None):
+    """Return the path to the pfmfile"""
     config = MotifConfig()
 
     if infile is None:
@@ -87,19 +88,18 @@ def pfmfile_location(infile):
                 "database specified in the config file."
             )
 
-    if isinstance(infile, str):
+    if not os.path.exists(infile):
+        motif_dir = config.get_motif_dir()
+        checkfile = os.path.join(motif_dir, infile)
+        if os.path.exists(checkfile):
+            infile = checkfile
+        else:
+            for ext in [".pfm", ".pwm"]:
+                if os.path.exists(checkfile + ext):
+                    infile = checkfile + ext
+                    break
         if not os.path.exists(infile):
-            motif_dir = config.get_motif_dir()
-            checkfile = os.path.join(motif_dir, infile)
-            if os.path.exists(checkfile):
-                infile = checkfile
-            else:
-                for ext in [".pfm", ".pwm"]:
-                    if os.path.exists(checkfile + ext):
-                        infile = checkfile + ext
-                        break
-            if not os.path.exists(infile):
-                raise ValueError("Motif file {} not found".format(infile))
+            raise FileNotFoundError(f"Motif file {infile} not found")
 
     return infile
 
@@ -774,11 +774,10 @@ def check_genome(genome):
     is_genome : bool
     """
     try:
-        Genome(genome)
+        Genome(genome, rebuild=False)
         return True
-    except Exception:
-        pass
-    return False
+    except FileNotFoundError:
+        return False
 
 
 def make_equal_length(a, b, pos, truncate=None, bg=None):

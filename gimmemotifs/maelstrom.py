@@ -13,7 +13,6 @@ mr = MaelstromResult(outdir)
 """
 import glob
 import os
-import re
 import shutil
 import sys
 import logging
@@ -27,8 +26,6 @@ from scipy.cluster import hierarchy
 from scipy.spatial.distance import pdist
 from scipy.cluster.hierarchy import linkage, dendrogram
 from sklearn.cluster import FeatureAgglomeration
-
-# from scipy.spatial.distance import correlation
 
 # Plotting
 import matplotlib.pyplot as plt
@@ -327,13 +324,12 @@ def run_maelstrom(
     df.to_csv(os.path.join(outdir, "input.table.txt"), sep="\t")
     infile = os.path.join(outdir, "input.table.txt")
 
-    # Copy the motif informatuon
+    # Copy the motif information
     pfmfile = pfmfile_location(pfmfile)
-    if pfmfile:
-        shutil.copy2(pfmfile, outdir)
-        mapfile = re.sub(".p[fw]m$", ".motif2factors.txt", pfmfile)
-        if os.path.exists(mapfile):
-            shutil.copy2(mapfile, outdir)
+    shutil.copy2(pfmfile, outdir)
+    mapfile = f"{pfmfile[:-4]}.motif2factors.txt"
+    if os.path.exists(mapfile):
+        shutil.copy2(mapfile, outdir)
 
     # Create a file with the number of motif matches
     if count_table is None:
@@ -409,7 +405,7 @@ def run_maelstrom(
         count_table = os.path.join(outdir, "motif.nr.count.txt.gz")
         counts.to_csv(count_table, sep="\t", compression="gzip")
 
-        m2f = pd.read_table(os.path.join(outdir, mapfile), comment="#")
+        m2f = pd.read_table(mapfile, comment="#")
         m2f = m2f.join(motif_map, on="Motif")
         m2f.loc[m2f["Motif"] != m2f["motif_nr"], "Curated"] = "N"
         m2f["Motif"] = m2f["motif_nr"]
