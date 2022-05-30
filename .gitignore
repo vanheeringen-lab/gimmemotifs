@@ -23,7 +23,6 @@ website/**/*
 .cache/
 .idea/
 **/.ipynb_checkpoints/
-.idea/
 .vscode
 .coverage*
 coverage.xml
@@ -31,11 +30,15 @@ coverage.xml
 test/data/maelstrom/activity*
 test/data/maelstrom/final*
 test/data/maelstrom/*png
+test/data/maelstrom/*pfm
+test/data/maelstrom/*txt*
 test/data/maelstrom/motif.freq.txt
 test/data/maelstrom/gimme.vertebrate.v3.1.motif2factors.txt
 test/data/maelstrom/gimme.vertebrate.v3.1.pwm
 test/data/maelstrom/input.table.txt
-test/**/*fai
+test/**/*.fa.fai
+test/**/*.fa.sizes
+test/**/*.gaps.bed
 
 tmp/*
 
