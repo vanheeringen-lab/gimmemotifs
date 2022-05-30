@@ -5,14 +5,14 @@ branches:
   - develop
 
 matrix:
-  allow_failures:
-    - os: osx
+#  allow_failures:
+#    - os: osx
   include:
 #    - os: osx
 #      language: generic
     - os: linux
       language: python
-      python: "3.6"
+      python: "3.8"
 
 env:
   global:
@@ -20,11 +20,12 @@ env:
 
 before_install:
   # setup miniconda
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
-    fi
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+#  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+#      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+#    else
+#      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
+#    fi
   - chmod +x miniconda.sh
   - ./miniconda.sh -b -p $HOME/miniconda -f
   - source "$HOME/miniconda/etc/profile.d/conda.sh"
@@ -32,29 +33,32 @@ before_install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ulimit -S -n 4096; ulimit -a; fi
+#  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ulimit -S -n 4096; ulimit -a; fi
 
 install:
   - conda config --add channels defaults
   - conda config --add channels bioconda
   - conda config --add channels conda-forge
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      conda install mamba -y;
-      mamba env create -q -f requirements.yaml;
-    else
-      conda env create -q -f conda_env.osx.txt -n gimme; 
-    fi
+  - conda install mamba -y
+  - mamba env create -q -f requirements.yaml
+#  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+#      conda install mamba -y;
+#      mamba env create -q -f requirements.yaml;
+#    else
+#      conda env create -q -f conda_env.osx.txt -n gimme;
+#    fi
   - conda activate gimme
   - conda list
   - python setup.py build && pip install -e .
 
 before_script:
   # install Code Climate test coverage reporter
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-        wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64;
-    else
-        wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-darwin-amd64;
-    fi
+  - wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
+#  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+#        wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64;
+#    else
+#        wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-darwin-amd64;
+#    fi
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
 
@@ -64,4 +68,5 @@ script:
 
 after_script:
   # upload test coverage data to Code Climate
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./cc-test-reporter after-build -t coverage.py --exit-code $TRAVIS_TEST_RESULT; fi
+  - ./cc-test-reporter after-build -t coverage.py --exit-code $TRAVIS_TEST_RESULT
+#  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./cc-test-reporter after-build -t coverage.py --exit-code $TRAVIS_TEST_RESULT; fi
