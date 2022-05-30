@@ -52,8 +52,8 @@ install:
 #    else
 #      conda env create -q -f conda_env.osx.txt -n gimme;
 #    fi
-  - conda activate gimme
-  - conda list
+  - source activate gimme
+#  - conda list
   - python setup.py build && pip install -e .
 
 before_script:
