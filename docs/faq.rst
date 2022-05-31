@@ -117,13 +117,13 @@ The different methods use different ways to rank the motifs. The hypergeometric 
 I have upgraded GimmeMotifs and now it doesn't find my genome
 -------------------------------------------------------------
 
-The genome index in GimmeMotifs has changed, see upgradegenome_.
+The genome index in GimmeMotifs has changed, see :ref:`upgradegenome`.
 
 
 I cannot run gimme index anymore
 --------------------------------
 
-The genome index in GimmeMotifs has changed, see upgradegenome_.
+The genome index in GimmeMotifs has changed, see :ref:`upgradegenome`.
 
 
 I get 'RuntimeError: Invalid DISPLAY variable'

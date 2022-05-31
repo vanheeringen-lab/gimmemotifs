@@ -132,7 +132,7 @@ class TestUtils(unittest.TestCase):
 
         # pfmfile prefix
         pfmfile = pfmfile_location("HOMER")
-        assert os.path.abspath(pfmfile) == os.path.abspath("data/motif_databases/HOMER.pfm")
+        assert pfmfile.endswith("data/motif_databases/HOMER.pfm")
 
         # pfmfile with path
         pfmfile = pfmfile_location("test/data/pwms/motifs.pwm")

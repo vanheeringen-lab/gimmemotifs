@@ -33,17 +33,19 @@ before_install:
   - chmod +x miniconda.sh
   - ./miniconda.sh -b -p $HOME/miniconda -f
   - export PATH=$HOME/miniconda/bin:$PATH;
+  - conda config --set always_yes True
+#  - conda config --set channel_priority "strict"  # TODO: is this needed?
 #  - source "$HOME/miniconda/etc/profile.d/conda.sh"
 #  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
+#  - conda config --set always_yes yes --set changeps1 no
 #  - conda update -q conda
 #  - conda info -a
 #  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ulimit -S -n 4096; ulimit -a; fi
 
 install:
-  - conda config --add channels defaults
-  - conda config --add channels bioconda
-  - conda config --add channels conda-forge
+#  - conda config --add channels defaults
+#  - conda config --add channels bioconda
+#  - conda config --add channels conda-forge
   - conda install conda-forge::mamba
   - mamba env create -f requirements.yaml
 #  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -53,9 +55,10 @@ install:
 #      conda env create -q -f conda_env.osx.txt -n gimme;
 #    fi
   - source activate gimme
+#  - pip install -e .
 #  - conda list
-#  - python setup.py build && pip install -e .
-  - pip install -e .
+  - python setup.py build  # installs the motif discovery tools
+  - pip install -e .  # installs gimme (in editable mode)
 
 before_script:
   # install Code Climate test coverage reporter

@@ -2,9 +2,10 @@ Installation
 ============
 
 GimmeMotifs runs on Linux. On Windows 10 it will run fine using the `Windows Subsystem for Linux`_.
-Mac OSX should work and is included in the build test. 
-However, as I don't use it myself, unexpected issues might pop up. 
-Let me know, so I can try to fix it.
+..  NOTE: nope. it hasn't worked in a while.
+    Mac OSX should work and is included in the build test.
+    However, as I don't use it myself, unexpected issues might pop up.
+    Let me know, so I can try to fix it.
 
 .. _`Windows Subsystem for Linux`: https://docs.microsoft.com/en-us/windows/wsl/install-win10
 
@@ -17,6 +18,8 @@ The preferred way to install GimmeMotifs is by using `conda
 <https://docs.continuum.io/anaconda>`_. 
 Activate the bioconda_ channel if you haven't used bioconda before.
 You only have to do this once.
+
+.. _bioconda: https://bioconda.github.io/
 
 :: 
 
@@ -34,16 +37,14 @@ Or create a specific environment:
 
 ::
 
-    $ conda create -n gimme python=3 gimmemotifs
+    $ conda create -n gimme gimmemotifs
     
     # Activate the environment before you use GimmeMotifs
     $ conda activate gimme
 
-GimmeMotifs only supports Python 3. Don't forget to activate the environment with ``source activate gimme`` whenever you want to use GimmeMotifs.
-
 Installation successful? Good. Have a look at the :ref:`configuration<configuration>` section.
 
-.. _`upgradegenome`:
+.. _upgradegenome:
 
 Important note on upgrading from 0.11.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -55,23 +56,23 @@ You can re-install genomes using genomepy_, which is now the preferred tool for 
 However, because of this change you can now also directly supply a genome FASTA instead of a genome name. 
 Pre-indexing is not required anymore.
 
-.. _bioconda: https://bioconda.github.io/
-.. _genomepy: https://github.com/simonvh/genomepy
+.. _genomepy: https://github.com/vanheeringen-lab/genomepy
 
-Alternative installation
-------------------------
+.. NOTE: abbreviated
+    Alternative installation
+    ------------------------
 
-Prerequisites
-+++++++++++++
+    Prerequisites
+    +++++++++++++
 
-These are the prerequisites for a full GimmeMotifs installation.
+    These are the prerequisites for a full GimmeMotifs installation.
 
-- bedtools http://bedtools.readthedocs.io
-- UCSC genePredToBed http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/genePredToBed
-- UCSC bigBedToBed http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bigBedToBed
-- Perl + Algorithm::Cluster
+    - bedtools http://bedtools.readthedocs.io
+    - UCSC genePredToBed http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/genePredToBed
+    - UCSC bigBedToBed http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bigBedToBed
+    - Perl + Algorithm::Cluster
 
-In addition many of the motif tools (such as MEME) will need to be installed separately. Instructions for doing so are not included here.
+    In addition many of the motif tools (such as MEME) will need to be installed separately. Instructions for doing so are not included here.
 
 Using pip
 +++++++++
@@ -79,115 +80,148 @@ Using pip
 Installation from PyPI with ``pip`` is a relatively straightforward option.
 Install with pip as follows:
 
-:: 
+::
 
-    $ sudo pip install gimmemotifs
+    $ pip install gimmemotifs
 
 Or the (unstable) develop branch with the newest bells, whistles and bugs:
 
 ::
 
-    $ sudo pip install git+https://github.com/vanheeringen-lab/gimmemotifs.git@develop
+    $ pip install git+https://github.com/vanheeringen-lab/gimmemotifs.git@develop
 
-If you don't have root access, see the option below.
+Note that several dependencies and many of the motif tools (such as MEME) need to be installed separately.
+Instructions for doing so are not included here.
 
-Using pip in a virtualenv
-+++++++++++++++++++++++++
+..  NOTE: Lets keep it simple, with Conda, PIP or Source
+    If you don't have root access, see the option below.
 
-Ubuntu prerequisites
-~~~~~~~~~~~~~~~~~~~~
+    Using pip in a virtualenv
+    +++++++++++++++++++++++++
 
-To install GimmeMotifs in a virtualenv, several Python packages need to be built from source. 
+    Ubuntu prerequisites
+    ~~~~~~~~~~~~~~~~~~~~
 
-Install the necessary packages to build numpy, scipy, matplotlib and GimmeMotifs:
+    To install GimmeMotifs in a virtualenv, several Python packages need to be built from source.
 
-::
+    Install the necessary packages to build numpy, scipy, matplotlib and GimmeMotifs:
 
-    sudo apt-get install python-pip python-dev build-essential libatlas-base-dev \
-    gfortran liblapack-dev libatlas-base-dev cython libpng12-dev libfreetype6-dev \
-    libgsl0-dev
+    ::
 
-Install via pip
-~~~~~~~~~~~~~~~
+        sudo apt-get install python-pip python-dev build-essential libatlas-base-dev \
+        gfortran liblapack-dev libatlas-base-dev cython libpng12-dev libfreetype6-dev \
+        libgsl0-dev
 
-Create a virtualenv and activate it according to the 
-`documentation
-<https://virtualenv.readthedocs.org/en/latest/userguide.html#usage>`_.
+    Install via pip
+    ~~~~~~~~~~~~~~~
 
-Install numpy:
+    Create a virtualenv and activate it according to the
+    `documentation
+    <https://virtualenv.readthedocs.org/en/latest/userguide.html#usage>`_.
 
-::
+    Install numpy:
 
-    $ pip install numpy
+    ::
+
+        $ pip install numpy
 
 
-Now you can install GimmeMotifs using pip. Latest stable release:
+    Now you can install GimmeMotifs using pip. Latest stable release:
 
-::
+    ::
 
-    $ pip install gimmemotifs
+        $ pip install gimmemotifs
 
 
 Installation from source
 ++++++++++++++++++++++++
 
-Did I mention conda? 
+Want to fix that darned bug yourself?
+Want to try out the latest features?
 
-You know bioconda is amazing, right?
-
-So...
-
-
-These instructions are not up-to-date! Basically, you're on your own!
-
-Make sure to install all required dependencies.
-
-You can download the lastest stable version of GimmeMotifs at:
-
-| https://github.com/simonvh/gimmemotifs/releases
-
-Start by unpacking the source archive
+Well look no further!
+You can install the develop branch with the newest bells, whistles and bugs:
 
 ::
 
-    tar xvzf gimmemotifs-0.11.0.tar.gz
-    cd gimmemotifs-0.11.0
+    # download the gimmemotifs code
+    $ git clone https://github.com/vanheeringen-lab/gimmemotifs.git
+    $ cd gimmemotifs
+    $ git checkout develop
 
-You can build GimmeMotifs with the following command:
+    # setup the gimme conda environment
+    $ conda env create -f requirements.yaml
+    $ conda activate gimme
+    $ python setup.py build  # installs the motif discovery tools
+    $ pip install -e .       # installs gimmemotifs (in editable mode)
 
-::
+    # test if the install was successful
+    $ gimme -h
 
-    python setup.py build
-
-Run the tests to check if the basics work correctly:
-
-::
-
-    python run_tests.py
-
-If you encounter no errors, go ahead with installing GimmeMotifs (root
-privileges required):
-
-::
-
-    sudo python setup.py install
-
-On first run GimmeMotifs will try to locate the tools you have
-installed. If you have recently installed them, running an ``updatedb``
-will be necessary. Using this option GimmeMotifs will create a
-configuration file, the default is:
+Once installed, you can edit the code in the `gimmemotifs` folder, and the changes are immediately active!
+Check out how good your fixes are with unit tests:
 
 ::
 
-    ~/.config/gimmemotifs/gimmemotifs.cfg
+    $ pytest -vvv --disable-pytest-warnings
 
-This is a personal configuration file.
+.. NOTE: I've replaced this with the editable install
+    Did I mention conda?
 
-It is also possible to run the ``setup.py install`` command with the
-``--prefix``, ``--home``, or ``--install-data`` options, to install in
-GimmeMotifs in a different location (for instance, in your own home
-directory). This should be fine, however, these alternative methods of
-installing GimmeMotifs have not been extensively tested. 
+    You know bioconda is amazing, right?
+
+    So...
+
+    These instructions are not up-to-date! Basically, you're on your own!
+
+    Make sure to install all required dependencies.
+
+    You can download the lastest stable version of GimmeMotifs at:
+
+    | https://github.com/simonvh/gimmemotifs/releases
+
+    Start by unpacking the source archive
+
+    ::
+
+        tar xvzf gimmemotifs-0.11.0.tar.gz
+        cd gimmemotifs-0.11.0
+
+    You can build GimmeMotifs with the following command:
+
+    ::
+
+        python setup.py build
+
+    Run the tests to check if the basics work correctly:
+
+    ::
+
+        python run_tests.py
+
+    If you encounter no errors, go ahead with installing GimmeMotifs (root
+    privileges required):
+
+    ::
+
+        sudo python setup.py install
+
+    On first run GimmeMotifs will try to locate the tools you have
+    installed. If you have recently installed them, running an ``updatedb``
+    will be necessary. Using this option GimmeMotifs will create a
+    configuration file, the default is:
+
+    ::
+
+        ~/.config/gimmemotifs/gimmemotifs.cfg
+
+    This is a personal configuration file.
+
+    It is also possible to run the ``setup.py install`` command with the
+    ``--prefix``, ``--home``, or ``--install-data`` options, to install in
+    GimmeMotifs in a different location (for instance, in your own home
+    directory). This should be fine, however, these alternative methods of
+    installing GimmeMotifs have not been extensively tested.
 
 .. _configuration:
 

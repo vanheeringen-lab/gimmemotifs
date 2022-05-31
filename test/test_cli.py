@@ -32,7 +32,7 @@ def test_gimme_motifs(motif_argument):
         assert 1 == 1
 
 
-# @pytest.mark.skipif(travis, reason="Skip CPU-intensive tests")
+@pytest.mark.skipif(travis, reason="Can cause a seg fault on Travis")
 def test_gimme_maelstrom():
     with TemporaryDirectory() as d:
         print(d)

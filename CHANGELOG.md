@@ -7,11 +7,29 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- `requirements.yaml` contains all conda dependencies.
+  - packages available from one channel have been pinned (for solving speed)
+  - packages have minimum versions where known (for solving speed)
+
 ### Changed
+
+- alphabetized tools everywhere (how could you live like that!?)
+- updated `setup.py`
+- updated installation instructions
 
 ### Fixed
 
+- Yamda is now recognized in the config
+- most tools work with the editable installation again 
+- all tests work for unix
+  - there were still some flakey values, where randomness is involved.
+
 ### Removed
+
+- a bunch of redundant requirement files.
+- OSX tests. Possibly temporary.
+  - The tests haven't working for ages, so I have no idea where to begin.
+  - and Travis asks 5x credits for OSX machines...
 
 
 ## [0.17.0] - 2021-12-22

@@ -25,25 +25,25 @@ def ap1_included(motifs):
 def test_tool(tool_name):
     """Test motif prediction tools."""
     params = {"background": bg_fa, "organism": "hg38", "width": 7}
-    print(__tools__)
+    print(__tools__[tool_name])
     if tool_name in [
-        "amd",  # not installable via bioconda
-        "bioprospector",  # not installable via bioconda
-        "chipmunk",  # not installable via bioconda
+        # "amd",  # not installable via bioconda
+        # "bioprospector",  # not installable via bioconda
+        # "chipmunk",  # not installable via bioconda
         "dreme",  # not installable via bioconda
-        "hms",  # not installable via bioconda
-        "improbizer",  # not installable via bioconda
-        "mdmodule",  # not installable via bioconda
-        "memew",  # not installable via bioconda
-        "motifsampler",  # not installable via bioconda
+        # "hms",  # not installable via bioconda
+        # "improbizer",  # not installable via bioconda
+        # "mdmodule",  # not installable via bioconda
+        # "memew",  # not installable via bioconda
+        # "motifsampler",  # not installable via bioconda
         "posmo",  # motif doesn't predictably look like AP1
         "rpmcmc",  # not installable via bioconda
 
         "gadem",  # sometimes crashes on invalid pointer
-        "jaspar",
+        "jaspar",  # TODO: not configured
         "xxmotif",  # takes too long
         "trawler",  # takes too long + unpredictable, sometimes doesn't find the motif
-        "yamda",  # TODO: not working right now
+        "yamda",  # TODO: not configured
     ]:
         return
 
