@@ -15,10 +15,7 @@ from gimmemotifs.denovo import gimme_motifs
 
 peaks = "Gm12878.CTCF.top500.w200.fa"
 outdir = "CTCF.gimme"
-params = {
-    "tools": "Homer,BioProspector",
-    "genome": "hg38",
-    }
+params = {"tools": "Homer,BioProspector", "genome": "hg38"}
 
 motifs = gimme_motifs(peaks, outdir, params=params)
 """

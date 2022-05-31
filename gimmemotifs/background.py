@@ -86,8 +86,7 @@ def create_background_file(
 
     if bg_type in ["promoter"]:
         # Gene definition
-        fname = Genome(genome).filename
-        gene_file = fname.replace(".fa", ".annotation.bed.gz")
+        gene_file = Genome(genome).annotation_bed_file
         if not gene_file:
             gene_file = os.path.join(config.get_gene_dir(), "{}.bed".format(genome))
 

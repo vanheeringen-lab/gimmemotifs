@@ -1,18 +1,25 @@
+# .readthedocs.yaml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
 # Required
 version: 2
 
-conda:
-  environment: requirements.yaml  # .rtd-environment.yml
+build:
+  os: "ubuntu-20.04"
+  tools:
+    python: "mambaforge-4.10"
 
-  # Build documentation in the docs/ directory with Sphinx
+conda:
+  environment: .rtd-environment.yml
+
+python:
+  install:
+    - method: pip
+      path: .
+
+# Build documentation in the docs/ directory with Sphinx
+# (builds locally using $ sphinx-build docs build
+# requires dependencies from .rtd-environment.yml)
 sphinx:
   configuration: docs/conf.py
-
-build:
-  image: latest
- 
-python:
-  version: "3.8"
-  install:
-    - method: setuptools
-      path: .

@@ -1,37 +1,34 @@
-name: gimmemotifs
 channels:
-  - defaults
-  - bioconda
   - conda-forge
+  - bioconda
+  - defaults
 dependencies:
-  - biofluff
-  - configparser
-  - diskcache
-  - feather-format
-  - genomepy >=0.8.3
-  - jinja2
-  - logomaker
-  - matplotlib-base >=3.1.2
-  - ncurses
-  - numpy
-  - pandas >=1.0.3
-  - pillow
-  - pip
-  - pyarrow >=0.16.0
-  - pybedtools
-  - pybigwig
-  - python >=3
-  - pyyaml >=3.10
-  - qnorm
-  - represent
-  - scikit-learn >=0.18
-  - scipy >=1.3.0
-  - seaborn
-  - statsmodels
-  - tqdm >=4.27.0
-  - xdg
-  - xgboost >=0.71
+  # docs specific packages
   - sphinx_bootstrap_theme
-  - numpydoc
-  - pip:
-    - xxhash
+
+  # gimme packages (without the motif discovery tools)
+  - configparser
+  - conda-forge::diskcache
+  - conda-forge::feather-format
+  - bioconda::genomepy >=0.11.1
+  - ipywidgets  # Necessary for progress bar in Jupyter notebook
+  - conda-forge::iteround
+  - jinja2
+  - bioconda::logomaker
+  - loguru
+  - matplotlib-base >=3.1.2
+  - numpy >= 1.6.0
+  - pandas >=1.0.3
+  - pyarrow >=0.16.0
+  - bioconda::pybedtools >=0.9.0
+  - bioconda::pysam >=0.16
+  - python >=3.8
+  - python-xxhash
+  - conda-forge::qnorm  >=0.8.1
+  - scikit-learn >=0.23.2
+  - scipy >=1.4.1
+  - seaborn >=0.10.1
+  - statsmodels
+  - tqdm >=4.46.1
+  - xdg
+  - xgboost >=1.0.2

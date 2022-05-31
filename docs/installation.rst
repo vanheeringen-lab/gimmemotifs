@@ -2,6 +2,7 @@ Installation
 ============
 
 GimmeMotifs runs on Linux. On Windows 10 it will run fine using the `Windows Subsystem for Linux`_.
+
 ..  NOTE: nope. it hasn't worked in a while.
     Mac OSX should work and is included in the build test.
     However, as I don't use it myself, unexpected issues might pop up.
@@ -11,8 +12,8 @@ GimmeMotifs runs on Linux. On Windows 10 it will run fine using the `Windows Sub
 
 .. _`Install GimmeMotifs`:
 
-The easiest way to install
---------------------------
+Conda - the easy way
+--------------------
 
 The preferred way to install GimmeMotifs is by using `conda
 <https://docs.continuum.io/anaconda>`_. 
@@ -46,19 +47,19 @@ Installation successful? Good. Have a look at the :ref:`configuration<configurat
 
 .. _upgradegenome:
 
-Important note on upgrading from 0.11.1
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Upgrading from 0.11.1
+^^^^^^^^^^^^^^^^^^^^^
 
-The way genomes are installed and used has been changed from 0.11.1 to 0.12.0. 
-Basically, we have switched to the faidx index used and supported by many other tools. 
-This means that the old (<=0.11.1) GimmeMotifs index cannot be used by GimmeMotifs 0.12.0 and higher. 
+The way genomes are installed and used has been changed from 0.11.1 to 0.12.0.
+Basically, we have switched to the faidx index used and supported by many other tools.
+This means that the old (<=0.11.1) GimmeMotifs index cannot be used by GimmeMotifs 0.12.0 and higher.
 You can re-install genomes using genomepy_, which is now the preferred tool for genome management for GimmeMotifs.
-However, because of this change you can now also directly supply a genome FASTA instead of a genome name. 
+However, because of this change you can now also directly supply a genome FASTA instead of a genome name.
 Pre-indexing is not required anymore.
 
 .. _genomepy: https://github.com/vanheeringen-lab/genomepy
 
-.. NOTE: abbreviated
+..  NOTE: abbreviated
     Alternative installation
     ------------------------
 
@@ -74,8 +75,8 @@ Pre-indexing is not required anymore.
 
     In addition many of the motif tools (such as MEME) will need to be installed separately. Instructions for doing so are not included here.
 
-Using pip
-+++++++++
+Pip
+---
 
 Installation from PyPI with ``pip`` is a relatively straightforward option.
 Install with pip as follows:
@@ -133,8 +134,8 @@ Instructions for doing so are not included here.
         $ pip install gimmemotifs
 
 
-Installation from source
-++++++++++++++++++++++++
+Source - developers install
+---------------------------
 
 Want to fix that darned bug yourself?
 Want to try out the latest features?
@@ -226,65 +227,28 @@ Check out how good your fixes are with unit tests:
 .. _configuration:
 
 Configuration
--------------
-
-Genomes
-+++++++
-
-You will need genome FASTA files for a lot of the tools that are included 
-with GimmeMotifs.
-
-Download genomes automatically
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The most straightforward way to download and index a genome is to use
-the ``genomepy`` tool, which is installed with GimmeMotifs.
-
-::
-
-    $ genomepy install hg19 UCSC --annotation
-
-Here, the hg19 genome and accompanying gene annotation will be downloaded
-from UCSC to the directory ``~/.local/share/genomes/hg19``. 
-You can change this default location by creating/editing the file ``~/.config/genomepy/genomepy.yaml`` and change the following line:
-
-::
-
-    genome_dir: /data/genomes
-
-Please note: in contrast to earlier versions of GimmeMotifs it is no longer necessary to index a genome.
-
-Adding gene files
-~~~~~~~~~~~~~~~~~
-
-Note: If you used the ``genomepy`` command, annotation will be included automatically.
-
-For some applications a gene file is used. This is a file containing gene
-annotation in BED12 format. It should be located in the ``gene_dir``, 
-which is defined in the configuration file (see below). 
-The file needs to be named ``<index_name>.bed``, so for instance ``hg19.bed``.
+=============
 
 .. _`other_configuration`:
 
-Other configuration options
-+++++++++++++++++++++++++++
+The configuration file
+----------------------
 
-All of GimmeMotifs configuration is stored in
-``~/.config/gimmemotifs/gimmemotifs.cfg``. The
-configuraton file is created at first run with  all defaults set,
-but you can always edit it afterwards. It contains two sections ``main``
-and ``params`` that take care of paths, file locations, parameter
-settings etc. Additionally, every motif tool has it's own section. Let's
-have a look at the options.
+All of GimmeMotifs' configuration is stored in ``~/.config/gimmemotifs/gimmemotifs.cfg``.
+The configuration file is created at first run with all defaults set, but you can always edit it afterwards.
+It contains two sections ``main`` and ``params`` that take care of paths, file locations, parameter settings etc.
+Additionally, every motif tool has it's own section.
+Let's have a look at the options.
 
 ::
 
     [main]
-    template_dir = /usr/share/gimmemotifs/templates
-    score_dir = /usr/share/gimmemotifs/score_dists
-    motif_databases = /usr/share/gimmemotifs/motif_databases
-    gene_dir = /usr/share/gimmemotifs/genes
-    tools_dir = /usr/share/gimmemotifs/tools
+    bg = bg
+    template_dir = templates
+    score_dir = score_dists
+    gene_dir = genes
+    motif_databases = motif_databases
+    tools = included_tools/
 
 -  ``template_dir`` The location of the jinja2 html templates, used to
    generate the reports.
@@ -292,12 +256,12 @@ have a look at the options.
 -  ``score_dir`` To generate p-values, a pre-calculated file with mean
    and sd of score distributions is needed. These are located here.
 
--  ``motif_databases`` For now contains only the JASPAR motifs.
-
 -  ``gene_dir`` Directory with bed-files containing gene locations.
    This is needed to create promoter background sequences.
 
--  ``tools_dir`` Here all tools included with GimmeMotifs are stored.
+-  ``motif_databases`` Contains various motif databases.
+
+-  ``tools`` Here all tools included with GimmeMotifs are stored.
 
 ::
 
@@ -305,29 +269,62 @@ have a look at the options.
     fraction = 0.2
     use_strand = False
     abs_max = 1000
-    analysis = medium
+    analysis = xl
     enrichment = 1.5
-    width = 200
-    lwidth = 500
-    genome = hg19
+    size = 200
+    lsize = 500
     background = gc,random
     cluster_threshold = 0.95
-    available_tools = MDmodule,MEME,Weeder,GADEM,MotifSampler,trawler,Improbizer,BioProspector,Posmo,ChIPMunk,JASPAR,AMD,HMS,Homer
-    tools = MDmodule,MEME,Weeder,MotifSampler,trawler,Improbizer,BioProspector,Posmo,ChIPMunk,JASPAR,AMD,HMS,Homer
-    pvalue = 0.001
-    max_time = None
-    ncpus = 2
-    motif_db = gimme.vertebrate.v3.1.pwm
     scan_cutoff = 0.9
+    available_tools = AMD,BioProspector,ChIPMunk,DiNAMO,GADEM,HMS,Homer,Improbizer,MDmodule,MEME,MEMEW,MotifSampler,Posmo,ProSampler,Trawler,Weeder,XXmotif,Yamda
+    tools = BioProspector,Homer,MEME
+    pvalue = 0.001
+    max_time = -1
+    ncpus = 12
+    motif_db = gimme.vertebrate.v5.0.pfm
     use_cache = False
-    markov_model = 1
-    
+
 This section specifies all the default GimmeMotifs parameters. Most of
 these can also be specified at the command-line when running
-GimmeMotifs, in which case they will override the parameters specified
+GimmeMotifs, in which case they will override the parameters specified.
 
-Configuration of MotifSampler
-+++++++++++++++++++++++++++++
+Input Data
+==========
+
+Genomes - and how to get them
+-----------------------------
+
+You will need genome FASTA files for a lot of the tools that are included with GimmeMotifs.
+
+The most straightforward way to download and index a genome is to use the ``genomepy`` tool, which is installed with GimmeMotifs.
+
+::
+
+    $ genomepy install hg38 --provider UCSC --annotation
+
+Here, the hg38 genome and accompanying gene annotation will be downloaded from UCSC to the directory ``~/.local/share/genomes/hg38``.
+You can change this default location by editing the file ``~/.config/genomepy/genomepy.yaml`` and change the following line:
+
+::
+
+    genomes_dir: /data/genomes
+
+If this file does not exist, you can generate it with ``genomepy config generate``.
+After downloading a genome with genomepy, you can use its name (e.g. ``hg38``) for gimme commands.
+
+.. I think this is outdated:
+    Adding gene annotation files
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    Note: If you used the ``genomepy`` command, annotation will be included automatically.
+
+    For some applications a gene file is used. This is a file containing gene
+    annotation in BED12 format. It should be located in the ``gene_dir``,
+    which is defined in the configuration file (see below).
+    The file needs to be named ``<index_name>.bed``, so for instance ``hg19.bed``.
+
+MotifSampler
+------------
 
 If you want to use MotifSampler there is one more step that you'll have
 to take *after* installation of GimmeMotifs. For every organism, you will

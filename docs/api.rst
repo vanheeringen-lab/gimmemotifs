@@ -3,10 +3,8 @@
 API documentation
 =================
 
-.. toctree::
-    :maxdepth: 2
-
-    api
+.. contents::
+    :depth: 2
 
 Examples
 ========
@@ -32,7 +30,7 @@ There are several ways to create a Motif instance.
     for motif in motifs:
         print(motif)
 
-::
+.. code-block:: python
 
     AP1_nTGAGTCAy
     CTCF_CCAsyAGrkGGCr
@@ -44,7 +42,7 @@ There are several ways to create a Motif instance.
     m.id = "CpG"
     print(m)
 
-::
+.. code-block:: python
 
     CpG_CG
 
@@ -101,7 +99,7 @@ You can convert a motif to several formats.
     # pfm
     print(motifs[0].to_pfm())
 
-::
+.. code-block:: python
 
     >AP1
     555.8	146.9	273.4	24.0
@@ -119,7 +117,7 @@ You can convert a motif to several formats.
     # consensus sequence
     print(motifs[0].to_consensus())
 
-::
+.. code-block:: python
 
     ATGAsTCAy
 
@@ -128,7 +126,7 @@ You can convert a motif to several formats.
     # TRANSFAC
     print(motifs[0].to_transfac())
 
-::
+.. code-block:: python
 
     DE	AP1	unknown
     0	555	146	273	24	A
@@ -147,7 +145,7 @@ You can convert a motif to several formats.
     # MEME
     print(motifs[0].to_meme())
 
-::
+.. code-block:: python
 
     MOTIF AP1
     BL   MOTIF AP1 width=0 seqs=0
@@ -170,7 +168,7 @@ Some other useful tidbits.
     m = motif_from_consensus("NTGASTCAN")
     print(len(m))
 
-::
+.. code-block:: python
 
     9
 
@@ -181,7 +179,7 @@ Some other useful tidbits.
     m.trim(0.5)
     print(m.to_consensus(), len(m))
 
-::
+.. code-block:: python
 
     TGAsTCA 7
 
@@ -190,7 +188,7 @@ Some other useful tidbits.
     # Slices
     print(m[:3].to_consensus())
     
-::
+.. code-block:: python
 
     TGA
 
@@ -200,7 +198,7 @@ Some other useful tidbits.
     random_motif = motif_from_consensus("NTGASTGAN").randomize()
     print(random_motif)
 
-::
+.. code-block:: python
 
     random_snCTAGTAn
 
@@ -242,7 +240,7 @@ Now we can use this file for scanning.
 
     m.pwm_scan(f)
 
-::
+.. code-block:: python
 
     {'seq1': [], 'seq2': [6, 6], 'seq3': [0, 16, 0, 16]}
 
@@ -255,7 +253,7 @@ This is more clear when we use ``pwm_scan_all()`` that returns position, score a
 
     m.pwm_scan_all(f)
 
-::
+.. code-block:: python
 
     {'seq1': [],
      'seq2': [(6, 9.02922042678255, 1), (6, 9.02922042678255, -1)],
@@ -271,7 +269,7 @@ Use ``scan_rc=False`` to only scan the forward orientation.
 
     m.pwm_scan_all(f, nreport=1, scan_rc=False)
     
-::
+.. code-block:: python
 
     {'seq1': [],
      'seq2': [(6, 9.02922042678255, 1)],
@@ -299,7 +297,7 @@ If you only want the best match per sequence, is a utility function called ``sca
         for match in matches:
             print("{}\t{}\t{}".format(motif, match[1], match[0]))
     
-::
+.. code-block:: python
 
     motif       pos     score
     CG  0       -18.26379789133924
@@ -346,7 +344,7 @@ Now let's get the best score for the CTCF motif for each sequence.
         np.max(scores)
         ))
     
-::
+.. code-block:: python
 
     500	11.00	1.45	15.07
 
@@ -366,7 +364,7 @@ This means that for the same combination of motifs and genome, the previously ge
     counts = [n[0] for n in s.count("Gm12878.CTCF.top500.w200.fa", nreport=1)]
     print(counts[:10])
 
-::
+.. code-block:: python
 
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
@@ -375,7 +373,7 @@ This means that for the same combination of motifs and genome, the previously ge
     # or the grand total of number of sequences with 1 match
     print(s.total_count("examples/Gm12878.CTCF.top500.w200.fa", nreport=1))
 
-::
+.. code-block:: python
 
     [404]
 
@@ -389,7 +387,8 @@ This means that for the same combination of motifs and genome, the previously ge
             motif = motifs[m]
             for score, pos, strand in matches:
                 print(seqname, motif, score, pos, strand)
-::
+
+.. code-block:: python
 
     chr11:190037-190237 C2H2_ZF_Average_200_CCAsyAGrkGGCr 13.4959558370929 143 -1
     chr11:190037-190237 C2H2_ZF_Average_200_CCAsyAGrkGGCr 10.821440417077262 22 -1
@@ -449,7 +448,7 @@ For a basic example we'll just use two motif finders, as they're quick to run.
 
     motifs = gimme_motifs(peaks, outdir, params=params)
 
-::
+.. code-block:: python
 
     2017-06-30 07:37:00,079 - INFO - starting full motif analysis
     2017-06-30 07:37:00,082 - INFO - preparing input (FASTA)
@@ -513,7 +512,7 @@ Although the ``gimme_motifs()`` function is probably the easiest way to run the 
     motifs, stdout, stderr = m.run("TAp73alpha.fa", params=params)
     print(motifs[0].to_consensus())
 
-::
+.. code-block:: python
 
     nnnCnTGynnnGrCwTGyyn
 
@@ -551,7 +550,7 @@ Then we only select p53 motifs.
     print("Best motif (recall at 10% FDR):", best_motif)
         
 
-::
+.. code-block:: python
 
     Stats for GM.5.0.p53.0001_rCATGyCCnGrCATGy
     recall_at_fdr 0.833
@@ -587,7 +586,7 @@ You can choose one or more specific metrics with the additional ``stats`` argume
                 ))
     
 
-::
+.. code-block:: python
 
     p53_M5923_1.01        roc_auc 0.63
     p53_M5922_1.01 roc_auc 0.64
@@ -626,7 +625,7 @@ Compare two motifs.
     print(pad1 + m1.to_consensus())
     print(pad2 + m2.to_consensus())
 
-::
+.. code-block:: python
 
     rrrCATGyyy
       ACAyGA
@@ -664,7 +663,7 @@ Find closest match in a motif database.
         print(" " * padd + dbmotif.to_consensus())
         print()
 
-::
+.. code-block:: python
 
     GATA: AGATAASR_GATA3(Zf)/iTreg-Gata3-ChIP-Seq(GSE20898)/Homer - 0.823
      GATA
