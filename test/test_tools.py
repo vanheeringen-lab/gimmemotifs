@@ -27,16 +27,23 @@ def test_tool(tool_name):
     params = {"background": bg_fa, "organism": "hg38", "width": 7}
     print(__tools__)
     if tool_name in [
-        "yamda",  # not installable via bioconda
-        "rpmcmc",  # not installable via bioconda
-        "mdmodule",  # not installable via bioconda
+        "amd",  # not installable via bioconda
         "bioprospector",  # not installable via bioconda
+        "chipmunk",  # not installable via bioconda
+        "dreme",  # not installable via bioconda
+        "hms",  # not installable via bioconda
+        "improbizer",  # not installable via bioconda
+        "mdmodule",  # not installable via bioconda
+        "memew",  # not installable via bioconda
+        "motifsampler",  # not installable via bioconda
+        "posmo",  # motif doesn't predictably look like AP1
+        "rpmcmc",  # not installable via bioconda
+
         "gadem",  # sometimes crashes on invalid pointer
         "jaspar",
         "xxmotif",  # takes too long
         "trawler",  # takes too long + unpredictable, sometimes doesn't find the motif
-        "posmo",  # motif doesn't predictably look like AP1
-        "dreme",  # current dreme in bioconda is broken
+        "yamda",  # TODO: not working right now
     ]:
         return
 

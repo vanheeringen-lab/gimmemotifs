@@ -4,27 +4,21 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - biofluff >=3.0.4  # TODO: biofluff added, version set to bioconda
-  - bedtools  # TODO: is this needed with pybedtools? under "host" on bioconda
-  - configparser
-  - dinamo
-  - diskcache
-  - feather-format
-  # TODO: future can be removed on bioconda (python2 pkg IIRC)
-  - gadem
-  - genomepy >=0.12.0  # TODO: version updated
-  - homer
-  - ipywidgets  # Necessary for progress bar in Jupyter notebook  # TODO: missing on bioconda
+  - bioconda::biofluff >=3.0.4  # TODO: biofluff added, version set to bioconda. is this needed?
+  - bioconda::bedtools  # TODO: is this needed with pybedtools? under "host" on bioconda
+  - conda-forge::configparser
+  - conda-forge::diskcache
+  - conda-forge::feather-format
+  - bioconda::genomepy >=0.12.0
+  - ipywidgets  # Necessary for progress bar in Jupyter notebook
   - iteround
   - jinja2
   - logomaker
   - loguru
   - matplotlib-base >=3.1.2  # TODO: was matplotlib >=2.0, version set to bioconda
-  - meme >=5.1.1  # TODO: version set to bioconda
 #  - ncurses >=6.1 # TODO: is this needed with loguru? version set to bioconda
   - numpy >= 1.6.0  # TODO: missing on bioconda (version set to requirements.txt)
   - pandas >=1.0.3 # TODO: pandas specified on bioconda (version set to .rtl-environment.yaml)
-  - prosampler
 #  - pillow >=0.7.1.2  # TODO: is this needed? version set to bioconda
   - pyarrow >=0.16.0
   - pybedtools
@@ -36,23 +30,41 @@ dependencies:
   - scikit-learn >=0.23.2  # TODO: version set to bioconda
   - scipy >=1.4.1
   - seaborn >=0.10.1  # TODO: version set to bioconda
-  # TODO: six can be removed on bioconda (python2 pkg IIRC)
   - statsmodels
   - tqdm >=4.46.1  # TODO: version set to bioconda
-  - trawler
 #  - ucsc-bigbedtobed  # TODO: is this needed?
 #  - ucsc-genepredtobed  # TODO: is this needed? missing on bioconda
-  - weeder
   - xdg
   - xgboost >=1.0.2  # TODO: version set to bioconda
-  - xxmotif
+
+# tools
+  # AMD
+  # BioProspector
+  # ChIPMunk
+  - bioconda::dinamo
+  # DREME
+  - bioconda::gadem
+  # HMS
+  - bioconda::homer
+  # Improbizer
+  # MDmodule
+  - bioconda::meme >=5.1.1
+  # MEMEW
+  # MotifSampler
+  # Posmo
+  - bioconda::prosampler
+  # RPMCMC
+  - bioconda::trawler
+  - bioconda::weeder
+  - bioconda::xxmotif
+  - bioconda::yamda
 
 # development-specific
-  - black=22.3.0  # same as in .pre-commit-config.yaml
-  - flake8=4.0.1  # same as in .pre-commit-config.yaml
-  - flake8-bugbear=22.4.25  # same as in .pre-commit-config.yaml
-  - isort=5.10.1  # same as in .pre-commit-config.yaml
-  - pre-commit
-  - pytest
-  - pytest-cov
-  - twine
+  - conda-forge::black=22.3.0  # same as in .pre-commit-config.yaml
+  - conda-forge::flake8=4.0.1  # same as in .pre-commit-config.yaml
+  - conda-forge::flake8-bugbear=22.4.25  # same as in .pre-commit-config.yaml
+  - conda-forge::isort=5.10.1  # same as in .pre-commit-config.yaml
+  - conda-forge::pre-commit
+  - conda-forge::pytest
+  - conda-forge::pytest-cov
+#  - conda-forge::twine  # TODO: is this still needed?
