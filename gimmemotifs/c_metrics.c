@@ -211,6 +211,7 @@ double matrix_ed_mean(double matrix1[][4], double matrix2[][4], int length) {
 
 double distance(double col1[], double col2[]) {
 	// Return the distance between two motifs (Harbison et al.) 
+	// https://www.nature.com/articles/nature02800#Sec2
 	int n;
 	double d = 0;
 

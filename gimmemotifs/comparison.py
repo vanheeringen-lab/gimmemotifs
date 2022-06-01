@@ -26,7 +26,7 @@ import pandas as pd
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.c_metrics import pfmscan, score
 from gimmemotifs.motif import parse_motifs, read_motifs
-from gimmemotifs.utils import pfmfile_location, make_equal_length
+from gimmemotifs.utils import pfmfile_location, make_equal_length, ppm_pseudocount
 
 # pool import is at the bottom
 
@@ -204,6 +204,7 @@ def chisq(p1, p2):
     -------
     score : float
     """
+
     return chi2_contingency([p1, p2])[1]
 
 
@@ -440,8 +441,13 @@ class MotifComparer(object):
                         combine,
                         self.max_partial(m1.pwm, m2.pwm, metric, combine),
                     )
-                elif metric in ["pcc", "ed", "distance", "wic", "chisq", "ssd"]:
-                    return self.max_partial(m1.pwm, m2.pwm, metric, combine)
+                elif metric in ["pcc", "ed", "distance", "wic", "chisq", "ssd", "akl"]:
+                    return self.max_partial(
+                        ppm_pseudocount(m1.pwm),
+                        ppm_pseudocount(m2.pwm),
+                        metric,
+                        combine,
+                    )
                 else:
                     return self.max_partial(m1.pfm, m2.pfm, metric, combine)
 
@@ -455,19 +461,33 @@ class MotifComparer(object):
                         combine,
                         self.max_total(m1.pwm, m2.pwm, metric, combine),
                     )
-                elif metric in ["pcc", "akl"]:
-                    # Slightly randomize the weight matrix
+                elif metric in [
+                    "ed",
+                    "distance",
+                    "wic",
+                    "chisq",
+                    "pcc",
+                    "ssd",
+                    "akl",
+                    "pcc",
+                ]:
                     return self.max_total(
-                        m1.wiggle_pwm(), m2.wiggle_pwm(), metric, combine
+                        ppm_pseudocount(m1.pwm),
+                        ppm_pseudocount(m2.pwm),
+                        metric,
+                        combine,
                     )
-                elif metric in ["ed", "distance", "wic", "chisq", "pcc", "ssd"]:
-                    return self.max_total(m1.pwm, m2.pwm, metric, combine)
                 else:
                     return self.max_total(m1.pfm, m2.pfm, metric, combine)
 
             elif match == "subtotal":
                 if metric in ["pcc", "ed", "distance", "wic", "chisq", "ssd"]:
-                    return self.max_subtotal(m1.pwm, m2.pwm, metric, combine)
+                    return self.max_subtotal(
+                        ppm_pseudocount(m1.pwm),
+                        ppm_pseudocount(m2.pwm),
+                        metric,
+                        combine,
+                    )
                 else:
                     return self.max_subtotal(m1.pfm, m2.pfm, metric, combine)
         else:

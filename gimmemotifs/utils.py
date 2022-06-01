@@ -514,6 +514,7 @@ def get_seqs_type(seqs):
 
 # Regular expression to check for region (chr:start-end or genome@chr:start-end)
 region_p = re.compile(r"^[^@]+@([^\s]+):(\d+)-(\d+)$")
+fa_p = re.compile(r"^[actgnACTGN]+$")
 
 
 def _check_minsize(fa, minsize):
@@ -591,6 +592,14 @@ def _as_seqdict_genome_regions(regions, minsize=None):
     return _check_minsize(fa, minsize)
 
 
+def _as_seqdict_sequences(regions, minsize=None):
+    """
+    Accepts list of DNA strings.
+    """
+    fa = dict([(i + 1, regions) for i, regions in enumerate(regions)])
+    return _check_minsize(fa, minsize)
+
+
 @singledispatch
 def as_seqdict(to_convert, genome=None, minsize=None):
     """
@@ -629,10 +638,15 @@ def as_seqdict(to_convert, genome=None, minsize=None):
 @as_seqdict.register(list)
 def _as_seqdict_list(to_convert, genome=None, minsize=None):
     """
-    Accepts list of regions as input.
+    Accepts list of regions or DNA strings as input.
     """
+    # regions
     if region_p.match(to_convert[0]):
         return _as_seqdict_genome_regions(to_convert, minsize)
+
+    # DNA
+    if fa_p.match(to_convert[0]):
+        return _as_seqdict_sequences(to_convert, minsize)
 
     return _genomepy_convert(to_convert, genome, minsize)
 
@@ -847,3 +861,22 @@ def make_equal_length(a, b, pos, truncate=None, bg=None):
     #   if not truncate_first and not truncate_second:
 
     return first[mask_second & mask_first], second[mask_second & mask_first]
+
+
+def ppm_pseudocount(ppm, pseudo=1e-6):
+    """Return position-specific probability matrix with added pseudocount.
+
+    Parameters
+    ----------
+    ppm : array_like
+        Position-specific probability matrix.
+
+    pseudo : float
+        Pseudocount
+
+    Returns
+    -------
+    array_like
+        Position-specific probability matrix with added pseudocount.
+    """
+    return (ppm + pseudo) / (ppm + pseudo).sum(1)[:, None]

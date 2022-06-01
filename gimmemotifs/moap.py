@@ -691,7 +691,7 @@ def moap(
         motif_names = [m.id for m in read_motifs(pfmfile)]
         scores = []
         if method == "classic" or scoring == "count":
-            logger.info("motif scanning (scores)")
+            logger.info("motif scanning (counts)")
             scores = scan_regionfile_to_table(
                 inputfile,
                 genome,

@@ -54,7 +54,14 @@ def pcc(self, ppm1, ppm2, pos):
     ppm1, ppm2 = make_equal_length(ppm1, ppm2, pos, truncate="both")
 
     # Compute pearson correlation between aligned parts of the motif
-    r = np.array([pearsonr(x, y)[0] for x, y in zip(ppm1, ppm2)])
+    r = np.array(
+        [
+            pearsonr(x, y)[0]
+            if not (np.all(x == 0.25)) or not (np.all(y == 0.25))
+            else 0
+            for x, y in zip(ppm1, ppm2)
+        ]
+    )
     r[np.isnan(r)] = 0
 
     return r.sum()
