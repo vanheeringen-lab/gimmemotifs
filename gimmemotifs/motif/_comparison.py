@@ -234,7 +234,6 @@ def max_pcc(self, other, revcomp=True):
     scores = []
 
     for i in range(-(len(ppm2) - 1), len(ppm1)):
-        print(i, self.pcc(ppm1, ppm2, i))
         scores.append((self.pcc(ppm1, ppm2, i), i, 1))
 
     if revcomp:
