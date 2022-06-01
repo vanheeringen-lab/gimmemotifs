@@ -138,7 +138,7 @@ setup(
         "matplotlib >=3.1.2",
         # "matplotlib-base >=3.1.2",
         "numpy >=1.6.0",
-        "pandas >=1.0.3",
+        "pandas >=1.0.3, <=1.1.5",  # 1.3.5/1.4.2 are bugged
         "pyarrow >=0.16.0",
         "pybedtools >=0.9.0",
         "pysam >=0.16",

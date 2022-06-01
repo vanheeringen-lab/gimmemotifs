@@ -4,16 +4,6 @@ branches:
   - master
   - develop
 
-#matrix:
-#  allow_failures:
-#    - os: osx
-#  include:
-#    - os: osx
-#      language: generic
-#    - os: linux
-#      language: python
-#      python: "3.8"
-
 os: linux
 dist: focal
 language: minimal
@@ -25,57 +15,30 @@ env:
 before_install:
   # setup miniconda
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-#  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-#      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-#    else
-#      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
-#    fi
   - chmod +x miniconda.sh
   - ./miniconda.sh -b -p $HOME/miniconda -f
   - export PATH=$HOME/miniconda/bin:$PATH;
   - conda config --set always_yes True
-#  - conda config --set channel_priority "strict"  # TODO: is this needed?
-#  - source "$HOME/miniconda/etc/profile.d/conda.sh"
-#  - hash -r
-#  - conda config --set always_yes yes --set changeps1 no
-#  - conda update -q conda
-#  - conda info -a
-#  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ulimit -S -n 4096; ulimit -a; fi
 
 install:
-#  - conda config --add channels defaults
-#  - conda config --add channels bioconda
-#  - conda config --add channels conda-forge
   - conda install conda-forge::mamba
   - mamba env create -f requirements.yaml
-#  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-#      conda install mamba -y;
-#      mamba env create -q -f requirements.yaml;
-#    else
-#      conda env create -q -f conda_env.osx.txt -n gimme;
-#    fi
   - source activate gimme
-#  - pip install -e .
-#  - conda list
   - python setup.py build  # installs the motif discovery tools
   - pip install -e .  # installs gimme (in editable mode)
 
 before_script:
   # install Code Climate test coverage reporter
   - wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
-#  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-#        wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64;
-#    else
-#        wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-darwin-amd64;
-#    fi
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
 
 script:
+  # generate the config and print the cache location
   - python -c 'from gimmemotifs.config import CACHE_DIR;print(CACHE_DIR)'
+  # run the tests
   - pytest -vvv --disable-pytest-warnings --cov=scripts --cov=gimmemotifs --cov-report=xml test/
 
 after_script:
   # upload test coverage data to Code Climate
   - ./cc-test-reporter after-build -t coverage.py --exit-code $TRAVIS_TEST_RESULT
-#  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./cc-test-reporter after-build -t coverage.py --exit-code $TRAVIS_TEST_RESULT; fi
