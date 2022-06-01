@@ -63,7 +63,7 @@ def get_build_dir():
     """
     root_dir = os.path.dirname(__path__[0])
     v = sys.version_info
-    glob_dir = os.path.join(root_dir, "build", f"lib*{v[0]}{v[1]}", "gimmemotifs")
+    glob_dir = os.path.join(root_dir, "build", f"lib*{v[0]}*{v[1]}*", "gimmemotifs")
     results = glob.glob(glob_dir)
 
     if len(results) == 1:
