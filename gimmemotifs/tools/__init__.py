@@ -30,31 +30,6 @@ from .dinamo import Dinamo
 from .rpmcmc import Rpmcmc
 
 
-MOTIF_CLASSES = [
-    "MDmodule",
-    "Meme",
-    "MemeW",
-    "Dreme",
-    "Weeder",
-    "Gadem",
-    "MotifSampler",
-    "Trawler",
-    "Improbizer",
-    "BioProspector",
-    "Posmo",
-    "ChIPMunk",
-    "Jaspar",
-    "Amd",
-    "Hms",
-    "Homer",
-    "XXmotif",
-    "ProSampler",
-    "YAMDA",
-    "DiNAMO",
-    "RPMCMC",
-]
-
-
 def get_tool(name):
     """
     Returns an instance of a specific tool.

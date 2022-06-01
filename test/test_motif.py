@@ -256,14 +256,14 @@ def test_read_motifs_xxmotifs():
     assert "RGGCAWGYC" == motifs[-1].to_consensus().upper()
 
 
-def test6_pcc():
-    pfm1 = [[5, 0, 0, 0], [0, 5, 0, 0], [0, 5, 0, 0], [0, 0, 0, 5]]
-    pfm2 = [[5, 0, 0, 0], [0, 5, 0, 0], [0, 5, 0, 0], [0, 0, 0, 5]]
+def test_pcc():
+    pfm1 = [[5, 0, 0, 0], [0, 5, 0, 0], [0, 0, 5, 0], [0, 0, 0, 5]]
+    pfm2 = [[5, 0, 0, 0], [0, 5, 0, 0], [0, 0, 5, 0], [0, 0, 0, 5]]
 
     m1 = Motif(pfm1)
     m2 = Motif(pfm2)
 
-    assert 4 == m1.max_pcc(m2)[0]
+    assert 4 == round(m1.max_pcc(m2)[0], 0)
 
 
 def test_add_operator():

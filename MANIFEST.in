@@ -1,24 +1,16 @@
-include README.md
-include INSTALL
-include COPYING
 include CHANGELOG.md
-include run_tests.py
+include CITATION.cff
+include COPYING
+include INSTALL
 include compile_externals.py
-recursive-include src *
-recursive-include test/data/ *
-include test/*.py
-include test/data/*/*
-include scripts/gimme
-include scripts/coverage_table
-include scripts/combine_peaks
+include README.md
 
+prune test/
 graft data/
-recursive-exclude data/examples/ *
-include data/examples/TAp73alpha.bed
-include data/examples/TAp73alpha.fa
-include data/examples/test.small.fa
-include data/examples/example.pfm
-include data/examples/Gm12878.CTCF.top500.w200.fa
-include data/examples/MA0099.3.jaspar
+graft src/
+graft scripts/
+exclude scripts/download_motif_databases.py
+exclude scripts/gimme_benchmark
+
 include versioneer.py
 include gimmemotifs/_version.py

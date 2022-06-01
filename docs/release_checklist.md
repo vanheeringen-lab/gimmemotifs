@@ -18,7 +18,7 @@ $ git flow release start ${new_version}
 
 ```
 $ cd ${test_dir} 	# Not the gimmemotifs git directory
-$ conda create -n testenv python=3 --file conda_env.txt 
+$ conda create -n testenv python=3 --file requirements.yaml
 $ conda activate testenv
 $ pip install -e git+https://github.com/simonvh/gimmemotifs.git@release/${version}#egg=gimmemotifs
 $ cd src/gimmemotifs
