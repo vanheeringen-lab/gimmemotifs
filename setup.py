@@ -143,6 +143,7 @@ setup(
         "pybedtools >=0.9.0",
         "pysam >=0.16",
         # "python >=3.8",
+        "xxhash",
         # "python-xxhash",
         "qnorm  >=0.8.1",
         "scikit-learn >=0.23.2",
