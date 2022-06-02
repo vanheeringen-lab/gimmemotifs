@@ -28,6 +28,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   - there were still some flakey values, where randomness is involved.
 - background.py updated to work with the specified minimum `genomepy` version
 - all `sphinx-build docs build` warnings
+- motifs require to have unique ids when clustering, thanks @akmorrow13!
+- motif2factors removes apostrophes so it wont crash :)
+- removed a print
 
 ### Removed
 
