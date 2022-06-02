@@ -40,11 +40,11 @@ fix it by deleting the GimmeMotifs cache directory `~/.cache/gimmemotifs`.
 SQLite error when running on a cluster
 --------------------------------------
 
-The current implementation of the cache that GimmeMotifs uses does not play nice with concurrent access, for instance on
- a cluster. The result is that the cache will get corrupted and that GimmeMotifs will fail. Until this is fixed, there i
-s a workaround. In your job submission script, use something like the following:
+The current implementation of the cache that GimmeMotifs uses does not play nice with concurrent access, for instance on a cluster.
+The result is that the cache will get corrupted and that GimmeMotifs will fail. Until this is fixed, there is a workaround.
+In your job submission script, use something like the following:
 
-::
+.. code-block:: bash
 
     NEW_CACHE=$TMPDIR/cache
     mkdir -p $NEW_CACHE
@@ -66,14 +66,14 @@ The recommended solution is to upgrade Ubuntu as Trusty is no longer supported.
 However, if you are unable to do so, there is a workaround.
 Run the following command:
 
-::
+.. code-block:: bash
 
     $ export LD_PRELOAD=$CONDA_PREFIX/lib/libgomp.so
 
 Now you should be able to run `gimme` as normal.
 
 'i' format requires -2147483648 <= number <= -2147483646
--------------------------------------------------------
+--------------------------------------------------------
 
 If you get the following error with `gimme maelstrom`:
 
@@ -117,13 +117,13 @@ The different methods use different ways to rank the motifs. The hypergeometric 
 I have upgraded GimmeMotifs and now it doesn't find my genome
 -------------------------------------------------------------
 
-The genome index in GimmeMotifs has changed, see upgradegenome_.
+The genome index in GimmeMotifs has changed, see :ref:`upgradegenome`.
 
 
 I cannot run gimme index anymore
 --------------------------------
 
-The genome index in GimmeMotifs has changed, see upgradegenome_.
+The genome index in GimmeMotifs has changed, see :ref:`upgradegenome`.
 
 
 I get 'RuntimeError: Invalid DISPLAY variable'

@@ -1,4 +1,3 @@
-
 .. _`command-line`:
 
 Command-line reference
@@ -421,10 +420,11 @@ The second option looks like this:
     chr2:186923973-186924173    0.430    -0.258    -1.164    -0.723
     chrX:113834470-113834670    0.560    -0.036    -0.686    -0.692
 
-This is a tab-separated table, with a header describing the experiments. In case of sequencing data, such 
-as ChIP-seq, ATAC-seq or DNaseI seq, we recommend to use **log-transformed** read counts which are
-**mean-centered per row**. For optimal results, it is recommended to normalize between experiments (columns) after
- the log-transformatiion step, for instance by quantile normalization or scaling.
+This is a tab-separated table, with a header describing the experiments.
+In case of sequencing data, such as ChIP-seq, ATAC-seq or DNaseI seq,
+we recommend to use **log-transformed** read counts which are **mean-centered per row**.
+For optimal results, it is recommended to normalize between experiments (columns) after the log-transformatiion step,
+for instance by quantile normalization or scaling.
 By default, ``gimme maelstrom`` will mean-center the input, disable this with ``--nocenter``. 
 
 The second input format generally gives better results than the first one and would be the recommended format.
@@ -859,7 +859,7 @@ Compare for instance an FPR of 1% vs an FPR of 5%.
 .. _`gimme_motif2factors`:
 
 Command: gimme motif2factors
--------------------
+----------------------------
 
 With motif2factors you can convert an existing motif database to a motif database for your species of interest. This conversion is done by orthology,
 which is not the ideal way to do this. When converting the original database to a database of your favourite critter, only the relations between motifs

@@ -5,7 +5,6 @@
 # distribution.
 """ Configuration for GimmeMotifs """
 import configparser
-import sysconfig
 import glob
 import sys
 import xdg
@@ -15,6 +14,7 @@ import logging
 import pkg_resources
 import inspect
 from gimmemotifs.shutils import which
+from gimmemotifs import __path__
 
 logger = logging.getLogger("gimme.config")
 
@@ -31,67 +31,84 @@ CACHE_DIR = os.path.join(xdg.XDG_CACHE_HOME, "gimmemotifs")
 CONFIG_DIR = os.path.join(xdg.XDG_CONFIG_HOME, "gimmemotifs")
 
 MOTIF_CLASSES = [
+    "AMD",
+    "BioProspector",
+    "ChIPMunk",
+    "DREME",
+    "DiNAMO",
+    "GADEM",
+    "HMS",
+    "Homer",
+    "Improbizer",
     "MDmodule",
     "MEME",
     "MEMEW",
-    "DREME",
-    "Weeder",
-    "GADEM",
     "MotifSampler",
-    "Trawler",
-    "Improbizer",
-    "BioProspector",
     "Posmo",
-    "ChIPMunk",
-    "AMD",
-    "HMS",
-    "Homer",
-    "XXmotif",
     "ProSampler",
-    "Yamda",
-    "DiNAMO",
     "RPMCMC",
+    "Trawler",
+    "Weeder",
+    "XXmotif",
+    "Yamda",
 ]
+
+
+def get_build_dir():
+    """
+    Returns the build directory if installed in editable mode
+    using `python setup.py build && pip install -e .`
+
+    Returns None if installed regularly using `pip install .`
+    """
+    root_dir = os.path.dirname(__path__[0])
+    v = sys.version_info
+    glob_dir = os.path.join(root_dir, "build", f"lib*{v[0]}*{v[1]}*", "gimmemotifs")
+    results = glob.glob(glob_dir)
+
+    if len(results) == 1:
+        return results[0]
 
 
 class MotifConfig(object):
     """Configuration object for the gimmemotifs module."""
 
+    # Borg design pattern: all instances of this class will have the same attributes
     __shared_state = {}
-
-    prefix = sysconfig.get_config_var("prefix")
 
     # Default config that is installed with GimmeMotifs
     default_config = pkg_resources.resource_filename(
         "gimmemotifs", "../data/cfg/gimmemotifs.default.cfg"
     )
 
-    #
-    package_dir = os.path.dirname(
-        os.path.abspath(inspect.getfile(inspect.currentframe()))
-    )
+    # If gimme is installed in editable mode,
+    # the motif discovery tools are installed in the build/ dir,
+    # else they are installed in environment's site-packages/ dir.
+    build_dir = get_build_dir()
+    if build_dir:
+        package_dir = build_dir
+    else:
+        package_dir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe()))
+        )
 
     user_config = os.path.join(CONFIG_DIR, "gimmemotifs.cfg")
-
-    config_dir = "share/gimmemotifs/gimmemotifs.cfg"
     configs = [user_config]
     config = None
-    TOOL_SECTION = "tools"
 
-    def __init__(self, use_config=""):
+    def __init__(self, use_config=None):
         self.__dict__ = self.__shared_state
+        self.config = configparser.ConfigParser()
         if use_config:
-            self.config = configparser.ConfigParser()
             cfg = self.config.read(use_config)
-        elif not self.config:
-            self.config = configparser.ConfigParser()
+        else:
             cfg = self.config.read(self.configs)
-            if not cfg:
-                logger.info("No config found.")
-                self.create_default_config()
-                cfg = self.config.read(self.configs)
-            if not cfg:
-                raise ValueError("Configuration file not found," "could not create it!")
+        if not cfg:
+            logger.info("No config found.")
+            self.create_default_config()
+            cfg = self.config.read(self.configs)
+        if not cfg:
+            raise ValueError("Configuration file not found," "could not create it!")
 
         self._upgrade_config()
 

@@ -1,0 +1,5 @@
+enhancer	cluster
+chr1:1-2	1
+chr1:3-5	3
+chr1:100-200	4
+chr1:500-600	3

@@ -19,10 +19,10 @@ conda_build = os.environ.get("CONDA_BUILD")
 module1 = Extension("gimmemotifs.c_metrics", sources=["gimmemotifs/c_metrics.c"])
 
 MOTIF_BINS = {
-    "MDmodule": ["src/MDmodule/MDmodule"],
-    "BioProspector": ["src/BioProspector/BioProspector"],
-    "Posmo": ["src/posmo/posmo", "src/posmo/clusterwd"],
     "AMD": ["src/AMD/AMD.bin"],
+    "BioProspector": ["src/BioProspector/BioProspector"],
+    "MDmodule": ["src/MDmodule/MDmodule"],
+    "Posmo": ["src/posmo/posmo", "src/posmo/clusterwd"],
 }
 
 
@@ -94,21 +94,22 @@ class build_tools(my_build_py):
 
 
 cmdclass["build_py"] = build_tools
+version = versioneer.get_version()
 
 setup(
     name="gimmemotifs",
-    version=versioneer.get_version(),
+    version=version,
     long_description=long_description,
     long_description_content_type="text/markdown",
     description=DESCRIPTION,
     author="Simon van Heeringen",
     author_email="simon.vanheeringen@gmail.com",
     url="https://github.com/simonvh/gimmemotifs/",
-    download_url="https://github.com/simonvh/gimmemotifs/tarball/"
-    + versioneer.get_version(),
+    download_url="https://github.com/simonvh/gimmemotifs/tarball/" + version,
     license="MIT",
     packages=find_packages(),
     scripts=["scripts/gimme", "scripts/combine_peaks", "scripts/coverage_table"],
+    package_data={"gimmemotifs.data": ["data/"]},
     include_package_data=True,
     ext_modules=[module1],
     cmdclass=cmdclass,
@@ -118,36 +119,39 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: POSIX :: Linux",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.5",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
     install_requires=[
-        "biofluff",
-        "setuptools >= 0.7",
-        "numpy",
-        "scipy >= 0.9.0",
-        "matplotlib >= 2",
+        "setuptools >=0.7",
+        # copied from the requirements.yaml
+        # "gcc",
+        "configparser",
+        "diskcache",
+        "feather-format",
+        "genomepy >=0.11.1",
+        "ipywidgets",
         "iteround",
         "jinja2",
-        "pandas >= 1.1",
-        "pyarrow >= 0.16.0",
-        "pyyaml >= 3.10",
-        "pybedtools",
-        "statsmodels",
-        "scikit-learn",
-        "seaborn",
-        "pysam",
-        "xgboost >= 0.71",
-        "xdg",
-        "diskcache",
-        "xxhash",
-        "configparser",
-        "genomepy >= 0.8.3",
-        "tqdm",
-        "pillow",
         "logomaker",
-        "qnorm",
         "loguru",
+        "matplotlib >=3.1.2",
+        # "matplotlib-base >=3.1.2",
+        "numpy >=1.6.0",
+        "pandas >=1.0.3, <=1.1.5",  # 1.3.5/1.4.2 are bugged
+        "pyarrow >=0.16.0",
+        "pybedtools >=0.9.0",
+        "pysam >=0.16",
+        # "python >=3.8",
+        "xxhash",
+        # "python-xxhash",
+        "qnorm  >=0.8.1",
+        "scikit-learn >=0.23.2",
+        "scipy >=1.4.1",
+        "seaborn >=0.10.1",
+        "statsmodels",
+        "tqdm >=4.46.1",
+        "xdg",
+        "xgboost >=1.0.2",
     ],
 )

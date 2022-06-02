@@ -739,7 +739,9 @@ def cli(sys_args):
                     print(
                         "Genome not found. Have you installed your genome with genomepy?"
                     )
-                    print("See https://github.com/simonvh/genomepy for details.")
+                    print(
+                        "See https://github.com/vanheeringen-lab/genomepy for details."
+                    )
                     print("Alternatively, you can specify a FASTA file.")
                     exit(1)
 
