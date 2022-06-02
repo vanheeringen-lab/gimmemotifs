@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+
+## [0.17.1] - 2022-06-02
+
 ### Added
 
 - `requirements.yaml` contains all conda dependencies.
