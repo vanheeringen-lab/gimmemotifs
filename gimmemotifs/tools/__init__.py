@@ -5,8 +5,8 @@
 # distribution.
 """Interface module for all motif programs."""
 import sys
+from shutil import which
 
-from ..shutils import which
 from .mdmodule import MDmodule
 from .meme import Meme
 from .memew import MemeW
@@ -83,25 +83,25 @@ def locate_tool(name, verbose=True):
 
 
 __tools__ = {
-    "xxmotif": XXmotif,
-    "homer": Homer,
-    "bioprospector": BioProspector,
-    "hms": Hms,
     "amd": Amd,
-    "improbizer": Improbizer,
-    "trawler": Trawler,
-    "weeder": Weeder,
-    "motifsampler": MotifSampler,
-    "mdmodule": MDmodule,
+    "bioprospector": BioProspector,
     "chipmunk": ChIPMunk,
-    "posmo": Posmo,
+    "dinamo": Dinamo,
+    "dreme": Dreme,
     "gadem": Gadem,
+    "homer": Homer,
+    "hms": Hms,
+    "improbizer": Improbizer,
     "jaspar": Jaspar,
+    "mdmodule": MDmodule,
     "meme": Meme,
     "memew": MemeW,
-    "dreme": Dreme,
+    "motifsampler": MotifSampler,
+    "posmo": Posmo,
     "prosampler": ProSampler,
-    "yamda": Yamda,
-    "dinamo": Dinamo,
     "rpmcmc": Rpmcmc,
+    "trawler": Trawler,
+    "weeder": Weeder,
+    "xxmotif": XXmotif,
+    "yamda": Yamda,
 }

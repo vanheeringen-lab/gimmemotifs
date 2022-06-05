@@ -12,9 +12,9 @@ import os
 import pathlib
 import logging
 import pkg_resources
-import inspect
-from gimmemotifs.shutils import which
-from gimmemotifs import __path__
+from shutil import which
+from time import time
+from ._version import get_versions
 
 logger = logging.getLogger("gimme.config")
 
@@ -23,7 +23,7 @@ BG_TYPES = ["random", "genomic", "gc", "promoter"]
 FA_VALID_BGS = ["random", "promoter", "gc", "custom", "genomic"]
 BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "custom"]
 BG_RANK = {"custom": 1, "promoter": 2, "gc": 3, "random": 4, "genomic": 5}
-FASTA_EXT = [".fasta", ".fa", ".fsa"]
+FASTA_EXT = [".fasta", ".fa", ".fsa", ".fna"]
 DIRECT_NAME = "direct"
 INDIRECT_NAME = "indirect\nor predicted"
 
@@ -34,8 +34,8 @@ MOTIF_CLASSES = [
     "AMD",
     "BioProspector",
     "ChIPMunk",
-    "DREME",
     "DiNAMO",
+    "DREME",
     "GADEM",
     "HMS",
     "Homer",
@@ -61,7 +61,7 @@ def get_build_dir():
 
     Returns None if installed regularly using `pip install .`
     """
-    root_dir = os.path.dirname(__path__[0])
+    root_dir = os.path.dirname(os.path.dirname(__file__))
     v = sys.version_info
     glob_dir = os.path.join(root_dir, "build", f"lib*{v[0]}*{v[1]}*", "gimmemotifs")
     results = glob.glob(glob_dir)
@@ -80,21 +80,19 @@ class MotifConfig(object):
     default_config = pkg_resources.resource_filename(
         "gimmemotifs", "../data/cfg/gimmemotifs.default.cfg"
     )
+    user_config = os.path.join(CONFIG_DIR, "gimmemotifs.cfg")
+    config = None
 
     # If gimme is installed in editable mode,
     # the motif discovery tools are installed in the build/ dir,
     # else they are installed in environment's site-packages/ dir.
-    build_dir = get_build_dir()
-    if build_dir:
-        package_dir = build_dir
-    else:
-        package_dir = os.path.dirname(
-            os.path.abspath(inspect.getfile(inspect.currentframe()))
-        )
+    package_dir = get_build_dir()
+    if package_dir is None:
+        package_dir = os.path.dirname(__file__)
 
-    user_config = os.path.join(CONFIG_DIR, "gimmemotifs.cfg")
-    configs = [user_config]
-    config = None
+    # minimum time before updating the config again
+    __timeout = 10  # seconds
+    __last_checked = 0
 
     def __init__(self, use_config=None):
         self.__dict__ = self.__shared_state
@@ -102,18 +100,47 @@ class MotifConfig(object):
         if use_config:
             cfg = self.config.read(use_config)
         else:
-            cfg = self.config.read(self.configs)
-        if not cfg:
-            logger.info("No config found.")
-            self.create_default_config()
-            cfg = self.config.read(self.configs)
-        if not cfg:
-            raise ValueError("Configuration file not found," "could not create it!")
+            cfg = self.config.read(self.user_config)
 
-        self._upgrade_config()
+        if not cfg:
+            self.create_default_config()
+            self.__last_checked = time()
+        elif time() > self.__last_checked + self.__timeout:
+            self._upgrade_config()
+            self.__last_checked = time()
 
     def _upgrade_config(self, config_fname=None):
         changed = False
+        dflt = configparser.ConfigParser()
+        dflt.read(self.default_config)
+
+        # check if old tools are still available
+        available_tools = self.config["params"]["available_tools"].split(",")
+        for m in available_tools:
+            cmd = self.config.get(m, "bin")
+            if not os.path.isfile(cmd):
+                logger.info("%s no longer found.", m)
+                available_tools.remove(m)
+                self.set_program(
+                    m, {"bin": dflt.get(m, "bin"), "dir": dflt.get(m, "dir")}
+                )
+                changed = True
+
+        # check if new tools are available
+        missing_tools = [m for m in MOTIF_CLASSES if m not in available_tools]
+        for m in missing_tools:
+            cmd = self.bin(m, config=dflt, missing_ok=True)
+            msg = "Using included version of %s."
+            if cmd is None:
+                cmd = which(dflt.get(m, "bin"))
+                msg = "Using system version of %s."
+            if cmd:
+                logger.info(msg, m)
+                available_tools.append(m)
+                self.set_program(m, {"bin": cmd, "dir": os.path.dirname(cmd)})
+                changed = True
+
+        # update older configs
         if "width" in self.config["params"]:
             if "size" not in self.config["params"]:
                 self.config.set(
@@ -133,40 +160,37 @@ class MotifConfig(object):
             del self.config["params"]["lwidth"]
             changed = True
 
-        if config_fname is None or not config_fname:
-            config_fname = self.configs[0]
         if changed:
+            available_tools.sort()
+            self.config["params"]["available_tools"] = ",".join(available_tools)
+            if config_fname is None or not config_fname:
+                config_fname = self.user_config
             with open(config_fname, "w") as f:
                 self.write(f)
+            logger.info("Configuration file: %s", self.user_config)
 
     def create_default_config(self):
         logger.info("Creating new config.")
 
         available_tools = []
         self.config.read(self.default_config)
+        self.config.set("main", "config_version", get_versions()["version"])
         for m in MOTIF_CLASSES:
-            try:
-                exe = self.config.get(m, "bin")
-                mdir = self.config.get(m, "dir")
-                tool_dir = os.path.join(self.package_dir, mdir)
-                cmd = os.path.join(tool_dir, exe)
-                if which(cmd):
-                    logger.info("Using included version of %s.", m)
-                    available_tools.append(m)
-                else:
-                    cmd = which(exe)
-                    if cmd:
-                        logger.info("Using system version of %s.", m)
-                        self.set_program(m, {"bin": cmd, "dir": os.path.dirname(cmd)})
-                        available_tools.append(m)
-                    else:
-                        logger.warn(
-                            "%s not found. To include it you will have to install it.",
-                            m,
-                        )
-
-            except configparser.NoSectionError:
-                logger.warn("{} not in config".format(m))
+            mbin = self.config.get(m, "bin")
+            mdir = self.config.get(m, "dir")
+            cmd = which(os.path.join(self.package_dir, mdir, mbin))
+            msg = "Using included version of %s."
+            if cmd is None:
+                cmd = which(mbin)
+                msg = "Using system version of %s."
+            if cmd:
+                logger.info(msg, m)
+                self.set_program(m, {"bin": cmd, "dir": os.path.dirname(cmd)})
+                available_tools.append(m)
+                continue
+            logger.warning(
+                "%s not found. To include it you will have to install it.", m
+            )
 
         params = self.get_default_params()
         params["available_tools"] = ",".join(available_tools)
@@ -178,66 +202,40 @@ class MotifConfig(object):
             self.config.write(f)
         logger.info("Configuration file: %s", self.user_config)
 
-    def bin(self, program):
-        try:
-            exe_base = self.config.get(program, "bin")
-            if not os.path.exists(exe_base):
-                mdir = self.config.get(program, "dir")
-                build_dir = next(
-                    iter(glob.glob(f"build/lib*{sys.version[:3]}/gimmemotifs")), ""
-                )
-                dirs = [
-                    mdir,
-                    os.path.join(self.package_dir, mdir),
-                    os.path.join(build_dir, mdir),
-                ]
-                for bla in dirs:
-                    exe = os.path.join(bla, exe_base)
-                    if os.path.exists(exe):
-                        return os.path.abspath(exe)
+    def bin(self, program, config=None, missing_ok=False):
+        if config is None:
+            config = self.config
 
-        except Exception:
-            raise ValueError("No configuration found for %s" % program)
-        return exe_base
+        mbin = config.get(program, "bin")
+        if os.path.exists(mbin):
+            return os.path.abspath(mbin)
 
-    def set_default_params(self, params):
-        if not self.config.has_section("params"):
-            self.config.add_section("params")
+        mdir = config.get(program, "dir")
+        cmd = os.path.join(mdir, mbin)
+        if os.path.exists(cmd):
+            return os.path.abspath(cmd)
 
-        for k, v in params.items():
-            self.config.set("params", k, str(v))
+        cmd = os.path.join(self.package_dir, mdir, mbin)
+        if os.path.exists(cmd):
+            return cmd
 
-    def get_default_params(self):
-        d = dict(self.config.items("params"))
-        for k in ["use_strand", "use_cache"]:
-            d[k] = self.config.getboolean("params", k)
-
-        if "size" not in d:
-            d["size"] = d["width"]
-        return d
+        if not missing_ok:
+            raise ValueError(f"No configuration found for {program}")
 
     def dir(self, program):
-        if self.config.has_section(program):
-            if self.config.has_option(program, "dir"):
-                try:
-                    mdir = self.config.get(program, "dir")
-                    build_dir = next(
-                        iter(glob.glob(f"build/lib*{sys.version[:3]}/gimmemotifs")), ""
-                    )
-                    dirs = [
-                        mdir,
-                        os.path.join(self.package_dir, mdir),
-                        os.path.join(build_dir, mdir),
-                    ]
-                    for mdir in dirs:
-                        if os.path.exists(mdir):
-                            return mdir
-                except Exception:
-                    return None
-            else:
-                return os.path.dirname(self.bin(program))
-        else:
-            raise ValueError("No configuration found for %s" % program)
+        mdir = self.config.get(program, "dir", fallback="included_tools")
+        if os.path.exists(mdir):
+            return mdir
+
+        mdir = os.path.join(self.package_dir, mdir)
+        if os.path.exists(mdir):
+            return mdir
+
+        mdir = os.path.dirname(self.bin(program))
+        if os.path.isabs(mdir):
+            return mdir
+
+        raise ValueError("No configuration found for %s" % program)
 
     def set_program(self, program, d):
         if not self.config.has_section(program):
@@ -253,6 +251,19 @@ class MotifConfig(object):
                 "gimmemotifs", os.path.join("../data", my_dir)
             )
         return my_dir
+
+    def set_default_params(self, params):
+        if not self.config.has_section("params"):
+            self.config.add_section("params")
+
+        for k, v in params.items():
+            self.config.set("params", k, str(v))
+
+    def get_default_params(self):
+        d = dict(self.config.items("params"))
+        for k in ["use_strand", "use_cache"]:
+            d[k] = self.config.getboolean("params", k)
+        return d
 
     def set_template_dir(self, path):
         if not self.config.has_section("main"):
@@ -305,9 +316,6 @@ class MotifConfig(object):
     def is_configured(self, program):
         return self.config.has_section(program)
 
-    def save(self):
-        self.config.write(open(os.path.expanduser("~/.gimmemotifs.cfg"), "w"))
-
     def write(self, fo):
         self.config.write(fo)
 
@@ -354,15 +362,14 @@ def parse_denovo_params(user_params=None):
         logger.debug("  %s: %s", param, value)
 
     # Maximum time?
+    try:
+        params["max_time"] = float(params.get("max_time", -1))
+    except (ValueError, TypeError):
+        logger.debug("Could not parse max_time value, setting to no limit")
+        params["max_time"] = -1
 
-    if params["max_time"]:
-        try:
-            max_time = params["max_time"] = float(params["max_time"])
-        except Exception:
-            logger.debug("Could not parse max_time value, setting to no limit")
-            params["max_time"] = -1
-
-    if params["max_time"] > 0:
+    max_time = params["max_time"]
+    if max_time > 0:
         logger.debug("Time limit for motif prediction: %0.2f hours", max_time)
         params["max_time"] = 3600 * params["max_time"]
         logger.debug("Max_time in seconds %0.0f", max_time)

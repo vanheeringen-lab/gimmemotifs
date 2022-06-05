@@ -69,7 +69,6 @@ from . import rank        # noqa: F401
 from . import report      # noqa: F401
 from . import rocmetrics  # noqa: F401
 from . import scanner     # noqa: F401
-from . import shutils     # noqa: F401
 from . import stats       # noqa: F401
 from . import utils       # noqa: F401
 from . import validation  # noqa: F401

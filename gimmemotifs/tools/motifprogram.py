@@ -10,7 +10,9 @@ class MotifProgram(object):
     """Motif program base class."""
 
     config = MotifConfig()
-    local_bin = None
+    default_params = {}
+    name = None
+    tmpdir = None
 
     def _parse_params(self, params=None, needs_background=False):
         """
@@ -52,10 +54,7 @@ class MotifProgram(object):
         command : str
             The tool system command.
         """
-        if self.local_bin:
-            return self.local_bin
-        else:
-            return self.config.bin(self.name)
+        return self.config.bin(self.name)
 
     def dir(self):
         """
@@ -89,6 +88,9 @@ class MotifProgram(object):
             True if the tool is installed.
         """
         return self.is_configured() and os.access(self.bin(), os.X_OK)
+
+    def _run_program(self, param, fastafile, params):
+        raise NotImplementedError()
 
     def run(self, fastafile, params=None, tmp=None):
         """
@@ -131,4 +133,4 @@ class MotifProgram(object):
         try:
             return self._run_program(self.bin(), fastafile, params)
         except KeyboardInterrupt:
-            return ([], "Killed", "Killed")
+            return [], "Killed", "Killed"
