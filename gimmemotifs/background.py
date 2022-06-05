@@ -26,7 +26,6 @@ import numpy as np
 import pandas as pd
 import pybedtools
 from genomepy import Genome
-from pyarrow.lib import ArrowInvalid
 
 # GimmeMotifs imports
 from gimmemotifs import mytmpdir
@@ -399,7 +398,7 @@ def gc_bin_bedfile(
     )
     try:
         df = pd.read_feather(fname)
-    except (ArrowInvalid, FileNotFoundError):
+    except FileNotFoundError:
         if not os.path.exists(CACHE_DIR):
             os.makedirs(CACHE_DIR)
         create_gc_bin_index(genome, fname, min_bin_size=min_bin_size)
