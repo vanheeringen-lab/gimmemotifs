@@ -6,11 +6,15 @@ from distutils import log
 
 def compile_simple(name, src_dir="src"):
     gcc = "gcc"
-    if "GCC" in os.environ and os.environ["GCC"]:
+    if os.environ.get("GCC"):
         gcc = os.environ["GCC"]
+    if os.environ.get("CC"):
+        # implements conda patch
+        # https://github.com/bioconda/bioconda-recipes/blob/
+        # 7ced0315a5f4f7723d99285bfad16b609c660ae6/recipes/gimmemotifs/compile_fix.patch
+        gcc = os.environ["CC"]
 
-    path = os.path.join(src_dir, "%s" % name)
-
+    path = os.path.join(src_dir, str(name))
     if not os.path.exists(path):
         return
 
