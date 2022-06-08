@@ -21,7 +21,7 @@ before_install:
   - conda config --set always_yes True
 
 install:
-  - conda install conda-forge::mamba
+  - conda install conda-forge::mamba>=0.24
   - mamba env create -f requirements.yaml
   - source activate gimme
   - python setup.py build  # installs the motif discovery tools
