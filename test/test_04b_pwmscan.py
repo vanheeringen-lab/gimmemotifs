@@ -1,9 +1,8 @@
 import unittest
 from tempfile import NamedTemporaryFile
 import os
-from gimmemotifs.motif import *
+from gimmemotifs.motif import read_motifs
 from gimmemotifs.fasta import Fasta
-from time import sleep
 
 
 class TestMotifPwm(unittest.TestCase):

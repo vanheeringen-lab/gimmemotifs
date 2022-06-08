@@ -22,11 +22,11 @@ def test_gimme_motifs(motif_argument):
     with TemporaryDirectory() as d:
         print(d)
         cli(
-            ["motifs", "test/data/denovo/input.fa", d] +  # test/data/cli/Gm12878.CTCF.top200.fa
-            ["-p", "test/data/cli/motifs.pfm"] +
-            ["-g", "test/data/background/genome.fa"] +
-            ["-a", "small", "-t", "MEME", "--nogc", "-N", "1"] +
-            motif_argument
+            ["motifs", "test/data/denovo/input.fa", d]
+            + ["-p", "test/data/cli/motifs.pfm"]  # test/data/cli/Gm12878.CTCF.top200.fa
+            + ["-g", "test/data/background/genome.fa"]
+            + ["-a", "small", "-t", "MEME", "--nogc", "-N", "1"]
+            + motif_argument
         )
 
         assert 1 == 1
@@ -37,9 +37,12 @@ def test_gimme_maelstrom():
     with TemporaryDirectory() as d:
         print(d)
         cli(
-            ["maelstrom", "test/data/maelstrom/input_table.txt"] +  # test/data/maelstrom/input.table.txt
-            ["test/data/background/genome.fa", d] +
-            ["--nogc", "-m", "RF"]  # "--no-filter",
+            ["maelstrom", "test/data/maelstrom/input_table.txt"]
+            + [  # test/data/maelstrom/input.table.txt
+                "test/data/background/genome.fa",
+                d,
+            ]
+            + ["--nogc", "-m", "RF"]  # "--no-filter",
         )
 
         assert 1 == 1

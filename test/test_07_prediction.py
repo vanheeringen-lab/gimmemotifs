@@ -3,8 +3,6 @@ import tempfile
 import os
 from gimmemotifs.prediction import PredictionResult
 from gimmemotifs.motif import read_motifs
-from gimmemotifs import rocmetrics
-from time import sleep
 
 
 class TestStats(unittest.TestCase):

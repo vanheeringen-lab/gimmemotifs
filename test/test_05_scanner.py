@@ -1,9 +1,8 @@
 import unittest
 import tempfile
 import os
-from gimmemotifs.scanner import *
+from gimmemotifs.scanner import Scanner, scan_to_best_match
 from gimmemotifs.fasta import Fasta
-from time import sleep
 
 
 class TestScanner(unittest.TestCase):

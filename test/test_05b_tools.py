@@ -1,5 +1,4 @@
 import platform
-import tempfile
 import os
 import pytest
 from gimmemotifs.tools import __tools__, get_tool

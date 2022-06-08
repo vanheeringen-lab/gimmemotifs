@@ -4,7 +4,17 @@ import glob
 
 import pytest
 
-from gimmemotifs.utils import *
+from gimmemotifs.utils import (
+    phyper,
+    as_fasta,
+    file_checksum,
+    join_max,
+    determine_file_type,
+    number_of_seqs_in_file,
+    median_bed_len,
+    check_genome,
+    pfmfile_location,
+)
 from gimmemotifs.fasta import Fasta
 from genomepy import Genome
 from tempfile import mkdtemp
@@ -40,7 +50,7 @@ class TestUtils(unittest.TestCase):
         bedfile = os.path.join(self.datadir, "test.bed")
         regionfile = os.path.join(self.datadir, "test.txt")
         with open(regionfile) as f:
-            regions = [l.strip() for l in f]
+            regions = [line.strip() for line in f]
 
         self.assertTrue(isinstance(as_fasta(fa), Fasta))
         self.assertTrue(isinstance(as_fasta(fafile), Fasta))

@@ -1,5 +1,4 @@
 import unittest
-import tempfile
 import os
 import pandas as pd
 from gimmemotifs.rank import rankagg, _rankagg_stuart

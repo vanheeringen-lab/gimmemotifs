@@ -5,7 +5,9 @@ import subprocess as sp
 def test_black_formatting():
     try:
         sp.check_output(
-            "black --check gimmemotifs/ setup.py scripts/", stderr=sp.STDOUT, shell=True
+            "black --check gimmemotifs/ scripts/ test/ setup.py",
+            stderr=sp.STDOUT,
+            shell=True,
         )
     except sp.CalledProcessError as e:
         msg = e.output.decode("utf-8")
@@ -17,7 +19,7 @@ def test_black_formatting():
 def test_flake8_formatting():
     try:
         sp.check_output(
-            "flake8 setup.py gimmemotifs/ scripts/", stderr=sp.STDOUT, shell=True
+            "flake8 gimmemotifs/ scripts/ test/ setup.py", stderr=sp.STDOUT, shell=True
         )
     except sp.CalledProcessError as e:
         msg = e.output.decode("utf-8")

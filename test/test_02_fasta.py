@@ -1,6 +1,5 @@
-from gimmemotifs.fasta import *
+from gimmemotifs.fasta import Fasta
 import tempfile
-import os
 import pytest
 
 

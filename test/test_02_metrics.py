@@ -1,7 +1,5 @@
 import unittest
-import tempfile
-import os
-from gimmemotifs.c_metrics import *
+from gimmemotifs.c_metrics import score
 from gimmemotifs.rocmetrics import pr_auc
 
 

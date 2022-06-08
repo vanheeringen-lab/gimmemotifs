@@ -11,7 +11,7 @@ class TestMotifDatabases(unittest.TestCase):
     def test_list(self):
         """Test motif db list"""
 
-        l = sorted(MotifDb.list_databases())
+        l_dbs = sorted(MotifDb.list_databases())
         expected = [
             "cis-bp",
             "encode",
@@ -23,7 +23,7 @@ class TestMotifDatabases(unittest.TestCase):
             "rsat",
             "swissregulon",
         ]
-        self.assertEqual(l, expected)
+        self.assertEqual(l_dbs, expected)
 
     def tearDown(self):
         pass

@@ -1,11 +1,8 @@
 import unittest
-import tempfile
 import os
 from glob import glob
-from shutil import rmtree
 import pandas as pd
 
-from gimmemotifs.config import MotifConfig
 from gimmemotifs.maelstrom import run_maelstrom
 
 
