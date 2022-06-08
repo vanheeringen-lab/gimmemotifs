@@ -16,7 +16,7 @@ from tempfile import NamedTemporaryFile
 import genomepy
 import numpy as np
 import pysam
-from fluff.fluffio import load_heatmap_data
+from fluff.fluffio import load_heatmap_data  # noqa: biofluff
 import pandas as pd
 from pybedtools import BedTool
 from sklearn.preprocessing import scale

@@ -4,6 +4,7 @@ channels:
   - bioconda
   - defaults
 dependencies:
+  - bioconda::biofluff >=3.0.4    # Necessary for coverage_table()
   - configparser
   - conda-forge::diskcache
   - conda-forge::feather-format

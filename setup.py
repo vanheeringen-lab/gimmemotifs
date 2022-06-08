@@ -125,7 +125,7 @@ setup(
     install_requires=[
         "setuptools >=0.7",
         # copied from the requirements.yaml
-        # "gcc",
+        "biofluff >=3.0.4",
         "configparser",
         "diskcache",
         "feather-format",

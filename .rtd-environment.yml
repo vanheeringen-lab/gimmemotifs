@@ -7,6 +7,7 @@ dependencies:
   - sphinx_bootstrap_theme
 
   # gimme packages (without the motif discovery tools)
+  - bioconda::biofluff >=3.0.4    # Necessary for coverage_table()
   - configparser
   - conda-forge::diskcache
   - conda-forge::feather-format
