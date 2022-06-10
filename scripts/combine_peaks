@@ -7,7 +7,6 @@ from io import StringIO
 from gimmemotifs import __version__
 from gimmemotifs.preprocessing import combine_peaks
 
-
 if __name__ == "__main__":
 
     description = """
@@ -19,12 +18,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(
-        "-i",
-        "--input",
         dest="peaks",
-        required=True,
         help="MACS2 summit or narrowPeak files",
-        metavar="FNAME",
+        metavar="PEAK_FILES",
         nargs="*",
     )
     parser.add_argument(
@@ -33,11 +29,12 @@ if __name__ == "__main__":
         dest="genome",
         required=True,
         help="Genome name or genome file",
-        metavar="GENOME",
+        metavar="FILE",
     )
     parser.add_argument(
         "-w",
         "--window",
+        metavar="INT",
         dest="window",
         type=int,
         help="Window size (default 200)",
@@ -54,12 +51,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    exit = False
+    _exit = False
     for fname in args.peaks:
         if not os.path.exists(fname):
             print("File {} does not exist!".format(fname), file=sys.stderr)
-            exit = True
-    if exit:
+            _exit = True
+    if _exit:
         sys.exit(1)
 
     df = combine_peaks(args.peaks, args.genome, args.window, args.scale)

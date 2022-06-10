@@ -15,21 +15,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(
-        "-p",
-        "--peaks",
-        required=True,
         dest="peakfile",
         help="BED file containing peaks",
-        metavar="FILE",
-        default=None,
+        metavar="PEAK_FILE",
     )
     parser.add_argument(
-        "-d",
-        "--datafile",
-        required=True,
         dest="datafiles",
-        help="data files (BAM, BED or bigWig format)",
-        metavar="FILE",
+        help="BAM, BED or bigWig file(s) with read data",
+        metavar="DATA_FILE(S)",
         nargs="*",
     )
     parser.add_argument(
@@ -37,34 +30,41 @@ if __name__ == "__main__":
         "--window",
         dest="window",
         help="window size (default 200)",
-        metavar="WINDOW",
+        metavar="INT",
         type=int,
         default=200,
     )
     parser.add_argument(
         "-l",
-        "--logtransform",
+        "--log-transform",
         dest="log_transform",
-        help="Log transfrom",
+        help="apply a natural log transform",
         default=False,
         action="store_true",
     )
     parser.add_argument(
         "-n",
         "--normalization",
+        metavar="STR",
         dest="normalization",
-        help="Normalization: none, quantile or scale",
-        default="none",
-        metavar="METHOD",
+        help="apply 'quantile' or 'scale' normalization",
+        default=None,
     )
     parser.add_argument(
-        "-t", "--top", dest="top", help="Select regions.", default=0, type=int
+        "-t",
+        "--top",
+        metavar="STR",
+        dest="top",
+        help="Select regions.",
+        default=-1,
+        type=int,
     )
     parser.add_argument(
         "-T",
-        "--topmethod",
+        "--top-method",
+        metavar="STR",
         dest="topmethod",
-        help="Method to select regions (var, std, mean or random)",
+        help="select top regions by 'var', 'std', 'mean' or 'random'",
         default="var",
     )
     parser.add_argument(
@@ -84,8 +84,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--nthreads",
         dest="ncpus",
-        help="Number of threads",
         metavar="INT",
+        help="Number of threads (default 12)",
         type=int,
         default=12,
     )
@@ -94,31 +94,35 @@ if __name__ == "__main__":
     peakfile = args.peakfile
     datafiles = args.datafiles
     df = coverage_table(
-        peakfile,
-        datafiles,
-        args.window,
+        peakfile=peakfile,
+        datafiles=datafiles,
+        window=args.window,
         log_transform=args.log_transform,
         normalization=args.normalization,
         top=args.top,
         topmethod=args.topmethod,
         rmdup=args.rmdup,
         rmrepeats=args.rmrepeats,
-        ncpus=args.ncpus
+        ncpus=args.ncpus,
     )
 
-yesno = {True: "yes", False: "no"}
+    yesno = {True: "yes", False: "no"}
 
-output = StringIO()
-output.write("# Table created by coverage_table (GimmeMotifs {})\n".format(__version__))
-output.write("# Input file: {}\n".format(args.peakfile))
-output.write("# Data files: {}\n".format(args.datafiles))
-output.write("# Window: {}\n".format(args.window))
-output.write("# Duplicates removed: {}\n".format(yesno[args.rmdup]))
-output.write("# MAPQ 0 removed: {}\n".format(yesno[args.rmrepeats]))
-output.write("# Log transformed: {}\n".format(yesno[args.log_transform]))
-output.write("# Normalization: {}\n".format(args.normalization))
-if args.top > 0:
-    output.write("# Top {} regions selected by {}\n".format(args.top, args.topmethod))
-df.to_csv(output, sep="\t", float_format="%0.5f")
-output.seek(0)
-print(output.read(), end="")
+    output = StringIO()
+    output.write(
+        "# Table created by coverage_table (GimmeMotifs {})\n".format(__version__)
+    )
+    output.write("# Input file: {}\n".format(args.peakfile))
+    output.write("# Data files: {}\n".format(args.datafiles))
+    output.write("# Window: {}\n".format(args.window))
+    output.write("# Duplicates removed: {}\n".format(yesno[args.rmdup]))
+    output.write("# MAPQ 0 removed: {}\n".format(yesno[args.rmrepeats]))
+    output.write("# Log transformed: {}\n".format(yesno[args.log_transform]))
+    output.write("# Normalization: {}\n".format(args.normalization))
+    if args.top > 0:
+        output.write(
+            "# Top {} regions selected by {}\n".format(args.top, args.topmethod)
+        )
+    df.to_csv(output, sep="\t", float_format="%0.5f")
+    output.seek(0)
+    print(output.read(), end="")
