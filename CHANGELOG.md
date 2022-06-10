@@ -5,6 +5,23 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Changed
+
+- an existing config will now update available tools when accessed (e4b3275)
+- applied the bioconda patch to compile_externals.py (11b0c2c)
+- `coverage_table` and `combine_peaks` have their positional arguments under positional arguments (20819ee)
+- `coverage_table` should be slightly faster now (20819ee)
+
+### Fixed
+
+- biofluff dependency back in requirements
+- pinned conda and mamba versions in `.travis.yaml` 
+  - temp fix until conda>=4.12 can install mamba properly
+
+### Removed
+
+- pyarrow dependency
+
 
 ## [0.17.1] - 2022-06-02
 
