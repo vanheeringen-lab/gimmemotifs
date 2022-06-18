@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - biofluff dependency back in requirements
 - pinned conda and mamba versions in `.travis.yaml` 
   - temp fix until conda>=4.12 can install mamba properly
+- documentation is working again!
 
 ### Removed
 
