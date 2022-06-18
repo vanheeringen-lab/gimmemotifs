@@ -64,3 +64,5 @@ html_static_path = ['_static']
 
 
 # -- Extension configuration -------------------------------------------------
+
+autodoc_mock_imports = ["gimmemotifs.c_metrics"]
