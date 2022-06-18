@@ -9,6 +9,10 @@ build:
   os: "ubuntu-20.04"
   tools:
     python: "mambaforge-4.10"
+  jobs:
+    # readthedocs doesn't install the C code correctly, so we do it
+    pre_install:
+      - python -m pip install . --no-deps --ignore-installed -vvv
 
 conda:
   environment: .rtd-environment.yml
