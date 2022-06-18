@@ -1,6 +1,7 @@
 # .readthedocs.yaml
 # Read the Docs configuration file
 # See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+# See https://docs.readthedocs.io/en/stable/build-customization.html for job steps
 
 # Required
 version: 2
@@ -9,12 +10,6 @@ build:
   os: "ubuntu-20.04"
   tools:
     python: "mambaforge-4.10"
-  jobs:
-    # order of jobs: https://docs.readthedocs.io/en/stable/build-customization.html
-    # readthedocs doesn't install the C code correctly, so we do it
-    post_install:
-      - python -m pip install . --no-deps --ignore-installed -vvv
-      - gimme -h
 
 conda:
   environment: .rtd-environment.yml
