@@ -130,7 +130,7 @@ setup(
         "diskcache",
         "feather-format",
         "genomepy >=0.13.0",
-        "ipywidgets",
+        # "ipywidgets",
         "iteround",
         "jinja2",
         "logomaker",
