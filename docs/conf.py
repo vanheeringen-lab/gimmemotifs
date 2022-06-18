@@ -12,8 +12,20 @@
 
 import os
 import sys
+import mock
+
+
 sys.path.insert(0, os.path.abspath('..'))
+# c_metrics is created, but rtd can't find it for some reason
+# to fix this we do a mock import
+MOCK_MODULES = ['gimmemotifs.c_metrics']
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = mock.Mock()
+
 from gimmemotifs import __version__  # noqa
+
+# test if the import succeeded
+print("\ngimmemotifs version:", __version__, "\n")
 
 
 # -- Project information -----------------------------------------------------
