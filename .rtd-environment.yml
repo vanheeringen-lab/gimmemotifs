@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   # docs specific packages
+  - sphinx
   - sphinx_bootstrap_theme
 
   # gimme packages (without the motif discovery tools)
@@ -12,7 +13,7 @@ dependencies:
   - conda-forge::diskcache
   - conda-forge::feather-format
   - bioconda::genomepy >=0.13.0
-  - ipywidgets                    # Necessary for progress bar in Jupyter notebook
+#  - ipywidgets                    # Necessary for progress bar in Jupyter notebook
   - conda-forge::iteround
   - jinja2
   - bioconda::logomaker
@@ -32,3 +33,4 @@ dependencies:
   - tqdm >=4.46.1
   - xdg
   - xgboost >=1.0.2
+  - conda-forge::gcc              # Necessary to install motif discovery tools
