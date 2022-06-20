@@ -15,33 +15,38 @@ GimmeMotifs runs on Linux. On Windows 10 it will run fine using the `Windows Sub
 Conda - the easy way
 --------------------
 
-The preferred way to install GimmeMotifs is by using `conda
-<https://docs.continuum.io/anaconda>`_. 
-Activate the bioconda_ channel if you haven't used bioconda before.
-You only have to do this once.
+The preferred way to install GimmeMotifs is by using conda_.
+Activate the required channels and install mamba_ (you only have to do this once).
 
+In this example, conda and mamba versions are pinned due to a bug with mamba.
+For more information, see issue 271_.
+
+.. _conda: https://docs.continuum.io/anaconda
+.. _mamba: https://github.com/mamba-org/mamba
 .. _bioconda: https://bioconda.github.io/
+.. _271: https://github.com/vanheeringen-lab/gimmemotifs/issues/271
 
 :: 
 
     $ conda config --add channels defaults
     $ conda config --add channels bioconda
     $ conda config --add channels conda-forge
+    $ conda install -c conda-forge conda=4.13 mamba=0.24
 
 You can install GimmeMotifs with one command. In the current environment:
 
 ::
 
-    $ conda install gimmemotifs
+    $ mamba install gimmemotifs
 
 Or create a specific environment:
 
 ::
 
-    $ conda create -n gimme gimmemotifs
+    $ mamba create -n gimme gimmemotifs
     
     # Activate the environment before you use GimmeMotifs
-    $ conda activate gimme
+    $ mamba activate gimme
 
 Installation successful? Good. Have a look at the :ref:`configuration<configuration>` section.
 
