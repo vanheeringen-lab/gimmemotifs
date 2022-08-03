@@ -288,7 +288,7 @@ class Motif(object):
         """
         # Ignore divide-by-zero errors in log2.
         # We only use the return from log2 if the input was positive,
-        # so we should this error should not impact the calculation.
+        # so this error should not impact the calculation.
         with np.errstate(divide="ignore"):
             log_ppm = np.log2(self.ppm)
         return ((self.ppm * np.where(self.ppm > 0, log_ppm, 0)).sum(1) + 2).sum()
