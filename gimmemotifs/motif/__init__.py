@@ -286,7 +286,12 @@ class Motif(object):
         float
             Motif information content.
         """
-        return ((self.ppm * np.log2(self.ppm)).sum(1) + 2).sum()
+        # Ignore divide-by-zero errors in log2.
+        # We only use the return from log2 if the input was positive,
+        # so this error should not impact the calculation.
+        with np.errstate(divide="ignore"):
+            log_ppm = np.log2(self.ppm)
+        return ((self.ppm * np.where(self.ppm > 0, log_ppm, 0)).sum(1) + 2).sum()
 
     @property
     def hash(self):

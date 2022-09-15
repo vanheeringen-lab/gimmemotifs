@@ -266,6 +266,19 @@ def test_pcc():
     assert 4 == round(m1.max_pcc(m2)[0], 0)
 
 
+def test_information_content():
+    pfm1 = [[42, 0, 42, 0]]
+    m1 = Motif(pfm1)
+    # Slightly redundant regression check to make sure we're not producing NaN
+    assert not np.isnan(m1.information_content)
+    assert round(m1.information_content, 5) == 1
+
+    # IC does not depend on overall normalisation of the PFM or which nucleotides are involved
+    pfm2 = [[0, 10, 0, 10]]
+    m2 = Motif(pfm2)
+    assert round(m1.information_content, 5) == round(m2.information_content, 5)
+
+
 def test_add_operator():
     m1 = motif_from_consensus("AAA")
     m2 = motif_from_consensus("TCG")
