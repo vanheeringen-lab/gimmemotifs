@@ -1222,7 +1222,7 @@ def read_motifs(infile=None, fmt="pfm", as_dict=False):
 
     Returns
     -------
-    motifs : list
+    motifs : list or dict
         List of Motif instances. If as_dict is set to True, motifs is a
         dictionary.
     """
