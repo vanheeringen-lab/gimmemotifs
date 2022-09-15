@@ -16,24 +16,12 @@ import jinja2
 import numpy as np
 import pandas as pd
 from statsmodels.stats.multitest import multipletests
-
-try:
-    # pandas >= 1.3
-    from pandas.io.formats.style_render import non_reducing_slice
-except ImportError:
-    try:
-        # pandas = 1.2
-        from pandas.core.indexing import non_reducing_slice
-    except ImportError:
-        # pandas <= 1.1
-        from pandas.core.indexing import _non_reducing_slice as non_reducing_slice
-
-
+from pandas.io.formats.style_render import non_reducing_slice
 from pandas.io.formats.style import Styler
 import seaborn as sns
 
 try:
-    import emoji
+    import emoji  # noqa: currently optional
 except ImportError:
     pass
 
@@ -126,7 +114,7 @@ class ExtraStyler(Styler):
         Examples
         --------
         >>> df = pd.DataFrame(np.random.randn(4, 2), columns=['a', 'b'])
-        >>> ExtraStyler(df).font("Roboto)
+        >>> ExtraStyler(df).set_font("Roboto")
         """
         self.font = font_name
         return self
@@ -209,7 +197,8 @@ class ExtraStyler(Styler):
             raise ValueError(f"unknown value for part: {part}")
         return self
 
-    def _wrap_iterable(self, it):
+    @staticmethod
+    def _wrap_iterable(it):
         return [_wrap_html_str(val) for val in it]
 
     def _wrap(self, subset=None, axis=0):
@@ -249,7 +238,8 @@ class ExtraStyler(Styler):
         )
         return self
 
-    def _border(self, idx, location="left"):
+    @staticmethod
+    def _border(idx, location="left"):
         return [f"border-{location}: 2px solid #444;" for val in idx]
 
     def border(
@@ -296,7 +286,7 @@ class ExtraStyler(Styler):
         Examples
         --------
         >>> df = pd.DataFrame(np.random.randn(4, 2), columns=['a', 'b'])
-        >>> ExtraStyler(df).border(part="columns)
+        >>> ExtraStyler(df).border(part="columns")
         """
         if part == "data":
             self.apply(self._border, subset=subset, location=location)
@@ -306,7 +296,8 @@ class ExtraStyler(Styler):
             )
         return self
 
-    def _align(self, idx, location="center"):
+    @staticmethod
+    def _align(idx, location="center"):
         return [f"text-align:{location};" for val in idx]
 
     def align(self, subset=None, location="center", axis=0):
@@ -338,11 +329,11 @@ class ExtraStyler(Styler):
         subset = pd.IndexSlice[:, :] if subset is None else subset
         subset = non_reducing_slice(subset)
 
-        def precision_str(x, precision=precision):
-            if (include_zero or x > 0) and x <= 10**-precision:
-                return f"<{10**-precision}"
+        def precision_str(x, p=precision):
+            if (include_zero or x > 0) and x <= 10**-p:
+                return f"<{10**-p}"
             else:
-                return f"{{0:.{precision}f}}".format(x)
+                return f"{{0:.{p}f}}".format(x)  # noqa
 
         self.display_data.loc[subset] = self.data.loc[subset].applymap(precision_str)
         return self
@@ -458,7 +449,8 @@ class ExtraStyler(Styler):
         self.display_data = self.display_data.rename(columns=columns, index=index)
         return self
 
-    def _emoji_score(self, series, emoji_str=None, bins=None):
+    @staticmethod
+    def _emoji_score(series, emoji_str=None, bins=None):
         if emoji_str is None:
             emoji_str = ":star:"
         if bins is None:
@@ -474,7 +466,8 @@ class ExtraStyler(Styler):
             for val in pd.cut(series, bins=bins, labels=labels)
         ]
 
-    def _emoji_scale(self, series, emojis=None, bins=None):
+    @staticmethod
+    def _emoji_scale(series, emojis=None, bins=None):
         emoji_dict = {
             "thumbs": [":thumbsdown:", ":thumbsup:"],
             "check": [":cross_mark:", ":white_check_mark:"],
@@ -502,6 +495,7 @@ class ExtraStyler(Styler):
         if emojis is None:
             emojis = "smiley"
 
+        labels = []
         if emojis in emoji_dict:
             labels = emoji_dict[emojis]
         if bins is None:
@@ -551,8 +545,8 @@ class ExtraStyler(Styler):
         self,
         subset=None,
         cmap="RdBu_r",
-        low=0,
-        high=0,
+        low=0.0,
+        high=0.0,
         center_zero=False,
         vmin=None,
         vmax=None,
@@ -662,10 +656,7 @@ def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
                 )
                 my_stats[str(motif)][bg]["best_match_pvalue"] = match[1][-1]
 
-    header = ("# GimmeMotifs version {}\n" "# Inputfile: {}\n").format(
-        __version__, inputfile
-    )
-
+    header = f"# GimmeMotifs version {__version__}\n# Inputfile: {inputfile}\n"
     write_stats(my_stats, os.path.join(outdir, "stats.{}.txt"), header=header)
 
 
@@ -881,7 +872,7 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
 
     df_styled = (
         ExtraStyler(df)
-        .set_precision(2)
+        .format(precision=2)  # .set_precision(2)
         .convert_to_image(
             subset=["logo"],
             height=30,
@@ -994,8 +985,6 @@ def roc_html_report(
         0, "factors", motif_to_factor_series(df.index, pfmfile=pfmfile, motifs=motifs)
     )
 
-    rename_columns = {"factors": FACTOR_TOOLTIP}
-
     df = df[cols]
 
     bar_cols = [
@@ -1040,7 +1029,7 @@ def roc_html_report(
                 .scaled_background_gradient(
                     "Recall at 10% FDR", vmin=0, vmax=1, high=0.7, cmap="Reds"
                 )
-                .set_precision(2)
+                .format(precision=2)  # .set_precision(2)
                 .set_table_attributes('class="sortable-theme-slick" data-sortable')
                 .wrap(subset=cols)
                 .align(subset=bar_cols, location="center")
