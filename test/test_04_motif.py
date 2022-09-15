@@ -97,6 +97,17 @@ def test_information_content(pfm):
     np.testing.assert_almost_equal(m.information_content, 2, decimal=2)
     m = Motif(pfm)
     np.testing.assert_almost_equal(m.information_content, 13.97, decimal=2)
+    
+    pfm1 = [[42, 0, 42, 0]]
+    m1 = Motif(pfm1)
+    # Slightly redundant regression check to make sure we're not producing NaN
+    assert not np.isnan(m1.information_content)
+    assert round(m1.information_content, 5) == 1
+
+    # IC does not depend on overall normalisation of the PFM or which nucleotides are involved
+    pfm2 = [[0, 10, 0, 10]]
+    m2 = Motif(pfm2)
+    assert round(m1.information_content, 5) == round(m2.information_content, 5)
 
 
 def test_score_kmer(my_motif):
@@ -264,19 +275,6 @@ def test_pcc():
     m2 = Motif(pfm2)
 
     assert 4 == round(m1.max_pcc(m2)[0], 0)
-
-
-def test_information_content():
-    pfm1 = [[42, 0, 42, 0]]
-    m1 = Motif(pfm1)
-    # Slightly redundant regression check to make sure we're not producing NaN
-    assert not np.isnan(m1.information_content)
-    assert round(m1.information_content, 5) == 1
-
-    # IC does not depend on overall normalisation of the PFM or which nucleotides are involved
-    pfm2 = [[0, 10, 0, 10]]
-    m2 = Motif(pfm2)
-    assert round(m1.information_content, 5) == round(m2.information_content, 5)
 
 
 def test_add_operator():
