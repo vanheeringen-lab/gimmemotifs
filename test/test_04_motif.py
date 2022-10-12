@@ -97,7 +97,7 @@ def test_information_content(pfm):
     np.testing.assert_almost_equal(m.information_content, 2, decimal=2)
     m = Motif(pfm)
     np.testing.assert_almost_equal(m.information_content, 13.97, decimal=2)
-    
+
     pfm1 = [[42, 0, 42, 0]]
     m1 = Motif(pfm1)
     # Slightly redundant regression check to make sure we're not producing NaN

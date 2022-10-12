@@ -4,55 +4,46 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """ Module for motif activity prediction """
+import logging
+import os
+import sys
+import warnings
+
+import numpy as np
+import pandas as pd
+from scipy.stats import hypergeom, mannwhitneyu
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import BayesianRidge, MultiTaskLassoCV
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import LabelEncoder, StandardScaler, scale
+from sklearn.svm import LinearSVR
+from statsmodels.stats.multitest import multipletests
+from tqdm.auto import tqdm
+
+from gimmemotifs import __version__
+from gimmemotifs.config import MotifConfig
+from gimmemotifs.motif import read_motifs
+from gimmemotifs.scanner import scan_regionfile_to_table
+from gimmemotifs.utils import pfmfile_location
+
+try:
+    import xgboost  # noqa: optional
+
+    _has_xgboost = True
+except ImportError:
+    _has_xgboost = False
+
+logger = logging.getLogger("gimme.maelstrom")
 
 
 def warn(*args, **kwargs):
     pass
 
 
-import warnings
-
 warnings.warn = warn
 warnings.filterwarnings("ignore", message="sklearn.externals.joblib is deprecated")
-
-import os
-import sys
-
-try:
-    from itertools import izip
-except ImportError:
-    izip = zip
-import logging
-
-import pandas as pd
-import numpy as np
-from scipy.stats import hypergeom, mannwhitneyu
-from statsmodels.stats.multitest import multipletests
-from tqdm.auto import tqdm
-
-# scikit-learn
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.linear_model import MultiTaskLassoCV, BayesianRidge
-from sklearn.multioutput import MultiOutputRegressor
-from sklearn.preprocessing import scale, LabelEncoder
-from sklearn.svm import LinearSVR
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
-
-import xgboost
-
-from gimmemotifs import __version__
-from gimmemotifs.motif import read_motifs
-from gimmemotifs.scanner import scan_regionfile_to_table
-from gimmemotifs.config import MotifConfig
-from gimmemotifs.utils import pfmfile_location
-
-import warnings
-
-# warnings.filterwarnings("ignore", category=DeprecationWarning)
-
-logger = logging.getLogger("gimme.maelstrom")
 
 
 class Moap(object):
@@ -99,20 +90,20 @@ class Moap(object):
         return decorator
 
     @classmethod
-    def list_predictors(self):
+    def list_predictors(cls):
         """List available predictors."""
-        return list(self._predictors.keys())
+        return list(cls._predictors.keys())
 
     @classmethod
-    def list_classification_predictors(self):
+    def list_classification_predictors(cls):
         """List available classification predictors."""
-        preds = [self.create(x) for x in self._predictors.keys()]
+        preds = cls._predictors.values()
         return [x.name for x in preds if x.ptype == "classification"]
 
     @classmethod
-    def list_regression_predictors(self):
+    def list_regression_predictors(cls):
         """List available regression predictors."""
-        preds = [self.create(x) for x in self._predictors.keys()]
+        preds = cls._predictors.values()
         return [x.name for x in preds if x.ptype == "regression"]
 
 
@@ -121,6 +112,12 @@ register_predictor = Moap.register_predictor
 
 @register_predictor("BayesianRidge")
 class BayesianRidgeMoap(Moap):
+    act_ = None
+    act_description = "activity values: coefficients of the" "regression model"
+    pref_table = "score"
+    supported_tables = ["score", "count"]
+    ptype = "regression"
+
     def __init__(self, scale=True, ncpus=None):
         """Predict motif activities using Bayesian Ridge Regression.
 
@@ -138,17 +135,10 @@ class BayesianRidgeMoap(Moap):
         act_ : DataFrame, shape (n_motifs, n_clusters)
             Coefficients of the regression model.
         """
-
-        self.act_description = "activity values: coefficients of the" "regression model"
-
         if ncpus is None:
             ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
         self.ncpus = ncpus
         self.scale = scale
-        self.act_ = None
-        self.pref_table = "score"
-        self.supported_tables = ["score", "count"]
-        self.ptype = "regression"
 
     def fit(self, df_X, df_y):
         logger.info("Fitting BayesianRidge")
@@ -182,6 +172,12 @@ class BayesianRidgeMoap(Moap):
 
 @register_predictor("Xgboost")
 class XgboostRegressionMoap(Moap):
+    act_ = None
+    act_description = "activity values: feature scores from" "fitted model"
+    pref_table = "score"
+    supported_tables = ["score", "count"]
+    ptype = "regression"
+
     def __init__(self, scale=True, ncpus=None):
         """Predict motif activities using XGBoost.
 
@@ -199,18 +195,13 @@ class XgboostRegressionMoap(Moap):
         act_ : DataFrame, shape (n_motifs, n_clusters)
             Feature scores.
         """
-
-        self.act_description = "activity values: feature scores from" "fitted model"
+        if _has_xgboost is False:
+            raise ImportError("Optional dependency xgboost is required.")
 
         if ncpus is None:
             ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
         self.ncpus = ncpus
         self.scale = scale
-
-        self.act_ = None
-        self.pref_table = "score"
-        self.supported_tables = ["score", "count"]
-        self.ptype = "regression"
 
     def fit(self, df_X, df_y):
         logger.info("Fitting XGBoostRegression")
@@ -266,6 +257,12 @@ class XgboostRegressionMoap(Moap):
 
 @register_predictor("MWU")
 class MWUMoap(Moap):
+    act_ = None
+    act_description = "activity values: BH-corrected " "-log10 Mann-Whitney U p-value"
+    pref_table = "score"
+    supported_tables = ["score"]
+    ptype = "classification"
+
     def __init__(self, *args, **kwargs):
         """Predict motif activities using Mann-Whitney U p-value
 
@@ -282,13 +279,7 @@ class MWUMoap(Moap):
             -log10 of the Mann-Whitney U p-value, corrected for multiple
             testing using the Benjamini-Hochberg correction
         """
-        self.act_ = None
-        self.act_description = (
-            "activity values: BH-corrected " "-log10 Mann-Whitney U p-value"
-        )
-        self.pref_table = "score"
-        self.supported_tables = ["score"]
-        self.ptype = "classification"
+        pass
 
     def fit(self, df_X, df_y):
         logger.info("Fitting MWU")
@@ -326,6 +317,14 @@ class MWUMoap(Moap):
 
 @register_predictor("Hypergeom")
 class HypergeomMoap(Moap):
+    act_ = None
+    act_description = (
+        "activity values: -log10-transformed, BH-corrected " "hypergeometric p-values"
+    )
+    pref_table = "count"
+    supported_tables = ["count"]
+    ptype = "classification"
+
     def __init__(self, *args, **kwargs):
         """Predict motif activities using hypergeometric p-value
 
@@ -338,14 +337,7 @@ class HypergeomMoap(Moap):
             -log10 of the hypergeometric p-value, corrected for multiple
             testing using the Benjamini-Hochberg correction
         """
-        self.act_ = None
-        self.act_description = (
-            "activity values: -log10-transformed, BH-corrected "
-            "hypergeometric p-values"
-        )
-        self.pref_table = "count"
-        self.supported_tables = ["count"]
-        self.ptype = "classification"
+        pass
 
     def fit(self, df_X, df_y):
         logger.info("Fitting Hypergeom")
@@ -354,7 +346,7 @@ class HypergeomMoap(Moap):
         if df_y.shape[1] != 1:
             raise ValueError("y needs to have 1 label column")
 
-        if set(df_X.dtypes) != set([np.dtype(int)]):
+        if set(df_X.dtypes) != {np.dtype(int)}:
             raise ValueError("need motif counts, not scores")
 
         # calculate hypergeometric p-values
@@ -390,6 +382,14 @@ class HypergeomMoap(Moap):
 
 @register_predictor("RF")
 class RFMoap(Moap):
+    act_ = None
+    act_description = (
+        "activity values: feature importances " "from fitted Random Forest model"
+    )
+    pref_table = "score"
+    supported_tables = ["score", "count"]
+    ptype = "classification"
+
     def __init__(self, ncpus=None):
         """Predict motif activities using a random forest classifier
 
@@ -402,18 +402,10 @@ class RFMoap(Moap):
         ----------
         act_ : DataFrame, shape (n_motifs, n_clusters)
             feature importances from the model
-
         """
-        self.act_ = None
         if ncpus is None:
             ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
         self.ncpus = ncpus
-        self.act_description = (
-            "activity values: feature importances " "from fitted Random Forest model"
-        )
-        self.pref_table = "score"
-        self.supported_tables = ["score", "count"]
-        self.ptype = "classification"
 
     def fit(self, df_X, df_y):
         logger.info("Fitting RF")
@@ -455,6 +447,12 @@ class RFMoap(Moap):
 
 @register_predictor("MultiTaskLasso")
 class MultiTaskLassoMoap(Moap):
+    act_ = None
+    act_description = "activity values: coefficients of the" "regression model"
+    pref_table = "score"
+    supported_tables = ["score", "count"]
+    ptype = "regression"
+
     def __init__(self, scale=True, ncpus=None):
         """Predict motif activities using MultiTaskLasso.
 
@@ -472,17 +470,10 @@ class MultiTaskLassoMoap(Moap):
         act_ : DataFrame, shape (n_motifs, n_clusters)
             Coefficients of the regression model.
         """
-
-        self.act_description = "activity values: coefficients of the" "regression model"
-
         if ncpus is None:
             ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
         self.ncpus = ncpus
         self.scale = scale
-        self.act_ = None
-        self.pref_table = "score"
-        self.supported_tables = ["score", "count"]
-        self.ptype = "regression"
 
     def fit(self, df_X, df_y):
         logger.info("Fitting MultiTaskLasso")
@@ -528,6 +519,12 @@ class MultiTaskLassoMoap(Moap):
 
 @register_predictor("SVR")
 class SVRMoap(Moap):
+    act_ = None
+    act_description = "activity values: SVR weights"
+    pref_table = "score"
+    supported_tables = ["score", "count"]
+    ptype = "regression"
+
     def __init__(self, scale=True, ncpus=None):
         """Predict motif activities using Support Vector Regression.
 
@@ -545,17 +542,12 @@ class SVRMoap(Moap):
         act_ : DataFrame, shape (n_motifs, n_clusters)
             SVR weights.
         """
-
-        self.act_description = "activity values: SVR weights"
-
         if ncpus is None:
             ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
         self.ncpus = ncpus
         self.scale = scale
-        self.act_ = None
-        self.pref_table = "score"
-        self.supported_tables = ["score", "count"]
-        self.ptype = "regression"
+        self.columns = None
+        self.model = None
 
     def fit(self, df_X, df_y):
         logger.info("Fitting SVR")
@@ -641,10 +633,13 @@ def moap(
         supplied
 
     fpr : float, optional
-        FPR for motif scanning
+        FPR for motif scanning. Unused.
 
     ncpus : int, optional
         Number of threads to use. Default is the number specified in the config.
+
+    subsample : float, optional
+        Fraction of regions to use.
 
     zscore : bool, optional
         Use z-score normalized motif scores.
@@ -726,7 +721,7 @@ def moap(
             ncols = len(df.iloc[:, 0].unique())
 
         if out.shape[0] == motifs.shape[1] and out.shape[1] == ncols:
-            logger.warn("%s output already exists... skipping", method)
+            logger.warning("%s output already exists... skipping", method)
             return out
 
     if subsample is not None:

@@ -149,6 +149,10 @@ setup(
         "statsmodels",
         "tqdm >=4.46.1",
         "xdg",
-        "xgboost >=1.0.2",
+        # "xgboost >=1.0.2",
     ],
+    extras_require={
+        "xgboost": ["xgboost >=1.0.2"],
+        "notebook": ["ipywidgets"],
+    },
 )
