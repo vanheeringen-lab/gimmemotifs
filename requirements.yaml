@@ -28,30 +28,30 @@ dependencies:
   - statsmodels
   - tqdm >=4.46.1
   - xdg
-  #  - xgboost >=1.0.2            # optional: xgboost regressor for MOAP (1 GB)
+  #  - xgboost >=1.0.2            # optional: xgboost regression predictor for MOAP. 1 GB
 
   # motif discovery tools
-  - gcc                           # necessary to install motif discovery tools
+  - gcc                           # optional: necessary to install motif discovery tools
   # AMD                           # installed from source
   # BioProspector                 # installed from source
   # ChIPMunk                      # installed from source
-  - dinamo >=1.0
-  # DREME
-  - gadem >=1.3.1
+  - dinamo >=1.0                  # optional
+  # DREME                         # not available
+  - gadem >=1.3.1                 # optional
   # HMS                           # installed from source
-  - homer >=4.11
+  - homer >=4.11                  # optional
   # Improbizer                    # installed from source
   # MDmodule                      # installed from source
-  - meme >=5.4.1
+  - meme >=5.4.1                  # optional
   # MEMEW                         # installed from source
   # MotifSampler                  # installed from source
   # Posmo                         # installed from source
-  - prosampler >=1.0
-  # RPMCMC
-  - trawler >=2.0                 # optional: 200 MB
-  - weeder >=2.0                  # optional: 100 MB
-  - xxmotif >=1.6
-  #  - yamda >=0.1.00e9c9d        # optional: 3 GB
+  - prosampler >=1.0              # optional
+  # RPMCMC                        # not available
+  - trawler >=2.0                 # optional. 200 MB
+  - weeder >=2.0                  # optional. 100 MB
+  - xxmotif >=1.6                 # optional
+  #  - yamda >=0.1.00e9c9d        # optional. 3 GB
 
   # development packages
   - black=22.3.0                  # same as in .pre-commit-config.yaml
