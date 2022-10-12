@@ -23,5 +23,5 @@ doi: "10.1101/474403"
 license: MIT
 repository-code: "https://github.org/vanheeringen-lab/gimmemotifs/"
 title: "GimmeMotifs: an analysis framework for transcription factor motif analysis"
-version: "0.14.0"
+version: "0.17.2"
 ...

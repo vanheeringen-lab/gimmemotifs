@@ -31,7 +31,7 @@ For more information, see issue 271_.
     $ conda config --add channels defaults
     $ conda config --add channels bioconda
     $ conda config --add channels conda-forge
-    $ conda install -c conda-forge conda=4.13 mamba=0.24
+    $ conda install -c conda-forge "conda>=4.12" "mamba>=0.27"
 
 You can install GimmeMotifs with one command. In the current environment:
 
