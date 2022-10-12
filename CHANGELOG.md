@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- made xgboost an optional dependency (to save space on bioconda)
 - an existing config will now update available tools when accessed (e4b3275)
 - applied the bioconda patch to compile_externals.py (11b0c2c)
 - `coverage_table` and `combine_peaks` have their positional arguments under positional arguments (20819ee)
@@ -15,10 +16,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - biofluff dependency back in requirements
-- pinned conda and mamba versions in `.travis.yaml` 
-  - temp fix until conda>=4.12 can install mamba properly
 - documentation is working again!
-- code in gimmemotifs.report now supports pandas >=1.30
+- gimmemotifs now supports pandas >=1.30
 
 ### Removed
 
