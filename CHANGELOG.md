@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Changed
+
+- `moap()` now accepts an optional `numpy.random.RandomState()`
+- motif scanning function now have more progress bars.
+  - these can be turned off with `progress=False`
 
 ## [0.17.2] - 2022-10-12
 
