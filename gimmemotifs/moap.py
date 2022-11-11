@@ -601,6 +601,7 @@ def moap(
     zscore=True,
     gc=True,
     random_state=None,
+    progress=True,
 ):
     """Run a single motif activity prediction algorithm.
 
@@ -663,7 +664,7 @@ def moap(
         # read data
         df = pd.read_table(inputfile, index_col=0, comment="#")
 
-    clf = Moap.create(method, ncpus=ncpus)  # TODO: random state is used by some sklearn models
+    clf = Moap.create(method, ncpus=ncpus)
 
     if clf.ptype == "classification":
         if df.shape[1] != 1:
@@ -678,20 +679,20 @@ def moap(
 
         pfmfile = pfmfile_location(pfmfile)
         try:
-            motifs = read_motifs(pfmfile)
+            _ = read_motifs(pfmfile)
         except Exception:
             sys.stderr.write("can't read motifs from {}".format(pfmfile))
             raise
 
         # scan for motifs
         if method == "classic" or scoring == "count":
-            msg = "motif scanning (counts)"
+            msg = "Motif scanning (counts)"
             scoring = "count"
         else:
-            msg = "motif scanning (scores)"
+            msg = "Motif scanning (scores)"
             scoring = "score"
         logger.info(msg)
-        scores = scan_regionfile_to_table(
+        motifs = scan_regionfile_to_table(
             inputfile,
             genome,
             scoring,
@@ -700,12 +701,12 @@ def moap(
             zscore=zscore,
             gc=gc,
             random_state=random_state,
+            progress=progress,
         )
-        motif_names = [m.id for m in motifs]
-        motifs = pd.DataFrame(scores, index=df.index, columns=motif_names)
 
     elif isinstance(motiffile, pd.DataFrame):
         motifs = motiffile
+
     else:
         motifs = pd.read_table(motiffile, index_col=0, comment="#")
 
