@@ -120,6 +120,7 @@ def scan_regionfile_to_table(
     ncpus=None,
     zscore=True,
     gc=True,
+    random_state=None,
     progress=True,
 ):
     """Scan regions in input table with motifs.
@@ -169,7 +170,8 @@ def scan_regionfile_to_table(
 
     regions = list(idx)
     if len(regions) >= 1000:
-        check_regions = np.random.choice(regions, size=1000, replace=False)
+        r = np.random if random_state is None else random_state
+        check_regions = r.choice(regions, size=1000, replace=False)
     else:
         check_regions = regions
 
@@ -179,7 +181,7 @@ def scan_regionfile_to_table(
     s = Scanner(ncpus=ncpus)
     s.set_motifs(pfmfile)
     s.set_genome(genome)
-    s.set_background(genome=genome, gc=gc, size=size)
+    s.set_background(genome=genome, gc=gc, size=size, random_state=random_state)
 
     scores = []
     if scoring == "count":
@@ -802,7 +804,7 @@ class Scanner(object):
     #     df = pd.DataFrame(table, columns=["gc_bin"] + [m.id for m in motifs])
     #     return df
 
-    def set_meanstd(self, gc=False):
+    def set_meanstd(self, gc=False, progress=False):
         if not self.background:
             self.set_background(gc=gc)
 
@@ -839,9 +841,16 @@ class Scanner(object):
 
                     if len(scan_motifs) > 0:
                         logger.debug("Determining mean and stddev for motifs.")
-                        for motif, mean, std in self._meanstd_from_seqs(
+                        # pbar = tqdm(
+                        #     desc="scanning",
+                        #     unit=" sequences",
+                        #     total=len(seqs),
+                        #     disable=not progress,  # can be silenced
+                        # )
+
+                        for motif, mean, std in tqdm(self._meanstd_from_seqs(
                             scan_motifs, bin_seqs
-                        ):
+                        ), desc=f"determining mean stddev for {motif}", disable=not progress):
                             k = "e{}|{}|{}".format(
                                 motif.hash, self.background_hash, bin
                             )
@@ -884,7 +893,7 @@ class Scanner(object):
                 self.meanstd[gc_bin] = self.meanstd[bstr]
 
     def set_background(
-        self, fname=None, genome=None, size=200, nseq=None, gc=False, gc_bins=None
+        self, fname=None, genome=None, size=200, nseq=None, random_state=None, gc=False, gc_bins=None
     ):
         """Set the background to use for FPR and z-score calculations.
 
@@ -957,7 +966,7 @@ class Scanner(object):
                         with NamedTemporaryFile() as tmp:
                             logger.info("using {} sequences".format(nseq))
                             gc_bin_bedfile(
-                                tmp.name, genome, number=nseq, length=size, bins=gc_bins
+                                tmp.name, genome, number=nseq, random_state=random_state, length=size, bins=gc_bins
                             )
                             fa = as_fasta(tmp.name, genome=genome)
                     else:
@@ -1196,10 +1205,10 @@ class Scanner(object):
         if zscore:
             if gc:
                 if len(self.meanstd) <= 1:
-                    self.set_meanstd(gc=gc)
+                    self.set_meanstd(gc, progress)
             else:
                 if len(self.meanstd) != 1:
-                    self.set_meanstd(gc=gc)
+                    self.set_meanstd(gc, progress)
 
         # progress bar
         pbar = tqdm(

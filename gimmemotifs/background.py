@@ -321,14 +321,17 @@ def create_gc_bin_index(genome, fname, min_bin_size=100):
     """
     logger.info("Creating index for genomic GC frequencies.")
     g = Genome(genome)
-    fasta = g.filename
-    sizes = g.filename + ".sizes"  # props["sizes"]["sizes"]
+    fasta = g.genome_file
+    sizes = g.sizes_file
 
     with NamedTemporaryFile() as tmp:
         # pylint: disable=unexpected-keyword-arg
-        pybedtools.BedTool().window_maker(g=sizes, w=min_bin_size).nucleotide_content(
-            fi=fasta
-        ).saveas(tmp.name)
+        (
+            pybedtools.BedTool()
+            .window_maker(g=sizes, w=min_bin_size)
+            .nucleotide_content(fi=fasta)
+            .saveas(tmp.name)
+        )
         df = pd.read_csv(
             tmp.name,
             sep="\t",

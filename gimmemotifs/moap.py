@@ -600,6 +600,7 @@ def moap(
     subsample=None,
     zscore=True,
     gc=True,
+    random_state=None,
 ):
     """Run a single motif activity prediction algorithm.
 
@@ -662,7 +663,7 @@ def moap(
         # read data
         df = pd.read_table(inputfile, index_col=0, comment="#")
 
-    clf = Moap.create(method, ncpus=ncpus)
+    clf = Moap.create(method, ncpus=ncpus)  # TODO: random state is used by some sklearn models
 
     if clf.ptype == "classification":
         if df.shape[1] != 1:
@@ -683,30 +684,24 @@ def moap(
             raise
 
         # scan for motifs
-        motif_names = [m.id for m in read_motifs(pfmfile)]
-        scores = []
         if method == "classic" or scoring == "count":
-            logger.info("motif scanning (counts)")
-            scores = scan_regionfile_to_table(
-                inputfile,
-                genome,
-                "count",
-                pfmfile=pfmfile,
-                ncpus=ncpus,
-                zscore=zscore,
-                gc=gc,
-            )
+            msg = "motif scanning (counts)"
+            scoring = "count"
         else:
-            logger.info("motif scanning (scores)")
-            scores = scan_regionfile_to_table(
-                inputfile,
-                genome,
-                "score",
-                pfmfile=pfmfile,
-                ncpus=ncpus,
-                zscore=zscore,
-                gc=gc,
-            )
+            msg = "motif scanning (scores)"
+            scoring = "score"
+        logger.info(msg)
+        scores = scan_regionfile_to_table(
+            inputfile,
+            genome,
+            scoring,
+            pfmfile=pfmfile,
+            ncpus=ncpus,
+            zscore=zscore,
+            gc=gc,
+            random_state=random_state,
+        )
+        motif_names = [m.id for m in motifs]
         motifs = pd.DataFrame(scores, index=df.index, columns=motif_names)
 
     elif isinstance(motiffile, pd.DataFrame):
@@ -727,7 +722,7 @@ def moap(
     if subsample is not None:
         n = int(subsample * df.shape[0])
         logger.debug("Subsampling %d regions", n)
-        df = df.sample(n)
+        df = df.sample(n, random_state=random_state)
 
     motifs = motifs.loc[df.index]
 
