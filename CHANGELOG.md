@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Fixed
+
+- `gimme maelstrom` works with or without xgboost (but will give a warning without xgboost) 
 
 ## [0.17.2] - 2022-10-12
 
