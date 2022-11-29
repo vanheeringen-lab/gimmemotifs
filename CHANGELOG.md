@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Changed
+
+- `Scanner.set_genome` now accepts the optional argument `genomes_dir`
+
 ### Fixed
 
 - `gimme maelstrom` works with or without xgboost (but will give a warning without xgboost) 

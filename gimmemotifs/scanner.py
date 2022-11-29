@@ -1082,17 +1082,27 @@ class Scanner(object):
             fpr, threshold, self.background_hash, ",".join(sorted(gc_bins))
         )
 
-    def set_genome(self, genome):
+    def set_genome(self, genome, genomes_dir=None):
         """
-        set the genome to be used for:
+        Set the genome to be used for:
             - converting regions to sequences
             - background for MOODS
+
+        Parameters
+        ----------
+        genome : str
+            Path to the genome fasta or
+            the genome name as found in the genomepy genomes directory.
+
+        genomes_dir : str, optional
+            Path to the genomepy genomes directory.
+            Taken from the genomepy config if unspecified.
         """
         if not genome:
             return
 
         # raises error if checks fail
-        Genome(genome)
+        genome = Genome(genome, genomes_dir, build_index=False).filename
 
         self.genome = genome
 
