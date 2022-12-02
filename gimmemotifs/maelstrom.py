@@ -312,15 +312,9 @@ def run_maelstrom(
         logger.warning("These will be removed.")
         df = df.iloc[~df.index.duplicated(keep=False)]
 
-    if not os.path.exists(outdir):
-        os.mkdir(outdir)
-
-    if methods is None:
-        methods = Moap.list_predictors()
-    methods = [m.lower() for m in methods]
-
-    df.to_csv(os.path.join(outdir, "input.table.txt"), sep="\t")
     infile = os.path.join(outdir, "input.table.txt")
+    os.makedirs(outdir, exist_ok=True)
+    df.to_csv(infile, sep="\t")
 
     # Copy the motif information
     pfmfile = pfmfile_location(pfmfile)
@@ -432,6 +426,10 @@ def run_maelstrom(
         logger.info(f"Motifs: {pfmfile}")
         logger.info(f"Factor mappings: {mapfile}")
 
+    if methods is None:
+        methods = Moap.list_predictors()
+    methods = [m.lower() for m in methods]
+
     if cluster:
         cluster = False
         for method in methods:
@@ -448,9 +446,12 @@ def run_maelstrom(
         # More than one column
         for method in Moap.list_regression_predictors():
             if method in methods:
-                m = Moap.create(method, ncpus=ncpus)
-                exps.append([method, m.pref_table, infile])
-                logger.debug("Adding %s", method)
+                try:
+                    m = Moap.create(method, ncpus=ncpus)
+                    exps.append([method, m.pref_table, infile])
+                    logger.debug("Adding %s", method)
+                except ImportError as e:
+                    logger.warning(f"Skipping {method}. Reason: {e}")
 
         if cluster:
             clusterfile = os.path.join(
