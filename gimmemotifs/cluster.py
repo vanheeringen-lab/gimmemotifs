@@ -93,7 +93,7 @@ def cluster_motifs(
     trim_edges=False,
     edge_ic_cutoff=0.2,
     include_bg=True,
-    progress=True,
+    progress=None,
     ncpus=None,
 ):
     """

@@ -63,7 +63,6 @@ def moap_with_bg(
         genome=genome,
         method=method,
         scoring=scoring,
-        fpr=FPR,
         ncpus=ncpus,
     )
 
@@ -77,7 +76,6 @@ def moap_with_table(input_table, motif_table, data_dir, method, scoring, ncpus=N
         method=method,
         scoring=scoring,
         motiffile=motif_table,
-        fpr=FPR,
         ncpus=ncpus,
     )
 

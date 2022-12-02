@@ -18,7 +18,7 @@ class TestDenovo(unittest.TestCase):
             "test/data/denovo/input.fa",
             self.outdir,
             params={
-                "tools": "BioProspector,Homer,MDmodule",
+                "tools": "MDmodule",
                 "fraction": 0.5,
                 "background": "random",
                 "genome": "test/data/background/genome.fa",
