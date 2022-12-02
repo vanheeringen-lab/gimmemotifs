@@ -64,7 +64,7 @@ class TestUtils(unittest.TestCase):
 
         rmtree(tmpdir)
 
-    def test_checkum(self):
+    def test_file_checksum(self):
         fname = "test/data/fasta/test.fa"
         md5 = "a34798835d4110c34df45bbd8ed2f910"
         self.assertEqual(md5, file_checksum(fname))

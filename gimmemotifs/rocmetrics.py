@@ -124,7 +124,7 @@ def matches_at_fpr(fg_vals, bg_vals, fpr=0.01):
         The list of values for the negative set.
 
     fpr : float, optional
-        The FPR (between 0.0 and 1.0).
+        Desired false positive rate, between 0.0 and 1.0.
 
     Returns
     -------
@@ -151,7 +151,7 @@ def phyper_at_fpr(fg_vals, bg_vals, fpr=0.01):
         The list of values for the negative set.
 
     fpr : float, optional
-        The FPR (between 0.0 and 1.0).
+        Desired false positive rate, between 0.0 and 1.0.
 
     Returns
     -------
@@ -183,7 +183,7 @@ def fraction_fpr(fg_vals, bg_vals, fpr=0.01):
         The list of values for the negative set.
 
     fpr : float, optional
-        The FPR (between 0.0 and 1.0).
+        Desired false positive rate, between 0.0 and 1.0.
 
     Returns
     -------
@@ -209,7 +209,7 @@ def score_at_fpr(fg_vals, bg_vals, fpr=0.01):
         The list of values for the negative set.
 
     fpr : float, optional
-        The FPR (between 0.0 and 1.0).
+        Desired false positive rate, between 0.0 and 1.0.
 
     Returns
     -------
@@ -234,7 +234,7 @@ def enr_at_fpr(fg_vals, bg_vals, fpr=0.01):
         The list of values for the negative set.
 
     fpr : float, optional
-        The FPR (between 0.0 and 1.0).
+        Desired false positive rate, between 0.0 and 1.0.
 
     Returns
     -------

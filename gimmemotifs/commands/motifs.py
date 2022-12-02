@@ -203,7 +203,7 @@ def motifs(args):
             score_table=True,
             genome=args.genome,
             zscore=args.zscore,
-            gcnorm=args.gc,
+            gc=args.gc,
         )
 
     n_input = pd.read_csv(score_table, comment="#", sep="\t").shape[0]
@@ -270,7 +270,7 @@ def motifs(args):
                 fpr=0.01,
                 genome=args.genome,
                 zscore=args.zscore,
-                gcnorm=args.gc,
+                gc=args.gc,
                 bgfile=bgfile,
                 progress=False,
             )

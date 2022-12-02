@@ -266,7 +266,7 @@ def run_maelstrom(
         Use z-score normalized motif scores.
 
     gc : bool, optional
-        Use GC% bins to normalize motif scores.
+        Equally distribute GC percentages in background sequences.
 
     center : bool, optional
         Mean-center the input table.

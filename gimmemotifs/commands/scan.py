@@ -11,11 +11,8 @@ import sys
 
 from gimmemotifs.scanner import scan_to_file
 
-MAX_CPUS = 16
 
-
-def pfmscan(args):
-
+def scan(args):
     scan_to_file(
         args.inputfile,
         args.pfmfile,
@@ -25,13 +22,11 @@ def pfmscan(args):
         cutoff=args.cutoff,
         bed=args.bed,
         scan_rc=args.scan_rc,
-        table=args.table,
+        count_table=args.table,
         score_table=args.score_table,
-        moods=args.moods,
-        pvalue=args.pvalue,
         bgfile=args.bgfile,
         genome=args.genome,
         ncpus=args.ncpus,
         zscore=args.zscore,
-        gcnorm=args.gcnorm,
+        gc=args.gcnorm,
     )

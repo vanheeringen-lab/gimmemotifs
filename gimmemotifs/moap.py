@@ -670,7 +670,7 @@ def moap(
         Use z-score normalized motif scores.
 
     gc : bool, optional
-        Use GC% bins for z-score.
+        Equally distribute GC percentages in background sequences.
 
     subsample : float, optional
         Fraction of regions to use.

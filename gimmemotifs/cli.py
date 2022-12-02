@@ -189,9 +189,9 @@ def cli(sys_args):
 
     p.set_defaults(func=commands.motifs)
 
-    # pfmscan.py
-    NREPORT = 1
+    # scan.py
     p = subparsers.add_parser("scan")
+
     p.add_argument(
         "inputfile", help="inputfile (FASTA, BED, regions)", metavar="INPUTFILE"
     )
@@ -236,7 +236,7 @@ def cli(sys_args):
         dest="nreport",
         help="report the N best matches",
         metavar="N",
-        default=NREPORT,
+        default=1,
         type=int,
     )
     p.add_argument(
@@ -295,27 +295,8 @@ def cli(sys_args):
         type=int,
         default=int(params["ncpus"]),
     )
-    p.add_argument(
-        "-M",
-        "--do_MOODS",
-        dest="moods",
-        help=argparse.SUPPRESS,
-        # help="experimental: use MOODS for scanning",
-        action="store_true",
-        default=False,
-    )
-    p.add_argument(
-        "-P",
-        "--pvalue",
-        dest="pvalue",
-        help=argparse.SUPPRESS,
-        # help="experimental: MOODS p-value cutoff",
-        metavar="",
-        type=float,
-        default=None,
-    )
 
-    p.set_defaults(func=commands.pfmscan)
+    p.set_defaults(func=commands.scan)
 
     p = subparsers.add_parser("maelstrom")
     p.add_argument(
@@ -635,7 +616,7 @@ def cli(sys_args):
     p.set_defaults(func=commands.prediction)
 
     class Strictness(argparse.Action):
-        def __call__(self, parser, ns, values, option):
+        def __call__(self, parser, ns, values, option):  # noqa
             if "strict" in option:
                 setattr(ns, self.dest, "strict")
             if "medium" in option:

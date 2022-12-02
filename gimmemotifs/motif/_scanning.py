@@ -40,7 +40,7 @@ def scan(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
         Fasta object to scan.
     cutoff : float , optional
         Cutoff to use for motif scanning. This cutoff is not specifically
-        optimized and the strictness will vary a lot with motif lengh.
+        optimized and the strictness will vary a lot with motif length.
     nreport : int , optional
         Maximum number of matches to report.
     scan_rc : bool , optional
@@ -77,7 +77,7 @@ def scan_all(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
         Fasta object to scan.
     cutoff : float , optional
         Cutoff to use for motif scanning. This cutoff is not specifically
-        optimized and the strictness will vary a lot with motif lengh.
+        optimized and the strictness will vary a lot with motif length.
     nreport : int , optional
         Maximum number of matches to report.
     scan_rc : bool , optional
@@ -114,7 +114,7 @@ def pwm_scan_score(self, fa, cutoff=0, nreport=1, scan_rc=True):
         Fasta object to scan.
     cutoff : float , optional
         Cutoff to use for motif scanning. This cutoff is not specifically
-        optimized and the strictness will vary a lot with motif lengh.
+        optimized and the strictness will vary a lot with motif length.
     nreport : int , optional
         Maximum number of matches to report.
     scan_rc : bool , optional
@@ -155,7 +155,7 @@ def pwm_scan_to_gff(
         Filename of GFF output file.
     cutoff : float , optional
         Cutoff to use for motif scanning. This cutoff is not specifically
-        optimized and the strictness will vary a lot with motif lengh.
+        optimized and the strictness will vary a lot with motif length.
     nreport : int , optional
         Maximum number of matches to report.
     scan_rc : bool , optional

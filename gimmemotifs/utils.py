@@ -64,7 +64,7 @@ def narrowpeak_to_bed(inputfile, bedfile, size=0):
                     summit = int(vals[9])
                     if summit == -1:
                         if warn_no_summit:
-                            logger.warn(
+                            logger.warning(
                                 "No summit present in narrowPeak file, "
                                 "using the peak center."
                             )
@@ -212,10 +212,10 @@ def write_equalsize_bedfile(bedfile, size, outfile):
         )
 
         if len(bed) != len(filtered_bed):
-            logger.warn(
+            logger.warning(
                 "Using original size of input file regions, however, some regions are smaller than 10nt!"
             )
-            logger.warn("Removing all these smaller regions.")
+            logger.warning("Removing all these smaller regions.")
         filtered_bed.saveas(outfile)
         return
 
@@ -300,37 +300,6 @@ def motif_localization(fastafile, motif, size, outfile, cutoff=0.9):
         return motif.id, p
     else:
         return motif.id, 1.0
-
-
-def parse_cutoff(motifs, cutoff, default=0.9):
-    """Provide either a file with one cutoff per motif or a single cutoff
-    returns a hash with motif id as key and cutoff as value
-    """
-
-    cutoffs = {}
-    if os.path.isfile(str(cutoff)):
-        for i, line in enumerate(open(cutoff)):
-            if line != "Motif\tScore\tCutoff\n":
-                try:
-                    motif, _, c = line.strip().split("\t")
-                    c = float(c)
-                    cutoffs[motif] = c
-                except Exception as e:
-                    sys.stderr.write(
-                        "Error parsing cutoff file, line {0}: {1}\n".format(e, i + 1)
-                    )
-                    sys.exit(1)
-    else:
-        for motif in motifs:
-            cutoffs[motif.id] = float(cutoff)
-
-    for motif in motifs:
-        if motif.id not in cutoffs:
-            sys.stderr.write(
-                "No cutoff found for {0}, using default {1}\n".format(motif.id, default)
-            )
-            cutoffs[motif.id] = default
-    return cutoffs
 
 
 def _treesort(order, nodeorder, nodecounts, tree):
@@ -486,7 +455,7 @@ def get_seqs_type(seqs):
         - region file
         - BED file
     """
-    region_p = re.compile(r"^([^\s:]+\@)?(.+):(\d+)-(\d+)$")
+    region_p = re.compile(r"^([^\s:]+@)?(.+):(\d+)-(\d+)$")
     if isinstance(seqs, Fasta):
         return "fasta"
     elif isinstance(seqs, list) or isinstance(seqs, np.ndarray):
@@ -736,7 +705,7 @@ def file_checksum(fname):
 
     Parameters
     ----------
-    filename : str
+    fname : str
         File used to calculate checksum.
 
     Returns
@@ -747,17 +716,6 @@ def file_checksum(fname):
     with open(fname, "r+") as f:
         checksum = hashlib.md5(mmap.mmap(f.fileno(), size)).hexdigest()
     return checksum
-
-
-def file_hash(fname):
-    """very dirty, very quick method to identify a file."""
-    name = os.path.splitext(fname)[0]
-    name = os.path.basename(name)
-
-    byte_size = os.path.getsize(fname)
-    kilobyte_size = str(byte_size)[:-3]
-
-    return hash(name + kilobyte_size)
 
 
 def join_max(a, length, sep="", suffix=""):
