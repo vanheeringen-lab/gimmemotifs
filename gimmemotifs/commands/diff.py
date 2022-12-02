@@ -59,6 +59,7 @@ def diff(args):
 
     s = Scanner()
     s.set_motifs(pfmfile)
+    s.set_background(fasta=bgfile)
     s.set_threshold(threshold=cutoff)
 
     # Get background frequencies

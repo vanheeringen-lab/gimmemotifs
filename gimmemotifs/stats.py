@@ -118,7 +118,8 @@ def calc_stats_iterator(
             s = Scanner(ncpus=ncpus)
             s.set_motifs(all_motifs)
             s.set_genome(genome)
-            s.set_meanstd(gc=gc)
+            s.set_background(gc=gc)
+            s.set_meanstd()
 
     chunksize = 240
     for i in range(0, len(all_motifs), chunksize):

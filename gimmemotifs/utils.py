@@ -749,6 +749,17 @@ def file_checksum(fname):
     return checksum
 
 
+def file_hash(fname):
+    """very dirty, very quick method to identify a file."""
+    name = os.path.splitext(fname)[0]
+    name = os.path.basename(name)
+
+    byte_size = os.path.getsize(fname)
+    kilobyte_size = str(byte_size)[:-3]
+
+    return hash(name + kilobyte_size)
+
+
 def join_max(a, length, sep="", suffix=""):
     lengths = [len(x) for x in a]
     total = 0

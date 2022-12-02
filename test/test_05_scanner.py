@@ -20,7 +20,7 @@ class TestScanner(unittest.TestCase):
 
     def test1_scan_sequences(self):
         """Scanner"""
-        for ncpus in [1, 2, 3]:
+        for ncpus in [1, 3]:
             s = Scanner(ncpus=ncpus)
             s.set_motifs(self.motifs)
 
@@ -69,7 +69,7 @@ class TestScanner(unittest.TestCase):
         s.set_motifs("test/data/pwms/motifs.pwm")
 
         fname = "test/data/scan/scan_test_regions.fa"
-        s.set_background(fname=fname)
+        s.set_background(fasta=fname)
         s.set_threshold(fpr=0.02)
 
     def tearDown(self):
