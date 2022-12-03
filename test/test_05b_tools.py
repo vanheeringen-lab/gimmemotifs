@@ -31,7 +31,7 @@ def test_tool(tool_name):
         "rpmcmc": "not installable via bioconda/source",
         "trawler": "unpredictable, sometimes doesn't find the motif",
         "xxmotif": "takes too long",
-        "yamda": "# TODO: not configured",  # TODO
+        "yamda": "too big for conda",
     }
     if tool_name in blacklist:
         pytest.skip(blacklist[tool_name])

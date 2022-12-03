@@ -22,11 +22,11 @@ class TestMoap(unittest.TestCase):
         """Test motif activity prediction"""
 
         expected_clusters_score = {
-            "bayesianridge": 1,
+            "bayesianridge": 4,  # 1,
             "mwu": 4,
             "rf": 4,
-            "multitasklasso": 1,
-            "svr": 1,
+            "multitasklasso": 4,  # 1,
+            "svr": 4,  # 1,
         }
         for method, nclust in expected_clusters_score.items():
             df = moap(
@@ -41,10 +41,10 @@ class TestMoap(unittest.TestCase):
 
         expected_clusters_count = {
             "hypergeom": 4,
-            "bayesianridge": 1,
+            "bayesianridge": 4,  # 1,
             "rf": 4,
-            "multitasklasso": 1,
-            "svr": 1,
+            "multitasklasso": 4,  # 1,
+            "svr": 4,  # 1,
         }
         for method, nclust in expected_clusters_count.items():
             df = moap(
@@ -61,11 +61,11 @@ class TestMoap(unittest.TestCase):
         """Test motif activity prediction for two clusters"""
 
         expected_clusters_score = {
-            "bayesianridge": 1,
+            "bayesianridge": 2,  # 1,
             "mwu": 2,
             "rf": 2,
-            "multitasklasso": 1,
-            "svr": 1,
+            "multitasklasso": 2,  # 1,
+            "svr": 2,  # 1,
         }
         for method, nclust in expected_clusters_score.items():
             df = moap(
@@ -80,10 +80,10 @@ class TestMoap(unittest.TestCase):
 
         expected_clusters_count = {
             "hypergeom": 2,
-            "bayesianridge": 1,
+            "bayesianridge": 2,  # 1,
             "rf": 2,
-            "multitasklasso": 1,
-            "svr": 1,
+            "multitasklasso": 2,  # 1,
+            "svr": 2,  # 1,
         }
         for method, nclust in expected_clusters_count.items():
             df = moap(

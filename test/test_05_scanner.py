@@ -105,9 +105,9 @@ class TestScanner(unittest.TestCase):
         self.s.set_background("test/data/scan/scan_test_regions.fa")
         self.s.set_threshold(fpr=0.02)
         t = self.s.get_gc_thresholds(f.seqs, zscore=False)
-        assert round(t['M1500_1.01'], 4) == 6.7953
+        assert round(t["M1500_1.01"], 4) == 6.7953
         tz = self.s.get_gc_thresholds(f.seqs, zscore=True)
-        assert round(tz['M1500_1.01'], 4) == 2.0026
+        assert round(tz["M1500_1.01"], 4) == 2.0026
 
     def test07_scan(self):
         """Scanner"""

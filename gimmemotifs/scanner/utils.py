@@ -52,7 +52,7 @@ def parse_cutoff(motifs, cutoff, default=0.95):
     cutoffs = {}
     if os.path.isfile(str(cutoff)):
         # cutoff is a table
-        for i, line in enumerate(open(cutoff)):
+        for line in open(cutoff):
             if line != "Motif\tScore\tCutoff\n":
                 try:
                     split = line.strip().split("\t")

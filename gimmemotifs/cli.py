@@ -616,7 +616,7 @@ def cli(sys_args):
     p.set_defaults(func=commands.prediction)
 
     class Strictness(argparse.Action):
-        def __call__(self, parser, ns, values, option):  # noqa
+        def __call__(self, parser, ns, values, option):
             if "strict" in option:
                 setattr(ns, self.dest, "strict")
             if "medium" in option:

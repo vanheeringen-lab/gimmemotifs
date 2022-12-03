@@ -40,7 +40,7 @@ from gimmemotifs.scanner.utils import (
 
 logger = logging.getLogger("gimme.scanner")
 FPR = 0.01
-lock = mp.Lock()
+LOCK = mp.Lock()
 
 
 class Scanner(object):
@@ -176,7 +176,7 @@ class Scanner(object):
         self.meanstd = {}
         motifs = read_motifs(self.motifs)
 
-        lock.acquire()
+        LOCK.acquire()
         try:
             with Cache(CACHE_DIR) as cache:
 
@@ -248,7 +248,7 @@ class Scanner(object):
         except sqlite3.DatabaseError:
             print_cluster_error_message()
             sys.exit(1)
-        lock.release()
+        LOCK.release()
 
     def set_background(
         self,
@@ -291,6 +291,7 @@ class Scanner(object):
 
             self.background = Fasta(fasta)
             self.background_hash = file_hash(fasta)
+            self.gc_bins = ["0.00-1.00"]
             logger.debug("using background fasta file")
             return
 
@@ -324,7 +325,7 @@ class Scanner(object):
         if nseq is None:
             nseq = max(10_000, len(gc_bins) * 1000)
 
-        lock.acquire()
+        LOCK.acquire()
         try:
             with Cache(CACHE_DIR) as cache:
                 self.background_hash = "d{}:{}:{}:{}".format(
@@ -354,7 +355,7 @@ class Scanner(object):
         except sqlite3.DatabaseError:
             print_cluster_error_message()
             sys.exit(1)
-        lock.release()
+        LOCK.release()
 
         self.background = fa
 
@@ -417,7 +418,7 @@ class Scanner(object):
                 raise ValueError("Parameter fpr should be between 0 and 1")
             self.fpr = fpr
 
-        lock.acquire()
+        LOCK.acquire()
         try:
             with Cache(CACHE_DIR) as cache:
                 scan_motifs = []
@@ -456,7 +457,7 @@ class Scanner(object):
         except sqlite3.DatabaseError:
             print_cluster_error_message()
             sys.exit(1)
-        lock.release()
+        LOCK.release()
 
     def set_genome(self, genome, genomes_dir=None):
         """

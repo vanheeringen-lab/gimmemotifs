@@ -5,9 +5,9 @@ import glob
 import pytest
 
 from gimmemotifs.utils import (
-    phyper,
+    # phyper,
     as_fasta,
-    file_checksum,
+    # file_checksum,
     join_max,
     determine_file_type,
     number_of_seqs_in_file,
@@ -28,16 +28,16 @@ class TestUtils(unittest.TestCase):
         self.genomes_dir = "test/data/genome_index"
         self.datadir = "test/data/utils"
 
-    def test1_phyper(self):
-        """Hypergeometric p-value"""
-        p = phyper(59, 500, 500, 100)
-        self.assertAlmostEqual(0.02238075, p)
-
-        p = phyper(59, 5000, 5000, 100)
-        self.assertAlmostEqual(0.02782685, p)
-
-        p = phyper(59, 50000, 50000, 100)
-        self.assertAlmostEqual(0.02838217, p)
+    # def test1_phyper(self):
+    #     """Hypergeometric p-value"""
+    #     p = phyper(59, 500, 500, 100)
+    #     self.assertAlmostEqual(0.02238075, p)
+    #
+    #     p = phyper(59, 5000, 5000, 100)
+    #     self.assertAlmostEqual(0.02782685, p)
+    #
+    #     p = phyper(59, 50000, 50000, 100)
+    #     self.assertAlmostEqual(0.02838217, p)
 
     def test2_as_fasta(self):
         """convert bed, regions, etc to Fasta"""
@@ -64,10 +64,10 @@ class TestUtils(unittest.TestCase):
 
         rmtree(tmpdir)
 
-    def test_file_checksum(self):
-        fname = "test/data/fasta/test.fa"
-        md5 = "a34798835d4110c34df45bbd8ed2f910"
-        self.assertEqual(md5, file_checksum(fname))
+    # def test_file_checksum(self):
+    #     fname = "test/data/fasta/test.fa"
+    #     md5 = "a34798835d4110c34df45bbd8ed2f910"
+    #     self.assertEqual(md5, file_checksum(fname))
 
     def test_join_max(self):
         size_in = range(25)

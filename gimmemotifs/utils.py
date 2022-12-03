@@ -5,41 +5,29 @@
 # distribution.
 
 """ Odds and ends that for which I didn't (yet) find another place """
-# Python imports
 import os
 import re
 import sys
-import hashlib
 import logging
-import mmap
 import random
-import tempfile
 import requests
 from io import TextIOWrapper
 from functools import singledispatch
 from subprocess import Popen
 from tempfile import NamedTemporaryFile
 
-# External imports
 import pyfaidx
-from scipy import special
 import numpy as np
 import pybedtools
-
 from genomepy import Genome
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
-# gimme imports
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import plot_histogram
 from gimmemotifs.rocmetrics import ks_pvalue
 from gimmemotifs.config import MotifConfig
 
-
 logger = logging.getLogger("gimme.utils")
-
-# pylint: disable=no-member
-lgam = special.gammaln
 
 
 def rc(seq):
@@ -115,27 +103,30 @@ def get_jaspar_motif_info(motif_id):
     return result.json()
 
 
-def phyper_single(k, good, bad, N):
-
-    return np.exp(
-        lgam(good + 1)
-        - lgam(good - k + 1)
-        - lgam(k + 1)
-        + lgam(bad + 1)
-        - lgam(bad - N + k + 1)
-        - lgam(N - k + 1)
-        - lgam(bad + good + 1)
-        + lgam(bad + good - N + 1)
-        + lgam(N + 1)
-    )
-
-
-def phyper(k, good, bad, N):
-    """Current hypergeometric implementation in scipy is broken,
-    so here's the correct version.
-    """
-    pvalues = [phyper_single(x, good, bad, N) for x in range(k + 1, N + 1)]
-    return np.sum(pvalues)
+# # pylint: disable=no-member
+# lgam = special.gammaln
+#
+# def phyper_single(k, good, bad, N):
+#
+#     return np.exp(
+#         lgam(good + 1)
+#         - lgam(good - k + 1)
+#         - lgam(k + 1)
+#         + lgam(bad + 1)
+#         - lgam(bad - N + k + 1)
+#         - lgam(N - k + 1)
+#         - lgam(bad + good + 1)
+#         + lgam(bad + good - N + 1)
+#         + lgam(N + 1)
+#     )
+#
+#
+# def phyper(k, good, bad, N):
+#     """Current hypergeometric implementation in scipy is broken,
+#     so here's the correct version.
+#     """
+#     pvalues = [phyper_single(x, good, bad, N) for x in range(k + 1, N + 1)]
+#     return np.sum(pvalues)
 
 
 def divide_file(fname, sample, rest, fraction, abs_max):
@@ -148,7 +139,7 @@ def divide_file(fname, sample, rest, fraction, abs_max):
     if x > abs_max:
         x = abs_max
 
-    tmp = tempfile.NamedTemporaryFile(mode="w", delete=False)
+    tmp = NamedTemporaryFile(mode="w", delete=False)
 
     # Fraction as sample
     for line in lines[:x]:
@@ -698,24 +689,24 @@ def as_fasta(to_convert, genome=None, minsize=None):
     return Fasta(fdict=as_seqdict(to_convert, genome, minsize))
 
 
-def file_checksum(fname):
-    """Return md5 checksum of file.
-
-    Note: only works for files < 4GB.
-
-    Parameters
-    ----------
-    fname : str
-        File used to calculate checksum.
-
-    Returns
-    -------
-        checkum : str
-    """
-    size = os.path.getsize(fname)
-    with open(fname, "r+") as f:
-        checksum = hashlib.md5(mmap.mmap(f.fileno(), size)).hexdigest()
-    return checksum
+# def file_checksum(fname):
+#     """Return md5 checksum of file.
+#
+#     Note: only works for files < 4GB.
+#
+#     Parameters
+#     ----------
+#     fname : str
+#         File used to calculate checksum.
+#
+#     Returns
+#     -------
+#         checkum : str
+#     """
+#     size = os.path.getsize(fname)
+#     with open(fname, "r+") as f:
+#         checksum = hashlib.md5(mmap.mmap(f.fileno(), size)).hexdigest()
+#     return checksum
 
 
 def join_max(a, length, sep="", suffix=""):
