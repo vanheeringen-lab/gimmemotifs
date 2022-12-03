@@ -214,10 +214,9 @@ class Scanner(object):
                             if i.endswith(" " + gc_bin)
                         ]
                         if len(bin_seqs) == 0:
-                            logger.warning(
-                                f"No background sequences in gc bin {gc_bin}"
-                            )
-                            sys.exit(1)
+                            # no background sequences with this GC%
+                            pbar.update(len(bin_motifs))
+                            continue
                         for motif, mean, std in self._meanstd_from_seqs(
                             bin_motifs, bin_seqs
                         ):
@@ -227,6 +226,27 @@ class Scanner(object):
                             cache.set(k, [mean, std])
                             self.meanstd[gc_bin][motif.id] = mean, std
                             pbar.update(1)
+
+                # fill gc_bins missing in the background with the
+                # nearest gc_bin present in the background
+                for gc_bin in self.gc_bins:
+                    if len(self.meanstd[gc_bin]) == 0:
+                        valid_bins = []
+                        for bstr in self.gc_bins:
+                            if len(self.meanstd.get(bstr, [])) > 0:
+                                valid_bins.append(
+                                    (sum(float(v) for v in bstr.split("-")) / 2, bstr)
+                                )
+
+                        v = float(gc_bin.split("-")[1])
+                        _, bstr = sorted(valid_bins, key=lambda x: abs(x[0] - v))[0]
+                        logger.debug(f"using mean stds of GC% {bstr} for GC% {gc_bin}")
+                        self.meanstd[gc_bin] = self.meanstd[bstr]
+                        for motif in motifs:
+                            k = "e{}|{}|{}".format(
+                                motif.hash, self.background_hash, gc_bin
+                            )
+                            cache.set(k, self.meanstd[gc_bin][motif.id])
 
                 # Prevent std of 0
                 # This should only happen in testing
