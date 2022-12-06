@@ -814,7 +814,7 @@ def motif_to_factor_series(series, pfmfile=None, motifs=None):
     return pd.Series(data=factors, index=index)
 
 
-def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="logos", return_index = True):
+def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="logos"):
     if motifs is None:
         motifs = read_motifs(pfmfile, as_dict=True)
 
@@ -839,8 +839,7 @@ def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="l
     return pd.Series(data=img_series, index=index)
 
 def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3, plot_all_motifs = False, plot_no_motifs = False):
-    print(f'plot_all_motifs == {plot_all_motifs}')
-    print(f'plot_no_motifs == {plot_no_motifs}')
+
     # Read the maelstrom text report
     df = pd.read_table(infile, index_col=0)
 
@@ -853,7 +852,7 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3, plot_all_mo
     corr_cols = df.columns[df.columns.str.contains("corr")]
 
     if plot_all_motifs:
-        motif_to_img_series(df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos", return_index = False)
+        _ = motif_to_img_series(df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos")
 
     df = df[np.any(abs(df[value_cols]) >= threshold, 1)]
 
@@ -870,38 +869,24 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3, plot_all_mo
 
     rename_columns = {"factors": FACTOR_TOOLTIP}
 
-    if not plot_no_motifs:
-        df_styled = (
-            ExtraStyler(df)
-            .format(precision=2)
-            .convert_to_image(
-                subset=["logo"],
-                height=30,
-            )
-            .scaled_background_gradient(
-                subset=value_cols, center_zero=True, low=1 / 1.75, high=1 / 1.75
-            )
-            .border(subset=list(value_cols[:1]), location="left")
-            .border(part="columns", location="bottom")
-            .set_table_attributes('class="sortable-theme-slick" data-sortable')
-            .align(subset=list(value_cols), location="center")
-            .set_font("Nunito Sans")
-            .rename(columns=rename_columns)
+    df_styled = (
+        ExtraStyler(df)
+        .format(precision=2)
+        .pipe(
+            lambda d: d
+            if plot_no_motifs
+            else d.convert_to_image(subset=["logo"], height=30)
         )
-    if plot_no_motifs:
-        df_styled = (
-            ExtraStyler(df)
-            .format(precision=2)
-            .scaled_background_gradient(
-                subset=value_cols, center_zero=True, low=1 / 1.75, high=1 / 1.75
-            )
-            .border(subset=list(value_cols[:1]), location="left")
-            .border(part="columns", location="bottom")
-            .set_table_attributes('class="sortable-theme-slick" data-sortable')
-            .align(subset=list(value_cols), location="center")
-            .set_font("Nunito Sans")
-            .rename(columns=rename_columns)
+        .scaled_background_gradient(
+            subset=value_cols, center_zero=True, low=1 / 1.75, high=1 / 1.75
         )
+        .border(subset=list(value_cols[:1]), location="left")
+        .border(part="columns", location="bottom")
+        .set_table_attributes('class="sortable-theme-slick" data-sortable')
+        .align(subset=list(value_cols), location="center")
+        .set_font("Nunito Sans")
+        .rename(columns=rename_columns)
+    )
 
     if len(corr_cols) > 0:
         df_styled = (
