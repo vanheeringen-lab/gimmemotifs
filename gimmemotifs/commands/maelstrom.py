@@ -23,6 +23,8 @@ def maelstrom(args):
     center = args.center
     gc = args.gc
     aggregation = args.aggregation
+    plot_all_motifs = args.plot_all_motifs
+    plot_no_motifs = args.plot_no_motifs
 
     if not os.path.exists(infile):
         raise ValueError("file {} does not exist".format(infile))
@@ -43,4 +45,6 @@ def maelstrom(args):
         gc=gc,
         center=center,
         aggregation=aggregation,
+        plot_all_motifs = plot_all_motifs,
+        plot_no_motifs = plot_no_motifs,
     )
