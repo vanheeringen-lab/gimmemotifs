@@ -282,15 +282,13 @@ def run_maelstrom(
         the rank aggregation p-value.
 
     plot_all_motifs: bool, optional
-        Specify if to plot all motifs
+        Specify to plot all motifs
 
     plot_no_motifs: bool, optional
-        Specify if to no motifs
+        Specify to plot no motifs
 
     """
     logger.info("Starting maelstrom")
-    logger.info(f"plot_all_motifs {plot_all_motifs}")
-    logger.info(f"plot_no_motifs {plot_no_motifs}")
 
     if infile.endswith("feather"):
         df = pd.read_feather(infile)
@@ -320,8 +318,8 @@ def run_maelstrom(
                 "Leaving the data as-is, but make sure this is what your really want."
             )
     
-    if plot_all_motifs & plot_no_motifs:
-        raise ValueError('either add the --all-motifs flagg, or --no-motifs, but not both')
+    if plot_all_motifs and plot_no_motifs:
+        raise ValueError('either add the --all-motifs or --no-motifs, but not both')
 
     # Check for duplicates
     if df.index.duplicated(keep=False).any():
@@ -555,7 +553,13 @@ def run_maelstrom(
 
     if plot and len(methods) > 1:
         logger.info("html report")
-        maelstrom_html_report(outdir, os.path.join(outdir, "final.out.txt"), pfmfile, plot_all_motifs = plot_all_motifs, plot_no_motifs = plot_no_motifs)
+        maelstrom_html_report(
+            outdir,
+            os.path.join(outdir, "final.out.txt"),
+            pfmfile,
+            plot_all_motifs = plot_all_motifs,
+            plot_no_motifs = plot_no_motifs,
+        )
         logger.info(os.path.join(outdir, "gimme.maelstrom.report.html"))
 
 
