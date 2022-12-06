@@ -410,7 +410,7 @@ def run_maelstrom(
         with open(pfmfile, "w") as f:
             for motif in motifs:
                 if motif.id in selected_motifs:
-                    f.write(f"{motif.to_pmm()}\n")
+                    f.write(f"{motif.to_ppm()}\n")
 
         mapfile = pfmfile.replace(".pfm", ".motif2factors.txt")
         with open(mapfile, "w") as f:
