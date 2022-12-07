@@ -838,8 +838,7 @@ def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="l
         index = series.index
     return pd.Series(data=img_series, index=index)
 
-
-def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
+def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3, plot_all_motifs = False, plot_no_motifs = False):
 
     # Read the maelstrom text report
     df = pd.read_table(infile, index_col=0)
@@ -852,14 +851,18 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
     # Columns with correlation values
     corr_cols = df.columns[df.columns.str.contains("corr")]
 
+    if plot_all_motifs:
+        _ = motif_to_img_series(df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos")
+
     df = df[np.any(abs(df[value_cols]) >= threshold, 1)]
 
-    # Add motif logo's
-    df.insert(
-        0,
-        "logo",
-        motif_to_img_series(df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos"),
-    )
+    if not plot_no_motifs:
+        # Add motif logo's
+        df.insert(
+            0,
+            "logo",
+            motif_to_img_series(df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos"),
+        )
 
     # Add factors that can bind to the motif
     df.insert(0, "factors", motif_to_factor_series(df.index, pfmfile=pfmfile))
@@ -869,9 +872,10 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
     df_styled = (
         ExtraStyler(df)
         .format(precision=2)
-        .convert_to_image(
-            subset=["logo"],
-            height=30,
+        .pipe(
+            lambda d: d
+            if plot_no_motifs
+            else d.convert_to_image(subset=["logo"], height=30)
         )
         .scaled_background_gradient(
             subset=value_cols, center_zero=True, low=1 / 1.75, high=1 / 1.75
