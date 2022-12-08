@@ -36,7 +36,19 @@ from gimmemotifs.utils import motif_localization
 
 logger = logging.getLogger("gimme.report")
 
-FACTOR_TOOLTIP = "<div title='\"Direct\" means that there is direct evidence of binding or that this assignment is based on curated information. \"Predicted\" means that the motif comes from a non-curated ChIP-seq experiment or that the factor was computationally predicted to bind this motif based on its DNA binding domain.'>factors<br/>(<span style='color:black'>direct</span> or <span style='color:#666666'>predicted</span>)</div>"
+FACTOR_TOOLTIP = """
+    <div title='
+    \"Direct\" means that there is direct evidence of binding or that this assignment
+     is based on curated information.
+    \n\n
+    \"Predicted\" means that the motif comes from a non-curated ChIP-seq experiment
+     or that the factor was computationally predicted to bind this motif based on its
+     DNA binding domain.
+    '>factors<br/>(<span style='color:black'>direct</span> or
+     <span style='color:#666666'>predicted</span>)</div>
+""".replace(
+    "\n    ", ""
+)
 
 
 def _wrap_html_str(x):
@@ -65,11 +77,12 @@ class ExtraStyler(Styler):
     Extra styles for a DataFrame or Series based on pandas.styler using HTML and CSS.
     """
 
+    # add our own templates to those in Styler
     loader = jinja2.ChoiceLoader(
         [jinja2.FileSystemLoader(MotifConfig().get_template_dir()), Styler.loader]
     )
     env = jinja2.Environment(loader=loader)
-    template = env.get_template("table.tpl")
+    template_html = env.get_template("table.tpl")  # sortable reports with slick theme
 
     def __init__(self, *args, **kwargs):
         self._data_todo = []
@@ -81,18 +94,7 @@ class ExtraStyler(Styler):
         }
         super(ExtraStyler, self).__init__(*args, **kwargs)
         self.display_data = self.data.copy()
-
-        # self.template =
-
-        self._font = "Nunito Sans"
-
-    @property
-    def font(self):
-        return self._font
-
-    @font.setter
-    def font(self, font_name):
-        self._font = font_name
+        self.font = "Nunito Sans"
 
     def set_font(self, font_name):
         """
@@ -240,7 +242,7 @@ class ExtraStyler(Styler):
 
     @staticmethod
     def _border(idx, location="left"):
-        return [f"border-{location}: 2px solid #444;" for val in idx]
+        return [f"border-{location}: 2px solid #444;" for _ in idx]
 
     def border(
         self,
@@ -298,7 +300,7 @@ class ExtraStyler(Styler):
 
     @staticmethod
     def _align(idx, location="center"):
-        return [f"text-align:{location};" for val in idx]
+        return [f"text-align:{location};" for _ in idx]
 
     def align(self, subset=None, location="center", axis=0):
         """
@@ -344,7 +346,6 @@ class ExtraStyler(Styler):
         show_text=True,
         color=None,
         cmap=None,
-        vmin=None,
         vmax=None,
         scale=False,
         size=25,
@@ -356,11 +357,9 @@ class ExtraStyler(Styler):
 
         if color:
             palette = sns.color_palette([color])
-            # print(palette)
         elif cmap is None:
             palette = sns.light_palette((210, 90, 60), input="husl", n_colors=10)
         else:
-            # if isinstance(palette, str):
             palette = sns.color_palette(cmap)
 
         # Make sure we don't select text columns
@@ -658,13 +657,8 @@ def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
     write_stats(my_stats, os.path.join(outdir, "stats.{}.txt"), header=header)
 
 
-def _create_graphical_report(
-    inputfile, pwm, background, closest_match, outdir, stats, best_id=None
-):
+def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, stats):
     """Create main gimme_motifs output html report."""
-    if best_id is None:
-        best_id = {}
-
     logger.debug("Creating graphical report")
 
     class ReportMotif(object):
@@ -842,8 +836,7 @@ def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="l
         index = series.index
     return pd.Series(data=img_series, index=index)
 
-
-def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
+def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3, plot_all_motifs = False, plot_no_motifs = False):
 
     # Read the maelstrom text report
     df = pd.read_table(infile, index_col=0)
@@ -852,17 +845,23 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
     value_cols = df.columns[
         ~df.columns.str.contains("corr") & ~df.columns.str.contains("% with motif")
     ]
+
     # Columns with correlation values
     corr_cols = df.columns[df.columns.str.contains("corr")]
 
+    if plot_all_motifs:
+        _ = motif_to_img_series(df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos")
+
     df = df[np.any(abs(df[value_cols]) >= threshold, 1)]
 
-    # Add motif logo's
-    df.insert(
-        0,
-        "logo",
-        motif_to_img_series(df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos"),
-    )
+    if not plot_no_motifs:
+        # Add motif logo's
+        df.insert(
+            0,
+            "logo",
+            motif_to_img_series(df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos"),
+        )
+
     # Add factors that can bind to the motif
     df.insert(0, "factors", motif_to_factor_series(df.index, pfmfile=pfmfile))
 
@@ -870,10 +869,11 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
 
     df_styled = (
         ExtraStyler(df)
-        .format(precision=2)  # .set_precision(2)
-        .convert_to_image(
-            subset=["logo"],
-            height=30,
+        .format(precision=2)
+        .pipe(
+            lambda d: d
+            if plot_no_motifs
+            else d.convert_to_image(subset=["logo"], height=30)
         )
         .scaled_background_gradient(
             subset=value_cols, center_zero=True, low=1 / 1.75, high=1 / 1.75
@@ -1027,7 +1027,7 @@ def roc_html_report(
                 .scaled_background_gradient(
                     "Recall at 10% FDR", vmin=0, vmax=1, high=0.7, cmap="Reds"
                 )
-                .format(precision=2)  # .set_precision(2)
+                .format(precision=2)
                 .set_table_attributes('class="sortable-theme-slick" data-sortable')
                 .wrap(subset=cols)
                 .align(subset=bar_cols, location="center")

@@ -217,6 +217,8 @@ def run_maelstrom(
     gc=True,
     center=False,
     aggregation="int_stouffer",
+    plot_all_motifs = False,
+    plot_no_motifs = False,
 ):
     """Run maelstrom on an input table.
 
@@ -276,8 +278,16 @@ def run_maelstrom(
         inverse normal transform followed by Stouffer's methods to combine z-scores.
         Alternatively, "stuart" performs rank aggregation and reports the -log10 of
         the rank aggregation p-value.
+
+    plot_all_motifs: bool, optional
+        Specify to plot all motifs
+
+    plot_no_motifs: bool, optional
+        Specify to plot no motifs
+
     """
     logger.info("Starting maelstrom")
+
     if infile.endswith("feather"):
         df = pd.read_feather(infile)
         df = df.set_index(df.columns[0])
@@ -305,6 +315,9 @@ def run_maelstrom(
             logger.info(
                 "Leaving the data as-is, but make sure this is what your really want."
             )
+    
+    if plot_all_motifs and plot_no_motifs:
+        raise ValueError('either add the --all-motifs or --no-motifs, but not both')
 
     # Check for duplicates
     if df.index.duplicated(keep=False).any():
@@ -408,7 +421,7 @@ def run_maelstrom(
         with open(pfmfile, "w") as f:
             for motif in motifs:
                 if motif.id in selected_motifs:
-                    f.write(f"{motif.to_pfm()}\n")
+                    f.write(f"{motif.to_ppm()}\n")
 
         mapfile = pfmfile.replace(".pfm", ".motif2factors.txt")
         with open(mapfile, "w") as f:
@@ -538,7 +551,13 @@ def run_maelstrom(
 
     if plot and len(methods) > 1:
         logger.info("html report")
-        maelstrom_html_report(outdir, os.path.join(outdir, "final.out.txt"), pfmfile)
+        maelstrom_html_report(
+            outdir,
+            os.path.join(outdir, "final.out.txt"),
+            pfmfile,
+            plot_all_motifs = plot_all_motifs,
+            plot_no_motifs = plot_no_motifs,
+        )
         logger.info(os.path.join(outdir, "gimme.maelstrom.report.html"))
 
 

@@ -379,6 +379,20 @@ def cli(sys_args):
         action="store_false",
         default=True,
     )
+    p.add_argument(
+        "--all-motif-plots",
+        dest="plot_all_motifs",
+        help='Specify to plot all motifs',
+        action="store_true",
+        default=False,
+    )
+    p.add_argument(
+        "--no-motif-plots",
+        dest="plot_no_motifs",
+        help='Specify to plot no motifs',
+        action="store_true",
+        default=False,
+    )
 
     p.set_defaults(func=commands.maelstrom)
 
