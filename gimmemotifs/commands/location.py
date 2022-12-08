@@ -50,6 +50,9 @@ def location(args):
                     motif_localization, (fastafile, motif, lsize, outfile, args.cutoff)
                 )
             )
+    pool.close()
 
     for job in jobs:
         job.get()
+
+    pool.join()

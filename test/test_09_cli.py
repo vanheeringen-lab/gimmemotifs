@@ -9,7 +9,6 @@ from gimmemotifs.motif import read_motifs
 travis = "TRAVIS" in os.environ and os.environ["TRAVIS"] == "true"
 
 
-# @pytest.mark.skipif(travis, reason="Skip CPU-intensive tests")
 @pytest.mark.parametrize(
     "motif_argument",
     [
@@ -23,7 +22,7 @@ def test_gimme_motifs(motif_argument):
         print(d)
         cli(
             ["motifs", "test/data/denovo/input.fa", d]
-            + ["-p", "test/data/cli/motifs.pfm"]  # test/data/cli/Gm12878.CTCF.top200.fa
+            + ["-p", "test/data/cli/motifs.pfm"]
             + ["-g", "test/data/background/genome.fa"]
             + ["-a", "small", "-t", "MEME", "--nogc", "-N", "1"]
             + motif_argument

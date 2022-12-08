@@ -21,7 +21,7 @@ fix it by deleting the GimmeMotifs cache directory `~/.cache/gimmemotifs`.
     File "/home/simon/anaconda3/envs/gimme-0.15.1/lib/python3.8/site-packages/gimmemotifs/maelstrom.py", line 343, in run_maelstrom
         counts = scan_regionfile_to_table(
     File "/home/simon/anaconda3/envs/gimme-0.15.1/lib/python3.8/site-packages/gimmemotifs/scanner.py", line 164, in scan_regionfile_to_table
-        s.set_threshold(fpr=FPR)
+        s.set_thresholds(fpr=FPR)
     File "/home/simon/anaconda3/envs/gimme-0.15.1/lib/python3.8/site-packages/gimmemotifs/scanner.py", line 958, in set_threshold
         self._threshold = pd.concat((self._threshold, df), axis=1)
     File "/home/simon/anaconda3/envs/gimme-0.15.1/lib/python3.8/site-packages/pandas/core/reshape/concat.py", line 287, in concat

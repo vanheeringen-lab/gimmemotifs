@@ -65,7 +65,11 @@ class TestScanner(unittest.TestCase):
 
         # bgfile: all attributes are set
         fname = "test/data/scan/scan_test_regions.fa"
+        self.s.gc_bins = None
+        self.s.background = None
+        self.s.background_hash = None
         self.s.set_background(fasta=fname)
+        assert self.s.gc_bins == ["0.00-1.00"]
         assert self.s.background is not None
         assert self.s.background_hash is not None
         assert "chr1:541337-541538" in self.s.background.ids
@@ -80,33 +84,33 @@ class TestScanner(unittest.TestCase):
         assert len(self.s.meanstd) == 1
         assert len(self.s.meanstd["0.00-1.00"]) == 5  # number of motifs
 
-    def test05_set_threshold(self):
+    def test05_set_thresholds(self):
         assert self.s.threshold is None
 
         self.s.set_motifs("test/data/pwms/motifs.pwm")
-        self.s.set_threshold(threshold=0.0)
+        self.s.set_thresholds(threshold=0.0)
         assert self.s.threshold is not None
         assert self.s.fpr is None
         assert round(self.s.threshold.at["0.00-1.00", "M1500_1.01"], 4) == -17.4943
 
         with pytest.raises(ValueError):
-            self.s.set_threshold(fpr=0.02)  # fpr, but no background
+            self.s.set_thresholds(fpr=0.02)  # fpr, but no background
 
         self.s.set_background("test/data/scan/scan_test_regions.fa")
-        self.s.set_threshold(fpr=0.02)
+        self.s.set_thresholds(fpr=0.02)
         assert self.s.threshold is not None
         assert self.s.fpr == 0.02
         assert self.s.threshold.shape == (58, 5)
 
-    def test06_get_gc_thresholds(self):
+    def test06_get_thresholds(self):
         f = Fasta(self.fa)
 
         self.s.set_motifs("test/data/pwms/motifs.pwm")
         self.s.set_background("test/data/scan/scan_test_regions.fa")
-        self.s.set_threshold(fpr=0.02)
-        t = self.s.get_gc_thresholds(f.seqs, zscore=False)
+        self.s.set_thresholds(fpr=0.02)
+        t = self.s.get_thresholds(f.seqs, zscore=False)
         assert round(t["M1500_1.01"], 4) == 6.7953
-        tz = self.s.get_gc_thresholds(f.seqs, zscore=True)
+        tz = self.s.get_thresholds(f.seqs, zscore=True)
         assert round(tz["M1500_1.01"], 4) == 2.0026
 
     def test07_scan(self):
@@ -117,26 +121,26 @@ class TestScanner(unittest.TestCase):
         for ncpus in [1, 2]:
             s.ncpus = ncpus
 
-            s.set_threshold(threshold=0.0)
+            s.set_thresholds(threshold=0.0)
             nmatches = [len(m[0]) for m in s.scan(f, 1, False)]
             self.assertEqual([1, 1, 1], nmatches)
 
-            s.set_threshold(threshold=0.99)
+            s.set_thresholds(threshold=0.99)
             nmatches = [len(m[0]) for m in s.scan(f.seqs, 1, False)]
             self.assertEqual([0, 1, 1], nmatches)
 
-            s.set_threshold(threshold=0.99)
+            s.set_thresholds(threshold=0.99)
             nmatches = [len(m[0]) for m in s.scan(f.seqs, 10, False)]
             self.assertEqual([0, 1, 2], nmatches)
 
-            s.set_threshold(threshold=0.99)
+            s.set_thresholds(threshold=0.99)
             nmatches = [len(m[0]) for m in s.scan(f.seqs, 10, True)]
             self.assertEqual([0, 2, 4], nmatches)
 
     def test08_total_count(self):
         f = Fasta(self.fa)
         self.s.set_motifs(self.motifs)
-        self.s.set_threshold(threshold=0.99)
+        self.s.set_thresholds(threshold=0.99)
         counts = self.s.total_count(f.seqs, 10, True)
         assert sum(counts) == 6
 

@@ -7,7 +7,8 @@ from scipy.stats import rankdata
 import pandas as pd
 
 from gimmemotifs import rocmetrics
-from gimmemotifs.scanner import scan_to_best_match, Scanner
+from gimmemotifs.fasta import Fasta
+from gimmemotifs.scanner import scan_to_best_match
 from gimmemotifs.motif import read_motifs, Motif
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.utils import pfmfile_location
@@ -112,16 +113,20 @@ def calc_stats_iterator(
         all_motifs = [m for m in all_motifs if m.id in filtered_motifs]
 
     if ncpus is None:
-        ncpus = int(MotifConfig().get_default_params()["ncpus"])
+        ncpus = MotifConfig().get_default_params()["ncpus"]
+    ncpus = int(ncpus)
 
     if fg_file is not None or bg_file is not None:
-        if zscore or gc:
-            # Precalculate mean and stddev for z-score calculation
-            s = Scanner(ncpus=ncpus)
-            s.set_motifs(all_motifs)
-            s.set_genome(genome)
-            s.set_background(gc=gc)
-            s.set_meanstd()
+        # Precalculate mean and stddev for z-score calculation
+        scan_to_best_match(
+            Fasta(),
+            all_motifs,
+            genome,
+            zscore=zscore,
+            gc=gc,
+            ncpus=ncpus,
+            progress=False,
+        )
 
     chunksize = 240
     for i in range(0, len(all_motifs), chunksize):
@@ -293,11 +298,12 @@ def _mp_stats(motifs, stats, fg_total, bg_total, ncpus):
             j = pool.apply_async(func, (fg, bg))
             jobs.append([str(motif), s, j])
     pool.close()
-    pool.join()
 
     for motif_id, s, job in jobs:
         ret = job.get()
         yield motif_id, s, ret
+
+    pool.join()
 
 
 def star(stat, categories):

@@ -12,7 +12,7 @@ from gimmemotifs.scanner import Scanner
 
 def threshold(args):
     """Calculate motif score threshold for a given FPR."""
-    if args.fpr < 0 or args.fpr > 1:
+    if float(args.fpr) < 0 or float(args.fpr) > 1:
         print("Please specify a FPR between 0 and 1")
         sys.exit(1)
 
@@ -21,7 +21,7 @@ def threshold(args):
     s = Scanner()
     s.set_motifs(args.pfmfile)
     s.set_background(fasta=args.inputfile)
-    s.set_threshold(fpr=args.fpr)
+    s.set_thresholds(fpr=args.fpr)
 
     print("Motif\tScore\tCutoff")
     for motif in motifs:

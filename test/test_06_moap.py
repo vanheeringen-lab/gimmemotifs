@@ -10,9 +10,9 @@ class TestMoap(unittest.TestCase):
     def setUp(self):
         self.random_state = np.random.RandomState(1)
         self.data_dir = "test/data/moap"
-        self.clusters = os.path.join(self.data_dir, "clusters.txt")
-        self.motifs_count = os.path.join(self.data_dir, "motifs.count.txt")
-        self.motifs_score = os.path.join(self.data_dir, "motifs.score.txt")
+        self.clusters4 = os.path.join(self.data_dir, "4clusters.txt")
+        self.motifs_count4 = os.path.join(self.data_dir, "4clusters.motifs.count.txt")
+        self.motifs_score4 = os.path.join(self.data_dir, "4clusters.motifs.score.txt")
 
         self.clusters2 = os.path.join(self.data_dir, "2clusters.txt")
         self.motifs_count2 = os.path.join(self.data_dir, "2clusters.motifs.count.txt")
@@ -23,6 +23,7 @@ class TestMoap(unittest.TestCase):
 
         expected_clusters_score = {
             "bayesianridge": 4,  # 1,
+            # "xgboost",
             "mwu": 4,
             "rf": 4,
             "multitasklasso": 4,  # 1,
@@ -30,28 +31,37 @@ class TestMoap(unittest.TestCase):
         }
         for method, nclust in expected_clusters_score.items():
             df = moap(
-                self.clusters,
+                self.clusters4,
                 method=method,
                 scoring="score",
-                motiffile=self.motifs_score,
+                motiffile=self.motifs_score4,
                 random_state=self.random_state,
             )
-            msg = f"{method} score, expected {nclust} clusters but found {df.shape[1]}"
-            self.assertEquals(nclust, df.shape[1], msg=msg)
+            self.assertEquals(
+                df.shape[0],
+                623,
+                msg=f"{method} score, expected {623} sequences, but found {df.shape[0]}",
+            )
+            self.assertEquals(
+                df.shape[1],
+                4,
+                msg=f"{method} score, expected {nclust} clusters but found {df.shape[1]}",
+            )
 
         expected_clusters_count = {
             "hypergeom": 4,
             "bayesianridge": 4,  # 1,
+            # "xgboost",
             "rf": 4,
             "multitasklasso": 4,  # 1,
             "svr": 4,  # 1,
         }
         for method, nclust in expected_clusters_count.items():
             df = moap(
-                self.clusters,
+                self.clusters4,
                 method=method,
                 scoring="count",
-                motiffile=self.motifs_count,
+                motiffile=self.motifs_count4,
                 random_state=self.random_state,
             )
             msg = f"{method} count, expected {nclust} clusters but found {df.shape[1]}"
@@ -62,6 +72,7 @@ class TestMoap(unittest.TestCase):
 
         expected_clusters_score = {
             "bayesianridge": 2,  # 1,
+            # "xgboost",
             "mwu": 2,
             "rf": 2,
             "multitasklasso": 2,  # 1,
@@ -81,6 +92,7 @@ class TestMoap(unittest.TestCase):
         expected_clusters_count = {
             "hypergeom": 2,
             "bayesianridge": 2,  # 1,
+            # "xgboost",
             "rf": 2,
             "multitasklasso": 2,  # 1,
             "svr": 2,  # 1,

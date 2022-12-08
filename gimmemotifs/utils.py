@@ -273,7 +273,7 @@ def median_bed_len(bedfile):
 def motif_localization(fastafile, motif, size, outfile, cutoff=0.9):
     NR_HIST_MATCHES = 100
 
-    matches = motif.pwm_scan(Fasta(fastafile), cutoff=cutoff, nreport=NR_HIST_MATCHES)
+    matches = motif.scan(Fasta(fastafile), cutoff=cutoff, nreport=NR_HIST_MATCHES)
     if len(matches) > 0:
         ar = []
         for a in matches.values():
@@ -628,16 +628,15 @@ def _as_seqdict_filename(to_convert, genome=None, minsize=None):
     if not os.path.exists(to_convert):
         raise ValueError("Assuming filename, but it does not exist")
 
-    f = open(to_convert)
-    fa = as_seqdict(f)
+    with open(to_convert) as f:
+        fa = as_seqdict(f)
 
     if any(fa):
         return _check_minsize(fa, minsize)
 
     with open(to_convert) as f:
         line = ""
-        while True:
-            line = f.readline()
+        for line in f.readline():
             if line == "":
                 break
             if not line.startswith("#"):

@@ -10,11 +10,20 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - `moap()` now accepts an optional `numpy.random.RandomState()`
 - motif scanning function now have more progress bars.
   - these can be turned off with `progress=False`
-- `Scanner.set_genome` now accepts the optional argument `genomes_dir`
+- `Scanner` class and function have been refactored
+  - downstream functions minimize GC correction/z-score/threshold calculations
+  - the class itself gives a warning when GC correction is requested, but not possible
+  - the class now accepts an optional `numpy.random.RandomState()` and `progress` argument
+  - `Scanner.set_genome` now accepts the optional argument `genomes_dir`
+  - class methods need fewer arguments (since they call fewer methods internally)
 
 ### Fixed
 
-- `gimme maelstrom` works with or without xgboost (but will give a warning without xgboost) 
+- `gimme maelstrom` works with or without xgboost (but will give a warning without xgboost)
+- warnings
+  - multiprocessing and resource warnings have been fixed
+  - motif discovery tool warnings have been silenced
+  - "in validate_matrix(): Row sums in df are not close to 1. Reormalizing rows..." fixed
 
 ## [0.17.2] - 2022-10-12
 

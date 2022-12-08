@@ -1131,20 +1131,23 @@ def _add_factors_from_handle(motifs, handle):
 
     m2f_direct = {}
     m2f_indirect = {}
-    for line in open(map_file):
-        if line.startswith("#"):
-            continue
-        try:
-            motif, *factor_info = line.strip().split("\t")
-            if len(factor_info) == 1:
-                m2f_direct[motif] = factor_info[0].split(",")
-            elif len(factor_info) == 3:
-                if factor_info[2] == "Y":
-                    m2f_direct[motif] = m2f_direct.get(motif, []) + [factor_info[0]]
-                else:
-                    m2f_indirect[motif] = m2f_indirect.get(motif, []) + [factor_info[0]]
-        except Exception:
-            pass
+    with open(map_file) as f:
+        for line in f:
+            if line.startswith("#"):
+                continue
+            try:
+                motif, *factor_info = line.strip().split("\t")
+                if len(factor_info) == 1:
+                    m2f_direct[motif] = factor_info[0].split(",")
+                elif len(factor_info) == 3:
+                    if factor_info[2] == "Y":
+                        m2f_direct[motif] = m2f_direct.get(motif, []) + [factor_info[0]]
+                    else:
+                        m2f_indirect[motif] = m2f_indirect.get(motif, []) + [
+                            factor_info[0]
+                        ]
+            except Exception:
+                pass
 
     m2f = pd.read_csv(map_file, sep="\t", comment="#", index_col=0)
 

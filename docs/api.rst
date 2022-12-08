@@ -238,7 +238,7 @@ Now we can use this file for scanning.
     f = Fasta("test.fa")
     m = motif_from_consensus("TGAsTCA")
 
-    m.pwm_scan(f)
+    m.scan(f)
 
 .. code-block:: python
 
@@ -247,11 +247,11 @@ Now we can use this file for scanning.
 This return a dictionary with the sequence names as keys. 
 The value is a list with positions where the motif matches. 
 Here, as the AP1 motif is a palindrome, you see matches on both forward and reverse strand. 
-This is more clear when we use ``pwm_scan_all()`` that returns position, score and strand for every match.
+This is more clear when we use ``scan_all()`` that returns position, score and strand for every match.
 
 .. code-block:: python
 
-    m.pwm_scan_all(f)
+    m.scan_all(f)
 
 .. code-block:: python
 
@@ -267,7 +267,7 @@ Use ``scan_rc=False`` to only scan the forward orientation.
 
 .. code-block:: python
 
-    m.pwm_scan_all(f, nreport=1, scan_rc=False)
+    m.scan_all(f, nreport=1, scan_rc=False)
     
 .. code-block:: python
 
@@ -358,7 +358,7 @@ This means that for the same combination of motifs and genome, the previously ge
 
     # Set a 1% FPR threshold based on random hg38 sequence
     s.set_genome("hg38")
-    s.set_threshold(fpr=0.01)
+    s.set_thresholds(fpr=0.01)
 
     # get the number of sequences with at least one match
     counts = [n[0] for n in s.count("Gm12878.CTCF.top500.w200.fa", nreport=1)]

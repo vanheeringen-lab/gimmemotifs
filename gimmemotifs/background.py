@@ -79,7 +79,7 @@ def create_background_file(
     # Genome index location for creation of FASTA files
     if bg_type in ["gc", "genomic", "promoter"] and fmt == "fasta":
         if genome is None:
-            print("Need a genome to create background file")
+            logger.error("Need a genome to create background file")
             sys.exit(1)
         Genome(genome)
 
@@ -90,9 +90,9 @@ def create_background_file(
             gene_file = os.path.join(config.get_gene_dir(), "{}.bed".format(genome))
 
         if not os.path.exists(gene_file):
-            print("Could not find a gene file for genome {}".format(genome))
-            print("Did you use the --annotation flag for genomepy?")
-            print(
+            logger.error("Could not find a gene file for genome {}".format(genome))
+            logger.error("Did you use the --annotation flag for genomepy?")
+            logger.error(
                 "Alternatively make sure there is a file called {}.bed in {}".format(
                     genome, config.get_gene_dir()
                 )

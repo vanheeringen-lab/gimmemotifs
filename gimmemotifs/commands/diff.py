@@ -23,7 +23,7 @@ def diff(args):
     bgfile = args.bgfile
     outfile = args.outputfile
     pfmfile = args.pfmfile
-    cutoff = args.cutoff
+    cutoff = float(args.cutoff)
     genome = args.genome
     minenr = float(args.minenr)
     minfreq = float(args.minfreq)
@@ -60,15 +60,15 @@ def diff(args):
     s = Scanner()
     s.set_motifs(pfmfile)
     s.set_background(fasta=bgfile)
-    s.set_threshold(threshold=cutoff)
+    s.set_thresholds(threshold=cutoff)
 
-    # Get background frequencies
+    # Get frequencies in background
     nbg = float(len(Fasta(bgfile).seqs))
 
     bgcounts = s.total_count(bgfile, nreport=1)
     bgfreq = [(c + 0.01) / nbg for c in bgcounts]
 
-    # Get frequences in input files
+    # Get frequencies in input files
     freq = {}
     counts = {}
     for fname in infiles:
@@ -79,9 +79,6 @@ def diff(args):
 
     freq = np.array([freq[fname] for fname in infiles]).transpose()
     counts = np.array([counts[fname] for fname in infiles]).transpose()
-
-    # for row in freq:
-    #    print freq
 
     diff_plot(
         motifs,

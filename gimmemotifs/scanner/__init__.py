@@ -9,15 +9,16 @@ __all__ = [
 ]
 
 import logging
-import numpy as np
 import os
-import pandas as pd
 import re
 import sys
 
+import numpy as np
+import pandas as pd
+
 from gimmemotifs import __version__
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.scanner.base import Scanner, FPR
+from gimmemotifs.scanner.base import FPR, Scanner
 from gimmemotifs.utils import as_fasta, pfmfile_location
 
 logger = logging.getLogger("gimme.scanner")
@@ -39,7 +40,7 @@ def scan_to_best_match(
 
     Parameters
     ----------
-    fasta : str
+    fasta : str or Fasta
         Filename of a sequence file in FASTA format.
 
     pfmfile : str or list, optional
@@ -78,8 +79,18 @@ def scan_to_best_match(
     # Initialize scanner
     s = Scanner(ncpus=ncpus, random_state=random_state, progress=progress)
     s.set_motifs(pfmfile)
-    if genome:
-        s.set_genome(genome)
+    s.set_genome(genome)
+
+    # Currently, gc=True only has any effect with:
+    #   - set_genome (with genome)
+    #   - set_background (without fasta argument)
+    #   - set_thresholds (without threshold argument)
+    #   - zscore = True
+    # best_score()/best_match() both use set_threshold(threshold=0.0)
+    # count() does not use zscore
+    # Thus, gc=True does nothing.
+    gc = False
+
     if genome and zscore:
         s.set_background(gc=gc)
 
@@ -91,9 +102,6 @@ def scan_to_best_match(
     for scores in it:
         for motif, score in zip(s.motif_ids, scores):
             result[motif].append(score)
-
-    # Close the pool and reclaim memory
-    del s
 
     return result
 
@@ -169,6 +177,16 @@ def scan_regionfile_to_table(
         np.median([len(seq) for seq in as_fasta(check_regions, genome=genome).seqs])
     )
 
+    # Currently, gc=True only has any effect with:
+    #   - set_genome (with genome)
+    #   - set_background (without fasta argument)
+    #   - set_thresholds (without threshold argument)
+    #   - zscore = True
+    # best_score()/best_match() both use set_threshold(threshold=0.0)
+    # count() does not use zscore
+    # Thus, gc=True does nothing.
+    gc = False
+
     s = Scanner(ncpus=ncpus, random_state=random_state, progress=progress)
     s.set_motifs(pfmfile)
     s.set_genome(genome)
@@ -178,17 +196,15 @@ def scan_regionfile_to_table(
     # regions from the input table and motifs from the pfmfile
     df = pd.DataFrame(index=regions, columns=s.motif_ids, data=0.0, dtype="float16")
 
-    logger.debug("setting threshold")
     if scoring == "count":
-        s.set_threshold(fpr=FPR)
+        s.set_thresholds(fpr=FPR)
         logger.info("Creating count table")
         for idx, row in enumerate(s.count(regions)):
             df.iloc[idx] = row
         df = df.astype(int)
     else:
         scoring = "z-score" if zscore else "logodds"
-        gc = ", GC% corrected" if gc else ""
-        logger.info(f"Creating score table ({scoring}{gc})")
+        logger.info(f"Creating score table ({scoring})")
         for idx, row in enumerate(
             s.best_score(
                 regions,
@@ -197,7 +213,6 @@ def scan_regionfile_to_table(
             )
         ):
             df.iloc[idx] = row
-    logger.info("Done")
 
     return df
 
@@ -256,10 +271,10 @@ def scan_to_file(
     bed : bool, optional
         outputs BED6 format, instead of GTF/GFF format (default).
 
-    bgfile : str
+    bgfile : str, optional
         FASTA file to use as background sequences. Required if no genome is given.
 
-    genome : str
+    genome : str, optional
         Genome name. Can be either the name of a FASTA-formatted file or a
         genomepy genome name. Required if no bgfile is given.
 
@@ -295,24 +310,39 @@ def scan_to_file(
         fo = open(file_name, "w")
         should_close = True
 
+    # default values for printing in the header
+    # would have been set automatically in Scanner
+    if score_table:
+        cutoff = 0.0
     if fpr is None and cutoff is None:
         fpr = FPR
 
-    print("# GimmeMotifs version {}".format(__version__), file=fo)
-    print("# Input: {}".format(inputfile), file=fo)
-    print("# Motifs: {}".format(pfmfile), file=fo)
-    if fpr and not score_table:
-        if genome is not None:
-            print("# FPR: {} ({})".format(fpr, genome), file=fo)
-        elif bgfile:
-            print("# FPR: {} ({})".format(fpr, bgfile), file=fo)
-    if cutoff is not None:
-        print("# Threshold: {}".format(cutoff), file=fo)
+    # Currently, gc=True only has any effect with:
+    #   - set_genome (with genome)
+    #   - set_background (without fasta argument)
+    #   - set_thresholds (without threshold argument)
+    #   - zscore = True
+    # best_score()/best_match() both use set_threshold(threshold=0.0)
+    # count() does not use zscore
+    # Thus, gc=True does nothing.
+    if (
+        (not genome)
+        or bgfile
+        or (cutoff is not None)
+        or (not zscore)
+        or score_table
+        or count_table
+    ):
+        gc = False
+
+    print(f"# GimmeMotifs version {__version__}", file=fo)
+    print(f"# Input: {inputfile}", file=fo)
+    print(f"# Motifs: {pfmfile}", file=fo)
+    msg = f"# Threshold: {cutoff}" if cutoff is not None else f"# FPR: {fpr}"
+    msg += f"({bgfile})" if bgfile else f"({genome})" if genome else ""
+    print(msg, file=fo)
     if zscore and not count_table:
-        if gc:
-            print("# Scoring: GC frequency normalized z-score", file=fo)
-        else:
-            print("# Scoring: normalized z-score", file=fo)
+        print(f"# Scoring: {'GC frequency ' if gc else ''}normalized z-score", file=fo)
     else:
         print("# Scoring: logodds score", file=fo)
 
@@ -325,17 +355,16 @@ def scan_to_file(
     if genome or bgfile:
         s.set_genome(genome)
         s.set_background(fasta=bgfile, size=fa.median_length(), gc=gc)
-    elif not score_table:
-        logger.error("a genome or background file is required")
-        sys.exit(1)
+    elif cutoff is None:
+        raise ValueError("a genome, background file or cutoff is required")
 
     if count_table:
-        s.set_threshold(fpr=fpr, threshold=cutoff)
+        s.set_thresholds(fpr=fpr, threshold=cutoff)
         it = _scan_count_table(s, fa, motifs, nreport, scan_rc)
     elif score_table:
         it = _scan_score_table(s, fa, motifs, scan_rc, zscore)
     else:
-        s.set_threshold(fpr=fpr, threshold=cutoff)
+        s.set_thresholds(fpr=fpr, threshold=cutoff)
         it = _scan_normal(s, fa, motifs, nreport, scan_rc, bed, zscore)
 
     for line in it:
@@ -369,11 +398,11 @@ def _scan_normal(s, fa, motifs, nreport, scan_rc, bed, zscore):
     # get iterator
     result_it = s.scan(fa, nreport, scan_rc, zscore)
     # BED/GTF file
-    for i, result in enumerate(result_it):
+    for i, matches in enumerate(result_it):
         seq_id = fa.ids[i]
-        seq = fa[seq_id]
-        for motif, matches in zip(motifs, result):
-            for (score, pos, strand) in matches:
+        seq = fa.seqs[i]
+        for motif, seq_matches in zip(motifs, matches):
+            for (score, pos, strand) in seq_matches:
                 yield _format_line(seq, seq_id, motif, score, pos, strand, bed)
 
 

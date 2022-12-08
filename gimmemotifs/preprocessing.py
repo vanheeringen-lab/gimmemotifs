@@ -6,7 +6,7 @@
 
 """ Data preprocessing to create GimmeMotifs input. """
 import logging
-import multiprocessing as mp
+from multiprocessing import Pool
 import os
 from tempfile import NamedTemporaryFile
 from typing import Iterable
@@ -73,7 +73,7 @@ def coverage_table(
             df = df.merge(column, left_index=True, right_index=True, how="outer")
 
     else:
-        pool = mp.Pool(processes=ncpus)
+        pool = Pool(processes=ncpus)
         try:
             jobs = []
             for datafile in datafiles:

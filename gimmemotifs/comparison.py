@@ -6,12 +6,11 @@
 """
 Module to compare DNA sequence motifs (positional frequency matrices)
 """
-# Python imports
 import sys
 import os
 import logging
+from multiprocessing import Pool
 
-# External imports
 from scipy.stats import norm, entropy, chi2_contingency
 from scipy.spatial import distance
 import numpy as np
@@ -21,28 +20,10 @@ from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import average_precision_score, roc_auc_score
 import pandas as pd
 
-
-# GimmeMotifs imports
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.c_metrics import pfmscan, score
 from gimmemotifs.motif import parse_motifs, read_motifs
 from gimmemotifs.utils import pfmfile_location, make_equal_length, ppm_pseudocount
-
-# pool import is at the bottom
-
-try:
-    import copy_reg
-    import types
-
-    def _pickle_method(m):
-        if m.im_self is None:
-            return getattr, (m.im_class, m.im_func.func_name)
-        else:
-            return getattr, (m.im_self, m.im_func.func_name)
-
-    copy_reg.pickle(types.MethodType, _pickle_method)
-except Exception:
-    pass
 
 RCDB = (
     "AATGCCTGCCTCGCCCATATAAGCATCAAGGCATATTTATTACCGGCCGCATGGAACCTTTCCTCCCAATCGAACAAGTC"
@@ -699,8 +680,6 @@ class MotifComparer(object):
                 batch_len = 1
             jobs = []
             for i in range(0, len(dbmotifs), batch_len):
-                # submit jobs to the job server
-
                 p = pool.apply_async(
                     _get_all_scores,
                     args=(
@@ -970,11 +949,3 @@ def select_nonredundant_motifs(
         f"selected {len(selected_features)} non-redundant motifs: ROC AUC {roc_auc:.3f}, PR AUC {pr_auc:.3f}"
     )
     return selected_features
-
-
-# import here is necessary as workaround
-# see: http://stackoverflow.com/questions/18947876/using-python-multiprocessing-pool-in-the-terminal-and-in-code-modules-for-django  # noqa: E501
-try:
-    from multiprocessing import Pool
-except ImportError:
-    pass

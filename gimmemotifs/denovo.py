@@ -149,8 +149,6 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
     fraction = float(params["fraction"])
     abs_max = int(params["abs_max"])
 
-    logger.info("preparing input (FASTA)")
-
     pred_fa = os.path.join(outdir, "prediction.fa")
 
     fa = Fasta(inputfile)
@@ -639,9 +637,8 @@ def gimme_motifs(
         stats_fg=os.path.join(tmpdir, "validation.fa"),
         stats_bg=background,
     )
-
     if len(result.motifs) == 0:
-        logger.info("de novo finished")
+        logger.info("no de novo motifs")
         return []
 
     # Write statistics

@@ -1,12 +1,12 @@
 """
 Scanner class utility functions
 """
-import os
 import logging
+import os
 import sys
 
-from gimmemotifs.config import CACHE_DIR
 from gimmemotifs.c_metrics import pwmscan  # noqa
+from gimmemotifs.config import CACHE_DIR
 
 logger = logging.getLogger("gimme.scanner")
 
@@ -19,19 +19,19 @@ def file_hash(fname):
     byte_size = os.path.getsize(fname)
     kilobyte_size = str(byte_size)[:-3]
 
-    return hash(name + kilobyte_size)
+    return f"{name}:{kilobyte_size}"
 
 
-def print_cluster_error_message():
-    logger.error("Cache is corrupted.")
-    logger.error(
-        "This can happen when you try to run a GimmeMotifs tool in parallel on a cluster."
-    )
-    logger.error(f"To solve this, delete the GimmeMotifs cache directory: {CACHE_DIR}")
-    logger.error("and then see here for a workaround:")
-    logger.error(
-        "https://gimmemotifs.readthedocs.io/en/master/faq.html#sqlite-error-when-running-on-a-cluster"
-    )
+def cluster_error():
+    msg = [
+        "Cache is corrupted.",
+        "This can happen when you try to run a GimmeMotifs tool in parallel on a cluster.",
+        f"To solve this, delete the GimmeMotifs cache directory: {CACHE_DIR}",
+        "See here for a workaround:",
+        "https://gimmemotifs.readthedocs.io/en/master/faq.html#sqlite-error-when-running-on-a-cluster",
+    ]
+    _ = [logger.error(m) for m in msg]
+    sys.exit(1)
 
 
 def parse_threshold_values(motifs, cutoff):
@@ -109,10 +109,10 @@ def scan_sequence(
             ret.append([])
         else:
             if zscore:
-                m_mean, m_std = motifs_meanstd[seq_gc_bin][motif.id]
                 result = pwmscan(
                     seq, motif.logodds.tolist(), motif.min_score, nreport, scan_rc
                 )
+                m_mean, m_std = motifs_meanstd[seq_gc_bin][motif.id]
                 result = [[(row[0] - m_mean) / m_std, row[1], row[2]] for row in result]
                 result = [row for row in result if row[0] >= cutoff]
             else:

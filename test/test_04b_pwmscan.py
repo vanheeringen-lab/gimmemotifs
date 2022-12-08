@@ -22,7 +22,7 @@ class TestMotifPwm(unittest.TestCase):
 
     def test1_pwm_scan(self):
         """Scan a FASTA file with PWM of motif"""
-        result = self.motif.pwm_scan(self.prom, nreport=1)
+        result = self.motif.scan(self.prom, nreport=1)
 
         # Every sequence should have a TATA match
         self.assertEqual(len(result), len(self.prom))

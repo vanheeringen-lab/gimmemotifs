@@ -4,12 +4,12 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
-"""Command line function 'roc'."""
+"""Command line function 'motifs'"""
+import logging
 import os
 import re
-import sys
 import shutil
-import logging
+import sys
 from tempfile import NamedTemporaryFile
 
 import numpy as np
@@ -18,18 +18,16 @@ from tqdm.auto import tqdm
 
 from gimmemotifs.background import create_background_file
 from gimmemotifs.comparison import MotifComparer, select_nonredundant_motifs
-
 from gimmemotifs.denovo import gimme_motifs
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.stats import calc_stats_iterator
 from gimmemotifs.report import roc_html_report
 from gimmemotifs.scanner import scan_to_file
+from gimmemotifs.stats import calc_stats_iterator
 from gimmemotifs.utils import (
     determine_file_type,
     narrowpeak_to_bed,
     write_equalsize_bedfile,
 )
-
 
 logger = logging.getLogger("gimme.motifs")
 
@@ -44,62 +42,57 @@ def motifs(args):
     if not os.path.exists(scan_dir):
         os.makedirs(scan_dir)
 
-    file_type = determine_file_type(args.sample)
-    outfile = os.path.join(args.outdir, f"input.w{args.size}.bed")
     sample = args.sample
+    size = int(args.size)
+    base = os.path.basename(os.path.splitext(sample)[0])
+    outfile = os.path.join(args.outdir, f"{base}_input_w{size}.bed")
+    file_type = determine_file_type(sample)
     if file_type == "narrowpeak":
-        narrowpeak_to_bed(args.sample, outfile, size=args.size)
+        if not os.path.isfile(outfile):
+            narrowpeak_to_bed(sample, outfile, size=size)
         sample = outfile
-    elif args.size and args.size > 0:
-        if file_type == "fasta":
-            logger.warn(
-                "Will use the sequences from the FASTA input. If size is specified, this will be ignored."
-            )
-        elif file_type == "bed":
-            write_equalsize_bedfile(args.sample, args.size, outfile)
-            sample = outfile
+    elif file_type == "fasta":
+        logger.info(
+            "Will use the sequences from the FASTA input. If size is specified, this will be ignored."
+        )
+    elif file_type == "bed":
+        if not os.path.isfile(outfile):
+            write_equalsize_bedfile(sample, size, outfile)
+        sample = outfile
 
     genome = args.genome
     if genome is None:
-        logger.warn("Genome is not specified!")
-        logger.warn(
+        logger.warning("Genome is not specified!")
+        logger.warning(
             "This means the z-score transformation and GC% normalization of the motif scores cannot be performed."
         )
-        logger.warn("Will continue, but performance may be impacted.")
+        logger.warning("Will continue, but performance may be impacted.")
         args.zscore = False
         args.gc = False
 
-    bgfile = None
-    bg = args.background
-    if bg is None:
-        if genome is None:
-            bg = "random"
-        else:
-            bg = "gc"
-
-    if os.path.isfile(bg):
-        bgfile = bg
+    bgfile = args.background
+    if bgfile and os.path.isfile(bgfile):
         bg = "custom"
     else:
-        # create background if not provided
-        bgfile = os.path.join(args.outdir, "generated_background.{}.fa".format(bg))
-        size = args.size
-        if size <= 0:
-            size = None
-        if bg == "gc":
-            logger.info("creating background (matched GC%)")
-        else:
-            logger.info("creating background (random)")
-
-        create_background_file(
-            bgfile,
-            bg,
-            fmt="fasta",
-            genome=genome,
-            inputfile=sample,
-            size=size,
-            number=10000,
-        )
+        bg = "gc" if genome else "random"
+        bgfile = os.path.join(args.outdir, f"{base}_background_{bg}.fa")
+        if not os.path.isfile(bgfile):
+            # create background if not provided
+            if size <= 0:
+                size = None
+            if bg == "gc":
+                logger.info("creating background (matched GC%)")
+            else:
+                logger.info("creating background (random)")
+            create_background_file(
+                bgfile,
+                bg,
+                fmt="fasta",
+                genome=genome,
+                inputfile=sample,
+                size=size,
+                number=10_000,
+            )
 
     pfmfile = args.pfmfile
 
@@ -116,48 +109,77 @@ def motifs(args):
                 "analysis": args.analysis,
                 "background": bg,
                 "custom_background": bgfile,
-                "genome": args.genome,
+                "genome": genome,
                 "size": args.size,
                 "fraction": args.fraction,
-                "use_strand": not (args.single),
+                "use_strand": not args.single,
             },
         )
-        if len(denovo) > 0:
+        if len(denovo) == 0:
+            logger.warning("No de novo motifs found!")
+        else:
+            logger.info(f"{len(denovo)} de novo motifs found!")
+
             mc = MotifComparer()
             result = mc.get_closest_match(denovo, dbmotifs=pfmfile, metric="seqcor")
             match_motifs = read_motifs(pfmfile, as_dict=True)
-        new_map_file = os.path.join(args.outdir, "combined.motif2factors.txt")
-        base = os.path.splitext(pfmfile)[0]
-        map_file = base + ".motif2factors.txt"
-        if os.path.exists(map_file):
-            shutil.copyfile(map_file, new_map_file)
 
-        motifs += denovo
-        pfmfile = os.path.join(args.outdir, "combined.pfm")
-        with open(pfmfile, "w") as f:
-            for m in motifs:
-                print(m.to_ppm(), file=f)
+            new_map_file = os.path.join(args.outdir, "combined.motif2factors.txt")
+            map_file = os.path.splitext(pfmfile)[0] + ".motif2factors.txt"
+            if os.path.exists(map_file):
+                shutil.copyfile(map_file, new_map_file)
 
-        with open(new_map_file, "a") as f:
-            for m in denovo:
-                print(
-                    "{}\t{}\t{}\t{}".format(m.id, "de novo", "GimmeMotifs", "Y"), file=f
-                )
-                if result[m.id][0] in match_motifs:
-                    for factor in match_motifs[result[m.id][0]].factors["direct"]:
-                        print(
-                            "{}\t{}\t{}\t{}".format(
-                                m.id, factor, "inferred (GimmeMotifs)", "N"
-                            ),
-                            file=f,
-                        )
-    else:
-        logger.info("skipping de novo")
+            motifs += denovo
+
+            # save known + de novo motifs to file
+            pfmfile = os.path.join(args.outdir, "combined.pfm")
+            with open(pfmfile, "w") as f:
+                for m in motifs:
+                    print(m.to_ppm(), file=f)
+
+            with open(new_map_file, "a") as f:
+                for m in denovo:
+                    print(
+                        "{}\t{}\t{}\t{}".format(m.id, "de novo", "GimmeMotifs", "Y"),
+                        file=f,
+                    )
+                    if result[m.id][0] in match_motifs:
+                        for factor in match_motifs[result[m.id][0]].factors["direct"]:
+                            print(
+                                "{}\t{}\t{}\t{}".format(
+                                    m.id, factor, "inferred (GimmeMotifs)", "N"
+                                ),
+                                file=f,
+                            )
 
     if len(motifs) == 0:
-        logger.info("no motifs to report!")
+        logger.error("No motifs to report!")
         sys.exit()
 
+    logger.info("creating motif scan tables")
+    # Create a table with the best score per motif for all motifs.
+    # This has three reasons:
+    # * Can be used to calculate statistics;
+    # * Can be used to select a set of non-redundant motifs;
+    # * These files are included in the output and can be used for further analyis.
+    score_table = os.path.join(scan_dir, "motif_score_input.txt")
+    bg_score_table = os.path.join(scan_dir, "motif_score_background.txt")
+    for infile, outfile in [(sample, score_table), (bgfile, bg_score_table)]:
+        scan_to_file(
+            infile,
+            pfmfile,
+            filepath_or_buffer=outfile,
+            score_table=True,
+            genome=genome,
+            zscore=args.zscore,
+            gc=args.gc,
+            progress=None,
+        )
+
+    n_input = pd.read_csv(score_table, comment="#", sep="\t").shape[0]
+    n_background = pd.read_csv(bg_score_table, comment="#", sep="\t").shape[0]
+
+    logger.info("calculating stats")
     stats = [
         "phyper_at_fpr",
         "roc_auc",
@@ -167,56 +189,24 @@ def motifs(args):
         "roc_values",
         "matches_at_fpr",
     ]
-
-    f_out = sys.stdout
-    if args.outdir:
-        f_out = open(args.outdir + "/gimme.roc.report.txt", "w")
-
-    # Print the metrics
-    f_out.write(
-        "Motif\t# matches\t% matches input\t# matches background\t%matches background\tP-value\tlog10 P-value\tROC AUC\tPR AUC\tEnr. at 1% FPR\tRecall at 10% FDR\n"
-    )
-
-    logger.info("creating motif scan tables")
-    # ftype = determine_file_type(args.sample)
-    # sample = args.sample
-    # delete_sample = False
-    # if ftype == "narrowpeak":
-    #    f = NamedTemporaryFile(delete=False)
-    #    logger.debug("Using {} as temporary BED file".format(f.name))
-    #    narrowpeak_to_bed(args.sample, f.name, size=args.size)
-    #    sample = f.name
-    #    delete_sample = True
-
-    # Create a table with the best score per motif for all motifs.
-    # This has three reasons:
-    # * Can be used to calculate statistics;
-    # * Can be used to select a set of non-redundant motifs;
-    # * These files are included in the output and can be used for further analyis.
-    score_table = os.path.join(scan_dir, "input.motif.score.txt")
-    bg_score_table = os.path.join(scan_dir, "background.motif.score.txt")
-    for infile, outfile in [(sample, score_table), (bgfile, bg_score_table)]:
-        scan_to_file(
-            infile,
-            pfmfile,
-            filepath_or_buffer=outfile,
-            score_table=True,
-            genome=args.genome,
-            zscore=args.zscore,
-            gc=args.gc,
-        )
-
-    n_input = pd.read_csv(score_table, comment="#", sep="\t").shape[0]
-    n_background = pd.read_csv(bg_score_table, comment="#", sep="\t").shape[0]
-
-    logger.info("calculating stats")
-    for motif_stats in calc_stats_iterator(
+    it = calc_stats_iterator(
         motifs=pfmfile,
         fg_table=score_table,
         bg_table=bg_score_table,
         stats=stats,
         ncpus=args.ncpus,
-    ):
+    )
+
+    # Print the metrics
+    f_out = sys.stdout
+    close = False
+    if args.outdir:
+        f_out = open(os.path.join(args.outdir, "gimme.roc.report.txt"), "w")
+        close = True
+    f_out.write(
+        "Motif\t# matches\t% matches input\t# matches background\t%matches background\tP-value\tlog10 P-value\tROC AUC\tPR AUC\tEnr. at 1% FPR\tRecall at 10% FDR\n"
+    )
+    for motif_stats in it:
         for motif in motifs:
             if str(motif) in motif_stats:
                 log_pvalue = np.inf
@@ -239,13 +229,14 @@ def motifs(args):
                         motif_stats[str(motif)]["recall_at_fdr"],
                     )
                 )
-    f_out.close()
+    if close:
+        f_out.close()
 
     # Select a set of "non-redundant" motifs.
     # Using Recursive Feature Elimination, a set of motifs is selected that
     # best explains the peaks in comparison to the background sequences.
     nr_motifs = select_nonredundant_motifs(
-        args.outdir + "/gimme.roc.report.txt",
+        os.path.join(args.outdir, "gimme.roc.report.txt"),
         pfmfile,
         score_table,
         bg_score_table,
@@ -256,8 +247,9 @@ def motifs(args):
     # At the moment this is not ideal, as scanning is now performed twice
     # for this set of non-redundant motifs.
     motif_dict = dict([(m.id, m) for m in motifs])
-    logger.info("creating BED files with scan results")
-    for motif in tqdm(nr_motifs):
+    for motif in tqdm(
+        nr_motifs, unit=" motifs", desc="Creating BED files for non-redundant motifs"
+    ):
         with NamedTemporaryFile(mode="w") as f:
             print(motif_dict[motif].to_ppm(), file=f)
             f.flush()
@@ -268,7 +260,7 @@ def motifs(args):
                 filepath_or_buffer=os.path.join(scan_dir, f"{safe_name}.matches.bed"),
                 bed=True,
                 fpr=0.01,
-                genome=args.genome,
+                genome=genome,
                 zscore=args.zscore,
                 gc=args.gc,
                 bgfile=bgfile,
@@ -277,23 +269,22 @@ def motifs(args):
 
     if args.report:
         logger.info("creating statistics report")
-        if args.outdir:
-            roc_html_report(
-                args.outdir,
-                args.outdir + "/gimme.roc.report.txt",
-                pfmfile,
-                threshold=0.01,
-                outname="gimme.motifs.redundant.html",
-                link_matches=False,
-            )
-            roc_html_report(
-                args.outdir,
-                args.outdir + "/gimme.roc.report.txt",
-                pfmfile,
-                threshold=0.01,
-                use_motifs=nr_motifs,
-                link_matches=True,
-            )
-            logger.info(
-                f"gimme motifs final report: {os.path.join(args.outdir, 'gimme.motifs.html')}"
-            )
+        roc_html_report(
+            args.outdir,
+            os.path.join(args.outdir, "gimme.roc.report.txt"),
+            pfmfile,
+            threshold=0.01,
+            outname="gimme.motifs.redundant.html",
+            link_matches=False,
+        )
+        roc_html_report(
+            args.outdir,
+            os.path.join(args.outdir, "gimme.roc.report.txt"),
+            pfmfile,
+            threshold=0.01,
+            use_motifs=nr_motifs,
+            link_matches=True,
+        )
+        logger.info(
+            f"gimme motifs final report: {os.path.join(args.outdir, 'gimme.motifs.html')}"
+        )
