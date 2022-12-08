@@ -12,6 +12,7 @@ import logomaker as lm
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import normalize
 
 
 def plot_logo(
@@ -48,6 +49,8 @@ def plot_logo(
     else:
         pfm = self.pfm
 
+    # convert pfm to probability
+    pfm = normalize(pfm, axis=1, norm="l1")
     matrix = pd.DataFrame(pfm, columns=["A", "C", "G", "T"])
 
     if kind == "ensembl":
