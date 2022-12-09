@@ -45,6 +45,6 @@ def maelstrom(args):
         gc=gc,
         center=center,
         aggregation=aggregation,
-        plot_all_motifs = plot_all_motifs,
-        plot_no_motifs = plot_no_motifs,
+        plot_all_motifs=plot_all_motifs,
+        plot_no_motifs=plot_no_motifs,
     )

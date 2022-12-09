@@ -219,8 +219,8 @@ def run_maelstrom(
     gc=True,
     center=False,
     aggregation="int_stouffer",
-    plot_all_motifs = False,
-    plot_no_motifs = False,
+    plot_all_motifs=False,
+    plot_no_motifs=False,
 ):
     """Run maelstrom on an input table.
 
@@ -317,9 +317,9 @@ def run_maelstrom(
             logger.info(
                 "Leaving the data as-is, but make sure this is what your really want."
             )
-    
+
     if plot_all_motifs and plot_no_motifs:
-        raise ValueError('either add the --all-motifs or --no-motifs, but not both')
+        raise ValueError("either add the --all-motifs or --no-motifs, but not both")
 
     # Check for duplicates
     if df.index.duplicated(keep=False).any():
@@ -557,8 +557,8 @@ def run_maelstrom(
             outdir,
             os.path.join(outdir, "final.out.txt"),
             pfmfile,
-            plot_all_motifs = plot_all_motifs,
-            plot_no_motifs = plot_no_motifs,
+            plot_all_motifs=plot_all_motifs,
+            plot_no_motifs=plot_no_motifs,
         )
         logger.info(os.path.join(outdir, "gimme.maelstrom.report.html"))
 

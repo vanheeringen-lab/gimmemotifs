@@ -838,7 +838,15 @@ def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="l
         index = series.index
     return pd.Series(data=img_series, index=index)
 
-def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3, plot_all_motifs = False, plot_no_motifs = False):
+
+def maelstrom_html_report(
+    outdir,
+    infile,
+    pfmfile=None,
+    threshold=3,
+    plot_all_motifs=False,
+    plot_no_motifs=False,
+):
 
     # Read the maelstrom text report
     df = pd.read_table(infile, index_col=0)
@@ -852,7 +860,9 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3, plot_all_mo
     corr_cols = df.columns[df.columns.str.contains("corr")]
 
     if plot_all_motifs:
-        _ = motif_to_img_series(df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos")
+        _ = motif_to_img_series(
+            df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos"
+        )
 
     df = df[np.any(abs(df[value_cols]) >= threshold, 1)]
 
@@ -861,7 +871,9 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3, plot_all_mo
         df.insert(
             0,
             "logo",
-            motif_to_img_series(df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos"),
+            motif_to_img_series(
+                df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos"
+            ),
         )
 
     # Add factors that can bind to the motif
