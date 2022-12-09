@@ -7,11 +7,11 @@
 
 from warnings import warn
 
-
 import logomaker as lm
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import normalize
 
 
 def plot_logo(
@@ -48,6 +48,8 @@ def plot_logo(
     else:
         pfm = self.pfm
 
+    # convert pfm to probability
+    pfm = normalize(pfm, axis=1, norm="l1")
     matrix = pd.DataFrame(pfm, columns=["A", "C", "G", "T"])
 
     if kind == "ensembl":
@@ -147,21 +149,19 @@ def plot_ensembl_logo(self, fname=None, ic=True, title=True, letters=True, heigh
 
     pos_matrix = []
     nuc_ppm = []
+    ylabel = "bits" if ic else "frequency"
+    y_max = 2 if ic else 1
     for row in ppm:
         if ic:
-            ylabel = "bits"
             ic_row = []
-            y_max = 2
             for p in row:
                 if p < 0.25:
                     ic_row.append(0)
                 else:
-                    ic_row.append(p * np.log2((p) / 0.25))
+                    ic_row.append(p * np.log2(p / 0.25))
 
         else:
             ic_row = row
-            ylabel = "frequency"
-            y_max = 1
         idx = np.argsort(ic_row)
         pos_matrix.append(np.array(ic_row)[idx])
         nuc_ppm.append(nucs[idx])

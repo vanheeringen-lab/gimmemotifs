@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - `gimme maelstrom` works with or without xgboost (but will give a warning without xgboost) 
+- fixed warning "in validate_matrix(): Row sums in df are not close to 1. Reormalizing rows..."
 
 ## [0.17.2] - 2022-10-12
 
