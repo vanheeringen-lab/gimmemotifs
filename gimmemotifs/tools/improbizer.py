@@ -64,12 +64,9 @@ class Improbizer(MotifProgram):
 
         stdout = ""
         stderr = ""
-        cmd = "%s good=%s bad=%s numMotifs=%s > %s" % (
-            bin,
-            fastafile,
-            params["background"],
-            params["number"],
-            params["outfile"],
+        cmd = (
+            f"{bin} good={fastafile} bad={params['background']} "
+            f"numMotifs={params['number']} > {params['outfile']}"
         )
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
         out, err = p.communicate()

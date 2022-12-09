@@ -30,4 +30,4 @@ def threshold(args):
         if opt_score is None:
             opt_score = motif.max_score
         threshold = (opt_score - min_score) / (max_score - min_score)
-        print("{0}\t{1}\t{2}".format(motif.id, opt_score, threshold))
+        print(f"{motif.id}\t{opt_score}\t{threshold}")

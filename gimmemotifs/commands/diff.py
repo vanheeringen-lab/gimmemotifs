@@ -44,12 +44,12 @@ def diff(args):
         infiles = []
 
         for cluster, regions in clusters.items():
-            sys.stderr.write("Creating FASTA file for {0}\n".format(cluster))
-            inbed = os.path.join(tmpdir, "{0}.bed".format(cluster))
-            outfa = os.path.join(tmpdir, "{0}.fa".format(cluster))
+            sys.stderr.write(f"Creating FASTA file for {cluster}\n")
+            inbed = os.path.join(tmpdir, f"{cluster}.bed")
+            outfa = os.path.join(tmpdir, f"{cluster}.fa")
             with open(inbed, "w") as f:
-                for vals in regions:
-                    f.write("{0}\t{1}\t{2}\n".format(*vals))
+                for r in regions:
+                    f.write(f"{r[0]}\t{r[1]}\t{r[2]}\n")
             Genome(genome).track2fasta(inbed, outfa)
             infiles.append(outfa)
 

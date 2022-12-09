@@ -29,6 +29,4 @@ def logo(args):
         motifs = [m for m in motifs if m.id in ids]
 
     for motif in motifs:
-        motif.plot_logo(
-            fname="{}.png".format(motif.id), kind=args.kind, title=args.title
-        )
+        motif.plot_logo(fname=f"{motif.id}.png", kind=args.kind, title=args.title)

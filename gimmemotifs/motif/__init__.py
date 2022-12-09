@@ -367,7 +367,7 @@ class Motif(object):
         return self.pfm.shape[0]
 
     def __repr__(self):
-        return "{}_{}".format(self.id, self.to_consensus())
+        return f"{self.id}_{self.to_consensus()}"
 
     def __lshift__(self, other):
         """Return the motif shifted left.
@@ -591,7 +591,7 @@ class Motif(object):
             String of motif in MotEvo format.
         """
         m = "//\n"
-        m += "NA {}\n".format(self.id)
+        m += f"NA {self.id}\n"
         m += "P0\tA\tC\tG\tT\n"
         for i, row in enumerate(self.pfm):
             m += "{}\t{}\n".format(i, "\t".join([str(int(x)) for x in row]))
@@ -606,9 +606,10 @@ class Motif(object):
         m : str
             String of motif in TRANSFAC format.
         """
-        m = "%s\t%s\t%s\n" % ("DE", self.id, "unknown")
+        m = f"DE\t{self.id}\tunknown\n"
         for i, (row, cons) in enumerate(zip(self.pfm, self.to_consensus())):
-            m += "%i\t%s\t%s\n" % (i, "\t".join([str(int(x)) for x in row]), cons)
+            row = "\t".join([str(int(x)) for x in row])
+            m += f"{i}\t{row}\t{cons}\n"
         m += "XX\n//"
         return m
 
@@ -623,13 +624,10 @@ class Motif(object):
         motif_id = self.id.replace(" ", "_")
         if motif_id == "":
             motif_id = "unnamed"
-        m = "MOTIF %s\n" % motif_id
-        m += "BL   MOTIF %s width=0 seqs=0\n" % motif_id
-        m += "letter-probability matrix: alength= 4 w= %s nsites= %s E= 0\n" % (
-            len(self),
-            np.sum(self.pfm[0]),
-        )
-        m += "\n".join(["\t".join(["%s" % x for x in row]) for row in self.ppm])
+        m = f"MOTIF {motif_id}\n"
+        m += f"BL   MOTIF {motif_id} width=0 seqs=0\n"
+        m += f"letter-probability matrix: alength= 4 w= {len(self)} nsites= {np.sum(self.pfm[0])} E= 0\n"
+        m += "\n".join(["\t".join([str(x) for x in row]) for row in self.ppm])
         return m
 
     def trim(self, edge_ic_cutoff=0.4):
@@ -785,7 +783,7 @@ class Motif(object):
         rows = np.array(self.ppm).transpose()
         rows = [" ".join([str(x) for x in row]) for row in rows]
         if version == 2:
-            rows = ["{} [{} ]".format(n, row) for n, row in zip(NUCS, rows)]
+            rows = [f"{n} [{row} ]" for n, row in zip(NUCS, rows)]
 
         str_out = "\n".join(rows)
         if header:
@@ -823,16 +821,11 @@ class Motif(object):
 
     def to_pfm(self):
         if len(self.pfm) > 0:
-            return ">%s\n%s" % (
-                self.id,
-                "\n".join(["\t".join(["%s" % x for x in row]) for row in self.pfm]),
-            )
+            pfm = self.pfm
         else:
             pfm = [[n * self.PSEUDO_PFM_COUNT for n in col] for col in self.ppm]
-            return ">%s\n%s" % (
-                self.id,
-                "\n".join(["\t".join(["%s" % x for x in row]) for row in pfm]),
-            )
+        rows = "\n".join(["\t".join([str(x) for x in row]) for row in pfm])
+        return f">{self.id}\n{rows}"
 
     def _ppm_to_str(self, precision=4):
         """Return string representation of ppm.
@@ -871,12 +864,12 @@ class Motif(object):
         motif_id = self.id
 
         if extra_str:
-            motif_id += "_%s" % extra_str
+            motif_id += f"_{extra_str}"
 
         if self.ppm is None or len(self.ppm) == 0:
             self.ppm = [self.iupac_ppm[char] for char in self.consensus.upper()]
 
-        return ">%s\n%s" % (motif_id, self._ppm_to_str(precision))
+        return f">{motif_id}\n{self._ppm_to_str(precision)}"
 
     def to_pwm(self, precision=4, extra_str=""):
         """Return ppm as string.
@@ -1192,7 +1185,7 @@ def _read_motifs_from_filehandle(handle, fmt):
     elif fmt.lower() == "meme":
         motifs = _read_motifs_meme(handle)
     else:
-        raise ValueError("Unknown format {}".format(fmt))
+        raise ValueError(f"Unknown format {fmt}")
 
     # Remove everything after tab from motif identifiers
     for motif in motifs:
@@ -1263,9 +1256,9 @@ def _read_motifs_pfm(handle):
             motif_id = line.strip()[1:]
             seen_id[motif_id] = seen_id.get(motif_id, 0) + 1
             if seen_id.get(motif_id, 0) > 1:
-                msg = "WARNING: multiple motifs with same id: {}\n".format(motif_id)
+                msg = f"WARNING: multiple motifs with same id: {motif_id}\n"
                 sys.stderr.write(msg)
-                motif_id += "_{}".format(seen_id[motif_id] - 1)
+                motif_id += f"_{seen_id[motif_id] - 1}"
 
         else:
             m = p.search(line)
@@ -1273,7 +1266,7 @@ def _read_motifs_pfm(handle):
                 fractions = [float(m.group(x)) for x in (1, 4, 7, 10)]
                 pfm.append(fractions)
             else:
-                msg = "WARNING: can't parse line {}, ignoring:\n{}".format(n + 1, line)
+                msg = f"WARNING: can't parse line {n+1}, ignoring:\n{line}"
                 sys.stderr.write(msg)
 
     if len(pfm) > 0:

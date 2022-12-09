@@ -64,7 +64,7 @@ def narrowpeak_to_bed(inputfile, bedfile, size=0):
                     summit = int(vals[9])
                     if summit == -1:
                         if warn_no_summit:
-                            logger.warn(
+                            logger.warning(
                                 "No summit present in narrowPeak file, "
                                 "using the peak center."
                             )
@@ -73,7 +73,7 @@ def narrowpeak_to_bed(inputfile, bedfile, size=0):
 
                     start = start + summit - (size // 2)
                     end = start + size
-                f_out.write("{}\t{}\t{}\t{}\n".format(vals[0], start, end, vals[6]))
+                f_out.write(f"{vals[0]}\t{start}\t{end}\t{vals[6]}\n")
 
 
 def pfmfile_location(infile=None):
@@ -105,8 +105,8 @@ def pfmfile_location(infile=None):
 
 
 def get_jaspar_motif_info(motif_id):
-    query_url = "http://jaspar.genereg.net/api/v1/matrix/{}?format=json"
-    result = requests.get(query_url.format(motif_id))
+    query_url = f"http://jaspar.genereg.net/api/v1/matrix/{motif_id}?format=json"
+    result = requests.get(query_url)
 
     if not result.ok:
         result.raise_for_status()
@@ -157,13 +157,13 @@ def divide_file(fname, sample, rest, fraction, abs_max):
 
     # Make sure it is sorted for tools that use this information (MDmodule)
     stdout, stderr = Popen(
-        "sort -k4gr %s > %s" % (tmp.name, sample), shell=True
+        f"sort -k4gr {tmp.name} > {sample}", shell=True
     ).communicate()
 
     tmp.close()
 
     if stderr:
-        print("Something went wrong.\nstdout: {}\nstderr; {}".format(stdout, stderr))
+        logger.error(f"Something went wrong.\nstdout: {stdout}\nstderr; {stderr}")
         sys.exit()
 
     # Rest
@@ -192,9 +192,9 @@ def divide_fa_file(fname, sample, rest, fraction, abs_max):
     f_rest = open(rest, "w")
     for name, seq in fa.items():
         if name in sample_seqs:
-            f_sample.write(">%s\n%s\n" % (name, seq))
+            f_sample.write(f">{name}\n{seq}\n")
         else:
-            f_rest.write(">%s\n%s\n" % (name, seq))
+            f_rest.write(f">{name}\n{seq}\n")
     f_sample.close()
     f_rest.close()
 
@@ -212,10 +212,11 @@ def write_equalsize_bedfile(bedfile, size, outfile):
         )
 
         if len(bed) != len(filtered_bed):
-            logger.warn(
-                "Using original size of input file regions, however, some regions are smaller than 10nt!"
+            logger.warning(
+                "Using original size of input file regions, however, "
+                "some regions are smaller than 10nt!"
             )
-            logger.warn("Removing all these smaller regions.")
+            logger.warning("Removing all these smaller regions.")
         filtered_bed.saveas(outfile)
         return
 
@@ -236,9 +237,9 @@ def write_equalsize_bedfile(bedfile, size, outfile):
                 try:
                     start, end = int(vals[1]), int(vals[2])
                 except ValueError:
-                    print(
-                        "Error on line %s while reading %s. "
-                        "Is the file in BED or WIG format?" % (line_count, bedfile)
+                    logger.error(
+                        f"Error on line {line_count} while reading {bedfile}. "
+                        "Is the file in BED or WIG format?"
                     )
                     sys.exit(1)
 
@@ -254,7 +255,7 @@ def write_equalsize_bedfile(bedfile, size, outfile):
                         "%s\t%s\t%s\t%s\n" % (vals[0], start, end, "\t".join(vals[3:]))
                     )
                 else:
-                    out.write("%s\t%s\t%s\n" % (vals[0], start, end))
+                    out.write(f"{vals[0]}\t{start}\t{end}\n")
         lines = f.readlines(BUFSIZE)
 
     out.close()
@@ -316,9 +317,7 @@ def parse_cutoff(motifs, cutoff, default=0.9):
                     c = float(c)
                     cutoffs[motif] = c
                 except Exception as e:
-                    sys.stderr.write(
-                        "Error parsing cutoff file, line {0}: {1}\n".format(e, i + 1)
-                    )
+                    logger.error(f"Error parsing cutoff file, line {e}: {i + 1}")
                     sys.exit(1)
     else:
         for motif in motifs:
@@ -326,9 +325,7 @@ def parse_cutoff(motifs, cutoff, default=0.9):
 
     for motif in motifs:
         if motif.id not in cutoffs:
-            sys.stderr.write(
-                "No cutoff found for {0}, using default {1}\n".format(motif.id, default)
-            )
+            logger.error(f"No cutoff found for {motif.id}, using default {default}\n")
             cutoffs[motif.id] = default
     return cutoffs
 
@@ -400,7 +397,7 @@ def number_of_seqs_in_file(fname):
     except Exception:
         pass
 
-    sys.stderr.write("unknown filetype {}\n".format(fname))
+    logger.error(f"unknown filetype {fname}\n")
     sys.exit(1)
 
 
@@ -507,9 +504,9 @@ def get_seqs_type(seqs):
             else:
                 return ftype + "file"
         else:
-            raise ValueError("no file found with name {}".format(seqs))
+            raise ValueError(f"no file found with name {seqs}")
     else:
-        raise ValueError("unknown type {}".format(type(seqs).__name__))
+        raise ValueError(f"unknown type {type(seqs).__name__}")
 
 
 # Regular expression to check for region (chr:start-end or genome@chr:start-end)

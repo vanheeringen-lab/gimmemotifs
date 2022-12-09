@@ -45,15 +45,15 @@ def get_tool(name):
     """
     tool = name.lower()
     if tool not in __tools__:
-        raise ValueError("Tool {0} not found!\n".format(name))
+        raise ValueError(f"Tool {name} not found!\n")
 
     t = __tools__[tool]()
 
     if not t.is_installed():
-        sys.stderr.write("Tool {0} not installed!\n".format(tool))
+        sys.stderr.write(f"Tool {tool} not installed!\n")
 
     if not t.is_configured():
-        sys.stderr.write("Tool {0} not configured!\n".format(tool))
+        sys.stderr.write(f"Tool {tool} not configured!\n")
 
     return t
 
@@ -76,10 +76,10 @@ def locate_tool(name, verbose=True):
     tool_bin = which(m.cmd)
     if tool_bin:
         if verbose:
-            print("Found {} in {}".format(m.name, tool_bin))
+            print(f"Found {m.name} in {tool_bin}")
         return tool_bin
     else:
-        print("Couldn't find {}".format(m.name))
+        print(f"Couldn't find {m.name}")
 
 
 __tools__ = {

@@ -69,7 +69,7 @@ class Homer(MotifProgram):
         params = self._parse_params(params)
 
         outfile = NamedTemporaryFile(
-            mode="w", dir=self.tmpdir, prefix="homer_w{}.".format(params["width"])
+            mode="w", dir=self.tmpdir, prefix=f"homer_w{params['width']}."
         ).name
 
         cmd = "%s denovo -i %s -b %s -len %s -S %s %s -o %s -p 8" % (
@@ -83,7 +83,7 @@ class Homer(MotifProgram):
         )
 
         stderr = ""
-        stdout = "Running command:\n{}\n".format(cmd)
+        stdout = f"Running command:\n{cmd}\n"
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.tmpdir)
         out, err = p.communicate()
@@ -95,6 +95,6 @@ class Homer(MotifProgram):
         if os.path.exists(outfile):
             motifs = read_motifs(outfile, fmt="pwm")
             for i, m in enumerate(motifs):
-                m.id = "{}_{}_{}".format(self.name, params["width"], i + 1)
+                m.id = f"{self.name}_{params['width']}_{i + 1}"
 
         return motifs, stdout, stderr

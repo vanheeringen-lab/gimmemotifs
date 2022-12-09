@@ -42,7 +42,7 @@ def test_tool(tool_name):
 
     print("Tool class:", __tools__[tool_name])
     t = get_tool(tool_name)
-    print("Testing {}...".format(t))
+    print(f"Testing {t}...")
 
     params = {"background": bg_fa, "organism": "hg38", "width": 7}
     (motifs, stderr, stdout) = t.run(fa, params)

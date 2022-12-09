@@ -43,7 +43,7 @@ def background_gradient(s, m, M, cmap="RdBu_r", low=0, high=0):
     norm = Normalize(m - (rng * low), M + (rng * high))
     normed = norm(s.values)
     c = [rgb2hex(x) for x in plt.cm.get_cmap(cmap)(normed)]
-    return ["background-color: %s" % color for color in c]
+    return [f"background-color: {color}" for color in c]
 
 
 def roc_plot(outfile, plot_x, plot_y, ids=None):
@@ -111,11 +111,7 @@ def match_plot(plotdata, outfile):
     fig = plt.figure(figsize=(fig_w, nrows * fig_h))
 
     for i, (motif, dbmotif, pval) in enumerate(plotdata):
-        text = "Motif: %s\nBest match: %s\np-value: %0.2e" % (
-            motif.id,
-            dbmotif.id,
-            pval,
-        )
+        text = f"Motif: {motif.id}\nBest match: {dbmotif.id}\np-value: {pval:0.2e}"
 
         grid = ImageGrid(fig, (nrows, ncols, i * 2 + 1), nrows_ncols=(2, 1), axes_pad=0)
 

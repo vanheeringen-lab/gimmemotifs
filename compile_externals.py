@@ -24,14 +24,14 @@ def compile_simple(name, src_dir="src"):
         return
 
     Popen(
-        [gcc, "-o%s" % name, "%s.c" % name, "-lm"], cwd=path, stdout=PIPE
+        [gcc, f"-o{name}", f"{name}.c", "-lm"], cwd=path, stdout=PIPE
     ).communicate()
     if os.path.exists(os.path.join(path, name)):
         return True
 
 
 def compile_configmake(name, binary, configure=True, src_dir="src"):
-    path = os.path.join(src_dir, "%s" % name)
+    path = os.path.join(src_dir, str(name))
 
     if not os.path.exists(path):
         return

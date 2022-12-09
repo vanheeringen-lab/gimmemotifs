@@ -76,7 +76,7 @@ class Weeder(MotifProgram):
         shutil.copy(fastafile, name)
         fastafile = name
 
-        cmd = "{} -f {} -O {}".format(self.cmd, fastafile, weeder_organism)
+        cmd = f"{self.cmd} -f {fastafile} -O {weeder_organism}"
 
         if params["single"]:
             cmd += " -ss"

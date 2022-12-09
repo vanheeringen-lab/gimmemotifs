@@ -40,10 +40,10 @@ class MotifSampler(MotifProgram):
             if prm.get("organism", None):
                 prm["background_model"] = os.path.join(
                     self.config.get_bg_dir(),
-                    "{}.{}.bg".format(prm["organism"], "MotifSampler"),
+                    f"{prm['organism']}.MotifSampler.bg",
                 )
             else:
-                raise Exception("No background specified for {}".format(self.name))
+                raise Exception(f"No background specified for {self.name}")
 
         prm["strand"] = 1
         if prm["single"]:

@@ -614,7 +614,7 @@ def create_roc_plots(pfmfile, fgfa, background, outdir, genome):
     for bg, fname in background.items():
         for m_id, m in motifs.items():
 
-            k = "{}_{}".format(str(m), bg)
+            k = f"{str(m)}_{bg}"
             jobs[k] = pool.apply_async(
                 get_roc_values, (motifs[m_id], fgfa, fname, genome)
             )
@@ -626,7 +626,7 @@ def create_roc_plots(pfmfile, fgfa, background, outdir, genome):
 
     for motif in motifs.values():
         for bg in background:
-            k = "{}_{}".format(str(motif), bg)
+            k = f"{str(motif)}_{bg}"
             error, x, y = jobs[k].get()
             if error:
                 logger.error("Error in thread: %s", error)
@@ -644,7 +644,7 @@ def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
         for bg in list(stats.values())[0].keys():
             if str(motif) not in stats:
                 logger.error("####")
-                logger.error("{} not found".format(str(motif)))
+                logger.error(f"{str(motif)} not found")
                 for s in sorted(stats.keys()):
                     logger.error(s)
                 logger.error("####")
@@ -691,7 +691,7 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
         rm.id_href = {"href": "#%s" % motif.id}
         rm.id_name = {"name": motif.id}
         rm.img = {"src": os.path.join("images", "%s.png" % motif.id)}
-        motif.plot_logo(fname=os.path.join(outdir, "images/{}.png".format(motif.id)))
+        motif.plot_logo(fname=os.path.join(outdir, "images", f"{motif.id}.png"))
 
         # TODO: fix best ID
         rm.best = "Gimme"  # best_id[motif.id]
@@ -726,10 +726,10 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
 
         match_id = closest_match[motif.id][0]
         dbmotifs[match_id].plot_logo(
-            fname=os.path.join(outdir, "images/{}.png".format(match_id))
+            fname=os.path.join(outdir, "images", f"{match_id}.png")
         )
 
-        rm.match_img = {"src": "images/{}.png".format(match_id)}
+        rm.match_img = {"src": os.path.join("images", f"{match_id}.png")}
         rm.match_id = closest_match[motif.id][0]
         rm.match_pval = "%0.2e" % closest_match[motif.id][1][-1]
 
@@ -790,8 +790,8 @@ def create_denovo_motif_report(
     # Location plots
     logger.debug("Creating localization plots")
     for motif in motifs:
-        logger.debug("  {} {}".format(motif.id, motif))
-        outfile = os.path.join(outdir, "images/{}_histogram.svg".format(motif.id))
+        logger.debug(f"  {motif.id} {motif}")
+        outfile = os.path.join(outdir, "images", f"{motif.id}_histogram.svg")
         motif_localization(locfa, motif, lsize, outfile, cutoff=cutoff_fpr)
 
     # Create reports

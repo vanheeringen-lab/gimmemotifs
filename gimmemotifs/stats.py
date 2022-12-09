@@ -86,10 +86,12 @@ def calc_stats_iterator(
             if func.input_type == "pos":
                 remove_stats.append(s)
         if len(remove_stats) != 0:
-            logger.warn(
+            logger.warning(
                 "Cannot calculate stats that require position from table of motif scores."
             )
-            logger.warn(f"Skipping the following statistics: {', '.join(remove_stats)}")
+            logger.warning(
+                f"Skipping the following statistics: {', '.join(remove_stats)}"
+            )
             stats = [s for s in stats if s not in remove_stats]
 
     if isinstance(motifs, Motif):
@@ -124,7 +126,7 @@ def calc_stats_iterator(
     for i in range(0, len(all_motifs), chunksize):
         result = {}
         logger.debug(
-            "chunk %s of %s", (i / chunksize) + 1, len(all_motifs) // chunksize + 1
+            f"chunk {(i / chunksize) + 1} of {len(all_motifs) // chunksize + 1}"
         )
         motifs = all_motifs[i : i + chunksize]
 
@@ -369,10 +371,7 @@ def write_stats(stats, fname, header=None):
                     )
                 )
             else:
-                logger.warn(
-                    "No stats for motif {0}, skipping this motif!".format(motif)
-                )
-            # motifs.remove(motif)
+                logger.warning(f"No stats for motif {motif}, skipping this motif!")
         f.close()
 
     return

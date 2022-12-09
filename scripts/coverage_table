@@ -6,11 +6,7 @@ from gimmemotifs import __version__
 from gimmemotifs.preprocessing import coverage_table
 
 if __name__ == "__main__":
-    description = """
-    GimmeMotifs v{0} - coverage_table
-    """.format(
-        __version__
-    )
+    description = f"GimmeMotifs v{__version__} - coverage_table"
 
     parser = argparse.ArgumentParser(description=description)
 
@@ -110,19 +106,17 @@ if __name__ == "__main__":
 
     output = StringIO()
     output.write(
-        "# Table created by coverage_table (GimmeMotifs {})\n".format(__version__)
+        f"# Table created by coverage_table (GimmeMotifs {__version__})\n"
     )
-    output.write("# Input file: {}\n".format(args.peakfile))
-    output.write("# Data files: {}\n".format(args.datafiles))
-    output.write("# Window: {}\n".format(args.window))
-    output.write("# Duplicates removed: {}\n".format(yesno[args.rmdup]))
-    output.write("# MAPQ 0 removed: {}\n".format(yesno[args.rmrepeats]))
-    output.write("# Log transformed: {}\n".format(yesno[args.log_transform]))
-    output.write("# Normalization: {}\n".format(args.normalization))
+    output.write(f"# Input file: {args.peakfile}\n")
+    output.write(f"# Data files: {args.datafiles}\n")
+    output.write(f"# Window: {args.window}\n")
+    output.write(f"# Duplicates removed: {yesno[args.rmdup]}\n")
+    output.write(f"# MAPQ 0 removed: {yesno[args.rmrepeats]}\n")
+    output.write(f"# Log transformed: {yesno[args.log_transform]}\n")
+    output.write(f"# Normalization: {args.normalization}\n")
     if args.top > 0:
-        output.write(
-            "# Top {} regions selected by {}\n".format(args.top, args.topmethod)
-        )
+        output.write(f"# Top {args.top} regions selected by {args.topmethod}\n")
     df.to_csv(output, sep="\t", float_format="%0.5f")
     output.seek(0)
     print(output.read(), end="")

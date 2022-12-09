@@ -116,7 +116,7 @@ class Gadem(MotifProgram):
             pwm = [[float(m[x][y]) for x in range(4)] for y in range(len(m[0]))]
 
             motifs.append(Motif(pwm))
-            motifs[-1].id = "{}_{}".format(self.name, m_id)
+            motifs[-1].id = f"{self.name}_{m_id}"
 
             if align:
                 motifs[-1].pfm = pfm

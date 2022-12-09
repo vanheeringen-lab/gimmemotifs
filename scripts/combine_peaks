@@ -9,11 +9,7 @@ from gimmemotifs.preprocessing import combine_peaks
 
 if __name__ == "__main__":
 
-    description = """
-    GimmeMotifs v{0} - combine_peaks
-    """.format(
-        __version__
-    )
+    description = "GimmeMotifs v{__version__} - combine_peaks"
 
     parser = argparse.ArgumentParser(description=description)
 
@@ -54,7 +50,7 @@ if __name__ == "__main__":
     _exit = False
     for fname in args.peaks:
         if not os.path.exists(fname):
-            print("File {} does not exist!".format(fname), file=sys.stderr)
+            print(f"File {fname} does not exist!", file=sys.stderr)
             _exit = True
     if _exit:
         sys.exit(1)

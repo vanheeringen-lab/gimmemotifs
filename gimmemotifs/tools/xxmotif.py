@@ -33,7 +33,7 @@ class XXmotif(MotifProgram):
 
         if prm["background"]:
             # Absolute path, just to be sure
-            prm["background"] = " --negSet {0} ".format(prm["background"])
+            prm["background"] = f" --negSet {prm['background']} "
 
         prm["strand"] = ""
         if not prm["single"]:

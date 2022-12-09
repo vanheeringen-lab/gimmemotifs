@@ -119,7 +119,7 @@ class MotifConfig(object):
         for m in available_tools:
             cmd = self.config.get(m, "bin")
             if not os.path.isfile(cmd):
-                logger.info("%s no longer found.", m)
+                logger.info(f"{m} no longer found.")
                 available_tools.remove(m)
                 self.set_program(
                     m, {"bin": dflt.get(m, "bin"), "dir": dflt.get(m, "dir")}
@@ -130,12 +130,12 @@ class MotifConfig(object):
         missing_tools = [m for m in MOTIF_CLASSES if m not in available_tools]
         for m in missing_tools:
             cmd = self.bin(m, config=dflt, missing_ok=True)
-            msg = "Using included version of %s."
+            msg = f"Using included version of {m}."
             if cmd is None:
                 cmd = which(dflt.get(m, "bin"))
-                msg = "Using system version of %s."
+                msg = f"Using system version of {m}."
             if cmd:
-                logger.info(msg, m)
+                logger.info(msg)
                 available_tools.append(m)
                 self.set_program(m, {"bin": cmd, "dir": os.path.dirname(cmd)})
                 changed = True
@@ -167,7 +167,7 @@ class MotifConfig(object):
                 config_fname = self.user_config
             with open(config_fname, "w") as f:
                 self.write(f)
-            logger.info("Configuration file: %s", self.user_config)
+            logger.info(f"Configuration file: {self.user_config}")
 
     def create_default_config(self):
         logger.info("Creating new config.")
@@ -179,18 +179,16 @@ class MotifConfig(object):
             mbin = self.config.get(m, "bin")
             mdir = self.config.get(m, "dir")
             cmd = which(os.path.join(self.package_dir, mdir, mbin))
-            msg = "Using included version of %s."
+            msg = f"Using included version of {m}."
             if cmd is None:
                 cmd = which(mbin)
-                msg = "Using system version of %s."
+                msg = f"Using system version of {m}."
             if cmd:
-                logger.info(msg, m)
+                logger.info(msg)
                 self.set_program(m, {"bin": cmd, "dir": os.path.dirname(cmd)})
                 available_tools.append(m)
                 continue
-            logger.warning(
-                "%s not found. To include it you will have to install it.", m
-            )
+            logger.warning(f"{m} not found. To include it you will have to install it.")
 
         params = self.get_default_params()
         params["available_tools"] = ",".join(available_tools)
@@ -200,7 +198,7 @@ class MotifConfig(object):
             os.makedirs(CONFIG_DIR, exist_ok=True)
         with open(self.user_config, "w") as f:
             self.config.write(f)
-        logger.info("Configuration file: %s", self.user_config)
+        logger.info(f"Configuration file: {self.user_config}")
 
     def bin(self, program, config=None, missing_ok=False):
         if config is None:
@@ -235,7 +233,7 @@ class MotifConfig(object):
         if os.path.isabs(mdir):
             return mdir
 
-        raise ValueError("No configuration found for %s" % program)
+        raise ValueError(f"No configuration found for {program}")
 
     def set_program(self, program, d):
         if not self.config.has_section(program):
@@ -359,7 +357,7 @@ def parse_denovo_params(user_params=None):
 
     logger.debug("Parameters:")
     for param, value in params.items():
-        logger.debug("  %s: %s", param, value)
+        logger.debug(f"  {param}: {value}")
 
     # Maximum time?
     try:

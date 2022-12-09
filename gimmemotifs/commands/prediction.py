@@ -29,5 +29,5 @@ def prediction(args):
 
     f = open(outfile, "w")
     for m in motifs:
-        f.write("{0}\n".format(m.to_pfm()))
+        f.write(f"{m.to_pfm()}\n")
     f.close()

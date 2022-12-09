@@ -14,7 +14,7 @@ logger = logging.getLogger()
 def check_bed_file(fname):
     """Check if the inputfile is a valid bed-file"""
     if not os.path.exists(fname):
-        logger.error("Inputfile %s does not exist!", fname)
+        logger.error(f"Inputfile {fname} does not exist!")
         sys.exit(1)
 
     for i, line in enumerate(open(fname)):
@@ -29,16 +29,15 @@ def check_bed_file(fname):
             vals = line.strip().split("\t")
             if len(vals) < 3:
                 logger.error(
-                    "Expecting tab-seperated values (chromosome<tab>start<tab>end) on line %s of file %s",
-                    i + 1,
-                    fname,
+                    "Expecting tab-seperated values (chromosome<tab>start<tab>end) "
+                    f"on line {i + 1} of file {fname}",
                 )
                 sys.exit(1)
             try:
                 int(vals[1]), int(vals[2])
             except ValueError:
                 logger.error(
-                    "No valid integer coordinates on line %s of file %s", i + 1, fname
+                    f"No valid integer coordinates on line {i + 1} of file {fname}"
                 )
                 sys.exit(1)
             if len(vals) > 3:
@@ -46,7 +45,6 @@ def check_bed_file(fname):
                     float(vals[3])
                 except ValueError:
                     pass
-                    # self.logger.warn("No numerical value in column 4 on line %s of file %s, ignoring..." % (i + 1, file))
 
 
 def check_denovo_input(inputfile, params):
@@ -67,18 +65,16 @@ def check_denovo_input(inputfile, params):
         # is it a valid bed-file etc.
         check_bed_file(inputfile)  # bed-specific, will also work for narrowPeak
     else:
-        sys.stderr.write("Format of inputfile {} not recognized.\n".format(inputfile))
-        sys.stderr.write("Input should be FASTA, BED or narrowPeak.\n")
-        sys.stderr.write(
-            "See https://genome.ucsc.edu/FAQ/FAQformat.html for specifications.\n"
+        logger.error(f"Format of inputfile {inputfile} not recognized.")
+        logger.error("Input should be FASTA, BED or narrowPeak.")
+        logger.error(
+            "See https://genome.ucsc.edu/FAQ/FAQformat.html for specifications."
         )
         sys.exit(1)
 
     for bg in background:
         if bg not in valid_bg:
-            logger.info(
-                "Input type is %s, ignoring background type '%s'", input_type, bg
-            )
+            logger.info(f"Input type is {input_type}, ignoring background type '{bg}'")
         background = [bg for bg in background if bg in valid_bg]
 
     if len(background) == 0:

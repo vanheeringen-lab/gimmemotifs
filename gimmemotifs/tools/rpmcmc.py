@@ -64,10 +64,10 @@ class Rpmcmc(MotifProgram):
         if os.path.exists(outfile):
             motifs = self.parse(outfile)
             for m in motifs:
-                m.id = "{0}_{1}".format(self.name, m.id)
+                m.id = f"{self.name}_{m.id}"
         else:
-            stdout += "\nMotif file {0} not found!\n".format(outfile)
-            stderr += "\nMotif file {0} not found!\n".format(outfile)
+            stdout += f"\nMotif file {outfile} not found!\n"
+            stderr += f"\nMotif file {outfile} not found!\n"
 
         return motifs, stdout, stderr
 

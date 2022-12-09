@@ -295,7 +295,7 @@ If you only want the best match per sequence, is a utility function called ``sca
     result = scan_to_best_match("test.fa", motifs)
     for motif, matches in result.items():
         for match in matches:
-            print("{}\t{}\t{}".format(motif, match[1], match[0]))
+            print(f"{motif}\t{match[1]}\t{match[0]}")
     
 .. code-block:: python
 

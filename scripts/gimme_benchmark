@@ -29,9 +29,7 @@ def obtain_bed(href):
     if href.split(".")[-1] in ["bb", "bigBed"]:
         tmp2 = NamedTemporaryFile(delete=False)
         tmp2.close()
-        sp.check_output("bigBedToBed {} {}".format(
-                tmp.name, tmp2.name),
-                shell=True)
+        sp.check_output(f"bigBedToBed {tmp.name} {tmp2.name}", shell=True)
         tmp.close()
         tmp = tmp2
     return tmp.name
