@@ -47,15 +47,15 @@ def get_tool(name):
     """
     tool = name.lower()
     if tool not in __tools__:
-        raise ValueError(f"Tool {name} not found!\n")
+        raise ValueError(f"Tool {name} not found!")
 
     t = __tools__[tool]()
 
     if not t.is_installed():
-        logger.warning(f"Tool {tool} not installed!\n")
+        logger.warning(f"Tool {tool} not installed!")
 
     if not t.is_configured():
-        logger.warning(f"Tool {tool} not configured!\n")
+        logger.warning(f"Tool {tool} not configured!")
 
     return t
 

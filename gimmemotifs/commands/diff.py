@@ -36,7 +36,7 @@ def diff(args):
     # Retrieve FASTA clusters from BED file
     if len(infiles) == 1 and infiles[0].endswith("bed"):
         if not args.genome:
-            logger.error("Can't convert BED file without genome!\n")
+            logger.error("Can't convert BED file without genome!")
             sys.exit(1)
 
         clusters = {}
@@ -47,7 +47,7 @@ def diff(args):
         infiles = []
 
         for cluster, regions in clusters.items():
-            logger.info(f"Creating FASTA file for {cluster}\n")
+            logger.info(f"Creating FASTA file for {cluster}")
             inbed = os.path.join(tmpdir, f"{cluster}.bed")
             outfa = os.path.join(tmpdir, f"{cluster}.fa")
             with open(inbed, "w") as f:

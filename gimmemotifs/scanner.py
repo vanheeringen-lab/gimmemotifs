@@ -729,7 +729,7 @@ class Scanner(object):
             )
             self.use_cache = True
         except Exception as e:
-            logger.error(f"{e}\n")
+            logger.error(str(e))
             logger.error("failed to initialize cache")
 
     def set_motifs(self, motifs):

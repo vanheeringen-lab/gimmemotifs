@@ -272,7 +272,7 @@ def median_bed_len(bedfile):
             except ValueError:
                 logger.error(
                     f"Error in line {i}: "
-                    "coordinates in column 2 and 3 need to be integers!\n"
+                    "coordinates in column 2 and 3 need to be integers!"
                 )
                 sys.exit(1)
     f.close()
@@ -324,7 +324,7 @@ def parse_cutoff(motifs, cutoff, default=0.9):
 
     for motif in motifs:
         if motif.id not in cutoffs:
-            logger.error(f"No cutoff found for {motif.id}, using default {default}\n")
+            logger.error(f"No cutoff found for {motif.id}, using default {default}")
             cutoffs[motif.id] = default
     return cutoffs
 
@@ -396,7 +396,7 @@ def number_of_seqs_in_file(fname):
     except Exception:
         pass
 
-    logger.error(f"unknown filetype {fname}\n")
+    logger.error(f"unknown filetype {fname}")
     sys.exit(1)
 
 

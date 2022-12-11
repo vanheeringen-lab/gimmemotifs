@@ -152,7 +152,7 @@ def cluster_motifs(
     motifs = [n.motif for n in nodes]
 
     if progress:
-        logger.info("Calculating initial scores\n")
+        logger.info("Calculating initial scores")
     result = mc.get_all_scores(
         motifs, motifs, match, metric, combine, pval, parallel=True, ncpus=ncpus
     )

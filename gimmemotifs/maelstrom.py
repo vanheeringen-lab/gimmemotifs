@@ -111,7 +111,7 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pfmfile=None):
     f = np.any(df_sig >= sig_cutoff, 1)
     vis = df_sig[f]
     if vis.shape[0] == 0:
-        logger.info("No motifs reach the threshold, skipping visualization.\n")
+        logger.info("No motifs reach the threshold, skipping visualization.")
         return
 
     # cluster rows
