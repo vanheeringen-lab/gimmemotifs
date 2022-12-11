@@ -29,7 +29,7 @@ from gimmemotifs import __version__
 from gimmemotifs.background import RandomGenomicFasta, gc_bin_bedfile
 from gimmemotifs.config import MotifConfig, CACHE_DIR
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.c_metrics import pwmscan
+from gimmemotifs.c_metrics import pwmscan  # noqa
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import parse_cutoff, as_fasta, file_checksum, rc
 
@@ -413,16 +413,16 @@ def scan_to_file(
     if fpr is None and cutoff is None:
         fpr = 0.01
 
-    print("# GimmeMotifs version {}".format(__version__), file=fo)
-    print("# Input: {}".format(inputfile), file=fo)
-    print("# Motifs: {}".format(pfmfile), file=fo)
+    print(f"# GimmeMotifs version {__version__}", file=fo)
+    print(f"# Input: {inputfile}", file=fo)
+    print(f"# Motifs: {pfmfile}", file=fo)
     if fpr and not score_table:
         if genome is not None:
-            print("# FPR: {} ({})".format(fpr, genome), file=fo)
+            print(f"# FPR: {fpr} ({genome})", file=fo)
         elif bgfile:
-            print("# FPR: {} ({})".format(fpr, bgfile), file=fo)
+            print(f"# FPR: {fpr} ({bgfile})", file=fo)
     if cutoff is not None:
-        print("# Threshold: {}".format(cutoff), file=fo)
+        print(f"# Threshold: {cutoff}", file=fo)
     if zscore:
         if gcnorm:
             print("# Scoring: GC frequency normalized z-score", file=fo)
@@ -496,7 +496,7 @@ def scan_to_best_match(
     if isinstance(motifs, str):
         motifs = read_motifs(motifs)
 
-    logger.debug("scanning %s...", fname)
+    logger.debug(f"scanning {fname}...")
     result = dict([(m.id, []) for m in motifs])
     if score:
         it = s.best_score(fname, zscore=zscore, gc=gc, progress=progress)
@@ -627,15 +627,15 @@ def scan_it_moods(
     tmpdir = mkdtemp()
     matrices = []
     pseudocount = 1e-3
-    # sys.stderr.write("bgfile: {}\n".format(bgfile))
+    # sys.stderr.write(f"bgfile: {bgfile}\n")
     bg = MOODS.tools.bg_from_sequence_dna("".join(Fasta(bgfile).seqs), 1)
 
     for motif in motifs:
-        pfmname = os.path.join(tmpdir, "{}.pfm".format(motif.id))
+        pfmname = os.path.join(tmpdir, f"{motif.id}.pfm")
         with open(pfmname, "w") as f:
             matrix = np.array(motif.ppm).transpose()
             for line in [" ".join([str(x) for x in row]) for row in matrix]:
-                f.write("{}\n".format(line))
+                f.write(f"{line}\n")
 
         matrices.append(MOODS.parsers.pfm_log_odds(pfmname, bg, pseudocount))
 
@@ -644,7 +644,7 @@ def scan_it_moods(
         thresholds = [
             MOODS.tools.threshold_from_p(m, bg, float(pvalue)) for m in matrices
         ]
-        # sys.stderr.write("{}\n".format(thresholds))
+        # sys.stderr.write(f"{thresholds}\n")
     else:
         thresholds = [calc_threshold_moods(m, float(cutoff)) for m in matrices]
 
@@ -729,8 +729,8 @@ class Scanner(object):
             )
             self.use_cache = True
         except Exception as e:
-            sys.stderr.write("failed to initialize cache\n")
-            sys.stderr.write("{}\n".format(e))
+            logger.error(str(e))
+            logger.error("failed to initialize cache")
 
     def set_motifs(self, motifs):
         try:
@@ -738,7 +738,7 @@ class Scanner(object):
             motifs[0].to_ppm()
             tmp = NamedTemporaryFile(mode="w", delete=False)
             for m in motifs:
-                tmp.write("{}\n".format(m.to_ppm()))
+                tmp.write(f"{m.to_ppm()}\n")
             tmp.close()
             motif_file = tmp.name
         except AttributeError:
@@ -870,17 +870,16 @@ class Scanner(object):
         lock.release()
 
         for gc_bin in self.gc_bins:
-            gc_bin = "{:.2f}-{:.2f}".format(*gc_bin)
+            gc_bin = f"{gc_bin[0]:.2f}-{gc_bin[1]:.2f}"
             if gc_bin not in self.meanstd:
                 valid_bins = []
                 for b in self.gc_bins:
-                    bstr = "{:.2f}-{:.2f}".format(b[0], b[1])
+                    bstr = f"{b[0]:.2f}-{b[1]:.2f}"
                     if bstr in self.meanstd:
                         valid_bins.append(((b[0] + b[1]) / 2, bstr))
 
                 v = float(gc_bin.split("-")[1])
                 _, bstr = sorted(valid_bins, key=lambda x: abs(x[0] - v))[0]
-                # logger.warn(f"Using {bstr}")
                 self.meanstd[gc_bin] = self.meanstd[bstr]
 
     def set_background(
@@ -927,7 +926,7 @@ class Scanner(object):
 
         if fname:
             if not os.path.exists(fname):
-                raise IOError("Background file {} does not exist!".format(fname))
+                raise FileNotFoundError(f"Background file {fname} does not exist!")
 
             self.background = Fasta(fname)
             self.background_hash = file_checksum(fname)
@@ -939,7 +938,7 @@ class Scanner(object):
             else:
                 raise ValueError("Need either genome or filename for background.")
 
-        logger.debug("using background: genome {} with size {}".format(genome, size))
+        logger.debug(f"using background: genome {genome} with size {size}")
         lock.acquire()
         try:
             with Cache(CACHE_DIR) as cache:
@@ -955,7 +954,7 @@ class Scanner(object):
                 if not fa:
                     if gc:
                         with NamedTemporaryFile() as tmp:
-                            logger.info("using {} sequences".format(nseq))
+                            logger.info(f"using {nseq} sequences")
                             gc_bin_bedfile(
                                 tmp.name, genome, number=nseq, length=size, bins=gc_bins
                             )
@@ -1017,7 +1016,7 @@ class Scanner(object):
             raise ValueError("please run set_motifs() first")
 
         motifs = read_motifs(self.motifs)
-        gc_bins = ["{:.2f}-{:.2f}".format(*gc_bin) for gc_bin in self.gc_bins]
+        gc_bins = [f"{gc_bin[0]:.2f}-{gc_bin[1]:.2f}" for gc_bin in self.gc_bins]
 
         if threshold is not None:
             d = parse_threshold_values(self.motifs, threshold)
@@ -1162,11 +1161,9 @@ class Scanner(object):
             gc = 0.01
         for b_start, b_end in self.gc_bins:
             if gc > round(b_start, 2) and gc <= round(b_end, 2):
-                return "{:.2f}-{:.2f}".format(b_start, b_end)
+                return f"{b_start:.2f}-{b_end:.2f}"
 
-        logger.error(
-            "Error determining seq: {}, bins: {}".format(seq, str(self.gc_bins))
-        )
+        logger.error(f"Error determining seq: {seq}, bins: {str(self.gc_bins)}")
         raise ValueError()
 
     def get_motif_mean_std(self, gc_bin, motif):
@@ -1174,10 +1171,8 @@ class Scanner(object):
             if motif not in self.meanstd[gc_bin]:
                 raise ValueError("Motif mean and std not initialized")
         else:
-            logger.warn(
-                "GC% {} not present in genome, setting to closest GC% bin".format(
-                    gc_bin
-                )
+            logger.warning(
+                f"GC% {gc_bin} not present in genome, setting to closest GC% bin"
             )
             # Ideally this should not happen. If we get here, this means that
             # a sequence has a GC% that does not occur in the genome. This
@@ -1186,13 +1181,13 @@ class Scanner(object):
             # We use the closest GC% bin from the genome instead.
             valid_bins = []
             for b in self.gc_bins:
-                bstr = "{:.2f}-{:.2f}".format(b[0], b[1])
+                bstr = f"{b[0]:.2f}-{b[1]:.2f}"
                 if bstr in self.meanstd:
                     valid_bins.append(((b[0] + b[1]) / 2, bstr))
 
             v = float(gc_bin.split("-")[1])
             _, bstr = sorted(valid_bins, key=lambda x: abs(x[0] - v))[0]
-            logger.warn(f"Using {bstr}")
+            logger.warning(f"Using {bstr}")
             self.meanstd[gc_bin] = self.meanstd[bstr]
         return self.meanstd[gc_bin][motif]
 

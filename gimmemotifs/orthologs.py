@@ -335,7 +335,8 @@ def annot2primpep(genome, outdir):
         # (probably mitochondrial protein since they have a different codon table)
         if "*" in protein:
             logger.debug(
-                f"skipping {prot_name} since it contains a * symbol (probably mitochondrial read)."
+                f"skipping {prot_name} since it contains a * symbol "
+                "(probably mitochondrial read)."
             )
             continue
 

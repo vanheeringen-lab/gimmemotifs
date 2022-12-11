@@ -27,7 +27,7 @@ def maelstrom(args):
     plot_no_motifs = args.plot_no_motifs
 
     if not os.path.exists(infile):
-        raise ValueError("file {} does not exist".format(infile))
+        raise ValueError(f"file {infile} does not exist")
 
     if methods:
         methods = [x.strip() for x in methods.split(",")]

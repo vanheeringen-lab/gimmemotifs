@@ -66,7 +66,7 @@ class MemeW(MotifProgram):
             "-mod",
             "zoops",
             "-nmotifs",
-            "%s" % number,
+            str(number),
             "-minw",
             "6",
             "-maxw",
@@ -119,7 +119,7 @@ class MemeW(MotifProgram):
             pfm = None
             if m:
                 # print(m.group(0))
-                id = "%s_%s_w%s" % (self.name, m.group(1), m.group(2))
+                id = f"{self.name}_{m.group(1)}_w{m.group(2)}"
                 while not line.startswith("//"):
                     ma = pa.search(line)
                     if ma:

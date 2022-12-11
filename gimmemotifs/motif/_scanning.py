@@ -7,7 +7,7 @@
 
 from warnings import warn
 
-from gimmemotifs.c_metrics import pfmscan, pwmscan
+from gimmemotifs.c_metrics import pfmscan, pwmscan  # noqa
 
 
 def pwm_scan(self, fa, cutoff=0.9, nreport=50, scan_rc=True):

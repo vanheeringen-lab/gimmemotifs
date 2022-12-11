@@ -4,7 +4,7 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Interface module for all motif programs."""
-import sys
+import logging
 from shutil import which
 
 from .mdmodule import MDmodule
@@ -29,6 +29,8 @@ from .yamda import Yamda
 from .dinamo import Dinamo
 from .rpmcmc import Rpmcmc
 
+logger = logging.getLogger("gimme.tools")
+
 
 def get_tool(name):
     """
@@ -45,15 +47,15 @@ def get_tool(name):
     """
     tool = name.lower()
     if tool not in __tools__:
-        raise ValueError("Tool {0} not found!\n".format(name))
+        raise ValueError(f"Tool {name} not found!")
 
     t = __tools__[tool]()
 
     if not t.is_installed():
-        sys.stderr.write("Tool {0} not installed!\n".format(tool))
+        logger.warning(f"Tool {tool} not installed!")
 
     if not t.is_configured():
-        sys.stderr.write("Tool {0} not configured!\n".format(tool))
+        logger.warning(f"Tool {tool} not configured!")
 
     return t
 
@@ -76,10 +78,11 @@ def locate_tool(name, verbose=True):
     tool_bin = which(m.cmd)
     if tool_bin:
         if verbose:
-            print("Found {} in {}".format(m.name, tool_bin))
+            logger.info(f"Found {m.name} in {tool_bin}")
         return tool_bin
     else:
-        print("Couldn't find {}".format(m.name))
+        if verbose:
+            logger.info(f"Couldn't find {m.name}")
 
 
 __tools__ = {

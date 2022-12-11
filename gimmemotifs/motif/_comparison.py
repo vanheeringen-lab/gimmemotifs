@@ -103,14 +103,12 @@ def ic(self, ppm1, ppm2, pos, bg=None, bg_factor=1):
             self.ic_pos(a) + self.ic_pos(b) - (self.ic_pos(a, b) + self.ic_pos(b, a))
         )
 
-    # print "SCORE: %s" % score
     # Parts aligned to the background
     for x in na:
         score += (
             self.ic_pos(x) + self.ic_pos(bg) - (self.ic_pos(x, bg) + self.ic_pos(bg, x))
         ) * bg_factor
 
-    #    print "SCORE WITH BG: %s" % score
     return score
 
 

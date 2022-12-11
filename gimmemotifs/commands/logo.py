@@ -6,20 +6,25 @@
 # distribution.
 import os
 import sys
+import logging
 
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import pfmfile_location
+
+logger = logging.getLogger("gimme.logo")
 
 
 def logo(args):
     if args.pfmfile is None and args.ids is None:
         name = os.path.splitext(os.path.split(pfmfile_location(None))[-1])[0]
-        print(
+        logger.error(
             "Use the -i argument to specify which motif ids you want to use for logos."
         )
-        print("If you really want to create logos for all of the motifs in the default")
-        print("PFM file use the following command:")
-        print(f"gimme logo -p {name}")
+        logger.error(
+            "If you really want to create logos for all of the motifs in the default"
+        )
+        logger.error("PFM file use the following command:")
+        logger.error(f"gimme logo -p {name}")
         sys.exit(1)
     inputfile = args.pfmfile
 
@@ -29,6 +34,4 @@ def logo(args):
         motifs = [m for m in motifs if m.id in ids]
 
     for motif in motifs:
-        motif.plot_logo(
-            fname="{}.png".format(motif.id), kind=args.kind, title=args.title
-        )
+        motif.plot_logo(fname=f"{motif.id}.png", kind=args.kind, title=args.title)

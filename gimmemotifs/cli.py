@@ -18,11 +18,7 @@ def cli(sys_args):
     default_pfm_file = os.path.join(config.get_motif_dir(), params["motif_db"])
     default_pfm = params["motif_db"]
 
-    description = """
-    GimmeMotifs v{0}
-    """.format(
-        __version__
-    )
+    description = f"GimmeMotifs v{__version__}"
 
     epilog = """
     commands:
@@ -67,9 +63,9 @@ def cli(sys_args):
         "-b",
         "--background",
         help=(
-            "Background type ({}) or a file with background "
+            f"Background type ({','.join(BED_VALID_BGS)}) or a file with background "
             "sequences (FASTA, BED or regions)"
-        ).format(",".join(BED_VALID_BGS)),
+        ),
         metavar="BACKGROUND",
     )
     p.add_argument(
@@ -114,7 +110,7 @@ def cli(sys_args):
         "-N",
         "--nthreads",
         dest="ncpus",
-        help="Number of threads (default %s)" % (params["ncpus"]),
+        help=f"Number of threads (default {params['ncpus']})",
         metavar="INT",
         type=int,
         default=int(params["ncpus"]),
@@ -125,7 +121,7 @@ def cli(sys_args):
     known_grp.add_argument(
         "-p",
         dest="pfmfile",
-        help="PFM file with motifs." "(default: {0})".format(default_pfm),
+        help=f"PFM file with motifs (default: {default_pfm}).",
         default=default_pfm_file,
         metavar="PFMFILE",
     )
@@ -136,8 +132,7 @@ def cli(sys_args):
         "-t",
         "--tools",
         dest="tools",
-        help="Tools to use, any combination of %s (default %s)"
-        % (params["available_tools"], params["tools"]),
+        help=f"Tools to use, any combination of {params['available_tools']} (default {params['tools']})",
         metavar="N",
         default="MEME,Homer,BioProspector",
     )
@@ -169,7 +164,7 @@ def cli(sys_args):
         "-f",
         "--fraction",
         dest="fraction",
-        help="Fraction of peaks to use for motif predicton (%s)" % params["fraction"],
+        help=f"Fraction of peaks to use for motif predicton ({params['fraction']})",
         metavar="FRACTION",
         default=params["fraction"],
         type=float,
@@ -179,9 +174,9 @@ def cli(sys_args):
         "--size",
         dest="size",
         help=(
-            "Region size to use for motif prediction ({}). "
+            f"Region size to use for motif prediction ({params['size']}). "
             "Set to 0 to use the size of the input regions."
-        ).format(params["size"]),
+        ),
         metavar="N",
         default=params["size"],
         type=int,
@@ -202,7 +197,7 @@ def cli(sys_args):
         "-p",
         "--pfmfile",
         dest="pfmfile",
-        help="PFM file with motifs " "(default: {0})".format(default_pfm),
+        help=f"PFM file with motifs (default: {default_pfm}).",
         default=default_pfm_file,
         metavar="pfmfile",
     )
@@ -290,7 +285,7 @@ def cli(sys_args):
         "-N",
         "--nthreads",
         dest="ncpus",
-        help="Number of threads (default %s)" % (params["ncpus"]),
+        help=f"Number of threads (default {params['ncpus']})",
         metavar="INT",
         type=int,
         default=int(params["ncpus"]),
@@ -327,7 +322,7 @@ def cli(sys_args):
         "-p",
         "--pfmfile",
         dest="pfmfile",
-        help="PFM file with motifs " "(default: {0})".format(default_pfm),
+        help=f"PFM file with motifs (default: {default_pfm}).",
         default=default_pfm_file,
         metavar="pfmfile",
     )
@@ -379,7 +374,7 @@ def cli(sys_args):
         "-N",
         "--nthreads",
         dest="ncpus",
-        help="Number of threads (default %s)" % (params["ncpus"]),
+        help=f"Number of threads (default {params['ncpus']})",
         metavar="INT",
         type=int,
         default=int(params["ncpus"]),
@@ -421,7 +416,7 @@ def cli(sys_args):
     p.add_argument(
         "-d",
         dest="dbpfmfile",
-        help="File with pfms to match against " "(default: {0})".format(default_pfm),
+        help=f"File with pfms to match against (default: {default_pfm})",
         default=default_pfm_file,
         metavar="DBFILE",
     )
@@ -488,7 +483,7 @@ def cli(sys_args):
         "-N",
         "--nthreads",
         dest="ncpus",
-        help="Number of threads (default %s)" % (params["ncpus"]),
+        help=f"Number of threads (default {params['ncpus']})",
         metavar="INT",
         type=int,
         default=int(params["ncpus"]),
@@ -501,7 +496,7 @@ def cli(sys_args):
     p.add_argument("outputfile", help="outputfile", metavar="FILE")
     p.add_argument(
         "bg_type",
-        help="type of background sequences to generate (%s)" % ",".join(BG_TYPES),
+        help=f"type of background sequences to generate ({','.join(BG_TYPES)})",
         metavar="TYPE",
     )
     p.add_argument(
@@ -591,7 +586,7 @@ def cli(sys_args):
         "-p",
         "--pfmfile",
         dest="pfmfile",
-        help="PFM file with motifs " "(default: {0})".format(default_pfm),
+        help=f"PFM file with motifs (default: {default_pfm}).",
         default=default_pfm_file,
         metavar="pfmfile",
     )
@@ -659,7 +654,7 @@ def cli(sys_args):
 
     p = subparsers.add_parser(
         "motif2factors",
-        help="Generate a motif2factors file based on orthology for your species of interest.",
+        # help="Generate a motif2factors file based on orthology for your species of interest.",
     )
     p.add_argument(
         "--new-reference",
@@ -740,11 +735,7 @@ def cli(sys_args):
     else:
         ignored = ["-v", "--version", "-h", "--help"]
         if len(sys_args) == 1 and sys_args[0] not in ignored:
-            print(
-                "\033[93mtype `gimme {} -h` for more details\033[0m\n".format(
-                    sys_args[-1]
-                )
-            )
+            print(f"\033[93mtype `gimme {sys_args[-1]} -h` for more details\033[0m\n")
         args = parser.parse_args(sys_args)
 
         if hasattr(args, "genome"):

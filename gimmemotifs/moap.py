@@ -6,7 +6,6 @@
 """ Module for motif activity prediction """
 import logging
 import os
-import sys
 import warnings
 
 import numpy as np
@@ -113,7 +112,7 @@ register_predictor = Moap.register_predictor
 @register_predictor("BayesianRidge")
 class BayesianRidgeMoap(Moap):
     act_ = None
-    act_description = "activity values: coefficients of the" "regression model"
+    act_description = "activity values: coefficients of the regression model"
     pref_table = "score"
     supported_tables = ["score", "count"]
     ptype = "regression"
@@ -173,7 +172,7 @@ class BayesianRidgeMoap(Moap):
 @register_predictor("Xgboost")
 class XgboostRegressionMoap(Moap):
     act_ = None
-    act_description = "activity values: feature scores from" "fitted model"
+    act_description = "activity values: feature scores from fitted model"
     pref_table = "score"
     supported_tables = ["score", "count"]
     ptype = "regression"
@@ -230,12 +229,10 @@ class XgboostRegressionMoap(Moap):
             objective="reg:squarederror",
         )
 
-        logger.debug("xgb: 0%")
-
         self.act_ = pd.DataFrame(index=X.columns)
 
         # Fit model
-        for i, col in enumerate(tqdm(y.columns)):
+        for col in tqdm(y.columns):
             xgb.fit(X, y[col].values)
             d = xgb.get_booster().get_fscore()
             self.act_[col] = [d.get(m, 0) for m in X.columns]
@@ -251,14 +248,13 @@ class XgboostRegressionMoap(Moap):
                     if low > high:
                         self.act_.loc[motif, col] *= -1
 
-            logger.debug("..{}%".format(int(float(i + 1) / len(y.columns) * 100)))
         logger.info("Done")
 
 
 @register_predictor("MWU")
 class MWUMoap(Moap):
     act_ = None
-    act_description = "activity values: BH-corrected " "-log10 Mann-Whitney U p-value"
+    act_description = "activity values: BH-corrected -log10 Mann-Whitney U p-value"
     pref_table = "score"
     supported_tables = ["score"]
     ptype = "classification"
@@ -300,8 +296,8 @@ class MWUMoap(Moap):
                 try:
                     p.append(mannwhitneyu(pos[m], neg[m], alternative="greater")[1])
                 except Exception as e:
-                    sys.stderr.write(str(e) + "\n")
-                    sys.stderr.write("motif {} failed, setting to p = 1\n".format(m))
+                    logger.error(str(e))
+                    logger.error(f"motif {m} failed, setting to p = 1")
                     p.append(1)
             pvals.append(p)
 
@@ -319,7 +315,7 @@ class MWUMoap(Moap):
 class HypergeomMoap(Moap):
     act_ = None
     act_description = (
-        "activity values: -log10-transformed, BH-corrected " "hypergeometric p-values"
+        "activity values: -log10-transformed, BH-corrected hypergeometric p-values"
     )
     pref_table = "count"
     supported_tables = ["count"]
@@ -384,7 +380,7 @@ class HypergeomMoap(Moap):
 class RFMoap(Moap):
     act_ = None
     act_description = (
-        "activity values: feature importances " "from fitted Random Forest model"
+        "activity values: feature importances from fitted Random Forest model"
     )
     pref_table = "score"
     supported_tables = ["score", "count"]
@@ -448,7 +444,7 @@ class RFMoap(Moap):
 @register_predictor("MultiTaskLasso")
 class MultiTaskLassoMoap(Moap):
     act_ = None
-    act_description = "activity values: coefficients of the" "regression model"
+    act_description = "activity values: coefficients of the regression model"
     pref_table = "score"
     supported_tables = ["score", "count"]
     ptype = "regression"
@@ -666,10 +662,10 @@ def moap(
 
     if clf.ptype == "classification":
         if df.shape[1] != 1:
-            raise ValueError("1 column expected for {}".format(method))
+            raise ValueError(f"1 column expected for {method}")
     else:
         if np.dtype("object") in set(df.dtypes):
-            raise ValueError("columns should all be numeric for {}".format(method))
+            raise ValueError(f"columns should all be numeric for {method}")
 
     if motiffile is None:
         if genome is None:
@@ -679,7 +675,7 @@ def moap(
         try:
             motifs = read_motifs(pfmfile)
         except Exception:
-            sys.stderr.write("can't read motifs from {}".format(pfmfile))
+            logger.error(f"can't read motifs from {pfmfile}")
             raise
 
         # scan for motifs
@@ -721,12 +717,12 @@ def moap(
             ncols = len(df.iloc[:, 0].unique())
 
         if out.shape[0] == motifs.shape[1] and out.shape[1] == ncols:
-            logger.warning("%s output already exists... skipping", method)
+            logger.warning(f"{method} output already exists... skipping")
             return out
 
     if subsample is not None:
         n = int(subsample * df.shape[0])
-        logger.debug("Subsampling %d regions", n)
+        logger.debug(f"Subsampling {n} regions")
         df = df.sample(n)
 
     motifs = motifs.loc[df.index]
@@ -735,13 +731,13 @@ def moap(
 
     if outfile:
         with open(outfile, "w") as f:
-            f.write("# maelstrom - GimmeMotifs version {}\n".format(__version__))
-            f.write("# method: {} with motif {}\n".format(method, scoring))
+            f.write(f"# maelstrom - GimmeMotifs version {__version__}\n")
+            f.write(f"# method: {method} with motif {scoring}\n")
             if genome:
-                f.write("# genome: {}\n".format(genome))
+                f.write(f"# genome: {genome}\n")
             if isinstance(motiffile, str):
-                f.write("# motif table: {}\n".format(motiffile))
-            f.write("# {}\n".format(clf.act_description))
+                f.write(f"# motif table: {motiffile}\n")
+            f.write(f"# {clf.act_description}\n")
 
         with open(outfile, "a") as f:
             clf.act_.to_csv(f, sep="\t")

@@ -52,8 +52,9 @@ def motifs(args):
         sample = outfile
     elif args.size and args.size > 0:
         if file_type == "fasta":
-            logger.warn(
-                "Will use the sequences from the FASTA input. If size is specified, this will be ignored."
+            logger.warning(
+                "Will use the sequences from the FASTA input. "
+                "If size is specified, this will be ignored."
             )
         elif file_type == "bed":
             write_equalsize_bedfile(args.sample, args.size, outfile)
@@ -61,11 +62,12 @@ def motifs(args):
 
     genome = args.genome
     if genome is None:
-        logger.warn("Genome is not specified!")
-        logger.warn(
-            "This means the z-score transformation and GC% normalization of the motif scores cannot be performed."
+        logger.warning("Genome is not specified!")
+        logger.warning(
+            "This means the z-score transformation and GC% normalization "
+            "of the motif scores cannot be performed."
         )
-        logger.warn("Will continue, but performance may be impacted.")
+        logger.warning("Will continue, but performance may be impacted.")
         args.zscore = False
         args.gc = False
 
@@ -82,7 +84,7 @@ def motifs(args):
         bg = "custom"
     else:
         # create background if not provided
-        bgfile = os.path.join(args.outdir, "generated_background.{}.fa".format(bg))
+        bgfile = os.path.join(args.outdir, f"generated_background.{bg}.fa")
         size = args.size
         if size <= 0:
             size = None
@@ -140,17 +142,10 @@ def motifs(args):
 
         with open(new_map_file, "a") as f:
             for m in denovo:
-                print(
-                    "{}\t{}\t{}\t{}".format(m.id, "de novo", "GimmeMotifs", "Y"), file=f
-                )
+                print(f"{m.id}\tde novo\tGimmeMotifs\tY", file=f)
                 if result[m.id][0] in match_motifs:
                     for factor in match_motifs[result[m.id][0]].factors["direct"]:
-                        print(
-                            "{}\t{}\t{}\t{}".format(
-                                m.id, factor, "inferred (GimmeMotifs)", "N"
-                            ),
-                            file=f,
-                        )
+                        print(f"{m.id}\t{factor}\tinferred (GimmeMotifs)\tN", file=f)
     else:
         logger.info("skipping de novo")
 
@@ -183,7 +178,7 @@ def motifs(args):
     # delete_sample = False
     # if ftype == "narrowpeak":
     #    f = NamedTemporaryFile(delete=False)
-    #    logger.debug("Using {} as temporary BED file".format(f.name))
+    #    logger.debug(f"Using {f.name)} as temporary BED file"
     #    narrowpeak_to_bed(args.sample, f.name, size=args.size)
     #    sample = f.name
     #    delete_sample = True

@@ -54,7 +54,7 @@ logger = logging.getLogger("gimme.maelstrom")
 def moap_with_bg(
     input_table, genome, data_dir, method, scoring, pfmfile=None, ncpus=None
 ):
-    outfile = os.path.join(data_dir, "activity.{}.{}.out.txt".format(method, scoring))
+    outfile = os.path.join(data_dir, f"activity.{method}.{scoring}.out.txt")
 
     moap(
         input_table,
@@ -69,7 +69,7 @@ def moap_with_bg(
 
 
 def moap_with_table(input_table, motif_table, data_dir, method, scoring, ncpus=None):
-    outfile = os.path.join(data_dir, "activity.{}.{}.out.txt".format(method, scoring))
+    outfile = os.path.join(data_dir, f"activity.{method}.{scoring}.out.txt")
 
     moap(
         input_table,
@@ -111,7 +111,7 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pfmfile=None):
     f = np.any(df_sig >= sig_cutoff, 1)
     vis = df_sig[f]
     if vis.shape[0] == 0:
-        logger.info("No motifs reach the threshold, skipping visualization.\n")
+        logger.info("No motifs reach the threshold, skipping visualization.")
         return
 
     # cluster rows
@@ -354,7 +354,7 @@ def run_maelstrom(
             )
             counts.to_csv(count_table, sep="\t", compression="gzip")
         else:
-            logger.info("Counts, using: %s", count_table)
+            logger.info(f"Counts, using: {count_table}")
 
     # Create a file with the score of the best motif match
     if score_table is None:
@@ -374,7 +374,7 @@ def run_maelstrom(
                 score_table, sep="\t", float_format="%.3f", compression="gzip"
             )
         else:
-            logger.info("Scores, using: %s", score_table)
+            logger.info(f"Scores, using: {score_table}")
 
     counts = pd.read_csv(count_table, index_col=0, comment="#", sep="\t")
     scores = pd.read_csv(score_table, index_col=0, comment="#", sep="\t")
@@ -464,7 +464,7 @@ def run_maelstrom(
                 try:
                     m = Moap.create(method, ncpus=ncpus)
                     exps.append([method, m.pref_table, infile])
-                    logger.debug("Adding %s", method)
+                    logger.debug(f"Adding {method}")
                 except ImportError as e:
                     logger.warning(f"Skipping {method}. Reason: {e}")
 
@@ -504,18 +504,18 @@ def run_maelstrom(
                 )
 
         except Exception as e:
-            logger.warn("Method %s with scoring %s failed", method, scoring)
-            logger.warn(e)
-            logger.warn("Skipping")
+            logger.warning(f"Method {method} with scoring {scoring} failed")
+            logger.warning(e)
+            logger.warning("Skipping")
             raise
     dfs = {}
     for method, scoring, fname in exps:
-        t = "{}.{}".format(method, scoring)
-        fname = os.path.join(outdir, "activity.{}.{}.out.txt".format(method, scoring))
+        t = f"{method}.{scoring}"
+        fname = os.path.join(outdir, f"activity.{t}.out.txt")
         try:
             dfs[t] = pd.read_table(fname, index_col=0, comment="#")
         except FileNotFoundError:
-            logger.warn("Activity file for {} not found!\n".format(t))
+            logger.warning(f"Activity file for {t} not found!")
 
     if len(methods) > 1:
         logger.info("Rank aggregation")
@@ -603,9 +603,8 @@ class MaelstromResult:
         self.activity = {}
         # Read individual activity files
         for fname in glob.glob(os.path.join(outdir, "activity*txt")):
-            # print()
             _, name, mtype, _, _ = os.path.split(fname)[-1].split(".")
-            self.activity["{}.{}".format(name, mtype)] = pd.read_table(
+            self.activity[f"{name}.{mtype}"] = pd.read_table(
                 fname, comment="#", index_col=0
             )
 

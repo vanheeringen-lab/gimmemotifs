@@ -107,19 +107,18 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
         n_regions = len(f.readlines())
 
     if n_regions < 500 and fraction <= 0.2:
-        logger.warn(
-            f"You have {n_regions} input regions and only {int(fraction * n_regions)} will be used for motif prediction."
+        logger.warning(
+            f"You have {n_regions} input regions and only "
+            f"{int(fraction * n_regions)} will be used for motif prediction."
         )
-        logger.warn(
+        logger.warning(
             "You may consider to increase the fraction for prediction (-f, --fraction)"
         )
 
     # Split input into prediction and validation set
     logger.debug(
-        "Splitting %s into prediction set (%s) and validation set (%s)",
-        bedfile,
-        pred_bedfile,
-        val_bedfile,
+        f"Splitting {bedfile} into prediction set ({pred_bedfile}) "
+        f"and validation set ({val_bedfile})"
     )
     divide_file(bedfile, pred_bedfile, val_bedfile, fraction, abs_max)
 
@@ -157,10 +156,11 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
     n_regions = len(fa)
 
     if n_regions < 500 and fraction <= 0.2:
-        logger.warn(
-            f"You have {n_regions} input regions and only {int(fraction * n_regions)} will be used for motif prediction."
+        logger.warning(
+            f"You have {n_regions} input regions and only "
+            f"{int(fraction * n_regions)} will be used for motif prediction."
         )
-        logger.warn(
+        logger.warning(
             "You may consider to increase the fraction for prediction (-f, --fraction)"
         )
 
@@ -169,10 +169,8 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
 
     # Split inputfile in prediction and validation set
     logger.debug(
-        "Splitting %s into prediction set (%s) and validation set (%s)",
-        inputfile,
-        pred_fa,
-        val_fa,
+        f"Splitting {inputfile} into prediction set ({pred_fa}) "
+        f"and validation set ({val_fa})"
     )
 
     divide_fa_file(inputfile, pred_fa, val_fa, fraction, abs_max)
@@ -183,7 +181,7 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
     lsize = len(seqs[0])
     all_same_size = not (False in [len(seq) == lsize for seq in seqs])
     if not all_same_size:
-        logger.warn(
+        logger.warning(
             "PLEASE NOTE: FASTA file contains sequences of different sizes. "
             "Positional preference plots might be incorrect!"
         )
@@ -237,57 +235,53 @@ def create_background(
 
     if bg_type == "random":
         f = MarkovFasta(fg, k=1, n=nr_times * len(fg))
-        logger.debug("Random background: %s", outfile)
+        logger.debug(f"Random background: {outfile}")
     elif bg_type == "genomic":
         logger.debug("Creating genomic background")
         f = RandomGenomicFasta(genome, size, nr_times * len(fg))
     elif bg_type == "gc":
         logger.debug("Creating GC matched background")
         f = MatchedGcFasta(fafile, genome, nr_times * len(fg))
-        logger.debug("GC matched background: %s", outfile)
+        logger.debug(f"GC matched background: {outfile}")
     elif bg_type == "promoter":
         fname = Genome(genome).filename
         gene_file = fname.replace(".fa", ".annotation.bed.gz")
         if not gene_file:
-            gene_file = os.path.join(config.get_gene_dir(), "%s.bed" % genome)
+            gene_file = os.path.join(config.get_gene_dir(), f"{genome}.bed")
         if not os.path.exists(gene_file):
-            print("Could not find a gene file for genome {}")
-            print("Did you use the --annotation flag for genomepy?")
-            print(
-                "Alternatively make sure there is a file called {}.bed in {}".format(
-                    genome, config.get_gene_dir()
-                )
+            logger.error(f"Could not find a gene file for genome {genome}")
+            logger.error("Did you use the --annotation flag for genomepy?")
+            logger.error(
+                f"Alternatively make sure there is a file called {genome}.bed "
+                f"in {config.get_gene_dir()}"
             )
-            raise ValueError()
+            sys.exit(1)
 
         logger.info(
-            "Creating random promoter background (%s, using genes in %s)",
-            genome,
-            gene_file,
+            f"Creating random promoter background ({genome}, using genes in {gene_file})"
         )
         f = PromoterFasta(gene_file, genome, size, nr_times * len(fg))
-        logger.debug("Random promoter background: %s", outfile)
+        logger.debug(f"Random promoter background: {outfile}")
     elif bg_type == "custom":
         bg_file = custom_background
         if not bg_file:
-            raise IOError("Background file not specified!")
+            raise ValueError("Background file not specified!")
 
         if not os.path.exists(bg_file):
-            raise IOError("Custom background file %s does not exist!", bg_file)
+            raise FileNotFoundError(f"Custom background file {bg_file} does not exist!")
         else:
-            logger.info("Copying custom background file %s to %s.", bg_file, outfile)
+            logger.info(f"Copying custom background file {bg_file} to {outfile}.")
             f = Fasta(bg_file)
             median_length = np.median([len(seq) for seq in f.seqs])
             if median_length < (size * 0.95) or median_length > (size * 1.05):
-                logger.warn(
-                    "The custom background file %s contains sequences with a "
-                    "median size of %s, while GimmeMotifs predicts motifs in sequences "
-                    "of size %s. This will influence the statistics! It is recommended "
-                    "to use background sequences of the same size.",
-                    bg_file,
-                    median_length,
-                    size,
+                logger.warning(
+                    f"The custom background file {bg_file} contains sequences with a "
+                    f"median size of {median_length}, while GimmeMotifs predicts motifs in sequences "
+                    f"of size {size}. This will influence the statistics! It is recommended "
+                    "to use background sequences of the same size."
                 )
+    else:
+        raise ValueError
 
     f.writefasta(outfile)
     return len(f)
@@ -340,7 +334,7 @@ def create_backgrounds(
     bg_info = {}
     nr_sequences = {}
     for bg in background:
-        fname = os.path.join(outdir, "bg.{}.fa".format(bg))
+        fname = os.path.join(outdir, f"bg.{bg}.fa")
         nr_sequences[bg] = create_background(
             bg,
             os.path.join(outdir, "validation.fa"),
@@ -406,15 +400,15 @@ def filter_significant_motifs(fname, result, bg, metrics=None):
     sig_motifs = []
     with open(fname, "w") as f:
         for motif in result.motifs:
-            stats = result.stats.get(
-                "%s_%s" % (motif.id, motif.to_consensus()), {}
-            ).get(bg, {})
+            stats = result.stats.get(f"{motif.id}_{motif.to_consensus()}", {}).get(
+                bg, {}
+            )
             if _is_significant(stats, metrics):
-                f.write("%s\n" % motif.to_pfm())
+                f.write(f"{motif.to_pfm()}\n")
                 sig_motifs.append(motif)
 
-    logger.info("%s motifs are significant", len(sig_motifs))
-    logger.debug("written to %s", fname)
+    logger.info(f"{len(sig_motifs)} motifs are significant")
+    logger.debug(f"written to {fname}")
 
     return sig_motifs
 
@@ -515,7 +509,7 @@ def rename_motifs(motifs, stats=None):
     final_motifs = []
     for i, motif in enumerate(motifs):
         old = str(motif)
-        motif.id = "GimmeMotifs_{}".format(i + 1)
+        motif.id = f"GimmeMotifs_{i + 1}"
         final_motifs.append(motif)
         if stats:
             stats[str(motif)] = stats[old].copy()
@@ -568,7 +562,7 @@ def gimme_motifs(
     >>> gimme_motifs("input.fa", "motifs.out")
     """
     if outdir is None:
-        outdir = "gimmemotifs_{}".format(datetime.date.today().strftime("%d_%m_%Y"))
+        outdir = f"gimmemotifs_{datetime.date.today().strftime('%d_%m_%Y')}"
 
     # Create output directories
     tmpdir = os.path.join(outdir, "intermediate")
@@ -595,14 +589,12 @@ def gimme_motifs(
     input_type, background = check_denovo_input(inputfile, params)
 
     logger.info("starting full motif analysis")
-    logger.debug("Using temporary directory %s", mytmpdir())
+    logger.debug(f"Using temporary directory {mytmpdir()}")
 
     params["size"] = int(params["size"])
     if params["size"] > 0:
         logger.info(
-            "using size of {}, set size to 0 to use original region size".format(
-                params["size"]
-            )
+            f"using size of {params['size']}, set size to 0 to use original region size"
         )
     else:
         logger.info("using original size")
@@ -663,6 +655,9 @@ def gimme_motifs(
         motifs = result.motifs
         pfmfile = os.path.join(tmpdir, "all_motifs.pfm")
 
+    with open(pfmfile) as f:
+        logger.error(f.readlines())
+
     if cluster:
         clusters = cluster_motifs_with_report(
             pfmfile,
@@ -695,10 +690,10 @@ def gimme_motifs(
     if motifs_found:
         with open(os.path.join(outdir, "gimme.denovo.pfm"), "w") as f:
             for m in final_motifs:
-                f.write("{}\n".format(m.to_ppm()))
+                f.write(f"{m.to_ppm()}\n")
 
     if motifs_found and create_report:
-        bg = dict([(b, os.path.join(tmpdir, "bg.{}.fa".format(b))) for b in background])
+        bg = dict([(b, os.path.join(tmpdir, f"bg.{b}.fa")) for b in background])
 
         create_denovo_motif_report(
             inputfile,
@@ -713,7 +708,7 @@ def gimme_motifs(
 
     with open(os.path.join(outdir, "params.txt"), "w") as f:
         for k, v in params.items():
-            f.write("{}\t{}\n".format(k, v))
+            f.write(f"{k}\t{v}\n")
 
     if not (params.get("keep_intermediate")):
         logger.debug(
@@ -723,9 +718,9 @@ def gimme_motifs(
         shutil.rmtree(tmpdir)
 
     logger.info("de novo finished")
-    logger.info("output dir: %s", outdir)
+    logger.info(f"output dir: {outdir}")
     if motifs_found and cluster:
-        logger.info("de novo report: %s", os.path.join(outdir, "gimme.denovo.html"))
+        logger.info(f"de novo report: {os.path.join(outdir, 'gimme.denovo.html')}")
 
     return final_motifs
 

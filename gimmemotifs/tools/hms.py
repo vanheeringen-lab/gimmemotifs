@@ -24,7 +24,7 @@ class Hms(MotifProgram):
     def _prepare_files(self, fastafile):
 
         hmsdir = self.dir()
-        thetas = ["theta%s.txt" % i for i in [0, 1, 2, 3]]
+        thetas = [f"theta{i}.txt" for i in [0, 1, 2, 3]]
         for t in thetas:
             shutil.copy(os.path.join(hmsdir, t), self.tmpdir)
 
@@ -36,7 +36,7 @@ class Hms(MotifProgram):
         fa = Fasta(fgfile)
         with open(summitfile, "w") as out:
             for seq in fa.seqs:
-                out.write("%s\n" % (len(seq) / 2))
+                out.write(f"{len(seq) / 2}\n")
         return fgfile, summitfile, outfile
 
     def _run_program(self, bin, fastafile, params=None):
@@ -78,9 +78,9 @@ class Hms(MotifProgram):
         os.chdir(self.tmpdir)
 
         cmd = (
-            "{} -i {} -w {} -dna 4 -iteration 50 -chain 20 -seqprop -0.1 "
-            "-strand 2 -peaklocation {} -t_dof 3 -dep 2"
-        ).format(bin, fgfile, params["width"], summitfile)
+            f"{bin} -i {fgfile} -w {params['width']} -dna 4 -iteration 50 -chain 20 -seqprop -0.1 "
+            f"-strand 2 -peaklocation {summitfile} -t_dof 3 -dep 2"
+        )
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
@@ -92,7 +92,7 @@ class Hms(MotifProgram):
             with open(outfile) as f:
                 motifs = self.parse(f)
                 for i, m in enumerate(motifs):
-                    m.id = "HMS_w{}_{}".format(params["width"], i + 1)
+                    m.id = f"HMS_w{params['width']}_{i + 1}"
 
         return motifs, stdout, stderr
 

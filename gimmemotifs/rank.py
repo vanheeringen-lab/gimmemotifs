@@ -41,16 +41,14 @@ def rankagg_R(df, method="stuart"):
 
     df.to_csv(tmpdf.name, sep="\t", index=False)
 
-    script = """
+    script = f"""
 library(RobustRankAggreg);
-a = read.table("{}", header=TRUE);
+a = read.table("{tmpdf.name}", header=TRUE);
 x = lapply(a, as.vector);
-result = aggregateRanks(x, method="{}");
+result = aggregateRanks(x, method="{method}");
 result$p.adjust = p.adjust(result$Score);
- write.table(result, file="{}", sep="\t", quote=FALSE, row.names=FALSE);
-""".format(
-        tmpdf.name, method, tmpranks.name
-    )
+write.table(result, file="{tmpranks.name}", sep="\t", quote=FALSE, row.names=FALSE);
+"""
     tmpscript.write(script)
     tmpscript.flush()
 

@@ -335,7 +335,7 @@ class ExtraStyler(Styler):
             if (include_zero or x > 0) and x <= 10**-p:
                 return f"<{10**-p}"
             else:
-                return f"{{0:.{p}f}}".format(x)  # noqa
+                return f"{x:.{p}f}"
 
         self.display_data.loc[subset] = self.data.loc[subset].applymap(precision_str)
         return self
@@ -598,10 +598,9 @@ def get_roc_values(motif, fg_file, bg_file, genome):
         )
         (x, y) = list(stats.values())[0]["roc_values"]
         return None, x, y
-    except Exception as e:
-        print(motif)
-        print(motif.id)
-        print(str(e))
+    except Exception:
+        logger.error(motif)
+        logger.error(motif.id)
         raise
 
 
@@ -614,7 +613,7 @@ def create_roc_plots(pfmfile, fgfa, background, outdir, genome):
     for bg, fname in background.items():
         for m_id, m in motifs.items():
 
-            k = "{}_{}".format(str(m), bg)
+            k = f"{str(m)}_{bg}"
             jobs[k] = pool.apply_async(
                 get_roc_values, (motifs[m_id], fgfa, fname, genome)
             )
@@ -622,17 +621,16 @@ def create_roc_plots(pfmfile, fgfa, background, outdir, genome):
     if not os.path.exists(imgdir):
         os.mkdir(imgdir)
 
-    roc_img_file = os.path.join(outdir, "images", "{}_roc.{}.png")
-
     for motif in motifs.values():
         for bg in background:
-            k = "{}_{}".format(str(motif), bg)
+            k = f"{str(motif)}_{bg}"
             error, x, y = jobs[k].get()
             if error:
-                logger.error("Error in thread: %s", error)
-                logger.error("Motif: %s", motif)
+                logger.error(f"Error in thread: {error}")
+                logger.error(f"Motif: {motif}")
                 sys.exit(1)
-            roc_plot(roc_img_file.format(motif.id, bg), x, y)
+            roc_img_file = os.path.join(outdir, "images", f"{motif.id}_roc.{bg}.png")
+            roc_plot(roc_img_file, x, y)
 
 
 def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
@@ -644,7 +642,7 @@ def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
         for bg in list(stats.values())[0].keys():
             if str(motif) not in stats:
                 logger.error("####")
-                logger.error("{} not found".format(str(motif)))
+                logger.error(f"{str(motif)} not found")
                 for s in sorted(stats.keys()):
                     logger.error(s)
                 logger.error("####")
@@ -676,8 +674,6 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
 
     motifs = read_motifs(pwm, fmt="pfm")
 
-    roc_img_file = "%s_roc.%s"
-
     dbpwm = config.get_default_params()["motif_db"]
     pwmdir = config.get_motif_dir()
 
@@ -688,10 +684,10 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
 
         rm = ReportMotif()
         rm.id = motif.id
-        rm.id_href = {"href": "#%s" % motif.id}
+        rm.id_href = {"href": f"#{motif.id}"}
         rm.id_name = {"name": motif.id}
-        rm.img = {"src": os.path.join("images", "%s.png" % motif.id)}
-        motif.plot_logo(fname=os.path.join(outdir, "images/{}.png".format(motif.id)))
+        rm.img = {"src": os.path.join("images", f"{motif.id}.png")}
+        motif.plot_logo(fname=os.path.join(outdir, "images", f"{motif.id}.png"))
 
         # TODO: fix best ID
         rm.best = "Gimme"  # best_id[motif.id]
@@ -706,32 +702,34 @@ def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, 
             rm.bg[bg] = {}
             this_stats = stats.get(str(motif), {}).get(bg)
             # TODO: fix these stats
-            rm.bg[bg]["e"] = "%0.2f" % this_stats.get("enr_at_fpr", 1.0)
-            rm.bg[bg]["p"] = "%0.2f" % this_stats.get("phyper_at_fpr", 1.0)
-            rm.bg[bg]["auc"] = "%0.3f" % this_stats.get("roc_auc", 0.5)
-            rm.bg[bg]["mncp"] = "%0.3f" % this_stats.get("mncp", 1.0)
+            rm.bg[bg]["e"] = f"{this_stats.get('enr_at_fpr', 1.0):.2f}"
+            rm.bg[bg]["p"] = f"{this_stats.get('phyper_at_fpr', 1.0):.2f}"
+            rm.bg[bg]["auc"] = f"{this_stats.get('roc_auc', 0.5):.3f}"
+            rm.bg[bg]["mncp"] = f"{this_stats.get('mncp', 1.0):.3f}"
             rm.bg[bg]["roc_img"] = {
-                "src": "images/"
-                + os.path.basename(roc_img_file % (motif.id, bg))
-                + ".png"
+                "src": os.path.join(
+                    "images", os.path.basename(f"{motif.id}_roc.{bg}") + ".png"
+                )
             }
             rm.bg[bg]["roc_img_link"] = {
-                "href": "images/"
-                + os.path.basename(roc_img_file % (motif.id, bg))
-                + ".png"
+                "href": os.path.join(
+                    "images", os.path.basename(f"{motif.id}_roc.{bg}") + ".png"
+                )
             }
 
-        rm.histogram_img = {"data": "images/%s_histogram.svg" % motif.id}
-        rm.histogram_link = {"href": "images/%s_histogram.svg" % motif.id}
+        rm.histogram_img = {"data": os.path.join("images", f"{motif.id}_histogram.svg")}
+        rm.histogram_link = {
+            "href": os.path.join("images", f"{motif.id}_histogram.svg")
+        }
 
         match_id = closest_match[motif.id][0]
         dbmotifs[match_id].plot_logo(
-            fname=os.path.join(outdir, "images/{}.png".format(match_id))
+            fname=os.path.join(outdir, "images", f"{match_id}.png")
         )
 
-        rm.match_img = {"src": "images/{}.png".format(match_id)}
+        rm.match_img = {"src": os.path.join("images", f"{match_id}.png")}
         rm.match_id = closest_match[motif.id][0]
-        rm.match_pval = "%0.2e" % closest_match[motif.id][1][-1]
+        rm.match_pval = f"{closest_match[motif.id][1][-1]:.2e}"
 
         report_motifs.append(rm)
 
@@ -790,8 +788,8 @@ def create_denovo_motif_report(
     # Location plots
     logger.debug("Creating localization plots")
     for motif in motifs:
-        logger.debug("  {} {}".format(motif.id, motif))
-        outfile = os.path.join(outdir, "images/{}_histogram.svg".format(motif.id))
+        logger.debug(f"  {motif.id} {motif}")
+        outfile = os.path.join(outdir, "images", f"{motif.id}_histogram.svg")
         motif_localization(locfa, motif, lsize, outfile, cutoff=cutoff_fpr)
 
     # Create reports
@@ -827,7 +825,8 @@ def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="l
     for motif in series:
         if motif not in motifs:
             raise ValueError(f"Motif {motif} does not occur in motif database")
-        fname = subdir + "/{}.png".format(re.sub(r"[^a-zA-Z0-9\-]+", "_", motif))
+        fname = re.sub(r"[^a-zA-Z0-9\-]+", "_", motif)
+        fname = os.path.join(subdir, f"{fname}.png")
         if not os.path.exists(fname):
             motifs[motif].plot_logo(fname=os.path.join(outdir, fname))
         img_series.append(fname)

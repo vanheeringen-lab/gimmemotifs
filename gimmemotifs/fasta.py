@@ -5,10 +5,12 @@
 # distribution.
 
 """ Module to work with FASTA files """
-import sys
 import random
 import re
 import numpy as np
+import logging
+
+logger = logging.getLogger("gimme.fasta")
 
 
 class Fasta(object):
@@ -58,12 +60,10 @@ class Fasta(object):
                 seq_id = ids.pop()
                 if len(self[seq_id]) >= length:
                     start = random.randint(0, len(self[seq_id]) - length)
-                    random_f["random%s" % (i + 1)] = self[seq_id][
-                        start : start + length
-                    ]
+                    random_f[f"random{i + 1}"] = self[seq_id][start : start + length]
                     i += 1
             if len(random_f) != n:
-                sys.stderr.write("Not enough sequences of required length")
+                logger.error("Not enough sequences of required length")
                 return
             else:
                 return random_f
@@ -86,7 +86,7 @@ class Fasta(object):
             return None
 
     def __repr__(self):
-        return "%s sequences" % len(self.ids)
+        return f"{len(self.ids)} sequences"
 
     def __len__(self):
         return len(self.ids)
@@ -117,13 +117,13 @@ class Fasta(object):
             return False
 
     def __str__(self):
-        return "%s sequences" % len(self.ids)
+        return f"{len(self.ids)} sequences"
 
     def writefasta(self, fname):
         """Write sequences to FASTA formatted file"""
         f = open(fname, "w")
         fa_str = "\n".join(
-            [">%s\n%s" % (id, self._format_seq(seq)) for id, seq in self.items()]
+            [f">{seq_id}\n{self._format_seq(seq)}" for seq_id, seq in self.items()]
         )
         f.write(fa_str)
         f.close()

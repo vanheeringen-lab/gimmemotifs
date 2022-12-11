@@ -64,12 +64,9 @@ class Improbizer(MotifProgram):
 
         stdout = ""
         stderr = ""
-        cmd = "%s good=%s bad=%s numMotifs=%s > %s" % (
-            bin,
-            fastafile,
-            params["background"],
-            params["number"],
-            params["outfile"],
+        cmd = (
+            f"{bin} good={fastafile} bad={params['background']} "
+            f"numMotifs={params['number']} > {params['outfile']}"
         )
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
         out, err = p.communicate()
@@ -115,7 +112,7 @@ class Improbizer(MotifProgram):
                 for i in range(len(pwm_data["A"])):
                     pwm.append([float(pwm_data[x][i]) for x in ["A", "C", "G", "T"]])
                 motifs.append(Motif(pwm))
-                motifs[-1].id = "%s_%s" % (self.name, m.group(1))
+                motifs[-1].id = f"{self.name}_{m.group(1)}"
             line = fo.readline()
 
         return motifs

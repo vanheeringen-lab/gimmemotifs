@@ -77,17 +77,11 @@ class MDmodule(MotifProgram):
 
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
-        cmd = "%s -i %s -a 1 -o %s -w %s -t 100 -r %s" % (
-            bin,
-            fastafile,
-            pfmfile,
-            width,
-            number,
-        )
+        cmd = f"{bin} -i {fastafile} -a 1 -o {pfmfile} -w {width} -t 100 -r {number}"
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
 
-        stdout = "cmd: {}\n".format(cmd) + stdout.decode()
+        stdout = f"cmd: {cmd}\n" + stdout.decode()
 
         motifs = []
         if os.path.exists(pfmfile):
@@ -97,7 +91,7 @@ class MDmodule(MotifProgram):
         os.chdir(current_path)
 
         for motif in motifs:
-            motif.id = "%s_%s" % (self.name, motif.id)
+            motif.id = f"{self.name}_{motif.id}"
 
         return motifs, stdout, stderr
 

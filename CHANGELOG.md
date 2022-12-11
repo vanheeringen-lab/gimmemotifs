@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - `Scanner.set_genome` now accepts the optional argument `genomes_dir`
+- `gimme diff` (`diff_plot()` to be exact) will now print to stdout, like all other functions
+- now using a logger instead of print/sys.stderr.write in many more places
+- string formatting now (mostly) done with f-strings
 
 ### Fixed
 

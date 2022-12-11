@@ -36,13 +36,13 @@ class MotifProgram(object):
     def _read_and_label_motifs(self, outfile, stdout, stderr, fmt="meme"):
         """Read output motifs and label with program name"""
         if not os.path.exists(outfile):
-            stdout += "\nMotif file {0} not found!\n".format(outfile)
-            stderr += "\nMotif file {0} not found!\n".format(outfile)
+            stdout += f"\nMotif file {outfile} not found!\n"
+            stderr += f"\nMotif file {outfile} not found!\n"
             return [], stdout, stderr
 
         motifs = read_motifs(outfile, fmt)
         for m in motifs:
-            m.id = "{0}_{1}".format(self.name, m.id)
+            m.id = f"{self.name}_{m.id}"
         return motifs, stdout, stderr
 
     def bin(self):
@@ -120,14 +120,14 @@ class MotifProgram(object):
             Standard error of the tool.
         """
         if not self.is_configured():
-            raise ValueError("%s is not configured" % self.name)
+            raise ValueError(f"{self.name} is not configured")
 
         if not self.is_installed():
             raise ValueError(
-                "%s is not installed or not correctly configured" % self.name
+                f"{self.name} is not installed or not correctly configured"
             )
 
-        self.tmpdir = mkdtemp(prefix="{0}.".format(self.name), dir=tmp)
+        self.tmpdir = mkdtemp(prefix=f"{self.name}.", dir=tmp)
         fastafile = os.path.abspath(fastafile)
 
         try:

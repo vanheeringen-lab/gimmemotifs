@@ -56,5 +56,5 @@ class Jaspar(MotifProgram):
         motifs = read_motifs(fname, fmt="pwm")
 
         for motif in motifs:
-            motif.id = "JASPAR_%s" % motif.id
+            motif.id = f"JASPAR_{motif.id}"
         return motifs, "", ""

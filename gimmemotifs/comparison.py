@@ -7,7 +7,6 @@
 Module to compare DNA sequence motifs (positional frequency matrices)
 """
 # Python imports
-import sys
 import os
 import logging
 
@@ -24,7 +23,7 @@ import pandas as pd
 
 # GimmeMotifs imports
 from gimmemotifs.config import MotifConfig
-from gimmemotifs.c_metrics import pfmscan, score
+from gimmemotifs.c_metrics import pfmscan, score  # noqa
 from gimmemotifs.motif import parse_motifs, read_motifs
 from gimmemotifs.utils import pfmfile_location, make_equal_length, ppm_pseudocount
 
@@ -366,18 +365,18 @@ class MotifComparer(object):
             self.scoredist[metric] = {"total": {}, "subtotal": {}}
             for match in ["total", "subtotal"]:
                 for combine in ["mean"]:
-                    self.scoredist[metric]["%s_%s" % (match, combine)] = {}
+                    self.scoredist[metric][f"{match}_{combine}"] = {}
                     score_file = os.path.join(
                         self.config.get_score_dir(),
-                        "%s_%s_%s_score_dist.txt" % (match, metric, combine),
+                        f"{match}_{metric}_{combine}_score_dist.txt",
                     )
                     if os.path.exists(score_file):
                         with open(score_file) as f:
                             for line in f:
                                 l1, l2, m, sd = line.strip().split("\t")[:4]
-                                self.scoredist[metric][
-                                    "%s_%s" % (match, combine)
-                                ].setdefault(int(l1), {})[int(l2)] = [
+                                self.scoredist[metric][f"{match}_{combine}"].setdefault(
+                                    int(l1), {}
+                                )[int(l2)] = [
                                     float(m),
                                     float(sd),
                                 ]
@@ -515,12 +514,12 @@ class MotifComparer(object):
         l1 = self._check_length(l1)
         l2 = self._check_length(l2)
 
-        m, s = self.scoredist[metric]["%s_%s" % (match, combine)][l1][l2]
+        m, s = self.scoredist[metric][f"{match}_{combine}"][l1][l2]
 
         try:
             [1 - norm.cdf(score[0], m, s), score[1], score[2]]
         except Exception as e:
-            print("Error with score: {}\n{}".format(score, e))
+            logger.error(f"Error with score: {score}\n{e}")
             return [1, np.nan, np.nan]
         return [1 - norm.cdf(score[0], m, s), score[1], score[2]]
 
@@ -545,7 +544,7 @@ class MotifComparer(object):
                 try:
                     func = getattr(distance, metric)
                 except Exception:
-                    raise Exception("Unknown metric '{}'".format(metric))
+                    raise Exception(f"Unknown metric '{metric}'")
 
             scores = []
             for pos1, pos2 in zip(matrix1, matrix2):
@@ -621,7 +620,7 @@ class MotifComparer(object):
                 scores.append([s, i, -1])
 
         if not scores:
-            sys.stdout.write("No score {} {}".format(matrix1, matrix2))
+            logger.warning(f"No scores {matrix1} {matrix2}")
             return []
         return sorted(scores, key=lambda x: x[0])[-1]
 
@@ -852,7 +851,7 @@ class MotifComparer(object):
 
         score_file = os.path.join(
             self.config.get_score_dir(),
-            "%s_%s_%s_score_dist.txt" % (match, metric, combine),
+            f"{match}_{metric}_{combine}_score_dist.txt",
         )
         f = open(score_file, "w")
 
@@ -873,7 +872,7 @@ class MotifComparer(object):
                 )
                 scores = [[y[0] for y in x.values() if y] for x in scores.values()]
                 scores = np.array(scores).ravel()
-                f.write("%s\t%s\t%s\t%s\n" % (l1, l2, np.mean(scores), np.std(scores)))
+                f.write(f"{l1}\t{l2}\t{np.mean(scores)}\t{np.std(scores)}\n")
 
         f.close()
 

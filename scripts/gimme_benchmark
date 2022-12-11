@@ -9,7 +9,6 @@ from tempfile import NamedTemporaryFile, mkdtemp
 from gimmemotifs.denovo import gimme_motifs
 import argparse
 import os
-import sys
 import subprocess as sp
 import pandas as pd
 try:
@@ -18,6 +17,7 @@ except ImportError:
     from urllib2 import urlopen
 from pybedtools import BedTool
 import shutil
+
 
 def obtain_bed(href):
     tmp = NamedTemporaryFile(delete=False)
@@ -29,9 +29,7 @@ def obtain_bed(href):
     if href.split(".")[-1] in ["bb", "bigBed"]:
         tmp2 = NamedTemporaryFile(delete=False)
         tmp2.close()
-        sp.check_output("bigBedToBed {} {}".format(
-                tmp.name, tmp2.name),
-                shell=True)
+        sp.check_output(f"bigBedToBed {tmp.name} {tmp2.name}", shell=True)
         tmp.close()
         tmp = tmp2
     return tmp.name
@@ -52,7 +50,7 @@ def prepare_bed(bed, genome, genome_fa, npeaks=500, size=200, score_column=6):
         c += 1
     inbed = NamedTemporaryFile(mode="w", prefix="gimme.", suffix=".bed", delete=False)
     for x in sorted(peaks, key=lambda x: x[3])[-npeaks:]:
-        inbed.write("{}\t{}\t{}\t{}\n".format(*x))
+        inbed.write(f"{x[0]}\t{x[1]}\t{x[2]}\t{x[3]}\n")
     inbed.close()
     
     flankfa = NamedTemporaryFile(mode="w", prefix="gimme.", suffix=".fa", delete=False)
