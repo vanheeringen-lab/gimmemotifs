@@ -7,7 +7,6 @@
 # Python imports
 import os
 import re
-import sys
 from collections import Counter
 from warnings import warn
 
@@ -22,6 +21,9 @@ except ImportError:
 import xxhash
 import pandas as pd
 import iteround
+import logging
+
+logger = logging.getLogger("gimme.motif")
 
 
 NUCS = "ACGT"
@@ -594,7 +596,8 @@ class Motif(object):
         m += f"NA {self.id}\n"
         m += "P0\tA\tC\tG\tT\n"
         for i, row in enumerate(self.pfm):
-            m += "{}\t{}\n".format(i, "\t".join([str(int(x)) for x in row]))
+            r = "\t".join([str(int(x)) for x in row])
+            m += f"{i}\t{r}\n"
         m += "//"
         return m
 
@@ -842,8 +845,8 @@ class Motif(object):
         if self.ppm is None or len(self.ppm) == 0:
             return ""
 
-        fmt = "{{:.{:d}f}}".format(precision)
-        return "\n".join(["\t".join([fmt.format(p) for p in row]) for row in self.ppm])
+        p = precision
+        return "\n".join(["\t".join([f"{e:.{p}f}" for e in row]) for row in self.ppm])
 
     def to_ppm(self, precision=4, extra_str=""):
         """Return ppm as string.
@@ -1256,8 +1259,8 @@ def _read_motifs_pfm(handle):
             motif_id = line.strip()[1:]
             seen_id[motif_id] = seen_id.get(motif_id, 0) + 1
             if seen_id.get(motif_id, 0) > 1:
-                msg = f"WARNING: multiple motifs with same id: {motif_id}\n"
-                sys.stderr.write(msg)
+                msg = f"multiple motifs with same id: {motif_id}"
+                logger.warning(msg)
                 motif_id += f"_{seen_id[motif_id] - 1}"
 
         else:
@@ -1266,8 +1269,8 @@ def _read_motifs_pfm(handle):
                 fractions = [float(m.group(x)) for x in (1, 4, 7, 10)]
                 pfm.append(fractions)
             else:
-                msg = f"WARNING: can't parse line {n+1}, ignoring:\n{line}"
-                sys.stderr.write(msg)
+                msg = f"can't parse line {n+1}, ignoring:\n{line}"
+                logger.warning(msg)
 
     if len(pfm) > 0:
         motifs.append(Motif(pfm))

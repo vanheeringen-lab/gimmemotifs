@@ -152,7 +152,7 @@ def cluster_motifs(
     motifs = [n.motif for n in nodes]
 
     if progress:
-        sys.stderr.write("Calculating initial scores\n")
+        logger.info("Calculating initial scores\n")
     result = mc.get_all_scores(
         motifs, motifs, match, metric, combine, pval, parallel=True, ncpus=ncpus
     )
@@ -220,14 +220,9 @@ def cluster_motifs(
             cmp_nodes = dict([(node.motif, node) for node in nodes if not node.parent])
 
             if progress:
-                progress = (1 - len(cmp_nodes) / float(total)) * 100
-                sys.stderr.write(
-                    "\rClustering [{0}{1}] {2}%".format(
-                        "#" * (int(progress) // 10),
-                        " " * (10 - int(progress) // 10),
-                        int(progress),
-                    )
-                )
+                progress = int((1 - len(cmp_nodes) / float(total)) * 100)
+                bar = "#" * (progress // 10) + " " * (10 - progress // 10)
+                sys.stderr.write(f"\rClustering [{bar}] {progress}%")  # TODO: tqdm
 
             result = mc.get_all_scores(
                 [new_node.motif],

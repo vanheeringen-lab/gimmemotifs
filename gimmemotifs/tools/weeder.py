@@ -95,7 +95,8 @@ class Weeder(MotifProgram):
             f.close()
 
         for m in motifs:
-            m.id = "{}_{}".format(self.name, m.id.split("\t")[0])
+            m_id = m.id.split("\t")[0]
+            m.id = f"{self.name}_{m_id}"
 
         for ext in [".w2", ".matrix.w2"]:
             if os.path.exists(fastafile + ext):

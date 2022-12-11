@@ -52,7 +52,7 @@ class Rpmcmc(MotifProgram):
         stdout = ""
         stderr = ""
 
-        cmd = "ulimit -s unlimited && %s -d %s -od ./" % (bin, fastafile)
+        cmd = f"ulimit -s unlimited && {bin} -d {fastafile} -od ./"
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.tmpdir)
         out, err = p.communicate()

@@ -729,8 +729,8 @@ class Scanner(object):
             )
             self.use_cache = True
         except Exception as e:
-            sys.stderr.write("failed to initialize cache\n")
-            sys.stderr.write(f"{e}\n")
+            logger.error(f"{e}\n")
+            logger.error("failed to initialize cache")
 
     def set_motifs(self, motifs):
         try:
@@ -870,11 +870,11 @@ class Scanner(object):
         lock.release()
 
         for gc_bin in self.gc_bins:
-            gc_bin = "{:.2f}-{:.2f}".format(*gc_bin)
+            gc_bin = f"{gc_bin[0]:.2f}-{gc_bin[1]:.2f}"
             if gc_bin not in self.meanstd:
                 valid_bins = []
                 for b in self.gc_bins:
-                    bstr = "{:.2f}-{:.2f}".format(b[0], b[1])
+                    bstr = f"{b[0]:.2f}-{b[1]:.2f}"
                     if bstr in self.meanstd:
                         valid_bins.append(((b[0] + b[1]) / 2, bstr))
 
@@ -1016,7 +1016,7 @@ class Scanner(object):
             raise ValueError("please run set_motifs() first")
 
         motifs = read_motifs(self.motifs)
-        gc_bins = ["{:.2f}-{:.2f}".format(*gc_bin) for gc_bin in self.gc_bins]
+        gc_bins = [f"{gc_bin[0]:.2f}-{gc_bin[1]:.2f}" for gc_bin in self.gc_bins]
 
         if threshold is not None:
             d = parse_threshold_values(self.motifs, threshold)
@@ -1161,7 +1161,7 @@ class Scanner(object):
             gc = 0.01
         for b_start, b_end in self.gc_bins:
             if gc > round(b_start, 2) and gc <= round(b_end, 2):
-                return "{:.2f}-{:.2f}".format(b_start, b_end)
+                return f"{b_start:.2f}-{b_end:.2f}"
 
         logger.error(f"Error determining seq: {seq}, bins: {str(self.gc_bins)}")
         raise ValueError()
@@ -1181,7 +1181,7 @@ class Scanner(object):
             # We use the closest GC% bin from the genome instead.
             valid_bins = []
             for b in self.gc_bins:
-                bstr = "{:.2f}-{:.2f}".format(b[0], b[1])
+                bstr = f"{b[0]:.2f}-{b[1]:.2f}"
                 if bstr in self.meanstd:
                     valid_bins.append(((b[0] + b[1]) / 2, bstr))
 

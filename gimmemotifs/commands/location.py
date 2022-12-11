@@ -44,7 +44,7 @@ def location(args):
     pool = Pool(processes=n_cpus, maxtasksperchild=1000)
     for motif in motifs:
         if motif.id in ids:
-            outfile = os.path.join("%s_histogram" % motif.id)
+            outfile = os.path.join(f"{motif.id}_histogram")
             jobs.append(
                 pool.apply_async(
                     motif_localization, (fastafile, motif, lsize, outfile, args.cutoff)

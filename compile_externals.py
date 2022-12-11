@@ -23,9 +23,7 @@ def compile_simple(name, src_dir="src"):
     except Exception:
         return
 
-    Popen(
-        [gcc, f"-o{name}", f"{name}.c", "-lm"], cwd=path, stdout=PIPE
-    ).communicate()
+    Popen([gcc, f"-o{name}", f"{name}.c", "-lm"], cwd=path, stdout=PIPE).communicate()
     if os.path.exists(os.path.join(path, name)):
         return True
 

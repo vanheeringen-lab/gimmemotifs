@@ -9,12 +9,15 @@ import os
 import shutil
 import numpy as np
 from genomepy import Genome
+import logging
 
 from gimmemotifs.scanner import Scanner
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import diff_plot
 from tempfile import mkdtemp
+
+logger = logging.getLogger("gimme.diff")
 
 
 def diff(args):
@@ -33,7 +36,7 @@ def diff(args):
     # Retrieve FASTA clusters from BED file
     if len(infiles) == 1 and infiles[0].endswith("bed"):
         if not args.genome:
-            sys.stderr.write("Can't convert BED file without genome!\n")
+            logger.error("Can't convert BED file without genome!\n")
             sys.exit(1)
 
         clusters = {}
@@ -44,7 +47,7 @@ def diff(args):
         infiles = []
 
         for cluster, regions in clusters.items():
-            sys.stderr.write(f"Creating FASTA file for {cluster}\n")
+            logger.info(f"Creating FASTA file for {cluster}\n")
             inbed = os.path.join(tmpdir, f"{cluster}.bed")
             outfa = os.path.join(tmpdir, f"{cluster}.fa")
             with open(inbed, "w") as f:

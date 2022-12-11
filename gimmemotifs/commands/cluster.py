@@ -4,15 +4,15 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
-
+import logging
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.cluster import cluster_motifs
 from gimmemotifs.config import MotifConfig
-import sys
 import os
-
 import jinja2
+
+logger = logging.getLogger("gimme.cluster")
 
 
 def _write_report(outdir, ids, tree, clusters):
@@ -45,7 +45,7 @@ def _create_images(outdir, clusters):
     mc = MotifComparer()
     trim_ic = 0.2
 
-    sys.stderr.write("Creating images\n")
+    logger.info("Creating images")
     for cluster, members in clusters:
         cluster.trim(trim_ic)
         cluster.plot_logo(fname=os.path.join(outdir, f"{cluster.id}.png"))

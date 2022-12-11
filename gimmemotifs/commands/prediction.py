@@ -5,9 +5,11 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 
-import sys
 from yaml import load
 from gimmemotifs.tools import get_tool
+import logging
+
+logger = logging.getLogger("gimme.prediction")
 
 
 def prediction(args):
@@ -24,8 +26,8 @@ def prediction(args):
 
     (motifs, stdout, stderr) = t.run(infile, params)
 
-    sys.stderr.write(stderr)
-    sys.stdout.write(stdout)
+    logger.error(stderr)
+    logger.info(stdout)
 
     f = open(outfile, "w")
     for m in motifs:

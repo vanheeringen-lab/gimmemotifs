@@ -431,7 +431,7 @@ def gc_bin_bedfile(
             df_bin = df_bin[df_bin["start"] > 0]
             if df_bin.shape[0] > 0:
                 df_bin = df_bin.sample(n, replace=True, random_state=random_state)
-                df_bin["bin"] = "{:.2f}-{:.2f}".format(b_start, b_end)
+                df_bin["bin"] = f"{b_start:.2f}-{b_end:.2f}"
                 df_bin[["chrom", "start", "end", "bin"]].to_csv(
                     f, sep="\t", header=False, index=False
                 )
@@ -476,16 +476,16 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
             sizes = np.array([x.length for x in bed])
             gc = [round(x, 2) for x in gc]
         except Exception:
-            sys.stderr.write("Please provide input file in BED or FASTA format\n")
+            logger.error("Please provide input file in BED or FASTA format")
             raise
 
     # Get the median size of the sequences
     if size is None or size == 0:
         size = int(np.median(sizes))
         if np.std(sizes) > size * 0.05:
-            sys.stderr.write("Sequences do not seem to be of equal size.\n")
-            sys.stderr.write(
-                f"GC% matched sequences of the median size ({size}) will be created\n"
+            logger.info("Sequences do not seem to be of equal size.")
+            logger.info(
+                f"GC% matched sequences of the median size ({size}) will be created"
             )
 
     bins = [(0.0, 0.2), (0.8, 1)]
@@ -532,7 +532,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
             if n == 0:
                 continue
             # print(b_start, b_end, n)
-            b = "{:.2f}-{:.2f}".format(b_start, b_end)
+            b = f"{b_start:.2f}-{b_end:.2f}"
             df.loc[df["bin"] == b, ["chrom", "start", "end"]].sample(n).to_csv(
                 f, sep="\t", header=False, index=False
             )

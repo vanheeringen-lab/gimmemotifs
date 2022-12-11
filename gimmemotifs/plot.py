@@ -15,13 +15,12 @@ import os
 import sys
 from tempfile import NamedTemporaryFile
 import numpy as np
-
-# Clustering
 from scipy.cluster import hierarchy as hier
 from gimmemotifs import mytmpdir
-
-# Matplotlib imports
 import matplotlib as mpl
+import logging
+
+logger = logging.getLogger("gimme.plot")
 
 mpl.use("Agg")
 
@@ -171,17 +170,13 @@ def diff_plot(
     freq = freq[filt]
     bgfreq = bgfreq[filt]
     enr = enr[filt]
-
-    sys.stderr
     for m, f, b, e in zip(motifs, freq, bgfreq, enr):
-        sys.stderr.write(
-            "{0}\t{1}\t{2}\t{3}\n".format(
-                m, "\t".join(str(x) for x in e), "\t".join(str(x) for x in f), b[0]
-            )
-        )
+        e = "\t".join(str(x) for x in e)
+        f = "\t".join(str(x) for x in f)
+        print(f"{m}\t{e}\t{f}\t{b[0]}\n")
 
     if len(freq) == 0:
-        sys.stderr.write("No enriched and/or differential motifs found.\n")
+        logger.warning("No enriched and/or differential motifs found.")
         return
     elif len(freq) >= 3:
         z = hier.linkage(freq, method="complete", metric="correlation")
@@ -227,7 +222,7 @@ def diff_plot(
             plt.text(
                 x + 0.5,
                 y + 0.5,
-                "{:.1%}".format(val),
+                f"{val:.1%}",
                 ha="center",
                 va="center",
                 color=sm.to_rgba(v),
@@ -269,7 +264,7 @@ def diff_plot(
             plt.text(
                 x + 0.5,
                 y + 0.5,
-                "{:.1f}".format(val),
+                f"{val:.1f}",
                 ha="center",
                 va="center",
                 color=col,
@@ -315,7 +310,7 @@ def _tree_layout(node):
     try:
         from ete3 import AttrFace, faces
     except ImportError:
-        print("Please install ete3 to use this functionality")
+        logger.error("Please install ete3 to use this functionality")
         sys.exit(1)
 
     if node.is_leaf():
@@ -327,7 +322,7 @@ def _get_motif_tree(tree, data, circle=True, vmin=None, vmax=None):
     try:
         from ete3 import Tree, NodeStyle, TreeStyle
     except ImportError:
-        print("Please install ete3 to use this functionality")
+        logger.error("Please install ete3 to use this functionality")
         sys.exit(1)
 
     t = Tree(tree)

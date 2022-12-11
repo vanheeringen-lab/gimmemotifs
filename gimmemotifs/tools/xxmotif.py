@@ -77,12 +77,9 @@ class XXmotif(MotifProgram):
         stdout = ""
         stderr = ""
 
-        cmd = "%s %s %s --localization --batch %s %s" % (
-            bin,
-            self.tmpdir,
-            fastafile,
-            params["background"],
-            params["strand"],
+        cmd = (
+            f"{bin} {self.tmpdir} {fastafile} --localization "
+            f"--batch {params['background']} {params['strand']}"
         )
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)

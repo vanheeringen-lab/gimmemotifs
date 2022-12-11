@@ -8,8 +8,7 @@
 Includes ROC AUC, MNCP, enrichment and others, which are calculated
 on the basis of motif scanning results.
 """
-
-# External imports
+import logging
 from scipy.stats import stats, scoreatpercentile, kstest, fisher_exact
 from sklearn.metrics import (
     precision_recall_curve,
@@ -18,6 +17,8 @@ from sklearn.metrics import (
     average_precision_score,
 )
 import numpy as np
+
+logger = logging.getLogger("gimme.rocmetrics")
 
 __all__ = [
     "recall_at_fdr",
@@ -100,11 +101,11 @@ def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.1):
 
     try:
         precision, recall, _ = precision_recall_curve(y_true, y_score)
-    except Exception as e:
-        print(y_true)
-        print(y_score)
-        print(e)
+    except Exception:
+        logger.error(y_true)
+        logger.error(y_score)
         raise
+
     fdr = 1 - precision
     cutoff_index = next(i for i, x in enumerate(fdr) if x <= fdr_cutoff)
     return recall[cutoff_index]

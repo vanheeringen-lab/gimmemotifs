@@ -350,8 +350,6 @@ def rank_motifs(stats, metrics=("roc_auc", "recall_at_fdr")):
 
 def write_stats(stats, fname, header=None):
     """write motif statistics to text file."""
-    # Write stats output to file
-
     for bg in list(stats.values())[0].keys():
         f = open(fname.format(bg), "w")
         if header:

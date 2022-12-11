@@ -4,9 +4,6 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Parallel prediction of sequence motifs """
-
-# Python imports
-import sys
 import logging
 
 try:
@@ -54,7 +51,7 @@ def mp_calc_stats(motifs, fg_fa, bg_fa, zscore, gc, genome, bg_name=None):
             genome=genome,
         )
     except Exception as e:
-        sys.stderr.write(f"ERROR: {str(e)}\n")
+        logger.error(f"ERROR: {str(e)}\n")
         stats = {}
         raise
 
@@ -189,20 +186,6 @@ class PredictionResult(object):
             self.stats[motif_id][bg_name] = stats[motif_id]
 
 
-#    def submit_remaining_stats(self):
-#        for motif in self.motifs:
-#            n = "%s_%s" % (motif.id, motif.to_consensus())
-#            if n in  self.stats:
-#
-#                logger.info("Adding %s again!" % n)
-#                #job_id = "%s_%s" % (motif.id, motif.to_consensus())
-#                self.job_server.apply_async(
-#                                    _calc_motif_stats,
-#                                    (motif, self.fg_fa, self.bg_fa),
-#                                    callback=self.add_stats)
-#
-
-
 def pp_predict_motifs(
     fastafile,
     outfile,
@@ -243,7 +226,7 @@ def pp_predict_motifs(
     wmax = analysis_max[analysis]
 
     if analysis == "xs":
-        sys.stderr.write("Setting analysis xs to small")
+        logger.info("Setting analysis xs to small")
         analysis = "small"
 
     if not job_server:

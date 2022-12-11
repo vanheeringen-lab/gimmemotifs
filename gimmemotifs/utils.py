@@ -251,9 +251,8 @@ def write_equalsize_bedfile(bedfile, size, outfile):
                 end = start + size
                 # Keep all the other information in the bedfile if it's there
                 if len(vals) > 3:
-                    out.write(
-                        "%s\t%s\t%s\t%s\n" % (vals[0], start, end, "\t".join(vals[3:]))
-                    )
+                    rest = "\t".join(vals[3:])
+                    out.write(f"{vals[0]}\t{start}\t{end}\t{rest}\n")
                 else:
                     out.write(f"{vals[0]}\t{start}\t{end}\n")
         lines = f.readlines(BUFSIZE)
@@ -271,9 +270,9 @@ def median_bed_len(bedfile):
             try:
                 lengths.append(int(vals[2]) - int(vals[1]))
             except ValueError:
-                sys.stderr.write(
-                    "Error in line %s: "
-                    "coordinates in column 2 and 3 need to be integers!\n" % (i)
+                logger.error(
+                    f"Error in line {i}: "
+                    "coordinates in column 2 and 3 need to be integers!\n"
                 )
                 sys.exit(1)
     f.close()
@@ -295,7 +294,7 @@ def motif_localization(fastafile, motif, size, outfile, cutoff=0.9):
             outfile,
             xrange=(-size / 2, size / 2),
             breaks=21,
-            title="%s (p=%0.2e)" % (motif.id, p),
+            title=f"{motif.id} (p={p:.2e})",
             xlabel="Position",
         )
         return motif.id, p
@@ -707,7 +706,7 @@ def _as_seqdict_bedtool(to_convert, genome=None, minsize=None):
     Accepts pybedtools.BedTool as input.
     """
     return _genomepy_convert(
-        ["{}:{}-{}".format(*f[:3]) for f in to_convert], genome, minsize
+        [f"{f[0]}:{f[1]}-{f[2]}" for f in to_convert], genome, minsize
     )
 
 

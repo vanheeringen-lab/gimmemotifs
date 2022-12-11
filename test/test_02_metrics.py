@@ -1,5 +1,5 @@
 import unittest
-from gimmemotifs.c_metrics import score
+from gimmemotifs.c_metrics import score  # noqa
 from gimmemotifs.rocmetrics import pr_auc
 
 
@@ -17,13 +17,13 @@ class TestMetrics(unittest.TestCase):
         """column metric: pearson correlation coefficient (pcc)"""
         results = ["-3.333e-01", "-1.000e+00"]
         for (col1, col2), result in zip(self.column_pairs[:-1], results):
-            self.assertEqual(result, "%0.3e" % score([col1], [col2], "pcc", "mean"))
+            self.assertEqual(result, f"{score([col1], [col2], 'pcc', 'mean'):.3e}")
 
     def test_ed(self):
         """column metric: euclidian distance (ed)"""
         results = ["-1.273e+01", "-4.472e+00", "-3.600e+01"]
         for (col1, col2), result in zip(self.column_pairs, results):
-            self.assertEqual(result, "%0.3e" % score([col1], [col2], "ed", "mean"))
+            self.assertEqual(result, f"{score([col1], [col2], 'ed', 'mean'):.3e}")
 
     def test_pr_auc(self):
         """Test PR AUC"""

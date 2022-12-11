@@ -368,9 +368,9 @@ def parse_denovo_params(user_params=None):
 
     max_time = params["max_time"]
     if max_time > 0:
-        logger.debug("Time limit for motif prediction: %0.2f hours", max_time)
+        logger.debug(f"Time limit for motif prediction: {max_time:.2f} hours")
         params["max_time"] = 3600 * params["max_time"]
-        logger.debug("Max_time in seconds %0.0f", max_time)
+        logger.debug(f"Max_time in seconds {max_time:.0f}")
     else:
         logger.debug("No time limit for motif prediction")
 

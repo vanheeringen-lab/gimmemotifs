@@ -5,10 +5,12 @@
 # distribution.
 
 """ Module to work with FASTA files """
-import sys
 import random
 import re
 import numpy as np
+import logging
+
+logger = logging.getLogger("gimme.fasta")
 
 
 class Fasta(object):
@@ -61,7 +63,7 @@ class Fasta(object):
                     random_f[f"random{i + 1}"] = self[seq_id][start : start + length]
                     i += 1
             if len(random_f) != n:
-                sys.stderr.write("Not enough sequences of required length")
+                logger.error("Not enough sequences of required length")
                 return
             else:
                 return random_f

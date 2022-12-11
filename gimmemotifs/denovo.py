@@ -400,7 +400,9 @@ def filter_significant_motifs(fname, result, bg, metrics=None):
     sig_motifs = []
     with open(fname, "w") as f:
         for motif in result.motifs:
-            stats = result.stats.get(f"{motif.id}_{motif.to_consensus()}", {}).get(bg, {})
+            stats = result.stats.get(f"{motif.id}_{motif.to_consensus()}", {}).get(
+                bg, {}
+            )
             if _is_significant(stats, metrics):
                 f.write(f"{motif.to_pfm()}\n")
                 sig_motifs.append(motif)

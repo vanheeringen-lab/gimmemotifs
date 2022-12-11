@@ -47,12 +47,12 @@ def coverage_table(
     """
     missing = [f for f in datafiles if not os.path.isfile(f)]
     if missing:
-        print(f"Could not find {len(missing)} files: {','.join(missing)}")
+        logger.error(f"Could not find {len(missing)} files: {','.join(missing)}")
         raise FileNotFoundError
 
     for f in datafiles:
         if ".bam" in f and not os.path.isfile(f"{f}.bai"):
-            print(
+            logger.info(
                 f"Data file '{f}' does not have an index file. "
                 f"Creating an index file..."
             )

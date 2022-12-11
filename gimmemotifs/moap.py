@@ -6,7 +6,6 @@
 """ Module for motif activity prediction """
 import logging
 import os
-import sys
 import warnings
 
 import numpy as np
@@ -297,8 +296,8 @@ class MWUMoap(Moap):
                 try:
                     p.append(mannwhitneyu(pos[m], neg[m], alternative="greater")[1])
                 except Exception as e:
-                    sys.stderr.write(str(e) + "\n")
-                    sys.stderr.write(f"motif {m} failed, setting to p = 1\n")
+                    logger.error(str(e))
+                    logger.error(f"motif {m} failed, setting to p = 1")
                     p.append(1)
             pvals.append(p)
 
@@ -676,7 +675,7 @@ def moap(
         try:
             motifs = read_motifs(pfmfile)
         except Exception:
-            sys.stderr.write(f"can't read motifs from {pfmfile}")
+            logger.error(f"can't read motifs from {pfmfile}")
             raise
 
         # scan for motifs

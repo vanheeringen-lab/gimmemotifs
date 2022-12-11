@@ -5,15 +5,18 @@
 # distribution.
 """Command line function 'threshold'"""
 import sys
+import logging
 
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner
+
+logger = logging.getLogger("gimme.threshold")
 
 
 def threshold(args):
     """Calculate motif score threshold for a given FPR."""
     if args.fpr < 0 or args.fpr > 1:
-        print("Please specify a FPR between 0 and 1")
+        logger.error("Please specify a FPR between 0 and 1")
         sys.exit(1)
 
     motifs = read_motifs(args.pfmfile)

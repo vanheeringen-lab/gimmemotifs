@@ -72,14 +72,10 @@ class Homer(MotifProgram):
             mode="w", dir=self.tmpdir, prefix=f"homer_w{params['width']}."
         ).name
 
-        cmd = "%s denovo -i %s -b %s -len %s -S %s %s -o %s -p 8" % (
-            bin,
-            fastafile,
-            params["background"],
-            params["width"],
-            params["number"],
-            params["strand"],
-            outfile,
+        cmd = (
+            f"{bin} denovo -i {fastafile} -b {params['background']} "
+            f"-len {params['width']} -S {params['number']} {params['strand']} "
+            f"-o {outfile} -p 8"
         )
 
         stderr = ""
