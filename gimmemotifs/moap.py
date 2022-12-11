@@ -112,7 +112,7 @@ register_predictor = Moap.register_predictor
 @register_predictor("BayesianRidge")
 class BayesianRidgeMoap(Moap):
     act_ = None
-    act_description = "activity values: coefficients of the" "regression model"
+    act_description = "activity values: coefficients of the regression model"
     pref_table = "score"
     supported_tables = ["score", "count"]
     ptype = "regression"
@@ -172,7 +172,7 @@ class BayesianRidgeMoap(Moap):
 @register_predictor("Xgboost")
 class XgboostRegressionMoap(Moap):
     act_ = None
-    act_description = "activity values: feature scores from" "fitted model"
+    act_description = "activity values: feature scores from fitted model"
     pref_table = "score"
     supported_tables = ["score", "count"]
     ptype = "regression"
@@ -254,7 +254,7 @@ class XgboostRegressionMoap(Moap):
 @register_predictor("MWU")
 class MWUMoap(Moap):
     act_ = None
-    act_description = "activity values: BH-corrected " "-log10 Mann-Whitney U p-value"
+    act_description = "activity values: BH-corrected -log10 Mann-Whitney U p-value"
     pref_table = "score"
     supported_tables = ["score"]
     ptype = "classification"
@@ -315,7 +315,7 @@ class MWUMoap(Moap):
 class HypergeomMoap(Moap):
     act_ = None
     act_description = (
-        "activity values: -log10-transformed, BH-corrected " "hypergeometric p-values"
+        "activity values: -log10-transformed, BH-corrected hypergeometric p-values"
     )
     pref_table = "count"
     supported_tables = ["count"]
@@ -380,7 +380,7 @@ class HypergeomMoap(Moap):
 class RFMoap(Moap):
     act_ = None
     act_description = (
-        "activity values: feature importances " "from fitted Random Forest model"
+        "activity values: feature importances from fitted Random Forest model"
     )
     pref_table = "score"
     supported_tables = ["score", "count"]
@@ -444,7 +444,7 @@ class RFMoap(Moap):
 @register_predictor("MultiTaskLasso")
 class MultiTaskLassoMoap(Moap):
     act_ = None
-    act_description = "activity values: coefficients of the" "regression model"
+    act_description = "activity values: coefficients of the regression model"
     pref_table = "score"
     supported_tables = ["score", "count"]
     ptype = "regression"
