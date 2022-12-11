@@ -132,7 +132,7 @@ def motif2factor_from_orthologs(
     # make sure the output dir exists
     pathlib.Path(f"{outdir}").mkdir(parents=True, exist_ok=True)
     for reference in new_reference:
-        genome = genomepy.Genome(reference, genomes_dir, build_index=False).name
+        genome = genomepy.Genome(reference, genomes_dir, rebuild=False).name
         make_motif2factors(
             f"{outdir}/{genome}.{database}",
             new_reference=genome,
