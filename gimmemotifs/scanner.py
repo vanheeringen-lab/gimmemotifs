@@ -1102,7 +1102,7 @@ class Scanner(object):
             return
 
         # raises error if checks fail
-        genome = Genome(genome, genomes_dir, build_index=False).filename
+        genome = Genome(genome, genomes_dir, rebuild=False).filename
 
         self.genome = genome
 
