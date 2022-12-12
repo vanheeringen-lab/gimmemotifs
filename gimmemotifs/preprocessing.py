@@ -6,8 +6,8 @@
 
 """ Data preprocessing to create GimmeMotifs input. """
 import logging
-from multiprocessing import Pool
 import os
+from multiprocessing import Pool
 from tempfile import NamedTemporaryFile
 from typing import Iterable
 

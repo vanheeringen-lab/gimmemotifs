@@ -1,14 +1,13 @@
-from gimmemotifs.utils import determine_file_type
-from gimmemotifs.config import FA_VALID_BGS, BED_VALID_BGS
-from genomepy import Genome
+import logging
 import os
 import sys
-import logging
+
+from genomepy import Genome
+
+from gimmemotifs.config import BED_VALID_BGS, FA_VALID_BGS
+from gimmemotifs.utils import determine_file_type
 
 logger = logging.getLogger()
-
-
-# import logger
 
 
 def check_bed_file(fname):

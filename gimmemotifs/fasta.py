@@ -5,10 +5,11 @@
 # distribution.
 
 """ Module to work with FASTA files """
+import logging
 import random
 import re
+
 import numpy as np
-import logging
 
 logger = logging.getLogger("gimme.fasta")
 

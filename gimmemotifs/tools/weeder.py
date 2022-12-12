@@ -1,11 +1,11 @@
-from .motifprogram import MotifProgram
 import os
-
 import shutil
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
 
 from gimmemotifs.motif import read_motifs
+
+from .motifprogram import MotifProgram
 
 
 class Weeder(MotifProgram):

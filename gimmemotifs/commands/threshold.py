@@ -4,8 +4,8 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Command line function 'threshold'"""
-import sys
 import logging
+import sys
 
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import Scanner

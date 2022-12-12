@@ -12,43 +12,39 @@ run_maelstrom(input, "hg38", outdir)
 mr = MaelstromResult(outdir)
 """
 import glob
+import logging
 import os
 import shutil
 import sys
-import logging
 from functools import partial
+from multiprocessing import Pool
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import scale
-from scipy.stats import pearsonr
-from scipy.cluster import hierarchy
-from scipy.spatial.distance import pdist
-from scipy.cluster.hierarchy import linkage, dendrogram
-from sklearn.cluster import FeatureAgglomeration
-
-# Plotting
-import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
 import seaborn as sns
+from matplotlib.gridspec import GridSpec
+from scipy.cluster import hierarchy
+from scipy.cluster.hierarchy import dendrogram, linkage
+from scipy.spatial.distance import pdist
+from scipy.stats import pearsonr
+from sklearn.cluster import FeatureAgglomeration
+from sklearn.preprocessing import scale
 
-sns.set_style("white")
-
-from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
-from gimmemotifs.moap import moap, Moap
-from gimmemotifs.scanner import scan_regionfile_to_table
-from gimmemotifs.rank import rankagg
+from gimmemotifs.config import DIRECT_NAME, INDIRECT_NAME, MotifConfig
+from gimmemotifs.moap import Moap, moap
 from gimmemotifs.motif import read_motifs
+from gimmemotifs.rank import rankagg
 from gimmemotifs.report import maelstrom_html_report
+from gimmemotifs.scanner import scan_regionfile_to_table
 from gimmemotifs.utils import join_max, pfmfile_location
 
-from multiprocessing import Pool
+logger = logging.getLogger("gimme.maelstrom")
+sns.set_style("white")
 
 BG_LENGTH = 200
 BG_NUMBER = 10000
 FPR = 0.01
-
-logger = logging.getLogger("gimme.maelstrom")
 
 
 def moap_with_bg(

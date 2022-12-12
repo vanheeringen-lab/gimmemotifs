@@ -12,13 +12,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - now using a logger instead of print/sys.stderr.write in many more places
 - string formatting now (mostly) done with f-strings
 - refactored Fasta class
+- removed old python2 code (MOODS & import shenanigans) 
 
 ### Fixed
 
 - `gimme maelstrom` works with or without xgboost (but will give a warning without xgboost) 
 - fixed warning "in validate_matrix(): Row sums in df are not close to 1. Reormalizing rows..."
 - fixed multiprocess.Pool Warnings
+- fixed a pandas copywarning (in `gc_bin_bedfile()` to be exact)
 - silence warnings from external tools in motif prediction (`pp_predict_motifs()` to be exact)
+- updated last references from `Motif.pwm_scan` and `Motif.pwm_scan_all` to `Motif.scan` and `Motif.scan_all` respectively
 
 ## [0.17.2] - 2022-10-12
 

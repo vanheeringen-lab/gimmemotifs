@@ -4,35 +4,35 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Reports (graphical and text) for motifs statistics."""
+import logging
 import os
+import re
+import shutil
 import sys
 from datetime import datetime
 from multiprocessing import Pool
-import re
-import shutil
-import logging
 
 import jinja2
 import numpy as np
 import pandas as pd
-from statsmodels.stats.multitest import multipletests
-from pandas.io.formats.style_render import non_reducing_slice
-from pandas.io.formats.style import Styler
 import seaborn as sns
+from pandas.io.formats.style import Styler
+from pandas.io.formats.style_render import non_reducing_slice
+from statsmodels.stats.multitest import multipletests
+
+from gimmemotifs import __version__
+from gimmemotifs.comparison import MotifComparer
+from gimmemotifs.config import MotifConfig
+from gimmemotifs.fasta import Fasta
+from gimmemotifs.motif import read_motifs
+from gimmemotifs.plot import roc_plot
+from gimmemotifs.stats import add_star, calc_stats, write_stats
+from gimmemotifs.utils import motif_localization
 
 try:
     import emoji  # noqa: currently optional
 except ImportError:
     pass
-
-from gimmemotifs.comparison import MotifComparer
-from gimmemotifs.fasta import Fasta
-from gimmemotifs.motif import read_motifs
-from gimmemotifs.config import MotifConfig
-from gimmemotifs.plot import roc_plot
-from gimmemotifs.stats import calc_stats, add_star, write_stats
-from gimmemotifs import __version__
-from gimmemotifs.utils import motif_localization
 
 logger = logging.getLogger("gimme.report")
 

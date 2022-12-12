@@ -1,5 +1,5 @@
-import pkgutil
 import os
+import pkgutil
 
 dirname = os.path.split(__file__)[0]
 

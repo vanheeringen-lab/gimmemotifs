@@ -4,9 +4,9 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
+import logging
 import os
 import sys
-import logging
 
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import pfmfile_location

@@ -6,6 +6,7 @@
 # distribution.
 """Command line function 'maelstrom'"""
 import os
+
 from gimmemotifs.maelstrom import run_maelstrom
 
 

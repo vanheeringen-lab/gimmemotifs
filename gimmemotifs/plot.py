@@ -4,21 +4,29 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """ Various plotting functions """
-from PIL import Image
-import seaborn as sns
-from mpl_toolkits.axes_grid1 import ImageGrid
-from matplotlib.colors import to_hex, Normalize, rgb2hex
-from matplotlib.gridspec import GridSpec
+import logging
+import os
+from tempfile import NamedTemporaryFile
+
+import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
-import os
-import sys
-from tempfile import NamedTemporaryFile
 import numpy as np
+import seaborn as sns
+from matplotlib.colors import Normalize, rgb2hex, to_hex
+from matplotlib.gridspec import GridSpec
+from mpl_toolkits.axes_grid1 import ImageGrid
+from PIL import Image
 from scipy.cluster import hierarchy as hier
+
 from gimmemotifs import mytmpdir
-import matplotlib as mpl
-import logging
+
+try:
+    from ete3 import AttrFace, NodeStyle, Tree, TreeStyle, faces  # noqa: optional
+
+    _has_ete3 = True
+except ImportError:
+    _has_ete3 = False
 
 logger = logging.getLogger("gimme.plot")
 
@@ -307,24 +315,12 @@ def diff_plot(
 
 
 def _tree_layout(node):
-    try:
-        from ete3 import AttrFace, faces
-    except ImportError:
-        logger.error("Please install ete3 to use this functionality")
-        sys.exit(1)
-
     if node.is_leaf():
         nameFace = AttrFace("name", fsize=24, ftype="Nimbus Sans L")
         faces.add_face_to_node(nameFace, node, 10, position="branch-right")
 
 
 def _get_motif_tree(tree, data, circle=True, vmin=None, vmax=None):
-    try:
-        from ete3 import Tree, NodeStyle, TreeStyle
-    except ImportError:
-        logger.error("Please install ete3 to use this functionality")
-        sys.exit(1)
-
     t = Tree(tree)
 
     # Determine cutoff for color scale
@@ -376,6 +372,10 @@ def motif_tree_plot(outfile, tree, data, circle=True, vmin=None, vmax=None, dpi=
     """
     Plot a "phylogenetic" tree
     """
+    if not _has_ete3:
+        logger.error("Please install ete3 to use this functionality")
+        return
+
     # Define the tree
     t, ts = _get_motif_tree(tree, data, circle, vmin, vmax)
 

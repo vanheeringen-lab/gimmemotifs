@@ -4,24 +4,19 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Module contain core motif functionality"""
-# Python imports
+import logging
 import os
 import re
 from collections import Counter
 from warnings import warn
 
-from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
-from gimmemotifs.utils import pfmfile_location
-
-# External imports
-try:
-    import numpy as np
-except ImportError:
-    pass
-import xxhash
-import pandas as pd
 import iteround
-import logging
+import numpy as np
+import pandas as pd
+import xxhash
+
+from gimmemotifs.config import DIRECT_NAME, INDIRECT_NAME, MotifConfig
+from gimmemotifs.utils import pfmfile_location
 
 logger = logging.getLogger("gimme.motif")
 
@@ -48,16 +43,9 @@ class Motif(object):
 
     """
 
-    from ._comparison import ic, pcc, other_ic, matrix_ic, max_ic, max_pcc, ic_pos
-    from ._plotting import plot_logo, plot_ensembl_logo, to_img
-    from ._scanning import (
-        pwm_scan,
-        pwm_scan_all,
-        scan,
-        scan_all,
-        pwm_scan_score,
-        pwm_scan_to_gff,
-    )
+    from ._comparison import ic, ic_pos, matrix_ic, max_ic, max_pcc, other_ic, pcc
+    from ._plotting import plot_ensembl_logo, plot_logo
+    from ._scanning import pwm_scan_score, pwm_scan_to_gff, scan, scan_all
 
     PSEUDO_PFM_COUNT = 1000  # JASPAR mean
     PSEUDO_PPM = 1e-6

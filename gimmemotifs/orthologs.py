@@ -3,31 +3,30 @@ Make a new motif2factors file based on orthology. This gets complicated
 because not all factors in the motif2factors file are based on gene names;
 some factors are gene ids, and some are aliases or other symbols.
 """
-import os
-import re
 import json
-import shutil
-import sys
-import urllib
-import sqlite3
-import pathlib
-import tempfile
-import subprocess
 import multiprocessing.dummy
-from typing import List
-from textwrap import wrap
+import os
+import pathlib
+import re
+import shutil
+import sqlite3
+import subprocess
+import sys
+import tempfile
+import urllib
 from functools import lru_cache
+from textwrap import wrap
+from typing import List
 from urllib.error import HTTPError
 
-import pyfaidx
 import genomepy
 import numpy as np
 import pandas as pd
-from loguru import logger
+import pyfaidx
 from genomepy.utils import get_genomes_dir
+from loguru import logger
 
 from gimmemotifs.motif import read_motifs
-
 
 FASTA_LINEWIDTH = 80
 BLACKLIST_TFS = [

@@ -9,7 +9,7 @@ from gimmemotifs.preprocessing import combine_peaks
 
 if __name__ == "__main__":
 
-    description = "GimmeMotifs v{__version__} - combine_peaks"
+    description = f"GimmeMotifs v{__version__} - combine_peaks"
 
     parser = argparse.ArgumentParser(description=description)
 

@@ -4,12 +4,12 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
-"""Command line function 'roc'."""
+"""Command line function 'motifs'."""
+import logging
 import os
 import re
-import sys
 import shutil
-import logging
+import sys
 from tempfile import NamedTemporaryFile
 
 import numpy as np
@@ -18,18 +18,16 @@ from tqdm.auto import tqdm
 
 from gimmemotifs.background import create_background_file
 from gimmemotifs.comparison import MotifComparer, select_nonredundant_motifs
-
 from gimmemotifs.denovo import gimme_motifs
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.stats import calc_stats_iterator
 from gimmemotifs.report import roc_html_report
 from gimmemotifs.scanner import scan_to_file
+from gimmemotifs.stats import calc_stats_iterator
 from gimmemotifs.utils import (
     determine_file_type,
     narrowpeak_to_bed,
     write_equalsize_bedfile,
 )
-
 
 logger = logging.getLogger("gimme.motifs")
 
