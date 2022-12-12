@@ -131,9 +131,10 @@ def peakfile2bedfile(peakfile, bedfile=None, window=200):
         # deleted when gimme exits
         peak_bed = os.path.join(mytmpdir(), "peaks.bed")
 
-    with open(peak_bed, "w+") as f:
-        half_window = window // 2
-        for line in open(peakfile):
+    half_window = window // 2
+
+    with open(peak_bed, "w+") as f, open(peakfile) as pf:
+        for line in pf:
             if line.startswith("#") or line[:5] == "track":
                 continue
             vals = line.strip().split("\t")

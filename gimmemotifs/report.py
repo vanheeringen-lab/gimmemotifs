@@ -965,7 +965,7 @@ def roc_html_report(
         "factors",
         "logo",
         "% matches input",
-        "%matches background",
+        "% matches background",
         "-log10 P-value",
         "ROC AUC",
         "PR AUC",
@@ -999,7 +999,7 @@ def roc_html_report(
 
     bar_cols = [
         "% matches input",
-        "%matches background",
+        "% matches background",
         "-log10 P-value",
         "ROC AUC",
         "PR AUC",
@@ -1008,7 +1008,7 @@ def roc_html_report(
     ]
 
     df["% matches input"] = df["% matches input"].astype(int)
-    df["%matches background"] = df["%matches background"].astype(int)
+    df["% matches background"] = df["% matches background"].astype(int)
     rename_columns = {"factors": FACTOR_TOOLTIP}
     df = df.sort_values("ROC AUC", ascending=False)
     with open(os.path.join(outdir, outname), "w", encoding="utf-8") as f:
@@ -1020,7 +1020,7 @@ def roc_html_report(
                     height=30,
                 )
                 .add_circle(
-                    subset=["% matches input", "%matches background"],
+                    subset=["% matches input", "% matches background"],
                     vmax=100,
                     cmap="Purples",
                 )
@@ -1044,7 +1044,7 @@ def roc_html_report(
                 .wrap(subset=cols)
                 .align(subset=bar_cols, location="center")
                 .rename(columns=rename_columns)
-                .to_precision_str(subset=["% matches input", "%matches background"])
+                .to_precision_str(subset=["% matches input", "% matches background"])
                 .render()
             )
         else:

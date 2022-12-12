@@ -28,18 +28,16 @@ def _write_report(outdir, ids, tree, clusters):
     with open(os.path.join(outdir, "gimme.clustered.html"), "w") as f:
         f.write(result)
 
-    f = open(os.path.join(outdir, "cluster_key.txt"), "w")
-    for motif_id in ids:
-        f.write(f"{motif_id[0]}\t{','.join([x['alt'] for x in motif_id[2]])}\n")
-    f.close()
+    with open(os.path.join(outdir, "cluster_key.txt"), "w") as f:
+        for motif_id in ids:
+            f.write(f"{motif_id[0]}\t{','.join([x['alt'] for x in motif_id[2]])}\n")
 
-    f = open(os.path.join(outdir, "clustered_motifs.pfm"), "w")
-    if len(clusters) == 1 and len(clusters[0][1]) == 1:
-        f.write(f"{clusters[0][0].to_ppm()}\n")
-    else:
-        for motif in tree.get_clustered_motifs():
-            f.write(f"{motif.to_ppm()}\n")
-    f.close()
+    with open(os.path.join(outdir, "clustered_motifs.pfm"), "w") as f:
+        if len(clusters) == 1 and len(clusters[0][1]) == 1:
+            f.write(f"{clusters[0][0].to_ppm()}\n")
+        else:
+            for motif in tree.get_clustered_motifs():
+                f.write(f"{motif.to_ppm()}\n")
 
 
 def _create_images(outdir, clusters):

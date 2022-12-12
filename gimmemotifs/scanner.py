@@ -323,17 +323,17 @@ def scan_to_file(
     """Scan an inputfile with motifs."""
     should_close = False
     if filepath_or_buffer is None:
+        #  write to stdout
         fo = sys.stdout
+    elif hasattr(filepath_or_buffer, "write"):
+        # write to buffer (open file or stdout)
+        fo = filepath_or_buffer
     else:
-        if hasattr(filepath_or_buffer, "write"):
-            fo = filepath_or_buffer
-        else:
-            try:
-                fo = open(os.path.expanduser(filepath_or_buffer), "w")
-                should_close = True
-            except Exception:
-                logger.error(f"Could not open {filepath_or_buffer} for writing")
-                sys.exit(1)
+        # write to file
+        file_name = os.path.expanduser(filepath_or_buffer)
+        os.makedirs(os.path.dirname(file_name), exist_ok=True)
+        fo = open(file_name, "w")
+        should_close = True
 
     if fpr is None and cutoff is None:
         fpr = 0.01

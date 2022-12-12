@@ -89,23 +89,24 @@ class Rpmcmc(MotifProgram):
         motifs = []
         pfm = []
         name = ""
-        for line in open(fname):
-            line = line.strip()
-            if line.startswith("PFM"):
-                continue
-            if line.startswith("Motif"):
-                if len(pfm) > 0:
-                    motif = Motif(pfm)
-                    motif.id = name
-                    motifs.append(motif)
-                name = line
-                pfm = []
-            else:
-                if line != ("A C G T"):
-                    row = line.split(" ")
-                    if len(row) == 4:
-                        row = [float(x) for x in row]
-                        pfm.append(row)
+        with open(fname) as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("PFM"):
+                    continue
+                if line.startswith("Motif"):
+                    if len(pfm) > 0:
+                        motif = Motif(pfm)
+                        motif.id = name
+                        motifs.append(motif)
+                    name = line
+                    pfm = []
+                else:
+                    if line != ("A C G T"):
+                        row = line.split(" ")
+                        if len(row) == 4:
+                            row = [float(x) for x in row]
+                            pfm.append(row)
 
         motif = Motif(pfm)
         motif.id = name

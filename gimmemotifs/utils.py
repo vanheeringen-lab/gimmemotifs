@@ -300,19 +300,20 @@ def parse_cutoff(motifs, cutoff, default=0.9):
     """Provide either a file with one cutoff per motif or a single cutoff
     returns a hash with motif id as key and cutoff as value
     """
-
     cutoffs = {}
     if os.path.isfile(str(cutoff)):
-        for i, line in enumerate(open(cutoff)):
-            if line != "Motif\tScore\tCutoff\n":
-                try:
-                    motif, _, c = line.strip().split("\t")
-                    c = float(c)
-                    cutoffs[motif] = c
-                except Exception as e:
-                    logger.error(f"Error parsing cutoff file, line {e}: {i + 1}")
-                    sys.exit(1)
+        # cutoff is a table
+        with open(cutoff) as f:
+            for i, line in enumerate(f):
+                if line != "Motif\tScore\tCutoff\n":
+                    try:
+                        motif, _, cutoff = line.strip().split("\t")
+                        cutoffs[motif] = float(cutoff)
+                    except Exception as e:
+                        logger.error(f"Error parsing cutoff file, line {e}: {i + 1}")
+                        sys.exit(1)
     else:
+        # cutoff is a value
         for motif in motifs:
             cutoffs[motif.id] = float(cutoff)
 
@@ -658,16 +659,15 @@ def _as_seqdict_filename(to_convert, genome=None, minsize=None):
     if not os.path.exists(to_convert):
         raise ValueError("Assuming filename, but it does not exist")
 
-    f = open(to_convert)
-    fa = as_seqdict(f)
+    with open(to_convert) as f:
+        fa = as_seqdict(f)
 
     if any(fa):
         return _check_minsize(fa, minsize)
 
     with open(to_convert) as f:
         line = ""
-        while True:
-            line = f.readline()
+        for line in f.readline():
             if line == "":
                 break
             if not line.startswith("#"):

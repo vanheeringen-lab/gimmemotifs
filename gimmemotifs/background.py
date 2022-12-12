@@ -139,10 +139,9 @@ def create_random_genomic_bedfile(out, genome, size, n):
     features = Genome(genome).get_random_sequences(n, size)
 
     # Write result to bedfile
-    tmp = open(out, "w")
-    for chrom, start, end in features:
-        tmp.write(f"{chrom}\t{start}\t{end}\n")
-    tmp.flush()
+    with open(out, "w") as f:
+        for chrom, start, end in features:
+            f.write(f"{chrom}\t{start}\t{end}\n")
 
 
 def create_promoter_bedfile(out, genefile, size, n):
@@ -174,10 +173,9 @@ def create_promoter_bedfile(out, genefile, size, n):
         )
 
     # Write result to temporary bedfile
-    tmp = open(out, "w")
-    for chrom, start, end, strand in sorted(features, key=lambda x: x[0]):
-        tmp.write(f"{chrom}\t{start}\t{end}\t0\t0\t{'+' if strand else '-'}\n")
-    tmp.flush()
+    with open(out, "w") as f:
+        for chrom, start, end, strand in sorted(features, key=lambda x: x[0]):
+            f.write(f"{chrom}\t{start}\t{end}\t0\t0\t{'+' if strand else '-'}\n")
 
 
 class MarkovFasta(Fasta):
