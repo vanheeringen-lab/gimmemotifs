@@ -183,7 +183,7 @@ def df_rank_aggregation(df, dfs, exps, method="int_stouffer"):
         pd.concat([v[col].rename(k, inplace=True) for k, v in dfs.items()], axis=1)
         for col in names
     ]
-    pool = Pool(16)
+    pool = Pool(processes=16)
     func = partial(rankagg, method=method)
     ret = pool.map(func, dfs)
     pool.close()

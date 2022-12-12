@@ -5,6 +5,7 @@
 # distribution.
 """Parallel prediction of sequence motifs """
 import logging
+import warnings
 
 try:
     import _thread as thread
@@ -77,7 +78,7 @@ class PredictionResult(object):
         background=None,
         gc=False,
         do_counter=True,
-        job_server=None,
+        ncpus=2,
     ):
         self.lock = thread.allocate_lock()
         self.motifs = []
@@ -86,10 +87,7 @@ class PredictionResult(object):
         self.stat_jobs = []
         self.outfile = outfile
         self.genome = genome
-        if job_server:
-            self.job_server = job_server
-        else:
-            self.job_server = Pool(2)
+        self.pool = Pool(processes=ncpus, maxtasksperchild=1000)
         self.counter = 0
         self.do_counter = do_counter
 
@@ -112,6 +110,14 @@ class PredictionResult(object):
                     self.genome = genome
         else:
             self.do_stats = False
+
+    def __del__(self):
+        # Close the multiprocessing.Pool to release memory
+        try:
+            self.pool.close()
+            self.pool.join()
+        except (ValueError, AttributeError):
+            pass
 
     def add_motifs(self, args):
         """Add motifs to the result object."""
@@ -142,7 +148,7 @@ class PredictionResult(object):
         if self.do_stats and len(motifs) > 0:
             logger.debug(f"Starting stats job of {len(motifs)} motifs")
             for bg_name, bg_fa in self.background.items():
-                job = self.job_server.apply_async(
+                job = self.pool.apply_async(
                     mp_calc_stats,
                     (
                         motifs,
@@ -189,7 +195,6 @@ def pp_predict_motifs(
     single=False,
     background="",
     tools=None,
-    job_server=None,
     ncpus=8,
     max_time=-1,
     stats_fg=None,
@@ -201,15 +206,10 @@ def pp_predict_motifs(
     Utility function for gimmemotifs.denovo.gimme_motifs. Probably better to
     use that, instead of this function directly.
     """
-    if tools is None:
-        tools = {}
-
     config = MotifConfig()
 
     if not tools:
         tools = dict([(x, 1) for x in config.get_default_params()["tools"].split(",")])
-
-    # logger = logging.getLogger('gimme.prediction.pp_predict_motifs')
 
     wmin = 5
     step = 1
@@ -224,9 +224,9 @@ def pp_predict_motifs(
         logger.info("Setting analysis xs to small")
         analysis = "small"
 
-    if not job_server:
-        n_cpus = int(config.get_default_params()["ncpus"])
-        job_server = Pool(processes=n_cpus, maxtasksperchild=1000)
+    if not ncpus:
+        ncpus = config.get_default_params()["ncpus"]
+    ncpus = int(ncpus)
 
     jobs = {}
 
@@ -236,11 +236,10 @@ def pp_predict_motifs(
         fg_file=stats_fg,
         background=stats_bg,
         gc=gc,
-        job_server=job_server,
+        ncpus=ncpus,
     )
 
     # Dynamically load all tools
-
     toolio = [
         x[1]()
         for x in inspect.getmembers(
@@ -251,10 +250,9 @@ def pp_predict_motifs(
         if x[0] != "MotifProgram"
     ]
 
-    # TODO:
-    # Add warnings for running time: Weeder, GADEM
+    # TODO: Add warnings for running time: Weeder, GADEM
 
-    # Add all jobs to the job_server
+    # Add all jobs to the pool
     params = {
         "analysis": analysis,
         "background": background,
@@ -269,7 +267,7 @@ def pp_predict_motifs(
         if t.name in tools and tools[t.name]:
             logger.debug(f"Starting {t.name} job")
             job_name = t.name
-            jobs[job_name] = job_server.apply_async(
+            jobs[job_name] = result.pool.apply_async(
                 _run_tool, (job_name, t, fastafile, params), callback=result.add_motifs
             )
         else:
@@ -282,7 +280,7 @@ def pp_predict_motifs(
                 job_name = f"{t.name}_width_{i}"
                 my_params = params.copy()
                 my_params["width"] = i
-                jobs[job_name] = job_server.apply_async(
+                jobs[job_name] = result.pool.apply_async(
                     _run_tool,
                     (job_name, t, fastafile, my_params),
                     callback=result.add_motifs,
@@ -290,7 +288,7 @@ def pp_predict_motifs(
         else:
             logger.debug(f"Skipping {t.name}")
 
-    logger.info("all jobs submitted")
+    logger.debug("all jobs submitted")
     for job in jobs.values():
         job.get()
 
@@ -337,6 +335,7 @@ def predict_motifs(infile, bgfile, outfile, params=None, stats_fg=None, stats_bg
     analysis = params["analysis"]
     logger.info(f"starting motif prediction ({analysis})")
     logger.info(f"tools: {', '.join([x for x in tools.keys() if tools[x]])}")
+    warnings.filterwarnings("ignore")
     result = pp_predict_motifs(
         infile,
         outfile,
@@ -345,12 +344,11 @@ def predict_motifs(infile, bgfile, outfile, params=None, stats_fg=None, stats_bg
         params["use_strand"],
         bgfile,
         tools,
-        None,
-        # logger=logger,
         max_time=params["max_time"],
         stats_fg=stats_fg,
         stats_bg=stats_bg,
     )
+    warnings.resetwarnings()
 
     motifs = result.motifs
     logger.info(f"predicted {len(motifs)} motifs")

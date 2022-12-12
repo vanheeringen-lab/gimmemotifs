@@ -9,6 +9,7 @@ Module to compare DNA sequence motifs (positional frequency matrices)
 # Python imports
 import os
 import logging
+from multiprocessing import Pool
 
 # External imports
 from scipy.stats import norm, entropy, chi2_contingency
@@ -357,7 +358,6 @@ class MotifComparer(object):
         self.metrics = ["pcc", "ed", "distance", "wic"]
         self.combine = ["mean", "sum"]
         self._load_scores()
-        # Create a parallel python job server, to use for fast motif comparison
 
     def _load_scores(self):
         self.scoredist = {}
@@ -698,8 +698,6 @@ class MotifComparer(object):
                 batch_len = 1
             jobs = []
             for i in range(0, len(dbmotifs), batch_len):
-                # submit jobs to the job server
-
                 p = pool.apply_async(
                     _get_all_scores,
                     args=(
@@ -969,11 +967,3 @@ def select_nonredundant_motifs(
         f"selected {len(selected_features)} non-redundant motifs: ROC AUC {roc_auc:.3f}, PR AUC {pr_auc:.3f}"
     )
     return selected_features
-
-
-# import here is necessary as workaround
-# see: http://stackoverflow.com/questions/18947876/using-python-multiprocessing-pool-in-the-terminal-and-in-code-modules-for-django  # noqa: E501
-try:
-    from multiprocessing import Pool
-except ImportError:
-    pass

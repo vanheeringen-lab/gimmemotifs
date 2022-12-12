@@ -40,8 +40,8 @@ def location(args):
     if args.ids:
         ids = args.ids.split(",")
 
-    n_cpus = int(MotifConfig().get_default_params()["ncpus"])
-    pool = Pool(processes=n_cpus, maxtasksperchild=1000)
+    ncpus = int(MotifConfig().get_default_params()["ncpus"])
+    pool = Pool(processes=ncpus, maxtasksperchild=1000)
     for motif in motifs:
         if motif.id in ids:
             outfile = os.path.join(f"{motif.id}_histogram")
@@ -50,6 +50,8 @@ def location(args):
                     motif_localization, (fastafile, motif, lsize, outfile, args.cutoff)
                 )
             )
+    pool.close()
 
     for job in jobs:
         job.get()
+    pool.join()

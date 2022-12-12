@@ -606,31 +606,30 @@ def get_roc_values(motif, fg_file, bg_file, genome):
 
 def create_roc_plots(pfmfile, fgfa, background, outdir, genome):
     """Make ROC plots for all motifs."""
-    motifs = read_motifs(pfmfile, fmt="pwm", as_dict=True)
+    motifs = read_motifs(pfmfile, as_dict=True)
     ncpus = int(MotifConfig().get_default_params()["ncpus"])
     pool = Pool(processes=ncpus)
     jobs = {}
     for bg, fname in background.items():
-        for m_id, m in motifs.items():
-
-            k = f"{str(m)}_{bg}"
-            jobs[k] = pool.apply_async(
-                get_roc_values, (motifs[m_id], fgfa, fname, genome)
+        for m_id, motif in motifs.items():
+            jobs[(m_id, bg)] = pool.apply_async(
+                get_roc_values, (motif, fgfa, fname, genome)
             )
+    pool.close()
+
     imgdir = os.path.join(outdir, "images")
     if not os.path.exists(imgdir):
         os.mkdir(imgdir)
 
-    for motif in motifs.values():
-        for bg in background:
-            k = f"{str(motif)}_{bg}"
-            error, x, y = jobs[k].get()
-            if error:
-                logger.error(f"Error in thread: {error}")
-                logger.error(f"Motif: {motif}")
-                sys.exit(1)
-            roc_img_file = os.path.join(outdir, "images", f"{motif.id}_roc.{bg}.png")
-            roc_plot(roc_img_file, x, y)
+    for (m_id, bg), job in jobs.items():
+        error, x, y = job.get()
+        if error:
+            logger.error("Error in thread: %s", error)
+            logger.error("Motif: %s", m_id)
+            sys.exit(1)
+        roc_img_file = os.path.join(imgdir, f"{m_id}_roc.{bg}.png")
+        roc_plot(roc_img_file, x, y)
+    pool.join()
 
 
 def _create_text_report(inputfile, motifs, closest_match, stats, outdir):

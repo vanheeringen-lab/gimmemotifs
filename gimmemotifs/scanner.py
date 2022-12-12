@@ -7,7 +7,7 @@ from collections import Counter
 from functools import partial
 from tempfile import mkdtemp, NamedTemporaryFile
 import logging
-import multiprocessing as mp
+from multiprocessing import Lock, Pool
 
 # "hidden" features, in development
 try:
@@ -58,7 +58,7 @@ except ImportError:
 logger = logging.getLogger("gimme.scanner")
 config = MotifConfig()
 FPR = 0.01
-lock = mp.Lock()
+LOCK = Lock()
 
 
 def print_cluster_error_message():
@@ -663,7 +663,7 @@ def scan_it_moods(
     if count:
         func = scan_fa_with_motif_moods_count
 
-    pool = mp.Pool()
+    pool = Pool()
     for i in range(0, len(fa), chunk):
         jobs.append(
             pool.apply_async(
@@ -671,10 +671,12 @@ def scan_it_moods(
                 (fa[i : i + chunk], motifs, matrices, bg, thresholds, nreport, scan_rc),
             )
         )
+    pool.close()
 
     for job in jobs:
         for ret in job.get():
             yield ret
+    pool.join()
 
 
 class Scanner(object):
@@ -692,27 +694,22 @@ class Scanner(object):
         self.fpr = None
 
         if ncpus is None:
-            self.ncpus = int(MotifConfig().get_default_params()["ncpus"])
-        else:
-            self.ncpus = ncpus
+            ncpus = MotifConfig().get_default_params()["ncpus"]
+        self.ncpus = int(ncpus)
 
         if self.ncpus > 1:
-            # try:
-            #    ctx = mp.get_context('spawn')
-            #    self.pool = ctx.Pool(processes=self.ncpus)
-            # except AttributeError:
-            self.pool = mp.Pool(processes=self.ncpus)
+            self.pool = Pool(processes=self.ncpus)
 
         self.use_cache = False
         if self.config.get_default_params().get("use_cache", False):
             self._init_cache()
 
     def __del__(self):
-        # Close the pool because of memory leak
+        # Close the multiprocessing.Pool to release memory
         try:
-            if hasattr(self, "pool"):
-                self.pool.close()
-        except Exception:
+            self.pool.close()
+            self.pool.join()
+        except (ValueError, AttributeError):
             pass
 
     def _init_cache(self):
@@ -818,7 +815,7 @@ class Scanner(object):
             bins = ["0.00-1.00"]
 
         motifs = read_motifs(self.motifs)
-        lock.acquire()
+        LOCK.acquire()
 
         try:
             with Cache(CACHE_DIR) as cache:
@@ -867,7 +864,7 @@ class Scanner(object):
         except sqlite3.DatabaseError:
             print_cluster_error_message()
             sys.exit(1)
-        lock.release()
+        LOCK.release()
 
         for gc_bin in self.gc_bins:
             gc_bin = f"{gc_bin[0]:.2f}-{gc_bin[1]:.2f}"
@@ -939,7 +936,7 @@ class Scanner(object):
                 raise ValueError("Need either genome or filename for background.")
 
         logger.debug(f"using background: genome {genome} with size {size}")
-        lock.acquire()
+        LOCK.acquire()
         try:
             with Cache(CACHE_DIR) as cache:
                 self.background_hash = "d{}:{}:{}:{}".format(
@@ -965,7 +962,7 @@ class Scanner(object):
         except sqlite3.DatabaseError:
             print_cluster_error_message()
             sys.exit(1)
-        lock.release()
+        LOCK.release()
 
         self.background = fa
         if gc_bins:
@@ -1035,7 +1032,7 @@ class Scanner(object):
 
         seqs = self.background.seqs
 
-        lock.acquire()
+        LOCK.acquire()
         try:
             with Cache(CACHE_DIR) as cache:
                 scan_motifs = []
@@ -1076,7 +1073,7 @@ class Scanner(object):
         except sqlite3.DatabaseError:
             print_cluster_error_message()
             sys.exit(1)
-        lock.release()
+        LOCK.release()
         self.threshold_str = "{}_{}_{}_{}".format(
             fpr, threshold, self.background_hash, ",".join(sorted(gc_bins))
         )
