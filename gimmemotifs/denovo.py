@@ -655,9 +655,6 @@ def gimme_motifs(
         motifs = result.motifs
         pfmfile = os.path.join(tmpdir, "all_motifs.pfm")
 
-    with open(pfmfile) as f:
-        logger.error(f.readlines())
-
     if cluster:
         clusters = cluster_motifs_with_report(
             pfmfile,
