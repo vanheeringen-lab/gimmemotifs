@@ -27,12 +27,9 @@ from scipy.spatial.distance import pdist
 from scipy.cluster.hierarchy import linkage, dendrogram
 from sklearn.cluster import FeatureAgglomeration
 
-# Plotting
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import seaborn as sns
-
-sns.set_style("white")
 
 from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 from gimmemotifs.moap import moap, Moap
@@ -44,11 +41,12 @@ from gimmemotifs.utils import join_max, pfmfile_location
 
 from multiprocessing import Pool
 
+logger = logging.getLogger("gimme.maelstrom")
+sns.set_style("white")
+
 BG_LENGTH = 200
 BG_NUMBER = 10000
 FPR = 0.01
-
-logger = logging.getLogger("gimme.maelstrom")
 
 
 def moap_with_bg(

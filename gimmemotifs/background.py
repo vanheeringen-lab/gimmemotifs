@@ -11,7 +11,6 @@ Markov model and MatchedGenomicFasta, which generates a background with a
 similar genomic distribution as the input.
 
 """
-# Python imports
 import gzip
 import os
 import random
@@ -21,13 +20,11 @@ from tempfile import NamedTemporaryFile
 from random import choice
 import logging
 
-# External imports
 import numpy as np
 import pandas as pd
 import pybedtools
 from genomepy import Genome
 
-# GimmeMotifs imports
 from gimmemotifs import mytmpdir
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.config import CACHE_DIR, BG_TYPES, MotifConfig
@@ -399,7 +396,7 @@ def gc_bin_bedfile(
         col = f"w{((length + min_bin_size // 2) // min_bin_size) * min_bin_size}"
     else:
         logger.warning(
-            f"For regions smaller than {min_bin_size} nt, GC%% will not be exact"
+            f"For regions smaller than {min_bin_size} nt, GC% will not be exact"
         )
         col = f"w{min_bin_size}"
 
@@ -423,10 +420,7 @@ def gc_bin_bedfile(
 
     with open(bedfile, "a") as f:
         for b_start, b_end in bins:
-            # print(df.head())
-            # print(col, b_start, b_end)
-            df_bin = df[(df[col] > b_start) & (df[col] <= b_end)]
-            # print(df_bin)
+            df_bin = df[(df[col] > b_start) & (df[col] <= b_end)].copy()
             df_bin["start"] = df_bin["end"] - length
             df_bin = df_bin[df_bin["start"] > 0]
             if df_bin.shape[0] > 0:

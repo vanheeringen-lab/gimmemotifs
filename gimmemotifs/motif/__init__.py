@@ -4,7 +4,6 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Module contain core motif functionality"""
-# Python imports
 import os
 import re
 from collections import Counter
@@ -13,11 +12,7 @@ from warnings import warn
 from gimmemotifs.config import MotifConfig, DIRECT_NAME, INDIRECT_NAME
 from gimmemotifs.utils import pfmfile_location
 
-# External imports
-try:
-    import numpy as np
-except ImportError:
-    pass
+import numpy as np
 import xxhash
 import pandas as pd
 import iteround
@@ -51,8 +46,6 @@ class Motif(object):
     from ._comparison import ic, pcc, other_ic, matrix_ic, max_ic, max_pcc, ic_pos
     from ._plotting import plot_logo, plot_ensembl_logo, to_img
     from ._scanning import (
-        pwm_scan,
-        pwm_scan_all,
         scan,
         scan_all,
         pwm_scan_score,

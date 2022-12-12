@@ -11,12 +11,8 @@ import argparse
 import os
 import subprocess as sp
 import pandas as pd
-try:
-    from urllib.request import urlopen
-except ImportError:
-    from urllib2 import urlopen
+from urllib.request import urlopen
 from pybedtools import BedTool
-import shutil
 
 
 def obtain_bed(href):

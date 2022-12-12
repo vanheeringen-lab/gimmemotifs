@@ -8,9 +8,6 @@ import logging
 logger = logging.getLogger()
 
 
-# import logger
-
-
 def check_bed_file(fname):
     """Check if the inputfile is a valid bed-file"""
     if not os.path.exists(fname):

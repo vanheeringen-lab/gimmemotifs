@@ -5,7 +5,6 @@
 # distribution.
 
 """ Odds and ends that for which I didn't (yet) find another place """
-# Python imports
 import os
 import re
 import sys
@@ -13,23 +12,19 @@ import hashlib
 import logging
 import mmap
 import random
-import tempfile
 import requests
 from io import TextIOWrapper
 from functools import singledispatch
 from subprocess import Popen
 from tempfile import NamedTemporaryFile
 
-# External imports
 import pyfaidx
 from scipy import special
 import numpy as np
 import pybedtools
-
 from genomepy import Genome
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
-# gimme imports
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import plot_histogram
 from gimmemotifs.rocmetrics import ks_pvalue
@@ -148,7 +143,7 @@ def divide_file(fname, sample, rest, fraction, abs_max):
     if x > abs_max:
         x = abs_max
 
-    tmp = tempfile.NamedTemporaryFile(mode="w", delete=False)
+    tmp = NamedTemporaryFile(mode="w", delete=False)
 
     # Fraction as sample
     for line in lines[:x]:
@@ -282,7 +277,7 @@ def median_bed_len(bedfile):
 def motif_localization(fastafile, motif, size, outfile, cutoff=0.9):
     NR_HIST_MATCHES = 100
 
-    matches = motif.pwm_scan(Fasta(fastafile), cutoff=cutoff, nreport=NR_HIST_MATCHES)
+    matches = motif.scan(Fasta(fastafile), cutoff=cutoff, nreport=NR_HIST_MATCHES)
     if len(matches) > 0:
         ar = []
         for a in matches.values():

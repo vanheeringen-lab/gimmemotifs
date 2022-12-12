@@ -290,25 +290,6 @@ def cli(sys_args):
         type=int,
         default=int(params["ncpus"]),
     )
-    p.add_argument(
-        "-M",
-        "--do_MOODS",
-        dest="moods",
-        help=argparse.SUPPRESS,
-        # help="experimental: use MOODS for scanning",
-        action="store_true",
-        default=False,
-    )
-    p.add_argument(
-        "-P",
-        "--pvalue",
-        dest="pvalue",
-        help=argparse.SUPPRESS,
-        # help="experimental: MOODS p-value cutoff",
-        metavar="",
-        type=float,
-        default=None,
-    )
 
     p.set_defaults(func=commands.pfmscan)
 

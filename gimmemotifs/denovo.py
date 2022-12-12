@@ -148,8 +148,6 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
     fraction = float(params["fraction"])
     abs_max = int(params["abs_max"])
 
-    logger.info("preparing input (FASTA)")
-
     pred_fa = os.path.join(outdir, "prediction.fa")
 
     fa = Fasta(inputfile)

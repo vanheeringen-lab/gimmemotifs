@@ -11,7 +11,6 @@ import logging
 import jinja2
 from datetime import datetime
 
-# GimmeMotifs imports
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.motif import read_motifs, Motif
 from gimmemotifs.comparison import MotifComparer

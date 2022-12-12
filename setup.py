@@ -152,7 +152,8 @@ setup(
         # "xgboost >=1.0.2",
     ],
     extras_require={
-        "xgboost": ["xgboost >=1.0.2"],
+        "ete3": ["ete3"],
         "notebook": ["ipywidgets"],
+        "xgboost": ["xgboost >=1.0.2"],
     },
 )

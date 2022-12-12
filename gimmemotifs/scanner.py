@@ -5,17 +5,9 @@ import time
 import math
 from collections import Counter
 from functools import partial
-from tempfile import mkdtemp, NamedTemporaryFile
+from tempfile import NamedTemporaryFile
 import logging
 from multiprocessing import Lock, Pool
-
-# "hidden" features, in development
-try:
-    import MOODS.tools
-    import MOODS.parsers
-    import MOODS.scan
-except ImportError:
-    pass
 
 from genomepy import Genome
 from diskcache import Cache
@@ -31,29 +23,7 @@ from gimmemotifs.config import MotifConfig, CACHE_DIR
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.c_metrics import pwmscan  # noqa
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.utils import parse_cutoff, as_fasta, file_checksum, rc
-
-
-try:
-    import copy_reg
-    import types
-
-    def _pickle_method(m):
-        if m.im_self is None:
-            return getattr, (m.im_class, m.im_func.func_name)
-        else:
-            return getattr, (m.im_self, m.im_func.func_name)
-
-    copy_reg.pickle(types.MethodType, _pickle_method)
-except Exception:
-    pass
-
-# only used when using cache, should not be a requirement
-try:
-    from dogpile.cache import make_region
-    import xxhash
-except ImportError:
-    pass
+from gimmemotifs.utils import parse_cutoff, as_fasta, file_checksum
 
 logger = logging.getLogger("gimme.scanner")
 config = MotifConfig()
@@ -217,32 +187,19 @@ def scan_regionfile_to_table(
 
 def scan_table(
     s,
-    inputfile,
     fa,
     motifs,
-    cutoff,
-    bgfile,
     nreport,
     scan_rc,
-    pvalue,
-    moods,
     progress=True,
 ):
     # header
     yield "\t{}".format("\t".join([m.id for m in motifs]))
-    table = True
-    if moods:
-        result_it = scan_it_moods(
-            inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, table
-        )
-        for seq_id, counts in result_it:
-            yield "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
-    else:
-        # get iterator
-        result_it = s.count(fa, nreport, scan_rc, progress=progress)
-        # counts table
-        for i, counts in enumerate(result_it):
-            yield "{}\t{}".format(fa.ids[i], "\t".join([str(x) for x in counts]))
+    # get iterator
+    result_it = s.count(fa, nreport, scan_rc, progress=progress)
+    # counts table
+    for i, counts in enumerate(result_it):
+        yield "{}\t{}".format(fa.ids[i], "\t".join([str(x) for x in counts]))
 
 
 def scan_score_table(s, fa, motifs, scan_rc, zscore=False, gcnorm=False, progress=True):
@@ -259,40 +216,22 @@ def scan_score_table(s, fa, motifs, scan_rc, zscore=False, gcnorm=False, progres
 
 def scan_normal(
     s,
-    inputfile,
     fa,
     motifs,
-    cutoff,
-    bgfile,
     nreport,
     scan_rc,
-    pvalue,
-    moods,
     bed,
     zscore,
     gcnorm,
     progress=True,
 ):
-
-    table = False
-    if moods:
-        result_it = scan_it_moods(
-            inputfile, motifs, cutoff, bgfile, nreport, scan_rc, pvalue, table
-        )
-        for motif, d in result_it:
-            for seq_id, matches in d.items():
-                for pos, score, strand in matches:
-                    yield _format_line(
-                        fa[seq_id], seq_id, motif, score, pos, strand, bed=bed
-                    )
-    else:
-        result_it = s.scan(fa, nreport, scan_rc, zscore, gc=gcnorm, progress=progress)
-        for i, result in enumerate(result_it):
-            seq_id = fa.ids[i]
-            seq = fa[seq_id]
-            for motif, matches in zip(motifs, result):
-                for (score, pos, strand) in matches:
-                    yield _format_line(seq, seq_id, motif, score, pos, strand, bed=bed)
+    result_it = s.scan(fa, nreport, scan_rc, zscore, gc=gcnorm, progress=progress)
+    for i, result in enumerate(result_it):
+        seq_id = fa.ids[i]
+        seq = fa[seq_id]
+        for motif, matches in zip(motifs, result):
+            for (score, pos, strand) in matches:
+                yield _format_line(seq, seq_id, motif, score, pos, strand, bed=bed)
 
 
 def command_scan(
@@ -305,8 +244,6 @@ def command_scan(
     scan_rc=True,
     table=False,
     score_table=False,
-    moods=False,
-    pvalue=None,
     bgfile=None,
     genome=None,
     ncpus=None,
@@ -338,15 +275,10 @@ def command_scan(
     if table:
         it = scan_table(
             s,
-            inputfile,
             fa,
             motifs,
-            cutoff,
-            bgfile,
             nreport,
             scan_rc,
-            pvalue,
-            moods,
             progress=progress,
         )
     elif score_table:
@@ -356,15 +288,10 @@ def command_scan(
     else:
         it = scan_normal(
             s,
-            inputfile,
             fa,
             motifs,
-            cutoff,
-            bgfile,
             nreport,
             scan_rc,
-            pvalue,
-            moods,
             bed,
             zscore=zscore,
             gcnorm=gcnorm,
@@ -386,8 +313,6 @@ def scan_to_file(
     scan_rc=True,
     table=False,
     score_table=False,
-    moods=False,
-    pvalue=False,
     bgfile=None,
     genome=None,
     ncpus=None,
@@ -441,8 +366,6 @@ def scan_to_file(
         scan_rc=scan_rc,
         table=table,
         score_table=score_table,
-        moods=moods,
-        pvalue=pvalue,
         bgfile=bgfile,
         genome=genome,
         ncpus=ncpus,
@@ -567,118 +490,6 @@ def scan_seq_mult(
     return ret
 
 
-def scan_fa_with_motif_moods(
-    fo, motifs, matrices, bg, thresholds, nreport, scan_rc=True
-):
-
-    scanner = MOODS.scan.Scanner(7)
-    scanner.set_motifs(matrices, bg, thresholds)
-
-    ret = []
-    for name, seq in fo.items():
-        length = len(seq)
-
-        scan_seq = seq.upper()
-        if scan_rc:
-            scan_seq = "".join((scan_seq, "N" * 50, rc(scan_seq)))
-        results = scanner.scan_max_hits(scan_seq, nreport)
-        for motif, result in zip(motifs, results):
-            matches = []
-            for match in result:
-                strand = 1
-                pos = match.pos
-                if scan_rc:
-                    if pos > length:
-                        pos = length - (pos - length - 50) - len(motif)
-                        strand = -1
-                matches.append((pos, match.score, strand))
-            ret.append((motif, {name: matches}))
-
-    return ret
-
-
-def scan_fa_with_motif_moods_count(
-    fo, motifs, matrices, bg, thresholds, nreport, scan_rc=True
-):
-    scanner = MOODS.scan.Scanner(7)
-    scanner.set_motifs(matrices, bg, thresholds)
-
-    ret = []
-    for name, seq in fo.items():
-        scan_seq = seq.upper()
-        if scan_rc:
-            scan_seq = "".join((scan_seq, "N" * 50, rc(scan_seq)))
-        results = scanner.counts_max_hits(scan_seq, nreport)
-        ret.append((name, results))
-
-    return ret
-
-
-def calc_threshold_moods(m, c):
-    m_min = MOODS.tools.min_score(m)
-    m_max = MOODS.tools.max_score(m)
-
-    return m_min + (m_max - m_min) * c
-
-
-def scan_it_moods(
-    infile, motifs, cutoff, bgfile, nreport=1, scan_rc=True, pvalue=None, count=False
-):
-    tmpdir = mkdtemp()
-    matrices = []
-    pseudocount = 1e-3
-    # sys.stderr.write(f"bgfile: {bgfile}\n")
-    bg = MOODS.tools.bg_from_sequence_dna("".join(Fasta(bgfile).seqs), 1)
-
-    for motif in motifs:
-        pfmname = os.path.join(tmpdir, f"{motif.id}.pfm")
-        with open(pfmname, "w") as f:
-            matrix = np.array(motif.ppm).transpose()
-            for line in [" ".join([str(x) for x in row]) for row in matrix]:
-                f.write(f"{line}\n")
-
-        matrices.append(MOODS.parsers.pfm_log_odds(pfmname, bg, pseudocount))
-
-    thresholds = []
-    if pvalue is not None:
-        thresholds = [
-            MOODS.tools.threshold_from_p(m, bg, float(pvalue)) for m in matrices
-        ]
-        # sys.stderr.write(f"{thresholds}\n")
-    else:
-        thresholds = [calc_threshold_moods(m, float(cutoff)) for m in matrices]
-
-    scanner = MOODS.scan.Scanner(7)
-    scanner.set_motifs(matrices, bg, thresholds)
-
-    config = MotifConfig()
-    ncpus = int(config.get_default_params()["ncpus"])
-    fa = Fasta(infile)
-    chunk = 500
-    if (len(fa) / chunk) < ncpus:
-        chunk = len(fa) / (ncpus + 1)
-
-    jobs = []
-    func = scan_fa_with_motif_moods
-    if count:
-        func = scan_fa_with_motif_moods_count
-
-    pool = Pool()
-    for i in range(0, len(fa), chunk):
-        jobs.append(
-            pool.apply_async(
-                func,
-                (fa[i : i + chunk], motifs, matrices, bg, thresholds, nreport, scan_rc),
-            )
-        )
-    pool.close()
-
-    for job in jobs:
-        for ret in job.get():
-            yield ret
-    pool.join()
-
-
 class Scanner(object):
     """
     scan sequences with motifs
@@ -700,10 +511,6 @@ class Scanner(object):
         if self.ncpus > 1:
             self.pool = Pool(processes=self.ncpus)
 
-        self.use_cache = False
-        if self.config.get_default_params().get("use_cache", False):
-            self._init_cache()
-
     def __del__(self):
         # Close the multiprocessing.Pool to release memory
         try:
@@ -711,23 +518,6 @@ class Scanner(object):
             self.pool.join()
         except (ValueError, AttributeError):
             pass
-
-    def _init_cache(self):
-        try:
-            self.cache = make_region().configure(
-                "dogpile.cache.pylibmc",
-                expiration_time=3600,
-                arguments={"url": ["127.0.0.1"], "binary": True}
-                #    'dogpile.cache.dbm',
-                #    expiration_time = 3600,
-                #    arguments = {
-                #        'filename': 'cache.dbm'
-                #    }
-            )
-            self.use_cache = True
-        except Exception as e:
-            logger.error(str(e))
-            logger.error("failed to initialize cache")
 
     def set_motifs(self, motifs):
         try:
@@ -743,10 +533,6 @@ class Scanner(object):
 
         self.motifs = motif_file
         self.motif_ids = [m.id for m in read_motifs(motif_file)]
-        self.checksum = {}
-        if self.use_cache:
-            chksum = xxhash.xxh64("\n".join(sorted(self.motif_ids))).digest()
-            self.checksum[self.motifs] = chksum
 
     def _meanstd_from_seqs(self, motifs, seqs):
         scan_motifs = [(m, m.min_score) for m in motifs]
@@ -1080,9 +866,7 @@ class Scanner(object):
 
     def set_genome(self, genome, genomes_dir=None):
         """
-        Set the genome to be used for:
-            - converting regions to sequences
-            - background for MOODS
+        Set the genome to converting regions to sequences
 
         Parameters
         ----------

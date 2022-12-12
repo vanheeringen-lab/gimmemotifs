@@ -6,16 +6,11 @@
 """Parallel prediction of sequence motifs """
 import logging
 import warnings
-
-try:
-    import _thread as thread
-except ImportError:
-    import thread
+import _thread
 from time import sleep
 import inspect
 from multiprocessing import Pool
 
-# GimmeMotifs imports
 from gimmemotifs import tools as tool_classes
 from gimmemotifs.config import MotifConfig, parse_denovo_params
 from gimmemotifs.fasta import Fasta
@@ -23,20 +18,6 @@ from gimmemotifs import mytmpdir
 from gimmemotifs.stats import calc_stats
 
 logger = logging.getLogger("gimme.prediction")
-
-try:
-    import copy_reg
-    import types
-
-    def _pickle_method(m):
-        if m.im_self is None:
-            return getattr, (m.im_class, m.im_func.func_name)
-        else:
-            return getattr, (m.im_self, m.im_func.func_name)
-
-    copy_reg.pickle(types.MethodType, _pickle_method)
-except Exception:
-    pass
 
 
 def mp_calc_stats(motifs, fg_fa, bg_fa, zscore, gc, genome, bg_name=None):
@@ -80,7 +61,7 @@ class PredictionResult(object):
         do_counter=True,
         ncpus=2,
     ):
-        self.lock = thread.allocate_lock()
+        self.lock = _thread.allocate_lock()
         self.motifs = []
         self.finished = []
         self.stats = {}

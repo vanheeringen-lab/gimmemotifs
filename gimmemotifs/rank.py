@@ -10,11 +10,7 @@ import subprocess as sp
 import pandas as pd
 import numpy as np
 from scipy.stats import rankdata, norm
-
-try:
-    from scipy.special import factorial
-except ImportError:
-    from scipy.misc import factorial
+from scipy.special import factorial
 
 
 def rankagg_R(df, method="stuart"):
