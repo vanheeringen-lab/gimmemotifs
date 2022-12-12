@@ -358,7 +358,6 @@ class MotifComparer(object):
         self.metrics = ["pcc", "ed", "distance", "wic"]
         self.combine = ["mean", "sum"]
         self._load_scores()
-        # Create a parallel python job server, to use for fast motif comparison
 
     def _load_scores(self):
         self.scoredist = {}
@@ -699,8 +698,6 @@ class MotifComparer(object):
                 batch_len = 1
             jobs = []
             for i in range(0, len(dbmotifs), batch_len):
-                # submit jobs to the job server
-
                 p = pool.apply_async(
                     _get_all_scores,
                     args=(
