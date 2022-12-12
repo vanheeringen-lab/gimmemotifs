@@ -1,11 +1,11 @@
-from setuptools import setup, find_packages
-from setuptools import Extension
-
 import os
-from io import open
-from compile_externals import compile_all
 import subprocess as sp
-import versioneer
+from io import open
+
+import versioneer  # noqa: versioneer-518
+from setuptools import Extension, find_packages, setup
+
+from compile_externals import compile_all
 
 CONFIG_NAME = "gimmemotifs.cfg"
 DESCRIPTION = "GimmeMotifs is a motif prediction pipeline."
@@ -148,6 +148,7 @@ setup(
         "seaborn >=0.10.1",
         "statsmodels",
         "tqdm >=4.46.1",
+        "versioneer-518",
         "xdg",
         # "xgboost >=1.0.2",
     ],

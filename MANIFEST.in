@@ -12,5 +12,4 @@ graft scripts/
 exclude scripts/download_motif_databases.py
 exclude scripts/gimme_benchmark
 
-include versioneer.py
 include gimmemotifs/_version.py

@@ -27,6 +27,7 @@ dependencies:
   - seaborn >=0.10.1
   - statsmodels
   - tqdm >=4.46.1
+  - versioneer-518
   - xdg
   #  - xgboost >=1.0.2            # optional: xgboost regression predictor for MOAP. 1 GB
 
