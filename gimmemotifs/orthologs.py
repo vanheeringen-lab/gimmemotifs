@@ -631,7 +631,7 @@ def _unknownfactor2symbols(factor, fields):
             return list()
 
     # multithreaded to do multiple queries at once
-    p = multiprocessing.dummy.Pool(len(fields))
+    p = multiprocessing.dummy.Pool(processes=len(fields))
     hits = p.map(mygeneinfo, fields)
     hits = [item for sublist in hits for item in sublist]
     symbols = set()

@@ -271,15 +271,15 @@ def _single_stats(motifs, stats, fg_total, bg_total):
 
 def _mp_stats(motifs, stats, fg_total, bg_total, ncpus):
     # Initialize multiprocessing pool
-    pool = Pool(ncpus, maxtasksperchild=1000)
+    pool = Pool(processes=ncpus, maxtasksperchild=1000)
 
     jobs = []
     for motif in motifs:
         motif_id = motif.id
         fg_vals = fg_total[motif_id]
         bg_vals = bg_total[motif_id]
-        for s in stats:
-            func = getattr(rocmetrics, s)
+        for stat in stats:
+            func = getattr(rocmetrics, stat)
             if func.input_type == "score":
                 fg = [x[0] for x in fg_vals]
                 bg = [x[0] for x in bg_vals]
@@ -289,14 +289,14 @@ def _mp_stats(motifs, stats, fg_total, bg_total, ncpus):
             else:
                 raise ValueError("Unknown input_type for stats")
 
-            j = pool.apply_async(func, (fg, bg))
-            jobs.append([str(motif), s, j])
+            job = pool.apply_async(func, (fg, bg))
+            jobs.append([str(motif), stat, job])
     pool.close()
-    pool.join()
 
-    for motif_id, s, job in jobs:
+    for motif_id, stat, job in jobs:
         ret = job.get()
-        yield motif_id, s, ret
+        yield motif_id, stat, ret
+    pool.join()
 
 
 def star(stat, categories):

@@ -9,6 +9,7 @@ Module to compare DNA sequence motifs (positional frequency matrices)
 # Python imports
 import os
 import logging
+from multiprocessing import Pool
 
 # External imports
 from scipy.stats import norm, entropy, chi2_contingency
@@ -969,11 +970,3 @@ def select_nonredundant_motifs(
         f"selected {len(selected_features)} non-redundant motifs: ROC AUC {roc_auc:.3f}, PR AUC {pr_auc:.3f}"
     )
     return selected_features
-
-
-# import here is necessary as workaround
-# see: http://stackoverflow.com/questions/18947876/using-python-multiprocessing-pool-in-the-terminal-and-in-code-modules-for-django  # noqa: E501
-try:
-    from multiprocessing import Pool
-except ImportError:
-    pass
