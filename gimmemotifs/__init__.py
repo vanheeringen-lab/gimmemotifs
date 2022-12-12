@@ -4,8 +4,6 @@ import shutil
 from os import getpid
 from tempfile import mkdtemp
 
-from .config import __version__
-
 
 def mytmpdir():
     if not hasattr(mytmpdir, "dir") or not mytmpdir.dir:
@@ -52,6 +50,7 @@ logger.addHandler(sh)
 
 # fmt: off
 # easier import of gimme (config and cli left out)
+from .config import __version__  # noqa: F401
 from . import background  # noqa: F401
 from . import cluster  # noqa: F401
 from . import comparison  # noqa: F401
