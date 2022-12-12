@@ -4,8 +4,6 @@ import shutil
 from os import getpid
 from tempfile import mkdtemp
 
-from .config import __version__
-
 
 def mytmpdir():
     if not hasattr(mytmpdir, "dir") or not mytmpdir.dir:
@@ -49,6 +47,11 @@ sh.setFormatter(screen_formatter)
 # sh.addFilter(DuplicateFilter('gimme'))
 logger.addHandler(sh)
 
+
+from ._version import get_versions  # noqa: E402
+
+__version__ = get_versions()["version"]
+del get_versions
 
 # fmt: off
 # easier import of gimme (config and cli left out)

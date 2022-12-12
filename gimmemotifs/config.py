@@ -15,10 +15,8 @@ from time import time
 
 import pkg_resources
 import xdg
-from versioneer import get_version  # noqa: versioneer-518
 
-__version__ = get_version()
-del get_version
+from ._version import get_versions
 
 logger = logging.getLogger("gimme.config")
 
@@ -178,7 +176,7 @@ class MotifConfig(object):
 
         available_tools = []
         self.config.read(self.default_config)
-        self.config.set("main", "config_version", __version__)
+        self.config.set("main", "config_version", get_versions()["version"])
         for m in MOTIF_CLASSES:
             mbin = self.config.get(m, "bin")
             mdir = self.config.get(m, "dir")
