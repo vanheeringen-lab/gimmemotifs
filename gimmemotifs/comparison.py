@@ -6,43 +6,23 @@
 """
 Module to compare DNA sequence motifs (positional frequency matrices)
 """
-# Python imports
-import os
 import logging
+import os
 from multiprocessing import Pool
 
-# External imports
-from scipy.stats import norm, entropy, chi2_contingency
-from scipy.spatial import distance
 import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.feature_selection import RFE
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.metrics import average_precision_score, roc_auc_score
 import pandas as pd
+from scipy.spatial import distance
+from scipy.stats import chi2_contingency, entropy, norm
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import average_precision_score, roc_auc_score
+from sklearn.model_selection import cross_val_score, train_test_split
 
-
-# GimmeMotifs imports
-from gimmemotifs.config import MotifConfig
 from gimmemotifs.c_metrics import pfmscan, score  # noqa
+from gimmemotifs.config import MotifConfig
 from gimmemotifs.motif import parse_motifs, read_motifs
-from gimmemotifs.utils import pfmfile_location, make_equal_length, ppm_pseudocount
-
-# pool import is at the bottom
-
-try:
-    import copy_reg
-    import types
-
-    def _pickle_method(m):
-        if m.im_self is None:
-            return getattr, (m.im_class, m.im_func.func_name)
-        else:
-            return getattr, (m.im_self, m.im_func.func_name)
-
-    copy_reg.pickle(types.MethodType, _pickle_method)
-except Exception:
-    pass
+from gimmemotifs.utils import make_equal_length, pfmfile_location, ppm_pseudocount
 
 RCDB = (
     "AATGCCTGCCTCGCCCATATAAGCATCAAGGCATATTTATTACCGGCCGCATGGAACCTTTCCTCCCAATCGAACAAGTC"
@@ -149,7 +129,6 @@ RCDB = (
     "ATCATACTACCGATTGACCTTGTTTCGTCATCCAACTTGGACCTGCTTGCCATCCCCACATTTACGGAGTTGACCAGAGA"
     "ACATAGCTTCCCGTTCCGGTCGATCACAAAAA"
 )
-
 
 logger = logging.getLogger("gimme.comparison")
 

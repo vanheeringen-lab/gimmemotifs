@@ -1,8 +1,8 @@
 import atexit
-from os import getpid
-import shutil
-from tempfile import mkdtemp
 import logging
+import shutil
+from os import getpid
+from tempfile import mkdtemp
 
 
 def mytmpdir():
@@ -56,20 +56,21 @@ del get_versions
 # fmt: off
 # easier import of gimme (config and cli left out)
 from . import background  # noqa: F401
-from . import cluster     # noqa: F401
+from . import cluster  # noqa: F401
 from . import comparison  # noqa: F401
-from . import denovo      # noqa: F401
-from . import fasta       # noqa: F401
-from . import maelstrom   # noqa: F401
-from . import moap        # noqa: F401
-from . import motif       # noqa: F401
-from . import plot        # noqa: F401
+from . import denovo  # noqa: F401
+from . import fasta  # noqa: F401
+from . import maelstrom  # noqa: F401
+from . import moap  # noqa: F401
+from . import motif  # noqa: F401
+from . import plot  # noqa: F401
 from . import prediction  # noqa: F401
-from . import rank        # noqa: F401
-from . import report      # noqa: F401
+from . import rank  # noqa: F401
+from . import report  # noqa: F401
 from . import rocmetrics  # noqa: F401
-from . import scanner     # noqa: F401
-from . import stats       # noqa: F401
-from . import utils       # noqa: F401
+from . import scanner  # noqa: F401
+from . import stats  # noqa: F401
+from . import utils  # noqa: F401
 from . import validation  # noqa: F401
+
 # fmt: on

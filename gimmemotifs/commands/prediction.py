@@ -4,10 +4,11 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
+import logging
 
 from yaml import load
+
 from gimmemotifs.tools import get_tool
-import logging
 
 logger = logging.getLogger("gimme.prediction")
 

@@ -1,9 +1,10 @@
-from .motifprogram import MotifProgram
 import os
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import Motif
+
+from .motifprogram import MotifProgram
 
 
 class ChIPMunk(MotifProgram):

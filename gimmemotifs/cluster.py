@@ -4,18 +4,17 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Module for motif clustering."""
+import logging
 import os
 import sys
-import logging
-
-import jinja2
 from datetime import datetime
 
-# GimmeMotifs imports
-from gimmemotifs.config import MotifConfig
-from gimmemotifs.motif import read_motifs, Motif
-from gimmemotifs.comparison import MotifComparer
+import jinja2
+
 from gimmemotifs import __version__
+from gimmemotifs.comparison import MotifComparer
+from gimmemotifs.config import MotifConfig
+from gimmemotifs.motif import Motif, read_motifs
 
 logger = logging.getLogger("gimme.cluster")
 
