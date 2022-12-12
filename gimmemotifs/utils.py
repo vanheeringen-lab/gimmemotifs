@@ -296,34 +296,6 @@ def motif_localization(fastafile, motif, size, outfile, cutoff=0.9):
         return motif.id, 1.0
 
 
-def parse_cutoff(motifs, cutoff, default=0.9):
-    """Provide either a file with one cutoff per motif or a single cutoff
-    returns a hash with motif id as key and cutoff as value
-    """
-    cutoffs = {}
-    if os.path.isfile(str(cutoff)):
-        # cutoff is a table
-        with open(cutoff) as f:
-            for i, line in enumerate(f):
-                if line != "Motif\tScore\tCutoff\n":
-                    try:
-                        motif, _, cutoff = line.strip().split("\t")
-                        cutoffs[motif] = float(cutoff)
-                    except Exception as e:
-                        logger.error(f"Error parsing cutoff file, line {e}: {i + 1}")
-                        sys.exit(1)
-    else:
-        # cutoff is a value
-        for motif in motifs:
-            cutoffs[motif.id] = float(cutoff)
-
-    for motif in motifs:
-        if motif.id not in cutoffs:
-            logger.error(f"No cutoff found for {motif.id}, using default {default}")
-            cutoffs[motif.id] = default
-    return cutoffs
-
-
 def _treesort(order, nodeorder, nodecounts, tree):
     # From the Pycluster library, Michiel de Hoon
     # Find the order of the nodes consistent with the hierarchical clustering

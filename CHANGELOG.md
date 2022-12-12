@@ -12,7 +12,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - now using a logger instead of print/sys.stderr.write in many more places
 - string formatting now (mostly) done with f-strings
 - refactored Fasta class
-- removed old python2 code (MOODS & import shenanigans) 
+- removed old python2 code (MOODS & import shenanigans)
+- split `scanner.py` into 3 submodules:
+  - `scanner/__init__.py` with the exported functions
+  - `scanner/base.py` with the Scanner class
+  - `scanner/utils.py` with the rest
 
 ### Fixed
 
@@ -24,6 +28,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - silence warnings from external tools in motif prediction (`pp_predict_motifs()` to be exact)
 - updated last references from `Motif.pwm_scan` and `Motif.pwm_scan_all` to `Motif.scan` and `Motif.scan_all` respectively
 - typo in `gimme motifs` output ("%matches background" to "% matches background")
+- `Scanner` now uses a cheaper method to determine a genome's identity 
+  - (filesize + name instead of the md5sum of the whole genome's contents)
 
 ## [0.17.2] - 2022-10-12
 
