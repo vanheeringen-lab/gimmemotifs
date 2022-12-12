@@ -1,13 +1,13 @@
 """Motif databases."""
 import glob
 import os
-from urllib.request import urlopen, urlretrieve
 import re
-import time
-import tarfile
 import shutil
-from tempfile import mkdtemp
+import tarfile
+import time
 import zipfile
+from tempfile import mkdtemp
+from urllib.request import urlopen, urlretrieve
 
 import pandas as pd
 

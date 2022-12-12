@@ -4,11 +4,12 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
+import argparse
 import os
 import sys
-import argparse
-from gimmemotifs.config import MotifConfig, BG_TYPES, BED_VALID_BGS
-from gimmemotifs import commands, __version__
+
+from gimmemotifs import __version__, commands
+from gimmemotifs.config import BED_VALID_BGS, BG_TYPES, MotifConfig
 from gimmemotifs.utils import check_genome
 
 

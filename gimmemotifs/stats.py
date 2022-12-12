@@ -1,15 +1,15 @@
 """Calculate motif enrichment statistics."""
-from multiprocessing import Pool
 import logging
+from multiprocessing import Pool
 
 import numpy as np
-from scipy.stats import rankdata
 import pandas as pd
+from scipy.stats import rankdata
 
 from gimmemotifs import rocmetrics
-from gimmemotifs.scanner import scan_to_best_match, Scanner
-from gimmemotifs.motif import read_motifs, Motif
 from gimmemotifs.config import MotifConfig
+from gimmemotifs.motif import Motif, read_motifs
+from gimmemotifs.scanner import Scanner, scan_to_best_match
 from gimmemotifs.utils import pfmfile_location
 
 logger = logging.getLogger("gimme.stats")

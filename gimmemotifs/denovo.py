@@ -20,34 +20,34 @@ params = {"tools": "Homer,BioProspector", "genome": "hg38"}
 motifs = gimme_motifs(peaks, outdir, params=params)
 """
 import datetime
-import os
-import sys
 import logging
 import logging.handlers
+import os
 import shutil
-import numpy as np
+import sys
 
+import numpy as np
 from genomepy import Genome
 
-from gimmemotifs.config import MotifConfig, BG_RANK, parse_denovo_params
 from gimmemotifs import mytmpdir
-from gimmemotifs.validation import check_denovo_input
-from gimmemotifs.utils import (
-    divide_file,
-    divide_fa_file,
-    narrowpeak_to_bed,
-    write_equalsize_bedfile,
-)
-from gimmemotifs.fasta import Fasta
 from gimmemotifs.background import (
     MarkovFasta,
     MatchedGcFasta,
     PromoterFasta,
     RandomGenomicFasta,
 )
-from gimmemotifs.stats import calc_stats, rank_motifs, write_stats
-from gimmemotifs.report import create_denovo_motif_report
+from gimmemotifs.config import BG_RANK, MotifConfig, parse_denovo_params
+from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import read_motifs
+from gimmemotifs.report import create_denovo_motif_report
+from gimmemotifs.stats import calc_stats, rank_motifs, write_stats
+from gimmemotifs.utils import (
+    divide_fa_file,
+    divide_file,
+    narrowpeak_to_bed,
+    write_equalsize_bedfile,
+)
+from gimmemotifs.validation import check_denovo_input
 
 logger = logging.getLogger("gimme.denovo")
 

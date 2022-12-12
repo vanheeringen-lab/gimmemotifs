@@ -4,18 +4,19 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
-import sys
+import logging
 import os
 import shutil
+import sys
+from tempfile import mkdtemp
+
 import numpy as np
 from genomepy import Genome
-import logging
 
-from gimmemotifs.scanner import Scanner
-from gimmemotifs.motif import read_motifs
 from gimmemotifs.fasta import Fasta
+from gimmemotifs.motif import read_motifs
 from gimmemotifs.plot import diff_plot
-from tempfile import mkdtemp
+from gimmemotifs.scanner import Scanner
 
 logger = logging.getLogger("gimme.diff")
 

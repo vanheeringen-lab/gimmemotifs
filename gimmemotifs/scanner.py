@@ -1,29 +1,29 @@
+import logging
+import math
 import os
 import re
+import sqlite3
 import sys
 import time
-import math
 from collections import Counter
 from functools import partial
-from tempfile import NamedTemporaryFile
-import logging
 from multiprocessing import Lock, Pool
+from tempfile import NamedTemporaryFile
 
-from genomepy import Genome
-from diskcache import Cache
 import numpy as np
-from sklearn.preprocessing import scale
 import pandas as pd
-import sqlite3
+from diskcache import Cache
+from genomepy import Genome
+from sklearn.preprocessing import scale
 from tqdm.auto import tqdm
 
 from gimmemotifs import __version__
 from gimmemotifs.background import RandomGenomicFasta, gc_bin_bedfile
-from gimmemotifs.config import MotifConfig, CACHE_DIR
-from gimmemotifs.fasta import Fasta
 from gimmemotifs.c_metrics import pwmscan  # noqa
+from gimmemotifs.config import CACHE_DIR, MotifConfig
+from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.utils import parse_cutoff, as_fasta, file_checksum
+from gimmemotifs.utils import as_fasta, file_checksum, parse_cutoff
 
 logger = logging.getLogger("gimme.scanner")
 config = MotifConfig()

@@ -9,14 +9,15 @@ Includes ROC AUC, MNCP, enrichment and others, which are calculated
 on the basis of motif scanning results.
 """
 import logging
-from scipy.stats import rankdata, scoreatpercentile, kstest, fisher_exact
+
+import numpy as np
+from scipy.stats import fisher_exact, kstest, rankdata, scoreatpercentile
 from sklearn.metrics import (
+    average_precision_score,
     precision_recall_curve,
     roc_auc_score,
     roc_curve,
-    average_precision_score,
 )
-import numpy as np
 
 logger = logging.getLogger("gimme.rocmetrics")
 

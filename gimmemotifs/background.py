@@ -12,13 +12,13 @@ similar genomic distribution as the input.
 
 """
 import gzip
+import logging
 import os
 import random
 import re
 import sys
-from tempfile import NamedTemporaryFile
 from random import choice
-import logging
+from tempfile import NamedTemporaryFile
 
 import numpy as np
 import pandas as pd
@@ -26,9 +26,9 @@ import pybedtools
 from genomepy import Genome
 
 from gimmemotifs import mytmpdir
+from gimmemotifs.config import BG_TYPES, CACHE_DIR, MotifConfig
 from gimmemotifs.fasta import Fasta
-from gimmemotifs.config import CACHE_DIR, BG_TYPES, MotifConfig
-from gimmemotifs.utils import number_of_seqs_in_file, as_fasta
+from gimmemotifs.utils import as_fasta, number_of_seqs_in_file
 
 logger = logging.getLogger("gimme.background")
 

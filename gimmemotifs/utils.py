@@ -5,31 +5,30 @@
 # distribution.
 
 """ Odds and ends that for which I didn't (yet) find another place """
-import os
-import re
-import sys
 import hashlib
 import logging
 import mmap
+import os
 import random
-import requests
-from io import TextIOWrapper
+import re
+import sys
 from functools import singledispatch
+from io import TextIOWrapper
 from subprocess import Popen
 from tempfile import NamedTemporaryFile
 
-import pyfaidx
-from scipy import special
 import numpy as np
 import pybedtools
-from genomepy import Genome
+import pyfaidx
+import requests
 from Bio.SeqIO.FastaIO import SimpleFastaParser
+from genomepy import Genome
+from scipy import special
 
+from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import plot_histogram
 from gimmemotifs.rocmetrics import ks_pvalue
-from gimmemotifs.config import MotifConfig
-
 
 logger = logging.getLogger("gimme.utils")
 

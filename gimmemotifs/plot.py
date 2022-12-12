@@ -4,23 +4,25 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """ Various plotting functions """
-from PIL import Image
-import seaborn as sns
-from mpl_toolkits.axes_grid1 import ImageGrid
-from matplotlib.colors import to_hex, Normalize, rgb2hex
-from matplotlib.gridspec import GridSpec
-import matplotlib.cm as cm
-import matplotlib.pyplot as plt
+import logging
 import os
 from tempfile import NamedTemporaryFile
-import numpy as np
-from scipy.cluster import hierarchy as hier
-from gimmemotifs import mytmpdir
+
 import matplotlib as mpl
-import logging
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+from matplotlib.colors import Normalize, rgb2hex, to_hex
+from matplotlib.gridspec import GridSpec
+from mpl_toolkits.axes_grid1 import ImageGrid
+from PIL import Image
+from scipy.cluster import hierarchy as hier
+
+from gimmemotifs import mytmpdir
 
 try:
-    from ete3 import Tree, NodeStyle, TreeStyle, AttrFace, faces  # noqa: optional
+    from ete3 import AttrFace, NodeStyle, Tree, TreeStyle, faces  # noqa: optional
 
     _has_ete3 = True
 except ImportError:

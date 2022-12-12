@@ -6,14 +6,16 @@
 """ Configuration for GimmeMotifs """
 import configparser
 import glob
-import sys
-import xdg
+import logging
 import os
 import pathlib
-import logging
-import pkg_resources
+import sys
 from shutil import which
 from time import time
+
+import pkg_resources
+import xdg
+
 from ._version import get_versions
 
 logger = logging.getLogger("gimme.config")

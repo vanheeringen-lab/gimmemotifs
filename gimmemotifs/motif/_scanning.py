@@ -4,7 +4,6 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Scanning functions for Motif class"""
-
 from warnings import warn
 
 from gimmemotifs.c_metrics import pfmscan, pwmscan  # noqa

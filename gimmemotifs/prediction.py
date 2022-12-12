@@ -4,17 +4,17 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Parallel prediction of sequence motifs """
+import _thread
+import inspect
 import logging
 import warnings
-import _thread
-from time import sleep
-import inspect
 from multiprocessing import Pool
+from time import sleep
 
+from gimmemotifs import mytmpdir
 from gimmemotifs import tools as tool_classes
 from gimmemotifs.config import MotifConfig, parse_denovo_params
 from gimmemotifs.fasta import Fasta
-from gimmemotifs import mytmpdir
 from gimmemotifs.stats import calc_stats
 
 logger = logging.getLogger("gimme.prediction")

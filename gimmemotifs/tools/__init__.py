@@ -7,27 +7,27 @@
 import logging
 from shutil import which
 
+from .amd import Amd
+from .bioprospector import BioProspector
+from .chipmunk import ChIPMunk
+from .dinamo import Dinamo
+from .dreme import Dreme
+from .gadem import Gadem
+from .hms import Hms
+from .homer import Homer
+from .improbizer import Improbizer
+from .jaspar import Jaspar
 from .mdmodule import MDmodule
 from .meme import Meme
 from .memew import MemeW
-from .dreme import Dreme
-from .weeder import Weeder
-from .gadem import Gadem
 from .motifsampler import MotifSampler
-from .trawler import Trawler
-from .improbizer import Improbizer
-from .bioprospector import BioProspector
 from .posmo import Posmo
-from .chipmunk import ChIPMunk
-from .jaspar import Jaspar
-from .amd import Amd
-from .hms import Hms
-from .homer import Homer
-from .xxmotif import XXmotif
 from .prosampler import ProSampler
-from .yamda import Yamda
-from .dinamo import Dinamo
 from .rpmcmc import Rpmcmc
+from .trawler import Trawler
+from .weeder import Weeder
+from .xxmotif import XXmotif
+from .yamda import Yamda
 
 logger = logging.getLogger("gimme.tools")
 

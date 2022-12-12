@@ -6,23 +6,23 @@
 """
 Module to compare DNA sequence motifs (positional frequency matrices)
 """
-import os
 import logging
+import os
 from multiprocessing import Pool
 
-from scipy.stats import norm, entropy, chi2_contingency
-from scipy.spatial import distance
 import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.feature_selection import RFE
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.metrics import average_precision_score, roc_auc_score
 import pandas as pd
+from scipy.spatial import distance
+from scipy.stats import chi2_contingency, entropy, norm
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import average_precision_score, roc_auc_score
+from sklearn.model_selection import cross_val_score, train_test_split
 
-from gimmemotifs.config import MotifConfig
 from gimmemotifs.c_metrics import pfmscan, score  # noqa
+from gimmemotifs.config import MotifConfig
 from gimmemotifs.motif import parse_motifs, read_motifs
-from gimmemotifs.utils import pfmfile_location, make_equal_length, ppm_pseudocount
+from gimmemotifs.utils import make_equal_length, pfmfile_location, ppm_pseudocount
 
 RCDB = (
     "AATGCCTGCCTCGCCCATATAAGCATCAAGGCATATTTATTACCGGCCGCATGGAACCTTTCCTCCCAATCGAACAAGTC"

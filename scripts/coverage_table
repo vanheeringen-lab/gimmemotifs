@@ -105,9 +105,7 @@ if __name__ == "__main__":
     yesno = {True: "yes", False: "no"}
 
     output = StringIO()
-    output.write(
-        f"# Table created by coverage_table (GimmeMotifs {__version__})\n"
-    )
+    output.write(f"# Table created by coverage_table (GimmeMotifs {__version__})\n")
     output.write(f"# Input file: {args.peakfile}\n")
     output.write(f"# Data files: {args.datafiles}\n")
     output.write(f"# Window: {args.window}\n")

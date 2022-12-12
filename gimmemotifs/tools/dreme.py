@@ -1,8 +1,9 @@
-from .motifprogram import MotifProgram
 import os
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
 from gimmemotifs.motif import read_motifs
+
+from .motifprogram import MotifProgram
 
 
 class Dreme(MotifProgram):

@@ -5,12 +5,14 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 import logging
-from gimmemotifs.motif import read_motifs
-from gimmemotifs.comparison import MotifComparer
-from gimmemotifs.cluster import cluster_motifs
-from gimmemotifs.config import MotifConfig
 import os
+
 import jinja2
+
+from gimmemotifs.cluster import cluster_motifs
+from gimmemotifs.comparison import MotifComparer
+from gimmemotifs.config import MotifConfig
+from gimmemotifs.motif import read_motifs
 
 logger = logging.getLogger("gimme.cluster")
 

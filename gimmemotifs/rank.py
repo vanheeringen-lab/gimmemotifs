@@ -5,12 +5,13 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Rank aggregation (includes wrapper for R RobustRankAgg)."""
-from tempfile import NamedTemporaryFile
 import subprocess as sp
-import pandas as pd
+from tempfile import NamedTemporaryFile
+
 import numpy as np
-from scipy.stats import rankdata, norm
+import pandas as pd
 from scipy.special import factorial
+from scipy.stats import norm, rankdata
 
 
 def rankagg_R(df, method="stuart"):

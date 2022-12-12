@@ -1,11 +1,12 @@
-from .motifprogram import MotifProgram
 import io
 import os
 import re
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
 
 from gimmemotifs.motif import Motif
+
+from .motifprogram import MotifProgram
 
 
 class Meme(MotifProgram):

@@ -8,12 +8,13 @@ Command line tool 'location'.
 
 Creates a histogram of motif matches relative to sequence center.
 """
+import os
+from multiprocessing import Pool
+
+from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import motif_localization
-from multiprocessing import Pool
-from gimmemotifs.config import MotifConfig
-import os
 
 
 def location(args):

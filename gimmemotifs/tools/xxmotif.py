@@ -1,6 +1,7 @@
-from .motifprogram import MotifProgram
 import os
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
+
+from .motifprogram import MotifProgram
 
 
 class XXmotif(MotifProgram):

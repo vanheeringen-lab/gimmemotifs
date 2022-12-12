@@ -1,10 +1,11 @@
-from .motifprogram import MotifProgram
 import os
 import re
 import shutil
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
 from gimmemotifs.motif import Motif
+
+from .motifprogram import MotifProgram
 
 
 class Amd(MotifProgram):
