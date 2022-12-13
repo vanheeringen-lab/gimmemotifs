@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - typo in `gimme motifs` output ("%matches background" to "% matches background")
 - `Scanner` now uses a cheaper method to determine a genome's identity 
   - (filesize + name instead of the md5sum of the whole genome's contents)
+- `gimme motifs` gives an informative error when `fraction` is not within 0-1.
 
 ## [0.17.2] - 2022-10-12
 

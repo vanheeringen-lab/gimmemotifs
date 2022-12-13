@@ -165,7 +165,10 @@ def cli(sys_args):
         "-f",
         "--fraction",
         dest="fraction",
-        help=f"Fraction of peaks to use for motif predicton ({params['fraction']})",
+        help=(
+            f"Fraction of peaks to use for motif prediction set ({params['fraction']})."
+            "The rest is used as validation set."
+        ),
         metavar="FRACTION",
         default=params["fraction"],
         type=float,

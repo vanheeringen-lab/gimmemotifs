@@ -602,6 +602,9 @@ def gimme_motifs(
         logger.info("using original size")
 
     # Create the necessary files for motif prediction and validation
+    if not 0 < float(params["fraction"]) < 1:
+        logger.error("Please specify a fraction between 0 and 1")
+        sys.exit(1)
     if input_type == "bed":
         logger.info("preparing input from BED")
         prepare_denovo_input_bed(inputfile, params, tmpdir)
