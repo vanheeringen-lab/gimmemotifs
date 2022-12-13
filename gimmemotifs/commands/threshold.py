@@ -23,7 +23,8 @@ def threshold(args):
 
     s = Scanner()
     s.set_motifs(args.pfmfile)
-    s.set_threshold(args.fpr, filename=args.inputfile)
+    s.set_background(fname=args.inputfile)
+    s.set_threshold(args.fpr)
 
     print("Motif\tScore\tCutoff")
     for motif in motifs:
