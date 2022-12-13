@@ -14,7 +14,7 @@ from urllib.request import urlopen
 import pandas as pd
 from pybedtools import BedTool
 
-from gimmemotifs.denovo import gimme_motifs
+from gimmemotifs.motif.denovo import gimme_motifs
 
 
 def obtain_bed(href):

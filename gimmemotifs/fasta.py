@@ -24,7 +24,7 @@ class Fasta(object):
             with open(fname, "r") as f:
                 c = f.read()
             if not (c.startswith(">")):
-                raise IOError("Not a valid FASTA file")
+                raise IOError(f"Not a valid FASTA file: {fname}")
 
             for seq in re.split(r"\r?\n>", c[1:]):
                 if len(seq) > 1:
@@ -35,7 +35,7 @@ class Fasta(object):
                     self.ids.append(seq_name)
                     sequence = "".join(lines[1:])
                     if p.match(sequence):
-                        raise IOError("Not a valid FASTA file")
+                        raise IOError(f"Not a valid FASTA file: {fname}")
                     self.seqs.append(sequence)
         elif fdict is not None:
             for name, seq in fdict.items():

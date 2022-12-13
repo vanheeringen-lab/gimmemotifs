@@ -13,7 +13,7 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from matplotlib.colors import Normalize, rgb2hex, to_hex
+from matplotlib.colors import Normalize, to_hex
 from matplotlib.gridspec import GridSpec
 from mpl_toolkits.axes_grid1 import ImageGrid
 from PIL import Image
@@ -45,12 +45,13 @@ def axes_off(ax):
     ax.axes.get_xaxis().set_visible(False)
 
 
-def background_gradient(s, m, M, cmap="RdBu_r", low=0, high=0):
-    rng = M - m
-    norm = Normalize(m - (rng * low), M + (rng * high))
-    normed = norm(s.values)
-    c = [rgb2hex(x) for x in plt.cm.get_cmap(cmap)(normed)]
-    return [f"background-color: {color}" for color in c]
+# from matplotlib.colors import Normalize, rgb2hex
+# def background_gradient(s, m, M, cmap="RdBu_r", low=0, high=0):
+#     rng = M - m
+#     norm = Normalize(m - (rng * low), M + (rng * high))
+#     normed = norm(s.values)
+#     c = [rgb2hex(x) for x in plt.cm.get_cmap(cmap)(normed)]
+#     return [f"background-color: {color}" for color in c]
 
 
 def roc_plot(outfile, plot_x, plot_y, ids=None):

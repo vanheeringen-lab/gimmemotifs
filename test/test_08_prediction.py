@@ -1,8 +1,9 @@
-import unittest
-import tempfile
 import os
-from gimmemotifs.prediction import PredictionResult
+import tempfile
+import unittest
+
 from gimmemotifs.motif import read_motifs
+from gimmemotifs.motif.prediction import PredictionResult
 
 
 class TestStats(unittest.TestCase):

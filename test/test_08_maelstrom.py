@@ -1,6 +1,7 @@
-import unittest
 import os
+import unittest
 from glob import glob
+
 import pandas as pd
 
 from gimmemotifs.maelstrom import run_maelstrom

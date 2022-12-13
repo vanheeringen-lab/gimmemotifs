@@ -1,4 +1,5 @@
 import unittest
+
 from gimmemotifs.c_metrics import score  # noqa
 from gimmemotifs.rocmetrics import pr_auc
 

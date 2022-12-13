@@ -18,8 +18,7 @@ from tqdm.auto import tqdm
 
 from gimmemotifs.background import create_background_file
 from gimmemotifs.comparison import MotifComparer, select_nonredundant_motifs
-from gimmemotifs.denovo import gimme_motifs
-from gimmemotifs.motif import read_motifs
+from gimmemotifs.motif import gimme_motifs, read_motifs
 from gimmemotifs.report import roc_html_report
 from gimmemotifs.scanner import scan_to_file
 from gimmemotifs.stats import calc_stats_iterator

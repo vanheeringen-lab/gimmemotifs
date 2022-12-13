@@ -1,8 +1,9 @@
+import os
 import unittest
 from tempfile import NamedTemporaryFile
-import os
-from gimmemotifs.motif import read_motifs
+
 from gimmemotifs.fasta import Fasta
+from gimmemotifs.motif import read_motifs
 
 
 class TestMotifPwm(unittest.TestCase):

@@ -1,6 +1,8 @@
-from gimmemotifs.fasta import Fasta
 import tempfile
+
 import pytest
+
+from gimmemotifs.fasta import Fasta
 
 
 @pytest.fixture()

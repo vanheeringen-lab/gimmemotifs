@@ -1,9 +1,11 @@
-import unittest
-import tempfile
 import os
-from gimmemotifs.background import matched_gc_bedfile
-from pybedtools import BedTool
+import tempfile
+import unittest
+
 import numpy as np
+from pybedtools import BedTool
+
+from gimmemotifs.background import matched_gc_bedfile
 
 
 class TestBackground(unittest.TestCase):

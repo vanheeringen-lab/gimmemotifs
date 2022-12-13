@@ -11,6 +11,8 @@ Examples
 run_maelstrom(input, "hg38", outdir)
 mr = MaelstromResult(outdir)
 """
+__all__ = ["run_maelstrom", "MaelstromResult", "visualize_maelstrom", "moap", "Moap"]
+
 import glob
 import logging
 import os
@@ -31,10 +33,10 @@ from scipy.stats import pearsonr
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.preprocessing import scale
 
-from gimmemotifs.config import DIRECT_NAME, INDIRECT_NAME, MotifConfig
-from gimmemotifs.moap import Moap, moap
+from gimmemotifs.config import MotifConfig
+from gimmemotifs.maelstrom.moap import Moap, moap
+from gimmemotifs.maelstrom.rank import rankagg
 from gimmemotifs.motif import read_motifs
-from gimmemotifs.rank import rankagg
 from gimmemotifs.report import maelstrom_html_report
 from gimmemotifs.scanner import scan_regionfile_to_table
 from gimmemotifs.utils import join_max, pfmfile_location
@@ -42,160 +44,7 @@ from gimmemotifs.utils import join_max, pfmfile_location
 logger = logging.getLogger("gimme.maelstrom")
 sns.set_style("white")
 
-BG_LENGTH = 200
-BG_NUMBER = 10000
 FPR = 0.01
-
-
-def moap_with_bg(
-    input_table, genome, data_dir, method, scoring, pfmfile=None, ncpus=None
-):
-    outfile = os.path.join(data_dir, f"activity.{method}.{scoring}.out.txt")
-
-    moap(
-        input_table,
-        outfile=outfile,
-        pfmfile=pfmfile,
-        genome=genome,
-        method=method,
-        scoring=scoring,
-        fpr=FPR,
-        ncpus=ncpus,
-    )
-
-
-def moap_with_table(input_table, motif_table, data_dir, method, scoring, ncpus=None):
-    outfile = os.path.join(data_dir, f"activity.{method}.{scoring}.out.txt")
-
-    moap(
-        input_table,
-        outfile=outfile,
-        method=method,
-        scoring=scoring,
-        motiffile=motif_table,
-        fpr=FPR,
-        ncpus=ncpus,
-    )
-
-
-def safe_join(df1, df2):
-    tmp = df1.copy()
-    tmp["_safe_count"] = list(range(df1.shape[0]))
-    return tmp.join(df2).sort_values("_safe_count").drop("_safe_count", 1)
-
-
-def visualize_maelstrom(outdir, sig_cutoff=3, pfmfile=None):
-
-    config = MotifConfig()
-    if pfmfile is None:
-        pfmfile = config.get_default_params().get("motif_db", None)
-        pfmfile = os.path.join(config.get_motif_dir(), pfmfile)
-
-    mapfile = pfmfile.replace(".pwm", ".motif2factors.txt")
-    if os.path.exists(mapfile):
-
-        m2f = pd.read_csv(
-            mapfile, sep="\t", names=["motif", "factors"], index_col=0, comment="#"
-        )
-        m2f["factors"] = m2f["factors"].str[:50]
-    else:
-        motifs = [m.id for m in read_motifs(pfmfile)]
-        m2f = pd.DataFrame({"factors": motifs}, index=motifs)
-
-    sig_fname = os.path.join(outdir, "final.out.txt")
-    df_sig = pd.read_table(sig_fname, index_col=0, comment="#")
-    f = np.any(df_sig >= sig_cutoff, 1)
-    vis = df_sig[f]
-    if vis.shape[0] == 0:
-        logger.info("No motifs reach the threshold, skipping visualization.")
-        return
-
-    # cluster rows
-    row_linkage = hierarchy.linkage(pdist(vis, metric="euclidean"), method="complete")
-    idx = hierarchy.leaves_list(row_linkage)
-
-    plt.figure()
-
-    vis = safe_join(vis, m2f).set_index("factors")
-
-    # size of figure
-    size = [2 + vis.shape[1] * 0.4, 1.8 + vis.shape[0] * 0.3]
-
-    cg = sns.heatmap(
-        vis.iloc[idx],
-        cmap="viridis",
-        yticklabels=True,
-        cbar_kws={"orientation": "horizontal"},
-    )
-    _ = plt.setp(cg.yaxis.get_majorticklabels(), rotation=0)
-    plt.title("Motif Relevance")
-    plt.tight_layout()
-    plt.savefig(os.path.join(outdir, "motif.relevance.png"), dpi=300)
-
-    freq_fname = os.path.join(outdir, "motif.freq.txt")
-    if os.path.exists(freq_fname):
-        df_freq = pd.read_table(freq_fname, index_col=0, comment="#")
-        df_freq = df_freq.T
-        vis_freq = df_freq.loc[vis.iloc[idx].index]
-        vis_freq = safe_join(vis_freq, m2f).set_index("factors")
-        plt.figure(figsize=size)
-        cg = sns.heatmap(
-            vis_freq,
-            cmap="viridis",
-            yticklabels=True,
-            vmin=0,
-            vmax=0.2,
-            cbar_kws={"orientation": "horizontal"},
-        )
-        # idx = cg.dendrogram_row.reordered_ind
-        _ = plt.setp(cg.yaxis.get_majorticklabels(), rotation=0)
-        plt.title("Motif Frequency")
-        plt.tight_layout()
-        plt.savefig(os.path.join(outdir, "motif.frequency.png"), dpi=300)
-
-        plt.figure(figsize=size)
-
-        bla = vis_freq.min(1)
-        bla[bla < 0.01] = 0.01
-
-        cg = sns.heatmap(
-            np.log2(vis_freq.apply(lambda x: x / bla, 0)),
-            yticklabels=True,
-            vmin=-5,
-            vmax=5,
-            cbar_kws={"orientation": "horizontal"},
-        )
-        # idx = cg.dendrogram_row.reordered_ind
-        _ = plt.setp(cg.yaxis.get_majorticklabels(), rotation=0)
-        plt.title("Motif Enrichment")
-        plt.tight_layout()
-        plt.savefig(os.path.join(outdir, "motif.enrichment.png"), dpi=300)
-
-
-def df_rank_aggregation(df, dfs, exps, method="int_stouffer"):
-    df_p = pd.DataFrame(index=list(dfs.values())[0].index)
-    names = list(dfs.values())[0].columns
-    dfs = [
-        pd.concat([v[col].rename(k, inplace=True) for k, v in dfs.items()], axis=1)
-        for col in names
-    ]
-    pool = Pool(processes=16)
-    func = partial(rankagg, method=method)
-    ret = pool.map(func, dfs)
-    pool.close()
-    pool.join()
-
-    for name, result in zip(names, ret):
-        df_p[name] = result
-
-    if df.shape[1] != 1:
-        df_p = df_p[df.columns]
-
-    if method == "int_stouffer":
-        df_p.columns = ["z-score " + c for c in df_p.columns]
-    else:
-        df_p.columns = ["activity " + c for c in df_p.columns]
-    return df_p
 
 
 def run_maelstrom(
@@ -491,11 +340,11 @@ def run_maelstrom(
     for method, scoring, fname in exps:
         try:
             if scoring == "count":
-                moap_with_table(
+                _moap_with_table(
                     fname, count_table, outdir, method, scoring, ncpus=ncpus
                 )
             elif scoring == "score":
-                moap_with_table(
+                _moap_with_table(
                     fname, score_table, outdir, method, scoring, ncpus=ncpus
                 )
 
@@ -515,7 +364,7 @@ def run_maelstrom(
 
     if len(methods) > 1:
         logger.info("Rank aggregation")
-        df_p = df_rank_aggregation(df, dfs, exps, method=aggregation)
+        df_p = _df_rank_aggregation(df, dfs, exps, method=aggregation)
 
         # Add percentage of input sequences with motif
         if df.shape[1] > 1:
@@ -559,12 +408,155 @@ def run_maelstrom(
         logger.info(os.path.join(outdir, "gimme.maelstrom.report.html"))
 
 
-def _get_factor_list(motif, indirect=False):
-    factor_list = motif.factors[DIRECT_NAME]
-    if indirect:
-        factor_list += motif.factors[INDIRECT_NAME]
+def _moap_with_bg(
+    input_table, genome, data_dir, method, scoring, pfmfile=None, ncpus=None
+):
+    outfile = os.path.join(data_dir, f"activity.{method}.{scoring}.out.txt")
 
-    return list(set([f.upper() for f in factor_list]))
+    moap(
+        input_table,
+        outfile=outfile,
+        pfmfile=pfmfile,
+        genome=genome,
+        method=method,
+        scoring=scoring,
+        fpr=FPR,
+        ncpus=ncpus,
+    )
+
+
+def _moap_with_table(input_table, motif_table, data_dir, method, scoring, ncpus=None):
+    outfile = os.path.join(data_dir, f"activity.{method}.{scoring}.out.txt")
+
+    moap(
+        input_table,
+        outfile=outfile,
+        method=method,
+        scoring=scoring,
+        motiffile=motif_table,
+        fpr=FPR,
+        ncpus=ncpus,
+    )
+
+
+def _df_rank_aggregation(df, dfs, exps, method="int_stouffer"):
+    df_p = pd.DataFrame(index=list(dfs.values())[0].index)
+    names = list(dfs.values())[0].columns
+    dfs = [
+        pd.concat([v[col].rename(k, inplace=True) for k, v in dfs.items()], axis=1)
+        for col in names
+    ]
+    pool = Pool(processes=16)
+    func = partial(rankagg, method=method)
+    ret = pool.map(func, dfs)
+    pool.close()
+    pool.join()
+
+    for name, result in zip(names, ret):
+        df_p[name] = result
+
+    if df.shape[1] != 1:
+        df_p = df_p[df.columns]
+
+    if method == "int_stouffer":
+        df_p.columns = ["z-score " + c for c in df_p.columns]
+    else:
+        df_p.columns = ["activity " + c for c in df_p.columns]
+    return df_p
+
+
+def visualize_maelstrom(outdir, sig_cutoff=3, pfmfile=None):
+
+    config = MotifConfig()
+    if pfmfile is None:
+        pfmfile = config.get_default_params().get("motif_db", None)
+        pfmfile = os.path.join(config.get_motif_dir(), pfmfile)
+
+    mapfile = pfmfile.replace(".pwm", ".motif2factors.txt")
+    if os.path.exists(mapfile):
+
+        m2f = pd.read_csv(
+            mapfile, sep="\t", names=["motif", "factors"], index_col=0, comment="#"
+        )
+        m2f["factors"] = m2f["factors"].str[:50]
+    else:
+        motifs = [m.id for m in read_motifs(pfmfile)]
+        m2f = pd.DataFrame({"factors": motifs}, index=motifs)
+
+    sig_fname = os.path.join(outdir, "final.out.txt")
+    df_sig = pd.read_table(sig_fname, index_col=0, comment="#")
+    f = np.any(df_sig >= sig_cutoff, 1)
+    vis = df_sig[f]
+    if vis.shape[0] == 0:
+        logger.info("No motifs reach the threshold, skipping visualization.")
+        return
+
+    # cluster rows
+    row_linkage = hierarchy.linkage(pdist(vis, metric="euclidean"), method="complete")
+    idx = hierarchy.leaves_list(row_linkage)
+
+    plt.figure()
+
+    vis = _safe_join(vis, m2f).set_index("factors")
+
+    # size of figure
+    size = [2 + vis.shape[1] * 0.4, 1.8 + vis.shape[0] * 0.3]
+
+    cg = sns.heatmap(
+        vis.iloc[idx],
+        cmap="viridis",
+        yticklabels=True,
+        cbar_kws={"orientation": "horizontal"},
+    )
+    _ = plt.setp(cg.yaxis.get_majorticklabels(), rotation=0)
+    plt.title("Motif Relevance")
+    plt.tight_layout()
+    plt.savefig(os.path.join(outdir, "motif.relevance.png"), dpi=300)
+
+    freq_fname = os.path.join(outdir, "motif.freq.txt")
+    if os.path.exists(freq_fname):
+        df_freq = pd.read_table(freq_fname, index_col=0, comment="#")
+        df_freq = df_freq.T
+        vis_freq = df_freq.loc[vis.iloc[idx].index]
+        vis_freq = _safe_join(vis_freq, m2f).set_index("factors")
+        plt.figure(figsize=size)
+        cg = sns.heatmap(
+            vis_freq,
+            cmap="viridis",
+            yticklabels=True,
+            vmin=0,
+            vmax=0.2,
+            cbar_kws={"orientation": "horizontal"},
+        )
+        # idx = cg.dendrogram_row.reordered_ind
+        _ = plt.setp(cg.yaxis.get_majorticklabels(), rotation=0)
+        plt.title("Motif Frequency")
+        plt.tight_layout()
+        plt.savefig(os.path.join(outdir, "motif.frequency.png"), dpi=300)
+
+        plt.figure(figsize=size)
+
+        bla = vis_freq.min(1)
+        bla[bla < 0.01] = 0.01
+
+        cg = sns.heatmap(
+            np.log2(vis_freq.apply(lambda x: x / bla, 0)),
+            yticklabels=True,
+            vmin=-5,
+            vmax=5,
+            cbar_kws={"orientation": "horizontal"},
+        )
+        # idx = cg.dendrogram_row.reordered_ind
+        _ = plt.setp(cg.yaxis.get_majorticklabels(), rotation=0)
+        plt.title("Motif Enrichment")
+        plt.tight_layout()
+        plt.savefig(os.path.join(outdir, "motif.enrichment.png"), dpi=300)
+
+
+def _safe_join(df1, df2):
+    tmp = df1.copy()
+    tmp["_safe_count"] = list(range(df1.shape[0]))
+    return tmp.join(df2).sort_values("_safe_count").drop("_safe_count", 1)
 
 
 class MaelstromResult:
@@ -835,7 +827,7 @@ class MaelstromResult:
 
         data = pd.melt(self.input.join(data), id_vars=["cluster"])
         data.columns = ["cluster", "motif", "z-score"]
-        g = sns.factorplot(
+        g = sns.catplot(
             data=data, y="motif", x="z-score", hue="cluster", kind="box", aspect=2
         )
         return g

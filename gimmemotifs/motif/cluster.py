@@ -14,7 +14,8 @@ import jinja2
 from gimmemotifs import __version__
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.config import MotifConfig
-from gimmemotifs.motif import Motif, read_motifs
+from gimmemotifs.motif.base import Motif
+from gimmemotifs.motif.read import read_motifs
 
 logger = logging.getLogger("gimme.cluster")
 

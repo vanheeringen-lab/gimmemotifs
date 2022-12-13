@@ -1,6 +1,7 @@
-import unittest
 import os
-from gimmemotifs.moap import moap
+import unittest
+
+from gimmemotifs.maelstrom.moap import moap
 
 
 class TestMoap(unittest.TestCase):

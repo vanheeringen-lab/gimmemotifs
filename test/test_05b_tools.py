@@ -1,9 +1,11 @@
-import platform
 import os
+import platform
+
 import pytest
-from gimmemotifs.tools import __tools__, get_tool
+
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.motif import motif_from_consensus
+from gimmemotifs.tools import __tools__, get_tool
 
 data_dir = "test/data/motifprogram"
 fa = os.path.join("test/data/denovo/input.fa")

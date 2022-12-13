@@ -9,10 +9,11 @@ import os
 
 import jinja2
 
-from gimmemotifs.cluster import cluster_motifs
-from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.config import MotifConfig
 from gimmemotifs.motif import read_motifs
+from gimmemotifs.motif.cluster import cluster_motifs
+
+from gimmemotifs.comparison import MotifComparer  # isort: skip
 
 logger = logging.getLogger("gimme.cluster")
 

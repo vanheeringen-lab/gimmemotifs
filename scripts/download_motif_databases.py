@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from gimmemotifs.db import MotifDb
 
 for dbname in MotifDb.list_databases():

@@ -1,8 +1,9 @@
-import unittest
-import tempfile
 import os
-from gimmemotifs.scanner import Scanner, scan_to_best_match
+import tempfile
+import unittest
+
 from gimmemotifs.fasta import Fasta
+from gimmemotifs.scanner import Scanner, scan_to_best_match
 
 
 class TestScanner(unittest.TestCase):

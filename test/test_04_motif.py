@@ -1,9 +1,10 @@
-from io import StringIO
 import os
-import pytest
-import numpy as np
+from io import StringIO
 
-from gimmemotifs.motif import Motif, read_motifs, motif_from_consensus
+import numpy as np
+import pytest
+
+from gimmemotifs.motif import Motif, motif_from_consensus, read_motifs
 
 
 @pytest.fixture
