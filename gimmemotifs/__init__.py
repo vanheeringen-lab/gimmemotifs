@@ -57,6 +57,7 @@ from . import background       # noqa: F401
 from . import scanner          # noqa: F401
 from . import stats            # noqa: F401
 from . import report           # noqa: F401
+# from . import tools          # not needed in API
 from .motif import denovo      # noqa: F401
 from . import maelstrom        # noqa: F401
 # from . import commands       # not needed in API

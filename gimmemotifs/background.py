@@ -135,7 +135,10 @@ def create_background_file(
                 create_random_genomic_bedfile(outfile, genome, size, number)
 
 
-def create_random_genomic_bedfile(out, genome, size, n):
+def create_random_genomic_bedfile(out, genome, size, n, seed):
+    if seed:
+        # genomepy uses random.random()
+        random.seed(seed)
     features = Genome(genome).get_random_sequences(n, size)
 
     # Write result to bedfile
@@ -372,9 +375,10 @@ def gc_bin_bedfile(
         GC frequency bins to use, for instance [(0,50),(50,100)]
     """
     if bins is None:
-        bins = [(0.0, 0.2), (0.8, 1)]
+        bins = [(0.0, 0.2), (0.8, 1.0)]
         for b in np.arange(0.2, 0.799, 0.05):
-            bins.append((b, b + 0.05))
+            bins.append((round(b, 2), round(b + 0.05, 2)))
+        bins = sorted(bins)
 
     if number < len(bins):
         raise ValueError("Number of sequences requested < number of bins")
@@ -611,7 +615,7 @@ class RandomGenomicFasta(Fasta):
     Returns a Fasta object
     """
 
-    def __init__(self, genome, size=None, n=None):
+    def __init__(self, genome, size=None, n=None, seed=None):
         size = int(size)
 
         # Create temporary files
@@ -619,7 +623,7 @@ class RandomGenomicFasta(Fasta):
         tmpfasta = NamedTemporaryFile(dir=mytmpdir()).name
 
         # Create bed-file with coordinates of random sequences
-        create_random_genomic_bedfile(tmpbed, genome, size, n)
+        create_random_genomic_bedfile(tmpbed, genome, size, n, seed)
 
         # Convert track to fasta
         Genome(genome).track2fasta(tmpbed, fastafile=tmpfasta, stranded=True)
