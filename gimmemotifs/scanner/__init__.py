@@ -72,38 +72,52 @@ def scan_regionfile_to_table(
     ncpus=None,
     zscore=True,
     gc=True,
-    progress=True,
+    random_state=None,
+    progress=None,
 ):
-    """Scan regions in input table with motifs.
+    """Scan regions in input table for motifs.
+    Return a dataframe with the motif count/score per region.
 
     Parameters
     ----------
     input_table : str
-        Filename of input table. Can be either a text-separated tab file or a
-        feather file.
+        Filename of a table with regions as first column. Accepts a feather file.
 
     genome : str
-        Genome name. Can be either the name of a FASTA-formatted file or a
-        genomepy genome name.
+        Genome name. Can be a FASTA file or a genomepy genome name.
 
     scoring : str
-        "count" or "score"
+        "count" or "score".
+        "count" returns the occurrence of each motif (with an FPR threshold of 0.01).
+        "score" returns the best match score of each motif.
 
     pfmfile : str, optional
         Specify a PFM file for scanning (or a list of Motif instances).
 
+    zscore : bool, optional
+        Use z-score normalized motif scores. Only used if scoring="score".
+
+    gc : bool, optional
+        Equally distribute GC percentages in background sequences.
+
     ncpus : int, optional
         If defined this specifies the number of cores to use.
+
+    random_state : numpy.random.RandomState object, optional
+        make predictions deterministic (where possible).
+
+    progress : bool or None, optional
+        provide progress bars for long computations.
 
     Returns
     -------
     table : pandas.DataFrame
-        DataFrame with motif ids as column names and regions as index. Values
-        are either counts or scores depending on the 'scoring' parameter.s
+        DataFrame with motifs as column names and regions as index. Values
+        are either motif counts or best motif match scores per region,
+        depending on the 'scoring' parameter.
     """
-    config = MotifConfig()
-
     if pfmfile is None:
+        config = MotifConfig()
         pfmfile = config.get_default_params().get("motif_db", None)
         if pfmfile is not None:
             pfmfile = os.path.join(config.get_motif_dir(), pfmfile)
@@ -121,14 +135,15 @@ def scan_regionfile_to_table(
 
     regions = list(idx)
     if len(regions) >= 1000:
-        check_regions = np.random.choice(regions, size=1000, replace=False)
+        random = np.random if random_state is None else random_state
+        check_regions = random.choice(regions, size=1000, replace=False)
     else:
         check_regions = regions
 
     size = int(
         np.median([len(seq) for seq in as_fasta(check_regions, genome=genome).seqs])
     )
-    s = Scanner(ncpus=ncpus)
+    s = Scanner(ncpus=ncpus, random_state=random_state, progress=progress)
     s.set_motifs(pfmfile)
     s.set_genome(genome)
     s.set_background(genome=genome, gc=gc, size=size)
@@ -138,7 +153,7 @@ def scan_regionfile_to_table(
         logger.info("setting threshold")
         s.set_threshold(fpr=FPR)
         logger.info("creating count table")
-        for row in s.count(regions, progress=progress):
+        for row in s.count(regions):
             scores.append(row)
         logger.info("done")
     else:
@@ -152,7 +167,7 @@ def scan_regionfile_to_table(
         else:
             msg += " (logodds)"
         logger.info(msg)
-        for row in s.best_score(regions, zscore=zscore, gc=gc, progress=progress):
+        for row in s.best_score(regions, zscore=zscore, gc=gc):
             scores.append(row)
         logger.info("done")
 
@@ -173,22 +188,21 @@ def scan_table(
     motifs,
     nreport,
     scan_rc,
-    progress=True,
 ):
     # header
     yield "\t{}".format("\t".join([m.id for m in motifs]))
     # get iterator
-    result_it = s.count(fa, nreport, scan_rc, progress=progress)
+    result_it = s.count(fa, nreport, scan_rc)
     # counts table
     for i, counts in enumerate(result_it):
         yield "{}\t{}".format(fa.ids[i], "\t".join([str(x) for x in counts]))
 
 
-def scan_score_table(s, fa, motifs, scan_rc, zscore=False, gcnorm=False, progress=True):
+def scan_score_table(s, fa, motifs, scan_rc, zscore=False, gcnorm=False):
 
     s.set_threshold(threshold=0.0, gc=gcnorm)
     # get iterator
-    result_it = s.best_score(fa, scan_rc, zscore=zscore, gc=gcnorm, progress=progress)
+    result_it = s.best_score(fa, scan_rc, zscore=zscore, gc=gcnorm)
     # header
     yield "\t{}".format("\t".join([m.id for m in motifs]))
     # score table
@@ -205,9 +219,8 @@ def scan_normal(
     bed,
     zscore,
     gcnorm,
-    progress=True,
 ):
-    result_it = s.scan(fa, nreport, scan_rc, zscore, gc=gcnorm, progress=progress)
+    result_it = s.scan(fa, nreport, scan_rc, zscore, gc=gcnorm)
     for i, result in enumerate(result_it):
         seq_id = fa.ids[i]
         seq = fa[seq_id]
@@ -231,18 +244,19 @@ def command_scan(
     ncpus=None,
     zscore=False,
     gcnorm=False,
-    progress=True,
+    random_state=None,
+    progress=None,
 ):
     motifs = read_motifs(pfmfile)
 
     fa = as_fasta(inputfile, genome)
 
     # initialize scanner
-    s = Scanner(ncpus=ncpus)
+    s = Scanner(ncpus=ncpus, random_state=random_state, progress=progress)
     s.set_motifs(pfmfile)
 
     if genome:
-        s.set_genome(genome=genome)
+        s.set_genome(genome)
 
     if genome:
         s.set_background(
@@ -255,18 +269,9 @@ def command_scan(
         s.set_threshold(fpr=fpr, threshold=cutoff)
 
     if table:
-        it = scan_table(
-            s,
-            fa,
-            motifs,
-            nreport,
-            scan_rc,
-            progress=progress,
-        )
+        it = scan_table(s, fa, motifs, nreport, scan_rc)
     elif score_table:
-        it = scan_score_table(
-            s, fa, motifs, scan_rc, zscore=zscore, gcnorm=gcnorm, progress=progress
-        )
+        it = scan_score_table(s, fa, motifs, scan_rc, zscore, gcnorm)
     else:
         it = scan_normal(
             s,
@@ -275,9 +280,8 @@ def command_scan(
             nreport,
             scan_rc,
             bed,
-            zscore=zscore,
-            gcnorm=gcnorm,
-            progress=progress,
+            zscore,
+            gcnorm,
         )
 
     for row in it:
@@ -300,9 +304,66 @@ def scan_to_file(
     ncpus=None,
     zscore=True,
     gcnorm=True,
-    progress=True,
+    random_state=None,
+    progress=None,
 ):
-    """Scan an inputfile with motifs."""
+    """Scan file for motifs.
+
+    Parameters
+    ----------
+    inputfile : str
+        path to FASTA, BED or regions file.
+
+    pfmfile : str or list, optional
+        Specify a PFM file for scanning (or a list of Motif instances).
+
+    filepath_or_buffer : Any, optional
+        where to write the output. If unspecified, writes to stdout.
+
+    nreport : int , optional
+        Maximum number of matches to report.
+
+    fpr : float, optional
+        Desired false positive rate, between 0.0 and 1.0.
+
+    cutoff : float , optional
+        Cutoff to use for motif scanning. This cutoff is not specifically
+        optimized and the strictness will vary a lot with motif length.
+
+    scan_rc : bool , optional
+        Scan the reverse complement. default: True.
+
+    table : bool, optional
+        output motif counts in tabular format
+
+    score_table : bool, optional
+        output motif scores in tabular format
+
+    bed : bool, optional
+        outputs BED6 format, instead of GTF/GFF format (default).
+
+    bgfile : str, optional
+        FASTA file to use as background sequences. Required if no genome is given.
+
+    genome : str, optional
+        Genome name. Can be either the name of a FASTA-formatted file or a
+        genomepy genome name. Required if no bgfile is given.
+
+    zscore : bool, optional
+        Use z-score normalized motif scores.
+
+    gcnorm : bool, optional
+        Equally distribute GC percentages in background sequences.
+
+    ncpus : int, optional
+        If defined this specifies the number of cores to use.
+
+    random_state : numpy.random.RandomState object, optional
+        make predictions deterministic (where possible).
+
+    progress : bool or None, optional
+        provide progress bars for long computations.
+    """
     should_close = False
     if filepath_or_buffer is None:
         #  write to stdout
@@ -353,6 +414,7 @@ def scan_to_file(
         ncpus=ncpus,
         zscore=zscore,
         gcnorm=gcnorm,
+        random_state=random_state,
         progress=progress,
     ):
         print(line, file=fo)
@@ -372,27 +434,49 @@ def scan_to_best_match(
     score=False,
     zscore=False,
     gc=False,
-    progress=True,
+    random_state=None,
+    progress=None,
 ):
-    """Scan a FASTA file with motifs.
-
-    Scan a FASTA file and return a dictionary with the best match per motif.
+    """Scan a FASTA file for motifs.
+    Return a dictionary with the best match per motif.
 
     Parameters
     ----------
-    fname : str
+    fname : str or Fasta
         Filename of a sequence file in FASTA format.
 
-    motifs : list
-        List of motif instances.
+    motifs : str or list, optional
+        Specify a PFM file for scanning (or a list of Motif instances).
+
+    genome : str
+        Genome name. Can be either the name of a FASTA-formatted file or a
+        genomepy genome name.
+
+    score : bool, optional
+        return the best score instead of the best match
+
+    zscore : bool, optional
+        Use z-score normalized motif scores.
+
+    gc : bool, optional
+        Equally distribute GC percentages in background sequences.
+
+    ncpus : int, optional
+        If defined this specifies the number of cores to use.
+
+    random_state : numpy.random.RandomState object, optional
+        make predictions deterministic (where possible).
+
+    progress : bool or None, optional
+        provide progress bars for long computations.
 
     Returns
     -------
     result : dict
-        Dictionary with motif scanning results.
+        Dictionary with motif as key and best score/match as values.
     """
     # Initialize scanner
-    s = Scanner(ncpus=ncpus)
+    s = Scanner(ncpus=ncpus, random_state=random_state, progress=progress)
     s.set_motifs(motifs)
     s.set_threshold(threshold=0.0)
     if genome:
@@ -404,9 +488,9 @@ def scan_to_best_match(
     logger.debug(f"scanning {fname}...")
     result = dict([(m.id, []) for m in motifs])
     if score:
-        it = s.best_score(fname, zscore=zscore, gc=gc, progress=progress)
+        it = s.best_score(fname, zscore=zscore, gc=gc)
     else:
-        it = s.best_match(fname, zscore=zscore, gc=gc, progress=progress)
+        it = s.best_match(fname, zscore=zscore, gc=gc)
     for scores in it:
         for motif, score in zip(motifs, scores):
             result[motif.id].append(score)
