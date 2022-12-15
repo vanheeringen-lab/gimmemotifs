@@ -54,7 +54,7 @@ from gimmemotifs.utils import (
 logger = logging.getLogger("gimme.denovo")
 
 
-def prepare_denovo_input_narrowpeak(inputfile, params, outdir):
+def prepare_denovo_input_narrowpeak(inputfile, params, outdir, random_state=None):
     """Prepare a narrowPeak file for de novo motif prediction.
 
     All regions to same size; split in test and validation set;
@@ -75,10 +75,10 @@ def prepare_denovo_input_narrowpeak(inputfile, params, outdir):
     size = int(params["size"])
     narrowpeak_to_bed(inputfile, bedfile, size=size)
 
-    prepare_denovo_input_bed(bedfile, params, outdir)
+    prepare_denovo_input_bed(bedfile, params, outdir, random_state)
 
 
-def prepare_denovo_input_bed(inputfile, params, outdir):
+def prepare_denovo_input_bed(inputfile, params, outdir, random_state=None):
     """Prepare a BED file for de novo motif prediction.
 
     All regions to same size; split in test and validation set;
@@ -127,7 +127,7 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
         f"Splitting {bedfile} into prediction set ({pred_bed}) "
         f"and validation set ({val_bed})"
     )
-    divide_file(bedfile, pred_bed, val_bed, fraction, abs_max)
+    divide_file(bedfile, pred_bed, val_bed, fraction, abs_max, random_state)
 
     # convert BED files to FASTA files
     genome = Genome(params["genome"])
@@ -146,7 +146,7 @@ def prepare_denovo_input_bed(inputfile, params, outdir):
     )
 
 
-def prepare_denovo_input_fa(inputfile, params, outdir):
+def prepare_denovo_input_fa(inputfile, params, outdir, random_state=None):
     """Create all the FASTA files for de novo motif prediction and validation.
 
     Parameters
@@ -175,7 +175,7 @@ def prepare_denovo_input_fa(inputfile, params, outdir):
         f"Splitting {inputfile} into prediction set ({pred_fa}) "
         f"and validation set ({val_fa})"
     )
-    divide_fa_file(inputfile, pred_fa, val_fa, fraction, abs_max)
+    divide_fa_file(inputfile, pred_fa, val_fa, fraction, abs_max, random_state)
 
     # Create localization set for location plots
     shutil.copy(val_fa, loc_fa)
@@ -197,6 +197,7 @@ def create_background(
     size=200,
     nr_times=10,
     custom_background=None,
+    random_state=None,
 ):
     """Create background of a specific type.
 
@@ -226,6 +227,9 @@ def create_background(
     nr_seqs  : int
         Number of sequences created.
     """
+    seed = None
+    if random_state:
+        seed = random_state.get_state()[1][0]
     size = int(size)
     config = MotifConfig()
     fg = Fasta(fafile)
@@ -236,14 +240,16 @@ def create_background(
             sys.exit(1)
 
     if bg_type == "random":
-        f = MarkovFasta(fg, k=1, n=nr_times * len(fg))
+        f = MarkovFasta(fg, k=1, n=nr_times * len(fg), random_state=random_state)
         logger.debug(f"Random background: {outfile}")
     elif bg_type == "genomic":
         logger.debug("Creating genomic background")
-        f = RandomGenomicFasta(genome, size, nr_times * len(fg))
+        f = RandomGenomicFasta(genome, size, nr_times * len(fg), seed=seed)
     elif bg_type == "gc":
         logger.debug("Creating GC matched background")
-        f = MatchedGcFasta(fafile, genome, nr_times * len(fg))
+        f = MatchedGcFasta(
+            fafile, genome, nr_times * len(fg), random_state=random_state
+        )
         logger.debug(f"GC matched background: {outfile}")
     elif bg_type == "promoter":
         fname = Genome(genome).filename
@@ -262,7 +268,9 @@ def create_background(
         logger.info(
             f"Creating random promoter background ({genome}, using genes in {gene_file})"
         )
-        f = PromoterFasta(gene_file, genome, size, nr_times * len(fg))
+        f = PromoterFasta(
+            gene_file, genome, size, nr_times * len(fg), random_state=random_state
+        )
         logger.debug(f"Random promoter background: {outfile}")
     elif bg_type == "custom":
         bg_file = custom_background
@@ -290,7 +298,12 @@ def create_background(
 
 
 def create_backgrounds(
-    outdir, background=None, genome="hg38", size=200, custom_background=None
+    outdir,
+    background=None,
+    genome="hg38",
+    size=200,
+    custom_background=None,
+    random_state=None,
 ):
     """Create different backgrounds for motif prediction and validation.
 
@@ -330,6 +343,7 @@ def create_backgrounds(
         genome=genome,
         size=size,
         custom_background=custom_background,
+        random_state=random_state,
     )
 
     # Get background fasta files for statistics
@@ -344,6 +358,7 @@ def create_backgrounds(
             genome=genome,
             size=size,
             custom_background=custom_background,
+            random_state=random_state,
         )
 
         bg_info[bg] = fname
@@ -529,6 +544,7 @@ def gimme_motifs(
     filter_significant=True,
     cluster=True,
     create_report=True,
+    random_state=None,
 ):
     """De novo motif prediction based on an ensemble of different tools.
 
@@ -607,13 +623,13 @@ def gimme_motifs(
         sys.exit(1)
     if input_type == "bed":
         logger.info("preparing input from BED")
-        prepare_denovo_input_bed(inputfile, params, tmpdir)
+        prepare_denovo_input_bed(inputfile, params, tmpdir, random_state)
     elif input_type == "narrowpeak":
         logger.info("preparing input from narrowPeak")
-        prepare_denovo_input_narrowpeak(inputfile, params, tmpdir)
+        prepare_denovo_input_narrowpeak(inputfile, params, tmpdir, random_state)
     elif input_type == "fasta":
         logger.info("preparing input from FASTA")
-        prepare_denovo_input_fa(inputfile, params, tmpdir)
+        prepare_denovo_input_fa(inputfile, params, tmpdir, random_state)
     else:
         logger.error("unknown input file format!")
         sys.exit(1)
@@ -625,6 +641,7 @@ def gimme_motifs(
         params.get("genome", None),
         params["size"],
         params.get("custom_background", None),
+        random_state=random_state,
     )
 
     # Predict de novo motifs

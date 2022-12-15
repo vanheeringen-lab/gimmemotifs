@@ -116,6 +116,13 @@ def cli(sys_args):
         type=int,
         default=int(params["ncpus"]),
     )
+    p.add_argument(
+        "--seed",
+        help="random seed",
+        metavar="INT",
+        type=int,
+        default=None,
+    )
 
     # Specific arguments for known motifs
     known_grp = p.add_argument_group(title="optional arguments for known motifs")

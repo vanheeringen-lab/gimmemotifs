@@ -855,7 +855,12 @@ class MotifComparer(object):
 
 
 def select_nonredundant_motifs(
-    roc_report, pfmfile, fg_table, bg_table, tolerance=0.001
+    roc_report,
+    pfmfile,
+    fg_table,
+    bg_table,
+    tolerance=0.001,
+    random_state=None,
 ):
     pfmfile = pfmfile_location(pfmfile)
     motifs = read_motifs(pfmfile)
@@ -902,12 +907,14 @@ def select_nonredundant_motifs(
         X,
         y,
         test_size=0.4,
-        random_state=2,
+        random_state=random_state,
         shuffle=True,
     )
 
     X_bla = X_train[keep]
-    model = LogisticRegression(solver="liblinear", max_iter=500, penalty="l1")
+    model = LogisticRegression(
+        solver="liblinear", max_iter=500, penalty="l1", random_state=random_state
+    )
     # = RandomForestClassifier(n_estimators=100)
     max_score = np.mean(
         cross_val_score(model, X_bla, y_train, cv=5, scoring="average_precision")

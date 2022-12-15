@@ -125,11 +125,13 @@ def get_jaspar_motif_info(motif_id):
 #     return np.sum(pvalues)
 
 
-def divide_file(fname, sample, rest, fraction, abs_max):
+def divide_file(fname, sample, rest, fraction, abs_max, random_state=None):
     with open(fname) as f:
         lines = f.readlines()
-    # random.seed()
-    random.shuffle(lines)
+    if random_state:
+        random_state.shuffle(lines)
+    else:
+        random.shuffle(lines)
 
     x = int(fraction * len(lines))
     if x > abs_max:
@@ -164,7 +166,7 @@ def divide_file(fname, sample, rest, fraction, abs_max):
     return x, len(lines[x:])
 
 
-def divide_fa_file(fname, sample, rest, fraction, abs_max):
+def divide_fa_file(fname, sample, rest, fraction, abs_max, random_state=None):
     fa = Fasta(fname)
     ids = fa.ids[:]
 
@@ -172,6 +174,8 @@ def divide_fa_file(fname, sample, rest, fraction, abs_max):
     if x > abs_max:
         x = abs_max
 
+    if random_state:
+        random.seed(random_state.get_state()[1][0])
     sample_seqs = random.sample(ids, x)
 
     # Rest

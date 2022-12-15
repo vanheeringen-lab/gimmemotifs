@@ -34,7 +34,14 @@ logger = logging.getLogger("gimme.background")
 
 
 def create_background_file(
-    outfile, bg_type, fmt="fasta", size=None, genome=None, inputfile=None, number=10000
+    outfile,
+    bg_type,
+    fmt="fasta",
+    size=None,
+    genome=None,
+    inputfile=None,
+    number=10000,
+    random_state=None,
 ):
     """
     Create a background file for motif analysis.
@@ -54,6 +61,10 @@ def create_background_file(
     inputfile : str, optional
     number : int, optional
     """
+    seed = None
+    if random_state:
+        seed = random_state.get_state()[1][0]
+
     fmt = fmt.lower()
     if fmt in ["fa", "fsa"]:
         fmt = "fasta"
@@ -80,6 +91,7 @@ def create_background_file(
             sys.exit(1)
         Genome(genome)
 
+    gene_file = None
     if bg_type in ["promoter"]:
         # Gene definition
         gene_file = Genome(genome).annotation_bed_file
@@ -101,21 +113,21 @@ def create_background_file(
             number = number_of_seqs_in_file(inputfile)
             logger.info(f"Using {number} background sequences based on input file")
         else:
-            number = 10000
+            number = 10_000
             logger.info(
-                "Number of background sequences not specified, using 10,000 sequences"
+                "Number of background sequences not specified, using 10.000 sequences"
             )
 
     if bg_type == "random":
         f = Fasta(inputfile)
-        m = MarkovFasta(f, n=number, k=1)
+        m = MarkovFasta(f, n=number, k=1, random_state=random_state)
         m.writefasta(outfile)
     elif bg_type == "gc":
         if fmt == "fasta":
-            m = MatchedGcFasta(inputfile, genome, number=number, size=size)
+            m = MatchedGcFasta(inputfile, genome, number, size, random_state)
             m.writefasta(outfile)
         else:
-            matched_gc_bedfile(outfile, inputfile, genome, number, size=size)
+            matched_gc_bedfile(outfile, inputfile, genome, number, size, random_state)
     else:
         if size is None:
             size = np.median(
@@ -123,16 +135,16 @@ def create_background_file(
             )
         if bg_type == "promoter":
             if fmt == "fasta":
-                m = PromoterFasta(gene_file, genome, size=size, n=number)
+                m = PromoterFasta(gene_file, genome, size, number, random_state)
                 m.writefasta(outfile)
             else:
-                create_promoter_bedfile(outfile, gene_file, size, number)
+                create_promoter_bedfile(outfile, gene_file, size, number, random_state)
         elif bg_type == "genomic":
             if fmt == "fasta":
-                m = RandomGenomicFasta(genome, size, number)
+                m = RandomGenomicFasta(genome, size, number, seed)
                 m.writefasta(outfile)
             else:
-                create_random_genomic_bedfile(outfile, genome, size, number)
+                create_random_genomic_bedfile(outfile, genome, size, number, seed)
 
 
 def create_random_genomic_bedfile(out, genome, size, n, seed):
@@ -147,7 +159,7 @@ def create_random_genomic_bedfile(out, genome, size, n, seed):
             f.write(f"{chrom}\t{start}\t{end}\n")
 
 
-def create_promoter_bedfile(out, genefile, size, n):
+def create_promoter_bedfile(out, genefile, size, n, random_state=None):
     strand_map = {"+": True, "-": False, 1: True, -1: False, "1": True, "-1": False}
 
     features = []
@@ -169,6 +181,8 @@ def create_promoter_bedfile(out, genefile, size, n):
     fin.close()
 
     if n < len(features):
+        if random_state:
+            random.seed(random_state.get_state()[1][0])
         features = random.sample(features, n)
     else:
         logger.info(
@@ -204,8 +218,11 @@ class MarkovFasta(Fasta):
 
     """
 
-    def __init__(self, fasta, size=None, n=None, k=1, matrix_only=False):
+    def __init__(
+        self, fasta, size=None, n=None, k=1, matrix_only=False, random_state=None
+    ):
         self.k = k
+        self.random_state = random_state
 
         # Initialize super Fasta object
         Fasta.__init__(self)
@@ -289,7 +306,10 @@ class MarkovFasta(Fasta):
         return "".join(sequence)
 
     def _weighted_random(self, weighted_list):
-        n = random.uniform(0, 1)
+        uniform = random.uniform
+        if self.random_state:
+            uniform = self.random_state.uniform
+        n = uniform(0, 1)
         item = None
         for item, weight in weighted_list:  # noqa: B007
             if n < weight:
@@ -433,7 +453,9 @@ def gc_bin_bedfile(
                 )
 
 
-def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_size=100):
+def matched_gc_bedfile(
+    bedfile, matchfile, genome, number, size=None, random_state=None, min_bin_size=100
+):
     """Create a BED file with GC% matched to input file.
 
     Parameters
@@ -516,7 +538,7 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
             nseqs,
             length=size,
             bins=bins,
-            random_state=None,
+            random_state=random_state,
             min_bin_size=min_bin_size,
         )
         df = pd.read_csv(tmp.name, sep="\t", names=["chrom", "start", "end", "bin"])
@@ -529,9 +551,9 @@ def matched_gc_bedfile(bedfile, matchfile, genome, number, size=None, min_bin_si
                 continue
             # print(b_start, b_end, n)
             b = f"{b_start:.2f}-{b_end:.2f}"
-            df.loc[df["bin"] == b, ["chrom", "start", "end"]].sample(n).to_csv(
-                f, sep="\t", header=False, index=False
-            )
+            df.loc[df["bin"] == b, ["chrom", "start", "end"]].sample(
+                n, random_state=random_state
+            ).to_csv(f, sep="\t", header=False, index=False)
 
 
 class MatchedGcFasta(Fasta):
@@ -549,13 +571,15 @@ class MatchedGcFasta(Fasta):
 
     """
 
-    def __init__(self, matchfile, genome="hg19", number=None, size=None):
+    def __init__(
+        self, matchfile, genome="hg19", number=None, size=None, random_state=None
+    ):
         # Create temporary files
         tmpbed = NamedTemporaryFile(dir=mytmpdir()).name
         tmpfasta = NamedTemporaryFile(dir=mytmpdir()).name
 
         # Create bed-file with coordinates of random sequences
-        matched_gc_bedfile(tmpbed, matchfile, genome, number, size=size)
+        matched_gc_bedfile(tmpbed, matchfile, genome, number, size, random_state)
 
         # Convert track to fasta
         Genome(genome).track2fasta(tmpbed, fastafile=tmpfasta)
@@ -583,7 +607,7 @@ class PromoterFasta(Fasta):
 
     """
 
-    def __init__(self, genefile, genome, size=None, n=None):
+    def __init__(self, genefile, genome, size=None, n=None, random_state=None):
         size = int(size)
 
         # Create temporary files
@@ -591,7 +615,7 @@ class PromoterFasta(Fasta):
         tmpfasta = NamedTemporaryFile(dir=mytmpdir()).name
 
         # Create bed-file with coordinates of random sequences
-        create_promoter_bedfile(tmpbed, genefile, size, n)
+        create_promoter_bedfile(tmpbed, genefile, size, n, random_state=random_state)
 
         # Convert track to fasta
         Genome(genome).track2fasta(tmpbed, fastafile=tmpfasta, stranded=True)

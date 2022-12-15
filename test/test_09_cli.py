@@ -25,7 +25,7 @@ def test_gimme_motifs(motif_argument):
             ["motifs", "test/data/denovo/input.fa", d]
             + ["-p", "test/data/cli/motifs.pfm"]  # test/data/cli/Gm12878.CTCF.top200.fa
             + ["-g", "test/data/background/genome.fa"]
-            + ["-a", "small", "-t", "MEME", "--nogc", "-N", "1"]
+            + ["-a", "small", "-t", "MEME", "--nogc", "-N", "1", "--seed", "18"]
             + motif_argument
         )
 

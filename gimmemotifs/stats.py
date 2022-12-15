@@ -26,6 +26,7 @@ def calc_stats_iterator(
     zscore=True,
     gc=True,
     ncpus=None,
+    random_state=None,
 ):
     """Calculate motif enrichment metrics.
 
@@ -117,7 +118,7 @@ def calc_stats_iterator(
     if fg_file is not None or bg_file is not None:
         if zscore or gc:
             # Precalculate mean and stddev for z-score calculation
-            s = Scanner(ncpus=ncpus)
+            s = Scanner(ncpus=ncpus, random_state=random_state)
             s.set_motifs(all_motifs)
             s.set_genome(genome)
             s.set_meanstd(gc=gc)
@@ -139,6 +140,7 @@ def calc_stats_iterator(
                 zscore=zscore,
                 gc=gc,
                 progress=False,
+                random_state=random_state,
             )
         else:
             fg_total = pd.read_csv(
@@ -156,6 +158,7 @@ def calc_stats_iterator(
                 zscore=zscore,
                 gc=gc,
                 progress=False,
+                random_state=random_state,
             )
         else:
             bg_total = pd.read_csv(
