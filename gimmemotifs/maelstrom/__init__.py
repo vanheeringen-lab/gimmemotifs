@@ -64,6 +64,7 @@ def run_maelstrom(
     aggregation="int_stouffer",
     plot_all_motifs=False,
     plot_no_motifs=False,
+    random_state=None,
 ):
     """Run maelstrom on an input table.
 
@@ -130,6 +131,8 @@ def run_maelstrom(
     plot_no_motifs: bool, optional
         Specify to plot no motifs
 
+    random_state : numpy.random.RandomState object, optional
+        make predictions deterministic (where possible).
     """
     logger.info("Starting maelstrom")
 
@@ -194,6 +197,7 @@ def run_maelstrom(
                 ncpus=ncpus,
                 zscore=zscore,
                 gc=gc,
+                random_state=random_state,
             )
             counts.to_csv(count_table, sep="\t", compression="gzip")
         else:
@@ -212,6 +216,7 @@ def run_maelstrom(
                 ncpus=ncpus,
                 zscore=zscore,
                 gc=gc,
+                random_state=random_state,
             )
             scores.to_csv(
                 score_table, sep="\t", float_format="%.3f", compression="gzip"
@@ -291,7 +296,7 @@ def run_maelstrom(
     if cluster:
         cluster = False
         for method in methods:
-            m = Moap.create(method, ncpus=ncpus)
+            m = Moap.create(method, ncpus=ncpus, random_state=random_state)
             if m.ptype == "classification":
                 cluster = True
                 break
@@ -305,7 +310,7 @@ def run_maelstrom(
         for method in Moap.list_regression_predictors():
             if method in methods:
                 try:
-                    m = Moap.create(method, ncpus=ncpus)
+                    m = Moap.create(method, ncpus=ncpus, random_state=random_state)
                     exps.append([method, m.pref_table, infile])
                     logger.debug(f"Adding {method}")
                 except ImportError as e:
@@ -328,7 +333,7 @@ def run_maelstrom(
     if df.shape[1] == 1 or cluster:
         for method in Moap.list_classification_predictors():
             if method in methods:
-                m = Moap.create(method, ncpus=ncpus)
+                m = Moap.create(method, ncpus=ncpus, random_state=random_state)
                 exps.append([method, m.pref_table, clusterfile])
 
     if len(exps) == 0:
@@ -338,19 +343,26 @@ def run_maelstrom(
     for method, scoring, fname in exps:
         try:
             if scoring == "count":
-                _moap_with_table(
-                    fname, count_table, outdir, method, scoring, ncpus=ncpus
-                )
+                table = count_table
             elif scoring == "score":
-                _moap_with_table(
-                    fname, score_table, outdir, method, scoring, ncpus=ncpus
-                )
-
+                table = score_table
+            else:
+                table = None
+            _moap_with_table(
+                fname,
+                table,
+                outdir,
+                method,
+                scoring,
+                ncpus=ncpus,
+                random_state=random_state,
+            )
         except Exception as e:
             logger.warning(f"Method {method} with scoring {scoring} failed")
             logger.warning(e)
             logger.warning("Skipping")
             raise
+
     dfs = {}
     for method, scoring, fname in exps:
         t = f"{method}.{scoring}"
@@ -362,7 +374,7 @@ def run_maelstrom(
 
     if len(methods) > 1:
         logger.info("Rank aggregation")
-        df_p = _df_rank_aggregation(df, dfs, exps, method=aggregation)
+        df_p = _df_rank_aggregation(df, dfs, method=aggregation, ncpus=ncpus)
 
         # Add percentage of input sequences with motif
         if df.shape[1] > 1:
@@ -384,10 +396,8 @@ def run_maelstrom(
                     df_p.loc[motif, f"corr {col}"] = pearsonr(df[col], scores[motif])[0]
 
         df_p.to_csv(os.path.join(outdir, "final.out.txt"), sep="\t")
-    # df_p = df_p.join(m2f)
 
     # Write motif frequency table
-
     if df.shape[1] == 1:
         mcount = df.join(counts)
         m_group = mcount.groupby(df.columns[0])
@@ -407,10 +417,16 @@ def run_maelstrom(
 
 
 def _moap_with_bg(
-    input_table, genome, data_dir, method, scoring, pfmfile=None, ncpus=None
+    input_table,
+    genome,
+    data_dir,
+    method,
+    scoring,
+    pfmfile=None,
+    ncpus=None,
+    random_state=None,
 ):
     outfile = os.path.join(data_dir, f"activity.{method}.{scoring}.out.txt")
-
     moap(
         input_table,
         outfile=outfile,
@@ -419,12 +435,20 @@ def _moap_with_bg(
         method=method,
         scoring=scoring,
         ncpus=ncpus,
+        random_state=random_state,
     )
 
 
-def _moap_with_table(input_table, motif_table, data_dir, method, scoring, ncpus=None):
+def _moap_with_table(
+    input_table,
+    motif_table,
+    data_dir,
+    method,
+    scoring,
+    ncpus=None,
+    random_state=None,
+):
     outfile = os.path.join(data_dir, f"activity.{method}.{scoring}.out.txt")
-
     moap(
         input_table,
         outfile=outfile,
@@ -432,17 +456,19 @@ def _moap_with_table(input_table, motif_table, data_dir, method, scoring, ncpus=
         scoring=scoring,
         motiffile=motif_table,
         ncpus=ncpus,
+        random_state=random_state,
     )
 
 
-def _df_rank_aggregation(df, dfs, exps, method="int_stouffer"):
+def _df_rank_aggregation(df, dfs, method="int_stouffer", ncpus=16):
     df_p = pd.DataFrame(index=list(dfs.values())[0].index)
     names = list(dfs.values())[0].columns
     dfs = [
         pd.concat([v[col].rename(k, inplace=True) for k, v in dfs.items()], axis=1)
         for col in names
     ]
-    pool = Pool(processes=16)
+
+    pool = Pool(processes=ncpus)
     func = partial(rankagg, method=method)
     ret = pool.map(func, dfs)
     pool.close()
@@ -462,9 +488,8 @@ def _df_rank_aggregation(df, dfs, exps, method="int_stouffer"):
 
 
 def visualize_maelstrom(outdir, sig_cutoff=3, pfmfile=None):
-
-    config = MotifConfig()
     if pfmfile is None:
+        config = MotifConfig()
         pfmfile = config.get_default_params().get("motif_db", None)
         pfmfile = os.path.join(config.get_motif_dir(), pfmfile)
 
