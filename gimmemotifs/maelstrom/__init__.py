@@ -44,8 +44,6 @@ from gimmemotifs.utils import join_max, pfmfile_location
 logger = logging.getLogger("gimme.maelstrom")
 sns.set_style("white")
 
-FPR = 0.01
-
 
 def run_maelstrom(
     infile,
@@ -420,7 +418,6 @@ def _moap_with_bg(
         genome=genome,
         method=method,
         scoring=scoring,
-        fpr=FPR,
         ncpus=ncpus,
     )
 
@@ -434,7 +431,6 @@ def _moap_with_table(input_table, motif_table, data_dir, method, scoring, ncpus=
         method=method,
         scoring=scoring,
         motiffile=motif_table,
-        fpr=FPR,
         ncpus=ncpus,
     )
 

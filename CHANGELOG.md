@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   - `scanner/__init__.py` with the exported functions
   - `scanner/base.py` with the Scanner class
   - `scanner/utils.py` with the rest
+- `gimmemotifs.maelstrom.Moap.create` now accepts a `np.random.RandomState`.
 
 ### Fixed
 

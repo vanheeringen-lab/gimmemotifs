@@ -56,7 +56,7 @@ class Moap(object):
     name = None
 
     @classmethod
-    def create(cls, name, ncpus=None):
+    def create(cls, name, ncpus=None, **kwargs):
         """Create a Moap instance based on the predictor name.
 
         Parameters
@@ -67,15 +67,27 @@ class Moap(object):
         ncpus : int, optional
             Number of threads. Default is the number specified in the config.
 
+        kwargs : any, optional
+            keyword arguments passed to predictor.
+            Unused arguments are dropped.
+
         Returns
         -------
         moap : Moap instance
             moap instance.
         """
         try:
-            return cls._predictors[name.lower()](ncpus=ncpus)
+            obj = cls._predictors[name.lower()]
         except KeyError:
             raise Exception("Unknown class")
+
+        # filter for kwargs used by predictors
+        accepted_kwargs = obj.__init__.__code__.co_varnames
+        for k in list(kwargs):
+            if k not in accepted_kwargs:
+                del kwargs[k]
+
+        return obj(ncpus=ncpus, **kwargs)
 
     @classmethod
     def register_predictor(cls, name):
@@ -151,8 +163,6 @@ class BayesianRidgeMoap(Moap):
             # Scale motif scores
             df_X[:] = scale(df_X, axis=0)
 
-        # logger.debug("Scaling y")
-
         # Normalize across samples and features
         # y = df_y.apply(scale, 1).apply(scale, 0)
         y = df_y
@@ -178,7 +188,7 @@ class XgboostRegressionMoap(Moap):
     supported_tables = ["score", "count"]
     ptype = "regression"
 
-    def __init__(self, scale=True, ncpus=None):
+    def __init__(self, scale=True, ncpus=None, random_state=None):
         """Predict motif activities using XGBoost.
 
         Parameters
@@ -189,6 +199,9 @@ class XgboostRegressionMoap(Moap):
 
         ncpus : int, optional
             Number of threads. Default is the number specified in the config.
+
+        random_state : numpy.random.RandomState object, optional
+            make predictions deterministic.
 
         Attributes
         ----------
@@ -202,6 +215,7 @@ class XgboostRegressionMoap(Moap):
             ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
         self.ncpus = ncpus
         self.scale = scale
+        self.random_state = random_state
 
     def fit(self, df_X, df_y):
         logger.info("Fitting XGBoostRegression")
@@ -228,6 +242,8 @@ class XgboostRegressionMoap(Moap):
             subsample=0.8,
             colsample_bytree=0.8,
             objective="reg:squarederror",
+            # xgb docs: nondeterministic with booster=gblinear & shotgun updater
+            random_state=self.random_state,
         )
 
         self.act_ = pd.DataFrame(index=X.columns)
@@ -302,7 +318,7 @@ class MWUMoap(Moap):
                     p.append(1)
             pvals.append(p)
 
-        # correct for multipe testing
+        # correct for multiple testing
         pvals = np.array(pvals)
         fpr = multipletests(pvals.flatten(), method="fdr_bh")[1].reshape(pvals.shape)
 
@@ -322,7 +338,7 @@ class HypergeomMoap(Moap):
     supported_tables = ["count"]
     ptype = "classification"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, random_state=None, *args, **kwargs):
         """Predict motif activities using hypergeometric p-value
 
         Parameters
@@ -334,7 +350,7 @@ class HypergeomMoap(Moap):
             -log10 of the hypergeometric p-value, corrected for multiple
             testing using the Benjamini-Hochberg correction
         """
-        pass
+        self.random_state = random_state
 
     def fit(self, df_X, df_y):
         logger.info("Fitting Hypergeom")
@@ -350,6 +366,10 @@ class HypergeomMoap(Moap):
         pvals = []
         clusters = df_y[df_y.columns[0]].unique()
         M = df_X.shape[0]
+        hypergeometric = hypergeom
+        # not sure if these have an effect (but it doesn't hurt)
+        hypergeometric.seed = self.random_state
+        hypergeometric.random_state = self.random_state
         for cluster in clusters:
             pos = df_X[df_y.iloc[:, 0] == cluster]
             neg = df_X[df_y.iloc[:, 0] != cluster]
@@ -363,11 +383,11 @@ class HypergeomMoap(Moap):
                 n = pt + nt
                 N = pt + pf
                 x = pt - 1
-                p.append(hypergeom.sf(x, M, n, N))
+                p.append(hypergeometric.sf(x, M, n, N))
 
             pvals.append(p)
 
-        # correct for multipe testing
+        # correct for multiple testing
         pvals = np.array(pvals)
         fpr = multipletests(pvals.flatten(), method="fdr_bh")[1].reshape(pvals.shape)
 
@@ -387,13 +407,16 @@ class RFMoap(Moap):
     supported_tables = ["score", "count"]
     ptype = "classification"
 
-    def __init__(self, ncpus=None):
+    def __init__(self, ncpus=None, random_state=None):
         """Predict motif activities using a random forest classifier
 
         Parameters
         ----------
         ncpus : int, optional
             Number of threads. Default is the number specified in the config.
+
+        random_state : numpy.random.RandomState object, optional
+            make predictions deterministic.
 
         Attributes
         ----------
@@ -403,6 +426,7 @@ class RFMoap(Moap):
         if ncpus is None:
             ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
         self.ncpus = ncpus
+        self.random_state = random_state
 
     def fit(self, df_X, df_y):
         logger.info("Fitting RF")
@@ -414,7 +438,9 @@ class RFMoap(Moap):
         le = LabelEncoder()
         y = le.fit_transform(df_y.iloc[:, 0].values)
 
-        clf = RandomForestClassifier(n_estimators=100, n_jobs=self.ncpus)
+        clf = RandomForestClassifier(
+            n_estimators=100, n_jobs=self.ncpus, random_state=self.random_state
+        )
 
         # Multiclass
         if len(le.classes_) > 2:
@@ -450,7 +476,7 @@ class MultiTaskLassoMoap(Moap):
     supported_tables = ["score", "count"]
     ptype = "regression"
 
-    def __init__(self, scale=True, ncpus=None):
+    def __init__(self, scale=True, ncpus=None, random_state=None):
         """Predict motif activities using MultiTaskLasso.
 
         Parameters
@@ -462,6 +488,9 @@ class MultiTaskLassoMoap(Moap):
         ncpus : int, optional
             Number of threads. Default is the number specified in the config.
 
+        random_state : numpy.random.RandomState object, optional
+            make predictions deterministic.
+
         Attributes
         ----------
         act_ : DataFrame, shape (n_motifs, n_clusters)
@@ -471,6 +500,7 @@ class MultiTaskLassoMoap(Moap):
             ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
         self.ncpus = ncpus
         self.scale = scale
+        self.random_state = random_state
 
     def fit(self, df_X, df_y):
         logger.info("Fitting MultiTaskLasso")
@@ -482,8 +512,6 @@ class MultiTaskLassoMoap(Moap):
             logger.debug("Scaling motif scores")
             # Scale motif scores
             df_X.loc[:, :] = scale(df_X, axis=0)
-
-        # logger.debug("Scaling y")
 
         # Normalize across samples and features
         # y = df_y.apply(scale, 1).apply(scale, 0)
@@ -497,7 +525,10 @@ class MultiTaskLassoMoap(Moap):
                 (
                     "reg",
                     MultiTaskLassoCV(
-                        fit_intercept=False, n_alphas=20, n_jobs=self.ncpus
+                        fit_intercept=False,
+                        n_alphas=20,
+                        n_jobs=self.ncpus,
+                        random_state=self.random_state,
                     ),
                 ),
             ]
@@ -522,7 +553,7 @@ class SVRMoap(Moap):
     supported_tables = ["score", "count"]
     ptype = "regression"
 
-    def __init__(self, scale=True, ncpus=None):
+    def __init__(self, scale=True, ncpus=None, random_state=None):
         """Predict motif activities using Support Vector Regression.
 
         Parameters
@@ -533,6 +564,9 @@ class SVRMoap(Moap):
 
         ncpus : int, optional
             Number of threads. Default is the number specified in the config.
+
+        random_state : numpy.random.RandomState object, optional
+            make predictions deterministic.
 
         Attributes
         ----------
@@ -545,6 +579,7 @@ class SVRMoap(Moap):
         self.scale = scale
         self.columns = None
         self.model = None
+        self.random_state = random_state
 
     def fit(self, df_X, df_y):
         logger.info("Fitting SVR")
@@ -557,15 +592,13 @@ class SVRMoap(Moap):
             # Scale motif scores
             df_X.loc[:, :] = scale(df_X, axis=0)
 
-        # logger.debug("Scaling y")
-
         # Normalize across samples and features
         # y = df_y.apply(scale, 1).apply(scale, 0)
         y = df_y
         self.columns = df_y.columns
         X = df_X.loc[y.index]
 
-        clf = LinearSVR()
+        clf = LinearSVR(random_state=self.random_state)
         self.model = MultiOutputRegressor(clf, n_jobs=1)
         logger.debug("Fitting model")
         self.model.fit(df_X, df_y)
@@ -577,8 +610,6 @@ class SVRMoap(Moap):
         )
 
     def predict(self, df_X):
-        # print(self.model.predict(df_X) )
-
         return pd.DataFrame(
             self.model.predict(df_X), index=df_X.index, columns=self.columns
         )
@@ -592,74 +623,79 @@ def moap(
     motiffile=None,
     pfmfile=None,
     genome=None,
-    fpr=0.01,
-    ncpus=None,
-    subsample=None,
     zscore=True,
     gc=True,
+    subsample=None,
+    random_state=None,
+    ncpus=None,
+    progress=None,
 ):
     """Run a single motif activity prediction algorithm.
 
-    Parameters
-    ----------
-    inputfile : str
-        :1File with regions (chr:start-end) in first column and either cluster
-        name in second column or a table with values.
+     Parameters
+     ----------
+     inputfile : str
+         :1File with regions (chr:start-end) in first column and either cluster
+         name in second column or a table with values.
 
-    method : str, optional
-        Motif activity method to use. Any of 'hypergeom', 'lasso',
-        'bayesianridge',
-        'rf', 'xgboost'. Default is 'hypergeom'.
+     method : str, optional
+         Motif activity method to use. Any of
+         'bayesianridge', 'xgboost', 'mwu', 'hypergeom',
+         'rf', 'multitasklasso', 'svr'. Default is 'hypergeom'.
 
-    scoring:  str, optional
-        Either 'score' or 'count'
+     scoring:  str, optional
+         Either 'score' or 'count'
 
-    outfile : str, optional
-        Name of outputfile to save the fitted activity values.
+     outfile : str, optional
+         Name of outputfile to save the fitted activity values.
 
-    motiffile : str, optional
-        Table with motif scan results. First column should be exactly the same
-        regions as in the inputfile.
+     motiffile : str, optional
+         Table with motif scan results. First column should be exactly the same
+         regions as in the inputfile.
 
-    pfmfile : str, optional
-        File with motifs in pwm format. Required when motiffile is not
-        supplied.
+     pfmfile : str, optional
+         File with motifs in pfm format. Required when motiffile is not
+         supplied.
 
-    genome : str, optional
-        Genome name, as indexed by gimme. Required when motiffile is not
-        supplied
+     genome : str, optional
+         Genome name, as indexed by gimme. Required when motiffile is not
+         supplied.
 
-    fpr : float, optional
-        FPR for motif scanning. Unused.
+     zscore : bool, optional
+         Use z-score normalized motif scores.
 
-    ncpus : int, optional
-        Number of threads to use. Default is the number specified in the config.
+     gc : bool, optional
+         Equally distribute GC percentages in background sequences.
 
-    subsample : float, optional
-        Fraction of regions to use.
+     subsample : float, optional
+         Fraction of regions to use.
 
-    zscore : bool, optional
-        Use z-score normalized motif scores.
+     random_state : numpy.random.RandomState object, optional
+         make predictions deterministic (where possible).
 
-    gc : bool optional
-        Use GC% bins for z-score.
+     ncpus : int, optional
+         Number of threads to use.
+         Default is the number specified in the config.
 
-    Returns
-    -------
-    pandas DataFrame with motif activity
+    progress : bool or None, optional
+         provide progress bars for long computations.
+
+     Returns
+     -------
+     pandas DataFrame with motif activity
     """
 
     if scoring and scoring not in ["score", "count"]:
         raise ValueError("valid values are 'score' and 'count'")
 
+    # read data
     if inputfile.endswith("feather"):
         df = pd.read_feather(inputfile)
         df = df.set_index(df.columns[0])
     else:
-        # read data
         df = pd.read_table(inputfile, index_col=0, comment="#")
 
-    clf = Moap.create(method, ncpus=ncpus)
+    clf = Moap.create(method, ncpus=ncpus, random_state=random_state)
 
     if clf.ptype == "classification":
         if df.shape[1] != 1:
@@ -674,14 +710,13 @@ def moap(
 
         pfmfile = pfmfile_location(pfmfile)
         try:
-            motifs = read_motifs(pfmfile)
+            _ = read_motifs(pfmfile)
         except Exception:
             logger.error(f"can't read motifs from {pfmfile}")
             raise
 
         # scan for motifs
         motif_names = [m.id for m in read_motifs(pfmfile)]
-        scores = []
         if method == "classic" or scoring == "count":
             logger.info("motif scanning (counts)")
             scores = scan_regionfile_to_table(
@@ -692,6 +727,8 @@ def moap(
                 ncpus=ncpus,
                 zscore=zscore,
                 gc=gc,
+                random_state=random_state,
+                progress=progress,
             )
         else:
             logger.info("motif scanning (scores)")
@@ -703,6 +740,8 @@ def moap(
                 ncpus=ncpus,
                 zscore=zscore,
                 gc=gc,
+                random_state=random_state,
+                progress=progress,
             )
         motifs = pd.DataFrame(scores, index=df.index, columns=motif_names)
 
@@ -724,7 +763,7 @@ def moap(
     if subsample is not None:
         n = int(subsample * df.shape[0])
         logger.debug(f"Subsampling {n} regions")
-        df = df.sample(n)
+        df = df.sample(n, random_state=random_state)
 
     motifs = motifs.loc[df.index]
 

@@ -7,14 +7,14 @@ import pandas as pd
 from gimmemotifs.maelstrom import run_maelstrom
 
 
-class TestMoap(unittest.TestCase):
+class TestMaelstrom(unittest.TestCase):
     """A test class to test maelstrom"""
 
     def setUp(self):
         self.outdir = "test/data/maelstrom"
-        self.clusters = "test/data/moap/clusters.txt"
-        self.score_table = "test/data/moap/motifs.score.txt"
-        self.count_table = "test/data/moap/motifs.count.txt"
+        self.clusters = "test/data/moap/4clusters.txt"
+        self.score_table = "test/data/moap/4clusters.motifs.score.txt"
+        self.count_table = "test/data/moap/4clusters.motifs.count.txt"
         self.outfile = os.path.join(self.outdir, "final.out.txt")
 
     def test1_maelstrom(self):
