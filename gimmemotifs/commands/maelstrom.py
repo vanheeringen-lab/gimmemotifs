@@ -11,7 +11,7 @@ from gimmemotifs.maelstrom import run_maelstrom
 
 
 def maelstrom(args):
-    """Run the maelstrom method."""
+    """Find differential motifs."""
     infile = args.inputfile
     genome = args.genome
     outdir = args.outdir

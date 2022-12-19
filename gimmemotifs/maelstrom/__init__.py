@@ -60,18 +60,18 @@ def run_maelstrom(
     ncpus=None,
     zscore=True,
     gc=True,
-    center=False,
+    center=True,
     aggregation="int_stouffer",
     plot_all_motifs=False,
     plot_no_motifs=False,
     random_state=None,
 ):
-    """Run maelstrom on an input table.
+    """Find differential motifs.
 
     Parameters
     ----------
     infile : str
-        Filename of input table. Can be either a text-separated tab file or a
+        Filename of input table. Can be either a tab-separated text file or a
         feather file.
 
     genome : str
