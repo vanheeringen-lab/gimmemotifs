@@ -6,7 +6,6 @@
 """ Module for motif activity prediction """
 import logging
 import os
-import warnings
 
 import numpy as np
 import pandas as pd
@@ -35,15 +34,6 @@ except ImportError:
     _has_xgboost = False
 
 logger = logging.getLogger("gimme.maelstrom")
-
-
-def warn(*args, **kwargs):
-    pass
-
-
-# TODO: remove/limit this hides tonnes of warnings!
-warnings.warn = warn
-warnings.filterwarnings("ignore", message="sklearn.externals.joblib is deprecated")
 
 
 class Moap(object):

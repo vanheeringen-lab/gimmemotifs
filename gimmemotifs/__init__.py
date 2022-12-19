@@ -1,8 +1,30 @@
 import atexit as _atexit
 import logging as _logging
+import warnings as _warnings
 from os import getpid as _getpid
 from shutil import rmtree as _rmtree
 from tempfile import mkdtemp as _mkdtemp
+from warnings import warn as _warn
+
+
+def _filtered_warn(*args, **kwargs):
+    """warnings.filterwarnings does not work."""
+    blacklist = [
+        # report.py pandas DeprecationWarning (internal)
+        "The get_cmap function will be deprecated in a future version. "
+        "Use ``matplotlib.colormaps[name]`` or "
+        "``matplotlib.colormaps.get_cmap(obj)`` instead.",
+        # report.py pandas FutureWarning, alternative works differently
+        "this method is deprecated in favour of `Styler.to_html()`",
+    ]
+    message = str(args[0])
+    if message in blacklist:
+        pass
+    else:
+        _warn(*args, **kwargs)
+
+
+_warnings.warn = _filtered_warn
 
 
 def mytmpdir():

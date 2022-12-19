@@ -13,14 +13,13 @@ import sys
 from shutil import which
 from time import time
 
-import pkg_resources
 import xdg
 
 from gimmemotifs import __version__
 
 logger = logging.getLogger("gimme.config")
 
-# CONSTANTS #
+# CONSTANTS
 BG_TYPES = ["random", "genomic", "gc", "promoter"]
 FA_VALID_BGS = ["random", "promoter", "gc", "custom", "genomic"]
 BED_VALID_BGS = ["random", "genomic", "gc", "promoter", "custom"]
@@ -31,6 +30,7 @@ INDIRECT_NAME = "indirect\nor predicted"
 
 CACHE_DIR = os.path.join(xdg.XDG_CACHE_HOME, "gimmemotifs")
 CONFIG_DIR = os.path.join(xdg.XDG_CONFIG_HOME, "gimmemotifs")
+ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
 
 MOTIF_CLASSES = [
     "AMD",
@@ -63,9 +63,8 @@ def get_build_dir():
 
     Returns None if installed regularly using `pip install .`
     """
-    root_dir = os.path.dirname(os.path.dirname(__file__))
     v = sys.version_info
-    glob_dir = os.path.join(root_dir, "build", f"lib*{v[0]}*{v[1]}*", "gimmemotifs")
+    glob_dir = os.path.join(ROOT_DIR, "build", f"lib*{v[0]}*{v[1]}*", "gimmemotifs")
     results = glob.glob(glob_dir)
 
     if len(results) == 1:
@@ -79,9 +78,7 @@ class MotifConfig(object):
     __shared_state = {}
 
     # Default config that is installed with GimmeMotifs
-    default_config = pkg_resources.resource_filename(
-        "gimmemotifs", "../data/cfg/gimmemotifs.default.cfg"
-    )
+    default_config = os.path.join(ROOT_DIR, "data", "cfg", "gimmemotifs.default.cfg")
     user_config = os.path.join(CONFIG_DIR, "gimmemotifs.cfg")
     config = None
 
@@ -247,9 +244,7 @@ class MotifConfig(object):
     def get_data_dir(self, ddir):
         my_dir = self.config.get("main", ddir)
         if not os.path.exists(my_dir):
-            my_dir = pkg_resources.resource_filename(
-                "gimmemotifs", os.path.join("../data", my_dir)
-            )
+            my_dir = os.path.join(ROOT_DIR, "data", my_dir)
         return my_dir
 
     def set_default_params(self, params):
