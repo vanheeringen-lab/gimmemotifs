@@ -36,6 +36,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - fixed multiprocess.Pool Warnings
 - fixed a pandas copywarning (in `gc_bin_bedfile()` to be exact)
 - fixed warnings when leaving files open
+- fixed deprecation warning in maelstrom (and in tests)
+- fixed futurewarning in report.py 
 - silence warnings from external tools in motif prediction (`pp_predict_motifs()` to be exact)
 - updated last references from `Motif.pwm_scan` and `Motif.pwm_scan_all` to `Motif.scan` and `Motif.scan_all` respectively
 - typo in `gimme motifs` output ("%matches background" to "% matches background")

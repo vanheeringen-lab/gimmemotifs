@@ -232,7 +232,7 @@ def run_maelstrom(
         fa = FeatureAgglomeration(
             distance_threshold=filter_cutoff,
             n_clusters=None,
-            affinity="correlation",
+            metric="correlation",
             linkage="complete",
             compute_full_tree=True,
         )

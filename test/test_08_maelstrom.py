@@ -32,7 +32,7 @@ class TestMaelstrom(unittest.TestCase):
         df = pd.read_table(self.outfile, index_col=0, comment="#")
         print(df.shape)
 
-        self.assertEquals((623, 8), df.shape)
+        self.assertEqual((623, 8), df.shape)
 
         # Filter redundant motifs
         run_maelstrom(
@@ -46,7 +46,7 @@ class TestMaelstrom(unittest.TestCase):
         )
         df = pd.read_table(self.outfile, index_col=0, comment="#")
         print(df.shape)
-        self.assertEquals((156, 8), df.shape)
+        self.assertEqual((156, 8), df.shape)
 
         for fname in glob(os.path.join(self.outdir, "activity*")):
             os.unlink(fname)

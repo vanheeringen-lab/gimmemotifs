@@ -31,7 +31,7 @@ class TestMoap(unittest.TestCase):
                 scoring="score",
                 motiffile=self.motifs_score4,
             )
-            self.assertEquals((623, 4), df.shape)
+            self.assertEqual((623, 4), df.shape)
 
         # for method in ["hypergeom", "bayesianridge", "rf", "multitasklasso", "svr"]:
         for method in ["hypergeom"]:
@@ -41,7 +41,7 @@ class TestMoap(unittest.TestCase):
                 scoring="count",
                 motiffile=self.motifs_count4,
             )
-            self.assertEquals((623, 4), df.shape)
+            self.assertEqual((623, 4), df.shape)
 
     def test2_moap(self):
         """Test motif activity prediction for two clusters"""
@@ -54,7 +54,7 @@ class TestMoap(unittest.TestCase):
                 scoring="score",
                 motiffile=self.motifs_score2,
             )
-            self.assertEquals((623, 2), df.shape)
+            self.assertEqual((623, 2), df.shape)
 
         # for method in ["hypergeom", "bayesianridge", "rf", "multitasklasso", "svr"]:
         for method in ["hypergeom"]:
@@ -64,7 +64,7 @@ class TestMoap(unittest.TestCase):
                 scoring="count",
                 motiffile=self.motifs_count2,
             )
-            self.assertEquals((623, 2), df.shape)
+            self.assertEqual((623, 2), df.shape)
 
 
 if __name__ == "__main__":

@@ -808,7 +808,7 @@ def motif_to_factor_series(series, pfmfile=None, motifs=None):
         index = series.index
 
     factors = [motifs[motif].format_factors(html=True) for motif in series]
-    return pd.Series(data=factors, index=index)
+    return pd.Series(data=factors, index=index, dtype=str)
 
 
 def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="logos"):
@@ -834,7 +834,7 @@ def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="l
         index = series
     else:
         index = series.index
-    return pd.Series(data=img_series, index=index)
+    return pd.Series(data=img_series, index=index, dtype=str)
 
 
 def maelstrom_html_report(
