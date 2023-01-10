@@ -189,13 +189,12 @@ def cli(sys_args):
     p.set_defaults(func=commands.motifs)
 
     # pfmscan.py
-    NREPORT = 1
     p = subparsers.add_parser("scan")
     p.add_argument(
         "inputfile", help="inputfile (FASTA, BED, regions)", metavar="INPUTFILE"
     )
     p.add_argument(
-        "-g", "--genome", dest="genome", help="Genome", metavar="GENOME", default=None
+        "-g", "--genome", dest="genome", help="Genome", metavar="", default=None
     )
     p.add_argument(
         "-p",
@@ -203,7 +202,7 @@ def cli(sys_args):
         dest="pfmfile",
         help=f"PFM file with motifs (default: {default_pfm}).",
         default=default_pfm_file,
-        metavar="pfmfile",
+        metavar="",
     )
     p.add_argument(
         "-f",
@@ -233,9 +232,9 @@ def cli(sys_args):
         "-n",
         "--nreport",
         dest="nreport",
-        help="report the N best matches",
-        metavar="N",
-        default=NREPORT,
+        help="report the N best matches (default 1)",
+        metavar="",
+        default=1,
         type=int,
     )
     p.add_argument(
@@ -286,11 +285,20 @@ def cli(sys_args):
         default=False,
     )
     p.add_argument(
+        "-s",
+        "--seed",
+        dest="seed",
+        help="set a random seed (default None)",
+        metavar="",
+        default=None,
+        type=int,
+    )
+    p.add_argument(
         "-N",
         "--nthreads",
         dest="ncpus",
         help=f"Number of threads (default {params['ncpus']})",
-        metavar="INT",
+        metavar="",
         type=int,
         default=int(params["ncpus"]),
     )
@@ -309,7 +317,7 @@ def cli(sys_args):
         dest="pfmfile",
         help=f"PFM file with motifs (default: {default_pfm}).",
         default=default_pfm_file,
-        metavar="pfmfile",
+        metavar="",
     )
     p.add_argument(
         "--no-filter",
@@ -325,22 +333,15 @@ def cli(sys_args):
         help="Cutoff to select non-redundant motifs. Default is 0.8, increase this value to get fewer motifs.",
         default=0.8,
         type=float,
-        metavar="FLOAT",
-    )
-    p.add_argument(
-        "--nocenter",
-        dest="center",
-        help="Don't mean-center the rows by default",
-        default=True,
-        action="store_false",
+        metavar="",
     )
     p.add_argument(
         "-m",
         "--methods",
         dest="methods",
-        help="Run with specific methods",
+        help="Run with specific methods (default all)",
         default=None,
-        metavar="NAMES",
+        metavar="",
     )
     p.add_argument(
         "-a",
@@ -353,16 +354,32 @@ def cli(sys_args):
             "p-values."
         ),
         default="int_stouffer",
-        metavar="method",
+        metavar="",
+    )
+    p.add_argument(
+        "-s",
+        "--seed",
+        dest="seed",
+        help="set a random seed (default None)",
+        metavar="",
+        default=None,
+        type=int,
     )
     p.add_argument(
         "-N",
         "--nthreads",
         dest="ncpus",
         help=f"Number of threads (default {params['ncpus']})",
-        metavar="INT",
+        metavar="",
         type=int,
         default=int(params["ncpus"]),
+    )
+    p.add_argument(
+        "--nocenter",
+        dest="center",
+        help="Don't mean-center the rows by default",
+        default=True,
+        action="store_false",
     )
     p.add_argument(
         "--rawscore",

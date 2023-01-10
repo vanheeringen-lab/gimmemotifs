@@ -7,6 +7,8 @@
 """Command line function 'maelstrom'"""
 import os
 
+from numpy.random import RandomState
+
 from gimmemotifs.maelstrom import run_maelstrom
 
 
@@ -33,6 +35,10 @@ def maelstrom(args):
     if methods:
         methods = [x.strip() for x in methods.split(",")]
 
+    random_state = None
+    if args.seed is not None:
+        random_state = RandomState(args.seed)
+
     run_maelstrom(
         infile,
         genome,
@@ -48,4 +54,5 @@ def maelstrom(args):
         aggregation=aggregation,
         plot_all_motifs=plot_all_motifs,
         plot_no_motifs=plot_no_motifs,
+        random_state=random_state,
     )

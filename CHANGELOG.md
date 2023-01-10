@@ -5,10 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Added
+
+- `gimme scan` and `gimme maelstrom` now accept a random seed for (most) operations
+  - for (optimal) deterministic behaviour, delete the cache and then run the command with a seed 
+
 ### Changed
 
 - `gimme diff` (`diff_plot()` to be exact) will now print to stdout, like all other functions
-- now using a logger instead of print/sys.stderr.write in many more places
+- now using the logger instead of print/sys.stderr.write in many more places
 - string formatting now (mostly) done with f-strings
 - refactored Fasta class
 - removed old python2 code (scanning with MOODS & import shenanigans)
@@ -19,6 +24,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   - `scanner/__init__.py` with the exported functions
   - `scanner/base.py` with the Scanner class
   - `scanner/utils.py` with the rest
+- `gimmemotifs/maelstrom.py` renamed to `gimmemotifs/maelstrom/_init__.py`
+  - `rank.py` and `moap.py` are now submodules of maelstrom.
 - `gimmemotifs.maelstrom.Moap.create` now accepts a `np.random.RandomState`.
 - `gimmemotifs.maelstrom.run_maelstrom` now accepts a `np.random.RandomState`.
 

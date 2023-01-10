@@ -35,14 +35,16 @@ def test_gimme_motifs(motif_argument):
 @pytest.mark.skipif(travis, reason="Can cause a seg fault on Travis")
 def test_gimme_maelstrom():
     with TemporaryDirectory() as d:
-        print(d)
         cli(
-            ["maelstrom", "test/data/maelstrom/input_table.txt"]
-            + [  # test/data/maelstrom/input.table.txt
+            [
+                "maelstrom",
+                "test/data/maelstrom/input_table.txt",
                 "test/data/background/genome.fa",
                 d,
+                "--nogc",
+                "-m", "RF",
+                "-s", "123",
             ]
-            + ["--nogc", "-m", "RF"]  # "--no-filter",
         )
 
         assert 1 == 1
@@ -56,6 +58,7 @@ def test_gimme_maelstrom():
         ["-T"],
         ["-b", "-g" "test/data/genomes/hg38sample.fa"],
         ["-z", "--gc", "-g", "test/data/genomes/hg38sample.fa"],
+        ["-s", "123", "-g", "test/data/genomes/hg38sample.fa"],
     ],
 )
 def test_gimme_scan(arguments):
