@@ -5,6 +5,7 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 import sys
+
 from gimmemotifs.cli import cli
 
 if __name__ == "__main__":

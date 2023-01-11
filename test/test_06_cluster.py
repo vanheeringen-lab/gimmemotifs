@@ -1,6 +1,7 @@
-import unittest
 import os
-from gimmemotifs.cluster import cluster_motifs
+import unittest
+
+from gimmemotifs.motif.cluster import cluster_motifs
 
 
 class TestMotifPwm(unittest.TestCase):

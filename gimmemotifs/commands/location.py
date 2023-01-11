@@ -8,12 +8,13 @@ Command line tool 'location'.
 
 Creates a histogram of motif matches relative to sequence center.
 """
+import os
+from multiprocessing import Pool
+
+from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import read_motifs
 from gimmemotifs.utils import motif_localization
-from multiprocessing import Pool
-from gimmemotifs.config import MotifConfig
-import os
 
 
 def location(args):
@@ -40,16 +41,18 @@ def location(args):
     if args.ids:
         ids = args.ids.split(",")
 
-    n_cpus = int(MotifConfig().get_default_params()["ncpus"])
-    pool = Pool(processes=n_cpus, maxtasksperchild=1000)
+    ncpus = int(MotifConfig().get_default_params()["ncpus"])
+    pool = Pool(processes=ncpus, maxtasksperchild=1000)
     for motif in motifs:
         if motif.id in ids:
-            outfile = os.path.join("%s_histogram" % motif.id)
+            outfile = os.path.join(f"{motif.id}_histogram")
             jobs.append(
                 pool.apply_async(
                     motif_localization, (fastafile, motif, lsize, outfile, args.cutoff)
                 )
             )
+    pool.close()
 
     for job in jobs:
         job.get()
+    pool.join()

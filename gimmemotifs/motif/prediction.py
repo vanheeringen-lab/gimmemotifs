@@ -4,59 +4,33 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Parallel prediction of sequence motifs """
-
-# Python imports
-import sys
-import logging
-
-try:
-    import _thread as thread
-except ImportError:
-    import thread
-from time import sleep
+import _thread
 import inspect
+import logging
+import warnings
 from multiprocessing import Pool
+from time import sleep
 
-# GimmeMotifs imports
+from gimmemotifs import mytmpdir
 from gimmemotifs import tools as tool_classes
 from gimmemotifs.config import MotifConfig, parse_denovo_params
 from gimmemotifs.fasta import Fasta
-from gimmemotifs import mytmpdir
 from gimmemotifs.stats import calc_stats
 
 logger = logging.getLogger("gimme.prediction")
 
-try:
-    import copy_reg
-    import types
-
-    def _pickle_method(m):
-        if m.im_self is None:
-            return getattr, (m.im_class, m.im_func.func_name)
-        else:
-            return getattr, (m.im_self, m.im_func.func_name)
-
-    copy_reg.pickle(types.MethodType, _pickle_method)
-except Exception:
-    pass
-
 
 def mp_calc_stats(motifs, fg_fa, bg_fa, zscore, gc, genome, bg_name=None):
     """Parallel calculation of motif statistics."""
-    try:
-        stats = calc_stats(
-            motifs=motifs,
-            fg_file=fg_fa,
-            bg_file=bg_fa,
-            ncpus=1,
-            zscore=zscore,
-            gc=gc,
-            genome=genome,
-        )
-    except Exception as e:
-        sys.stderr.write("ERROR: {}\n".format(str(e)))
-        stats = {}
-        raise
+    stats = calc_stats(
+        motifs=motifs,
+        fg_file=fg_fa,
+        bg_file=bg_fa,
+        ncpus=1,
+        zscore=zscore,
+        gc=gc,
+        genome=genome,
+    )
 
     if not bg_name:
         bg_name = "default"
@@ -69,7 +43,7 @@ def _run_tool(job_name, t, fastafile, params):
     try:
         result = t.run(fastafile, params, mytmpdir())
     except Exception as e:
-        result = ([], "", "{} failed to run: {}".format(job_name, e))
+        result = ([], "", f"{job_name} failed to run: {e}")
 
     return job_name, result
 
@@ -85,19 +59,16 @@ class PredictionResult(object):
         background=None,
         gc=False,
         do_counter=True,
-        job_server=None,
+        ncpus=2,
     ):
-        self.lock = thread.allocate_lock()
+        self.lock = _thread.allocate_lock()
         self.motifs = []
         self.finished = []
         self.stats = {}
         self.stat_jobs = []
         self.outfile = outfile
         self.genome = genome
-        if job_server:
-            self.job_server = job_server
-        else:
-            self.job_server = Pool(2)
+        self.pool = Pool(processes=ncpus, maxtasksperchild=1000)
         self.counter = 0
         self.do_counter = do_counter
 
@@ -121,6 +92,14 @@ class PredictionResult(object):
         else:
             self.do_stats = False
 
+    def __del__(self):
+        # Close the multiprocessing.Pool to release memory
+        try:
+            self.pool.close()
+            self.pool.join()
+        except (ValueError, AttributeError):
+            pass
+
     def add_motifs(self, args):
         """Add motifs to the result object."""
         self.lock.acquire()
@@ -128,30 +107,29 @@ class PredictionResult(object):
         if args is None or len(args) != 2 or len(args[1]) != 3:
             try:
                 job = args[0]
-                logger.warn("job %s failed", job)
+                logger.warning(f"job {job} failed")
                 self.finished.append(job)
             except Exception:
-                logger.warn("job failed")
+                logger.warning("job failed")
             return
 
         job, (motifs, stdout, stderr) = args
 
-        logger.info("%s finished, found %s motifs", job, len(motifs))
+        logger.info(f"{job} finished, found {len(motifs)} motifs")
 
         for motif in motifs:
             if self.do_counter:
                 self.counter += 1
-                motif.id = "gimme_{}_".format(self.counter) + motif.id
+                motif.id = f"gimme_{self.counter}_{motif.id}"
             f = open(self.outfile, "a")
-            f.write("%s\n" % motif.to_pfm())
+            f.write(f"{motif.to_pfm()}\n")
             f.close()
             self.motifs.append(motif)
 
         if self.do_stats and len(motifs) > 0:
-            # job_id = "%s_%s" % (motif.id, motif.to_consensus())
-            logger.debug("Starting stats job of %s motifs", len(motifs))
+            logger.debug(f"Starting stats job of {len(motifs)} motifs")
             for bg_name, bg_fa in self.background.items():
-                job = self.job_server.apply_async(
+                job = self.pool.apply_async(
                     mp_calc_stats,
                     (
                         motifs,
@@ -166,8 +144,8 @@ class PredictionResult(object):
                 )
                 self.stat_jobs.append(job)
 
-        logger.debug("stdout %s: %s", job, stdout)
-        logger.debug("stdout %s: %s", job, stderr)
+        logger.debug(f"stdout {job}: {stdout}")
+        logger.debug(f"stderr {job}: {stderr}")
         self.finished.append(job)
         self.lock.release()
 
@@ -181,27 +159,13 @@ class PredictionResult(object):
     def add_stats(self, args):
         """Callback to add motif statistics."""
         bg_name, stats = args
-        logger.debug("Stats: %s %s", bg_name, stats)
+        logger.debug(f"Stats: {bg_name} {stats}")
 
         for motif_id in stats.keys():
             if motif_id not in self.stats:
                 self.stats[motif_id] = {}
 
             self.stats[motif_id][bg_name] = stats[motif_id]
-
-
-#    def submit_remaining_stats(self):
-#        for motif in self.motifs:
-#            n = "%s_%s" % (motif.id, motif.to_consensus())
-#            if n in  self.stats:
-#
-#                logger.info("Adding %s again!" % n)
-#                #job_id = "%s_%s" % (motif.id, motif.to_consensus())
-#                self.job_server.apply_async(
-#                                    _calc_motif_stats,
-#                                    (motif, self.fg_fa, self.bg_fa),
-#                                    callback=self.add_stats)
-#
 
 
 def pp_predict_motifs(
@@ -212,7 +176,6 @@ def pp_predict_motifs(
     single=False,
     background="",
     tools=None,
-    job_server=None,
     ncpus=8,
     max_time=-1,
     stats_fg=None,
@@ -224,15 +187,10 @@ def pp_predict_motifs(
     Utility function for gimmemotifs.denovo.gimme_motifs. Probably better to
     use that, instead of this function directly.
     """
-    if tools is None:
-        tools = {}
-
     config = MotifConfig()
 
     if not tools:
         tools = dict([(x, 1) for x in config.get_default_params()["tools"].split(",")])
-
-    # logger = logging.getLogger('gimme.prediction.pp_predict_motifs')
 
     wmin = 5
     step = 1
@@ -244,12 +202,12 @@ def pp_predict_motifs(
     wmax = analysis_max[analysis]
 
     if analysis == "xs":
-        sys.stderr.write("Setting analysis xs to small")
+        logger.info("Setting analysis xs to small")
         analysis = "small"
 
-    if not job_server:
-        n_cpus = int(config.get_default_params()["ncpus"])
-        job_server = Pool(processes=n_cpus, maxtasksperchild=1000)
+    if not ncpus:
+        ncpus = config.get_default_params()["ncpus"]
+    ncpus = int(ncpus)
 
     jobs = {}
 
@@ -259,11 +217,10 @@ def pp_predict_motifs(
         fg_file=stats_fg,
         background=stats_bg,
         gc=gc,
-        job_server=job_server,
+        ncpus=ncpus,
     )
 
     # Dynamically load all tools
-
     toolio = [
         x[1]()
         for x in inspect.getmembers(
@@ -274,10 +231,9 @@ def pp_predict_motifs(
         if x[0] != "MotifProgram"
     ]
 
-    # TODO:
-    # Add warnings for running time: Weeder, GADEM
+    # TODO: Add warnings for running time: Weeder, GADEM
 
-    # Add all jobs to the job_server
+    # Add all jobs to the pool
     params = {
         "analysis": analysis,
         "background": background,
@@ -290,30 +246,30 @@ def pp_predict_motifs(
     # Start these first.
     for t in [tool for tool in toolio if not tool.use_width]:
         if t.name in tools and tools[t.name]:
-            logger.debug("Starting %s job", t.name)
+            logger.debug(f"Starting {t.name} job")
             job_name = t.name
-            jobs[job_name] = job_server.apply_async(
+            jobs[job_name] = result.pool.apply_async(
                 _run_tool, (job_name, t, fastafile, params), callback=result.add_motifs
             )
         else:
-            logger.debug("Skipping %s", t.name)
+            logger.debug(f"Skipping {t.name}")
 
     for t in [tool for tool in toolio if tool.use_width]:
         if t.name in tools and tools[t.name]:
             for i in range(wmin, wmax + 1, step):
-                logger.debug("Starting %s job, width %s", t.name, i)
-                job_name = "%s_width_%s" % (t.name, i)
+                logger.debug(f"Starting {t.name} job, width {i}")
+                job_name = f"{t.name}_width_{i}"
                 my_params = params.copy()
                 my_params["width"] = i
-                jobs[job_name] = job_server.apply_async(
+                jobs[job_name] = result.pool.apply_async(
                     _run_tool,
                     (job_name, t, fastafile, my_params),
                     callback=result.add_motifs,
                 )
         else:
-            logger.debug("Skipping %s", t.name)
+            logger.debug(f"Skipping {t.name}")
 
-    logger.info("all jobs submitted")
+    logger.debug("all jobs submitted")
     for job in jobs.values():
         job.get()
 
@@ -358,8 +314,9 @@ def predict_motifs(infile, bgfile, outfile, params=None, stats_fg=None, stats_bg
 
     # Predict the motifs
     analysis = params["analysis"]
-    logger.info("starting motif prediction (%s)", analysis)
-    logger.info("tools: %s", ", ".join([x for x in tools.keys() if tools[x]]))
+    logger.info(f"starting motif prediction ({analysis})")
+    logger.info(f"tools: {', '.join([x for x in tools.keys() if tools[x]])}")
+    warnings.filterwarnings("ignore")
     result = pp_predict_motifs(
         infile,
         outfile,
@@ -368,16 +325,15 @@ def predict_motifs(infile, bgfile, outfile, params=None, stats_fg=None, stats_bg
         params["use_strand"],
         bgfile,
         tools,
-        None,
-        # logger=logger,
         max_time=params["max_time"],
         stats_fg=stats_fg,
         stats_bg=stats_bg,
     )
+    warnings.resetwarnings()
 
     motifs = result.motifs
-    logger.info("predicted %s motifs", len(motifs))
-    logger.debug("written to %s", outfile)
+    logger.info(f"predicted {len(motifs)} motifs")
+    logger.debug(f"written to {outfile}")
 
     if len(motifs) == 0:
         logger.info("no motifs found")

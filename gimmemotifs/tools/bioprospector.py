@@ -1,9 +1,10 @@
-from .motifprogram import MotifProgram
 import os
 import re
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
 from gimmemotifs.motif import Motif
+
+from .motifprogram import MotifProgram
 
 
 class BioProspector(MotifProgram):
@@ -73,14 +74,9 @@ class BioProspector(MotifProgram):
         stdout = ""
         stderr = ""
 
-        cmd = "%s -i %s -W %s -d %s -b %s -r %s -o %s" % (
-            bin,
-            fastafile,
-            params["width"],
-            params["strand"],
-            params["background"],
-            params["number"],
-            outfile,
+        cmd = (
+            f"{bin} -i {fastafile} -W {params['width']} -d {params['strand']} "
+            f"-b {params['background']} -r {params['number']} -o {outfile}"
         )
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
@@ -119,7 +115,7 @@ class BioProspector(MotifProgram):
             if line.startswith("Motif #"):
                 if pwm:
                     m = Motif(pwm)
-                    m.id = "BioProspector_w%s_%s" % (len(m), motif_id)
+                    m.id = f"BioProspector_w{len(m)}_{motif_id}"
                     motifs.append(m)
                 motif_id = line.split("#")[1].split(":")[0]
                 pwm = []
@@ -130,6 +126,6 @@ class BioProspector(MotifProgram):
 
         if pwm:
             m = Motif(pwm)
-            m.id = "BioProspector_w%s_%s" % (len(m), motif_id)
+            m.id = f"BioProspector_w{len(m)}_{motif_id}"
             motifs.append(m)
         return motifs

@@ -1,10 +1,11 @@
-from .motifprogram import MotifProgram
 import os
 import re
 import shutil
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
 from gimmemotifs.motif import Motif
+
+from .motifprogram import MotifProgram
 
 
 class Amd(MotifProgram):
@@ -60,7 +61,7 @@ class Amd(MotifProgram):
         stdout = ""
         stderr = ""
 
-        cmd = "%s -F %s -B %s" % (bin, fgfile, params["background"])
+        cmd = f"{bin} -F {fgfile} -B {params['background']}"
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
         out, err = p.communicate()
         stdout += out.decode()
@@ -102,7 +103,7 @@ class Amd(MotifProgram):
                     motifs[-1].id = name
                     name = ""
                     wm = []
-                name = "%s_%s" % (self.name, line.split(":")[0])
+                name = f"{self.name}_{line.split(':')[0]}"
             else:
                 m = p.search(line)
                 if m:

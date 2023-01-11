@@ -1,6 +1,7 @@
-from .motifprogram import MotifProgram
 import os
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
+
+from .motifprogram import MotifProgram
 
 
 class XXmotif(MotifProgram):
@@ -33,7 +34,7 @@ class XXmotif(MotifProgram):
 
         if prm["background"]:
             # Absolute path, just to be sure
-            prm["background"] = " --negSet {0} ".format(prm["background"])
+            prm["background"] = f" --negSet {prm['background']} "
 
         prm["strand"] = ""
         if not prm["single"]:
@@ -77,12 +78,9 @@ class XXmotif(MotifProgram):
         stdout = ""
         stderr = ""
 
-        cmd = "%s %s %s --localization --batch %s %s" % (
-            bin,
-            self.tmpdir,
-            fastafile,
-            params["background"],
-            params["strand"],
+        cmd = (
+            f"{bin} {self.tmpdir} {fastafile} --localization "
+            f"--batch {params['background']} {params['strand']}"
         )
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)

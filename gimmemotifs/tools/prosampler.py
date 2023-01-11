@@ -1,6 +1,7 @@
-from .motifprogram import MotifProgram
 import os
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
+
+from .motifprogram import MotifProgram
 
 
 class ProSampler(MotifProgram):
@@ -63,12 +64,9 @@ class ProSampler(MotifProgram):
         stdout = ""
         stderr = ""
 
-        cmd = "%s -i %s -b %s -o %s %s" % (
-            bin,
-            fastafile,
-            params["background"],
-            os.path.join(self.tmpdir, "ProSampler"),
-            params["strand"],
+        cmd = (
+            f"{bin} -i {fastafile} -b {params['background']} "
+            f"-o {os.path.join(self.tmpdir, 'ProSampler')} {params['strand']}"
         )
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.tmpdir)

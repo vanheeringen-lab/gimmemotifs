@@ -1,9 +1,11 @@
-import unittest
-import tempfile
 import os
-from gimmemotifs.background import matched_gc_bedfile
-from pybedtools import BedTool
+import tempfile
+import unittest
+
 import numpy as np
+from pybedtools import BedTool
+
+from gimmemotifs.background import matched_gc_bedfile
 
 
 class TestBackground(unittest.TestCase):
@@ -30,8 +32,8 @@ class TestBackground(unittest.TestCase):
                 b = BedTool(tmp.name)
                 gc = [f[4] for f in b.nucleotide_content(fi=self.genome)]
                 gc = np.array([round(float(x), 2) for x in gc])
-                self.assertEquals(5, np.sum(gc <= round(0.2, 2)))
-                self.assertEquals(
+                self.assertEqual(5, np.sum(gc <= round(0.2, 2)))
+                self.assertEqual(
                     5, np.sum((gc <= round(0.4, 2)) & (gc > round(0.35, 2)))
                 )
 

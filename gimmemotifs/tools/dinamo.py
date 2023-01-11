@@ -1,6 +1,7 @@
-from .motifprogram import MotifProgram
 import os
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
+
+from .motifprogram import MotifProgram
 
 
 class Dinamo(MotifProgram):
@@ -50,12 +51,9 @@ class Dinamo(MotifProgram):
         stdout = ""
         stderr = ""
 
-        cmd = "%s -pf %s -nf %s -l %s -o %s" % (
-            bin,
-            fastafile,
-            params["background"],
-            params["width"],
-            outfile,
+        cmd = (
+            f"{bin} -pf {fastafile} -nf {params['background']} "
+            f"-l {params['width']} -o {outfile}"
         )
 
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.tmpdir)

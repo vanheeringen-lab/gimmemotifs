@@ -4,11 +4,12 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
+import argparse
 import os
 import sys
-import argparse
-from gimmemotifs.config import MotifConfig, BG_TYPES, BED_VALID_BGS
-from gimmemotifs import commands, __version__
+
+from gimmemotifs import __version__, commands
+from gimmemotifs.config import BED_VALID_BGS, BG_TYPES, MotifConfig
 from gimmemotifs.utils import check_genome
 
 
@@ -18,11 +19,7 @@ def cli(sys_args):
     default_pfm_file = os.path.join(config.get_motif_dir(), params["motif_db"])
     default_pfm = params["motif_db"]
 
-    description = """
-    GimmeMotifs v{0}
-    """.format(
-        __version__
-    )
+    description = f"GimmeMotifs v{__version__}"
 
     epilog = """
     commands:
@@ -67,9 +64,9 @@ def cli(sys_args):
         "-b",
         "--background",
         help=(
-            "Background type ({}) or a file with background "
+            f"Background type ({','.join(BED_VALID_BGS)}) or a file with background "
             "sequences (FASTA, BED or regions)"
-        ).format(",".join(BED_VALID_BGS)),
+        ),
         metavar="BACKGROUND",
     )
     p.add_argument(
@@ -114,7 +111,7 @@ def cli(sys_args):
         "-N",
         "--nthreads",
         dest="ncpus",
-        help="Number of threads (default %s)" % (params["ncpus"]),
+        help=f"Number of threads (default {params['ncpus']})",
         metavar="INT",
         type=int,
         default=int(params["ncpus"]),
@@ -125,7 +122,7 @@ def cli(sys_args):
     known_grp.add_argument(
         "-p",
         dest="pfmfile",
-        help="PFM file with motifs." "(default: {0})".format(default_pfm),
+        help=f"PFM file with motifs (default: {default_pfm}).",
         default=default_pfm_file,
         metavar="PFMFILE",
     )
@@ -136,8 +133,7 @@ def cli(sys_args):
         "-t",
         "--tools",
         dest="tools",
-        help="Tools to use, any combination of %s (default %s)"
-        % (params["available_tools"], params["tools"]),
+        help=f"Tools to use, any combination of {params['available_tools']} (default {params['tools']})",
         metavar="N",
         default="MEME,Homer,BioProspector",
     )
@@ -169,7 +165,10 @@ def cli(sys_args):
         "-f",
         "--fraction",
         dest="fraction",
-        help="Fraction of peaks to use for motif predicton (%s)" % params["fraction"],
+        help=(
+            f"Fraction of peaks to use for motif prediction set ({params['fraction']})."
+            "The rest is used as validation set."
+        ),
         metavar="FRACTION",
         default=params["fraction"],
         type=float,
@@ -179,9 +178,9 @@ def cli(sys_args):
         "--size",
         dest="size",
         help=(
-            "Region size to use for motif prediction ({}). "
+            f"Region size to use for motif prediction ({params['size']}). "
             "Set to 0 to use the size of the input regions."
-        ).format(params["size"]),
+        ),
         metavar="N",
         default=params["size"],
         type=int,
@@ -190,21 +189,20 @@ def cli(sys_args):
     p.set_defaults(func=commands.motifs)
 
     # pfmscan.py
-    NREPORT = 1
     p = subparsers.add_parser("scan")
     p.add_argument(
         "inputfile", help="inputfile (FASTA, BED, regions)", metavar="INPUTFILE"
     )
     p.add_argument(
-        "-g", "--genome", dest="genome", help="Genome", metavar="GENOME", default=None
+        "-g", "--genome", dest="genome", help="Genome", metavar="", default=None
     )
     p.add_argument(
         "-p",
         "--pfmfile",
         dest="pfmfile",
-        help="PFM file with motifs " "(default: {0})".format(default_pfm),
+        help=f"PFM file with motifs (default: {default_pfm}).",
         default=default_pfm_file,
-        metavar="pfmfile",
+        metavar="",
     )
     p.add_argument(
         "-f",
@@ -234,9 +232,9 @@ def cli(sys_args):
         "-n",
         "--nreport",
         dest="nreport",
-        help="report the N best matches",
-        metavar="N",
-        default=NREPORT,
+        help="report the N best matches (default 1)",
+        metavar="",
+        default=1,
         type=int,
     )
     p.add_argument(
@@ -287,32 +285,22 @@ def cli(sys_args):
         default=False,
     )
     p.add_argument(
+        "-s",
+        "--seed",
+        dest="seed",
+        help="set a random seed (default None)",
+        metavar="",
+        default=None,
+        type=int,
+    )
+    p.add_argument(
         "-N",
         "--nthreads",
         dest="ncpus",
-        help="Number of threads (default %s)" % (params["ncpus"]),
-        metavar="INT",
+        help=f"Number of threads (default {params['ncpus']})",
+        metavar="",
         type=int,
         default=int(params["ncpus"]),
-    )
-    p.add_argument(
-        "-M",
-        "--do_MOODS",
-        dest="moods",
-        help=argparse.SUPPRESS,
-        # help="experimental: use MOODS for scanning",
-        action="store_true",
-        default=False,
-    )
-    p.add_argument(
-        "-P",
-        "--pvalue",
-        dest="pvalue",
-        help=argparse.SUPPRESS,
-        # help="experimental: MOODS p-value cutoff",
-        metavar="",
-        type=float,
-        default=None,
     )
 
     p.set_defaults(func=commands.pfmscan)
@@ -327,9 +315,9 @@ def cli(sys_args):
         "-p",
         "--pfmfile",
         dest="pfmfile",
-        help="PFM file with motifs " "(default: {0})".format(default_pfm),
+        help=f"PFM file with motifs (default: {default_pfm}).",
         default=default_pfm_file,
-        metavar="pfmfile",
+        metavar="",
     )
     p.add_argument(
         "--no-filter",
@@ -345,22 +333,15 @@ def cli(sys_args):
         help="Cutoff to select non-redundant motifs. Default is 0.8, increase this value to get fewer motifs.",
         default=0.8,
         type=float,
-        metavar="FLOAT",
-    )
-    p.add_argument(
-        "--nocenter",
-        dest="center",
-        help="Don't mean-center the rows by default",
-        default=True,
-        action="store_false",
+        metavar="",
     )
     p.add_argument(
         "-m",
         "--methods",
         dest="methods",
-        help="Run with specific methods",
+        help="Run with specific methods (default all)",
         default=None,
-        metavar="NAMES",
+        metavar="",
     )
     p.add_argument(
         "-a",
@@ -373,16 +354,32 @@ def cli(sys_args):
             "p-values."
         ),
         default="int_stouffer",
-        metavar="method",
+        metavar="",
+    )
+    p.add_argument(
+        "-s",
+        "--seed",
+        dest="seed",
+        help="set a random seed (default None)",
+        metavar="",
+        default=None,
+        type=int,
     )
     p.add_argument(
         "-N",
         "--nthreads",
         dest="ncpus",
-        help="Number of threads (default %s)" % (params["ncpus"]),
-        metavar="INT",
+        help=f"Number of threads (default {params['ncpus']})",
+        metavar="",
         type=int,
         default=int(params["ncpus"]),
+    )
+    p.add_argument(
+        "--nocenter",
+        dest="center",
+        help="Don't mean-center the rows by default",
+        default=True,
+        action="store_false",
     )
     p.add_argument(
         "--rawscore",
@@ -398,6 +395,20 @@ def cli(sys_args):
         action="store_false",
         default=True,
     )
+    p.add_argument(
+        "--all-motif-plots",
+        dest="plot_all_motifs",
+        help="Specify to plot all motifs",
+        action="store_true",
+        default=False,
+    )
+    p.add_argument(
+        "--no-motif-plots",
+        dest="plot_no_motifs",
+        help="Specify to plot no motifs",
+        action="store_true",
+        default=False,
+    )
 
     p.set_defaults(func=commands.maelstrom)
 
@@ -407,7 +418,7 @@ def cli(sys_args):
     p.add_argument(
         "-d",
         dest="dbpfmfile",
-        help="File with pfms to match against " "(default: {0})".format(default_pfm),
+        help=f"File with pfms to match against (default: {default_pfm})",
         default=default_pfm_file,
         metavar="DBFILE",
     )
@@ -474,7 +485,7 @@ def cli(sys_args):
         "-N",
         "--nthreads",
         dest="ncpus",
-        help="Number of threads (default %s)" % (params["ncpus"]),
+        help=f"Number of threads (default {params['ncpus']})",
         metavar="INT",
         type=int,
         default=int(params["ncpus"]),
@@ -487,7 +498,7 @@ def cli(sys_args):
     p.add_argument("outputfile", help="outputfile", metavar="FILE")
     p.add_argument(
         "bg_type",
-        help="type of background sequences to generate (%s)" % ",".join(BG_TYPES),
+        help=f"type of background sequences to generate ({','.join(BG_TYPES)})",
         metavar="TYPE",
     )
     p.add_argument(
@@ -577,7 +588,7 @@ def cli(sys_args):
         "-p",
         "--pfmfile",
         dest="pfmfile",
-        help="PFM file with motifs " "(default: {0})".format(default_pfm),
+        help=f"PFM file with motifs (default: {default_pfm}).",
         default=default_pfm_file,
         metavar="pfmfile",
     )
@@ -645,7 +656,7 @@ def cli(sys_args):
 
     p = subparsers.add_parser(
         "motif2factors",
-        help="Generate a motif2factors file based on orthology for your species of interest.",
+        # help="Generate a motif2factors file based on orthology for your species of interest.",
     )
     p.add_argument(
         "--new-reference",
@@ -726,11 +737,7 @@ def cli(sys_args):
     else:
         ignored = ["-v", "--version", "-h", "--help"]
         if len(sys_args) == 1 and sys_args[0] not in ignored:
-            print(
-                "\033[93mtype `gimme {} -h` for more details\033[0m\n".format(
-                    sys_args[-1]
-                )
-            )
+            print(f"\033[93mtype `gimme {sys_args[-1]} -h` for more details\033[0m\n")
         args = parser.parse_args(sys_args)
 
         if hasattr(args, "genome"):

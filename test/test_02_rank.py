@@ -1,7 +1,9 @@
-import unittest
 import os
+import unittest
+
 import pandas as pd
-from gimmemotifs.rank import rankagg, _rankagg_stuart
+
+from gimmemotifs.maelstrom.rank import _rankagg_stuart, rankagg
 
 
 class TestRank(unittest.TestCase):

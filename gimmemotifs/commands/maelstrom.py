@@ -6,11 +6,14 @@
 # distribution.
 """Command line function 'maelstrom'"""
 import os
+
+from numpy.random import RandomState
+
 from gimmemotifs.maelstrom import run_maelstrom
 
 
 def maelstrom(args):
-    """Run the maelstrom method."""
+    """Find differential motifs."""
     infile = args.inputfile
     genome = args.genome
     outdir = args.outdir
@@ -23,12 +26,18 @@ def maelstrom(args):
     center = args.center
     gc = args.gc
     aggregation = args.aggregation
+    plot_all_motifs = args.plot_all_motifs
+    plot_no_motifs = args.plot_no_motifs
 
     if not os.path.exists(infile):
-        raise ValueError("file {} does not exist".format(infile))
+        raise ValueError(f"file {infile} does not exist")
 
     if methods:
         methods = [x.strip() for x in methods.split(",")]
+
+    random_state = None
+    if args.seed is not None:
+        random_state = RandomState(int(args.seed))
 
     run_maelstrom(
         infile,
@@ -43,4 +52,7 @@ def maelstrom(args):
         gc=gc,
         center=center,
         aggregation=aggregation,
+        plot_all_motifs=plot_all_motifs,
+        plot_no_motifs=plot_no_motifs,
+        random_state=random_state,
     )

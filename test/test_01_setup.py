@@ -1,5 +1,6 @@
-import pytest
 import subprocess as sp
+
+import pytest
 
 
 def test_black_formatting():
@@ -24,4 +25,17 @@ def test_flake8_formatting():
     except sp.CalledProcessError as e:
         msg = e.output.decode("utf-8")
         msg = "Flake8 output:\n" + msg
+        pytest.fail(msg, False)
+
+
+def test_isort_formatting():
+    try:
+        sp.check_output(
+            "isort --check gimmemotifs/ scripts/ test/ setup.py",
+            stderr=sp.STDOUT,
+            shell=True,
+        )
+    except sp.CalledProcessError as e:
+        msg = e.output.decode("utf-8")
+        msg = "isort output:\n" + msg
         pytest.fail(msg, False)

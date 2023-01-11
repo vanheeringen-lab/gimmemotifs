@@ -1,15 +1,15 @@
 """Calculate motif enrichment statistics."""
-from multiprocessing import Pool
 import logging
+from multiprocessing import Pool
 
 import numpy as np
-from scipy.stats import rankdata
 import pandas as pd
+from scipy.stats import rankdata
 
 from gimmemotifs import rocmetrics
-from gimmemotifs.scanner import scan_to_best_match, Scanner
-from gimmemotifs.motif import read_motifs, Motif
 from gimmemotifs.config import MotifConfig
+from gimmemotifs.motif import Motif, read_motifs
+from gimmemotifs.scanner import Scanner, scan_to_best_match
 from gimmemotifs.utils import pfmfile_location
 
 logger = logging.getLogger("gimme.stats")
@@ -86,10 +86,12 @@ def calc_stats_iterator(
             if func.input_type == "pos":
                 remove_stats.append(s)
         if len(remove_stats) != 0:
-            logger.warn(
+            logger.warning(
                 "Cannot calculate stats that require position from table of motif scores."
             )
-            logger.warn(f"Skipping the following statistics: {', '.join(remove_stats)}")
+            logger.warning(
+                f"Skipping the following statistics: {', '.join(remove_stats)}"
+            )
             stats = [s for s in stats if s not in remove_stats]
 
     if isinstance(motifs, Motif):
@@ -124,7 +126,7 @@ def calc_stats_iterator(
     for i in range(0, len(all_motifs), chunksize):
         result = {}
         logger.debug(
-            "chunk %s of %s", (i / chunksize) + 1, len(all_motifs) // chunksize + 1
+            f"chunk {(i / chunksize) + 1} of {len(all_motifs) // chunksize + 1}"
         )
         motifs = all_motifs[i : i + chunksize]
 
@@ -269,15 +271,15 @@ def _single_stats(motifs, stats, fg_total, bg_total):
 
 def _mp_stats(motifs, stats, fg_total, bg_total, ncpus):
     # Initialize multiprocessing pool
-    pool = Pool(ncpus, maxtasksperchild=1000)
+    pool = Pool(processes=ncpus, maxtasksperchild=1000)
 
     jobs = []
     for motif in motifs:
         motif_id = motif.id
         fg_vals = fg_total[motif_id]
         bg_vals = bg_total[motif_id]
-        for s in stats:
-            func = getattr(rocmetrics, s)
+        for stat in stats:
+            func = getattr(rocmetrics, stat)
             if func.input_type == "score":
                 fg = [x[0] for x in fg_vals]
                 bg = [x[0] for x in bg_vals]
@@ -287,14 +289,14 @@ def _mp_stats(motifs, stats, fg_total, bg_total, ncpus):
             else:
                 raise ValueError("Unknown input_type for stats")
 
-            j = pool.apply_async(func, (fg, bg))
-            jobs.append([str(motif), s, j])
+            job = pool.apply_async(func, (fg, bg))
+            jobs.append([str(motif), stat, job])
     pool.close()
-    pool.join()
 
-    for motif_id, s, job in jobs:
+    for motif_id, stat, job in jobs:
         ret = job.get()
-        yield motif_id, s, ret
+        yield motif_id, stat, ret
+    pool.join()
 
 
 def star(stat, categories):
@@ -348,8 +350,6 @@ def rank_motifs(stats, metrics=("roc_auc", "recall_at_fdr")):
 
 def write_stats(stats, fname, header=None):
     """write motif statistics to text file."""
-    # Write stats output to file
-
     for bg in list(stats.values())[0].keys():
         f = open(fname.format(bg), "w")
         if header:
@@ -369,10 +369,7 @@ def write_stats(stats, fname, header=None):
                     )
                 )
             else:
-                logger.warn(
-                    "No stats for motif {0}, skipping this motif!".format(motif)
-                )
-            # motifs.remove(motif)
+                logger.warning(f"No stats for motif {motif}, skipping this motif!")
         f.close()
 
     return

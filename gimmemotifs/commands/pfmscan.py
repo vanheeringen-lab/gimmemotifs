@@ -4,17 +4,18 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
-"""
-Command line function 'scan'.
-"""
+"""Command line function 'scan'."""
 import sys
+
+from numpy.random import RandomState
 
 from gimmemotifs.scanner import scan_to_file
 
-MAX_CPUS = 16
-
 
 def pfmscan(args):
+    random_state = None
+    if args.seed is not None:
+        random_state = RandomState(int(args.seed))
 
     scan_to_file(
         args.inputfile,
@@ -27,11 +28,10 @@ def pfmscan(args):
         scan_rc=args.scan_rc,
         table=args.table,
         score_table=args.score_table,
-        moods=args.moods,
-        pvalue=args.pvalue,
         bgfile=args.bgfile,
         genome=args.genome,
         ncpus=args.ncpus,
         zscore=args.zscore,
         gcnorm=args.gcnorm,
+        random_state=random_state,
     )

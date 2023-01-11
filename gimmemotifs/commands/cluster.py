@@ -4,15 +4,18 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
-
-from gimmemotifs.motif import read_motifs
-from gimmemotifs.comparison import MotifComparer
-from gimmemotifs.cluster import cluster_motifs
-from gimmemotifs.config import MotifConfig
-import sys
+import logging
 import os
 
 import jinja2
+
+from gimmemotifs.config import MotifConfig
+from gimmemotifs.motif import read_motifs
+from gimmemotifs.motif.cluster import cluster_motifs
+
+from gimmemotifs.comparison import MotifComparer  # isort: skip
+
+logger = logging.getLogger("gimme.cluster")
 
 
 def _write_report(outdir, ids, tree, clusters):
@@ -26,18 +29,16 @@ def _write_report(outdir, ids, tree, clusters):
     with open(os.path.join(outdir, "gimme.clustered.html"), "w") as f:
         f.write(result)
 
-    f = open(os.path.join(outdir, "cluster_key.txt"), "w")
-    for motif_id in ids:
-        f.write("%s\t%s\n" % (motif_id[0], ",".join([x["alt"] for x in motif_id[2]])))
-    f.close()
+    with open(os.path.join(outdir, "cluster_key.txt"), "w") as f:
+        for motif_id in ids:
+            f.write(f"{motif_id[0]}\t{','.join([x['alt'] for x in motif_id[2]])}\n")
 
-    f = open(os.path.join(outdir, "clustered_motifs.pfm"), "w")
-    if len(clusters) == 1 and len(clusters[0][1]) == 1:
-        f.write("%s\n" % clusters[0][0].to_ppm())
-    else:
-        for motif in tree.get_clustered_motifs():
-            f.write("%s\n" % motif.to_ppm())
-    f.close()
+    with open(os.path.join(outdir, "clustered_motifs.pfm"), "w") as f:
+        if len(clusters) == 1 and len(clusters[0][1]) == 1:
+            f.write(f"{clusters[0][0].to_ppm()}\n")
+        else:
+            for motif in tree.get_clustered_motifs():
+                f.write(f"{motif.to_ppm()}\n")
 
 
 def _create_images(outdir, clusters):
@@ -45,11 +46,11 @@ def _create_images(outdir, clusters):
     mc = MotifComparer()
     trim_ic = 0.2
 
-    sys.stderr.write("Creating images\n")
+    logger.info("Creating images")
     for cluster, members in clusters:
         cluster.trim(trim_ic)
-        cluster.plot_logo(fname=os.path.join(outdir, "%s.png" % cluster.id))
-        ids.append([cluster.id, {"src": "%s.png" % cluster.id}, []])
+        cluster.plot_logo(fname=os.path.join(outdir, f"{cluster.id}.png"))
+        ids.append([cluster.id, {"src": f"{cluster.id}.png"}, []])
         if len(members) > 1:
             scores = {}
             for motif in members:
@@ -64,19 +65,17 @@ def _create_images(outdir, clusters):
                 if strand in [1, "+"]:
                     pass
                 else:
-                    # print "RC %s" % motif.id
                     rc = motif.rc()
                     rc.id = motif.id
                     motif = rc
-                # print "%s\t%s" % (motif.id, add)
                 motif.plot_logo(
-                    fname=os.path.join(outdir, "%s.png" % motif.id.replace(" ", "_")),
+                    fname=os.path.join(outdir, f"{motif.id.replace(' ', '_')}.png"),
                     add_left=add,
                 )
         ids[-1][2] = [
             dict(
                 [
-                    ("src", "%s.png" % m.id.replace(" ", "_")),
+                    ("src", f"{m.id.replace(' ', '_')}.png"),
                     ("alt", m.id.replace(" ", "_")),
                 ]
             )

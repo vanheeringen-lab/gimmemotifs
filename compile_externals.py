@@ -1,7 +1,7 @@
-import sys
 import os
-from subprocess import Popen, PIPE
+import sys
 from distutils import log
+from subprocess import PIPE, Popen
 
 
 def compile_simple(name, src_dir="src"):
@@ -23,37 +23,35 @@ def compile_simple(name, src_dir="src"):
     except Exception:
         return
 
-    Popen(
-        [gcc, "-o%s" % name, "%s.c" % name, "-lm"], cwd=path, stdout=PIPE
-    ).communicate()
+    Popen([gcc, f"-o{name}", f"{name}.c", "-lm"], cwd=path, stdout=PIPE).communicate()
     if os.path.exists(os.path.join(path, name)):
         return True
 
 
-def compile_configmake(name, binary, configure=True, src_dir="src"):
-    path = os.path.join(src_dir, "%s" % name)
-
-    if not os.path.exists(path):
-        return
-
-    if configure:
-        Popen(
-            ["chmod", "+x", "./configure"], cwd=path, stdout=PIPE, stderr=PIPE
-        ).communicate()
-        stdout, stderr = Popen(
-            ["./configure"], cwd=path, stdout=PIPE, stderr=PIPE
-        ).communicate()
-        print(stdout)
-        print(stderr)
-
-    stdout, stderr = Popen(
-        ["make -j 4"], cwd=path, stdout=PIPE, stderr=PIPE, shell=True
-    ).communicate()
-    print(stdout)
-    print(stderr)
-
-    if os.path.exists(os.path.join(path, binary)):
-        return True
+# def compile_configmake(name, binary, configure=True, src_dir="src"):
+#     path = os.path.join(src_dir, str(name))
+#
+#     if not os.path.exists(path):
+#         return
+#
+#     if configure:
+#         Popen(
+#             ["chmod", "+x", "./configure"], cwd=path, stdout=PIPE, stderr=PIPE
+#         ).communicate()
+#         stdout, stderr = Popen(
+#             ["./configure"], cwd=path, stdout=PIPE, stderr=PIPE
+#         ).communicate()
+#         print(stdout)
+#         print(stderr)
+#
+#     stdout, stderr = Popen(
+#         ["make -j 4"], cwd=path, stdout=PIPE, stderr=PIPE, shell=True
+#     ).communicate()
+#     print(stdout)
+#     print(stderr)
+#
+#     if os.path.exists(os.path.join(path, binary)):
+#         return True
 
 
 def print_result(result):
@@ -63,10 +61,7 @@ def print_result(result):
         log.info("... ok")
 
 
-def compile_all(prefix=None, src_dir="src"):
-    # are we in the conda build environment?
-    conda_build = os.environ.get("CONDA_BUILD")
-
+def compile_all(src_dir="src"):
     sys.stderr.write("compiling BioProspector")
     sys.stderr.flush()
     result = compile_simple("BioProspector", src_dir=src_dir)

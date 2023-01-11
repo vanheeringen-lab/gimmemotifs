@@ -1,9 +1,10 @@
-from .motifprogram import MotifProgram
 import os
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.motif import Motif
+
+from .motifprogram import MotifProgram
 
 
 class ChIPMunk(MotifProgram):
@@ -55,8 +56,8 @@ class ChIPMunk(MotifProgram):
         f = Fasta(fastafile)
         for seq in f.seqs:
             header = len(seq) // 2
-            out.write(">%s\n" % header)
-            out.write("%s\n" % seq)
+            out.write(f">{header}\n")
+            out.write(f"{seq}\n")
         out.close()
 
         fastafile = new_file
@@ -71,16 +72,11 @@ class ChIPMunk(MotifProgram):
         stdout = ""
         stderr = ""
         for zoops_factor in ["oops", 0.0, 0.5, 1.0]:
-            cmd = "{} {} {} y {} m:{} 100 10 1 {} 1>{}".format(
-                bin,
-                params.get("width", 8),
-                params.get("width", 20),
-                zoops_factor,
-                fastafile,
-                ncpus,
-                outfile,
+            cmd = (
+                f"{bin} {params.get('width', 8)} {params.get('width', 20)} "
+                f"y {zoops_factor} m:{fastafile} 100 10 1 {ncpus} 1>{outfile}"
             )
-            # print("command: ", cmd)
+
             p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
             std = p.communicate()
             stdout = stdout + std[0].decode()
@@ -125,5 +121,5 @@ class ChIPMunk(MotifProgram):
         matrix = [[matrix[x][y] for x in range(4)] for y in range(len(matrix[0]))]
         # print matrix
         m = Motif(matrix)
-        m.id = "ChIPMunk_w%s" % len(m)
+        m.id = f"ChIPMunk_w{len(m)}"
         return [m]

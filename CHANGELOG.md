@@ -5,6 +5,51 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+## [0.18.0] - 2023-01-11
+
+### Added
+
+- `gimme scan` and `gimme maelstrom` now accept a random seed for (most) operations
+  - for (optimal) deterministic behaviour, delete the cache and then run the command with a seed 
+- `Scanner` now accepts a `np.random.RandomState` and `progress` on init.
+  - `progress=None` (the default) should print progress bars to the command line only, not to file.
+- `Scanner.set_genome` now accepts the optional argument `genomes_dir`
+- `gimmemotifs.maelstrom.Moap.create` now accepts a `np.random.RandomState`.
+- `gimmemotifs.maelstrom.run_maelstrom` now accepts a `np.random.RandomState`.
+
+### Changed
+
+- `gimme diff` (`diff_plot()` to be exact) will now print to stdout, like all other functions
+- now using the logger instead of print/sys.stderr.write in many more places
+- string formatting now (mostly) done with f-strings
+- refactored Fasta class
+- split `scanner.py` into 3 submodules:
+  - `scanner/__init__.py` with the exported functions
+  - `scanner/base.py` with the Scanner class
+  - `scanner/utils.py` with the rest
+- `gimmemotifs/maelstrom.py` renamed to `gimmemotifs/maelstrom/_init__.py`
+  - `rank.py` and `moap.py` are now submodules of maelstrom.
+
+### Fixed
+
+- `gimme maelstrom` works with or without xgboost (but will give a warning without xgboost) 
+- fixed warning "in validate_matrix(): Row sums in df are not close to 1. Reormalizing rows..."
+- fixed multiprocess.Pool Warnings
+- fixed a pandas copywarning (in `gc_bin_bedfile()` to be exact)
+- fixed warnings when leaving files open
+- fixed deprecation warning in maelstrom (and in tests)
+- fixed futurewarning in report.py 
+- silence warnings from external tools in motif prediction (`pp_predict_motifs()` to be exact)
+- updated last references from `Motif.pwm_scan` and `Motif.pwm_scan_all` to `Motif.scan` and `Motif.scan_all` respectively
+- typo in `gimme motifs` output ("%matches background" to "% matches background")
+- `Scanner` now uses a cheaper method to determine a genome's identity 
+  - (filesize + name instead of the md5sum of the whole genome's contents)
+- `gimme motifs` gives an informative error when `fraction` is not within 0-1.
+- `gimme threshold` works again
+
+### Removed
+
+- removed old python2 code (scanning with MOODS & import shenanigans)
 
 ## [0.17.2] - 2022-10-12
 

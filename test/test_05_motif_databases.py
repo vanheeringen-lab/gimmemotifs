@@ -1,4 +1,5 @@
 import unittest
+
 from gimmemotifs.db import MotifDb
 
 

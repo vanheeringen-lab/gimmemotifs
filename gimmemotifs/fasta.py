@@ -5,10 +5,13 @@
 # distribution.
 
 """ Module to work with FASTA files """
-import sys
+import logging
 import random
 import re
+
 import numpy as np
+
+logger = logging.getLogger("gimme.fasta")
 
 
 class Fasta(object):
@@ -18,11 +21,10 @@ class Fasta(object):
         self.seqs = []
         p = re.compile(r"[^abcdefghiklmnpqrstuvwyzxABCDEFGHIKLMNPQRSTUVWXYZ]")
         if fname:
-            f = open(fname, "r")
-            c = f.read()
-            f.close()
+            with open(fname, "r") as f:
+                c = f.read()
             if not (c.startswith(">")):
-                raise IOError("Not a valid FASTA file")
+                raise IOError(f"Not a valid FASTA file: {fname}")
 
             for seq in re.split(r"\r?\n>", c[1:]):
                 if len(seq) > 1:
@@ -33,19 +35,80 @@ class Fasta(object):
                     self.ids.append(seq_name)
                     sequence = "".join(lines[1:])
                     if p.match(sequence):
-                        raise IOError("Not a valid FASTA file")
+                        raise IOError(f"Not a valid FASTA file: {fname}")
                     self.seqs.append(sequence)
         elif fdict is not None:
             for name, seq in fdict.items():
                 self.ids.append(name)
                 self.seqs.append(seq)
 
+    def __getitem__(self, idx):
+        """Fasta[key]"""
+        if isinstance(idx, slice):
+            f = Fasta()
+            f.ids = self.ids[idx][:]
+            f.seqs = self.seqs[idx][:]
+            return f
+        elif idx in self.ids:
+            return self.seqs[self.ids.index(idx)]
+        else:
+            return None
+
+    def __setitem__(self, key, value):
+        """Fasta[key] = value"""
+        if key in self.ids:
+            self.seqs[self.ids.index(key)] = value
+        else:
+            self.ids.append(key)
+            self.seqs.append(value)
+
+    def __delitem__(self, key):
+        """del Fasta[key]"""
+        i = self.ids.index(key)
+        self.ids.pop(i)
+        self.seqs.pop(i)
+
+    def __contains__(self, key):
+        """key in Fasta"""
+        return key in self.ids
+
+    def __iter__(self):
+        """for key in Fasta"""
+        yield from self.ids
+
+    def __len__(self):
+        """len(Fasta)"""
+        return len(self.ids)
+
+    def __repr__(self):
+        """repr(Fasta)"""
+        return f"{len(self.ids)} sequences"
+
+    def __str__(self):
+        """str(Fasta)"""
+        return f"{len(self.ids)} sequences"
+
+    def add(self, seq_id, seq):
+        """Fasta.add(key, value)"""
+        self.ids.append(seq_id)
+        self.seqs.append(seq)
+
+    def rename(self, key, new_key):
+        """Fasta.rename(key, new_key)"""
+        i = self.ids.index(key)
+        self.ids[i] = new_key
+
+    def items(self):
+        return zip(self.ids, self.seqs)
+
+    def median_length(self):
+        return np.median([len(seq) for seq in self.seqs])
+
     def hardmask(self):
         """Mask all lowercase nucleotides with N's"""
-        p = re.compile("a|c|g|t|n")
-        for seq_id in self.ids:
-            self[seq_id] = p.sub("N", self[seq_id])
-        return self
+        p = re.compile("[acgtn]")
+        for seq_id, seq in self.items():
+            self[seq_id] = p.sub("N", seq)
 
     def get_random(self, n, length=None):
         """Return n random sequences from this Fasta object"""
@@ -58,12 +121,10 @@ class Fasta(object):
                 seq_id = ids.pop()
                 if len(self[seq_id]) >= length:
                     start = random.randint(0, len(self[seq_id]) - length)
-                    random_f["random%s" % (i + 1)] = self[seq_id][
-                        start : start + length
-                    ]
+                    random_f[f"random{i + 1}"] = self[seq_id][start : start + length]
                     i += 1
             if len(random_f) != n:
-                sys.stderr.write("Not enough sequences of required length")
+                logger.error("Not enough sequences of required length")
                 return
             else:
                 return random_f
@@ -74,62 +135,9 @@ class Fasta(object):
                 random_f[choice[i]] = self[choice[i]]
         return random_f
 
-    def __getitem__(self, idx):
-        if isinstance(idx, slice):
-            f = Fasta()
-            f.ids = self.ids[idx][:]
-            f.seqs = self.seqs[idx][:]
-            return f
-        elif idx in self.ids:
-            return self.seqs[self.ids.index(idx)]
-        else:
-            return None
-
-    def __repr__(self):
-        return "%s sequences" % len(self.ids)
-
-    def __len__(self):
-        return len(self.ids)
-
-    def __setitem__(self, key, value):
-        if key in self.ids:
-            self.seqs[self.ids.index(key)] = value
-        else:
-            self.ids.append(key)
-            self.seqs.append(value)
-
-    def __delitem__(self, key):
-        i = self.ids.index(key)
-        self.ids.pop(i)
-        self.seqs.pop(i)
-
-    def _format_seq(self, seq):
-        return seq
-
-    def add(self, seq_id, seq):
-        self.ids.append(seq_id)
-        self.seqs.append(seq)
-
-    def has_key(self, key):
-        if key in self.ids:
-            return True
-        else:
-            return False
-
-    def __str__(self):
-        return "%s sequences" % len(self.ids)
-
     def writefasta(self, fname):
         """Write sequences to FASTA formatted file"""
-        f = open(fname, "w")
-        fa_str = "\n".join(
-            [">%s\n%s" % (id, self._format_seq(seq)) for id, seq in self.items()]
-        )
-        f.write(fa_str)
-        f.close()
-
-    def items(self):
-        return zip(self.ids, self.seqs)
-
-    def median_length(self):
-        return np.median([len(seq) for seq in self.seqs])
+        with open(fname, "w") as f:
+            for seq_id, seq in self.items():
+                fa_str = f">{seq_id}\n{seq}\n"
+                f.write(fa_str)

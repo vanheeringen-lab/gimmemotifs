@@ -4,39 +4,51 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Reports (graphical and text) for motifs statistics."""
+import logging
 import os
+import re
+import shutil
 import sys
 from datetime import datetime
 from multiprocessing import Pool
-import re
-import shutil
-import logging
 
 import jinja2
 import numpy as np
 import pandas as pd
-from statsmodels.stats.multitest import multipletests
-from pandas.io.formats.style_render import non_reducing_slice
-from pandas.io.formats.style import Styler
 import seaborn as sns
+from pandas.io.formats.style import Styler
+from pandas.io.formats.style_render import non_reducing_slice
+from statsmodels.stats.multitest import multipletests
+
+from gimmemotifs import __version__
+from gimmemotifs.comparison import MotifComparer
+from gimmemotifs.config import MotifConfig
+from gimmemotifs.fasta import Fasta
+from gimmemotifs.motif import read_motifs
+from gimmemotifs.plot import roc_plot
+from gimmemotifs.stats import add_star, calc_stats, write_stats
+from gimmemotifs.utils import motif_localization
 
 try:
     import emoji  # noqa: currently optional
 except ImportError:
     pass
 
-from gimmemotifs.comparison import MotifComparer
-from gimmemotifs.fasta import Fasta
-from gimmemotifs.motif import read_motifs
-from gimmemotifs.config import MotifConfig
-from gimmemotifs.plot import roc_plot
-from gimmemotifs.stats import calc_stats, add_star, write_stats
-from gimmemotifs import __version__
-from gimmemotifs.utils import motif_localization
-
 logger = logging.getLogger("gimme.report")
 
-FACTOR_TOOLTIP = "<div title='\"Direct\" means that there is direct evidence of binding or that this assignment is based on curated information. \"Predicted\" means that the motif comes from a non-curated ChIP-seq experiment or that the factor was computationally predicted to bind this motif based on its DNA binding domain.'>factors<br/>(<span style='color:black'>direct</span> or <span style='color:#666666'>predicted</span>)</div>"
+FACTOR_TOOLTIP = """
+    <div title='
+    \"Direct\" means that there is direct evidence of binding or that this assignment
+     is based on curated information.
+    \n\n
+    \"Predicted\" means that the motif comes from a non-curated ChIP-seq experiment
+     or that the factor was computationally predicted to bind this motif based on its
+     DNA binding domain.
+    '>factors<br/>(<span style='color:black'>direct</span> or
+     <span style='color:#666666'>predicted</span>)</div>
+""".replace(
+    "\n    ", ""
+)
 
 
 def _wrap_html_str(x):
@@ -65,11 +77,12 @@ class ExtraStyler(Styler):
     Extra styles for a DataFrame or Series based on pandas.styler using HTML and CSS.
     """
 
+    # add our own templates to those in Styler
     loader = jinja2.ChoiceLoader(
         [jinja2.FileSystemLoader(MotifConfig().get_template_dir()), Styler.loader]
     )
     env = jinja2.Environment(loader=loader)
-    template = env.get_template("table.tpl")
+    template_html = env.get_template("table.tpl")  # sortable reports with slick theme
 
     def __init__(self, *args, **kwargs):
         self._data_todo = []
@@ -81,18 +94,7 @@ class ExtraStyler(Styler):
         }
         super(ExtraStyler, self).__init__(*args, **kwargs)
         self.display_data = self.data.copy()
-
-        # self.template =
-
-        self._font = "Nunito Sans"
-
-    @property
-    def font(self):
-        return self._font
-
-    @font.setter
-    def font(self, font_name):
-        self._font = font_name
+        self.font = "Nunito Sans"
 
     def set_font(self, font_name):
         """
@@ -240,7 +242,7 @@ class ExtraStyler(Styler):
 
     @staticmethod
     def _border(idx, location="left"):
-        return [f"border-{location}: 2px solid #444;" for val in idx]
+        return [f"border-{location}: 2px solid #444;" for _ in idx]
 
     def border(
         self,
@@ -298,7 +300,7 @@ class ExtraStyler(Styler):
 
     @staticmethod
     def _align(idx, location="center"):
-        return [f"text-align:{location};" for val in idx]
+        return [f"text-align:{location};" for _ in idx]
 
     def align(self, subset=None, location="center", axis=0):
         """
@@ -333,7 +335,7 @@ class ExtraStyler(Styler):
             if (include_zero or x > 0) and x <= 10**-p:
                 return f"<{10**-p}"
             else:
-                return f"{{0:.{p}f}}".format(x)  # noqa
+                return f"{x:.{p}f}"
 
         self.display_data.loc[subset] = self.data.loc[subset].applymap(precision_str)
         return self
@@ -344,7 +346,6 @@ class ExtraStyler(Styler):
         show_text=True,
         color=None,
         cmap=None,
-        vmin=None,
         vmax=None,
         scale=False,
         size=25,
@@ -356,11 +357,9 @@ class ExtraStyler(Styler):
 
         if color:
             palette = sns.color_palette([color])
-            # print(palette)
         elif cmap is None:
             palette = sns.light_palette((210, 90, 60), input="husl", n_colors=10)
         else:
-            # if isinstance(palette, str):
             palette = sns.color_palette(cmap)
 
         # Make sure we don't select text columns
@@ -599,41 +598,38 @@ def get_roc_values(motif, fg_file, bg_file, genome):
         )
         (x, y) = list(stats.values())[0]["roc_values"]
         return None, x, y
-    except Exception as e:
-        print(motif)
-        print(motif.id)
-        print(str(e))
+    except Exception:
+        logger.error(motif)
+        logger.error(motif.id)
         raise
 
 
 def create_roc_plots(pfmfile, fgfa, background, outdir, genome):
     """Make ROC plots for all motifs."""
-    motifs = read_motifs(pfmfile, fmt="pwm", as_dict=True)
+    motifs = read_motifs(pfmfile, as_dict=True)
     ncpus = int(MotifConfig().get_default_params()["ncpus"])
     pool = Pool(processes=ncpus)
     jobs = {}
     for bg, fname in background.items():
-        for m_id, m in motifs.items():
-
-            k = "{}_{}".format(str(m), bg)
-            jobs[k] = pool.apply_async(
-                get_roc_values, (motifs[m_id], fgfa, fname, genome)
+        for m_id, motif in motifs.items():
+            jobs[(m_id, bg)] = pool.apply_async(
+                get_roc_values, (motif, fgfa, fname, genome)
             )
+    pool.close()
+
     imgdir = os.path.join(outdir, "images")
     if not os.path.exists(imgdir):
         os.mkdir(imgdir)
 
-    roc_img_file = os.path.join(outdir, "images", "{}_roc.{}.png")
-
-    for motif in motifs.values():
-        for bg in background:
-            k = "{}_{}".format(str(motif), bg)
-            error, x, y = jobs[k].get()
-            if error:
-                logger.error("Error in thread: %s", error)
-                logger.error("Motif: %s", motif)
-                sys.exit(1)
-            roc_plot(roc_img_file.format(motif.id, bg), x, y)
+    for (m_id, bg), job in jobs.items():
+        error, x, y = job.get()
+        if error:
+            logger.error("Error in thread: %s", error)
+            logger.error("Motif: %s", m_id)
+            sys.exit(1)
+        roc_img_file = os.path.join(imgdir, f"{m_id}_roc.{bg}.png")
+        roc_plot(roc_img_file, x, y)
+    pool.join()
 
 
 def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
@@ -645,7 +641,7 @@ def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
         for bg in list(stats.values())[0].keys():
             if str(motif) not in stats:
                 logger.error("####")
-                logger.error("{} not found".format(str(motif)))
+                logger.error(f"{str(motif)} not found")
                 for s in sorted(stats.keys()):
                     logger.error(s)
                 logger.error("####")
@@ -660,13 +656,8 @@ def _create_text_report(inputfile, motifs, closest_match, stats, outdir):
     write_stats(my_stats, os.path.join(outdir, "stats.{}.txt"), header=header)
 
 
-def _create_graphical_report(
-    inputfile, pwm, background, closest_match, outdir, stats, best_id=None
-):
+def _create_graphical_report(inputfile, pwm, background, closest_match, outdir, stats):
     """Create main gimme_motifs output html report."""
-    if best_id is None:
-        best_id = {}
-
     logger.debug("Creating graphical report")
 
     class ReportMotif(object):
@@ -682,8 +673,6 @@ def _create_graphical_report(
 
     motifs = read_motifs(pwm, fmt="pfm")
 
-    roc_img_file = "%s_roc.%s"
-
     dbpwm = config.get_default_params()["motif_db"]
     pwmdir = config.get_motif_dir()
 
@@ -694,10 +683,10 @@ def _create_graphical_report(
 
         rm = ReportMotif()
         rm.id = motif.id
-        rm.id_href = {"href": "#%s" % motif.id}
+        rm.id_href = {"href": f"#{motif.id}"}
         rm.id_name = {"name": motif.id}
-        rm.img = {"src": os.path.join("images", "%s.png" % motif.id)}
-        motif.plot_logo(fname=os.path.join(outdir, "images/{}.png".format(motif.id)))
+        rm.img = {"src": os.path.join("images", f"{motif.id}.png")}
+        motif.plot_logo(fname=os.path.join(outdir, "images", f"{motif.id}.png"))
 
         # TODO: fix best ID
         rm.best = "Gimme"  # best_id[motif.id]
@@ -712,32 +701,34 @@ def _create_graphical_report(
             rm.bg[bg] = {}
             this_stats = stats.get(str(motif), {}).get(bg)
             # TODO: fix these stats
-            rm.bg[bg]["e"] = "%0.2f" % this_stats.get("enr_at_fpr", 1.0)
-            rm.bg[bg]["p"] = "%0.2f" % this_stats.get("phyper_at_fpr", 1.0)
-            rm.bg[bg]["auc"] = "%0.3f" % this_stats.get("roc_auc", 0.5)
-            rm.bg[bg]["mncp"] = "%0.3f" % this_stats.get("mncp", 1.0)
+            rm.bg[bg]["e"] = f"{this_stats.get('enr_at_fpr', 1.0):.2f}"
+            rm.bg[bg]["p"] = f"{this_stats.get('phyper_at_fpr', 1.0):.2f}"
+            rm.bg[bg]["auc"] = f"{this_stats.get('roc_auc', 0.5):.3f}"
+            rm.bg[bg]["mncp"] = f"{this_stats.get('mncp', 1.0):.3f}"
             rm.bg[bg]["roc_img"] = {
-                "src": "images/"
-                + os.path.basename(roc_img_file % (motif.id, bg))
-                + ".png"
+                "src": os.path.join(
+                    "images", os.path.basename(f"{motif.id}_roc.{bg}") + ".png"
+                )
             }
             rm.bg[bg]["roc_img_link"] = {
-                "href": "images/"
-                + os.path.basename(roc_img_file % (motif.id, bg))
-                + ".png"
+                "href": os.path.join(
+                    "images", os.path.basename(f"{motif.id}_roc.{bg}") + ".png"
+                )
             }
 
-        rm.histogram_img = {"data": "images/%s_histogram.svg" % motif.id}
-        rm.histogram_link = {"href": "images/%s_histogram.svg" % motif.id}
+        rm.histogram_img = {"data": os.path.join("images", f"{motif.id}_histogram.svg")}
+        rm.histogram_link = {
+            "href": os.path.join("images", f"{motif.id}_histogram.svg")
+        }
 
         match_id = closest_match[motif.id][0]
         dbmotifs[match_id].plot_logo(
-            fname=os.path.join(outdir, "images/{}.png".format(match_id))
+            fname=os.path.join(outdir, "images", f"{match_id}.png")
         )
 
-        rm.match_img = {"src": "images/{}.png".format(match_id)}
+        rm.match_img = {"src": os.path.join("images", f"{match_id}.png")}
         rm.match_id = closest_match[motif.id][0]
-        rm.match_pval = "%0.2e" % closest_match[motif.id][1][-1]
+        rm.match_pval = f"{closest_match[motif.id][1][-1]:.2e}"
 
         report_motifs.append(rm)
 
@@ -796,8 +787,8 @@ def create_denovo_motif_report(
     # Location plots
     logger.debug("Creating localization plots")
     for motif in motifs:
-        logger.debug("  {} {}".format(motif.id, motif))
-        outfile = os.path.join(outdir, "images/{}_histogram.svg".format(motif.id))
+        logger.debug(f"  {motif.id} {motif}")
+        outfile = os.path.join(outdir, "images", f"{motif.id}_histogram.svg")
         motif_localization(locfa, motif, lsize, outfile, cutoff=cutoff_fpr)
 
     # Create reports
@@ -817,7 +808,7 @@ def motif_to_factor_series(series, pfmfile=None, motifs=None):
         index = series.index
 
     factors = [motifs[motif].format_factors(html=True) for motif in series]
-    return pd.Series(data=factors, index=index)
+    return pd.Series(data=factors, index=index, dtype=str)
 
 
 def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="logos"):
@@ -833,7 +824,8 @@ def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="l
     for motif in series:
         if motif not in motifs:
             raise ValueError(f"Motif {motif} does not occur in motif database")
-        fname = subdir + "/{}.png".format(re.sub(r"[^a-zA-Z0-9\-]+", "_", motif))
+        fname = re.sub(r"[^a-zA-Z0-9\-]+", "_", motif)
+        fname = os.path.join(subdir, f"{fname}.png")
         if not os.path.exists(fname):
             motifs[motif].plot_logo(fname=os.path.join(outdir, fname))
         img_series.append(fname)
@@ -842,10 +834,17 @@ def motif_to_img_series(series, pfmfile=None, motifs=None, outdir=".", subdir="l
         index = series
     else:
         index = series.index
-    return pd.Series(data=img_series, index=index)
+    return pd.Series(data=img_series, index=index, dtype=str)
 
 
-def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
+def maelstrom_html_report(
+    outdir,
+    infile,
+    pfmfile=None,
+    threshold=3,
+    plot_all_motifs=False,
+    plot_no_motifs=False,
+):
 
     # Read the maelstrom text report
     df = pd.read_table(infile, index_col=0)
@@ -854,17 +853,27 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
     value_cols = df.columns[
         ~df.columns.str.contains("corr") & ~df.columns.str.contains("% with motif")
     ]
+
     # Columns with correlation values
     corr_cols = df.columns[df.columns.str.contains("corr")]
 
+    if plot_all_motifs:
+        _ = motif_to_img_series(
+            df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos"
+        )
+
     df = df[np.any(abs(df[value_cols]) >= threshold, 1)]
 
-    # Add motif logo's
-    df.insert(
-        0,
-        "logo",
-        motif_to_img_series(df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos"),
-    )
+    if not plot_no_motifs:
+        # Add motif logo's
+        df.insert(
+            0,
+            "logo",
+            motif_to_img_series(
+                df.index, pfmfile=pfmfile, outdir=outdir, subdir="logos"
+            ),
+        )
+
     # Add factors that can bind to the motif
     df.insert(0, "factors", motif_to_factor_series(df.index, pfmfile=pfmfile))
 
@@ -872,10 +881,11 @@ def maelstrom_html_report(outdir, infile, pfmfile=None, threshold=3):
 
     df_styled = (
         ExtraStyler(df)
-        .format(precision=2)  # .set_precision(2)
-        .convert_to_image(
-            subset=["logo"],
-            height=30,
+        .format(precision=2)
+        .pipe(
+            lambda d: d
+            if plot_no_motifs
+            else d.convert_to_image(subset=["logo"], height=30)
         )
         .scaled_background_gradient(
             subset=value_cols, center_zero=True, low=1 / 1.75, high=1 / 1.75
@@ -955,7 +965,7 @@ def roc_html_report(
         "factors",
         "logo",
         "% matches input",
-        "%matches background",
+        "% matches background",
         "-log10 P-value",
         "ROC AUC",
         "PR AUC",
@@ -966,7 +976,7 @@ def roc_html_report(
     if link_matches:
         df["# matches"] = (
             "<a href=motif_scan_results/"
-            + df.index.to_series().str.replace(r"[^a-zA-Z0-9\-]+", "_")
+            + df.index.to_series().str.replace(r"[^a-zA-Z0-9\-]+", "_", regex=True)
             + ".matches.bed>"
             + df["# matches"].astype(str)
             + "</a>"
@@ -989,7 +999,7 @@ def roc_html_report(
 
     bar_cols = [
         "% matches input",
-        "%matches background",
+        "% matches background",
         "-log10 P-value",
         "ROC AUC",
         "PR AUC",
@@ -998,7 +1008,7 @@ def roc_html_report(
     ]
 
     df["% matches input"] = df["% matches input"].astype(int)
-    df["%matches background"] = df["%matches background"].astype(int)
+    df["% matches background"] = df["% matches background"].astype(int)
     rename_columns = {"factors": FACTOR_TOOLTIP}
     df = df.sort_values("ROC AUC", ascending=False)
     with open(os.path.join(outdir, outname), "w", encoding="utf-8") as f:
@@ -1010,7 +1020,7 @@ def roc_html_report(
                     height=30,
                 )
                 .add_circle(
-                    subset=["% matches input", "%matches background"],
+                    subset=["% matches input", "% matches background"],
                     vmax=100,
                     cmap="Purples",
                 )
@@ -1029,12 +1039,12 @@ def roc_html_report(
                 .scaled_background_gradient(
                     "Recall at 10% FDR", vmin=0, vmax=1, high=0.7, cmap="Reds"
                 )
-                .format(precision=2)  # .set_precision(2)
+                .format(precision=2)
                 .set_table_attributes('class="sortable-theme-slick" data-sortable')
                 .wrap(subset=cols)
                 .align(subset=bar_cols, location="center")
                 .rename(columns=rename_columns)
-                .to_precision_str(subset=["% matches input", "%matches background"])
+                .to_precision_str(subset=["% matches input", "% matches background"])
                 .render()
             )
         else:

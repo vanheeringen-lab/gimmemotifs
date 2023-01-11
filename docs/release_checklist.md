@@ -4,26 +4,39 @@ This is mainly for personal use at the moment.
 
 ## 
 
-1. Create release candidate with `git flow`.
 
-```
-$ git flow release start ${new_version} 
+1. Make sure all tests pass.
+
+```shell
+mamba env update -f environment.yml
+pytest -vvv
 ```
 
-2. Update version in `gimmemotifs/config.py`
+2. Create release candidate with `git flow`:
+
+```shell
+new_version=0.0.0
+echo ${new_version}
+
+git flow release start ${new_version}
+```
 
 3. Make sure `CHANGELOG.md` is up-to-date.
 
+    * add the new version & date to the header
+    * link to the diff in the footer
+    * add & commit the changes, but do not push
+
 4. Test install using pip in fresh conda environment
 
+```shell
+python setup.py sdist
+mamba create -n test python=3.9 pytest
+mamba activate test
+pip install dist/gimmemotifs*.tar.gz
+pytest -vvv
 ```
-$ cd ${test_dir} 	# Not the gimmemotifs git directory
-$ conda create -n testenv python=3 --file requirements.yaml
-$ conda activate testenv
-$ pip install -e git+https://github.com/simonvh/gimmemotifs.git@release/${version}#egg=gimmemotifs
-$ cd src/gimmemotifs
-$ python run_tests.py
-```
+
 5. Upload to pypi testing server
 
 ```
@@ -37,20 +50,27 @@ $ twine upload -r testpypi dist/gimmemotifs-${version}.tar.gz
 
 6. Finish release
 
-```
-$ git flow release finish ${version}
-```
-
-7. Upload to PyPi.
-
-```
-$ python setup.py sdist
-$ twine upload dist/gimmemotifs-${version}.tar.gz
+```shell
+git flow release finish ${new_version}
 ```
 
-8. Finalize the release on Github.
+
+7. Push everything to github, including tags:
+
+```shell
+git push --follow-tags origin develop master
+```
+
+8. Upload to PyPi.
+
+```shell
+python setup.py sdist
+twine upload dist/gimmemotifs-${new_version}.tar.gz
+```
+
+9. Finalize the release on Github.
 
 Create a release. Download the tarball and then edit the release and attach the
 tarball as binary. 
 
-8. Create bioconda package
+10. Update the Bioconda package recipe

@@ -1,9 +1,10 @@
-from .motifprogram import MotifProgram
 import os
 import shutil
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
 from gimmemotifs.motif import Motif
+
+from .motifprogram import MotifProgram
 
 
 class Gadem(MotifProgram):
@@ -59,7 +60,7 @@ class Gadem(MotifProgram):
 
         current_path = os.getcwd()
         os.chdir(self.tmpdir)
-        cmd = "%s -fseq %s -fpwm %s -fout %s" % (bin, fastafile, pfmfile, outfile)
+        cmd = f"{bin} -fseq {fastafile} -fpwm {pfmfile} -fout {outfile}"
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
 
@@ -98,14 +99,14 @@ class Gadem(MotifProgram):
             line = lines[i].strip()
             m_id = line[1:]
             number = m_id.split("_")[0][1:]
-            if os.path.exists("%s.seq" % number):
-                with open("%s.seq" % number) as f:
+            if os.path.exists(f"{number}.seq"):
+                with open(f"{number}.seq") as f:
                     for line in f:
                         if "x" not in line and "n" not in line:
                             line = line.strip().upper()
                             align.append(line)
                             if not pfm:
-                                pfm = [[0 for x in range(4)] for x in range(len(line))]
+                                pfm = [[0 for _ in range(4)] for _ in range(len(line))]
                             for p in range(len(line)):
                                 pfm[p][nucs[line[p]]] += 1
 
@@ -116,7 +117,7 @@ class Gadem(MotifProgram):
             pwm = [[float(m[x][y]) for x in range(4)] for y in range(len(m[0]))]
 
             motifs.append(Motif(pwm))
-            motifs[-1].id = "{}_{}".format(self.name, m_id)
+            motifs[-1].id = f"{self.name}_{m_id}"
 
             if align:
                 motifs[-1].pfm = pfm

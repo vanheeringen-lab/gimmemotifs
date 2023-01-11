@@ -1,8 +1,9 @@
+import os
 import unittest
 from tempfile import NamedTemporaryFile
-import os
-from gimmemotifs.motif import read_motifs
+
 from gimmemotifs.fasta import Fasta
+from gimmemotifs.motif import read_motifs
 
 
 class TestMotifPwm(unittest.TestCase):
@@ -20,9 +21,9 @@ class TestMotifPwm(unittest.TestCase):
         self.enrichment = os.path.join(self.data_dir, "enrichment.txt")
         self.tmp = NamedTemporaryFile().name
 
-    def test1_pwm_scan(self):
+    def test1_scan(self):
         """Scan a FASTA file with PWM of motif"""
-        result = self.motif.pwm_scan(self.prom, nreport=1)
+        result = self.motif.scan(self.prom, nreport=1)
 
         # Every sequence should have a TATA match
         self.assertEqual(len(result), len(self.prom))

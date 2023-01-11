@@ -4,9 +4,8 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
-
 from gimmemotifs.comparison import MotifComparer
-from gimmemotifs.motif import read_motifs, Motif
+from gimmemotifs.motif import Motif, read_motifs
 from gimmemotifs.plot import match_plot
 
 
@@ -27,7 +26,7 @@ def match(args):
             pval, pos, orient = mc.compare_motifs(
                 sample[motif_name], db[match[0]], "partial", "seqcor", "mean", pval=True
             )
-            print("%s\t%s\t%0.2f\t%0.3e" % (motif_name, match[0], match[1][0], pval))
+            print(f"{motif_name}\t{match[0]}\t{match[1][0]:.2f}\t{pval:.3e}")
             motif = sample[motif_name]
             dbmotif = db[match[0]]
 

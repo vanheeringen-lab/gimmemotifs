@@ -4,60 +4,11 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
-"""Rank aggregation (includes wrapper for R RobustRankAgg)."""
-from tempfile import NamedTemporaryFile
-import subprocess as sp
-import pandas as pd
+"""Rank aggregation."""
 import numpy as np
-from scipy.stats import rankdata, norm
-
-try:
-    from scipy.special import factorial
-except ImportError:
-    from scipy.misc import factorial
-
-
-def rankagg_R(df, method="stuart"):
-    """Return aggregated ranks as implemented in the RobustRankAgg R package.
-
-    This function is now deprecated.
-
-    References:
-        Kolde et al., 2012, DOI: 10.1093/bioinformatics/btr709
-        Stuart et al., 2003,  DOI: 10.1126/science.1087447
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        DataFrame with values to be ranked and aggregated
-
-    Returns
-    -------
-    pandas.DataFrame with aggregated ranks
-    """
-    tmpdf = NamedTemporaryFile()
-    tmpscript = NamedTemporaryFile(mode="w")
-    tmpranks = NamedTemporaryFile()
-
-    df.to_csv(tmpdf.name, sep="\t", index=False)
-
-    script = """
-library(RobustRankAggreg);
-a = read.table("{}", header=TRUE);
-x = lapply(a, as.vector);
-result = aggregateRanks(x, method="{}");
-result$p.adjust = p.adjust(result$Score);
- write.table(result, file="{}", sep="\t", quote=FALSE, row.names=FALSE);
-""".format(
-        tmpdf.name, method, tmpranks.name
-    )
-    tmpscript.write(script)
-    tmpscript.flush()
-
-    p = sp.Popen(["Rscript", tmpscript.name], stdout=sp.PIPE, stderr=sp.PIPE)
-    stderr, stdout = p.communicate()
-    df = pd.read_table(tmpranks.name, index_col=0)
-    return df["p.adjust"]
+import pandas as pd
+from scipy.special import factorial
+from scipy.stats import norm, rankdata
 
 
 def sumStuart(v, r):
@@ -84,13 +35,19 @@ def _rank_int(series, c=3.0 / 8, stochastic=True):
     """Perform rank-based inverse normal transformation on pandas series.
     If stochastic is True ties are given rank randomly, otherwise ties will
     share the same value. NaN values are ignored.
-    Args:
-        param1 (pandas.Series):   Series of values to transform
-        param2 (Optional[float]): Constand parameter (Bloms constant)
-        param3 (Optional[bool]):  Whether to randomise rank of ties
 
-    Returns:
-        pandas.Series
+    Parameters
+    ----------
+    series : pandas.Series
+        Series of values to transform
+    c : float, optional
+        Constand parameter (Bloms constant)
+    stochastic : bool , optional
+        Whether to randomise rank of ties
+
+    Returns
+    -------
+    pandas.Series
     """
 
     # Check input

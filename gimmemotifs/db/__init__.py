@@ -1,13 +1,13 @@
 """Motif databases."""
 import glob
 import os
-from urllib.request import urlopen, urlretrieve
 import re
-import time
-import tarfile
 import shutil
-from tempfile import mkdtemp
+import tarfile
+import time
 import zipfile
+from tempfile import mkdtemp
+from urllib.request import urlopen, urlretrieve
 
 import pandas as pd
 
@@ -77,9 +77,7 @@ class MotifDb(object):
             print("Motif\tFactor\tEvidence\tCurated", file=f)
             for motif, factors in anno.items():
                 for factor, status, curated in factors:
-                    print(
-                        "{}\t{}\t{}\t{}".format(motif, factor, status, curated), file=f
-                    )
+                    print(f"{motif}\t{factor}\t{status}\t{curated}", file=f)
 
 
 register_db = MotifDb.register_db
@@ -128,9 +126,9 @@ class JasparMotifDb(MotifDb):
 
             anno = self.annotate_factors(motifs)
             with open(outfile, "w") as f:
-                print("# JASPAR{}{} motif database".format(version, group), file=f)
+                print(f"# JASPAR{version}{group} motif database", file=f)
                 print(f"# Retrieved from: {base_url.format(version, group)}", file=f)
-                print("# Date: {}".format(self.date), file=f)
+                print(f"# Date: {self.date}", file=f)
                 for motif in motifs:
                     print(motif.to_pfm(), file=f)
 
@@ -176,8 +174,8 @@ class HomerMotifDb(MotifDb):
         pfm_out = os.path.join(outdir, self.NAME)
         with open(pfm_out, "w") as f:
             print("# Homer motif database (v4.11)", file=f)
-            print("# Retrieved from: {}".format(self.URL), file=f)
-            print("# Date: {}".format(self.date), file=f)
+            print(f"# Retrieved from: {self.URL}", file=f)
+            print(f"# Date: {self.date}", file=f)
             with urlopen(self.URL) as response:
                 for line in response:
                     line = line.decode().strip()
@@ -227,9 +225,9 @@ class HocomocoMotifDb(MotifDb):
             outfile = os.path.join(outdir, self.NAME.format(group))
             url = self.URL.format(group)
             with open(outfile, "w") as f:
-                print("# HOCOMOCOv11_{} motif database".format(group), file=f)
-                print("# Retrieved from: {}".format(url), file=f)
-                print("# Date: {}".format(self.date), file=f)
+                print(f"# HOCOMOCOv11_{group} motif database", file=f)
+                print(f"# Retrieved from: {url}", file=f)
+                print(f"# Date: {self.date}", file=f)
                 with urlopen(url) as response:
                     for line in response:
                         line = line.decode().strip()
@@ -266,7 +264,7 @@ class EncodeMotifDb(MotifDb):
         outfile = os.path.join(outdir, self.NAME)
         with open(outfile, "w") as f:
             print("# ENCODE motif database", file=f)
-            print("# Retrieved from: {}".format(self.URL), file=f)
+            print(f"# Retrieved from: {self.URL}", file=f)
             print("# Date: Dec. 2013", file=f)
             with urlopen(self.URL) as response:
                 for line in response:
@@ -311,7 +309,7 @@ class EncodeMotifDb(MotifDb):
                     factor = bulyk_factor
                 anno[motif.id] = [[factor, "PBM", "N"]]
             else:
-                raise ValueError("Don't recognize motif {}".format(motif.id))
+                raise ValueError(f"Don't recognize motif {motif.id}")
         return anno
 
 
@@ -383,8 +381,8 @@ class SwissregulonMotifDb(MotifDb):
         motifs = read_motifs(outfile, fmt="transfac")
         with open(outfile, "w") as f:
             print("# SwissRegulon motif database (hg19:FANTOM5)", file=f)
-            print("# Retrieved from: {}".format(self.URL), file=f)
-            print("# Date: {}".format(self.date), file=f)
+            print(f"# Retrieved from: {self.URL}", file=f)
+            print(f"# Date: {self.date}", file=f)
             for motif in motifs:
                 if len(motif) > 0:
                     print(motif.to_ppm(), file=f)
@@ -428,8 +426,8 @@ class ImageMotifDb(MotifDb):
         motifs = read_motifs(os.path.join(tmpdir, fname))
         with open(outfile, "w") as f:
             print("# IMAGE motif database (v1.1)", file=f)
-            print("# Retrieved from: {}".format(self.URL), file=f)
-            print("# Date: {}".format(self.date), file=f)
+            print(f"# Retrieved from: {self.URL}", file=f)
+            print(f"# Date: {self.date}", file=f)
             for motif in motifs:
                 print(motif.to_ppm(), file=f)
         shutil.rmtree(tmpdir)
@@ -463,9 +461,7 @@ class CisbpMotifDb(MotifDb):
     """
 
     VERSION = "2.00"
-    BASE = "http://cisbp.ccbr.utoronto.ca/data/{}/DataFiles/Bulk_downloads/EntireDataset/".format(  # noqa: E501
-        VERSION
-    )
+    BASE = f"http://cisbp.ccbr.utoronto.ca/data/{VERSION}/DataFiles/Bulk_downloads/EntireDataset/"
     ANNO_URL = BASE + "/TF_Information_all_motifs.txt.zip"
     URL = BASE + "/PWMs.zip"
     NAME = "CIS-BP.pfm"
@@ -486,9 +482,9 @@ class CisbpMotifDb(MotifDb):
                     motifs.append(m)
         outfile = os.path.join(outdir, self.NAME)
         with open(outfile, "w") as f:
-            print("# CIS-BP motif database (v{})".format(self.VERSION), file=f)
-            print("# Retrieved from: {}".format(self.URL), file=f)
-            print("# Date: {}".format(self.date), file=f)
+            print(f"# CIS-BP motif database (v{self.VERSION})", file=f)
+            print(f"# Retrieved from: {self.URL}", file=f)
+            print(f"# Date: {self.date}", file=f)
             for motif in motifs:
                 print(motif.to_ppm(), file=f)
 
@@ -540,9 +536,9 @@ class RsatMotifDb(MotifDb):
             motifs = read_motifs(file_tmp, fmt="transfac")
             outfile = os.path.join(outdir, name)
             with open(outfile, "w") as f:
-                print("# RSAT non-redundant {} motif database".format(tax), file=f)
-                print("# Retrieved from: {}".format(url), file=f)
-                print("# Date: {}".format(self.date), file=f)
+                print(f"# RSAT non-redundant {tax} motif database", file=f)
+                print(f"# Retrieved from: {url}", file=f)
+                print(f"# Date: {self.date}", file=f)
                 for motif in motifs:
                     print(motif.to_ppm(), file=f)
 

@@ -1,7 +1,8 @@
-from .motifprogram import MotifProgram
 import os
 
 from gimmemotifs.motif import read_motifs
+
+from .motifprogram import MotifProgram
 
 
 class Jaspar(MotifProgram):
@@ -56,5 +57,5 @@ class Jaspar(MotifProgram):
         motifs = read_motifs(fname, fmt="pwm")
 
         for motif in motifs:
-            motif.id = "JASPAR_%s" % motif.id
+            motif.id = f"JASPAR_{motif.id}"
         return motifs, "", ""

@@ -3,31 +3,30 @@ Make a new motif2factors file based on orthology. This gets complicated
 because not all factors in the motif2factors file are based on gene names;
 some factors are gene ids, and some are aliases or other symbols.
 """
-import os
-import re
 import json
-import shutil
-import sys
-import urllib
-import sqlite3
-import pathlib
-import tempfile
-import subprocess
 import multiprocessing.dummy
-from typing import List
-from textwrap import wrap
+import os
+import pathlib
+import re
+import shutil
+import sqlite3
+import subprocess
+import sys
+import tempfile
+import urllib
 from functools import lru_cache
+from textwrap import wrap
+from typing import List
 from urllib.error import HTTPError
 
-import pyfaidx
 import genomepy
 import numpy as np
 import pandas as pd
-from loguru import logger
+import pyfaidx
 from genomepy.utils import get_genomes_dir
+from loguru import logger
 
 from gimmemotifs.motif import read_motifs
-
 
 FASTA_LINEWIDTH = 80
 BLACKLIST_TFS = [
@@ -132,7 +131,7 @@ def motif2factor_from_orthologs(
     # make sure the output dir exists
     pathlib.Path(f"{outdir}").mkdir(parents=True, exist_ok=True)
     for reference in new_reference:
-        genome = genomepy.Genome(reference, genomes_dir, build_index=False).name
+        genome = genomepy.Genome(reference, genomes_dir, rebuild=False).name
         make_motif2factors(
             f"{outdir}/{genome}.{database}",
             new_reference=genome,
@@ -335,7 +334,8 @@ def annot2primpep(genome, outdir):
         # (probably mitochondrial protein since they have a different codon table)
         if "*" in protein:
             logger.debug(
-                f"skipping {prot_name} since it contains a * symbol (probably mitochondrial read)."
+                f"skipping {prot_name} since it contains a * symbol "
+                "(probably mitochondrial read)."
             )
             continue
 
@@ -630,7 +630,7 @@ def _unknownfactor2symbols(factor, fields):
             return list()
 
     # multithreaded to do multiple queries at once
-    p = multiprocessing.dummy.Pool(len(fields))
+    p = multiprocessing.dummy.Pool(processes=len(fields))
     hits = p.map(mygeneinfo, fields)
     hits = [item for sublist in hits for item in sublist]
     symbols = set()

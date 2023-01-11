@@ -1,24 +1,21 @@
-import unittest
-import os
 import glob
+import os
+import unittest
+from shutil import rmtree
+from tempfile import mkdtemp
 
 import pytest
+from genomepy import Genome
 
-from gimmemotifs.utils import (
-    phyper,
+from gimmemotifs.fasta import Fasta
+from gimmemotifs.utils import (  # file_checksum,; median_bed_len,; phyper,
     as_fasta,
-    file_checksum,
-    join_max,
-    determine_file_type,
-    number_of_seqs_in_file,
-    median_bed_len,
     check_genome,
+    determine_file_type,
+    join_max,
+    number_of_seqs_in_file,
     pfmfile_location,
 )
-from gimmemotifs.fasta import Fasta
-from genomepy import Genome
-from tempfile import mkdtemp
-from shutil import rmtree
 
 
 class TestUtils(unittest.TestCase):
@@ -28,16 +25,16 @@ class TestUtils(unittest.TestCase):
         self.genomes_dir = "test/data/genome_index"
         self.datadir = "test/data/utils"
 
-    def test1_phyper(self):
-        """Hypergeometric p-value"""
-        p = phyper(59, 500, 500, 100)
-        self.assertAlmostEqual(0.02238075, p)
-
-        p = phyper(59, 5000, 5000, 100)
-        self.assertAlmostEqual(0.02782685, p)
-
-        p = phyper(59, 50000, 50000, 100)
-        self.assertAlmostEqual(0.02838217, p)
+    # def test1_phyper(self):
+    #     """Hypergeometric p-value"""
+    #     p = phyper(59, 500, 500, 100)
+    #     self.assertAlmostEqual(0.02238075, p)
+    #
+    #     p = phyper(59, 5000, 5000, 100)
+    #     self.assertAlmostEqual(0.02782685, p)
+    #
+    #     p = phyper(59, 50000, 50000, 100)
+    #     self.assertAlmostEqual(0.02838217, p)
 
     def test2_as_fasta(self):
         """convert bed, regions, etc to Fasta"""
@@ -64,10 +61,10 @@ class TestUtils(unittest.TestCase):
 
         rmtree(tmpdir)
 
-    def test_checkum(self):
-        fname = "test/data/fasta/test.fa"
-        md5 = "a34798835d4110c34df45bbd8ed2f910"
-        self.assertEqual(md5, file_checksum(fname))
+    # def test_checkum(self):
+    #     fname = "test/data/fasta/test.fa"
+    #     md5 = "a34798835d4110c34df45bbd8ed2f910"
+    #     self.assertEqual(md5, file_checksum(fname))
 
     def test_join_max(self):
         size_in = range(25)
@@ -117,10 +114,10 @@ class TestUtils(unittest.TestCase):
         for fname in fnames:
             self.assertEqual(3, number_of_seqs_in_file(fname))
 
-    def test_median_bed_len(self):
-        fname = "test/data/utils/test.narrowPeak"
-
-        self.assertAlmostEqual(204.5, median_bed_len(fname))
+    # def test_median_bed_len(self):
+    #     fname = "test/data/utils/test.narrowPeak"
+    #
+    #     self.assertAlmostEqual(204.5, median_bed_len(fname))
 
     def test_check_genome(self):
         fname = "test/data/genome_index/test.bed"

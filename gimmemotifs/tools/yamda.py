@@ -1,6 +1,7 @@
-from .motifprogram import MotifProgram
 import os
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
+
+from .motifprogram import MotifProgram
 
 
 class Yamda(MotifProgram):
@@ -68,17 +69,12 @@ class Yamda(MotifProgram):
         stdout = ""
         stderr = ""
 
-        cmd = "python %s -i %s -j %s -n %s -w %s -oc %s  %s" % (
-            bin,
-            fastafile,
-            params["background"],
-            params["number"],
-            params["width"],
-            self.tmpdir,
-            params["strand"],
+        cmd = (
+            f"python {bin} -i {fastafile} -j {params['background']} "
+            f"-n {params['number']} -w {params['width']} "
+            f"-oc {self.tmpdir}  {params['strand']}"
         )
 
-        print(cmd)
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.tmpdir)
         out, err = p.communicate()
         stdout += out.decode()

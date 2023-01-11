@@ -8,16 +8,18 @@
 Includes ROC AUC, MNCP, enrichment and others, which are calculated
 on the basis of motif scanning results.
 """
+import logging
 
-# External imports
-from scipy.stats import stats, scoreatpercentile, kstest, fisher_exact
+import numpy as np
+from scipy.stats import fisher_exact, kstest, rankdata, scoreatpercentile
 from sklearn.metrics import (
+    average_precision_score,
     precision_recall_curve,
     roc_auc_score,
     roc_curve,
-    average_precision_score,
 )
-import numpy as np
+
+logger = logging.getLogger("gimme.rocmetrics")
 
 __all__ = [
     "recall_at_fdr",
@@ -100,11 +102,11 @@ def recall_at_fdr(fg_vals, bg_vals, fdr_cutoff=0.1):
 
     try:
         precision, recall, _ = precision_recall_curve(y_true, y_score)
-    except Exception as e:
-        print(y_true)
-        print(y_score)
-        print(e)
+    except Exception:
+        logger.error(y_true)
+        logger.error(y_score)
         raise
+
     fdr = 1 - precision
     cutoff_index = next(i for i, x in enumerate(fdr) if x <= fdr_cutoff)
     return recall[cutoff_index]
@@ -315,8 +317,8 @@ def mncp(fg_vals, bg_vals):
     if not isinstance(bg_vals, np.ndarray):
         bg_vals = np.array(bg_vals)
 
-    fg_rank = stats.rankdata(fg_vals)
-    total_rank = stats.rankdata(np.hstack((fg_vals, bg_vals)))
+    fg_rank = rankdata(fg_vals)
+    total_rank = rankdata(np.hstack((fg_vals, bg_vals)))
 
     slopes = []
     for i in range(len(fg_vals)):
@@ -444,7 +446,7 @@ def roc_auc_xlim(x_bla, y_bla, xlim=0.1):
         xlim = 1.0
 
     auc = 0.0
-    bla = zip(stats.rankdata(x), range(len(x)))
+    bla = zip(rankdata(x), range(len(x)))
     bla = sorted(bla, key=lambda x: x[1])
 
     prev_x = x[bla[0][1]]

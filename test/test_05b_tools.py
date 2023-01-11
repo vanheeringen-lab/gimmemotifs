@@ -1,9 +1,11 @@
-import platform
 import os
+import platform
+
 import pytest
-from gimmemotifs.tools import __tools__, get_tool
+
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.motif import motif_from_consensus
+from gimmemotifs.tools import __tools__, get_tool
 
 data_dir = "test/data/motifprogram"
 fa = os.path.join("test/data/denovo/input.fa")
@@ -42,7 +44,7 @@ def test_tool(tool_name):
 
     print("Tool class:", __tools__[tool_name])
     t = get_tool(tool_name)
-    print("Testing {}...".format(t))
+    print(f"Testing {t}...")
 
     params = {"background": bg_fa, "organism": "hg38", "width": 7}
     (motifs, stderr, stdout) = t.run(fa, params)

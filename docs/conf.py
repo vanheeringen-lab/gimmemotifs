@@ -12,13 +12,13 @@
 
 import os
 import sys
-import mock
 
+import mock  # noqa: available on readthedocs
 
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath(".."))
 # c_metrics is created, but rtd can't find it for some reason
 # to fix this we do a mock import
-MOCK_MODULES = ['gimmemotifs.c_metrics']
+MOCK_MODULES = ["gimmemotifs.c_metrics"]
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
 
@@ -30,9 +30,9 @@ print("\ngimmemotifs version:", __version__, "\n")
 
 # -- Project information -----------------------------------------------------
 
-project = 'GimmeMotifs'
-copyright = '2022, Simon van Heeringen, licensed under CC BY 4.0'
-author = 'Simon van Heeringen, Siebren Frölich, Maarten van der Sande'
+project = "GimmeMotifs"
+copyright = "2022, Simon van Heeringen, licensed under CC BY 4.0"
+author = "Simon van Heeringen, Siebren Frölich, Maarten van der Sande"
 
 # Major, minor and hotfix versions
 version = __version__.split("+")[0]
@@ -46,20 +46,20 @@ release = __version__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',  # automatic documentation from docstrings
-    'sphinx.ext.coverage',  # gather documentation coverage stats
-    'sphinx.ext.napoleon',  # recognize numpy & google style docstrings
-    'sphinx.ext.autosummary',  # Create neat summary tables
+    "sphinx.ext.autodoc",  # automatic documentation from docstrings
+    "sphinx.ext.coverage",  # gather documentation coverage stats
+    "sphinx.ext.napoleon",  # recognize numpy & google style docstrings
+    "sphinx.ext.autosummary",  # Create neat summary tables
     # 'numpydoc',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -72,7 +72,7 @@ html_theme = "bootstrap"  # 'alabaster'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 
 # -- Extension configuration -------------------------------------------------

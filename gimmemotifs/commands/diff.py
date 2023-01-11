@@ -4,17 +4,21 @@
 # This module is free software. You can redistribute it and/or modify it under
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
-import sys
+import logging
 import os
 import shutil
+import sys
+from tempfile import mkdtemp
+
 import numpy as np
 from genomepy import Genome
 
-from gimmemotifs.scanner import Scanner
-from gimmemotifs.motif import read_motifs
 from gimmemotifs.fasta import Fasta
+from gimmemotifs.motif import read_motifs
 from gimmemotifs.plot import diff_plot
-from tempfile import mkdtemp
+from gimmemotifs.scanner import Scanner
+
+logger = logging.getLogger("gimme.diff")
 
 
 def diff(args):
@@ -33,23 +37,24 @@ def diff(args):
     # Retrieve FASTA clusters from BED file
     if len(infiles) == 1 and infiles[0].endswith("bed"):
         if not args.genome:
-            sys.stderr.write("Can't convert BED file without genome!\n")
+            logger.error("Can't convert BED file without genome!")
             sys.exit(1)
 
         clusters = {}
-        for line in open(infiles[0]):
-            vals = line.strip().split("\t")
-            clusters.setdefault(vals[4], []).append(vals[:3])
+        with open(infiles[0]) as f:
+            for line in f:
+                vals = line.strip().split("\t")
+                clusters.setdefault(vals[4], []).append(vals[:3])
 
         infiles = []
 
         for cluster, regions in clusters.items():
-            sys.stderr.write("Creating FASTA file for {0}\n".format(cluster))
-            inbed = os.path.join(tmpdir, "{0}.bed".format(cluster))
-            outfa = os.path.join(tmpdir, "{0}.fa".format(cluster))
+            logger.info(f"Creating FASTA file for {cluster}")
+            inbed = os.path.join(tmpdir, f"{cluster}.bed")
+            outfa = os.path.join(tmpdir, f"{cluster}.fa")
             with open(inbed, "w") as f:
-                for vals in regions:
-                    f.write("{0}\t{1}\t{2}\n".format(*vals))
+                for r in regions:
+                    f.write(f"{r[0]}\t{r[1]}\t{r[2]}\n")
             Genome(genome).track2fasta(inbed, outfa)
             infiles.append(outfa)
 

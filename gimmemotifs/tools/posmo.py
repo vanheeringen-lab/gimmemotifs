@@ -1,9 +1,10 @@
-from .motifprogram import MotifProgram
 import os
 import shutil
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
 from gimmemotifs.motif import Motif
+
+from .motifprogram import MotifProgram
 
 
 class Posmo(MotifProgram):
@@ -64,21 +65,15 @@ class Posmo(MotifProgram):
         os.chdir(self.tmpdir)
         for n_ones in range(4, min(width, 11), 2):
             x = "1" * n_ones
-            outfile = "%s.%s.out" % (fastafile, x)
-            cmd = "%s 5000 %s %s 1.6 2.5 %s 200" % (bin, x, fastafile, width)
+            outfile = f"{fastafile}.{x}.out"
+            cmd = f"{bin} 5000 {x} {fastafile} 1.6 2.5 {width} 200"
             p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
             stdout, stderr = p.communicate()
             stdout = stdout.decode()
             stderr = stderr.decode()
 
-            context_file = fastafile.replace(
-                basename, "context.%s.%s.txt" % (basename, x)
-            )
-            cmd = "%s %s %s simi.txt 0.88 10 2 10" % (
-                bin.replace("posmo", "clusterwd"),
-                context_file,
-                outfile,
-            )
+            context_file = fastafile.replace(basename, f"context.{basename}.{x}.txt")
+            cmd = f"{bin.replace('posmo', 'clusterwd')} {context_file} {outfile} simi.txt 0.88 10 2 10"
             p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
             out, err = p.communicate()
             stdout += out.decode()
@@ -122,9 +117,9 @@ class Posmo(MotifProgram):
 
         for i, motif in enumerate(motifs):
             if seed:
-                motif.id = "%s_w%s.%s_%s" % (self.name, width, seed, i + 1)
+                motif.id = f"{self.name}_w{width}.{seed}_{i + 1}"
             else:
-                motif.id = "%s_w%s_%s" % (self.name, width, i + 1)
+                motif.id = f"{self.name}_w{width}_{i + 1}"
             motif.trim(0.25)
 
         return motifs

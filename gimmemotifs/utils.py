@@ -5,41 +5,29 @@
 # distribution.
 
 """ Odds and ends that for which I didn't (yet) find another place """
-# Python imports
+import logging
 import os
+import random
 import re
 import sys
-import hashlib
-import logging
-import mmap
-import random
-import tempfile
-import requests
-from io import TextIOWrapper
 from functools import singledispatch
+from io import TextIOWrapper
 from subprocess import Popen
 from tempfile import NamedTemporaryFile
 
-# External imports
-import pyfaidx
-from scipy import special
 import numpy as np
 import pybedtools
-
-from genomepy import Genome
+import pyfaidx
+import requests
 from Bio.SeqIO.FastaIO import SimpleFastaParser
+from genomepy import Genome
 
-# gimme imports
+from gimmemotifs.config import MotifConfig
 from gimmemotifs.fasta import Fasta
 from gimmemotifs.plot import plot_histogram
 from gimmemotifs.rocmetrics import ks_pvalue
-from gimmemotifs.config import MotifConfig
-
 
 logger = logging.getLogger("gimme.utils")
-
-# pylint: disable=no-member
-lgam = special.gammaln
 
 
 def rc(seq):
@@ -52,28 +40,27 @@ def narrowpeak_to_bed(inputfile, bedfile, size=0):
     """Convert narrowPeak file to BED file."""
     p = re.compile(r"^(#|track|browser)")
     warn_no_summit = True
-    with open(bedfile, "w") as f_out:
-        with open(inputfile) as f_in:
-            for line in f_in:
-                if p.search(line):
-                    continue
-                vals = line.strip().split("\t")
-                start, end = int(vals[1]), int(vals[2])
+    with open(bedfile, "w") as f_out, open(inputfile) as f_in:
+        for line in f_in:
+            if p.search(line):
+                continue
+            vals = line.strip().split("\t")
+            start, end = int(vals[1]), int(vals[2])
 
-                if size > 0:
-                    summit = int(vals[9])
-                    if summit == -1:
-                        if warn_no_summit:
-                            logger.warn(
-                                "No summit present in narrowPeak file, "
-                                "using the peak center."
-                            )
-                            warn_no_summit = False
-                        summit = (end - start) // 2
+            if size > 0:
+                summit = int(vals[9])
+                if summit == -1:
+                    if warn_no_summit:
+                        logger.warning(
+                            "No summit present in narrowPeak file, "
+                            "using the peak center."
+                        )
+                        warn_no_summit = False
+                    summit = (end - start) // 2
 
-                    start = start + summit - (size // 2)
-                    end = start + size
-                f_out.write("{}\t{}\t{}\t{}\n".format(vals[0], start, end, vals[6]))
+                start = start + summit - (size // 2)
+                end = start + size
+            f_out.write(f"{vals[0]}\t{start}\t{end}\t{vals[6]}\n")
 
 
 def pfmfile_location(infile=None):
@@ -105,8 +92,8 @@ def pfmfile_location(infile=None):
 
 
 def get_jaspar_motif_info(motif_id):
-    query_url = "http://jaspar.genereg.net/api/v1/matrix/{}?format=json"
-    result = requests.get(query_url.format(motif_id))
+    query_url = f"http://jaspar.genereg.net/api/v1/matrix/{motif_id}?format=json"
+    result = requests.get(query_url)
 
     if not result.ok:
         result.raise_for_status()
@@ -115,27 +102,27 @@ def get_jaspar_motif_info(motif_id):
     return result.json()
 
 
-def phyper_single(k, good, bad, N):
-
-    return np.exp(
-        lgam(good + 1)
-        - lgam(good - k + 1)
-        - lgam(k + 1)
-        + lgam(bad + 1)
-        - lgam(bad - N + k + 1)
-        - lgam(N - k + 1)
-        - lgam(bad + good + 1)
-        + lgam(bad + good - N + 1)
-        + lgam(N + 1)
-    )
-
-
-def phyper(k, good, bad, N):
-    """Current hypergeometric implementation in scipy is broken,
-    so here's the correct version.
-    """
-    pvalues = [phyper_single(x, good, bad, N) for x in range(k + 1, N + 1)]
-    return np.sum(pvalues)
+# def phyper_single(k, good, bad, N):
+#     lgam = special.gammaln
+#     return np.exp(
+#         lgam(good + 1)
+#         - lgam(good - k + 1)
+#         - lgam(k + 1)
+#         + lgam(bad + 1)
+#         - lgam(bad - N + k + 1)
+#         - lgam(N - k + 1)
+#         - lgam(bad + good + 1)
+#         + lgam(bad + good - N + 1)
+#         + lgam(N + 1)
+#     )
+#
+#
+# def phyper(k, good, bad, N):
+#     """Current hypergeometric implementation in scipy is broken,
+#     so here's the correct version.
+#     """
+#     pvalues = [phyper_single(x, good, bad, N) for x in range(k + 1, N + 1)]
+#     return np.sum(pvalues)
 
 
 def divide_file(fname, sample, rest, fraction, abs_max):
@@ -148,7 +135,7 @@ def divide_file(fname, sample, rest, fraction, abs_max):
     if x > abs_max:
         x = abs_max
 
-    tmp = tempfile.NamedTemporaryFile(mode="w", delete=False)
+    tmp = NamedTemporaryFile(mode="w", delete=False)
 
     # Fraction as sample
     for line in lines[:x]:
@@ -157,13 +144,13 @@ def divide_file(fname, sample, rest, fraction, abs_max):
 
     # Make sure it is sorted for tools that use this information (MDmodule)
     stdout, stderr = Popen(
-        "sort -k4gr %s > %s" % (tmp.name, sample), shell=True
+        f"sort -k4gr {tmp.name} > {sample}", shell=True
     ).communicate()
 
     tmp.close()
 
     if stderr:
-        print("Something went wrong.\nstdout: {}\nstderr; {}".format(stdout, stderr))
+        logger.error(f"Something went wrong.\nstdout: {stdout}\nstderr; {stderr}")
         sys.exit()
 
     # Rest
@@ -192,9 +179,9 @@ def divide_fa_file(fname, sample, rest, fraction, abs_max):
     f_rest = open(rest, "w")
     for name, seq in fa.items():
         if name in sample_seqs:
-            f_sample.write(">%s\n%s\n" % (name, seq))
+            f_sample.write(f">{name}\n{seq}\n")
         else:
-            f_rest.write(">%s\n%s\n" % (name, seq))
+            f_rest.write(f">{name}\n{seq}\n")
     f_sample.close()
     f_rest.close()
 
@@ -212,10 +199,11 @@ def write_equalsize_bedfile(bedfile, size, outfile):
         )
 
         if len(bed) != len(filtered_bed):
-            logger.warn(
-                "Using original size of input file regions, however, some regions are smaller than 10nt!"
+            logger.warning(
+                "Using original size of input file regions, however, "
+                "some regions are smaller than 10nt!"
             )
-            logger.warn("Removing all these smaller regions.")
+            logger.warning("Removing all these smaller regions.")
         filtered_bed.saveas(outfile)
         return
 
@@ -236,9 +224,9 @@ def write_equalsize_bedfile(bedfile, size, outfile):
                 try:
                     start, end = int(vals[1]), int(vals[2])
                 except ValueError:
-                    print(
-                        "Error on line %s while reading %s. "
-                        "Is the file in BED or WIG format?" % (line_count, bedfile)
+                    logger.error(
+                        f"Error on line {line_count} while reading {bedfile}. "
+                        "Is the file in BED or WIG format?"
                     )
                     sys.exit(1)
 
@@ -250,39 +238,38 @@ def write_equalsize_bedfile(bedfile, size, outfile):
                 end = start + size
                 # Keep all the other information in the bedfile if it's there
                 if len(vals) > 3:
-                    out.write(
-                        "%s\t%s\t%s\t%s\n" % (vals[0], start, end, "\t".join(vals[3:]))
-                    )
+                    rest = "\t".join(vals[3:])
+                    out.write(f"{vals[0]}\t{start}\t{end}\t{rest}\n")
                 else:
-                    out.write("%s\t%s\t%s\n" % (vals[0], start, end))
+                    out.write(f"{vals[0]}\t{start}\t{end}\n")
         lines = f.readlines(BUFSIZE)
 
     out.close()
     f.close()
 
 
-def median_bed_len(bedfile):
-    f = open(bedfile)
-    lengths = []
-    for i, line in enumerate(f.readlines()):
-        if not (line.startswith("browser") or line.startswith("track")):
-            vals = line.split("\t")
-            try:
-                lengths.append(int(vals[2]) - int(vals[1]))
-            except ValueError:
-                sys.stderr.write(
-                    "Error in line %s: "
-                    "coordinates in column 2 and 3 need to be integers!\n" % (i)
-                )
-                sys.exit(1)
-    f.close()
-    return np.median(lengths)
+# def median_bed_len(bedfile):
+#     f = open(bedfile)
+#     lengths = []
+#     for i, line in enumerate(f.readlines()):
+#         if not (line.startswith("browser") or line.startswith("track")):
+#             vals = line.split("\t")
+#             try:
+#                 lengths.append(int(vals[2]) - int(vals[1]))
+#             except ValueError:
+#                 logger.error(
+#                     f"Error in line {i}: "
+#                     "coordinates in column 2 and 3 need to be integers!"
+#                 )
+#                 sys.exit(1)
+#     f.close()
+#     return np.median(lengths)
 
 
 def motif_localization(fastafile, motif, size, outfile, cutoff=0.9):
     NR_HIST_MATCHES = 100
 
-    matches = motif.pwm_scan(Fasta(fastafile), cutoff=cutoff, nreport=NR_HIST_MATCHES)
+    matches = motif.scan(Fasta(fastafile), cutoff=cutoff, nreport=NR_HIST_MATCHES)
     if len(matches) > 0:
         ar = []
         for a in matches.values():
@@ -294,7 +281,7 @@ def motif_localization(fastafile, motif, size, outfile, cutoff=0.9):
             outfile,
             xrange=(-size / 2, size / 2),
             breaks=21,
-            title="%s (p=%0.2e)" % (motif.id, p),
+            title=f"{motif.id} (p={p:.2e})",
             xlabel="Position",
         )
         return motif.id, p
@@ -302,89 +289,58 @@ def motif_localization(fastafile, motif, size, outfile, cutoff=0.9):
         return motif.id, 1.0
 
 
-def parse_cutoff(motifs, cutoff, default=0.9):
-    """Provide either a file with one cutoff per motif or a single cutoff
-    returns a hash with motif id as key and cutoff as value
-    """
-
-    cutoffs = {}
-    if os.path.isfile(str(cutoff)):
-        for i, line in enumerate(open(cutoff)):
-            if line != "Motif\tScore\tCutoff\n":
-                try:
-                    motif, _, c = line.strip().split("\t")
-                    c = float(c)
-                    cutoffs[motif] = c
-                except Exception as e:
-                    sys.stderr.write(
-                        "Error parsing cutoff file, line {0}: {1}\n".format(e, i + 1)
-                    )
-                    sys.exit(1)
-    else:
-        for motif in motifs:
-            cutoffs[motif.id] = float(cutoff)
-
-    for motif in motifs:
-        if motif.id not in cutoffs:
-            sys.stderr.write(
-                "No cutoff found for {0}, using default {1}\n".format(motif.id, default)
-            )
-            cutoffs[motif.id] = default
-    return cutoffs
-
-
-def _treesort(order, nodeorder, nodecounts, tree):
-    # From the Pycluster library, Michiel de Hoon
-    # Find the order of the nodes consistent with the hierarchical clustering
-    # tree, taking into account the preferred order of nodes.
-    nNodes = len(tree)
-    nElements = nNodes + 1
-    neworder = np.zeros(nElements)
-    clusterids = np.arange(nElements)
-    for i in range(nNodes):
-        i1 = tree[i].left
-        i2 = tree[i].right
-        if i1 < 0:
-            order1 = nodeorder[-i1 - 1]
-            count1 = nodecounts[-i1 - 1]
-        else:
-            order1 = order[i1]
-            count1 = 1
-        if i2 < 0:
-            order2 = nodeorder[-i2 - 1]
-            count2 = nodecounts[-i2 - 1]
-        else:
-            order2 = order[i2]
-            count2 = 1
-        # If order1 and order2 are equal, their order is determined
-        # by the order in which they were clustered
-        if i1 < i2:
-            if order1 < order2:
-                increase = count1
-            else:
-                increase = count2
-            for j in range(nElements):
-                clusterid = clusterids[j]
-                if clusterid == i1 and order1 >= order2:
-                    neworder[j] += increase
-                if clusterid == i2 and order1 < order2:
-                    neworder[j] += increase
-                if clusterid == i1 or clusterid == i2:
-                    clusterids[j] = -i - 1
-        else:
-            if order1 <= order2:
-                increase = count1
-            else:
-                increase = count2
-            for j in range(nElements):
-                clusterid = clusterids[j]
-                if clusterid == i1 and order1 > order2:
-                    neworder[j] += increase
-                if clusterid == i2 and order1 <= order2:
-                    neworder[j] += increase
-                if clusterid == i1 or clusterid == i2:
-                    clusterids[j] = -i - 1
-    return np.argsort(neworder)
+# def _treesort(order, nodeorder, nodecounts, tree):
+#     # From the Pycluster library, Michiel de Hoon
+#     # Find the order of the nodes consistent with the hierarchical clustering
+#     # tree, taking into account the preferred order of nodes.
+#     nNodes = len(tree)
+#     nElements = nNodes + 1
+#     neworder = np.zeros(nElements)
+#     clusterids = np.arange(nElements)
+#     for i in range(nNodes):
+#         i1 = tree[i].left
+#         i2 = tree[i].right
+#         if i1 < 0:
+#             order1 = nodeorder[-i1 - 1]
+#             count1 = nodecounts[-i1 - 1]
+#         else:
+#             order1 = order[i1]
+#             count1 = 1
+#         if i2 < 0:
+#             order2 = nodeorder[-i2 - 1]
+#             count2 = nodecounts[-i2 - 1]
+#         else:
+#             order2 = order[i2]
+#             count2 = 1
+#         # If order1 and order2 are equal, their order is determined
+#         # by the order in which they were clustered
+#         if i1 < i2:
+#             if order1 < order2:
+#                 increase = count1
+#             else:
+#                 increase = count2
+#             for j in range(nElements):
+#                 clusterid = clusterids[j]
+#                 if clusterid == i1 and order1 >= order2:
+#                     neworder[j] += increase
+#                 if clusterid == i2 and order1 < order2:
+#                     neworder[j] += increase
+#                 if clusterid == i1 or clusterid == i2:
+#                     clusterids[j] = -i - 1
+#         else:
+#             if order1 <= order2:
+#                 increase = count1
+#             else:
+#                 increase = count2
+#             for j in range(nElements):
+#                 clusterid = clusterids[j]
+#                 if clusterid == i1 and order1 > order2:
+#                     neworder[j] += increase
+#                 if clusterid == i2 and order1 <= order2:
+#                     neworder[j] += increase
+#                 if clusterid == i1 or clusterid == i2:
+#                     clusterids[j] = -i - 1
+#     return np.argsort(neworder)
 
 
 def number_of_seqs_in_file(fname):
@@ -400,7 +356,7 @@ def number_of_seqs_in_file(fname):
     except Exception:
         pass
 
-    sys.stderr.write("unknown filetype {}\n".format(fname))
+    logger.error(f"unknown filetype {fname}")
     sys.exit(1)
 
 
@@ -476,45 +432,40 @@ def determine_file_type(fname):
     return "unknown"
 
 
-def get_seqs_type(seqs):
-    """
-    automagically determine input type
-    the following types are detected:
-        - Fasta object
-        - FASTA file
-        - list of regions
-        - region file
-        - BED file
-    """
-    region_p = re.compile(r"^([^\s:]+\@)?(.+):(\d+)-(\d+)$")
-    if isinstance(seqs, Fasta):
-        return "fasta"
-    elif isinstance(seqs, list) or isinstance(seqs, np.ndarray):
-        if len(seqs) == 0:
-            raise ValueError("empty list of sequences to scan")
-        else:
-            if region_p.search(seqs[0]):
-                return "regions"
-            else:
-                raise ValueError("unknown region type")
-    elif isinstance(seqs, str):
-        if os.path.isfile(seqs):
-            ftype = determine_file_type(seqs)
-            if ftype == "unknown":
-                raise ValueError("unknown type")
-            elif ftype == "narrowpeak":
-                raise ValueError("narrowPeak not yet supported in this function")
-            else:
-                return ftype + "file"
-        else:
-            raise ValueError("no file found with name {}".format(seqs))
-    else:
-        raise ValueError("unknown type {}".format(type(seqs).__name__))
-
-
-# Regular expression to check for region (chr:start-end or genome@chr:start-end)
-region_p = re.compile(r"^[^@]+@([^\s]+):(\d+)-(\d+)$")
-fa_p = re.compile(r"^[actgnACTGN]+$")
+# def get_seqs_type(seqs):
+#     """
+#     automagically determine input type
+#     the following types are detected:
+#         - Fasta object
+#         - FASTA file
+#         - list of regions
+#         - region file
+#         - BED file
+#     """
+#     if isinstance(seqs, Fasta):
+#         return "fasta"
+#     elif isinstance(seqs, list) or isinstance(seqs, np.ndarray):
+#         if len(seqs) == 0:
+#             raise ValueError("empty list of sequences to scan")
+#         else:
+#             region_p = re.compile(r"^([^\s:]+\@)?(.+):(\d+)-(\d+)$")
+#             if region_p.search(seqs[0]):
+#                 return "regions"
+#             else:
+#                 raise ValueError("unknown region type")
+#     elif isinstance(seqs, str):
+#         if os.path.isfile(seqs):
+#             ftype = determine_file_type(seqs)
+#             if ftype == "unknown":
+#                 raise ValueError("unknown type")
+#             elif ftype == "narrowpeak":
+#                 raise ValueError("narrowPeak not yet supported in this function")
+#             else:
+#                 return ftype + "file"
+#         else:
+#             raise ValueError(f"no file found with name {seqs}")
+#     else:
+#         raise ValueError(f"unknown type {type(seqs).__name__}")
 
 
 def _check_minsize(fa, minsize):
@@ -640,11 +591,16 @@ def _as_seqdict_list(to_convert, genome=None, minsize=None):
     """
     Accepts list of regions or DNA strings as input.
     """
+    # Use regular expression to check for region
+    # (chr:start-end or genome@chr:start-end)
+
     # regions
+    region_p = re.compile(r"^[^@]+@([^\s]+):(\d+)-(\d+)$")
     if region_p.match(to_convert[0]):
         return _as_seqdict_genome_regions(to_convert, minsize)
 
     # DNA
+    fa_p = re.compile(r"^[actgnACTGN]+$")
     if fa_p.match(to_convert[0]):
         return _as_seqdict_sequences(to_convert, minsize)
 
@@ -668,16 +624,15 @@ def _as_seqdict_filename(to_convert, genome=None, minsize=None):
     if not os.path.exists(to_convert):
         raise ValueError("Assuming filename, but it does not exist")
 
-    f = open(to_convert)
-    fa = as_seqdict(f)
+    with open(to_convert) as f:
+        fa = as_seqdict(f)
 
     if any(fa):
         return _check_minsize(fa, minsize)
 
     with open(to_convert) as f:
         line = ""
-        while True:
-            line = f.readline()
+        for line in f.readline():
             if line == "":
                 break
             if not line.startswith("#"):
@@ -686,6 +641,7 @@ def _as_seqdict_filename(to_convert, genome=None, minsize=None):
         if line == "":
             raise IOError(f"empty file {to_convert}")
 
+        region_p = re.compile(r"^[^@]+@([^\s]+):(\d+)-(\d+)$")
         if region_p.match(line.strip()):
             regions = [myline.strip() for myline in [line] + f.readlines()]
             return _as_seqdict_genome_regions(regions, minsize=None)
@@ -710,7 +666,7 @@ def _as_seqdict_bedtool(to_convert, genome=None, minsize=None):
     Accepts pybedtools.BedTool as input.
     """
     return _genomepy_convert(
-        ["{}:{}-{}".format(*f[:3]) for f in to_convert], genome, minsize
+        [f"{f[0]}:{f[1]}-{f[2]}" for f in to_convert], genome, minsize
     )
 
 
@@ -729,24 +685,24 @@ def as_fasta(to_convert, genome=None, minsize=None):
     return Fasta(fdict=as_seqdict(to_convert, genome, minsize))
 
 
-def file_checksum(fname):
-    """Return md5 checksum of file.
-
-    Note: only works for files < 4GB.
-
-    Parameters
-    ----------
-    filename : str
-        File used to calculate checksum.
-
-    Returns
-    -------
-        checkum : str
-    """
-    size = os.path.getsize(fname)
-    with open(fname, "r+") as f:
-        checksum = hashlib.md5(mmap.mmap(f.fileno(), size)).hexdigest()
-    return checksum
+# def file_checksum(fname):
+#     """Return md5 checksum of file.
+#
+#     Note: only works for files < 4GB.
+#
+#     Parameters
+#     ----------
+#     filename : str
+#         File used to calculate checksum.
+#
+#     Returns
+#     -------
+#         checkum : str
+#     """
+#     size = os.path.getsize(fname)
+#     with open(fname, "r+") as f:
+#         checksum = hashlib.md5(mmap.mmap(f.fileno(), size)).hexdigest()
+#     return checksum
 
 
 def join_max(a, length, sep="", suffix=""):

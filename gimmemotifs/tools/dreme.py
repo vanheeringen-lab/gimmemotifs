@@ -1,8 +1,9 @@
-from .motifprogram import MotifProgram
 import os
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
 from gimmemotifs.motif import read_motifs
+
+from .motifprogram import MotifProgram
 
 
 class Dreme(MotifProgram):
@@ -54,7 +55,7 @@ class Dreme(MotifProgram):
         strand = " -norc "
         number = default_params["number"]
 
-        cmd = [bin, "-p", fastafile, "-m", "%s" % number, "-oc", self.tmpdir]
+        cmd = [bin, "-p", fastafile, "-m", str(number), "-oc", self.tmpdir]
         if default_params["background"]:
             cmd += ["-n", default_params["background"]]
         if default_params["single"]:

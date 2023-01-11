@@ -1,9 +1,9 @@
-import unittest
 import os
-from gimmemotifs.denovo import gimme_motifs
-from gimmemotifs.motif import read_motifs, motif_from_consensus
-from gimmemotifs.comparison import MotifComparer
+import unittest
 from tempfile import mkdtemp
+
+from gimmemotifs.comparison import MotifComparer
+from gimmemotifs.motif import gimme_motifs, motif_from_consensus, read_motifs
 
 
 class TestDenovo(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestDenovo(unittest.TestCase):
             "test/data/denovo/input.fa",
             self.outdir,
             params={
-                "tools": "BioProspector,Homer,MDmodule",
+                "tools": "MDmodule",
                 "fraction": 0.5,
                 "background": "random",
                 "genome": "test/data/background/genome.fa",

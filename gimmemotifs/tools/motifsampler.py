@@ -1,9 +1,10 @@
-from .motifprogram import MotifProgram
 import os
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
 
 from gimmemotifs.motif import Motif
+
+from .motifprogram import MotifProgram
 
 
 class MotifSampler(MotifProgram):
@@ -40,10 +41,10 @@ class MotifSampler(MotifProgram):
             if prm.get("organism", None):
                 prm["background_model"] = os.path.join(
                     self.config.get_bg_dir(),
-                    "{}.{}.bg".format(prm["organism"], "MotifSampler"),
+                    f"{prm['organism']}.MotifSampler.bg",
                 )
             else:
-                raise Exception("No background specified for {}".format(self.name))
+                raise Exception(f"No background specified for {self.name}")
 
         prm["strand"] = 1
         if prm["single"]:
@@ -86,24 +87,15 @@ class MotifSampler(MotifProgram):
         """
         params = self._parse_params(params)
         # TODO: test organism
-        # cmd = "%s -f %s -b %s -m %s -w %s -n %s -o %s -s %s > /dev/null 2>&1" % (
-        cmd = "%s -f %s -b %s -m %s -w %s -n %s -o %s -s %s" % (
-            bin,
-            fastafile,
-            params["background_model"],
-            params["pfmfile"],
-            params["width"],
-            params["number"],
-            params["outfile"],
-            params["strand"],
+
+        cmd = (
+            f"{bin} -f {fastafile} -b {params['background_model']} "
+            f"-m {params['pfmfile']} -w {params['width']} -n {params['number']} "
+            f"-o {params['outfile']} -s {params['strand']}"
         )
-        # print cmd
+
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
-
-        # stdout,stderr = "",""
-        # p = Popen(cmd, shell=True)
-        # p.wait()
 
         motifs = []
         if os.path.exists(params["outfile"]):
@@ -111,7 +103,7 @@ class MotifSampler(MotifProgram):
                 motifs = self.parse_out(f)
 
         for motif in motifs:
-            motif.id = "%s_%s" % (self.name, motif.id)
+            motif.id = f"{self.name}_{motif.id}"
 
         return motifs, stdout, stderr
 

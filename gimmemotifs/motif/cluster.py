@@ -4,18 +4,18 @@
 # the terms of the MIT License, see the file COPYING included with this
 # distribution.
 """Module for motif clustering."""
+import logging
 import os
 import sys
-import logging
-
-import jinja2
 from datetime import datetime
 
-# GimmeMotifs imports
-from gimmemotifs.config import MotifConfig
-from gimmemotifs.motif import read_motifs, Motif
-from gimmemotifs.comparison import MotifComparer
+import jinja2
+
 from gimmemotifs import __version__
+from gimmemotifs.comparison import MotifComparer
+from gimmemotifs.config import MotifConfig
+from gimmemotifs.motif.base import Motif
+from gimmemotifs.motif.read import read_motifs
 
 logger = logging.getLogger("gimme.cluster")
 
@@ -152,7 +152,7 @@ def cluster_motifs(
     motifs = [n.motif for n in nodes]
 
     if progress:
-        sys.stderr.write("Calculating initial scores\n")
+        logger.info("Calculating initial scores")
     result = mc.get_all_scores(
         motifs, motifs, match, metric, combine, pval, parallel=True, ncpus=ncpus
     )
@@ -194,7 +194,7 @@ def cluster_motifs(
             if len(ave_motif) == 0:
                 ave_motif = Motif([[0.25, 0.25, 0.25, 0.25]])
 
-            ave_motif.id = "Average_%s" % ave_count
+            ave_motif.id = f"Average_{ave_count}"
             ave_count += 1
 
             new_node = MotifTree(ave_motif)
@@ -220,14 +220,9 @@ def cluster_motifs(
             cmp_nodes = dict([(node.motif, node) for node in nodes if not node.parent])
 
             if progress:
-                progress = (1 - len(cmp_nodes) / float(total)) * 100
-                sys.stderr.write(
-                    "\rClustering [{0}{1}] {2}%".format(
-                        "#" * (int(progress) // 10),
-                        " " * (10 - int(progress) // 10),
-                        int(progress),
-                    )
-                )
+                progress = int((1 - len(cmp_nodes) / float(total)) * 100)
+                bar = "#" * (progress // 10) + " " * (10 - progress // 10)
+                sys.stderr.write(f"\rClustering [{bar}] {progress}%")  # TODO: tqdm
 
             result = mc.get_all_scores(
                 [new_node.motif],
@@ -273,7 +268,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
     elif len(motifs) == 1:
         clusters = [[motifs[0], motifs]]
     else:
-        logger.info("clustering %d motifs.", len(motifs))
+        logger.info(f"clustering {len(motifs)} motifs.")
         tree = cluster_motifs(
             infile,
             "total",
@@ -296,7 +291,7 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
 
     for cluster, members in clusters:
         cluster.trim(trim_ic)
-        png = "images/{}.png".format(cluster.id)
+        png = os.path.join("images", f"{cluster.id}.png")
         cluster.plot_logo(fname=os.path.join(outdir, png))
         ids.append([cluster.id, {"src": png}, []])
         if len(members) > 1:
@@ -316,13 +311,17 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
                     rc = motif.rc()
                     rc.id = motif.id
                     motif = rc
-                # print "%s\t%s" % (motif.id, add)
-                png = "images/{}.png".format(motif.id.replace(" ", "_"))
-                motif.plot_logo(fname=os.path.join(outdir, png), add_left=add)
+                png = os.path.join(
+                    outdir, "images", f"{motif.id.replace(' ', '_')}.png"
+                )
+                motif.plot_logo(fname=png, add_left=add)
         ids[-1][2] = [
             dict(
                 [
-                    ("src", "images/{}.png".format(motif.id.replace(" ", "_"))),
+                    (
+                        "src",
+                        os.path.join("images", f"{motif.id.replace(' ', '_')}.png"),
+                    ),
                     ("alt", motif.id.replace(" ", "_")),
                 ]
             )
@@ -347,11 +346,11 @@ def cluster_motifs_with_report(infile, outfile, outdir, threshold, title=None):
 
     f = open(outfile, "w")
     if len(clusters) == 1 and len(clusters[0][1]) == 1:
-        f.write("%s\n" % clusters[0][0].to_ppm())
+        f.write(f"{clusters[0][0].to_ppm()}\n")
     else:
         for motif in tree.get_clustered_motifs():
-            f.write("%s\n" % motif.to_ppm())
+            f.write(f"{motif.to_ppm()}\n")
     f.close()
 
-    logger.debug("Clustering done. See the result in %s", cluster_report)
+    logger.debug(f"Clustering done. See the result in {cluster_report}")
     return clusters

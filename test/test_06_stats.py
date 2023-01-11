@@ -2,10 +2,9 @@ import os
 
 import pytest
 
-from gimmemotifs.stats import calc_stats
-from gimmemotifs.motif import read_motifs
 from gimmemotifs import rocmetrics
-
+from gimmemotifs.motif import read_motifs
+from gimmemotifs.stats import calc_stats
 
 data_dir = "test/data/stats"
 genome = "test/data/background/genome.fa"

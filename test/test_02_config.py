@@ -1,5 +1,6 @@
 import os
-from gimmemotifs.config import get_build_dir, MotifConfig, parse_denovo_params
+
+from gimmemotifs.config import MotifConfig, get_build_dir, parse_denovo_params
 
 
 def test_get_build_dir():

@@ -1,11 +1,11 @@
-from setuptools import setup, find_packages
-from setuptools import Extension
-
 import os
-from io import open
-from compile_externals import compile_all
 import subprocess as sp
+from io import open
+
+from setuptools import Extension, find_packages, setup
+
 import versioneer
+from compile_externals import compile_all
 
 CONFIG_NAME = "gimmemotifs.cfg"
 DESCRIPTION = "GimmeMotifs is a motif prediction pipeline."
@@ -53,7 +53,7 @@ class build_tools(my_build_py):
             # mkpath is a distutils helper to create directories
             self.mkpath(target_dir)
 
-            compile_all(src_dir=src_dir)
+            compile_all(src_dir)
 
             for exes in MOTIF_BINS.values():
                 for exe in exes:
@@ -152,7 +152,8 @@ setup(
         # "xgboost >=1.0.2",
     ],
     extras_require={
-        "xgboost": ["xgboost >=1.0.2"],
+        "ete3": ["ete3"],
         "notebook": ["ipywidgets"],
+        "xgboost": ["xgboost >=1.0.2"],
     },
 )
