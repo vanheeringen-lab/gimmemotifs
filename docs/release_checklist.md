@@ -54,16 +54,23 @@ $ twine upload -r testpypi dist/gimmemotifs-${version}.tar.gz
 git flow release finish ${new_version}
 ```
 
-7. Upload to PyPi.
+
+7. Push everything to github, including tags:
+
+```shell
+git push --follow-tags origin develop master
+```
+
+8. Upload to PyPi.
 
 ```shell
 python setup.py sdist
 twine upload dist/gimmemotifs-${new_version}.tar.gz
 ```
 
-8. Finalize the release on Github.
+9. Finalize the release on Github.
 
 Create a release. Download the tarball and then edit the release and attach the
 tarball as binary. 
 
-9. Update the Bioconda package recipe
+10. Update the Bioconda package recipe
