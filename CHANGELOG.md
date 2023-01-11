@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+## [0.18.0] - 2023-01-11
+
 ### Added
 
 - `gimme scan` and `gimme maelstrom` now accept a random seed for (most) operations
