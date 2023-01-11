@@ -135,7 +135,7 @@ def create_background_file(
                 create_random_genomic_bedfile(outfile, genome, size, number)
 
 
-def create_random_genomic_bedfile(out, genome, size, n, seed):
+def create_random_genomic_bedfile(out, genome, size, n, seed=None):
     if seed:
         # genomepy uses random.random()
         random.seed(seed)

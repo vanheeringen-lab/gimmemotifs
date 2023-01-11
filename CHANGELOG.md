@@ -9,6 +9,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 - `gimme scan` and `gimme maelstrom` now accept a random seed for (most) operations
   - for (optimal) deterministic behaviour, delete the cache and then run the command with a seed 
+- `Scanner` now accepts a `np.random.RandomState` and `progress` on init.
+  - `progress=None` (the default) should print progress bars to the command line only, not to file.
+- `Scanner.set_genome` now accepts the optional argument `genomes_dir`
+- `gimmemotifs.maelstrom.Moap.create` now accepts a `np.random.RandomState`.
+- `gimmemotifs.maelstrom.run_maelstrom` now accepts a `np.random.RandomState`.
 
 ### Changed
 
@@ -16,18 +21,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - now using the logger instead of print/sys.stderr.write in many more places
 - string formatting now (mostly) done with f-strings
 - refactored Fasta class
-- removed old python2 code (scanning with MOODS & import shenanigans)
-- `Scanner` now accepts a `np.random.RandomState` and progress on init.
-  - `progress=None` (the default) should print progress bars to the command line only, not to file.
-- `Scanner.set_genome` now accepts the optional argument `genomes_dir`
 - split `scanner.py` into 3 submodules:
   - `scanner/__init__.py` with the exported functions
   - `scanner/base.py` with the Scanner class
   - `scanner/utils.py` with the rest
 - `gimmemotifs/maelstrom.py` renamed to `gimmemotifs/maelstrom/_init__.py`
   - `rank.py` and `moap.py` are now submodules of maelstrom.
-- `gimmemotifs.maelstrom.Moap.create` now accepts a `np.random.RandomState`.
-- `gimmemotifs.maelstrom.run_maelstrom` now accepts a `np.random.RandomState`.
 
 ### Fixed
 
@@ -45,6 +44,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   - (filesize + name instead of the md5sum of the whole genome's contents)
 - `gimme motifs` gives an informative error when `fraction` is not within 0-1.
 - `gimme threshold` works again
+
+### Removed
+
+- removed old python2 code (scanning with MOODS & import shenanigans)
 
 ## [0.17.2] - 2022-10-12
 

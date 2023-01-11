@@ -82,7 +82,7 @@ class Scanner(object):
         self._random_state = random_state
         if random_state is not None:
             # can be used to set random.seed()
-            self._seed = random_state.get_state()[1][0]
+            self._seed = random_state.get_state()[1][0].item()
 
     @property
     def progress(self):

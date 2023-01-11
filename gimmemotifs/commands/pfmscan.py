@@ -15,7 +15,7 @@ from gimmemotifs.scanner import scan_to_file
 def pfmscan(args):
     random_state = None
     if args.seed is not None:
-        random_state = RandomState(args.seed)
+        random_state = RandomState(int(args.seed))
 
     scan_to_file(
         args.inputfile,

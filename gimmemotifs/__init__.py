@@ -10,12 +10,18 @@ from warnings import warn as _warn
 def _filtered_warn(*args, **kwargs):
     """warnings.filterwarnings does not work."""
     blacklist = [
-        # report.py pandas DeprecationWarning (internal)
+        # maelstrom sklearn SVM
+        "Liblinear failed to converge, increase the number of iterations.",
+        # report.py (pandas internal DeprecationWarning)
         "The get_cmap function will be deprecated in a future version. "
         "Use ``matplotlib.colormaps[name]`` or "
         "``matplotlib.colormaps.get_cmap(obj)`` instead.",
         # report.py pandas FutureWarning, alternative works differently
         "this method is deprecated in favour of `Styler.to_html()`",
+        # scanner/base.py set_threshold
+        "DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, "
+        "which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. "
+        "To get a de-fragmented frame, use `newframe = frame.copy()`",
     ]
     message = str(args[0])
     if message in blacklist:

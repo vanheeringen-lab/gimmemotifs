@@ -37,7 +37,7 @@ def maelstrom(args):
 
     random_state = None
     if args.seed is not None:
-        random_state = RandomState(args.seed)
+        random_state = RandomState(int(args.seed))
 
     run_maelstrom(
         infile,
