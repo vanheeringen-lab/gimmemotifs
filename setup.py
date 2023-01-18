@@ -122,14 +122,15 @@ setup(
         "Programming Language :: Python :: 3",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
+    python_requires=">=3.7",  # , <3.11?
     install_requires=[
-        "setuptools >=0.7",
+        "setuptools >=24.2.0",
         # copied from the requirements.yaml
         "biofluff >=3.0.4",
         "configparser",
         "diskcache",
         "feather-format",
-        "genomepy >=0.13.0",
+        "genomepy >=0.14.0",
         # "ipywidgets",
         "iteround",
         "jinja2",
