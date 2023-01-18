@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Fixed
+
+- `gimme motifs` uses `--ncpus` where possible (two more places). fixes #265
+
 ## [0.18.0] - 2023-01-11
 
 ### Added
