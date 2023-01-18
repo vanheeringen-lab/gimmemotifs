@@ -25,7 +25,7 @@ install:
   - mamba env create -f requirements.yaml
   - source activate gimme
   - python setup.py build  # installs the motif discovery tools
-  - pip install -e .  # installs gimme (in editable mode)
+  - pip install . --no-deps --ignore-installed  # installs gimme (in editable mode)
 
 before_script:
   # install Code Climate test coverage reporter
