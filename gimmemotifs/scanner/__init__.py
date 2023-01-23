@@ -25,45 +25,6 @@ from gimmemotifs.utils import as_fasta
 logger = logging.getLogger("gimme.scanner")
 
 
-def _format_line(
-    seq, seq_id, motif, score, pos, strand, bed=False, seq_p=None, strandmap=None
-):
-    if seq_p is None:
-        seq_p = re.compile(r"([^\s:]+):(\d+)-(\d+)")
-    if strandmap is None:
-        strandmap = {-1: "-", 1: "+"}
-    if bed:
-        m = seq_p.search(seq_id)
-        if m:
-            chrom = m.group(1)
-            start = int(m.group(2))
-            return "{}\t{}\t{}\t{}\t{}\t{}".format(
-                chrom,
-                start + pos,
-                start + pos + len(motif),
-                motif.id,
-                score,
-                strandmap[strand],
-            )
-        else:
-            return "{}\t{}\t{}\t{}\t{}\t{}".format(
-                seq_id, pos, pos + len(motif), motif.id, score, strandmap[strand]
-            )
-    else:
-        return '{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\tmotif_name "{}" ; motif_instance "{}"'.format(
-            seq_id,
-            "pfmscan",
-            "misc_feature",
-            pos + 1,  # GFF is 1-based
-            pos + len(motif),
-            score,
-            strandmap[strand],
-            ".",
-            motif.id,
-            seq[pos : pos + len(motif)],
-        )
-
-
 def scan_regionfile_to_table(
     input_table,
     genome,
@@ -91,7 +52,7 @@ def scan_regionfile_to_table(
         "count" returns the occurrence of each motif (with an FPR threshold of 0.01).
         "score" returns the best match score of each motif.
 
-    pfmfile : str, optional
+    pfmfile : str or list, optional
         Specify a PFM file for scanning (or a list of Motif instances).
 
     zscore : bool, optional
@@ -116,14 +77,7 @@ def scan_regionfile_to_table(
         are either motif counts or best motif match scores per region,
         depending on the 'scoring' parameter.
     """
-    if pfmfile is None:
-        config = MotifConfig()
-        pfmfile = config.get_default_params().get("motif_db", None)
-        if pfmfile is not None:
-            pfmfile = os.path.join(config.get_motif_dir(), pfmfile)
-
-    if pfmfile is None:
-        raise ValueError("no pfmfile given and no default database specified")
+    pfmfile = check_motifs(pfmfile)
 
     logger.info("reading table")
     if input_table.endswith("feather"):
@@ -139,14 +93,14 @@ def scan_regionfile_to_table(
         check_regions = random.choice(regions, size=1000, replace=False)
     else:
         check_regions = regions
-
     size = int(
         np.median([len(seq) for seq in as_fasta(check_regions, genome=genome).seqs])
     )
+
     s = Scanner(ncpus=ncpus, random_state=random_state, progress=progress)
     s.set_motifs(pfmfile)
     s.set_genome(genome)
-    s.set_background(genome=genome, gc=gc, size=size)
+    s.set_background(gc=gc, size=size)
 
     scores = []
     if scoring == "count":
@@ -155,9 +109,7 @@ def scan_regionfile_to_table(
         logger.info("creating count table")
         for row in s.count(regions):
             scores.append(row)
-        logger.info("done")
     else:
-        s.set_threshold(threshold=0.0)
         msg = "creating score table"
         if zscore:
             msg += " (z-score"
@@ -169,11 +121,10 @@ def scan_regionfile_to_table(
         logger.info(msg)
         for row in s.best_score(regions, zscore=zscore, gc=gc):
             scores.append(row)
-        logger.info("done")
-
-    motif_names = s.motif_ids
+    logger.info("done")
 
     logger.info("creating dataframe")
+    motif_names = s.motif_ids
     dtype = "float16"
     if scoring == "count":
         dtype = int
@@ -182,115 +133,43 @@ def scan_regionfile_to_table(
     return df
 
 
-def scan_table(
-    s,
-    fa,
-    motifs,
-    nreport,
-    scan_rc,
-):
-    # header
-    yield "\t{}".format("\t".join([m.id for m in motifs]))
-    # get iterator
-    result_it = s.count(fa, nreport, scan_rc)
-    # counts table
-    for i, counts in enumerate(result_it):
-        yield "{}\t{}".format(fa.ids[i], "\t".join([str(x) for x in counts]))
+def check_motifs(pfmfile_or_motifs=None):
+    """Accepts a string with a pfmfile, a list of Motif instances or None.
+    Checks the input and returns the input, or the default pfmfile if None."""
+    if isinstance(pfmfile_or_motifs, list):
+        motifs = pfmfile_or_motifs
+        if not hasattr(motifs[0], "to_ppm"):
+            raise ValueError(
+                "The input list does not contain Motif instances. "
+                "Please provide a pfmfile as a string, a list of Motif instances, "
+                "or None."
+            )
+        return motifs
 
+    if isinstance(pfmfile_or_motifs, str):
+        pfmfile = pfmfile_or_motifs
 
-def scan_score_table(s, fa, motifs, scan_rc, zscore=False, gcnorm=False):
+    elif pfmfile_or_motifs is None:
+        config = MotifConfig()
+        pfmfile = config.get_default_params().get("motif_db", None)
+        if pfmfile is None:
+            raise ValueError("No pfmfile given and no default database specified")
+        pfmfile = os.path.join(config.get_motif_dir(), pfmfile)
 
-    s.set_threshold(threshold=0.0, gc=gcnorm)
-    # get iterator
-    result_it = s.best_score(fa, scan_rc, zscore=zscore, gc=gcnorm)
-    # header
-    yield "\t{}".format("\t".join([m.id for m in motifs]))
-    # score table
-    for i, scores in enumerate(result_it):
-        yield "{}\t{}".format(fa.ids[i], "\t".join(["{:4f}".format(x) for x in scores]))
-
-
-def scan_normal(
-    s,
-    fa,
-    motifs,
-    nreport,
-    scan_rc,
-    bed,
-    zscore,
-    gcnorm,
-):
-    result_it = s.scan(fa, nreport, scan_rc, zscore, gc=gcnorm)
-    for i, result in enumerate(result_it):
-        seq_id = fa.ids[i]
-        seq = fa[seq_id]
-        for motif, matches in zip(motifs, result):
-            for (score, pos, strand) in matches:
-                yield _format_line(seq, seq_id, motif, score, pos, strand, bed=bed)
-
-
-def command_scan(
-    inputfile,
-    pfmfile,
-    nreport=1,
-    fpr=0.01,
-    cutoff=None,
-    bed=False,
-    scan_rc=True,
-    table=False,
-    score_table=False,
-    bgfile=None,
-    genome=None,
-    ncpus=None,
-    zscore=False,
-    gcnorm=False,
-    random_state=None,
-    progress=None,
-):
-    motifs = read_motifs(pfmfile)
-
-    fa = as_fasta(inputfile, genome)
-
-    # initialize scanner
-    s = Scanner(ncpus=ncpus, random_state=random_state, progress=progress)
-    s.set_motifs(pfmfile)
-
-    if genome:
-        s.set_genome(genome)
-
-    if genome:
-        s.set_background(
-            genome=genome, fname=bgfile, size=fa.median_length(), gc=gcnorm
-        )
-    if bgfile:
-        s.set_background(genome=genome, fname=bgfile, size=fa.median_length())
-
-    if not score_table:
-        s.set_threshold(fpr=fpr, threshold=cutoff)
-
-    if table:
-        it = scan_table(s, fa, motifs, nreport, scan_rc)
-    elif score_table:
-        it = scan_score_table(s, fa, motifs, scan_rc, zscore, gcnorm)
     else:
-        it = scan_normal(
-            s,
-            fa,
-            motifs,
-            nreport,
-            scan_rc,
-            bed,
-            zscore,
-            gcnorm,
+        raise ValueError(
+            "Please provide a pfmfile as a string, a list of Motif instances, "
+            "or None."
         )
 
-    for row in it:
-        yield row
+    if not os.path.exists(pfmfile):
+        raise FileNotFoundError(pfmfile)
+    return pfmfile
 
 
 def scan_to_file(
     inputfile,
-    pfmfile,
+    pfmfile=None,
     filepath_or_buffer=None,
     nreport=1,
     fpr=0.01,
@@ -364,6 +243,8 @@ def scan_to_file(
     progress : bool or None, optional
         provide progress bars for long computations.
     """
+    pfmfile = check_motifs(pfmfile)
+
     should_close = False
     if filepath_or_buffer is None:
         #  write to stdout
@@ -379,7 +260,7 @@ def scan_to_file(
         should_close = True
 
     if fpr is None and cutoff is None:
-        fpr = 0.01
+        fpr = FPR
 
     print(f"# GimmeMotifs version {__version__}", file=fo)
     print(f"# Input: {inputfile}", file=fo)
@@ -399,24 +280,38 @@ def scan_to_file(
     else:
         print("# Scoring: logodds score", file=fo)
 
-    for line in command_scan(
-        inputfile,
-        pfmfile,
-        nreport=nreport,
-        fpr=fpr,
-        cutoff=cutoff,
-        bed=bed,
-        scan_rc=scan_rc,
-        table=table,
-        score_table=score_table,
-        bgfile=bgfile,
-        genome=genome,
-        ncpus=ncpus,
-        zscore=zscore,
-        gcnorm=gcnorm,
-        random_state=random_state,
-        progress=progress,
-    ):
+    # initialize scanner
+    s = Scanner(ncpus=ncpus, random_state=random_state, progress=progress)
+    s.set_motifs(pfmfile)
+    s.set_genome(genome)
+
+    # background sequences
+    fa = as_fasta(inputfile, genome)
+    if genome:
+        s.set_background(None, genome, fa.median_length(), gc=gcnorm)
+    elif bgfile:
+        s.set_background(bgfile, None, fa.median_length(), gc=False)
+    if not score_table:
+        # score_table sets a threshold internally
+        s.set_threshold(fpr=fpr, threshold=cutoff)
+
+    motifs = read_motifs(pfmfile)
+    if table:
+        it = _scan_table(s, fa, motifs, nreport, scan_rc)
+    elif score_table:
+        it = _scan_score_table(s, fa, motifs, scan_rc, zscore, gcnorm)
+    else:
+        it = _scan_normal(
+            s,
+            fa,
+            motifs,
+            nreport,
+            scan_rc,
+            bed,
+            zscore,
+            gcnorm,
+        )
+    for line in it:
         print(line, file=fo)
 
     if should_close:
@@ -426,9 +321,93 @@ def scan_to_file(
             pass
 
 
+def _scan_table(
+    s,
+    fa,
+    motifs,
+    nreport,
+    scan_rc,
+):
+    # header
+    yield "\t{}".format("\t".join([m.id for m in motifs]))
+    # get iterator
+    result_it = s.count(fa, nreport, scan_rc)
+    # counts table
+    for i, counts in enumerate(result_it):
+        yield "{}\t{}".format(fa.ids[i], "\t".join([str(x) for x in counts]))
+
+
+def _scan_score_table(s, fa, motifs, scan_rc, zscore=False, gcnorm=False):
+    # header
+    yield "\t{}".format("\t".join([m.id for m in motifs]))
+    # get iterator
+    result_it = s.best_score(fa, scan_rc, zscore=zscore, gc=gcnorm)
+    # score table
+    for i, scores in enumerate(result_it):
+        yield "{}\t{}".format(fa.ids[i], "\t".join(["{:4f}".format(x) for x in scores]))
+
+
+def _scan_normal(
+    s,
+    fa,
+    motifs,
+    nreport,
+    scan_rc,
+    bed,
+    zscore,
+    gcnorm,
+):
+    result_it = s.scan(fa, nreport, scan_rc, zscore, gc=gcnorm)
+    for i, result in enumerate(result_it):
+        seq_id = fa.ids[i]
+        seq = fa[seq_id]
+        for motif, matches in zip(motifs, result):
+            for (score, pos, strand) in matches:
+                yield _format_line(seq, seq_id, motif, score, pos, strand, bed=bed)
+
+
+def _format_line(
+    seq, seq_id, motif, score, pos, strand, bed=False, seq_p=None, strandmap=None
+):
+    if seq_p is None:
+        seq_p = re.compile(r"([^\s:]+):(\d+)-(\d+)")
+    if strandmap is None:
+        strandmap = {-1: "-", 1: "+"}
+    if bed:
+        m = seq_p.search(seq_id)
+        if m:
+            chrom = m.group(1)
+            start = int(m.group(2))
+            return "{}\t{}\t{}\t{}\t{}\t{}".format(
+                chrom,
+                start + pos,
+                start + pos + len(motif),
+                motif.id,
+                score,
+                strandmap[strand],
+            )
+        else:
+            return "{}\t{}\t{}\t{}\t{}\t{}".format(
+                seq_id, pos, pos + len(motif), motif.id, score, strandmap[strand]
+            )
+    else:
+        return '{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\tmotif_name "{}" ; motif_instance "{}"'.format(
+            seq_id,
+            "pfmscan",
+            "misc_feature",
+            pos + 1,  # GFF is 1-based
+            pos + len(motif),
+            score,
+            strandmap[strand],
+            ".",
+            motif.id,
+            seq[pos : pos + len(motif)],
+        )
+
+
 def scan_to_best_match(
     fname,
-    motifs,
+    pfmfile=None,
     ncpus=None,
     genome=None,
     score=False,
@@ -445,7 +424,7 @@ def scan_to_best_match(
     fname : str or Fasta
         Filename of a sequence file in FASTA format.
 
-    motifs : str or list, optional
+    pfmfile : str or list, optional
         Specify a PFM file for scanning (or a list of Motif instances).
 
     genome : str
@@ -475,17 +454,16 @@ def scan_to_best_match(
     result : dict
         Dictionary with motif as key and best score/match as values.
     """
+    pfmfile = check_motifs(pfmfile)
+
     # Initialize scanner
     s = Scanner(ncpus=ncpus, random_state=random_state, progress=progress)
-    s.set_motifs(motifs)
+    s.set_genome(genome)
+    s.set_motifs(pfmfile)
     s.set_threshold(threshold=0.0)
-    if genome:
-        s.set_genome(genome)
-
-    if isinstance(motifs, str):
-        motifs = read_motifs(motifs)
 
     logger.debug(f"scanning {fname}...")
+    motifs = read_motifs(pfmfile) if isinstance(pfmfile, str) else pfmfile
     result = dict([(m.id, []) for m in motifs])
     if score:
         it = s.best_score(fname, zscore=zscore, gc=gc)
@@ -494,8 +472,5 @@ def scan_to_best_match(
     for scores in it:
         for motif, score in zip(motifs, scores):
             result[motif.id].append(score)
-
-    # Close the pool and reclaim memory
-    del s
 
     return result
