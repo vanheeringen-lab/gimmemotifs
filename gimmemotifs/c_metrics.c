@@ -732,6 +732,7 @@ static PyObject * c_metrics_pfmscan(PyObject *self, PyObject * args)
 
         // Scan sequence
         int j_max = seq_len - pwm_len + 1;
+	long size = j_max * sizeof(double);
         double *score_matrix = malloc(size);
         double *rc_score_matrix = malloc(size);
         double score, rc_score;
