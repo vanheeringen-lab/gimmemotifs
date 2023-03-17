@@ -711,8 +711,6 @@ static PyObject * c_metrics_pfmscan(PyObject *self, PyObject * args)
 
         seq_len = strlen(seq);
         pwm_len = PyList_Size(pfm_o);
-        if (seq_len < pwm_len) {
-            printf ("\nSequence shorter than the motif!\n");
             PyObject*  return_list = PyList_New(0);
             return return_list;
         }
