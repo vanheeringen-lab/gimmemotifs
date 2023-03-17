@@ -705,14 +705,19 @@ static PyObject * c_metrics_pfmscan(PyObject *self, PyObject * args)
         if (!PyArg_ParseTuple(args, "sOOii|i", &seq, &pfm_o, &cutoff_o, &n_report, &scan_rc, &return_all))
                 return NULL;
 
-        seq_len = strlen(seq);
-
         // Retrieve frequency matrix
         if (!PyList_Check(pfm_o))
                 return NULL;
 
-        // Weight matrices
+        seq_len = strlen(seq);
         pwm_len = PyList_Size(pfm_o);
+        if (seq_len < pwm_len) {
+            printf ("\nSequence shorter than the motif!\n");
+            PyObject*  return_list = PyList_New(0);
+            return return_list;
+        }
+	
+        // Weight matrices
         double pfm[pwm_len][4];
         double pwm[pwm_len][4];
         fill_matrix(pfm, pfm_o);
