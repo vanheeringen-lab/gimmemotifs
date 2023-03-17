@@ -732,8 +732,8 @@ static PyObject * c_metrics_pfmscan(PyObject *self, PyObject * args)
 
         // Scan sequence
         int j_max = seq_len - pwm_len + 1;
-        double score_matrix[j_max];
-        double rc_score_matrix[j_max];
+        double *score_matrix = malloc(size);
+        double *rc_score_matrix = malloc(size);
         double score, rc_score;
 
         if (j_max < 0) { j_max = 0;}
@@ -784,6 +784,9 @@ static PyObject * c_metrics_pfmscan(PyObject *self, PyObject * args)
 		for (j = 0; j < j_max; j++) {
     			PyList_SetItem(return_list, j, PyFloat_FromDouble(score_matrix[j]));
 		}
+		
+		free(score_matrix);
+		free(rc_score_matrix);
 	    	return return_list;
 	}
 
@@ -836,6 +839,7 @@ static PyObject * c_metrics_pfmscan(PyObject *self, PyObject * args)
 			}
 		}
 	}
+	free(score_matrix);
 
 	if (scan_rc) {
 		for (j = 0; j < j_max; j++) {
@@ -873,6 +877,7 @@ static PyObject * c_metrics_pfmscan(PyObject *self, PyObject * args)
 			}
 		}
 	}
+	free(rc_score_matrix);
 
 	for (i = 0; i < n_report; i++) {
 		if (maxPos[i] > - 1) {
