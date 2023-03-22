@@ -717,8 +717,7 @@ static PyObject * c_metrics_pfmscan(PyObject *self, PyObject * args)
     }
 
     // Cutoff for every spacer length
-    double cutoff;
-    cutoff = PyFloat_AsDouble(cutoff_o);
+    double cutoff = PyFloat_AsDouble(cutoff_o);
 
     // Scan sequence
     int seq_len = strlen(seq);
@@ -773,7 +772,6 @@ static PyObject * c_metrics_pfmscan(PyObject *self, PyObject * args)
                     rc_score += pwm_min;
                     break;
 			}
-		
 		}
 		score_matrix[j] = score;
 		rc_score_matrix[j] = rc_score;
