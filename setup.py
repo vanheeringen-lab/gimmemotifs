@@ -138,7 +138,7 @@ setup(
         "loguru",
         "matplotlib >=3.3",  # matplotlib-base
         "numpy >=1.18",
-        "pandas >=1.3, <=1.5",
+        "pandas >=1.3, <2",
         "pybedtools >=0.9.0",
         "pysam >=0.16",
         # "python",
