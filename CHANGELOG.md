@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - `gimme motifs` uses `--ncpus` where possible (two more places). fixes #265
+- pinned pandas >=1.3, <=1.5 
+  - Styler.render() was deprecated for Styler.to_html(), but that throws an error
 
 ## [0.18.0] - 2023-01-11
 
