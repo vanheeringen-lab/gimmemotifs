@@ -935,7 +935,7 @@ class Motif(object):
             fmt_i = "<span style='color:#666666'>{}</span>"
         else:
             fmt_d = fmt_i = "{}"
-        factor_str = ", ".join(
+        factor_str = ",".join(
             [fmt_d.format(f) if f in direct else fmt_i.format(f) for f in show_factors]
         )
         if len(direct + indirect) > max_length:
