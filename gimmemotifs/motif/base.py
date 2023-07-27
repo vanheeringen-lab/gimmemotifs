@@ -886,26 +886,14 @@ class Motif(object):
     def format_factors(
         self, max_length=5, html=False, include_indirect=True, extra_str=", (...)"
     ):
-        if html:
-            fmt_d = "<span style='color:black'>{}</span>"
-            fmt_i = "<span style='color:#666666'>{}</span>"
-        else:
-            fmt_d = fmt_i = "{}"
-
+        # create a list of factors, in order of de novo > direct/indirect > occurrence
         if hasattr(self, "factor_info"):
             fcount = Counter([x.upper() for x in self.factor_info.get("Factor", "")])
         else:
             fcount = Counter(self.factors[DIRECT_NAME] + self.factors[INDIRECT_NAME])
 
         direct = sorted(
-            list(
-                set(
-                    [
-                        x.upper() if x != "de novo" else x
-                        for x in self.factors[DIRECT_NAME]
-                    ]
-                )
-            ),
+            set([x.upper() for x in self.factors[DIRECT_NAME]]),
             key=lambda x: fcount[x],
             reverse=True,
         )
@@ -913,54 +901,55 @@ class Motif(object):
         indirect = []
         if include_indirect:
             indirect = sorted(
-                list(
-                    set(
-                        [
-                            x.upper()
-                            for x in self.factors[INDIRECT_NAME]
-                            if x.upper() not in direct
-                        ]
-                    )
+                set(
+                    [
+                        x.upper()
+                        for x in self.factors[INDIRECT_NAME]
+                        if x.upper() not in direct
+                    ]
                 ),
                 key=lambda x: fcount[x],
                 reverse=True,
             )
 
-        if len(direct) > max_length:
-            show_factors = direct[:max_length]
-        else:
-            show_factors = direct[:]
-            for f in sorted(indirect, key=lambda x: fcount[x], reverse=True):
-                if f not in show_factors:
-                    show_factors.append(f)
-                if len(show_factors) >= max_length:
-                    break
+        # remove this "factor", unless its the only match for this motif
+        key = "NO ORTHOLOGS FOUND"
+        if len(direct + indirect) > 1 and key in indirect:
+            indirect.remove(key)
 
-        if "de novo" in show_factors:
-            show_factors = ["de novo"] + sorted(
-                [f for f in show_factors if f != "de novo"],
-                key=lambda x: fcount[x],
-                reverse=True,
-            )
-        else:
-            show_factors = sorted(show_factors, key=lambda x: fcount[x], reverse=True)
+        # show factors up to a maximum
+        show_factors = direct[:max_length]
+        for f in indirect:
+            if len(show_factors) >= max_length:
+                break
+            show_factors.append(f)
 
-        factor_str = ",".join(
+        # start with the de novo "factor"
+        if "DE NOVO" in show_factors:
+            show_factors.remove("DE NOVO")
+            show_factors = ["de novo"] + show_factors
+
+        # convert to (html) string
+        if html:
+            fmt_d = "<span style='color:black'>{}</span>"
+            fmt_i = "<span style='color:#666666'>{}</span>"
+        else:
+            fmt_d = fmt_i = "{}"
+        factor_str = ", ".join(
             [fmt_d.format(f) if f in direct else fmt_i.format(f) for f in show_factors]
         )
-
         if len(direct + indirect) > max_length:
             factor_str += extra_str
 
         if html:
+            # popup with all TF names when you hover over the factors
             tooltip = ""
             if len(direct) > 0:
-                tooltip += "direct: " + ",".join(sorted(direct))
+                tooltip += "direct: " + ", ".join(sorted(direct))
             if len(indirect) > 0:
                 if tooltip != "":
                     tooltip += "&#10;"
-                tooltip += "predicted: " + ",".join(sorted(indirect))
-
+                tooltip += "predicted: " + ", ".join(sorted(indirect))
             factor_str = '<div title="' + tooltip + '">' + factor_str + "</div>"
 
         return factor_str
