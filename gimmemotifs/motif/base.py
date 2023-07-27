@@ -884,7 +884,7 @@ class Motif(object):
         return self.to_ppm(precision=precision, extra_str=extra_str)
 
     def format_factors(
-        self, max_length=5, html=False, include_indirect=True, extra_str=", (...)"
+        self, max_length=5, html=False, include_indirect=True, extra_str=",(...)"
     ):
         # create a list of factors, in order of de novo > direct/indirect > occurrence
         if hasattr(self, "factor_info"):
@@ -939,7 +939,11 @@ class Motif(object):
             [fmt_d.format(f) if f in direct else fmt_i.format(f) for f in show_factors]
         )
         if len(direct + indirect) > max_length:
-            factor_str += extra_str
+            factor_str += (
+                fmt_d.format(extra_str)
+                if show_factors[-1] in direct
+                else fmt_i.format(extra_str)
+            )
 
         if html:
             # popup with all TF names when you hover over the factors
