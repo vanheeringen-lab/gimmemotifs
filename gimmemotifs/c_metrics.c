@@ -312,7 +312,7 @@ static PyObject * c_metrics_score(PyObject *self, PyObject * args)
 
 }
 
-int get_truncate_len(len1, len2, pos) {
+int get_truncate_len(int len1, int len2, int pos) {
 	// 
 	
 	if (pos < 0) {
