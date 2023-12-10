@@ -126,7 +126,7 @@ setup(
         "setuptools >=0.7",
         # copied from the requirements.yaml
         "biofluff >=3.0.4",
-        "configparser",
+        "configparser <6.0.0",
         "diskcache",
         "feather-format",
         "genomepy >=0.13.0",
