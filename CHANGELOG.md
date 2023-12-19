@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - updated dependencies (conda + pypi)
+- updated Maelstrom report (don't show "NO ORTHOLOGS FOUND" if other factors have been found)
 
 ### Fixed
 
