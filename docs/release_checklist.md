@@ -8,8 +8,8 @@ This is mainly for personal use at the moment.
 1. Make sure all tests pass.
 
 ```shell
-mamba env update -f environment.yml
-pytest -vvv
+mamba env update -f requirements.yaml
+pytest -vvv --disable-pytest-warnings
 ```
 
 2. Create release candidate with `git flow`:
@@ -34,7 +34,7 @@ python setup.py sdist
 mamba create -n test python=3.9 pytest
 mamba activate test
 pip install dist/gimmemotifs*.tar.gz
-pytest -vvv
+pytest -vvv --disable-pytest-warnings
 ```
 
 5. Upload to pypi testing server

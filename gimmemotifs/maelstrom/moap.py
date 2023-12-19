@@ -588,7 +588,7 @@ class SVRMoap(Moap):
         self.columns = df_y.columns
         X = df_X.loc[y.index]
 
-        clf = LinearSVR(random_state=self.random_state)
+        clf = LinearSVR(random_state=self.random_state, dual="auto")
         self.model = MultiOutputRegressor(clf, n_jobs=1)
         logger.debug("Fitting model")
         self.model.fit(df_X, df_y)

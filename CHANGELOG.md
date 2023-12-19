@@ -5,6 +5,20 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+## [0.18.1] - 2023-12-19
+
+### Changed
+
+- updated dependencies (conda + pypi)
+- updated Maelstrom report (don't show "NO ORTHOLOGS FOUND" if other factors have been found)
+
+### Fixed
+
+- `gimme motifs` uses `--ncpus` where possible (two more places). fixes #265
+- pinned pandas >=1.3, <2 
+  - Styler.render() was deprecated for Styler.to_html(), but that throws an error
+- updated C code, fixes compiler warnings & error
+
 ## [0.18.0] - 2023-01-11
 
 ### Added
