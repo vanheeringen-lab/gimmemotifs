@@ -291,8 +291,8 @@ def scan_to_file(
         s.set_background(None, genome, fa.median_length(), gc=gcnorm)
     elif bgfile:
         s.set_background(bgfile, None, fa.median_length(), gc=False)
-    else:
-        raise ValueError("A genome or background file are required")
+    # else:
+    #     raise ValueError("A genome or background file are required")
     if not score_table:
         # score_table sets a threshold internally
         s.set_threshold(fpr=fpr, threshold=cutoff)  # GC set by s.set_background()
