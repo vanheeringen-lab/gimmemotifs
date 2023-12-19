@@ -5,7 +5,7 @@ channels:
   - defaults
 dependencies:
   - biofluff >=3.0.4              # necessary for coverage_table()
-  - configparser
+  - configparser <6
   - diskcache
   - feather-format
   - genomepy >=0.14.0

@@ -887,7 +887,7 @@ static PyMethodDef CoreMethods[] = {
 	{"c_max_subtotal", c_metrics_max_subtotal, METH_VARARGS,"Test"},
 	{"pfmscan", c_metrics_pfmscan, METH_VARARGS,"Test"},
 	{"pwmscan", c_metrics_pwmscan, METH_VARARGS,"Test"},
-//	{NULL, NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL}
 };
 
 static struct PyModuleDef moduledef = {
