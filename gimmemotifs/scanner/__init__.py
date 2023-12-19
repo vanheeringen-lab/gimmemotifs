@@ -105,7 +105,7 @@ def scan_regionfile_to_table(
     scores = []
     if scoring == "count":
         logger.info("setting threshold")
-        s.set_threshold(fpr=FPR)
+        s.set_threshold(fpr=FPR)  # GC set by s.set_background()
         logger.info("creating count table")
         for row in s.count(regions):
             scores.append(row)
@@ -291,9 +291,11 @@ def scan_to_file(
         s.set_background(None, genome, fa.median_length(), gc=gcnorm)
     elif bgfile:
         s.set_background(bgfile, None, fa.median_length(), gc=False)
+    else:
+        raise ValueError("A genome or background file are required")
     if not score_table:
         # score_table sets a threshold internally
-        s.set_threshold(fpr=fpr, threshold=cutoff)
+        s.set_threshold(fpr=fpr, threshold=cutoff)  # GC set by s.set_background()
 
     motifs = read_motifs(pfmfile)
     if table:
@@ -460,7 +462,6 @@ def scan_to_best_match(
     s = Scanner(ncpus=ncpus, random_state=random_state, progress=progress)
     s.set_genome(genome)
     s.set_motifs(pfmfile)
-    s.set_threshold(threshold=0.0)
 
     logger.debug(f"scanning {fname}...")
     motifs = read_motifs(pfmfile) if isinstance(pfmfile, str) else pfmfile
