@@ -124,7 +124,7 @@ setup(
     ],
     python_requires=">=3.7",  # , <3.11?
     install_requires=[
-        "setuptools >=24.2.0",
+        "setuptools >=24.2.0, <=65.5",  # keep data/ as "package"
         # copied from the requirements.yaml
         "biofluff >=3.0.4",
         "configparser <6",
