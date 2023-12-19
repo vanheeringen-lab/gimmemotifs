@@ -53,6 +53,7 @@ dependencies:
   #  - yamda >=0.1.00e9c9d        # optional. 3 GB
 
   # development packages
+  - setuptools >=24.2.0, <=65.5
   - black=22.3.0                  # same as in .pre-commit-config.yaml
   - flake8=4.0.1                  # same as in .pre-commit-config.yaml
   - flake8-bugbear=22.4.25        # same as in .pre-commit-config.yaml
