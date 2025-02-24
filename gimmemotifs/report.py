@@ -1045,7 +1045,7 @@ def roc_html_report(
                 .align(subset=bar_cols, location="center")
                 .rename(columns=rename_columns)
                 .to_precision_str(subset=["% matches input", "% matches background"])
-                .render()
+                .to_html()
             )
         else:
             f.write("<body>No enriched motifs found.</body>")
