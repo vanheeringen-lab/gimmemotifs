@@ -90,26 +90,34 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = [
-    "gimmemotifs",
     "data",
-#    "data.bg",
-#    "data.cfg",
-#    "data.examples",
-#    "data.motif_databases",
-#    "data.score_dists",
-#    "data.templates",
-#    "data.templates.sortable",
+    "data.bg",
+    "data.cfg",
+    "data.examples",
+    "data.motif_databases",
+    "data.score_dists",
+    "data.templates",
+    "data.templates.sortable",
+
+    "gimmemotifs",
+    "gimmemotifs.commands",
+    "gimmemotifs.db",
+    "gimmemotifs.included_tools",
+    "gimmemotifs.maelstrom",
+    "gimmemotifs.motif",
+    "gimmemotifs.scanner",
+    "gimmemotifs.tools",
 ]
 ext-modules = [
     {name = "gimmemotifs.c_metrics", sources=["gimmemotifs/c_metrics.c"]},
 ]
 
-[tool.setuptools.package-data]
-data = [
-    "*",
-    "*/*",
-    "*/*/*",
-]
+#[tool.setuptools.package-data]
+#data = [
+#    "*",
+#    "*/*",
+#    "*/*/*",
+#]
 
 [tool.setuptools.cmdclass]
 build_py = "build.custom_build_py"  # adds the motif prediction tools

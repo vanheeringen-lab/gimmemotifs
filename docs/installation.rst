@@ -1,7 +1,7 @@
 Installation
 ============
 
-GimmeMotifs runs on Linux. On Windows 10 it will run fine using the `Windows Subsystem for Linux`_.
+GimmeMotifs runs on Linux. On Windows it will run fine using the `Windows Subsystem for Linux`_.
 
 ..  NOTE: nope. it hasn't worked in a while.
     Mac OSX should work and is included in the build test.
@@ -12,14 +12,12 @@ GimmeMotifs runs on Linux. On Windows 10 it will run fine using the `Windows Sub
 
 .. _`Install GimmeMotifs`:
 
+
+
 Conda - the easy way
 --------------------
 
 The preferred way to install GimmeMotifs is by using conda_.
-Activate the required channels and install mamba_ (you only have to do this once).
-
-In this example, conda and mamba versions are pinned due to a bug with mamba.
-For more information, see issue 271_.
 
 .. _conda: https://docs.continuum.io/anaconda
 .. _mamba: https://github.com/mamba-org/mamba
@@ -28,57 +26,29 @@ For more information, see issue 271_.
 
 :: 
 
-    $ conda config --add channels defaults
     $ conda config --add channels bioconda
     $ conda config --add channels conda-forge
-    $ conda install -c conda-forge "conda>=4.12" "mamba>=0.27"
 
 You can install GimmeMotifs with one command. In the current environment:
 
 ::
 
-    $ mamba install gimmemotifs
+    $ conda install gimmemotifs
 
 Or create a specific environment:
 
 ::
 
-    $ mamba create -n gimme gimmemotifs
+    $ conda create -n gimme gimmemotifs
     
     # Activate the environment before you use GimmeMotifs
-    $ mamba activate gimme
+    $ conda activate gimme
 
 Installation successful? Good. Have a look at the :ref:`configuration<configuration>` section.
 
 .. _upgradegenome:
 
-Upgrading from 0.11.1
-^^^^^^^^^^^^^^^^^^^^^
 
-The way genomes are installed and used has been changed from 0.11.1 to 0.12.0.
-Basically, we have switched to the faidx index used and supported by many other tools.
-This means that the old (<=0.11.1) GimmeMotifs index cannot be used by GimmeMotifs 0.12.0 and higher.
-You can re-install genomes using genomepy_, which is now the preferred tool for genome management for GimmeMotifs.
-However, because of this change you can now also directly supply a genome FASTA instead of a genome name.
-Pre-indexing is not required anymore.
-
-.. _genomepy: https://github.com/vanheeringen-lab/genomepy
-
-..  NOTE: abbreviated
-    Alternative installation
-    ------------------------
-
-    Prerequisites
-    +++++++++++++
-
-    These are the prerequisites for a full GimmeMotifs installation.
-
-    - bedtools http://bedtools.readthedocs.io
-    - UCSC genePredToBed http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/genePredToBed
-    - UCSC bigBedToBed http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bigBedToBed
-    - Perl + Algorithm::Cluster
-
-    In addition many of the motif tools (such as MEME) will need to be installed separately. Instructions for doing so are not included here.
 
 Pip
 ---
@@ -158,8 +128,9 @@ You can install the develop branch with the newest bells, whistles and bugs:
     # setup the gimme conda environment
     $ conda env create -f requirements.yaml
     $ conda activate gimme
-    $ python setup.py build  # installs the motif discovery tools
-    $ pip install -e .       # installs gimmemotifs (in editable mode)
+
+    # installs gimmemotifs (in editable mode)
+    $ pip install --no-deps --no-cache-dir --use-pep517 -v -e .
 
     # test if the install was successful
     $ gimme -h
@@ -331,16 +302,9 @@ After downloading a genome with genomepy, you can use its name (e.g. ``hg38``) f
 MotifSampler
 ------------
 
-If you want to use MotifSampler there is one more step that you'll have
-to take *after* installation of GimmeMotifs. For every organism, you will
-need a MotifSampler background. Note that human (hg19, hg38) and mouse (mm9, mm10) background models are included, so for these
-organisms MotifSampler will work out of the box. For other organisms the
-necessary background files can be created with ``CreateBackgroundModel``
-(which is included with GimmeMotifs or can be downloaded from the same
-site as MotifSampler). The background model file needs to be saved in
-the directory ``/usr/share/gimmemotifs/MotifSampler`` and it should be
-named ``<organism_index_name>.bg``. So, for instance, if I downloaded
-the human epd background
-(``epd_homo_sapiens_499_chromgenes_non_split_3.bg``), this file should
-be saved as ``/usr/share/gimmemotifs/MotifSampler/hg19.bg``.
-here.
+If you want to use MotifSampler there is one more step that you'll have to take *after* installation of GimmeMotifs. For every organism, you will need a MotifSampler background.
+Note that human (hg19, hg38) and mouse (mm9, mm10) background models are included, so for these
+organisms MotifSampler will work out of the box.
+For other organisms the necessary background files can be created with ``CreateBackgroundModel`` (which is included with GimmeMotifs or can be downloaded from the same site as MotifSampler).
+The background model file needs to be saved in the directory ``/usr/share/gimmemotifs/MotifSampler`` and it should be named ``<organism_index_name>.bg``.
+So, for instance, if I downloaded the human epd background (``epd_homo_sapiens_499_chromgenes_non_split_3.bg``), this file should be saved as ``/usr/share/gimmemotifs/MotifSampler/hg19.bg`` here.
