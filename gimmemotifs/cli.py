@@ -7,20 +7,13 @@
 import argparse
 import os
 import sys
+from io import StringIO
 
-from gimmemotifs import __version__, commands
-from gimmemotifs.config import BED_VALID_BGS, BG_TYPES, MotifConfig
-from gimmemotifs.utils import check_genome
+from gimmemotifs.__about__ import __version__
 
 
-def cli(sys_args):
-    config = MotifConfig()
-    params = config.get_default_params()
-    default_pfm_file = os.path.join(config.get_motif_dir(), params["motif_db"])
-    default_pfm = params["motif_db"]
-
+def gimme():
     description = f"GimmeMotifs v{__version__}"
-
     epilog = """
     commands:
         motifs          identify enriched motifs (known and/or de novo)
@@ -39,7 +32,6 @@ def cli(sys_args):
 
     type `gimme <command> -h` for more details
     """
-
     usage = "%(prog)s [-h] <subcommand> [options]"
 
     parser = argparse.ArgumentParser(
@@ -52,6 +44,14 @@ def cli(sys_args):
         "-v", "--version", action="version", version=f"GimmeMotifs v{__version__}"
     )
     subparsers = parser.add_subparsers()  # title='subcommands', metavar="<command>")
+
+    # lazy loading of modules and objects
+    from gimmemotifs import commands  # noqa
+    from gimmemotifs.config import BED_VALID_BGS, BG_TYPES, MotifConfig  # noqa
+    config = MotifConfig()
+    params = config.get_default_params()
+    default_pfm_file = os.path.join(config.get_motif_dir(), params["motif_db"])
+    default_pfm = params["motif_db"]
 
     # gimme_motifs.py
     p = subparsers.add_parser("motifs")
@@ -724,6 +724,7 @@ def cli(sys_args):
     )
     p.set_defaults(func=commands.motif2factors)
 
+    sys_args = sys.argv[1:]
     if len(sys_args) == 0:
         parser.print_help()
     elif sys_args[0] == "roc":
@@ -735,13 +736,16 @@ def cli(sys_args):
         print("$ gimme motifs <inputfile> <outdir> --known")
         sys.exit(1)
     else:
+        # if a subcommand is queries without details, print help
         ignored = ["-v", "--version", "-h", "--help"]
         if len(sys_args) == 1 and sys_args[0] not in ignored:
-            print(f"\033[93mtype `gimme {sys_args[-1]} -h` for more details\033[0m\n")
+            sys_args.append("--help")
+
         args = parser.parse_args(sys_args)
 
         if hasattr(args, "genome"):
             if args.genome is not None:
+                from gimmemotifs.utils import check_genome  # noqa
                 if not check_genome(args.genome):
                     print(
                         "Genome not found. Have you installed your genome with genomepy?"
@@ -753,3 +757,178 @@ def cli(sys_args):
                     exit(1)
 
         args.func(args)
+
+def combine_peaks():
+    description = f"GimmeMotifs v{__version__} - combine_peaks"
+
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument(
+        "-v", "--version", action="version", version=f"GimmeMotifs v{__version__}"
+    )
+    parser.add_argument(
+        dest="peaks",
+        help="MACS2 summit or narrowPeak files",
+        metavar="PEAK_FILES",
+        nargs="*",
+    )
+    parser.add_argument(
+        "-g",
+        "--genome",
+        dest="genome",
+        required=True,
+        help="Genome name or genome file",
+        metavar="FILE",
+    )
+    parser.add_argument(
+        "-w",
+        "--window",
+        metavar="INT",
+        dest="window",
+        type=int,
+        help="Window size (default 200)",
+        default=200,
+    )
+    parser.add_argument(
+        "-s",
+        "--scale",
+        dest="scale",
+        help="Scale summit values",
+        action="store_true",
+        default=False,
+    )
+    if len(sys.argv) <= 1:
+        parser.print_help()
+
+    args = parser.parse_args()
+
+    _exit = False
+    for fname in args.peaks:
+        if not os.path.exists(fname):
+            print(f"File {fname} does not exist!", file=sys.stderr)
+            _exit = True
+    if _exit:
+        sys.exit(1)
+
+    from gimmemotifs.preprocessing import combine_peaks as _combine_peaks  # noqa
+    df = _combine_peaks(args.peaks, args.genome, args.window, args.scale)
+    output = StringIO()
+    df.to_csv(output, sep="\t", index=False, header=False)
+    output.seek(0)
+    print(output.read())
+
+def coverage_table():
+    description = f"GimmeMotifs v{__version__} - coverage_table"
+
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument(
+        "-v", "--version", action="version", version=f"GimmeMotifs v{__version__}"
+    )
+    parser.add_argument(
+        dest="peakfile",
+        help="BED file containing peaks",
+        metavar="PEAK_FILE",
+    )
+    parser.add_argument(
+        dest="datafiles",
+        help="BAM, BED or bigWig file(s) with read data",
+        metavar="DATA_FILE(S)",
+        nargs="*",
+    )
+    parser.add_argument(
+        "-w",
+        "--window",
+        dest="window",
+        help="window size (default 200)",
+        metavar="INT",
+        type=int,
+        default=200,
+    )
+    parser.add_argument(
+        "-l",
+        "--log-transform",
+        dest="log_transform",
+        help="apply a natural log transform",
+        default=False,
+        action="store_true",
+    )
+    parser.add_argument(
+        "-n",
+        "--normalization",
+        metavar="STR",
+        dest="normalization",
+        help="apply 'quantile' or 'scale' normalization",
+        default=None,
+    )
+    parser.add_argument(
+        "-t",
+        "--top",
+        metavar="STR",
+        dest="top",
+        help="Select regions.",
+        default=-1,
+        type=int,
+    )
+    parser.add_argument(
+        "-T",
+        "--top-method",
+        metavar="STR",
+        dest="topmethod",
+        help="select top regions by 'var', 'std', 'mean' or 'random'",
+        default="var",
+    )
+    parser.add_argument(
+        "-D",
+        dest="rmdup",
+        help="keep duplicate reads (removed by default)",
+        default=True,
+        action="store_false",
+    )
+    parser.add_argument(
+        "-R",
+        dest="rmrepeats",
+        help="keep reads with mapq 0 (removed by default) ",
+        action="store_false",
+        default=True,
+    )
+    parser.add_argument(
+        "--nthreads",
+        dest="ncpus",
+        metavar="INT",
+        help="Number of threads (default 12)",
+        type=int,
+        default=12,
+    )
+    if len(sys.argv) <= 1:
+        parser.print_help()
+
+    args = parser.parse_args()
+    from gimmemotifs.preprocessing import coverage_table as _coverage_table  # noqa
+    df = _coverage_table(
+        peakfile=args.peakfile,
+        datafiles=args.datafiles,
+        window=args.window,
+        log_transform=args.log_transform,
+        normalization=args.normalization,
+        top=args.top,
+        topmethod=args.topmethod,
+        rmdup=args.rmdup,
+        rmrepeats=args.rmrepeats,
+        ncpus=args.ncpus,
+    )
+
+    yesno = {True: "yes", False: "no"}
+
+    output = StringIO()
+    output.write(f"# Table created by coverage_table (GimmeMotifs {__version__})\n")
+    output.write(f"# Input file: {args.peakfile}\n")
+    output.write(f"# Data files: {args.datafiles}\n")
+    output.write(f"# Window: {args.window}\n")
+    output.write(f"# Duplicates removed: {yesno[args.rmdup]}\n")
+    output.write(f"# MAPQ 0 removed: {yesno[args.rmrepeats]}\n")
+    output.write(f"# Log transformed: {yesno[args.log_transform]}\n")
+    output.write(f"# Normalization: {args.normalization}\n")
+    if args.top > 0:
+        output.write(f"# Top {args.top} regions selected by {args.topmethod}\n")
+    df.to_csv(output, sep="\t", float_format="%0.5f")
+    output.seek(0)
+    print(output.read(), end="")
