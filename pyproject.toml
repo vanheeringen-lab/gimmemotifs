@@ -1,0 +1,124 @@
+[project]
+name = "gimmemotifs"
+description = "Motif prediction pipeline and various motif-related tools."
+authors = [
+    {name = "Simon van Heeringen", email = "simon.vanheeringen@gmail.com"},
+    {name = "Siebren Frölich", email = "siebrenf@gmail.com"},
+    {name = "Maarten van der Sande", email = "m.vandersande@science.ru.nl"},
+]
+maintainers = [
+    {name = "Simon van Heeringen", email = "simon.vanheeringen@gmail.com"},
+    {name = "Siebren Frölich", email = "siebrenf@gmail.com"},
+]
+
+requires-python = ">=3.9"
+dependencies = [
+        "biofluff >=3.0.4",
+        "configparser",  #  <6
+        "diskcache",
+        "feather-format",
+        "genomepy >=0.16.3",
+        "iteround",
+        "jinja2",
+        "logomaker",
+        "loguru",
+        "matplotlib >=3.3",  # matplotlib-base
+        "numpy >=1.18",
+        "pandas >=1.3",  # , <2
+        "pybedtools >=0.9.0",
+        "pysam >=0.16",
+        # "python",
+        "xxhash",  # "python-xxhash"
+        "qnorm  >=0.8.1",
+        "scikit-learn >=0.23.2",
+        "scipy >=1.5",
+        "seaborn >=0.10.1",
+        "statsmodels",
+        "tqdm >=4.46.1",
+        "xdg",
+        # "xgboost >=1.0.2",
+]
+
+dynamic = ["version"]
+readme = "README.md"
+license-files = ["COPYING"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = [
+    "transcription factor",
+    "motif",
+    "detection",
+    "activity",
+    "promoter",
+    "enhancer",
+]
+
+[project.optional-dependencies]
+ete3 = ["ete3"]
+notebook= ["ipywidgets"]
+xgboost= ["xgboost >=1.0.2"]
+all = [
+    "ete3",
+    "ipywidgets",
+    "xgboost >=1.0.2"
+]
+
+[project.scripts]
+#combine_peaks = "scripts.combine_peaks:__main__"  # TODO: wrap
+#coverage_table = "scripts.coverage_table:__main__"  # TODO: wrap
+gimme ="gimmemotifs.cli:cli"  # TODO: re-wrap
+
+[project.urls]
+Homepage = "https://github.com/vanheeringen-lab/gimmemotifs"
+Documentation = "https://gimmemotifs.readthedocs.io/en/master/"
+News = "https://github.com/vanheeringen-lab/gimmemotifs/blob/master/CHANGELOG.md"
+Readme = "https://github.com/vanheeringen-lab/gimmemotifs/blob/master/README.md"
+
+
+
+[build-system]
+requires = ["setuptools>=74.1"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = [
+    "gimmemotifs",
+    "data",
+#    "src",
+]
+ext-modules = [
+    {name = "gimmemotifs.c_metrics", sources=["gimmemotifs/c_metrics.c"]},
+]
+
+[tool.setuptools.package-data]
+data = [
+    "*",
+    "*/*",
+    "*/*/*",
+]
+#src = [
+#    "*",
+#    "*/*",
+#]
+
+[tool.setuptools.cmdclass]
+build_py = "build.custom_build_py"  # adds the motif prediction tools
+#install = "build_manpages.install"
+
+[tool.setuptools.dynamic]
+version = {attr = "gimmemotifs.__about__.__version__"}
+
+
+
+[tool.isort]
+profile = "black"
+conda_env = "environment.yml"
+overwrite_in_place = true
