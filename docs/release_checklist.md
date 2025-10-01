@@ -2,13 +2,18 @@
 
 This is mainly for personal use at the moment.
 
-## 
+0. (Re)install gimmemotifs
 
+```shell
+mamba activate base
+mamba env create --force -n gimme -f requirements.yaml
+mamba activate gimme
+pip install --no-deps --no-cache-dir --use-pep517 -v -e .
+```
 
 1. Make sure all tests pass.
 
 ```shell
-mamba env update -f requirements.yaml
 pytest -vvv --disable-pytest-warnings
 ```
 
@@ -21,8 +26,10 @@ echo ${new_version}
 git flow release start ${new_version}
 ```
 
-3. Make sure `CHANGELOG.md` is up-to-date.
+3. Make sure `__about__.py`, `pyproject.toml`, `CHANGELOG.md` are up-to-date.
 
+    * set the new version in `__about__.py`
+    * make sure all subpackages are listed in the `pyproject.toml`
     * add the new version & date to the header
     * link to the diff in the footer
     * add & commit the changes, but do not push
@@ -30,11 +37,14 @@ git flow release start ${new_version}
 4. Test install using pip in fresh conda environment
 
 ```shell
-python setup.py sdist
-mamba create -n test python=3.9 pytest
+pip wheel -w dist --no-deps --no-cache-dir --use-pep517 -v .
+mamba env create -n test -f requirements.yaml
 mamba activate test
-pip install dist/gimmemotifs*.tar.gz
+pip install --no-deps --no-cache-dir --use-pep517 -v dist/gimmemotifs*.whl
+
+gimme -h
 pytest -vvv --disable-pytest-warnings
+
 ```
 
 5. Upload to pypi testing server

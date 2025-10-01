@@ -48,6 +48,7 @@ def gimme():
     # lazy loading of modules and objects
     from gimmemotifs import commands  # noqa
     from gimmemotifs.config import BED_VALID_BGS, BG_TYPES, MotifConfig  # noqa
+
     config = MotifConfig()
     params = config.get_default_params()
     default_pfm_file = os.path.join(config.get_motif_dir(), params["motif_db"])
@@ -746,6 +747,7 @@ def gimme():
         if hasattr(args, "genome"):
             if args.genome is not None:
                 from gimmemotifs.utils import check_genome  # noqa
+
                 if not check_genome(args.genome):
                     print(
                         "Genome not found. Have you installed your genome with genomepy?"
@@ -757,6 +759,7 @@ def gimme():
                     exit(1)
 
         args.func(args)
+
 
 def combine_peaks():
     description = f"GimmeMotifs v{__version__} - combine_peaks"
@@ -810,11 +813,13 @@ def combine_peaks():
         sys.exit(1)
 
     from gimmemotifs.preprocessing import combine_peaks as _combine_peaks  # noqa
+
     df = _combine_peaks(args.peaks, args.genome, args.window, args.scale)
     output = StringIO()
     df.to_csv(output, sep="\t", index=False, header=False)
     output.seek(0)
     print(output.read())
+
 
 def coverage_table():
     description = f"GimmeMotifs v{__version__} - coverage_table"
@@ -903,6 +908,7 @@ def coverage_table():
 
     args = parser.parse_args()
     from gimmemotifs.preprocessing import coverage_table as _coverage_table  # noqa
+
     df = _coverage_table(
         peakfile=args.peakfile,
         datafiles=args.datafiles,
