@@ -72,9 +72,9 @@ all = [
 ]
 
 [project.scripts]
-#combine_peaks = "scripts.combine_peaks:__main__"  # TODO: wrap
-#coverage_table = "scripts.coverage_table:__main__"  # TODO: wrap
-gimme ="gimmemotifs.cli:cli"  # TODO: re-wrap
+gimme ="gimmemotifs.cli:gimme"
+combine_peaks ="gimmemotifs.cli:combine_peaks"
+coverage_table ="gimmemotifs.cli:coverage_table"
 
 [project.urls]
 Homepage = "https://github.com/vanheeringen-lab/gimmemotifs"
@@ -92,7 +92,13 @@ build-backend = "setuptools.build_meta"
 packages = [
     "gimmemotifs",
     "data",
-#    "src",
+#    "data.bg",
+#    "data.cfg",
+#    "data.examples",
+#    "data.motif_databases",
+#    "data.score_dists",
+#    "data.templates",
+#    "data.templates.sortable",
 ]
 ext-modules = [
     {name = "gimmemotifs.c_metrics", sources=["gimmemotifs/c_metrics.c"]},
@@ -104,10 +110,6 @@ data = [
     "*/*",
     "*/*/*",
 ]
-#src = [
-#    "*",
-#    "*/*",
-#]
 
 [tool.setuptools.cmdclass]
 build_py = "build.custom_build_py"  # adds the motif prediction tools
