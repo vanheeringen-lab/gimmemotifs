@@ -40,4 +40,3 @@ exclude_patterns:
   - "src/*"
   - "test/*"
   - "script/download_motif_databases.py"
-  - "gimmemotifs/_version.py"
