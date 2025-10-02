@@ -11,32 +11,33 @@ maintainers = [
     {name = "Siebren Frölich", email = "siebrenf@gmail.com"},
 ]
 
-requires-python = ">=3.9"
+requires-python = ">=3.9, <3.12"
 dependencies = [
-        "biofluff >=3.0.4",
-        "configparser",  #  <6
-        "diskcache",
-        "feather-format",
-        "genomepy >=0.16.3",
-        "iteround",
-        "jinja2",
-        "logomaker",
-        "loguru",
-        "matplotlib >=3.3",  # matplotlib-base
-        "numpy >=1.18",
-        "pandas >=1.3",  # , <2
-        "pybedtools >=0.9.0",
-        "pysam >=0.16",
-        # "python",
-        "xxhash",  # "python-xxhash"
-        "qnorm  >=0.8.1",
-        "scikit-learn >=0.23.2",
-        "scipy >=1.5",
-        "seaborn >=0.10.1",
-        "statsmodels",
-        "tqdm >=4.46.1",
-        "xdg",
-        # "xgboost >=1.0.2",
+    "biofluff >=3.0.4",
+    "configparser",
+    "diskcache",
+    "feather-format",
+    "pyarrow <=20",  # pip-specific: v21 breaks with setuptools v65.5
+    "genomepy >=0.16.3",
+    "iteround",
+    "jinja2",
+    "logomaker",
+    "loguru",
+    "matplotlib >=3.3",  # matplotlib-base
+    "numpy >=1.18",
+    "pandas >=1.3, <3",
+    "pybedtools >=0.9.0",
+    "pysam >=0.16",
+    # "python",
+    "xxhash",  # "python-xxhash"
+    "qnorm  >=0.8.1",
+    "scikit-learn >=0.23.2",
+    "scipy >=1.5",
+    "seaborn >=0.10.1",
+    "statsmodels",
+    "tqdm >=4.46.1",
+    "xdg",
+    # "xgboost >=1.0.2",
 ]
 
 dynamic = ["version"]
@@ -62,14 +63,7 @@ keywords = [
 ]
 
 [project.optional-dependencies]
-ete3 = ["ete3"]
-notebook= ["ipywidgets"]
-xgboost= ["xgboost >=1.0.2"]
-all = [
-    "ete3",
-    "ipywidgets",
-    "xgboost >=1.0.2"
-]
+xgboost = ["xgboost >=1.0.2"]
 
 [project.scripts]
 gimme ="gimmemotifs.cli:gimme"
@@ -112,12 +106,12 @@ ext-modules = [
     {name = "gimmemotifs.c_metrics", sources=["gimmemotifs/c_metrics.c"]},
 ]
 
-#[tool.setuptools.package-data]
-#data = [
-#    "*",
-#    "*/*",
-#    "*/*/*",
-#]
+[tool.setuptools.package-data]
+data = [
+    # "*",
+    "*/*",
+    "*/*/*",
+]
 
 [tool.setuptools.cmdclass]
 build_py = "build.custom_build_py"  # adds the motif prediction tools
