@@ -130,6 +130,7 @@ setup(
         "configparser",
         "diskcache",
         "feather-format",
+        "pyarrow <=20",  # needed by feather-format. v21 breaks with setuptools v65.5
         "genomepy >=0.14.0",
         # "ipywidgets",
         "iteround",
