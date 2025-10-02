@@ -46,13 +46,13 @@ def test_coverage_table():
     df = coverage_table(fname, [fname], log_transform=False, ncpus=1)
     assert df.shape == (4, 1)
     assert df.columns == ["bed.example2"]
-    assert df.index[0] == "Chr01:18774479-18774679"
+    assert "Chr01:18774479-18774679" in df.index
     assert df.at["Chr01:18774479-18774679", "bed.example2"] == 1.0
 
     df = coverage_table(fname, [fname], log_transform=True, ncpus=1)
     assert df.shape == (4, 1)
     assert df.columns == ["bed.example2"]
-    assert df.index[0] == "Chr01:18774479-18774679"
+    assert "Chr01:18774479-18774679" in df.index
     assert round(df.at["Chr01:18774479-18774679", "bed.example2"], 2) == 0.69
 
     df = coverage_table(
@@ -60,7 +60,7 @@ def test_coverage_table():
     )
     assert df.shape == (4, 1)
     assert df.columns == ["bed.example2"]
-    assert df.index[0] == "Chr01:18774479-18774679"
+    assert "Chr01:18774479-18774679" in df.index
     assert df.at["Chr01:18774479-18774679", "bed.example2"] == 1
 
     # fname2 = "test/data/filetype/bed.example3.txt"

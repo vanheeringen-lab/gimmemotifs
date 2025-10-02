@@ -921,7 +921,13 @@ def maelstrom_html_report(
                 .to_precision_str(subset=[col])
             )
 
-    df_styled = df_styled.wrap().render()
+    df_styled = df_styled.wrap().to_html(
+        font="Nunito Sans",
+        col_heading_style={
+            "name": "col_heading",
+            "props": [("border-bottom", "1px solid #e0e0e0")],
+        },
+    )
 
     with open(outdir + "/gimme.maelstrom.report.html", "w", encoding="utf-8") as f:
         f.write(df_styled)
@@ -1045,7 +1051,13 @@ def roc_html_report(
                 .align(subset=bar_cols, location="center")
                 .rename(columns=rename_columns)
                 .to_precision_str(subset=["% matches input", "% matches background"])
-                .render()
+                .to_html(
+                    font="Nunito Sans",
+                    col_heading_style={
+                        "name": "col_heading",
+                        "props": [("border-bottom", "1px solid #e0e0e0")],
+                    },
+                )
             )
         else:
             f.write("<body>No enriched motifs found.</body>")

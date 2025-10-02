@@ -127,7 +127,7 @@ setup(
         "setuptools >=24.2.0, <=65.5",  # keep data/ as "package"
         # copied from the requirements.yaml
         "biofluff >=3.0.4",
-        "configparser <6",
+        "configparser",
         "diskcache",
         "feather-format",
         "genomepy >=0.14.0",
@@ -138,7 +138,7 @@ setup(
         "loguru",
         "matplotlib >=3.3",  # matplotlib-base
         "numpy >=1.18",
-        "pandas >=1.3, <2",
+        "pandas >=1.3, <3",
         "pybedtools >=0.9.0",
         "pysam >=0.16",
         # "python",
