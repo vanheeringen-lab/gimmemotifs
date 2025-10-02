@@ -6,7 +6,7 @@ import pytest
 def test_black_formatting():
     try:
         sp.check_output(
-            "black --check gimmemotifs/ scripts/ test/ setup.py",
+            "black --check gimmemotifs/ scripts/ test/ build.py",
             stderr=sp.STDOUT,
             shell=True,
         )
