@@ -42,6 +42,7 @@ mamba env create -n test -f requirements.yaml
 mamba activate test
 pip install --no-deps --no-cache-dir --use-pep517 -v dist/gimmemotifs*.whl
 
+rm ~/.config/gimmemotifs/gimmemotifs.cfg
 gimme -h
 pytest -vvv --disable-pytest-warnings
 

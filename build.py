@@ -19,7 +19,6 @@ MOTIF_BINS = {
 
 
 class custom_build_py(build_py):  # noqa
-
     def initialize_options(self):
         super().initialize_options()
         self.build_base = None  # noqa

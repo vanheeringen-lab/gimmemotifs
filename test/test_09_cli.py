@@ -27,37 +27,37 @@ def test_gimme_motifs(args):
         cmd += ["-p", "test/data/cli/motifs.pfm"]
         cmd += ["-g", "test/data/background/genome.fa"]
         cmd += ["-a", "small", "-t", "MEME", "--nogc", "-N", "1"]
-        with patch.object(sys, 'argv', cmd):
+        with patch.object(sys, "argv", cmd):
             print(sys.argv)
             gimme()
 
         observed = sorted(os.listdir(outdir))
     if "--known" in args:
         expected = [
-            'generated_background.gc.fa',
-            'gimme.motifs.html',
-            'gimme.motifs.redundant.html',
-            'gimme.roc.report.txt',
-            'logos',
-            'motif_scan_results',
+            "generated_background.gc.fa",
+            "gimme.motifs.html",
+            "gimme.motifs.redundant.html",
+            "gimme.roc.report.txt",
+            "logos",
+            "motif_scan_results",
         ]
     else:
         expected = [
-            'combined.motif2factors.txt',
-            'combined.pfm',
-            'generated_background.gc.fa',
-            'gimme.clustereds.html',
-            'gimme.denovo.html',
-            'gimme.denovo.pfm',
-            'gimme.motifs.html',
-            'gimme.motifs.redundant.html',
-            'gimme.roc.report.txt',
-            'gimmemotifs.log',
-            'images',
-            'logos',
-            'motif_scan_results',
-            'params.txt',
-            'stats.gc.txt',
+            "combined.motif2factors.txt",
+            "combined.pfm",
+            "generated_background.gc.fa",
+            "gimme.clustereds.html",
+            "gimme.denovo.html",
+            "gimme.denovo.pfm",
+            "gimme.motifs.html",
+            "gimme.motifs.redundant.html",
+            "gimme.roc.report.txt",
+            "gimmemotifs.log",
+            "images",
+            "logos",
+            "motif_scan_results",
+            "params.txt",
+            "stats.gc.txt",
         ]
     assert observed == expected
 
@@ -68,31 +68,31 @@ def test_gimme_maelstrom():
     genome = "test/data/background/genome.fa"
     with TemporaryDirectory() as outdir:
         cmd = [
-                "gimme",
-                "maelstrom",
-                input,
-                genome,
-                outdir,
-                "--nogc",
-                "-m RF",
-                "-s 123",
-            ]
-        with patch.object(sys, 'argv', cmd):
+            "gimme",
+            "maelstrom",
+            input,
+            genome,
+            outdir,
+            "--nogc",
+            "-m RF",
+            "-s 123",
+        ]
+        with patch.object(sys, "argv", cmd):
             print(sys.argv)
             gimme()
         observed = sorted(os.listdir(outdir))
     expected = [
-        'activity.rf.score.out.txt',
-        'gimme.vertebrate.v5.0.motif2factors.txt',
-        'gimme.vertebrate.v5.0.pfm',
-        'input.table.txt',
-        'motif.count.txt.gz',
-        'motif.freq.txt',
-        'motif.nr.count.txt.gz',
-        'motif.nr.score.txt.gz',
-        'motif.score.txt.gz',
-        'nonredundant.motifs.motif2factors.txt',
-        'nonredundant.motifs.pfm',
+        "activity.rf.score.out.txt",
+        "gimme.vertebrate.v5.0.motif2factors.txt",
+        "gimme.vertebrate.v5.0.pfm",
+        "input.table.txt",
+        "motif.count.txt.gz",
+        "motif.freq.txt",
+        "motif.nr.count.txt.gz",
+        "motif.nr.score.txt.gz",
+        "motif.score.txt.gz",
+        "nonredundant.motifs.motif2factors.txt",
+        "nonredundant.motifs.pfm",
     ]
     assert observed == expected
 
@@ -111,7 +111,7 @@ def test_gimme_maelstrom():
 def test_gimme_scan(args):
     input = "test/data/pwmscan/10promoters.fa"
     cmd = ["gimme", "scan", input, "-p", "test/data/pwmscan/TATA.pwm", *args]
-    with patch.object(sys, 'argv', cmd):
+    with patch.object(sys, "argv", cmd):
         gimme()
 
     assert 1 == 1
@@ -120,7 +120,7 @@ def test_gimme_scan(args):
 def test_gimme_logo():
     motif_name = "MA0103.3_ZEB1"
     cmd = ["gimme", "logo", "-p", "test/data/cli/motifs.pfm", "-i", motif_name]
-    with patch.object(sys, 'argv', cmd):
+    with patch.object(sys, "argv", cmd):
         gimme()
 
     assert os.path.exists(f"{motif_name}.png")
@@ -137,7 +137,7 @@ def test_gimme_logo():
 )
 def test_gimme_match(db_args, out, capsys):
     cmd = ["gimme", "match", "test/data/cli/test_motif.pfm", *db_args]
-    with patch.object(sys, 'argv', cmd):
+    with patch.object(sys, "argv", cmd):
         gimme()
         captured = capsys.readouterr()
     match = captured.out.strip().split("\n")[-1].split("\t")[1]
@@ -147,7 +147,7 @@ def test_gimme_match(db_args, out, capsys):
 def test_gimme_cluster():
     with TemporaryDirectory() as outdir:
         cmd = ["gimme", "cluster", "test/data/cli/cluster.pfm", outdir, "-t", "0.99"]
-        with patch.object(sys, 'argv', cmd):
+        with patch.object(sys, "argv", cmd):
             gimme()
         out_pfm = os.path.join(outdir, "clustered_motifs.pfm")
         assert os.path.exists(out_pfm)

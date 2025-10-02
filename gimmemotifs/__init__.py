@@ -50,7 +50,9 @@ if logger.hasHandlers():
 logger.setLevel(_logging.DEBUG)
 
 # nice format
-screen_formatter = _logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", "%H:%M:%S")
+screen_formatter = _logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(message)s", "%H:%M:%S"
+)
 
 # log to screen
 sh = _logging.StreamHandler()
