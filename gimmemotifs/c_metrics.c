@@ -14,12 +14,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#if PY_MAJOR_VERSION >= 3
-    #define PyInt_FromLong PyLong_FromLong
-    #define PyString_Check PyUnicode_Check
-    #define PyString_Size PyUnicode_GET_LENGTH
-#endif
-
 
 void fill_matrix(double matrix[][4], PyObject *matrix_o) {
 	// Parse a PyObject matrix into a C array	
@@ -312,9 +306,7 @@ static PyObject * c_metrics_score(PyObject *self, PyObject * args)
 
 }
 
-int get_truncate_len(len1, len2, pos) {
-	// 
-	
+int get_truncate_len(int len1, int len2, int pos) {
 	if (pos < 0) {
 		len2 += pos;
 	}
@@ -328,7 +320,6 @@ int get_truncate_len(len1, len2, pos) {
 	else {
 		return len1;
 	}
-	
 }
 
 void fill_tmp_matrices(double matrix1[][4], double matrix2[][4], int pos, int l, double tmp_matrix1[][4], double tmp_matrix2[][4]) {
@@ -560,8 +551,6 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 
 	if (j_max < 0) { j_max = 0;}
 	int m;
-	int c;
-	double pwm_min = -50;	
 	for (j = 0; j < j_max; j++) {
 		score = 0;
 		rc_score = 0;
@@ -622,9 +611,9 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 				PyObject* row = PyList_New(0);
 				x = PyFloat_FromDouble(score);
 				PyList_Append(row, x); Py_DECREF(x);
-				x = PyInt_FromLong((long) j);
+				x = PyLong_FromLong((long) j);
 				PyList_Append(row, x); Py_DECREF(x);
-				x = PyInt_FromLong((long) 1);
+				x = PyLong_FromLong((long) 1);
 				PyList_Append(row, x); Py_DECREF(x);
 				PyList_Append(return_list, row);
 				Py_DECREF(row);
@@ -658,9 +647,9 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 					PyObject* row = PyList_New(0);
 					x = PyFloat_FromDouble(score);
 					PyList_Append(row, x); Py_DECREF(x);
-					x = PyInt_FromLong((long) j);
+					x = PyLong_FromLong((long) j);
 					PyList_Append(row, x); Py_DECREF(x);
-					x =  PyInt_FromLong((long) 1);
+					x =  PyLong_FromLong((long) 1);
 					PyList_Append(row, x); Py_DECREF(x);
 					PyList_Append(return_list, row);
 					Py_DECREF(row);
@@ -674,9 +663,9 @@ static PyObject * c_metrics_pwmscan(PyObject *self, PyObject * args)
 			PyObject* row = PyList_New(0);
 			x = PyFloat_FromDouble(maxScores[i]);
 			PyList_Append(row, x);  Py_DECREF(x);
-			x = PyInt_FromLong((long)maxPos[i]);
+			x = PyLong_FromLong((long)maxPos[i]);
 			PyList_Append(row, x); Py_DECREF(x);
-			x = PyInt_FromLong((long)maxStrand[i]);
+			x = PyLong_FromLong((long)maxStrand[i]);
 			PyList_Append(row, x); Py_DECREF(x);
 			PyList_Append(return_list, row);
 			Py_DECREF(row);
@@ -827,9 +816,9 @@ static PyObject * c_metrics_pfmscan(PyObject *self, PyObject * args)
 				PyObject* row = PyList_New(0);
 				x = PyFloat_FromDouble(score);
 				PyList_Append(row, x); Py_DECREF(x);
-				x = PyInt_FromLong((long) j);
+				x = PyLong_FromLong((long) j);
 				PyList_Append(row, x); Py_DECREF(x);
-				x = PyInt_FromLong((long) 1);
+				x = PyLong_FromLong((long) 1);
 				PyList_Append(row, x); Py_DECREF(x);
 				PyList_Append(return_list, row);
 				Py_DECREF(row);
@@ -863,9 +852,9 @@ static PyObject * c_metrics_pfmscan(PyObject *self, PyObject * args)
 					PyObject* row = PyList_New(0);
 					x = PyFloat_FromDouble(score);
 					PyList_Append(row, x); Py_DECREF(x);
-					x = PyInt_FromLong((long) j);
+					x = PyLong_FromLong((long) j);
 					PyList_Append(row, x); Py_DECREF(x);
-					x =  PyInt_FromLong((long) 1);
+					x =  PyLong_FromLong((long) 1);
 					PyList_Append(row, x); Py_DECREF(x);
 					PyList_Append(return_list, row);
 					Py_DECREF(row);
@@ -879,9 +868,9 @@ static PyObject * c_metrics_pfmscan(PyObject *self, PyObject * args)
 			PyObject* row = PyList_New(0);
 			x = PyFloat_FromDouble(maxScores[i]);
 			PyList_Append(row, x);  Py_DECREF(x);
-			x = PyInt_FromLong((long)maxPos[i]);
+			x = PyLong_FromLong((long)maxPos[i]);
 			PyList_Append(row, x); Py_DECREF(x);
-			x = PyInt_FromLong((long)maxStrand[i]);
+			x = PyLong_FromLong((long)maxStrand[i]);
 			PyList_Append(row, x); Py_DECREF(x);
 			PyList_Append(return_list, row);
 			Py_DECREF(row);
@@ -898,43 +887,28 @@ static PyMethodDef CoreMethods[] = {
 	{"c_max_subtotal", c_metrics_max_subtotal, METH_VARARGS,"Test"},
 	{"pfmscan", c_metrics_pfmscan, METH_VARARGS,"Test"},
 	{"pwmscan", c_metrics_pwmscan, METH_VARARGS,"Test"},
-	{NULL, NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL}
 };
 
-#if PY_MAJOR_VERSION >= 3
-    static struct PyModuleDef moduledef = {
-        PyModuleDef_HEAD_INIT,
-        "c_metrics",     /* m_name */
-        "This is a module",  /* m_doc */
-        -1,                  /* m_size */
-        CoreMethods,         /* m_methods */
-        NULL,                /* m_reload */
-        NULL,                /* m_traverse */
-        NULL,                /* m_clear */
-        NULL,                /* m_free */
-    };
-#endif
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "c_metrics",         /* m_name */
+    "This is a module",  /* m_doc */
+    -1,                  /* m_size */
+    CoreMethods,         /* m_methods */
+    NULL,                /* m_reload */
+    NULL,                /* m_traverse */
+    NULL,                /* m_clear */
+    NULL,                /* m_free */
+};
 
 static PyObject * moduleinit(void) {
     PyObject *m;
-#if PY_MAJOR_VERSION >= 3
     m = PyModule_Create(&moduledef);
-#else
-    m = Py_InitModule3("c_metrics", CoreMethods, "c_metrics_module");
-#endif
     return m;
 }
 
 PyMODINIT_FUNC
-#if PY_MAJOR_VERSION >= 3
-    PyInit_c_metrics(void)
-    {
-	return moduleinit();
-    };
-#else
-    initc_metrics(void)
-    {
-	moduleinit();
-    };
-#endif
-
+PyInit_c_metrics(void) {
+    return moduleinit();
+};

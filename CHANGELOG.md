@@ -5,6 +5,22 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+## [0.18.1] - 2025-10-02
+
+### Changed
+
+- updated dependencies (conda + pypi)
+- updated Maelstrom report (don't show "NO ORTHOLOGS FOUND" if other factors have been found)
+- limit python to 3.11
+  - Motifsampler & setuptools break from 3.12 onwards
+
+### Fixed
+
+- `gimme motifs` uses `--ncpus` where possible (two more places). fixes #265
+- updated pandas code, able to run pandas 2 now! resolves #306
+- updated C code, fixes compiler warnings & error (thanks cameronraysmith!)
+- updated versioneer, able to update configparser now! resolves #315
+
 ## [0.18.0] - 2023-01-11
 
 ### Added

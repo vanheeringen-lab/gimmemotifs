@@ -246,8 +246,7 @@ def create_background(
         f = MatchedGcFasta(fafile, genome, nr_times * len(fg))
         logger.debug(f"GC matched background: {outfile}")
     elif bg_type == "promoter":
-        fname = Genome(genome).filename
-        gene_file = fname.replace(".fa", ".annotation.bed.gz")
+        gene_file = Genome(genome).annotation_bed_file
         if not gene_file:
             gene_file = os.path.join(config.get_gene_dir(), f"{genome}.bed")
         if not os.path.exists(gene_file):

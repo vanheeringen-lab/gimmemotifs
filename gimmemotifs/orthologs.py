@@ -68,14 +68,14 @@ def motif2factor_from_orthologs(
 
     if not extra_orthologs_references:
         extra_orthologs_references = [
-            "danRer11",  # zebrafish
+            "GRCz11",  # zebrafish
             "UCB_Xtro_10.0",  # xenopus
             "GRCg6a",  # chicken
-            "BraLan2",  # lancet fish (out-group ish)
-            "oryLat2",  # medaka
+            "BraLan3",  # lancet fish (out-group ish)
+            "ASM223467v1",  # medaka
             "ARS-UCD1.2",  # cow
             "phaCin_unsw_v4.1",  # koala
-            "rCheMyd1.pri",  # turtle
+            "rCheMyd1.pri.v2",  # turtle
         ]
 
     _check_install()

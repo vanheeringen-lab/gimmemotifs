@@ -9,4 +9,10 @@ def test_extrastyler():
     # non_reducing_slice
     # _translate()
     df = pd.DataFrame(np.random.randn(4, 2), columns=["a", "b"])
-    ExtraStyler(df).render()
+    ExtraStyler(df).to_html(
+        font="Nunito Sans",
+        col_heading_style={
+            "name": "col_heading",
+            "props": [("border-bottom", "1px solid #e0e0e0")],
+        },
+    )

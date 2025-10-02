@@ -356,6 +356,8 @@ class Scanner(object):
             Should either be a float between 0.0 and 1.0 or a filename
             with thresholds as created by 'gimme threshold'.
 
+        gc : bool, optional
+            Passed to set_background() if the function has not been ran already.
         """
         if threshold and fpr:
             raise ValueError("Need either fpr or threshold.")
@@ -484,7 +486,7 @@ class Scanner(object):
         give the score of the best match of each motif in each sequence
         returns an iterator of lists containing floats
         """
-        self.set_threshold(threshold=0.0, gc=gc)
+        self.set_threshold(threshold=0.0, gc=gc)  # GC impacts the score
         for matches in self.scan(seqs, 1, scan_rc, zscore=zscore, gc=gc):
             scores = np.array(
                 [sorted(m, key=lambda x: x[0])[0][0] for m in matches if len(m) > 0]
