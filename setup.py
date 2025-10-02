@@ -122,7 +122,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
-    python_requires=">=3.7",  # , <3.11?
+    python_requires=">=3.7, <3.12",
     install_requires=[
         "setuptools >=24.2.0, <=65.5",  # keep data/ as "package"
         # copied from the requirements.yaml
