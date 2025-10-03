@@ -13,13 +13,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - update pandas to ~2.5
 
 ### Changed
+
 - packaging & deployment now uses `pyproject.toml` and wheel
+- motif tools installed more robustly 
 - update minimum python version to 3.9
 - updated the install instructions in the README and documentation
 - refactored command line interface
   - all CLI functions are located in gimmemotifs/cli.py
   - all functions now provide help when actions are unspecified
 - refactored test/test_09_cli.py to work with new CLI
+
+### Removed
+
+- versioneer
 
 ## [0.18.1] - 2023-12-19
 
