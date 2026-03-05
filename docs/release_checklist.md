@@ -14,6 +14,8 @@ pip install --no-deps --no-cache-dir --use-pep517 -v -e .
 1. Make sure all tests pass.
 
 ```shell
+rm ~/.config/gimmemotifs/gimmemotifs.cfg
+gimme -h
 pytest -vvv --disable-pytest-warnings
 ```
 

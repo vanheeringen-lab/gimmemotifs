@@ -306,5 +306,5 @@ If you want to use MotifSampler there is one more step that you'll have to take 
 Note that human (hg19, hg38) and mouse (mm9, mm10) background models are included, so for these
 organisms MotifSampler will work out of the box.
 For other organisms the necessary background files can be created with ``CreateBackgroundModel`` (which is included with GimmeMotifs or can be downloaded from the same site as MotifSampler).
-The background model file needs to be saved in the directory ``/usr/share/gimmemotifs/MotifSampler`` and it should be named ``<organism_index_name>.bg``.
-So, for instance, if I downloaded the human epd background (``epd_homo_sapiens_499_chromgenes_non_split_3.bg``), this file should be saved as ``/usr/share/gimmemotifs/MotifSampler/hg19.bg`` here.
+The background model file needs to be saved in the directory ``~/.share/gimmemotifs/MotifSampler`` and it should be named ``<organism_index_name>.bg``.
+So, for instance, if I downloaded the human epd background (``epd_homo_sapiens_499_chromgenes_non_split_3.bg``), this file should be saved as ``~/.share/gimmemotifs/MotifSampler/hg19.bg`` here.
