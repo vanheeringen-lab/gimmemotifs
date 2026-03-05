@@ -5,12 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
-### TODO
+### To Do
 
-- update docs/release_checklist.md
-- fix tests
-  - test_05b_tools.py (prosampler and motifsampler)
-- update pandas to ~2.5
+- make sure gimme works with all supported python versions
+  - see `tests/python_versions.sh`
+- fix `test_05b_tools.py` (prosampler and motifsampler)
+- update `docs/release_checklist.md`
 
 ### Changed
 
@@ -27,7 +27,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 - versioneer
 
-## [0.18.1] - 2023-12-19
+## [0.18.1] - 2025-10-02
 
 ### Changed
 
