@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Fixed
+
+- the roc report will now display a message when 0 motifs are enriched (if motifs were subset or not)
+
 ## [0.18.1] - 2025-10-02
 
 ### Changed
