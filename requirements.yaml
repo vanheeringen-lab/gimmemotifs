@@ -26,7 +26,7 @@ dependencies:
   - statsmodels
   - tqdm >=4.46.1
   - xdg
-  #  - xgboost >=1.0.2            # optional: xgboost regression predictor for MOAP. 1 GB
+  - xgboost >=1.0.2            # optional: xgboost regression predictor for MOAP. 1 GB
 
   # motif discovery tools
   - gcc                           # optional: necessary to install motif discovery tools
@@ -52,7 +52,6 @@ dependencies:
   #  - yamda >=0.1.00e9c9d        # optional. 3 GB
 
   # development packages
-  - setuptools >=74.1
   - black=22.3.0
   - isort=5.10.1
   - pytest
