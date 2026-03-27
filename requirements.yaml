@@ -17,7 +17,7 @@ dependencies:
   - pandas >=1.3, <3
   - pybedtools >=0.9.0
   - pysam >=0.16
-  - python >=3.9, <3.12           # Motifsampler & setuptools break from py3.12
+  - python >=3.9, <3.13           # upper limit due to genomepy 0.16.3 incompatibility
   - python-xxhash
   - qnorm  >=0.8.1
   - scikit-learn >=0.23.2         # https://scikit-learn.org/stable/install.html#installing-the-latest-release
@@ -26,7 +26,7 @@ dependencies:
   - statsmodels
   - tqdm >=4.46.1
   - xdg
-  - xgboost >=1.0.2            # optional: xgboost regression predictor for MOAP. 1 GB
+  - xgboost >=1.0.2               # optional: xgboost regression predictor for MOAP. 1 GB
 
   # motif discovery tools
   - gcc                           # optional: necessary to install motif discovery tools

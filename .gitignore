@@ -13,6 +13,7 @@ gimmemotifs/*.so
 gimmemotifs/included_tools/
 gimmemotifs.egg-info/
 src/
+test_py/
 
 # tests
 .pytest_cache/

@@ -1,25 +1,33 @@
+#!/usr/bin/bash
+
 # hardcoded path
 cd ~/git/gimmemotifs
 
-# create python version specific yamls
-mkdir test_py
-cp requirements.yaml test_py/requirements_py3.9.yaml
-sed -i -e 's|python >=3.9, <3.12|python ==3.9|' test_py/requirements_py3.9.yaml
-cp requirements.yaml test_py/requirements_py3.10.yaml
-sed -i -e 's|python >=3.9, <3.12|python ==3.10|' test_py/requirements_py3.10.yaml
-cp requirements.yaml test_py/requirements_py3.11.yaml
-sed -i -e 's|python >=3.9, <3.12|python ==3.11|' test_py/requirements_py3.11.yaml
-cp requirements.yaml test_py/requirements_py3.12.yaml
-sed -i -e 's|python >=3.9, <3.12|python ==3.12|' test_py/requirements_py3.12.yaml
-cp requirements.yaml test_py/requirements_py3.13.yaml
-sed -i -e 's|python >=3.9, <3.12|python ==3.13|' test_py/requirements_py3.13.yaml
-cp requirements.yaml test_py/requirements_py3.14.yaml
-sed -i -e 's|python >=3.9, <3.12|python ==3.14|' test_py/requirements_py3.14.yaml
+# allow us to use conda
+source $(dirname $(dirname $(which mamba)))/etc/profile.d/conda.sh
+source $(dirname $(dirname $(which mamba)))/etc/profile.d/mamba.sh
 
-mamba env list > ~/git/gimmemotifs/test_py/envs.txt
+# create python version specific yamls
+mkdir test_py 2> /dev/null
+cat requirements.yaml > test_py/template.yaml
+echo "  - conda-forge::conda-ecosystem-user-package-isolation=1.0" >> test_py/template.yaml
+cp test_py/template.yaml test_py/requirements_py3.9.yaml
+sed -i -e 's|python >=3.9, <3.12|python =3.9|' test_py/requirements_py3.9.yaml
+cp test_py/template.yaml test_py/requirements_py3.10.yaml
+sed -i -e 's|python >=3.9, <3.12|python =3.10|' test_py/requirements_py3.10.yaml
+cp test_py/template.yaml test_py/requirements_py3.11.yaml
+sed -i -e 's|python >=3.9, <3.12|python =3.11|' test_py/requirements_py3.11.yaml
+cp test_py/template.yaml test_py/requirements_py3.12.yaml
+sed -i -e 's|python >=3.9, <3.12|python =3.12|' test_py/requirements_py3.12.yaml
+cp test_py/template.yaml test_py/requirements_py3.13.yaml
+sed -i -e 's|python >=3.9, <3.12|python =3.13|' test_py/requirements_py3.13.yaml
+cp test_py/template.yaml test_py/requirements_py3.14.yaml
+sed -i -e 's|python >=3.9, <3.12|python =3.14|' test_py/requirements_py3.14.yaml
+
+conda env list > ~/git/gimmemotifs/test_py/envs.txt
 LOG=/home/$USER/git/gimmemotifs/test_py/log.txt
 touch $LOG
-for PY in 3.9 3.10 3.11 3.12 3.13 3.14; do
+for PY in 3.9 3.10 3.11 3.12; do  # 3.13 3.14; do  genomepy not compatible with py >=3.13
   MSG="create a blank python ${PY} conda environments without gimme installed"
   echo ""
   echo $MSG
@@ -33,8 +41,8 @@ for PY in 3.9 3.10 3.11 3.12 3.13 3.14; do
   mamba env create -n $ENV -f $FILE -yq > /dev/null 2>&1
 
   # clone the conda environments for each install method
-  MSG="default install"
-  echo ""
+  MSG="default install - py$PY"
+  echo -e "\n###########################################################################\n"
   echo $MSG
   echo $MSG >> $LOG
   NAME="gimme_py${PY}_dflt"
@@ -44,7 +52,7 @@ for PY in 3.9 3.10 3.11 3.12 3.13 3.14; do
   fi
   echo "  - cloning environment"
   mamba create --name $NAME --clone $ENV -yq > /dev/null 2>&1
-  mamba activate $NAME
+  conda activate $NAME
   rm -f ~/.config/gimmemotifs/gimmemotifs.cfg
   rm -rf ~/git/gimmemotifs/build
   rm -rf ~/git/gimmemotifs/gimmemotifs.egg-info
@@ -62,18 +70,24 @@ for PY in 3.9 3.10 3.11 3.12 3.13 3.14; do
   conda deactivate
   echo "  - done"
 
-  MSG="wheel install"
-  echo ""
+  MSG="wheel install - py$PY"
+  echo -e "\n###########################################################################\n"
   echo $MSG
   echo $MSG >> $LOG
   NAME="gimme_py${PY}_whl"
   if grep -wq "$NAME" test_py/envs.txt; then
     # delete env if already existing
-    mamba env remove -n $NAME -yq > /dev/null 2>&1
+    conda env remove -n $NAME -yq > /dev/null 2>&1
   fi
   echo "  - cloning environment"
   mamba create --name $NAME --clone $ENV -yq > /dev/null 2>&1
-  mamba activate $NAME
+  conda activate $NAME
+  if ! command -v pip >/dev/null 2>&1
+  then
+    echo "    - installing pip manually"
+    mamba install --no-deps -y pip
+  fi
+
   rm -f ~/.config/gimmemotifs/gimmemotifs.cfg
   rm -rf ~/git/gimmemotifs/dist
   rm -rf ~/git/gimmemotifs/build
@@ -94,8 +108,8 @@ for PY in 3.9 3.10 3.11 3.12 3.13 3.14; do
   conda deactivate
   echo "  - done"
 
-  MSG="pip install"
-  echo ""
+  MSG="pip install - py$PY"
+  echo -e "\n###########################################################################\n"
   echo $MSG
   echo $MSG >> $LOG
   NAME="gimme_py${PY}_pip"
@@ -103,9 +117,9 @@ for PY in 3.9 3.10 3.11 3.12 3.13 3.14; do
     # delete env if already existing
     mamba env remove -n $NAME -yq > /dev/null 2>&1
   fi
-  echo "  - cloning environment"
-  mamba create --name $NAME "python ==${PY}" "setuptools ==78.1.1" pip -yq > /dev/null 2>&1
-  mamba activate $NAME
+  echo "  - creating blank environment"
+  mamba create --name $NAME "python ==${PY}" "setuptools ==78.1.1" pip pytest -yq > /dev/null 2>&1
+  conda activate $NAME
   rm -f ~/.config/gimmemotifs/gimmemotifs.cfg
   rm -rf ~/git/gimmemotifs/build
   rm -rf ~/git/gimmemotifs/gimmemotifs.egg-info
@@ -115,6 +129,13 @@ for PY in 3.9 3.10 3.11 3.12 3.13 3.14; do
   cd ..
   python -c 'from gimmemotifs.config import MotifConfig; print(MotifConfig().bin("AMD"))' | tee >> $LOG 2>&1
   cd gimmemotifs
+
+  # echo "  - run tests"
+  # echo "" | tee >> $LOG 2>&1
+  # pytest -vvv --disable-pytest-warnings 2>&1 | tee -a $LOG
+  # echo "" | tee >> $LOG 2>&1
+  # echo "  - completed tests"
+
   echo "  - uninstalling gimmemotifs"
   pip uninstall -qy gimmemotifs
   rm -f ~/.config/gimmemotifs/gimmemotifs.cfg
@@ -123,8 +144,8 @@ for PY in 3.9 3.10 3.11 3.12 3.13 3.14; do
   conda deactivate
   echo "  - done"
 
-  MSG="editable install"
-  echo ""
+  MSG="editable install - py$PY"
+  echo -e "\n###########################################################################\n"
   echo $MSG
   echo $MSG >> $LOG
   NAME="gimme_py${PY}_edit"
@@ -134,7 +155,7 @@ for PY in 3.9 3.10 3.11 3.12 3.13 3.14; do
   fi
   echo "  - cloning environment"
   mamba create --name $NAME --clone $ENV -yq > /dev/null 2>&1
-  mamba activate $NAME
+  conda activate $NAME
   rm -f ~/.config/gimmemotifs/gimmemotifs.cfg
   rm -rf ~/git/gimmemotifs/gimmemotifs.egg-info
   # editable specific:

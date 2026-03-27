@@ -5,13 +5,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
-### To Do
-
-- make sure gimme works with all supported python versions
-  - see `tests/python_versions.sh`
-- fix `test_05b_tools.py` (prosampler and motifsampler)
-- update `docs/release_checklist.md`
-
 ### Changed
 
 - packaging & deployment now uses `pyproject.toml` and wheel
