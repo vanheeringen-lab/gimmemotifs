@@ -5,7 +5,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
-<<<<<<< packaging
 ### Changed
 
 - packaging & deployment now uses `pyproject.toml` and wheel
@@ -17,14 +16,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   - all functions now provide help when actions are unspecified
 - refactored test/test_09_cli.py to work with new CLI
 
-### Removed
-
-- versioneer
-=======
 ### Fixed
 
 - the roc report will now display a message when 0 motifs are enriched (if motifs were subset or not)
->>>>>>> develop
+
+### Removed
+
+- versioneer
 
 ## [0.18.1] - 2025-10-02
 
