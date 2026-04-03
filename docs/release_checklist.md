@@ -9,6 +9,7 @@ mamba activate base
 mamba env create --force -n gimme -f requirements.yaml
 mamba activate gimme
 pip install --no-deps --no-cache-dir --use-pep517 -v -e .
+
 ```
 
 ## 1. Make sure all tests pass.
@@ -17,6 +18,7 @@ pip install --no-deps --no-cache-dir --use-pep517 -v -e .
 rm ~/.config/gimmemotifs/gimmemotifs.cfg
 gimme -h
 pytest -vvv --disable-pytest-warnings
+
 ```
 
 ## 2. Create release candidate with `git flow`:
@@ -26,6 +28,7 @@ new_version=0.0.0
 echo ${new_version}
 
 git flow release start ${new_version}
+
 ```
 
 ## 3. Make sure `__about__.py`, `pyproject.toml`, `CHANGELOG.md` are up-to-date.
@@ -54,20 +57,21 @@ pytest -vvv --disable-pytest-warnings
 
 For more info, see https://packaging.python.org/en/latest/tutorials/packaging-projects/#generating-distribution-archives
 
-```
+```shell
 # Create the source distribution
-$ python3 -m pip install --upgrade build
-$ python3 -m build
+python3 -m pip install --upgrade build
+python3 -m build
 
 # Test the source distribution
-$ pip install --no-deps --no-cache-dir --use-pep517 -v dist/gimmemotifs*.tar.gz
-$ rm ~/.config/gimmemotifs/gimmemotifs.cfg
-$ gimme -h
-$ pytest -vvv --disable-pytest-warnings
+pip install --no-deps --no-cache-dir --use-pep517 -v dist/gimmemotifs*.tar.gz
+rm ~/.config/gimmemotifs/gimmemotifs.cfg
+gimme -h
+pytest -vvv --disable-pytest-warnings
 
 # Upload to pypi testing server
-$ python3 -m pip install --upgrade twine
-$ python3 -m twine upload --repository testpypi dist/*
+python3 -m pip install --upgrade twine
+python3 -m twine upload --repository testpypi dist/*
+
 ```
 
 ## 6. Finish release
