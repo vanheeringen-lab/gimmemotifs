@@ -40,7 +40,6 @@ $ conda create -n gimme gimmemotifs
 $ conda activate gimme
 ```
 
-Python 3 is the required, from version 0.13.0 on GimmeMotifs no longer supports Python 2. 
 Don't forget to activate the environment with `conda activate gimme` whenever you want to use GimmeMotifs.
 
 
@@ -68,7 +67,7 @@ genome_dir: /data/genomes
 To download a genome from UCSC:
 
 ```
-$ genomepy install hg38 --annotation  # genomepy >=0.9.0
+$ genomepy install hg38 --annotation
 ```
 
 Now you can specify this genome for GimmeMotifs by name.
@@ -90,9 +89,12 @@ _bioRxiv_ (2018) DOI: [10.1101/474403](https://doi.org/10.1101/474403)
 
 ## We need your help!
 
-GimmeMotifs was originally developed for our own needs but we would really like it to be useful to the wider community. However, this also depends on your input. Let us know what you think! What features are missing? Which tutorial would you like to see? What part of the documentation is unclear? Have great ideas for future developments? Maybe you even want to join in developing this software?
+GimmeMotifs was originally developed for our own needs but we would really like it to be useful to the wider community. 
+However, this also depends on your input. Let us know what you think! What features are missing? 
+Which tutorial would you like to see? What part of the documentation is unclear? 
+Have great ideas for future developments? Maybe you even want to join in developing this software?
 
-[Let us know!](https://github.com/simonvh/gimmemotifs/issues/)
+[Let us know!](https://github.com/vanheeringen-lab/gimmemotifs/issues)
 
 
 
@@ -100,5 +102,5 @@ GimmeMotifs was originally developed for our own needs but we would really like 
 
 * Full documentation: [http://gimmemotifs.readthedocs.io/](http://gimmemotifs.readthedocs.io/)
 * Check the [FAQ](http://gimmemotifs.readthedocs.io/en/master/faq.html#faq) for common issues
-* The preferred way to get support is through the GitHub [issues](https://github.com/simonvh/gimmemotifs/issues/) page
+* The preferred way to get support is through the GitHub [issues](https://github.com/vanheeringen-lab/gimmemotifs/issues/) page
 * Finally, you can reach me by [mail](simon.vanheeringen@gmail.com)

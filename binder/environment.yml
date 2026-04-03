@@ -1,8 +1,5 @@
 channels:
-  - defaults
-  - bioconda
   - conda-forge
+  - bioconda
 dependencies:
-  - python=3
-  - genomepy
-  - gimmemotifs>=0.13.0
+  - gimmemotifs>=0.18.2
