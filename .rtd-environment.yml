@@ -12,8 +12,7 @@ dependencies:
   - configparser
   - diskcache
   - feather-format
-  - genomepy >=0.14.0
-  # - ipywidgets                    # optional: progress bar in Jupyter notebook
+  - genomepy >=0.16.3             # has no dependency on pkg_resources
   - iteround
   - jinja2
   - logomaker
@@ -23,7 +22,7 @@ dependencies:
   - pandas >=1.3, <3
   - pybedtools >=0.9.0
   - pysam >=0.16
-  - python >=3.7, <3.12           # Motifsampler & setuptools break from py3.12
+  - python >=3.9, <3.12           # Motifsampler & setuptools break from py3.12
   - python-xxhash
   - qnorm  >=0.8.1
   - scikit-learn >=0.23.2         # https://scikit-learn.org/stable/install.html#installing-the-latest-release
@@ -32,4 +31,3 @@ dependencies:
   - statsmodels
   - tqdm >=4.46.1
   - xdg
-  #  - xgboost >=1.0.2            # optional: xgboost regressor for MOAP (1 GB)

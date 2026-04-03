@@ -1,32 +1,23 @@
-**/*.swp
-*egg-info/
-gimmemotifs/*.pyc
-gimmemotifs/*.so
-test/*.pyc
-build/*
-doc/*
-!doc/*.tex
-!doc/*.pdf
-!doc/*.txt
-!doc/*.md
-docs/_build/*
-data/examples/*
-!data/examples/*.bed
-!data/examples/*.fa
-!data/examples/example.pfm
-!data/examples/*jaspar
-*.pyc
-dist/*
-website/**/*
-.eggs/
-.pytest_cache/
-.cache/
+# caching
 .idea/
-**/.ipynb_checkpoints/
-.vscode
-.coverage*
-coverage.xml
+__pycache__/
+.ipynb_checkpoints/
+.vscode/
+*.pyc
 
+# development
+build/
+dist/
+docs/_build/
+gimmemotifs/*.so
+gimmemotifs/included_tools/
+gimmemotifs.egg-info/
+src/
+test_py/
+venv/
+
+# tests
+.pytest_cache/
 test/data/maelstrom/activity*
 test/data/maelstrom/final*
 test/data/maelstrom/*png
@@ -39,10 +30,5 @@ test/data/maelstrom/input.table.txt
 test/**/*.fa.fai
 test/**/*.fa.sizes
 test/**/*.gaps.bed
-
-tmp/*
-
-src/meme_4.6.0
-src/meme_4.6.0/src/dir.h
-src/BioProspector/BioProspector
-src/MDmodule/MDmodule
+.coverage*
+coverage.xml

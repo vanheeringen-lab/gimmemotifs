@@ -285,6 +285,7 @@ def motifs(args):
             roc_report,
             pfmfile,
             threshold=0.01,
+            outname="gimme.motifs.html",
             use_motifs=nr_motifs,
             link_matches=True,
         )

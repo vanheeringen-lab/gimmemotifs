@@ -937,7 +937,7 @@ def roc_html_report(
     outdir,
     infile,
     pfmfile,
-    outname="gimme.motifs.html",
+    outname,
     threshold=0.01,
     use_motifs=None,
     link_matches=False,
@@ -946,13 +946,12 @@ def roc_html_report(
     df.rename_axis(None, inplace=True)
 
     motifs = read_motifs(pfmfile, as_dict=True)
-    if use_motifs is not None and len(use_motifs) == 0:
-        with open(os.path.join(outdir, outname), "w", encoding="utf-8") as f:
-            f.write("<body>No enriched motifs found.</body>")
-            return
-
     if use_motifs is not None:
         motifs = {k: v for k, v in motifs.items() if k in use_motifs}
+    if len(motifs) == 0:
+        with open(os.path.join(outdir, outname), "w", encoding="utf-8") as f:
+            f.write("<body>No enriched motifs found.</body>")
+        return
 
     idx = list(motifs.keys())
     df = df.loc[idx]

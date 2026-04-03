@@ -28,12 +28,14 @@ def test_tool(tool_name):
     blacklist = {
         "dreme": "not installable via bioconda/source",
         "gadem": "sometimes crashes on invalid pointer",
-        "jaspar": "# TODO: not configured",  # TODO
+        "jaspar": "not configured",  # TODO
+        "motifsampler": "segfaults on some platforms",
         "posmo": "motif doesn't predictably look like AP1",
+        "prosampler": "doesn't seem to work in this test anymore",  # TODO
         "rpmcmc": "not installable via bioconda/source",
         "trawler": "unpredictable, sometimes doesn't find the motif",
         "xxmotif": "takes too long",
-        "yamda": "# TODO: not configured",  # TODO
+        "yamda": "not configured",  # TODO
     }
     if tool_name in blacklist:
         pytest.skip(blacklist[tool_name])
@@ -42,13 +44,12 @@ def test_tool(tool_name):
         if tool_name in ["amd", "dinamo", "hms", "improbizer", "motifsampler"]:
             pytest.skip("No supported for osx")
 
-    print("Tool class:", __tools__[tool_name])
+    print(f"Testing {tool_name}...")
     t = get_tool(tool_name)
-    print(f"Testing {t}...")
-
     params = {"background": bg_fa, "organism": "hg38", "width": 7}
     (motifs, stderr, stdout) = t.run(fa, params)
-    print(motifs)
-    print(stderr)
-    print(stdout)
+    print(f"{motifs=}")
+    print(f"stderr={stderr.strip()}")
+    print(f"stdout={stdout.strip()}")
+    assert len(motifs), "no motifs detected!"
     assert ap1_included(motifs)
