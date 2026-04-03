@@ -40,7 +40,7 @@ git flow release start ${new_version}
 
 ```shell
 pip wheel -w dist --no-deps --no-cache-dir --use-pep517 -v .
-mamba env create -n test -f requirements.yaml
+mamba env create --force -n test -f requirements.yaml
 mamba activate test
 pip install --no-deps --no-cache-dir --use-pep517 -v dist/gimmemotifs*.whl
 
@@ -52,14 +52,23 @@ pytest -vvv --disable-pytest-warnings
 
 ## 5. Upload to pypi testing server
 
+For more info, see https://packaging.python.org/en/latest/tutorials/packaging-projects/#generating-distribution-archives
+
 ```
-# Check for warnings or errors
-$ python setup.py check -r -s
-# Create distribution
-$ python setup.py sdist
+# Create the source distribution
+$ python3 -m pip install --upgrade build
+$ python3 -m build
+
+# Test the source distribution
+$ pip install --no-deps --no-cache-dir --use-pep517 -v dist/gimmemotifs*.tar.gz
+$ rm ~/.config/gimmemotifs/gimmemotifs.cfg
+$ gimme -h
+$ pytest -vvv --disable-pytest-warnings
+
 # Upload to pypi testing server
-$ twine upload -r testpypi dist/gimmemotifs-${version}.tar.gz
-``` 
+$ python3 -m pip install --upgrade twine
+$ python3 -m twine upload --repository testpypi dist/*
+```
 
 ## 6. Finish release
 
@@ -77,8 +86,7 @@ git push --follow-tags origin develop master
 ## 8. Upload to PyPi.
 
 ```shell
-python setup.py sdist
-twine upload dist/gimmemotifs-${new_version}.tar.gz
+twine upload dist/*
 ```
 
 ## 9. Finalize the release on Github.

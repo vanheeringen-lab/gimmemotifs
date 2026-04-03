@@ -6,7 +6,7 @@ import pytest
 def test_black_formatting():
     try:
         sp.check_output(
-            "black --check gimmemotifs/ scripts/ test/ build.py",
+            "black --check gimmemotifs/ scripts/ test/ custom_build.py",
             stderr=sp.STDOUT,
             shell=True,
         )
@@ -20,7 +20,7 @@ def test_black_formatting():
 def test_isort_formatting():
     try:
         sp.check_output(
-            "isort --check gimmemotifs/ scripts/ test/ build.py",
+            "isort --check gimmemotifs/ scripts/ test/ custom_build.py",
             stderr=sp.STDOUT,
             shell=True,
         )
