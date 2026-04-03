@@ -31,7 +31,7 @@ print("\ngimmemotifs version:", __version__, "\n")
 # -- Project information -----------------------------------------------------
 
 project = "GimmeMotifs"
-copyright = "2022, Simon van Heeringen, licensed under CC BY 4.0"
+copyright = "2026, Simon van Heeringen, licensed under MIT"
 author = "Simon van Heeringen, Siebren Frölich, Maarten van der Sande"
 
 # Major, minor and hotfix versions

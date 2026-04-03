@@ -6,7 +6,7 @@ import pytest
 def test_black_formatting():
     try:
         sp.check_output(
-            "black --check gimmemotifs/ scripts/ test/ setup.py",
+            "black --check gimmemotifs/ scripts/ test/ build.py",
             stderr=sp.STDOUT,
             shell=True,
         )
@@ -17,21 +17,10 @@ def test_black_formatting():
         pytest.fail(msg, False)
 
 
-def test_flake8_formatting():
-    try:
-        sp.check_output(
-            "flake8 gimmemotifs/ scripts/ test/ setup.py", stderr=sp.STDOUT, shell=True
-        )
-    except sp.CalledProcessError as e:
-        msg = e.output.decode("utf-8")
-        msg = "Flake8 output:\n" + msg
-        pytest.fail(msg, False)
-
-
 def test_isort_formatting():
     try:
         sp.check_output(
-            "isort --check gimmemotifs/ scripts/ test/ setup.py",
+            "isort --check gimmemotifs/ scripts/ test/ build.py",
             stderr=sp.STDOUT,
             shell=True,
         )

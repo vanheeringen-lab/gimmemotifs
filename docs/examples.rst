@@ -13,7 +13,7 @@ Any genome on UCSC, Ensembl or NCBI can be installed automatically using genomep
     $ genomepy install hg38 UCSC --annotation
 
 
-.. _genomepy: https://github.com/simonvh/genomepy
+.. _genomepy: https://github.com/vanheeringen-lab/genomepy
 
 Predict de novo motifs
 ----------------------

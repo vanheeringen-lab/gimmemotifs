@@ -6,6 +6,8 @@ from shutil import rmtree as _rmtree
 from tempfile import mkdtemp as _mkdtemp
 from warnings import warn as _warn
 
+from .__about__ import __version__
+
 
 def _filtered_warn(*args, **kwargs):
     """warnings.filterwarnings does not work."""
@@ -48,7 +50,9 @@ if logger.hasHandlers():
 logger.setLevel(_logging.DEBUG)
 
 # nice format
-screen_formatter = _logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+screen_formatter = _logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(message)s", "%H:%M:%S"
+)
 
 # log to screen
 sh = _logging.StreamHandler()
@@ -57,13 +61,6 @@ sh.setFormatter(screen_formatter)
 logger.addHandler(sh)
 del screen_formatter
 del sh
-
-
-# set __version__
-from ._version import get_versions  # noqa: E402
-
-__version__ = get_versions()["version"]
-del get_versions
 
 
 # import submodules to enable module autocomplete in editor
