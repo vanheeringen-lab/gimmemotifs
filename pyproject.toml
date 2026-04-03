@@ -105,28 +105,33 @@ packages = [
     "gimmemotifs.motif",
     "gimmemotifs.scanner",
     "gimmemotifs.tools",
+
+    # only needed in the sdist
+    "src",
+    "src.AMD",
+    "src.BioProspector",
+    "src.ChIPMunk",
+    "src.HMS",
+    "src.Improbizer",
+    "src.MDmodule",
+    "src.MotifSampler",
+    "src.posmo",
 ]
 ext-modules = [
     {name = "gimmemotifs.c_metrics", sources=["gimmemotifs/c_metrics.c"]},
 ]
+py-modules = ["custom_build"]  # only needed in the sdist
 
 [tool.setuptools.package-data]
-data = [
-    "bg/*",
-    "cfg/*",
-    "examples/*",
-    "motif_databases/*",
-    "score_dists/*",
-    "templates/*",
-    "templates.sortable/*",
-]
+data = ["**"]
+src = ["**"]
 
 [tool.setuptools.exclude-package-data]
 gimmemotifs = ["*__pycache__*"]
 data = ["*__pycache__*"]
 
 [tool.setuptools.cmdclass]
-build_py = "build.custom_build_py"  # adds the motif prediction tools
+build_py = "custom_build.custom_build_py"  # adds the motif prediction tools
 # options for automatic cleanup of editable uninstallation:
 # editable_wheel = "build.custom_editable_wheel"
 # egg_info = "build.custom_egg_info"
