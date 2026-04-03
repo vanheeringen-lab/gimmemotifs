@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+
+
+## [0.18.2] - 2026-04-03
+
 ### Changed
 
 - packaging & deployment now uses `pyproject.toml` and wheel
@@ -24,6 +28,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 - versioneer
 
+
+
 ## [0.18.1] - 2025-10-02
 
 ### Changed
@@ -39,6 +45,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - updated pandas code, able to run pandas 2 now! resolves #306
 - updated C code, fixes compiler warnings & error (thanks cameronraysmith!)
 - updated versioneer, able to update configparser now! resolves #315
+
+
 
 ## [0.18.0] - 2023-01-11
 
@@ -86,6 +94,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 - removed old python2 code (scanning with MOODS & import shenanigans)
 
+
+
 ## [0.17.2] - 2022-10-12
 
 ### Changed
@@ -107,6 +117,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Removed
 
 - pyarrow dependency
+
 
 
 ## [0.17.1] - 2022-06-02
@@ -141,6 +152,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - OSX tests. Possibly temporary.
   - The tests haven't working for ages, so I have no idea where to begin.
   - and Travis asks 5x credits for OSX machines...
+
 
 
 ## [0.17.0] - 2021-12-22
@@ -187,7 +199,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 * Fix issue with config file getting corrupted.
 * Fix FPR threshold calculation.
 
-### Removed
 
 
 ## [0.16.1] - 2021-06-28
@@ -203,6 +214,8 @@ Bugfix release.
 * Fixed bug with `gimme motif2factors`.
 * Fixed "Motif does not occur in motif database when running maelstrom" (#192).
 * Fixed bugs related to runs where no (significant) motifs is found.
+
+
 
 ## [0.16.0] - 2021-05-28
 
@@ -234,6 +247,8 @@ Thanks to @Maarten-vd-Sande for the speed improvements.
 * Fix issue with running `gimme motifs` with the HOMER database (#135)
 * Fix issue with the `--size` parameter in `gimme motifs`, which now works as expected (#128)
 
+
+
 ## [0.15.3] - 2021-02-01
 
 ### Fixed
@@ -247,6 +262,7 @@ Thanks to @Maarten-vd-Sande for the speed improvements.
   cache.
 
 
+
 ## [0.15.2] - 2020-11-26
 
 ### Changed
@@ -258,6 +274,8 @@ Thanks to @Maarten-vd-Sande for the speed improvements.
 - Fix issue with -s parameter of `gimme motifs` (#146)
 - Fix issues (hopefully) with scanning large input files.
 
+
+
 ## [0.15.1] - 2020-10-07
 
 ### Added
@@ -268,6 +286,8 @@ Thanks to @Maarten-vd-Sande for the speed improvements.
 
 - Support for pandas>=1.1
 - `coverage_table` doesn't add a newline at the end of the file.
+
+
 
 ## [0.15.0] - 2020-09-29
 
@@ -296,6 +316,8 @@ Thanks to @Maarten-vd-Sande for the speed improvements.
 - `gimme motifs` doesn't crash when no motifs are found.
 - Fixed error with Ensembl chromosome names in `combine_peaks`.
 
+
+
 ## [0.14.4] - 2020-04-02
 
 ### Fixed
@@ -304,11 +326,15 @@ Thanks to @Maarten-vd-Sande for the speed improvements.
 - Fixed `combine_peaks` with Ensembl chromosome names (thanks @JGAsmits). 
 - Fixed bug with pandas>=1.0.
 
+
+
 ## [0.14.3] - 2020-02-19
 
 ### Fixed
 
 - Fixed 'AttributeError: can't delete attribute' in `gimme maelstrom` and `gimme motifs` (#108, #109).
+
+
 
 ## [0.14.2] - 2020-01-31
 
@@ -333,6 +359,7 @@ Bugfix release
 - Updated `tqdm` requirement (#98).
 
 
+
 ## [0.14.1] - 2019-12-19
 
 Bugfix release
@@ -341,6 +368,8 @@ Bugfix release
 
 - Fix function for locating a pwm/pfm motif database.
 - Added configparser dependency
+
+
 
 ## [0.14.0] - 2019-12-05
 
@@ -375,6 +404,8 @@ Bugfix release
 
 - Deprecated modules and scripts.
 
+
+
 ## [0.13.1] - 2018-12-04
 
 ### Added
@@ -394,6 +425,8 @@ Bugfix release
 - MEME is no longer included with GimmeMotifs. When installing via conda meme will be included. If GimmeMotifs is installed via pip, then MEME needs to be installed separately. 
 - Changed "user" background to "custom" background.
 - Updated Posmo to run with a wider variety of settings.
+
+
 
 ## [0.13.0] - 2018-11-19
 
@@ -429,6 +462,8 @@ Bugfix release
 - Fixed memory leak of `gimme roc`.
 - Fixed `scale` for newer `pandas`/`sklearn` combo
 - FIxed bug related to backgroundgradient with new pandas
+
+
 
 ## [0.12.0] - 2018-07-10
 
@@ -468,3 +503,15 @@ manage your genomes.
 - Fixed issue with nested multiprocessing pools.
 - Fix numpy version because of DeprecationWarning in sklearn.
 - Updated xgboost dependency, where the API had changed.
+
+
+
+[Unreleased]: https://github.com/vanheeringen-lab/gimmemotifs/compare/master...develop
+[0.18.2]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.18.1...0.18.2
+[0.18.1]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.18.0...0.18.1
+[0.18.0]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.17.0...0.18.0
+[0.17.0]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.16.0...0.17.0
+[0.16.0]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.15.0...0.16.0
+[0.15.0]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.14.0...0.15.0
+[0.14.0]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.13.0...0.14.0
+[0.13.0]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.12.0...0.13.0

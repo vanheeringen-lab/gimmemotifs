@@ -32,8 +32,8 @@ git flow release start ${new_version}
 
     * set the new version in `__about__.py`
     * make sure all subpackages are listed in the `pyproject.toml`
-    * add the new version & date to the header
-    * link to the diff in the footer
+    * add the new version & date to the header of `CHANGELOG.md`
+    * link to the diff in the footer of `CHANGELOG.md`
     * add & commit the changes, but do not push
 
 ## 4. Test install using pip in fresh conda environment
