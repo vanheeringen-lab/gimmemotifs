@@ -29,7 +29,7 @@ def test_tool(tool_name):
         "dreme": "not installable via bioconda/source",
         "gadem": "sometimes crashes on invalid pointer",
         "jaspar": "not configured",  # TODO
-        # "motifsampler": "segfaults from py3.12"
+        "motifsampler": "segfaults on some platforms",
         "posmo": "motif doesn't predictably look like AP1",
         "prosampler": "doesn't seem to work in this test anymore",  # TODO
         "rpmcmc": "not installable via bioconda/source",
