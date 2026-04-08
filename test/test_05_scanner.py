@@ -163,7 +163,7 @@ class TestScanner(unittest.TestCase):
         for score, match in zip(scores, result["AP1"]):
             self.assertAlmostEqual(score, match, 5)
 
-    def test1_scan_sequences(self):
+    def test11_scan_sequences(self):
         """Scanner"""
         for ncpus in [1, 2, 3]:
             s = Scanner(ncpus=ncpus)
@@ -172,22 +172,22 @@ class TestScanner(unittest.TestCase):
             f = Fasta(self.fa)
 
             s.set_threshold(threshold=0.0)
-            nmatches = [len(m[0]) for m in s._scan_sequences(f.seqs, 1, False)]
+            nmatches = [len(m[0]) for r, m in s._scan_sequences(f, 1, False)]
             self.assertEqual([1, 1, 1], nmatches)
 
             s.set_threshold(threshold=0.99)
-            nmatches = [len(m[0]) for m in s._scan_sequences(f.seqs, 1, False)]
+            nmatches = [len(m[0]) for r, m in s._scan_sequences(f, 1, False)]
             self.assertEqual([0, 1, 1], nmatches)
 
             s.set_threshold(threshold=0.99)
-            nmatches = [len(m[0]) for m in s._scan_sequences(f.seqs, 10, False)]
+            nmatches = [len(m[0]) for r, m in s._scan_sequences(f, 10, False)]
             self.assertEqual([0, 1, 2], nmatches)
 
             s.set_threshold(threshold=0.99)
-            nmatches = [len(m[0]) for m in s._scan_sequences(f.seqs, 10, True)]
+            nmatches = [len(m[0]) for r, m in s._scan_sequences(f, 10, True)]
             self.assertEqual([0, 2, 4], nmatches)
 
-    def test2_scan_to_best_match(self):
+    def test12_scan_to_best_match(self):
         genome = os.path.join(self.data_dir, "genome.fa")
 
         for f in self.fa, self.bed, self.regions:
@@ -200,7 +200,7 @@ class TestScanner(unittest.TestCase):
             for score, match in zip(scores, result["AP1"]):
                 self.assertAlmostEqual(score, match[0], 5)
 
-    def test3_scan_to_best_score(self):
+    def test13_scan_to_best_score(self):
         result = scan_to_best_match(self.fa, self.motifs, score=True)
 
         scores = [-20.05276, 9.028887, 9.028887]
@@ -209,7 +209,7 @@ class TestScanner(unittest.TestCase):
         for score, match in zip(scores, result["AP1"]):
             self.assertAlmostEqual(score, match, 5)
 
-    def testThreshold(self):
+    def test14Threshold(self):
         s = Scanner()
         s.set_motifs("test/data/pwms/motifs.pwm")
 

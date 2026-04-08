@@ -82,12 +82,11 @@ def scan_regionfile_to_table(
     logger.info("reading table")
     if input_table.endswith("feather"):
         df = pd.read_feather(input_table)
-        idx = df.iloc[:, 0].values
+        regions = list(df.iloc[:, 0].values)
     else:
         df = pd.read_table(input_table, index_col=0, comment="#")
-        idx = df.index
+        regions = list(df.index)
 
-    regions = list(idx)
     if len(regions) >= 1000:
         random = np.random if random_state is None else random_state
         check_regions = random.choice(regions, size=1000, replace=False)
@@ -103,12 +102,14 @@ def scan_regionfile_to_table(
     s.set_background(gc=gc, size=size)
 
     scores = []
+    idx = []
     if scoring == "count":
         logger.info("setting threshold")
         s.set_threshold(fpr=FPR)  # GC set by s.set_background()
         logger.info("creating count table")
-        for row in s.count(regions):
+        for seq_id, row in s.count(regions):
             scores.append(row)
+            idx.append(seq_id)
     else:
         msg = "creating score table"
         if zscore:
@@ -119,8 +120,9 @@ def scan_regionfile_to_table(
         else:
             msg += " (logodds)"
         logger.info(msg)
-        for row in s.best_score(regions, zscore=zscore, gc=gc):
+        for seq_id, row in s.best_score(regions, zscore=zscore, gc=gc):
             scores.append(row)
+            idx.append(seq_id)
     logger.info("done")
 
     logger.info("creating dataframe")
@@ -332,21 +334,17 @@ def _scan_table(
 ):
     # header
     yield "\t{}".format("\t".join([m.id for m in motifs]))
-    # get iterator
-    result_it = s.count(fa, nreport, scan_rc)
     # counts table
-    for i, counts in enumerate(result_it):
-        yield "{}\t{}".format(fa.ids[i], "\t".join([str(x) for x in counts]))
+    for seq_id, counts in s.count(fa, nreport, scan_rc):
+        yield "{}\t{}".format(seq_id, "\t".join([str(x) for x in counts]))
 
 
 def _scan_score_table(s, fa, motifs, scan_rc, zscore=False, gcnorm=False):
     # header
     yield "\t{}".format("\t".join([m.id for m in motifs]))
-    # get iterator
-    result_it = s.best_score(fa, scan_rc, zscore=zscore, gc=gcnorm)
     # score table
-    for i, scores in enumerate(result_it):
-        yield "{}\t{}".format(fa.ids[i], "\t".join(["{:4f}".format(x) for x in scores]))
+    for seq_id, scores in s.best_score(fa, scan_rc, zscore=zscore, gc=gcnorm):
+        yield "{}\t{}".format(seq_id, "\t".join(["{:4f}".format(x) for x in scores]))
 
 
 def _scan_normal(
@@ -359,9 +357,9 @@ def _scan_normal(
     zscore,
     gcnorm,
 ):
-    result_it = s.scan(fa, nreport, scan_rc, zscore, gc=gcnorm)
-    for i, result in enumerate(result_it):
-        seq_id = fa.ids[i]
+    for seq_id, result in s.scan(
+        fa, nreport, scan_rc, zscore, gc=gcnorm, return_id=True
+    ):
         seq = fa[seq_id]
         for motif, matches in zip(motifs, result):
             for (score, pos, strand) in matches:
@@ -470,7 +468,7 @@ def scan_to_best_match(
         it = s.best_score(fname, zscore=zscore, gc=gc)
     else:
         it = s.best_match(fname, zscore=zscore, gc=gc)
-    for scores in it:
+    for seq_id, scores in it:
         for motif, score in zip(motifs, scores):
             result[motif.id].append(score)
 

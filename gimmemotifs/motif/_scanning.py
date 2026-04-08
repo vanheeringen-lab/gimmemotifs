@@ -1,28 +1,5 @@
-# Copyright (c) 2009-2021 Simon van Heeringen <simon.vanheeringen@gmail.com>
-#
-# This module is free software. You can redistribute it and/or modify it under
-# the terms of the MIT License, see the file COPYING included with this
-# distribution.
 """Scanning functions for Motif class"""
-from warnings import warn
-
 from gimmemotifs.c_metrics import pfmscan, pwmscan  # noqa
-
-
-def pwm_scan(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
-    warn(
-        "Method pwm_scan() is replaced by scan() and will be removed in the next release.",
-        DeprecationWarning,
-    )
-    return self.scan(fa, cutoff=cutoff, nreport=nreport, scan_rc=scan_rc)
-
-
-def pwm_scan_all(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
-    warn(
-        "Method pwm_scan_all() is replaced by scan_all() and will be removed in the next release.",
-        DeprecationWarning,
-    )
-    return self.scan_all(fa, cutoff=cutoff, nreport=nreport, scan_rc=scan_rc)
 
 
 def scan(self, fa, cutoff=0.9, nreport=50, scan_rc=True):
