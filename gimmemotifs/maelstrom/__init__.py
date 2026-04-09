@@ -358,10 +358,9 @@ def run_maelstrom(
                 random_state=random_state,
             )
         except Exception as e:
-            logger.warning(f"Method {method} with scoring {scoring} failed")
-            logger.warning(e)
-            logger.warning("Skipping")
-            raise
+            logger.warning(f"Method '{method}' with scoring metric '{scoring}' failed")
+            # logger.warning(f"Error message: {e}")
+            raise e
 
     dfs = {}
     for method, scoring, fname in exps:

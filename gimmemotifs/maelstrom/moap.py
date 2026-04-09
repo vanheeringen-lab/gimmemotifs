@@ -695,21 +695,10 @@ def moap(
             raise ValueError(f"columns should all be numeric for {method}")
 
     if motiffile is None:
-        if genome is None:
-            raise ValueError("need a genome")
-
-        pfmfile = pfmfile_location(pfmfile)
-        try:
-            _ = read_motifs(pfmfile)
-        except Exception:
-            logger.error(f"can't read motifs from {pfmfile}")
-            raise
-
         # scan for motifs
-        motif_names = [m.id for m in read_motifs(pfmfile)]
         if method == "classic" or scoring == "count":
             logger.info("motif scanning (counts)")
-            scores = scan_regionfile_to_table(
+            motifs = scan_regionfile_to_table(
                 inputfile,
                 genome,
                 "count",
@@ -722,7 +711,7 @@ def moap(
             )
         else:
             logger.info("motif scanning (scores)")
-            scores = scan_regionfile_to_table(
+            motifs = scan_regionfile_to_table(
                 inputfile,
                 genome,
                 "score",
@@ -733,8 +722,6 @@ def moap(
                 random_state=random_state,
                 progress=progress,
             )
-        motifs = pd.DataFrame(scores, index=df.index, columns=motif_names)
-
     elif isinstance(motiffile, pd.DataFrame):
         motifs = motiffile
     else:
@@ -751,11 +738,13 @@ def moap(
             return out
 
     if subsample is not None:
-        n = int(subsample * df.shape[0])
-        logger.debug(f"Subsampling {n} regions")
-        df = df.sample(n, random_state=random_state)
+        n = int(subsample * motifs.shape[0])
+        logger.debug(f"Subsampling to {n} regions")
+        motifs = motifs.sample(n, random_state=random_state)
 
-    motifs = motifs.loc[df.index]
+    # subset df if motifs was subsampled, or if regions from the inputfile
+    # could not be found in the genome (e.g. scaffolds, alt regions, etc.)
+    df = df.loc[motifs.index]
 
     clf.fit(motifs, df)
 
