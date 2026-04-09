@@ -386,6 +386,8 @@ def run_maelstrom(
             )
             df_p = df_p.join(bla)
 
+        # TODO: fix pearsonr ValueError: `x` and `y` must be broadcastable.
+        #   probably because df can have more regions that scores.
         if df.shape[1] > 1:
             # Add correlation between motif score and signal
             logger.info("Correlation")
