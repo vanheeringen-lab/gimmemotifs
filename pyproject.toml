@@ -11,7 +11,7 @@ maintainers = [
     {name = "Siebren Frölich", email = "siebrenf@gmail.com"},
 ]
 
-requires-python = ">=3.9, <3.13"  # upper limit due to genomepy 0.16.3 incompatibility
+requires-python = ">=3.9"
 dependencies = [
     "biofluff >=3.0.4",
     "configparser",
@@ -31,7 +31,7 @@ dependencies = [
     # "python",
     "xxhash",  # "python-xxhash"
     "qnorm  >=0.8.1",
-    "scikit-learn >=0.23.2",
+    "scikit-learn >=0.23.2, <1.7",
     "scipy >=1.5",
     "seaborn >=0.10.1",
     "statsmodels",
