@@ -409,8 +409,11 @@ class Scanner(object):
         LOCK.acquire()
         try:
             with Cache(CACHE_DIR) as cache:
-                scan_motifs = []
                 self._threshold = None
+
+                # load cached motif thresholds
+                col_series = []
+                scan_motifs = {}
                 for motif in motifs:
                     k = "{}|{}|{:.4f}|{}".format(
                         motif.hash,
@@ -419,14 +422,15 @@ class Scanner(object):
                         ",".join(sorted(gc_bins)),
                     )
                     vals = cache.get(k)
-                    if vals is None:
-                        scan_motifs.append(motif)
+                    if vals is not None:
+                        col_series.append(vals)
                     else:
-                        if self._threshold is None:
-                            self._threshold = vals.to_frame()
-                        else:
-                            self._threshold[motif.id] = vals
+                        # mark motif as missing from cache
+                        scan_motifs[motif] = k
+                if col_series:
+                    self._threshold = pd.concat(col_series, axis=1)
 
+                # generate missing motif thresholds
                 if len(scan_motifs) > 0:
                     logger.debug("determining FPR-based threshold")
                     df = self._threshold_from_seqs(scan_motifs, self.background)
@@ -435,13 +439,8 @@ class Scanner(object):
                     else:
                         self._threshold = pd.concat((self._threshold, df), axis=1)
                     for motif in scan_motifs:
-                        k = "{}|{}|{:.4f}|{}".format(
-                            motif.hash,
-                            self.background_hash,
-                            fpr,
-                            ",".join(sorted(gc_bins)),
-                        )
-                        cache.set(k, df[motif.id])
+                        cache.set(scan_motifs[motif], df[motif.id])
+
         except sqlite3.DatabaseError:
             print_cluster_error_message()
             sys.exit(1)

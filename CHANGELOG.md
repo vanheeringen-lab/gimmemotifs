@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Changed
+
+- minor Scanner.set_threshold optimization
+
 ### Fixed
 
 - Scanner.scan now returns sequence.ids along with results.
