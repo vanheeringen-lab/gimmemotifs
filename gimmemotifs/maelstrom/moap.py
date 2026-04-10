@@ -17,8 +17,10 @@ from sklearn.multioutput import MultiOutputRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, StandardScaler, scale
 from sklearn.svm import LinearSVR
+from sklearn.exceptions import ConvergenceWarning
 from statsmodels.stats.multitest import multipletests
 from tqdm.auto import tqdm
+import warnings
 
 from gimmemotifs import __version__
 from gimmemotifs.config import MotifConfig
@@ -591,7 +593,9 @@ class SVRMoap(Moap):
         clf = LinearSVR(random_state=self.random_state, dual="auto")
         self.model = MultiOutputRegressor(clf, n_jobs=1)
         logger.debug("Fitting model")
-        self.model.fit(df_X, df_y)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=ConvergenceWarning)
+            self.model.fit(df_X, df_y)
         logger.info("Done")
 
         self.act_ = pd.DataFrame(

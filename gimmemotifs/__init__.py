@@ -1,6 +1,5 @@
 import atexit as _atexit
 import logging as _logging
-# import warnings as _warnings
 from os import getpid as _getpid
 from shutil import rmtree as _rmtree
 from tempfile import mkdtemp as _mkdtemp
@@ -10,6 +9,7 @@ from loguru import logger as _loguru_logger
 from .__about__ import __version__
 
 
+# import warnings as _warnings
 # def _filtered_warn(*args, **kwargs):
 #     """warnings.filterwarnings does not work."""
 #     blacklist = [
