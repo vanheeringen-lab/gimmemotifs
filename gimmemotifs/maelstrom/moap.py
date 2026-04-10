@@ -6,21 +6,21 @@
 """ Module for motif activity prediction """
 import logging
 import os
+import warnings
 
 import numpy as np
 import pandas as pd
 from scipy.stats import hypergeom, mannwhitneyu
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import BayesianRidge, MultiTaskLassoCV
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, StandardScaler, scale
 from sklearn.svm import LinearSVR
-from sklearn.exceptions import ConvergenceWarning
 from statsmodels.stats.multitest import multipletests
 from tqdm.auto import tqdm
-import warnings
 
 from gimmemotifs import __version__
 from gimmemotifs.config import MotifConfig

@@ -7,11 +7,10 @@
 import argparse
 import os
 import sys
-from io import StringIO
 import warnings
+from io import StringIO
 
 from gimmemotifs.__about__ import __version__
-
 
 warnings.filterwarnings("ignore")
 

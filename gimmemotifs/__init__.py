@@ -8,7 +8,6 @@ from loguru import logger as _loguru_logger
 
 from .__about__ import __version__
 
-
 # import warnings as _warnings
 # def _filtered_warn(*args, **kwargs):
 #     """warnings.filterwarnings does not work."""
