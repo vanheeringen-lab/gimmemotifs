@@ -8,8 +8,12 @@ import argparse
 import os
 import sys
 from io import StringIO
+import warnings
 
 from gimmemotifs.__about__ import __version__
+
+
+warnings.filterwarnings("ignore")
 
 
 def gimme():

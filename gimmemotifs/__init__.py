@@ -1,38 +1,39 @@
 import atexit as _atexit
 import logging as _logging
-import warnings as _warnings
+# import warnings as _warnings
 from os import getpid as _getpid
 from shutil import rmtree as _rmtree
 from tempfile import mkdtemp as _mkdtemp
-from warnings import warn as _warn
+
+from loguru import logger as _loguru_logger
 
 from .__about__ import __version__
 
 
-def _filtered_warn(*args, **kwargs):
-    """warnings.filterwarnings does not work."""
-    blacklist = [
-        # maelstrom sklearn SVM
-        "Liblinear failed to converge, increase the number of iterations.",
-        # report.py (pandas internal DeprecationWarning)
-        "The get_cmap function will be deprecated in a future version. "
-        "Use ``matplotlib.colormaps[name]`` or "
-        "``matplotlib.colormaps.get_cmap(obj)`` instead.",
-        # report.py pandas FutureWarning, alternative works differently
-        "this method is deprecated in favour of `Styler.to_html()`",
-        # scanner/base.py set_threshold
-        "DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, "
-        "which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. "
-        "To get a de-fragmented frame, use `newframe = frame.copy()`",
-    ]
-    message = str(args[0])
-    if message in blacklist:
-        pass
-    else:
-        _warn(*args, **kwargs)
-
-
-_warnings.warn = _filtered_warn
+# def _filtered_warn(*args, **kwargs):
+#     """warnings.filterwarnings does not work."""
+#     blacklist = [
+#         # maelstrom sklearn SVM
+#         "Liblinear failed to converge, increase the number of iterations.",
+#         # report.py (pandas internal DeprecationWarning)
+#         "The get_cmap function will be deprecated in a future version. "
+#         "Use ``matplotlib.colormaps[name]`` or "
+#         "``matplotlib.colormaps.get_cmap(obj)`` instead.",
+#         # report.py pandas FutureWarning, alternative works differently
+#         "this method is deprecated in favour of `Styler.to_html()`",
+#         # scanner/base.py set_threshold
+#         "DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, "
+#         "which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. "
+#         "To get a de-fragmented frame, use `newframe = frame.copy()`",
+#     ]
+#     message = str(args[0])
+#     if message in blacklist:
+#         pass
+#     else:
+#         _warnings.warn(*args, **kwargs)
+#
+#
+# _warnings.warn = _filtered_warn
 
 
 def mytmpdir():
@@ -44,24 +45,26 @@ def mytmpdir():
 
 # setup logger
 logger = _logging.getLogger("gimme")
-if logger.hasHandlers():
-    logger.handlers.clear()
-
+logger.handlers.clear()
 logger.setLevel(_logging.DEBUG)
+logger.propagate = False
 
-# nice format
-screen_formatter = _logging.Formatter(
+_screen_formatter = _logging.Formatter(
     "%(asctime)s - %(levelname)s - %(message)s", "%H:%M:%S"
 )
+_sh = _logging.StreamHandler()
+_sh.setLevel(_logging.INFO)
+_sh.setFormatter(_screen_formatter)
+logger.addHandler(_sh)
 
-# log to screen
-sh = _logging.StreamHandler()
-sh.setLevel(_logging.INFO)
-sh.setFormatter(screen_formatter)
-logger.addHandler(sh)
-del screen_formatter
-del sh
+# bridge Loguru
+class _PropagateHandler(_logging.Handler):
+    def emit(self, record):
+        _logging.getLogger("gimme").handle(record)
 
+
+_loguru_logger.remove()
+_loguru_logger.add(_PropagateHandler(), format="{message}")
 
 # import submodules to enable module autocomplete in editor
 
