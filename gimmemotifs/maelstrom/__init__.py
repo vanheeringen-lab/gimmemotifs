@@ -226,9 +226,9 @@ def run_maelstrom(
 
     counts = pd.read_csv(count_table, index_col=0, comment="#", sep="\t")
     scores = pd.read_csv(score_table, index_col=0, comment="#", sep="\t")
-    if counts.index != scores.index:
+    if len(counts.index) != len(set(counts.index) & set(scores.index)):
         raise IndexError(
-            f"{count_table=} and {score_table=} have mismatching regions! Delete and rerun."
+            f"Regions mismatch between {count_table=} and {score_table=}! Delete and rerun."
         )
     if len(counts.index) != len(set(counts.index) & set(df.index)):
         raise IndexError(
