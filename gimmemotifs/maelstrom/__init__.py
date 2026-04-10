@@ -226,6 +226,16 @@ def run_maelstrom(
 
     counts = pd.read_csv(count_table, index_col=0, comment="#", sep="\t")
     scores = pd.read_csv(score_table, index_col=0, comment="#", sep="\t")
+    if counts.index != scores.index:
+        raise IndexError(
+            f"{count_table=} and {score_table=} have mismatching regions! Delete and rerun."
+        )
+    if len(counts.index) != len(set(counts.index) & set(df.index)):
+        raise IndexError(
+            f"Regions mismatch between {infile=} and {count_table=}! Delete and rerun."
+        )
+    # regions may have been filtered out if not present in the genome
+    df = df.loc[counts.index]
 
     if filter_redundant:
         logger.info("Selecting non-redundant motifs")
@@ -386,8 +396,6 @@ def run_maelstrom(
             )
             df_p = df_p.join(bla)
 
-        # TODO: fix pearsonr ValueError: `x` and `y` must be broadcastable.
-        #   probably because df can have more regions that scores.
         if df.shape[1] > 1:
             # Add correlation between motif score and signal
             logger.info("Correlation")
