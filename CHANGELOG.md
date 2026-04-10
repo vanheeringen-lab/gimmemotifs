@@ -14,6 +14,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Scanner.scan now returns sequence.ids along with results.
   - if sequences cannot be parsed, both ids and results are omitted.
 
+### Removed
+
+- deprecated functions `pwm_scan` and `pwm_scan_all`
+
+
+
 ## [0.18.2] - 2026-04-03
 
 ### Changed
