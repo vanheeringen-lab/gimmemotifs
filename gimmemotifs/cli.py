@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-# Copyright (c) 2013-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
-#
-# This module is free software. You can redistribute it and/or modify it under
-# the terms of the MIT License, see the file COPYING included with this
-# distribution.
 import argparse
 import os
 import sys
@@ -188,6 +183,13 @@ def gimme():
         metavar="N",
         default=params["size"],
         type=int,
+    )
+    p.add_argument(
+        "--noprogress",
+        dest="noprogress",
+        help="Disable tqdm progress bars",
+        default=False,
+        action="store_true",
     )
 
     p.set_defaults(func=commands.motifs)
@@ -412,6 +414,13 @@ def gimme():
         help="Specify to plot no motifs",
         action="store_true",
         default=False,
+    )
+    p.add_argument(
+        "--noprogress",
+        dest="noprogress",
+        help="Disable tqdm progress bars",
+        default=False,
+        action="store_true",
     )
 
     p.set_defaults(func=commands.maelstrom)

@@ -1,9 +1,4 @@
 #!/usr/bin/python -W ignore
-# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
-#
-# This module is free software. You can redistribute it and/or modify it under
-# the terms of the MIT License, see the file COPYING included with this
-# distribution.
 """Command line function 'motifs'."""
 import logging
 import os
@@ -251,7 +246,7 @@ def motifs(args):
     # for this set of non-redundant motifs.
     motif_dict = dict([(m.id, m) for m in motifs])
     logger.info("creating BED files with scan results")
-    for motif in tqdm(nr_motifs):
+    for motif in tqdm(nr_motifs, disable=not args.noprogress):
         with NamedTemporaryFile(mode="w") as f:
             print(motif_dict[motif].to_ppm(), file=f)
             f.flush()

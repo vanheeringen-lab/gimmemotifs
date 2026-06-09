@@ -93,9 +93,9 @@ class Scanner(object):
     def progress(self, progress):
         self._progress = progress
         if progress is None:
-            self._disable = None
+            self.disable_tqdm = None
         else:
-            self._disable = not progress
+            self.disable_tqdm = not progress
 
     def set_motifs(self, motifs):
         try:
@@ -131,7 +131,7 @@ class Scanner(object):
             desc="Determining FPR-based threshold",
             unit=" sequences",
             total=len(seqs),
-            disable=self._disable,  # can be silenced
+            disable=self.disable_tqdm,
         )
 
         table = []
@@ -186,7 +186,7 @@ class Scanner(object):
                         desc="Determining mean and stddev for motifs",
                         unit=" motifs",
                         total=total_scans,
-                        disable=self._disable,  # can be silenced
+                        disable=self.disable_tqdm,
                     )
 
                     for bin, scan_motifs in scan_gc_bins.items():
@@ -572,7 +572,7 @@ class Scanner(object):
             desc="Scanning",
             unit=" sequences",
             total=len(seqs),
-            disable=self._disable,  # can be silenced
+            disable=self.disable_tqdm,
         )
 
         batch_size = 50000

@@ -1,8 +1,3 @@
-# Copyright (c) 2016 Simon van Heeringen <simon.vanheeringen@gmail.com>
-#
-# This module is free software. You can redistribute it and/or modify it under
-# the terms of the MIT License, see the file COPYING included with this
-# distribution.
 """ Module for motif activity prediction """
 import logging
 import os
@@ -24,9 +19,7 @@ from tqdm.auto import tqdm
 
 from gimmemotifs import __version__
 from gimmemotifs.config import MotifConfig
-from gimmemotifs.motif import read_motifs
 from gimmemotifs.scanner import scan_regionfile_to_table
-from gimmemotifs.utils import pfmfile_location
 
 try:
     import xgboost  # noqa: optional
@@ -122,7 +115,7 @@ class BayesianRidgeMoap(Moap):
     supported_tables = ["score", "count"]
     ptype = "regression"
 
-    def __init__(self, scale=True, ncpus=None):
+    def __init__(self, scale=True, ncpus=None, disable_tqdm=False, *args, **kwargs):
         """Predict motif activities using Bayesian Ridge Regression.
 
         Parameters
@@ -143,6 +136,7 @@ class BayesianRidgeMoap(Moap):
             ncpus = int(MotifConfig().get_default_params().get("ncpus", 2))
         self.ncpus = ncpus
         self.scale = scale
+        self.disable_tqdm = disable_tqdm
 
     def fit(self, df_X, df_y):
         logger.info("Fitting BayesianRidge")
@@ -164,7 +158,7 @@ class BayesianRidgeMoap(Moap):
         model = BayesianRidge()
         logger.debug("Fitting model")
         coefs = []
-        for col in tqdm(y.columns, total=len(y.columns)):
+        for col in tqdm(y.columns, total=len(y.columns), disable=self.disable_tqdm):
             model.fit(X, y[col])
             coefs.append(model.coef_)
         logger.info("Done")
@@ -180,7 +174,15 @@ class XgboostRegressionMoap(Moap):
     supported_tables = ["score", "count"]
     ptype = "regression"
 
-    def __init__(self, scale=True, ncpus=None, random_state=None):
+    def __init__(
+        self,
+        scale=True,
+        ncpus=None,
+        disable_tqdm=False,
+        random_state=None,
+        *args,
+        **kwargs,
+    ):
         """Predict motif activities using XGBoost.
 
         Parameters
@@ -208,6 +210,7 @@ class XgboostRegressionMoap(Moap):
         self.ncpus = ncpus
         self.scale = scale
         self.random_state = random_state
+        self.disable_tqdm = disable_tqdm
 
     def fit(self, df_X, df_y):
         logger.info("Fitting XGBoostRegression")
@@ -241,7 +244,7 @@ class XgboostRegressionMoap(Moap):
         self.act_ = pd.DataFrame(index=X.columns)
 
         # Fit model
-        for col in tqdm(y.columns):
+        for col in tqdm(y.columns, disable=self.disable_tqdm):
             xgb.fit(X, y[col].values)
             d = xgb.get_booster().get_fscore()
             self.act_[col] = [d.get(m, 0) for m in X.columns]
@@ -399,7 +402,7 @@ class RFMoap(Moap):
     supported_tables = ["score", "count"]
     ptype = "classification"
 
-    def __init__(self, ncpus=None, random_state=None):
+    def __init__(self, ncpus=None, random_state=None, *args, **kwargs):
         """Predict motif activities using a random forest classifier
 
         Parameters
@@ -468,7 +471,7 @@ class MultiTaskLassoMoap(Moap):
     supported_tables = ["score", "count"]
     ptype = "regression"
 
-    def __init__(self, scale=True, ncpus=None, random_state=None):
+    def __init__(self, scale=True, ncpus=None, random_state=None, *args, **kwargs):
         """Predict motif activities using MultiTaskLasso.
 
         Parameters
@@ -545,7 +548,7 @@ class SVRMoap(Moap):
     supported_tables = ["score", "count"]
     ptype = "regression"
 
-    def __init__(self, scale=True, ncpus=None, random_state=None):
+    def __init__(self, scale=True, ncpus=None, random_state=None, *args, **kwargs):
         """Predict motif activities using Support Vector Regression.
 
         Parameters
@@ -626,57 +629,57 @@ def moap(
 ):
     """Run a single motif activity prediction algorithm.
 
-     Parameters
-     ----------
-     inputfile : str
-         :1File with regions (chr:start-end) in first column and either cluster
-         name in second column or a table with values.
+    Parameters
+    ----------
+    inputfile : str
+        File with regions (chr:start-end) in first column and either cluster
+        name in second column or a table with values.
 
-     method : str, optional
-         Motif activity method to use. Any of
-         'bayesianridge', 'xgboost', 'mwu', 'hypergeom',
-         'rf', 'multitasklasso', 'svr'. Default is 'hypergeom'.
+    method : str, optional
+        Motif activity method to use. Any of
+        'bayesianridge', 'xgboost', 'mwu', 'hypergeom',
+        'rf', 'multitasklasso', 'svr'. Default is 'hypergeom'.
 
-     scoring:  str, optional
-         Either 'score' or 'count'
+    scoring:  str, optional
+        Either 'score' or 'count'
 
-     outfile : str, optional
-         Name of outputfile to save the fitted activity values.
+    outfile : str, optional
+        Name of outputfile to save the fitted activity values.
 
-     motiffile : str, optional
-         Table with motif scan results. First column should be exactly the same
-         regions as in the inputfile.
+    motiffile : str, optional
+        Table with motif scan results. First column should be exactly the same
+        regions as in the inputfile.
 
-     pfmfile : str, optional
-         File with motifs in pfm format. Required when motiffile is not
-         supplied.
+    pfmfile : str, optional
+        File with motifs in pfm format. Required when motiffile is not
+        supplied.
 
-     genome : str, optional
-         Genome name, as indexed by gimme. Required when motiffile is not
-         supplied.
+    genome : str, optional
+        Genome name, as indexed by gimme. Required when motiffile is not
+        supplied.
 
-     zscore : bool, optional
-         Use z-score normalized motif scores.
+    zscore : bool, optional
+        Use z-score normalized motif scores.
 
-     gc : bool, optional
-         Equally distribute GC percentages in background sequences.
+    gc : bool, optional
+        Equally distribute GC percentages in background sequences.
 
-     subsample : float, optional
-         Fraction of regions to use.
+    subsample : float, optional
+        Fraction of regions to use.
 
-     random_state : numpy.random.RandomState object, optional
-         make predictions deterministic (where possible).
+    random_state : numpy.random.RandomState object, optional
+        make predictions deterministic (where possible).
 
-     ncpus : int, optional
-         Number of threads to use.
-         Default is the number specified in the config.
+    ncpus : int, optional
+        Number of threads to use.
+        Default is the number specified in the config.
 
     progress : bool or None, optional
-         provide progress bars for long computations.
+        provide progress bars for long computations.
 
-     Returns
-     -------
-     pandas DataFrame with motif activity
+    Returns
+    -------
+    pandas DataFrame with motif activity
     """
 
     if scoring and scoring not in ["score", "count"]:
@@ -689,7 +692,12 @@ def moap(
     else:
         df = pd.read_table(inputfile, index_col=0, comment="#")
 
-    clf = Moap.create(method, ncpus=ncpus, random_state=random_state)
+    disable_tqdm = not progress
+    if progress is None:
+        disable_tqdm = None
+    clf = Moap.create(
+        method, ncpus=ncpus, random_state=random_state, disable_tqdm=disable_tqdm
+    )
 
     if clf.ptype == "classification":
         if df.shape[1] != 1:
