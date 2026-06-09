@@ -439,7 +439,9 @@ class Scanner(object):
                     else:
                         self._threshold = pd.concat((self._threshold, df), axis=1)
                     for motif in scan_motifs:
-                        cache.set(scan_motifs[motif], df[motif.id])
+                        k = scan_motifs[motif]
+                        vals = df[motif.id]
+                        cache.set(k, vals)
 
         except sqlite3.DatabaseError:
             print_cluster_error_message()
