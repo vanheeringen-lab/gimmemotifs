@@ -144,5 +144,5 @@ version = {attr = "gimmemotifs.__about__.__version__"}
 
 [tool.isort]
 profile = "black"
-conda_env = "environment.yml"
+conda_env = "requirements.yml"
 overwrite_in_place = true

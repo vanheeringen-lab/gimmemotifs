@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+
+
+## [0.18.3] - 2026-06-09
+
 ### Added
 
 - `gimme motifs` & `gimme maelstrom` now accept argument `--noprogress` to silence tqdm progress bars
@@ -529,6 +533,7 @@ manage your genomes.
 
 
 [Unreleased]: https://github.com/vanheeringen-lab/gimmemotifs/compare/master...develop
+[0.18.3]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.18.2...0.18.3
 [0.18.2]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.18.1...0.18.2
 [0.18.1]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.18.0...0.18.1
 [0.18.0]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.17.0...0.18.0
