@@ -7,7 +7,7 @@ dependencies:
   - configparser
   - diskcache
   - feather-format
-  - genomepy >=0.16.3             # has no dependency on pkg_resources
+  - genomepy >=0.16.4             # has no dependency on pkg_resources
   - iteround
   - jinja2
   - logomaker

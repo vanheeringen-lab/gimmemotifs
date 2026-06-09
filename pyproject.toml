@@ -18,7 +18,7 @@ dependencies = [
     "diskcache",
     "feather-format",
     "pyarrow <=20",  # pip-specific: requires cmake (but not the pip-installed one)
-    "genomepy >=0.16.3",
+    "genomepy >=0.16.4",
     "iteround",
     "jinja2",
     "logomaker",
