@@ -43,9 +43,11 @@ git flow release start ${new_version}
 ## 4. Test install using pip in fresh conda environment
 
 ```shell
+rm -rf dist
 pip wheel -w dist --no-deps --no-cache-dir --use-pep517 -v .
+conda env remove -n test -yq
 mamba env create --force -n test -f requirements.yaml
-mamba activate test
+conda activate test
 pip install --no-deps --no-cache-dir --use-pep517 -v dist/gimmemotifs*.whl
 
 rm ~/.config/gimmemotifs/gimmemotifs.cfg
