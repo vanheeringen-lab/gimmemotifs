@@ -7,7 +7,7 @@ dependencies:
   - configparser
   - diskcache
   - feather-format
-  - genomepy >=0.16.3             # has no dependency on pkg_resources
+  - genomepy >=0.16.4             # has no dependency on pkg_resources
   - iteround
   - jinja2
   - logomaker
@@ -20,7 +20,7 @@ dependencies:
   - python >=3.9
   - python-xxhash
   - qnorm  >=0.8.1
-  - scikit-learn >=0.23.2         # https://scikit-learn.org/stable/install.html#installing-the-latest-release
+  - scikit-learn >=0.23.2, <1.7   # v1.7 deprecated n_alphas
   - scipy >=1.5                   # https://docs.scipy.org/doc/scipy/dev/toolchain.html#numpy
   - seaborn >=0.10.1
   - statsmodels

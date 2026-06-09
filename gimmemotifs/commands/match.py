@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
-#
-# This module is free software. You can redistribute it and/or modify it under
-# the terms of the MIT License, see the file COPYING included with this
-# distribution.
 from gimmemotifs.comparison import MotifComparer
 from gimmemotifs.motif import Motif, read_motifs
 from gimmemotifs.plot import match_plot

@@ -3,7 +3,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
+
+
 ## Unreleased
+
+### Added
+
+- `gimme motifs` & `gimme maelstrom` now accept argument `--noprogress` to silence tqdm progress bars
+
+### Changed
+
+- minor Scanner.set_threshold optimization
+
+### Fixed
+
+- Scanner.scan now returns sequence.ids along with results.
+  - if sequences cannot be parsed, both ids and results are omitted.
+
+### Removed
+
+- deprecated functions `pwm_scan` and `pwm_scan_all`
+- warning blacklists
+- unused functions `_moap_with_bg()` and `_moap_with_table()`
+- outdated copyright comments (copyright claims still found in docs and COPYING file)
 
 
 

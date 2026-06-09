@@ -5,9 +5,10 @@ This is mainly for personal use at the moment.
 ## 0. (Re)install gimmemotifs
 
 ```shell
-mamba activate base
-mamba env create --force -n gimme -f requirements.yaml
-mamba activate gimme
+conda activate base
+conda env remove -n gimme -yq
+mamba env create -n gimme -f requirements.yaml
+conda activate gimme
 pip install --no-deps --no-cache-dir --use-pep517 -v -e .
 
 ```

@@ -1,8 +1,3 @@
-# Copyright (c) 2016-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
-#
-# This module is free software. You can redistribute it and/or modify it under
-# the terms of the MIT License, see the file COPYING included with this
-# distribution.
 """Class implementing the maelstrom method (Bruse & van Heeringen, 2018)
 
 Examples
@@ -26,8 +21,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib.gridspec import GridSpec
-from scipy.cluster import hierarchy
-from scipy.cluster.hierarchy import dendrogram, linkage
+from scipy.cluster.hierarchy import dendrogram, leaves_list, linkage
 from scipy.spatial.distance import pdist
 from scipy.stats import pearsonr
 from sklearn.cluster import FeatureAgglomeration
@@ -65,6 +59,7 @@ def run_maelstrom(
     plot_all_motifs=False,
     plot_no_motifs=False,
     random_state=None,
+    progress=None,
 ):
     """Find differential motifs.
 
@@ -133,6 +128,9 @@ def run_maelstrom(
 
     random_state : numpy.random.RandomState object, optional
         make predictions deterministic (where possible).
+
+    progress : bool or None, optional
+        provide progress bars for long computations.
     """
     logger.info("Starting maelstrom")
 
@@ -226,6 +224,16 @@ def run_maelstrom(
 
     counts = pd.read_csv(count_table, index_col=0, comment="#", sep="\t")
     scores = pd.read_csv(score_table, index_col=0, comment="#", sep="\t")
+    if len(counts.index) != len(set(counts.index) & set(scores.index)):
+        raise IndexError(
+            f"Regions mismatch between {count_table=} and {score_table=}! Delete and rerun."
+        )
+    if len(counts.index) != len(set(counts.index) & set(df.index)):
+        raise IndexError(
+            f"Regions mismatch between {infile=} and {count_table=}! Delete and rerun."
+        )
+    # regions may have been filtered out if not present in the genome
+    df = df.loc[counts.index]
 
     if filter_redundant:
         logger.info("Selecting non-redundant motifs")
@@ -342,26 +350,27 @@ def run_maelstrom(
 
     for method, scoring, fname in exps:
         try:
+            outfile = os.path.join(outdir, f"activity.{method}.{scoring}.out.txt")
             if scoring == "count":
                 table = count_table
             elif scoring == "score":
                 table = score_table
             else:
                 table = None
-            _moap_with_table(
+            moap(
                 fname,
-                table,
-                outdir,
-                method,
-                scoring,
+                outfile=outfile,
+                method=method,
+                scoring=scoring,
+                motiffile=table,
                 ncpus=ncpus,
                 random_state=random_state,
+                progress=progress,
             )
         except Exception as e:
-            logger.warning(f"Method {method} with scoring {scoring} failed")
-            logger.warning(e)
-            logger.warning("Skipping")
-            raise
+            logger.warning(f"Method '{method}' with scoring metric '{scoring}' failed")
+            # logger.warning(f"Error message: {e}")
+            raise e
 
     dfs = {}
     for method, scoring, fname in exps:
@@ -414,50 +423,6 @@ def run_maelstrom(
             plot_no_motifs=plot_no_motifs,
         )
         logger.info(os.path.join(outdir, "gimme.maelstrom.report.html"))
-
-
-def _moap_with_bg(
-    input_table,
-    genome,
-    data_dir,
-    method,
-    scoring,
-    pfmfile=None,
-    ncpus=None,
-    random_state=None,
-):
-    outfile = os.path.join(data_dir, f"activity.{method}.{scoring}.out.txt")
-    moap(
-        input_table,
-        outfile=outfile,
-        pfmfile=pfmfile,
-        genome=genome,
-        method=method,
-        scoring=scoring,
-        ncpus=ncpus,
-        random_state=random_state,
-    )
-
-
-def _moap_with_table(
-    input_table,
-    motif_table,
-    data_dir,
-    method,
-    scoring,
-    ncpus=None,
-    random_state=None,
-):
-    outfile = os.path.join(data_dir, f"activity.{method}.{scoring}.out.txt")
-    moap(
-        input_table,
-        outfile=outfile,
-        method=method,
-        scoring=scoring,
-        motiffile=motif_table,
-        ncpus=ncpus,
-        random_state=random_state,
-    )
 
 
 def _df_rank_aggregation(df, dfs, method="int_stouffer", ncpus=16):
@@ -513,8 +478,8 @@ def visualize_maelstrom(outdir, sig_cutoff=3, pfmfile=None):
         return
 
     # cluster rows
-    row_linkage = hierarchy.linkage(pdist(vis, metric="euclidean"), method="complete")
-    idx = hierarchy.leaves_list(row_linkage)
+    row_linkage = linkage(pdist(vis, metric="euclidean"), method="complete")
+    idx = leaves_list(row_linkage)
 
     plt.figure()
 
