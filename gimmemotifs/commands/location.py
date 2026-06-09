@@ -1,8 +1,3 @@
-# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
-#
-# This module is free software. You can redistribute it and/or modify it under
-# the terms of the MIT License, see the file COPYING included with this
-# distribution.
 """
 Command line tool 'location'.
 

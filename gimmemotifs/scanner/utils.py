@@ -104,15 +104,15 @@ def scan_seq_mult(
     seqs, seq_gc_bins, motifs, nreport, scan_rc, motifs_meanstd=None, zscore=False
 ):
     ret = []
-    for seq, seq_gc_bin in zip(seqs, seq_gc_bins):
+    for seq_id, seq_gc_bin in zip(seqs, seq_gc_bins):
         result = scan_sequence(
-            seq.upper(),
+            seqs[seq_id].upper(),
             seq_gc_bin,
             motifs,
             nreport,
             scan_rc,
-            motifs_meanstd=motifs_meanstd,
-            zscore=zscore,
+            motifs_meanstd,
+            zscore,
         )
-        ret.append(result)
+        ret.append((seq_id, result))
     return ret

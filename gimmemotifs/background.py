@@ -1,9 +1,3 @@
-# Copyright (c) 2009-2019 Simon van Heeringen <simon.vanheeringen@gmail.com>
-#
-# This module is free software. You can redistribute it and/or modify it under
-# the terms of the MIT License, see the file COPYING included with this
-# distribution.
-
 """
 Classes to generate background files in FASTA format. Two different methods are
 included: MarkovFasta, which generates a background according to a 1st order

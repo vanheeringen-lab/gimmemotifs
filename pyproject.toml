@@ -11,14 +11,14 @@ maintainers = [
     {name = "Siebren Frölich", email = "siebrenf@gmail.com"},
 ]
 
-requires-python = ">=3.9, <3.13"  # upper limit due to genomepy 0.16.3 incompatibility
+requires-python = ">=3.9"
 dependencies = [
     "biofluff >=3.0.4",
     "configparser",
     "diskcache",
     "feather-format",
     "pyarrow <=20",  # pip-specific: requires cmake (but not the pip-installed one)
-    "genomepy >=0.16.3",
+    "genomepy >=0.16.4",
     "iteround",
     "jinja2",
     "logomaker",
@@ -31,7 +31,7 @@ dependencies = [
     # "python",
     "xxhash",  # "python-xxhash"
     "qnorm  >=0.8.1",
-    "scikit-learn >=0.23.2",
+    "scikit-learn >=0.23.2, <1.7",
     "scipy >=1.5",
     "seaborn >=0.10.1",
     "statsmodels",
@@ -144,5 +144,5 @@ version = {attr = "gimmemotifs.__about__.__version__"}
 
 [tool.isort]
 profile = "black"
-conda_env = "environment.yml"
+conda_env = "requirements.yml"
 overwrite_in_place = true
