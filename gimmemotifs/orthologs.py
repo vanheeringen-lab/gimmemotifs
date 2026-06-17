@@ -112,12 +112,12 @@ def motif2factor_from_orthologs(
 
     # run orthofinder on our primary genes
     logger.info("Running orthofinder to find orthologs.")
-    orthofinder_result = _orthofinder(f"{tmpdir}/prim_genes", threads)
+    orthofinder_results_dir = _orthofinder(f"{tmpdir}/prim_genes", threads)
 
     # now parse the output of orthofinder
     logger.info("Storing everything in a database.")
     orthogroup_db = f"{tmpdir}/orthologs.sqlite"
-    load_orthogroups_in_db(orthogroup_db, all_genomes, orthofinder_result)
+    load_orthogroups_in_db(orthogroup_db, all_genomes, orthofinder_results_dir)
 
     # get all motifs and related factors from motif database
     motifs = read_motifs(database)
@@ -173,10 +173,10 @@ def _orthofinder(peptide_folder, threads):
     logger.debug(f"""stdout of orthofinder:\n {result.stdout.decode("utf-8")}""")
     logger.debug(f"""stderr of orthofinder:\n {result.stderr.decode("utf-8")}""")
 
-    orthofinder_result = re.search(
-        "Results:\n    (.*)", result.stdout.decode("utf-8")
+    orthofinder_results_dir = re.search(
+        "Results directory:\n    (.*)", result.stdout.decode("utf-8")
     ).group(1)
-    return orthofinder_result
+    return orthofinder_results_dir
 
 
 def _prepare_genomes_with_annot(genome, genome_dir, outdir):
@@ -354,7 +354,7 @@ def annot2primpep(genome, outdir):
             f.write("\n")
 
 
-def load_orthogroups_in_db(db, genomes, orthofinder_result):
+def load_orthogroups_in_db(db, genomes, orthofinder_results_dir):
     """
     Save the results of orthofinder (tsv file) in a relational database
     (SQLite). This makes it possible to easily switch between genes and
@@ -363,15 +363,16 @@ def load_orthogroups_in_db(db, genomes, orthofinder_result):
     We create three tables; genes, orthogroups, and assemblies.
     """
     orthogroups = pd.read_table(
-        f"{orthofinder_result}/Phylogenetic_Hierarchical_Orthogroups/N0.tsv"
+        f"{orthofinder_results_dir}/Orthogroups/Orthogroups.tsv"
     )
     unassigned = pd.read_table(
-        f"{orthofinder_result}/Orthogroups/Orthogroups_UnassignedGenes.tsv"
+        f"{orthofinder_results_dir}/Orthogroups/Orthogroups_UnassignedGenes.tsv"
     )
 
-    # remove old db if it exists (TODO: shouldnt be necessary?)
+    # remove old db if it exists
     if os.path.exists(db):
         os.remove(db)
+
     conn = sqlite3.connect(db)
     conn.execute(
         """
