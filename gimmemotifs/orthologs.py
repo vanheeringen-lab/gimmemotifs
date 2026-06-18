@@ -173,8 +173,10 @@ def _orthofinder(peptide_folder, threads):
     logger.debug(f"""stdout of orthofinder:\n {result.stdout.decode("utf-8")}""")
     logger.debug(f"""stderr of orthofinder:\n {result.stderr.decode("utf-8")}""")
 
+    # [^/]+: match anything except forward slashes (including the present ANSI codes)
+    # (.+)/: match anything until the last forward slash before a newline
     orthofinder_results_dir = re.search(
-        "Results directory:\n    (.*)", result.stdout.decode("utf-8")
+        "Results directory:[^/]+(.+)/", result.stdout.decode("utf-8")
     ).group(1)
     return orthofinder_results_dir
 
@@ -413,7 +415,7 @@ def load_orthogroups_in_db(db, genomes, orthofinder_results_dir):
 
     # fill up our database
     # all orthogroups
-    for orthogroup in orthogroups["HOG"]:  # <-- all Hierarchical OrthoGroups
+    for orthogroup in orthogroups["Orthogroup"]:  # <-- all Hierarchical OrthoGroups
         conn.execute(f"INSERT INTO orthogroups VALUES(NULL, '{orthogroup}')")
     conn.execute("INSERT INTO orthogroups VALUES(NULL, 'UNASSIGNED')")
 
@@ -424,7 +426,7 @@ def load_orthogroups_in_db(db, genomes, orthofinder_results_dir):
     # all genes per species
     for assembly in genomes:
         for orthogroup, genes in zip(
-            orthogroups["HOG"], orthogroups[f"{assembly}.pep"]
+            orthogroups["Orthogroup"], orthogroups[f"{assembly}.pep"]
         ):
             if isinstance(genes, float) and np.isnan(genes):
                 continue
