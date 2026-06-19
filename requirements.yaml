@@ -57,6 +57,10 @@ dependencies:
   - xxmotif >=1.6                 # optional
   #  - yamda >=0.1.00e9c9d        # optional. 3 GB
 
+  # motif2factors
+  - gffread >=0.12.7
+  - orthofinder >=3.1.5
+
   # development packages
   - black=22.3.0
   - isort=5.10.1
