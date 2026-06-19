@@ -71,10 +71,9 @@ rm ~/.config/gimmemotifs/gimmemotifs.cfg
 gimme -h
 pytest -vvv --disable-pytest-warnings
 
-# Upload to pypi testing server
-python3 -m pip install --upgrade twine
-python3 -m twine upload --repository testpypi dist/*
-
+# Upload to pypi testing server using a PyPi API token
+pip install --upgrade twine
+twine upload --verbose -u __token__ --repository testpypi dist/*.tar.gz
 ```
 
 ## 6. Finish release
@@ -93,7 +92,8 @@ git push --follow-tags origin develop master
 ## 8. Upload to PyPi.
 
 ```shell
-twine upload dist/*
+# upload using a PyPi API token
+twine upload --verbose -u __token__ dist/*.tar.gz
 ```
 
 ## 9. Finalize the release on Github.
