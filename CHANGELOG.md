@@ -9,6 +9,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 
 
+## [0.18.4] - 2026-06-19
+
+### Fixed
+
+- `gimme motif2factors` now works with orthofinder 3.1.5 
+
+
+
 ## [0.18.3] - 2026-06-09
 
 ### Added
@@ -533,6 +541,7 @@ manage your genomes.
 
 
 [Unreleased]: https://github.com/vanheeringen-lab/gimmemotifs/compare/master...develop
+[0.18.4]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.18.3...0.18.4
 [0.18.3]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.18.2...0.18.3
 [0.18.2]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.18.1...0.18.2
 [0.18.1]: https://github.com/vanheeringen-lab/gimmemotifs/compare/0.18.0...0.18.1
