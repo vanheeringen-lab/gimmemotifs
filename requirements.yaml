@@ -26,9 +26,15 @@ dependencies:
   - statsmodels
   - tqdm >=4.46.1
   - xdg
-  - xgboost >=1.0.2               # optional: xgboost regression predictor for MOAP. 1 GB
 
-  # motif discovery tools
+  # gimme maelstrom (optional)
+  - xgboost >=1.0.2               # xgboost regression predictor for MOAP. 1 GB
+
+  # gimme motif2factors (optional)
+  - gffread >=0.12.7
+  - orthofinder >=3.1.5           # requires python >=3.11
+
+  # gimme motifs (optional)
   - gcc                           # optional: necessary to install motif discovery tools
   # AMD                           # installed from source
   # BioProspector                 # installed from source
@@ -50,10 +56,6 @@ dependencies:
   - weeder >=2.0                  # optional. 100 MB
   - xxmotif >=1.6                 # optional
   #  - yamda >=0.1.00e9c9d        # optional. 3 GB
-
-  # motif2factors
-  - gffread >=0.12.7
-  - orthofinder >=3.1.5
 
   # development packages
   - black=22.3.0
